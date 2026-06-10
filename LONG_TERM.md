@@ -32,6 +32,7 @@ MVP can refresh manually. Long-term it should be **daily → hourly**, increment
 - Future problem. Note the architecture should not assume a one-shot pull.
 
 ## 🧹 Data quality (discovered while building the MVP finder)
+- **Suspect times:** some events carry implausible times (e.g. St Pete Beach Seafood Festival "2:00 AM" — likely a midnight-UTC datetime shifted to local, or junk source time). Need a sanity rule: times between 1-6 AM on non-nightlife events → treat as all-day/no-time.
 Real issues surfaced by the first live run (2026-06-06), all deferred:
 - **Price semantics.** A single offer's `price`/`lowPrice` can be a class package, membership, or "from" price — e.g. "Yoga Poolside" parsed as $520. Need to distinguish per-ticket vs. package vs. donation vs. free, and label it.
 - **Price coverage gaps.** Eventbrite & Tampa Bay Events often omit price in their structured data → many events show unknown ("—"). May need a secondary lookup per event page.

@@ -1,0 +1,177 @@
+/* modes.css — the three live-switchable feed-row treatments (cards.jsx Row/RowFeed).
+   Each Row carries .row--<mode> + an inline --ch (category hue, see CATEGORY_HUES);
+   each feed carries .feed--<mode>, plus .mode-cinematic for the dark list backdrop.
+   Anything NOT in the feed (hero, magazine sections, tabbar) is untouched. */
+
+/* ============================================================
+   1) EDITORIAL — magazine elegance (default)
+   110×110 image, category overline + 3px spine in the category
+   hue, right-aligned rail (heat badge / price / distance),
+   14px row gaps, hairline dividers between days only.
+   ============================================================ */
+.row--editorial {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: calc(100% - 40px);
+  margin: 0 20px 14px;
+  padding-left: 13px; /* 3px spine + 10px breathing room */
+}
+.row--editorial::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 2px;
+  background: hsl(var(--ch) 70% 48%);
+}
+.row--editorial .row-img { flex: 0 0 110px; width: 110px; height: 110px; border-radius: 14px; }
+.row--editorial .row-main { flex: 1; min-width: 0; }
+.row--editorial .row-cat {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: hsl(var(--ch) 62% 38%);
+  margin-bottom: 3px;
+}
+.row--editorial .row-title {
+  font-size: 17px;
+  font-weight: 750;
+  line-height: 1.16;
+  letter-spacing: -0.3px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.row--editorial .row-meta {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.row--editorial .sp-label { display: block; margin-top: 4px; }
+.row--editorial .row-side {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  padding-top: 4px;
+}
+.row--editorial .row-side .heat-badge { position: static; } /* off the image, into the rail */
+/* hairline dividers between day groups only — never between rows */
+.feed--editorial .feed-date { margin: 8px 20px 0; padding: 18px 0 12px; border-top: 1px solid var(--line); }
+.feed--editorial .feed-date:first-child { margin-top: 0; padding-top: 14px; border-top: none; }
+
+/* ============================================================
+   2) POSTER — dense + colorful wall you scan fast
+   2-up grid, 1:1 image (r16) with a soft category-hue glow
+   ring, FREE overlay, 2-line 14px title, tiny meta line.
+   ============================================================ */
+.feed--poster {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 12px;
+  padding: 6px 20px 0;
+}
+.feed--poster .feed-date { grid-column: 1 / -1; padding: 14px 2px 0; }
+.feed--poster .feed-date:first-child { padding-top: 4px; }
+.feed--poster .feed-sentinel,
+.feed--poster .feed-end { grid-column: 1 / -1; }
+.row--poster { display: block; width: 100%; margin: 0; }
+.row--poster .row-img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 16px;
+  box-shadow:
+    0 0 0 1px hsl(var(--ch) 72% 55% / 0.55),
+    0 5px 18px hsl(var(--ch) 72% 48% / 0.24);
+}
+.row--poster .row-title {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.22;
+  letter-spacing: -0.1px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.row--poster .row-meta {
+  margin-top: 3px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.row--poster .sp-label { display: block; margin-top: 2px; }
+
+/* ============================================================
+   3) CINEMATIC — Netflix-dark
+   Full-width 92px cover cards (image as darkened background,
+   scrim 0.55), white title + meta bottom-left, heat badge
+   top-right; the LIST AREA backdrop goes near-black.
+   ============================================================ */
+.mode-cinematic { background: #101216; border-radius: 20px; }
+.feed--cinematic { padding: 6px 14px 18px; margin-top: 6px; }
+.mode-cinematic .feed-date { padding: 16px 6px 10px; color: rgba(255, 255, 255, 0.55); }
+.mode-cinematic .feed-end { color: rgba(255, 255, 255, 0.5); }
+.row--cinematic {
+  display: block;
+  width: 100%;
+  height: 92px;
+  margin: 0 0 10px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #1d212a;
+}
+.row--cinematic .row-img { position: absolute; inset: 0; border-radius: 0; }
+.row--cinematic .row-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(0deg, rgba(6, 8, 13, 0.45), rgba(6, 8, 13, 0) 70%),
+    rgba(9, 11, 15, 0.55);
+}
+.row--cinematic .imgbox-fall { display: none; } /* no-image fallback text would collide with the overlay */
+.row--cinematic .row-text {
+  position: absolute;
+  left: 14px;
+  right: 64px; /* clear the heat badge */
+  bottom: 9px;
+  z-index: 1;
+}
+.row--cinematic .row-title {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: -0.2px;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.row--cinematic .row-meta {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.72);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.row--cinematic .sp-label { color: rgba(255, 255, 255, 0.6); }

@@ -1,0 +1,127 @@
+/* bubble.css — BubblePage + SearchPage chrome (bubble/search agent owns this file).
+   Page scaffolding (.pg, .pg-band, .pg-back, .pg-body, .empty, …) lives in App.css;
+   these classes layer the per-bubble hue tint, the Near-Me locate callout, and the
+   round search box on top. --bh (a 0–360 hue number) is set inline on the .pg root. */
+
+/* ===== BubblePage hue-tinted hero band (soft gradient → page bg) ===== */
+.bub-band {
+  padding-bottom: 18px;
+  background: linear-gradient(
+    180deg,
+    hsla(var(--bh, 200), 70%, 45%, 0.18),
+    hsla(var(--bh, 200), 70%, 45%, 0)
+  );
+}
+.bub-band-main { padding: 12px 6px 0; }
+.bub-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+.bub-emoji { flex: 0 0 auto; font-size: 30px; line-height: 1; }
+/* playful one-liner, dyed in the bubble's hue (darkened for contrast on --bg) */
+.bub-tag { margin-top: 7px; font-size: 13.5px; font-weight: 600; color: hsl(var(--bh, 200), 45%, 32%); }
+
+/* ===== Near Me: friendly inline location ask (shown until coords arrive) ===== */
+.bub-locate {
+  margin: 6px 20px 20px;
+  padding: 18px 16px;
+  border-radius: 16px;
+  background: hsla(var(--bh, 200), 70%, 45%, 0.08);
+  text-align: center;
+}
+.bub-locate-txt { font-size: 13.5px; font-weight: 600; color: var(--ink); line-height: 1.45; }
+.bub-locate-btn {
+  margin-top: 12px;
+  height: 44px;
+  padding: 0 22px;
+  border: none;
+  border-radius: 999px;
+  background: hsl(var(--bh, 200), 70%, 38%);
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform var(--dur-micro);
+}
+.bub-locate-btn:active { transform: scale(0.95); }
+.bub-locate-btn:disabled { opacity: 0.6; cursor: default; }
+
+/* ===== SearchPage: round 44px search box (sits next to .pg-back in .pg-head) ===== */
+.srch-box {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+.srch-box:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.12);
+}
+.srch-ic { flex: 0 0 auto; padding: 0 4px 0 14px; font-size: 15px; line-height: 1; }
+.srch-input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  background: none;
+  padding: 0 6px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--ink);
+  outline: none;
+}
+.srch-clear {
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  margin-right: 9px;
+  border: none;
+  border-radius: 50%;
+  background: #eceef1;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform var(--dur-micro);
+}
+.srch-clear:active { transform: scale(0.9); }
+.srch-count { padding: 8px 20px 2px; font-size: 13px; font-weight: 600; color: var(--muted); }
+
+/* suggestion chips inside the pre-query empty state */
+.srch-sug { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 16px; }
+.srch-sug-btn {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  padding: 9px 15px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  transition: transform var(--dur-micro);
+}
+.srch-sug-btn:active { transform: scale(0.94); }
+
+/* ===== reduced motion: drop the press scales ===== */
+@media (prefers-reduced-motion: reduce) {
+  .bub-locate-btn:active,
+  .srch-clear:active,
+  .srch-sug-btn:active { transform: none; }
+}

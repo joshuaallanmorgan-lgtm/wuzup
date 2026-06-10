@@ -18,8 +18,8 @@
 
   /* motion tokens (UI_SPEC §3) */
   --dur-micro: 120ms; /* press, chip fill */
-  --dur-fast: 200ms; /* toggles, crossfades, tab switch, lens swap-in */
-  --dur-base: 400ms; /* section entrances, lens-swap clear window */
+  --dur-fast: 200ms; /* toggles, crossfades, tab switch, list swap-in */
+  --dur-base: 400ms; /* section entrances */
   --dur-page: 400ms; /* detail open, sheets, view toggle */
   --ease-out: cubic-bezier(0.165, 0.84, 0.44, 1);
   --ease-emphasis: cubic-bezier(0.16, 1, 0.3, 1); /* "the Apple curve" */
