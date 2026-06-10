@@ -355,17 +355,577 @@
     "lat": 27.9886596,
     "lng": -82.4478559
   },
+  "10165 McKinley Dr, Tampa, FL 33612": {
+    "lat": 28.0416501,
+    "lng": -82.4162986
+  },
+  "415 Corey Ave, St. Pete Beach, FL 33706": {
+    "lat": 27.7420341,
+    "lng": -82.7502856
+  },
+  "355 4th St. North, St. Petersburg, FL 33701": {
+    "lat": 27.7769176,
+    "lng": -82.6384264
+  },
+  "One Dali Blvd., St. Petersburg, FL 33701": {
+    "lat": 27.7652385,
+    "lng": -82.6330438
+  },
+  "335 2nd Ave NE, St. Petersburg, FL 33701": {
+    "lat": 27.7736559,
+    "lng": -82.6311711
+  },
+  "Lake Tarpon Ave, Tarpon Springs, FL 34689": {
+    "lat": 28.1468732,
+    "lng": -82.7301
+  },
+  "719 Central Avenue, St. Petersburg, FL 33701": {
+    "lat": 27.771458,
+    "lng": -82.6442047
+  },
+  "230 1st St. SE, St. Petersburg, FL 33701": {
+    "lat": 27.7712264,
+    "lng": -82.6340259
+  },
+  "1 Causeway Blvd., Clearwater Beach, FL 33767": {
+    "lat": 27.977109,
+    "lng": -82.829994
+  },
+  "600 2nd Ave NE, St. Petersburg, FL 33701": {
+    "lat": 27.7735017,
+    "lng": -82.6289034
+  },
+  "163 3rd St N, St. Petersburg, FL 33701": {
+    "lat": 27.7725062,
+    "lng": -82.6370009
+  },
+  "1 Dali Blvd, St. Petersburg, FL 33701": {
+    "lat": 27.7659874,
+    "lng": -82.6314611
+  },
+  "420 22nd St. S., St. Petersburg, FL 33712": {
+    "lat": 27.7673458,
+    "lng": -82.6622619
+  },
+  "445 East Shore Dr, Clearwater, FL 33767": {
+    "lat": 27.9801154,
+    "lng": -82.8256721
+  },
+  "1901 Central Ave, St. Petersburg, FL 33713": {
+    "lat": 27.7712954,
+    "lng": -82.6595381
+  },
+  "150 Central Ave, St. Petersburg, FL 33701": {
+    "lat": 27.7706341,
+    "lng": -82.6347672
+  },
   "2606 Fairfield Ave S, Building 6, St. Petersburg, 33712": null,
-  "2020 W Brandon Blvd , Unit 105, FL": null,
+  "Multiple Locations, St. Petersburg, FL 33701": null,
+  "Downtown Dunedin - Various Locations, Dunedin, FL 34698": null,
+  "13th Ave NE & North Shore Dr NE, St. Petersburg, FL 33701": null,
+  "255 Beach Drive NE, St. Petersburg, FL 33701": {
+    "lat": 27.7744658,
+    "lng": -82.6318274
+  },
+  "515 22nd St S, Suite 130, St. Petersburg, FL 33712": null,
+  "445 E Shore Dr, Slip 50, Clearwater Beach, FL 33767": null,
+  "515 22nd St., Suite 130, St. Petersburg, FL 33712": null,
+  "515 22nd St S, Suite #130, St. Petersburg, FL 33712": null,
+  "501 Central Ave, St. Petersburg, FL 33701": {
+    "lat": 27.7713577,
+    "lng": -82.640387
+  },
+  "220 4th St N, St. Petersburg, FL 33701": {
+    "lat": 27.7740739,
+    "lng": -82.6386979
+  },
+  "249 Windward Passage, Clearwater, FL 33767": {
+    "lat": 27.9768877,
+    "lng": -82.8192925
+  },
+  "515 22nd St S, St. Petersburg, FL 33712": {
+    "lat": 27.7663071,
+    "lng": -82.6629455
+  },
+  "10500 Ulmerton Rd, #500, Largo, FL 33771": null,
+  "400 Bayshore Dr NE, St. Petersburg, FL 33701": null,
+  "1611 W. Swann Avenue, Tampa, FL 33606": {
+    "lat": 27.9374003,
+    "lng": -82.4760221
+  },
+  "620 1st Ave. S, St. Petersburg, FL 33701": {
+    "lat": 27.7712264,
+    "lng": -82.6340259
+  },
+  "737 Main St., Safety Harbor, FL 34695": {
+    "lat": 27.9910941,
+    "lng": -82.6947381
+  },
+  "2232 5th Ave S, St. Petersburg, FL 33712": {
+    "lat": 27.76644,
+    "lng": -82.6635357
+  },
+  "355 4th St N, St. Petersburg, FL 33701": {
+    "lat": 27.7769176,
+    "lng": -82.6384264
+  },
+  "1211 1st Ave N., Suite 101, St. Petersburg, FL 33705": null,
+  "2606 Fairfield Ave. S., Building 5, St. Petersburg, FL 33712": null,
+  "5546 1st Ave N, St. Petersburg, FL 33710": {
+    "lat": 27.7717111,
+    "lng": -82.7087012
+  },
+  "Hole in the Fence trail head is only one-half mile northeast from I-75/Fletcher exit on Morris Bridge Road., Tampa, FL": null,
+  "7891 26th Ave. N St. Petersburg, FL 33710": {
+    "lat": 27.7968576,
+    "lng": -82.7483316
+  },
   "620 First Avenue South, St. Petersburg, FL, 33701": null,
   "1010 North Macinnes Place, Tampa, FL, 33602": null,
+  "1001 W Cass St, Tampa, FL": {
+    "lat": 27.950166,
+    "lng": -82.4696408
+  },
   "910 Skipper Rd., Tampa, FL 33613": null,
+  "472 Wood St, Dunedin, FL 34698": {
+    "lat": 28.0115418,
+    "lng": -82.7863067
+  },
+  "559 Mirror Lake Dr N, St. Petersburg, FL 33701": {
+    "lat": 27.7758828,
+    "lng": -82.6416131
+  },
+  "200 1st Ave N, Suite 206, St. Petersburg, FL 33701": null,
   "810 East Skagway Blvd, Tampa, FL 33604": null,
+  "222 22nd Street South, Saint Petersburg, FL": {
+    "lat": 27.7690478,
+    "lng": -82.6625983
+  },
+  "4810 North Himes Avenue, Tampa, FL": {
+    "lat": 27.9897764,
+    "lng": -82.5012664
+  },
   "1624 E 7th Ave Ste 307, Tampa": null,
+  "1910 N Ola Ave, Tampa, FL": {
+    "lat": 27.9610336,
+    "lng": -82.4637488
+  },
   "253 Fifth Ave. N., St. Petersburg, 33701": null,
   "601 S Harbour Island Blvd Suite 110, Tampa": null,
   "8551 West Venable Street Crystal River, FL 34429, Crystal River, FL": null,
+  "Downtown Main St, Dunedin, FL 34698": null,
+  "300 Cleveland St, Clearwater, FL 33755": {
+    "lat": 27.965832,
+    "lng": -82.803608
+  },
+  "350 2nd Ave. N. OR 100 1st Ave SE, St. Petersburg, FL 33701": {
+    "lat": 27.7712264,
+    "lng": -82.6340259
+  },
+  "501 Central Ave., St. Petersburg, FL 33701": {
+    "lat": 27.7713577,
+    "lng": -82.640387
+  },
+  "255 Beach Dr NE, St. Petersburg, FL 33701": {
+    "lat": 27.7744658,
+    "lng": -82.6318274
+  },
+  "355 4th Street North, St. Petersburg, FL 33701": {
+    "lat": 27.7769176,
+    "lng": -82.6384264
+  },
+  "2606 Fairfield Ave S, St. Petersburg, FL 33712": {
+    "lat": 27.7636804,
+    "lng": -82.6692162
+  },
+  "401 Gulf Blvd, Indian Rocks Beach, FL 33785": {
+    "lat": 27.8827917,
+    "lng": -82.8502061
+  },
+  "421 4th Ave N, St. Petersburg, FL 33701": {
+    "lat": 27.7764489,
+    "lng": -82.6389286
+  },
+  "405 Cleveland Street, Clearwater, FL 33755": {
+    "lat": 27.9652671,
+    "lng": -82.800951
+  },
+  "401 Central Ave, St. Petersburg, FL 33701": {
+    "lat": 27.771378,
+    "lng": -82.6386784
+  },
+  "1750 Lake Ave SE, Largo, FL 33771": {
+    "lat": 27.9153049,
+    "lng": -82.7556139
+  },
+  "10490 Gandy Blvd, St. Petersburg, FL 33702": {
+    "lat": 27.8551192,
+    "lng": -82.6574245
+  },
+  "420 22nd St S, St. Petersburg, FL 33712": {
+    "lat": 27.7673458,
+    "lng": -82.6622619
+  },
+  "4655 Gulf Blvd, St. Pete Beach, FL 33706": {
+    "lat": 27.7224298,
+    "lng": -82.7389473
+  },
+  "230 1st St SE, St. Petersburg, FL 33701": {
+    "lat": 27.7691196,
+    "lng": -82.6339093
+  },
+  "2629 McCormick Dr, Building 6, Clearwater, FL 33759": null,
+  "1975 3rd Ave S, Suite A, St. Petersburg, FL 33712": null,
+  "3015 7th St N, St. Petersburg, FL 33704": {
+    "lat": 27.799605,
+    "lng": -82.6425467
+  },
+  "2724 6th Ave S, St. Petersburg, FL 33712": {
+    "lat": 27.7645136,
+    "lng": -82.6705444
+  },
+  "1744 9th Ave N. St. Petersburg, FL": {
+    "lat": 27.78104,
+    "lng": -82.6567026
+  },
+  "3015 7th St N, St. Petersburg, FL, 33704": {
+    "lat": 27.7996031,
+    "lng": -82.6425437
+  },
+  "400 Main St., Safety Harbor, FL 34695": {
+    "lat": 27.990708,
+    "lng": -82.691329
+  },
+  "535 4th Ave N, St. Petersburg, FL 33701": {
+    "lat": 27.7767865,
+    "lng": -82.6411134
+  },
+  "2906 34th St S, Saint Petersburg, FL 33712": {
+    "lat": 27.7409283,
+    "lng": -82.6791997
+  },
+  "398-300 Corey Ave., St. Pete Beach, FL 33706": null,
+  "2501 5th Ave N, St. Petersburg, FL 33713": {
+    "lat": 27.777465,
+    "lng": -82.667346
+  },
+  "6340 49th St N., Pinellas Park, FL 33781": {
+    "lat": 27.830297,
+    "lng": -82.7004314
+  },
+  "2390 5th Ave S., St. Petersburg, FL 33712": {
+    "lat": 27.7664194,
+    "lng": -82.6655282
+  },
+  "325 Main Street, Dunedin, FL 34698": {
+    "lat": 28.0118988,
+    "lng": -82.7892563
+  },
+  "502 W Henry Ave, Tampa, FL": {
+    "lat": 27.9996552,
+    "lng": -82.4649907
+  },
+  "3101 Beach Blvd., Gulfport, FL 33707": {
+    "lat": 27.738692,
+    "lng": -82.707904
+  },
+  "699 Central Ave, St. Petersburg, FL 33701": {
+    "lat": 27.771248,
+    "lng": -82.643779
+  },
+  "Tampa, FL": {
+    "lat": 27.9449854,
+    "lng": -82.4583107
+  },
+  "5801 22nd Ave. N., St. Petersburg, FL": {
+    "lat": 27.7924938,
+    "lng": -82.7141136
+  },
+  "110 Second St N,, St. Petersburg, FL": null,
+  "340 Beach Dr NE, St. Petersburg, FL 33701": {
+    "lat": 27.7760202,
+    "lng": -82.6322271
+  },
+  "Trout Creek Park Rd, Thonotosassa, FL": null,
+  "9427 US-301, Riverview, FL": {
+    "lat": 27.9034802,
+    "lng": -82.3439945
+  },
+  "349 Main St, Dunedin, FL 34698": {
+    "lat": 28.011815,
+    "lng": -82.788852
+  },
+  "10575 49th St N, Clearwater, FL 33762": null,
+  "13631 Morris Bridge Road,, Thonotosassa, FL": {
+    "lat": 28.0802059,
+    "lng": -82.3326366
+  },
+  "420 22nd St. S. St. Petersburg, FL 33712": {
+    "lat": 27.7673458,
+    "lng": -82.6622619
+  },
+  "2907 W Bay to Bay Blvd Suite A100, Tampa, FL": null,
+  "3101 Beach Blvd S, Gulfport, FL 33707": {
+    "lat": 27.738693,
+    "lng": -82.707907
+  },
+  "1 Tropicana Field Drive, St. Petersburg, FL 33705": null,
+  "691 S Gulfview Blvd, Clearwater Beach, FL 33767": {
+    "lat": 27.9682185,
+    "lng": -82.8279331
+  },
+  "22041 US Hwy 19 N, Clearwater, FL 33765": {
+    "lat": 27.9841176,
+    "lng": -82.7296085
+  },
+  "535 Dr MLK Jr St N, St. Petersburg, FL 33701": {
+    "lat": 27.7712264,
+    "lng": -82.6340259
+  },
+  "719 Central Ave, St. Petersburg, FL 33701": {
+    "lat": 27.771458,
+    "lng": -82.6442047
+  },
+  "1814 Drew Street, Clearwater, FL 33765": {
+    "lat": 27.9680745,
+    "lng": -82.7623024
+  },
   "5701 East Hillsborough Avenue #Suite 2409, Tampa, FL": null,
+  "10442 N. Dale Mabry Hwy, Tampa, FL": {
+    "lat": 27.951692,
+    "lng": -82.505552
+  },
+  "2551 E State Road 60, Valrico, FL": null,
+  "1 Tropicana Dr., St. Petersburg, FL 33705": {
+    "lat": 27.7685121,
+    "lng": -82.6483611
+  },
+  "855 28th St S, St. Petersburg, FL 33712": {
+    "lat": 27.76056,
+    "lng": -82.671245
+  },
+  "3301 Gateway Centre Blvd, Pinellas Park, FL 33782": {
+    "lat": 27.852882,
+    "lng": -82.6789618
+  },
+  "2724 6th Ave S., St. Petersburg, FL 33712": {
+    "lat": 27.7645136,
+    "lng": -82.6705444
+  },
+  "3408 S Dale Mabry Hwy, Tampa, FL": {
+    "lat": 27.9126353,
+    "lng": -82.5059823
+  },
+  "11109 N 30th St, Tampa, FL": {
+    "lat": 28.047609,
+    "lng": -82.4260854
+  },
+  "5223 Orient Road, Tampa, FL": {
+    "lat": 27.9936531,
+    "lng": -82.3710451
+  },
+  "1906 Bloomindale Ave., Valrico, FL": null,
+  "11001 N. 15th St., Tampa, FL": {
+    "lat": 28.051062,
+    "lng": -82.44278
+  },
   "Tampa-Hillsborough County Public Library": null,
-  "11909 125th St. N., Largo, FL 33774": null
+  "120 1st Ave N, St. Petersburg, FL": {
+    "lat": 27.7718237,
+    "lng": -82.6995988
+  },
+  "357 Corey Ave, St. Pete Beach, FL 33706": {
+    "lat": 27.7423657,
+    "lng": -82.7498976
+  },
+  "2390 5th Ave S, St. Petersburg, FL 33712": {
+    "lat": 27.7664194,
+    "lng": -82.6655282
+  },
+  "1111 McMullen Booth Road, Clearwater, FL 33759": {
+    "lat": 27.9766687,
+    "lng": -82.7086545
+  },
+  "440 2nd Avenue North St. Petersburg, Florida 33701": {
+    "lat": 27.7734106,
+    "lng": -82.6392143
+  },
+  "10575 49th St N, Clearwater, FL": null,
+  "13763 N Nebraska Ave, Tampa, FL": {
+    "lat": 28.0000041,
+    "lng": -82.4512373
+  },
+  "Bayshore Drive, St. Petersburg, FL 33701": {
+    "lat": 27.7424824,
+    "lng": -82.6355474
+  },
+  "1962 1st Ave S, St. Petersburg, FL 33712": {
+    "lat": 27.7699369,
+    "lng": -82.6601069
+  },
+  "402 West Laurel Street,, Tampa, FL": {
+    "lat": 27.9542457,
+    "lng": -82.465817
+  },
+  "4301 13th Ave S. St Petersburg, FL": {
+    "lat": 27.7583407,
+    "lng": -82.6930161
+  },
+  "11909 125th St. N., Largo, FL 33774": null,
+  "10400 Gulf Boulevard, Treasure Island, FL": {
+    "lat": 27.7655852,
+    "lng": -82.7679566
+  },
+  "809 Gulf Way,, St. Pete Beach, FL": {
+    "lat": 27.6882475,
+    "lng": -82.7378097
+  },
+  "5223 Orient Rd, Tampa, FL": {
+    "lat": 27.9936531,
+    "lng": -82.3710451
+  },
+  "2340 Central Avenue, St. Petersburg, FL 33712": {
+    "lat": 27.7707531,
+    "lng": -82.6652787
+  },
+  "22041 U.S. 19, Clearwater, FL 33765": null,
+  "One Tropicana Drive, St Petersburg, FL": {
+    "lat": 27.7684998,
+    "lng": -82.6499323
+  },
+  "P8QX+5V St. Petersburg, FL": null,
+  "2894 52nd Ln N, St. Petersburg, FL": {
+    "lat": 27.798116,
+    "lng": -82.7058595
+  },
+  "614 9th Ave S, St. Petersburg, FL": {
+    "lat": 27.7614377,
+    "lng": -82.6418724
+  },
+  "12629 Morris Bridge Rd, Thonotosassa, FL": {
+    "lat": 28.0801024,
+    "lng": -82.3336196
+  },
+  "1320 Central Ave, St. Petersburg, FL 33705": {
+    "lat": 27.7707968,
+    "lng": -82.6523464
+  },
+  "400 1st St S, St. Petersburg, FL 33701": {
+    "lat": 27.7506006,
+    "lng": -82.6338324
+  },
+  "36750 U.S. Highway 19 N, Palm Harbor, FL 34684": null,
+  "405 Cleveland St, Clearwater, FL 33755": {
+    "lat": 27.9652671,
+    "lng": -82.800951
+  },
+  "324 E. Pine St., Tarpon Springs, FL 34689": {
+    "lat": 28.1508599,
+    "lng": -82.7368355
+  },
+  "373 Douglas Avenue, Dunedin, FL 34698": {
+    "lat": 28.0038021,
+    "lng": -82.786662
+  },
+  "615 Channelside Dr, Tampa, FL": {
+    "lat": 27.9433687,
+    "lng": -82.446999
+  },
+  "1700 Sunset Drive, Tarpon Springs, FL 34689": {
+    "lat": 28.152343,
+    "lng": -82.785692
+  },
+  "101 Central Park Dr, Largo, FL 33771": {
+    "lat": 27.914665,
+    "lng": -82.783571
+  },
+  "10400 Gulf Blvd, Treasure Island, FL 33706": {
+    "lat": 27.7655852,
+    "lng": -82.7679566
+  },
+  "1 Tropicana Dr., St. Petersburg, FL 33701": {
+    "lat": 27.7684998,
+    "lng": -82.6499323
+  },
+  "Madeira Beach, Madeira Beach, FL 33708": {
+    "lat": 27.8047505,
+    "lng": -82.8007078
+  },
+  "25 Causeway Boulevard Slip #55, Clearwater, FL 33767": null,
+  "Main Street, Safety Harbor, FL 34695": {
+    "lat": 27.9908139,
+    "lng": -82.7027329
+  },
+  "Downtown Waterfront District, Gulfport, FL 33707": null,
+  "10165 N McKinley Drive, Tampa, FL 33612": {
+    "lat": 28.0416501,
+    "lng": -82.4162986
+  },
+  "Main Street, Dunedin, FL 34698": {
+    "lat": 28.0195176,
+    "lng": -82.7575919
+  },
+  "105 Veterans Memorial Ln, Safety Harbor, FL 34695": {
+    "lat": 27.989798,
+    "lng": -82.6879783
+  },
+  "Tampa Riverwalk, Tampa, FL 33602": {
+    "lat": 27.959336,
+    "lng": -82.4651056
+  },
+  "737 Main St, Safety Harbor, FL 34695": {
+    "lat": 27.9910941,
+    "lng": -82.6947381
+  },
+  "400 First St S, St. Petersburg, FL 33701": null,
+  "crescent Lake, St. Petersburg, FL": {
+    "lat": 27.7881339,
+    "lng": -82.6412585
+  },
+  "1823 E 7th Ave ,, Tampa, FL": {
+    "lat": 27.9601642,
+    "lng": -82.4384463
+  },
+  "601 14th st. S., St Petersburg, Fl, 33705": {
+    "lat": 27.7635875,
+    "lng": -82.6528558
+  },
+  "255 Drew Street, Clearwater, FL 33755": {
+    "lat": 27.9681002,
+    "lng": -82.7789664
+  },
+  "4230 Shore Acres Blvd NE, St. Petersburg, FL": {
+    "lat": 27.8110372,
+    "lng": -82.6091119
+  },
+  "735 Dodecanese Blvd, Tarpon Springs, FL 34689": {
+    "lat": 28.1551957,
+    "lng": -82.7608255
+  },
+  "420 22nd St S, St. Pete, FL 33701": null,
+  "631 Central Avenue, St. Petersburg, FL 33701": {
+    "lat": 27.7712631,
+    "lng": -82.6423113
+  },
+  "12615 102nd Ave Largo, Largo, FL 33778": null,
+  "1401 62nd Ave S, St. Petersburg, FL, 33705": {
+    "lat": 27.7137777,
+    "lng": -82.6525883
+  },
+  "3769 50th Ave. S, St. Petersburg, FL 33711": {
+    "lat": 27.7221724,
+    "lng": -82.6820487
+  },
+  "18 2nd Street N, St. Petersburg, FL 33701": {
+    "lat": 27.7714393,
+    "lng": -82.6356312
+  },
+  "100 Coronado Dr, Clearwater Beach, FL 33767": {
+    "lat": 27.975056,
+    "lng": -82.828251
+  },
+  "720 Central Ave, St. Petersburg, FL 33701": {
+    "lat": 27.7707276,
+    "lng": -82.6442848
+  }
 }

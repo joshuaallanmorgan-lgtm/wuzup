@@ -8,8 +8,24 @@ import { decodeEntities, stripHtml, truncate, fetchWithTimeout } from './_shared
 
 export const name = 'Meetup';
 
-const BASE_URL = 'https://www.meetup.com/find/?location=us--fl--tampa&source=EVENTS';
-const EXTRA_URL = BASE_URL + '&dateRange=this-week';
+// Listing fetches (verified live 2026-06: each returns its own ~11-12 events
+// embedded in __NEXT_DATA__; categoryId filters server-side — ids come from the
+// find page's category chips: 652 food&drink, 395 music, 482 sports, 684 outdoors).
+// NOTE: we deliberately do NOT emit a category hint from these — Meetup's
+// category is group-level, not event-level (a fitness group's happy hour shows
+// under "sports"), and native hints override the pipeline's text classifier.
+// Keep this list <= 6 — requests are paced 400ms apart to stay polite.
+const TAMPA = 'https://www.meetup.com/find/?location=us--fl--tampa&source=EVENTS';
+const ST_PETE = 'https://www.meetup.com/find/?location=us--fl--st-petersburg&source=EVENTS';
+const LISTING_URLS = [
+  TAMPA,
+  ST_PETE,
+  `${TAMPA}&categoryId=652`,
+  `${TAMPA}&categoryId=395`,
+  `${TAMPA}&categoryId=482`,
+  `${TAMPA}&categoryId=684`,
+];
+const FETCH_GAP_MS = 400;
 const USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36';
 const WINDOW_DAYS = 45;
@@ -111,6 +127,11 @@ function mapEvent(node, refMap) {
     else if (typeof venueObj.lon === 'number') lng = venueObj.lon;
   }
 
+  // No venue AND no address = a webinar/online event Meetup didn't flag
+  // (verified leak: a recruiter webinar with PHYSICAL eventType but no place).
+  // A Tampa Bay things-to-do app needs a place you can go.
+  if (!venue && !address) return null;
+
   const groupObj = deref(node.group, refMap);
   const groupName =
     groupObj && typeof groupObj === 'object' && typeof groupObj.name === 'string'
@@ -198,7 +219,10 @@ export async function fetchEvents() {
   const windowEnd = new Date(todayStart.getTime() + WINDOW_DAYS * 86400000);
 
   const all = [];
-  for (const url of [BASE_URL, EXTRA_URL]) {
+  let firstFetch = true;
+  for (const url of LISTING_URLS) {
+    if (!firstFetch) await new Promise((r) => setTimeout(r, FETCH_GAP_MS));
+    firstFetch = false;
     try {
       all.push(...await fetchPageEvents(url, todayStart, windowEnd));
     } catch (err) {
@@ -207,7 +231,8 @@ export async function fetchEvents() {
     }
   }
 
-  // Dedupe by event URL (fall back to title+start).
+  // Dedupe by event URL (fall back to title+start) — the same event can
+  // surface under several listing fetches.
   const byKey = new Map();
   for (const ev of all) {
     const key = ev.url || `${ev.title}|${ev.start}`;

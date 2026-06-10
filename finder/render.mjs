@@ -428,29 +428,44 @@ async function renderListing(page, url) {
   return page.evaluate(extractListingCards);
 }
 
+// Delay between detail-enrichment navigations: 3-5s with a "randomized feel" —
+// the base varies deterministically by navigation index (so consecutive waits
+// differ) plus real jitter. Rapid-fire or metronome-regular requests trip the
+// Cloudflare WAF mid-run ("Sorry, you have been blocked").
+function detailDelayMs(i) {
+  return 3000 + ((i * 977) % 1400) + Math.floor(Math.random() * 600);
+}
+
 // Enrich a promoted (date-less) event via the keyword search listing — the
 // /event/ detail pages are Cloudflare-blocked, but EventSearch is not, and the
 // search-result card carries the full date/venue/address/price block.
+// Politeness: paced navs (detailDelayMs), listing-page referer, shared budget
+// (max 5 navs/run), and a hard stop for the rest of the run on any block page.
 async function searchLookup(page, ev, budget) {
   const cleanTitle = ev.title.replace(/['"’‘“”]/g, '').replace(/\s+/g, ' ').trim();
   const queries = [`"${cleanTitle}"`, cleanTitle];
   for (const q of queries) {
-    if (budget.navsLeft <= 0) return null;
+    if (budget.blocked || budget.navsLeft <= 0) return null;
     budget.navsLeft -= 1;
     const url = `${BASE}/tampa/EventSearch?keywords=${encodeURIComponent(q)}&sortType=date&v=d`;
     try {
-      // Pace navigations — rapid-fire requests trip the Cloudflare WAF.
-      await page.waitForTimeout(6000 + Math.floor(Math.random() * 4000));
-      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      await page.waitForTimeout(detailDelayMs(budget.navsUsed));
+      budget.navsUsed += 1;
+      // Referer = the listing page the promoted card actually came from,
+      // matching how a human would reach this search.
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000, referer: budget.referer });
       await page.waitForSelector('li.fdn-pres-item', { timeout: 12000 }).catch(() => {});
       await page.waitForTimeout(1500);
-      const blocked = await page.evaluate(() => /you have been blocked/i.test(document.body.innerText || ''));
+      const blocked = await page.evaluate(
+        () =>
+          /blocked|attention required/i.test(document.title || '') ||
+          /you have been blocked/i.test((document.body && document.body.innerText) || '')
+      );
       if (blocked) {
-        budget.blocksSeen += 1;
-        console.error(`[render] CF block during search lookup (${ev.title}); backing off`);
-        if (budget.blocksSeen >= 3) return null; // IP is flagged — stop digging
-        await page.waitForTimeout(30000);
-        continue;
+        // IP is flagged — do NOT hammer; no more detail fetches this run.
+        budget.blocked = true;
+        console.error(`[render] CF block during search lookup (${ev.title}); stopping detail fetches for this run`);
+        return null;
       }
       const cards = await page.evaluate(extractListingCards);
       const match = cards.find((c) => !c.promoted && c.href === ev.url && c.cardText);
@@ -479,12 +494,21 @@ function mergeParsed(ev, parsed) {
 }
 
 async function scrapeCreativeLoafing(opts) {
-  const budget = { navsLeft: opts.maxDetailRenders ?? 8, blocksSeen: 0 };
+  // Detail-render budget: hard cap of 5 per run regardless of opts — the CF
+  // WAF flags this IP when we dig harder than that.
+  const budget = {
+    navsLeft: Math.min(opts.maxDetailRenders ?? 5, 5),
+    navsUsed: 0,
+    blocked: false,
+    referer: LISTING_URLS[0],
+  };
   const browser = await chromium.launch({
     headless: opts.headless ?? true,
     args: ['--disable-blink-features=AutomationControlled'],
   });
   try {
+    // One context + one page reused for every navigation this run (cookies /
+    // CF clearance persist across listing renders and detail lookups).
     const context = await browser.newContext({
       userAgent: UA,
       viewport: { width: 1366, height: 900 },
@@ -544,10 +568,10 @@ async function scrapeCreativeLoafing(opts) {
     needsLookup.sort((a, b) => (b.promoted - a.promoted) || (b.staffPick - a.staffPick));
     for (let pass = 0; pass < 2; pass++) {
       const pending = needsLookup.filter((e) => !e.start);
-      if (!pending.length || budget.navsLeft <= 0 || budget.blocksSeen >= 3) break;
+      if (!pending.length || budget.navsLeft <= 0 || budget.blocked) break;
       if (pass > 0) await page.waitForTimeout(20000); // back off before retrying (CF cool-down)
       for (const ev of pending) {
-        if (budget.navsLeft <= 0 || budget.blocksSeen >= 3) break;
+        if (budget.navsLeft <= 0 || budget.blocked) break;
         const match = await searchLookup(page, ev, budget);
         if (match) {
           mergeParsed(ev, parseEventText(match.cardText, match.title));
