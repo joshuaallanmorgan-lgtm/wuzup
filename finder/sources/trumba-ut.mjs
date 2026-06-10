@@ -1,48 +1,12 @@
 // Univ. of Tampa campus events via Trumba public JSON feed.
 // Source: https://www.trumba.com/calendars/ut-events.json
+import { decodeEntities, stripHtml, truncate, fetchWithTimeout } from './_shared.mjs';
 
 export const name = 'Univ. of Tampa';
 
 const FEED_URL = 'https://www.trumba.com/calendars/ut-events.json';
 const USER_AGENT = 'tampabay-events-finder/0.1';
 const WINDOW_DAYS = 45;
-const TIMEOUT_MS = 20000;
-
-const ENTITIES = {
-  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
-  ndash: '–', mdash: '—', hellip: '…', rsquo: '’',
-  lsquo: '‘', ldquo: '“', rdquo: '”',
-};
-
-function decodeEntities(s) {
-  if (!s) return s;
-  return s
-    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
-    .replace(/&([a-z]+);/gi, (m, e) => ENTITIES[e.toLowerCase()] ?? m);
-}
-
-function stripHtml(s) {
-  if (!s) return s;
-  return decodeEntities(
-    s.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*>/g, ' ')
-  ).replace(/\s+/g, ' ').trim();
-}
-
-function truncate(s, n = 250) {
-  if (!s) return s;
-  return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s;
-}
-
-async function fetchWithTimeout(url, headers) {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-  try {
-    return await fetch(url, { headers, signal: ctrl.signal, redirect: 'follow' });
-  } finally {
-    clearTimeout(timer);
-  }
-}
 
 // Pull a street address out of the Google Maps link Trumba embeds in `location`.
 function extractAddress(locationHtml) {
@@ -70,10 +34,15 @@ function parsePrice(customFields) {
   return { price: null, isFree: null };
 }
 
+// 'YYYY-MM-DD' minus n days, pure string/UTC math (no local-TZ surprises).
+function minusDays(dayStr, n) {
+  const [y, m, d] = dayStr.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d - n)).toISOString().slice(0, 10);
+}
+
 export async function fetchEvents() {
   const res = await fetchWithTimeout(FEED_URL, {
-    'User-Agent': USER_AGENT,
-    Accept: 'application/json',
+    headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
   });
   if (!res.ok) throw new Error(`Trumba UT feed HTTP ${res.status}`);
   const data = await res.json();
@@ -90,6 +59,9 @@ export async function fetchEvents() {
       const title = decodeEntities((ev.title || '').trim());
       if (!title) continue;
       if (ev.canceled) continue;
+
+      // Invite-only campus events are not attendable city events.
+      if (/invite[\s-]*only/i.test(title) || /invite[\s-]*only/i.test(String(ev.description || ''))) continue;
 
       const start = new Date(ev.startDateTime);
       if (Number.isNaN(start.getTime())) continue;
@@ -121,10 +93,27 @@ export async function fetchEvents() {
         }
       }
 
+      // Trumba allDay items carry raw T00:00:00 timestamps and a next-day
+      // midnight end (e.g. start 07-02T00:00, end 07-03T00:00 = "July 2").
+      // Emit date-only strings so the app shows a date, not "12:00 AM".
+      let startOut = ev.startDateTime;
+      let endOut = ev.endDateTime || null;
+      if (ev.allDay) {
+        const startDay = String(ev.startDateTime).slice(0, 10);
+        startOut = startDay;
+        endOut = null;
+        if (ev.endDateTime) {
+          let endDay = String(ev.endDateTime).slice(0, 10);
+          // Midnight end = exclusive bound; the event's last day is the day before.
+          if (/T00:00(:00)?/.test(String(ev.endDateTime))) endDay = minusDays(endDay, 1);
+          if (endDay > startDay) endOut = endDay;
+        }
+      }
+
       events.push({
         title,
-        start: ev.startDateTime,
-        end: ev.endDateTime || null,
+        start: startOut,
+        end: endOut,
         venue,
         address,
         price,
@@ -152,6 +141,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   fetchEvents()
     .then((events) => {
       console.log(`count: ${events.length}`);
+      console.log(`date-only starts: ${events.filter((e) => !String(e.start).includes('T')).length}`);
+      console.log(`midnight T00:00 starts remaining: ${events.filter((e) => /T00:00/.test(String(e.start))).length}`);
       for (const ev of events.slice(0, 3)) console.log(JSON.stringify(ev));
     })
     .catch((err) => {

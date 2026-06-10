@@ -291,25 +291,8 @@
 .pg-back:active { transform: scale(0.9); }
 .pg-band { padding: calc(12px + env(safe-area-inset-top)) 14px 20px; }
 .pg-band .pg-back { background: rgba(255, 255, 255, 0.75); }
-.pg-band-main { padding: 16px 6px 0; }
-.pg-emoji { display: block; font-size: 36px; line-height: 1; }
-.pg-title { margin: 8px 0 0; font-size: 28px; font-weight: 900; letter-spacing: -0.6px; }
 .pg-count { margin-top: 4px; font-size: 13px; font-weight: 600; color: var(--muted); }
 .pg-body { padding: 4px 0 120px; }
-.pg-search-input {
-  flex: 1;
-  min-width: 0;
-  height: 40px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--card);
-  padding: 0 16px;
-  font: inherit;
-  font-size: 15px;
-  color: var(--ink);
-  outline: none;
-}
-.pg-search-input:focus { border-color: var(--accent); }
 
 /* ===== full-page event detail (z 2000: above tabbar + subpages + Leaflet) ===== */
 .detail {

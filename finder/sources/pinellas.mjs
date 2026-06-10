@@ -1,5 +1,6 @@
 // Pinellas County government calendar (The Events Calendar / tribe REST API).
 import { pathToFileURL } from 'node:url';
+import { decodeEntities, stripHtml, truncate, fetchWithTimeout } from './_shared.mjs';
 
 export const name = 'Pinellas County';
 
@@ -7,50 +8,31 @@ const API_BASE = 'https://pinellas.gov/wp-json/tribe/events/v1/events';
 const MAX_PAGES = 3;
 const PER_PAGE = 50;
 const WINDOW_DAYS = 45;
-const TIMEOUT_MS = 20000;
 const USER_AGENT = 'tampabay-events-finder/0.1';
 
 // County service noise, not "events" anyone attends for fun — includes
-// government-body meetings (board/commission/committee/etc.).
-const NOISE = /mobile medical|vaccin|tax |permit|hearing|board|commission|committee|council|advisory|authority|task force|trust fund|co-applicant/i;
+// government-body meetings (board/commission/committee/etc.) and
+// procurement/admin sessions (agency/working group/RFQ/RFP/etc.).
+const NOISE = /mobile medical|vaccin|tax |permit|hearing|board|commission|committee|council|advisory|authority|task force|trust fund|co-applicant|agency|working group|evaluation meeting|RFQ|RFP|procurement/i;
 
-const NAMED_ENTITIES = {
-  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
-  rsquo: '’', lsquo: '‘', rdquo: '”', ldquo: '“',
-  ndash: '–', mdash: '—', hellip: '…', eacute: 'é',
-};
-
-function decodeEntities(str) {
-  if (!str) return str;
-  return str
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
-    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
-    .replace(/&([a-zA-Z]+);/g, (m, n) => NAMED_ENTITIES[n] ?? m);
-}
-
-function stripHtml(str) {
-  if (!str) return str;
-  return decodeEntities(str.replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
-}
-
-function truncate(str, max = 250) {
-  if (!str) return str;
-  return str.length <= max ? str : str.slice(0, max - 1).trimEnd() + '…';
+// Native tribe categories[].name -> our category vocabulary. The live feed's
+// categories are mostly government-body names (filtered as noise anyway);
+// only the recreational ones carry a usable signal.
+function mapCategory(categories) {
+  const names = (Array.isArray(categories) ? categories : [])
+    .map((c) => (c && typeof c.name === 'string' ? decodeEntities(c.name) : ''))
+    .filter(Boolean);
+  for (const n of names) {
+    if (/\bparks?\b|conservation|nature|preserve|trail/i.test(n)) return 'outdoors';
+    if (/heritage|history|museum/i.test(n)) return 'community';
+    if (/library/i.test(n)) return 'family';
+  }
+  return null;
 }
 
 function localYmd(d) {
   const p = (n) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-}
-
-async function fetchWithTimeout(url, options = {}) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  try {
-    return await fetch(url, { ...options, signal: controller.signal });
-  } finally {
-    clearTimeout(timer);
-  }
 }
 
 // "2026-06-10 08:30:00" -> "2026-06-10T08:30:00"
@@ -114,6 +96,9 @@ export async function fetchEvents() {
     const title = decodeEntities(stripHtml(item.title || ''));
     if (!title || NOISE.test(title)) continue;
 
+    // Virtual events aren't attendable city events — skip entirely.
+    if (item.is_virtual) continue;
+
     const start = toIso(item.start_date);
     if (!start) continue;
     const startDate = new Date(start);
@@ -125,7 +110,7 @@ export async function fetchEvents() {
     const lng = venue && venue.geo_lng != null && venue.geo_lng !== '' ? Number(venue.geo_lng) : null;
     const { price, isFree } = parseCost(item.cost);
 
-    events.push({
+    const event = {
       title,
       start,
       end: toIso(item.end_date),
@@ -139,7 +124,10 @@ export async function fetchEvents() {
       image: item.image && item.image.url ? item.image.url : null,
       description: truncate(stripHtml(item.description || '')) || null,
       source: name,
-    });
+    };
+    const category = mapCategory(item.categories);
+    if (category) event.category = category;
+    events.push(event);
   }
   return events;
 }
@@ -148,6 +136,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   fetchEvents()
     .then((events) => {
       console.log(`count: ${events.length}`);
+      console.log(`categorized: ${events.filter((e) => e.category).length}`);
       for (const e of events.slice(0, 3)) console.log(JSON.stringify(e));
     })
     .catch((err) => {

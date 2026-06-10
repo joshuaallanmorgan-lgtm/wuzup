@@ -222,7 +222,16 @@ function normalize(node, sourceName) {
     source: sourceName,
     staffPick: false,
     promoted: false,
+    // schema.org eventAttendanceMode — Online-only events get filtered out
+    // (virtual junk isn't a Tampa Bay event). Mixed/Offline pass through.
+    attendanceMode: node.eventAttendanceMode ?? null,
   };
+}
+
+// Online-only per schema.org (value like "https://schema.org/OnlineEventAttendanceMode").
+// MixedEventAttendanceMode does NOT match — hybrid events have a real local venue.
+function isOnlineOnly(e) {
+  return /OnlineEventAttendanceMode/i.test(String(e.attendanceMode || ''));
 }
 
 // ===================== Eastern-time helpers =====================
@@ -304,6 +313,9 @@ function normalizeModuleEvent(r, fallbackSource) {
     source: r.source || fallbackSource,
     staffPick: r.staffPick === true,
     promoted: r.promoted === true,
+    // Native category hint: modules MAY set category to one of our values
+    // when their API provides one — respect it downstream, don't re-derive.
+    category: typeof r.category === 'string' ? r.category : null,
   };
 }
 
@@ -396,14 +408,60 @@ function startMs(start) {
   return Date.parse(s);
 }
 
+// Epoch ms at which an event is FULLY ENDED. Date-only stamps (end if present,
+// else start) end at local end-of-day; a timed end is taken literally; a timed
+// start with no end gets a 3-hour assumed duration. NaN if unparseable.
+const ASSUMED_DURATION_MS = 3 * 3600 * 1000;
+function endedAtMs(e) {
+  const s = String(e.end || e.start || '');
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const [y, m, d] = s.split('-').map(Number);
+    return new Date(y, m - 1, d + 1).getTime();
+  }
+  const t = Date.parse(s);
+  if (isNaN(t)) return NaN;
+  return e.end ? t : t + ASSUMED_DURATION_MS;
+}
+
+// Venue tokens that say nothing about WHICH venue it is — stripped before the
+// cross-family "totally different venues" veto below.
+const VENUE_MERGE_GENERIC = new Set(['library', 'branch', 'regional', 'public', 'center', 'the']);
+
+function venueMergeTokens(venue) {
+  const out = new Set();
+  for (const t of titleTokens(venue)) if (!VENUE_MERGE_GENERIC.has(t)) out.add(t);
+  return out;
+}
+
 // Two same-day events are the same real-world event if their title token sets
 // overlap strongly OR they're at the same (normalized) venue.
 // e.g. "Red Sox vs. Tampa Bay Rays" / "Tampa Bay Rays vs. Boston Red Sox"
 // → tokens {red,sox,tampa,bay,rays} vs {tampa,bay,rays,boston,red,sox} → J=5/6.
+//
+// SAME-FAMILY pairs (one publisher) are stricter: a publisher never lists one
+// real event at two venues, so a title match alone must NOT merge "Baby Time"
+// at five library branches into one card — venue equality is required too.
 function sameEvent(a, b) {
-  if (jaccard(a.tokens, b.tokens) >= 0.5) return true;
-  if (a.nVenue && b.nVenue && a.nVenue === b.nVenue) return true;
-  return false;
+  const titleMatch = jaccard(a.tokens, b.tokens) >= 0.5;
+  const venueMatch = !!(a.nVenue && b.nVenue && a.nVenue === b.nVenue);
+  if (a.fam && b.fam && a.fam === b.fam) {
+    // Both venues null: the venue test can't separate them, and one publisher
+    // listing the same title twice on one day is a duplicate (the PTSD-Matters /
+    // Remix City-of-Tampa case) — let the title decide.
+    if (!a.nVenue && !b.nVenue) return titleMatch;
+    return titleMatch && venueMatch;
+  }
+  // Cross-family: title OR venue (preserves the Red Sox/Rays cross-source
+  // merge), but veto a title-only merge when both venues are present and
+  // share zero non-generic tokens — those are two different rooms.
+  if (venueMatch) return true;
+  if (!titleMatch) return false;
+  if (a.vTokens.size && b.vTokens.size) {
+    let shared = 0;
+    for (const t of a.vTokens) if (b.vTokens.has(t)) shared++;
+    if (shared === 0) return false;
+  }
+  return true;
 }
 
 function pickFirst(members, key) {
@@ -414,9 +472,22 @@ function pickFirst(members, key) {
 // Merge a cluster of duplicate listings into one record, keeping the richest
 // value for every field. sources[] keeps every detailed listing name; buzz
 // counts distinct source FAMILIES (real cross-publisher consensus).
+// Literal published hour of a start string ("...T02:00..." → 2), null if date-only.
+function startHourOf(s) {
+  const m = String(s || '').match(/T(\d{2}):/);
+  return m ? Number(m[1]) : null;
+}
+
 function mergeCluster(members) {
   const starts = members.map((m) => m.start).filter(Boolean);
-  const start = starts.find((s) => /T\d/.test(String(s))) || starts[0] || null;
+  // Prefer a timed start only when the hour is plausible (06:00–23:59).
+  // A lone 01:00–05:59 stamp is publisher junk (I Love the Burg's "T02:00"
+  // beat Eventbrite's clean date on the Seafood Festival) — prefer a
+  // date-only alternative over it when the cluster has one.
+  const saneTimed = starts.find((s) => { const h = startHourOf(s); return h !== null && h >= 6; });
+  const dateOnly = starts.find((s) => startHourOf(s) === null);
+  const anyTimed = starts.find((s) => startHourOf(s) !== null);
+  const start = saneTimed || dateOnly || anyTimed || starts[0] || null;
 
   let description = null;
   for (const m of members) {
@@ -462,6 +533,7 @@ function mergeCluster(members) {
     buzz: families.length,        // cross-FAMILY consensus signal
     staffPick: members.some((m) => m.staffPick === true),
     promoted: members.some((m) => m.promoted === true),
+    category: pickFirst(members, 'category'), // native module hint, if any
   };
 }
 
@@ -471,7 +543,13 @@ function fuzzyMerge(all) {
   for (const e of all) {
     const day = dayOf(e.start) || 'tbd';
     if (!byDay.has(day)) byDay.set(day, []);
-    byDay.get(day).push({ ...e, tokens: titleTokens(e.title), nVenue: normVenue(e.venue) });
+    byDay.get(day).push({
+      ...e,
+      tokens: titleTokens(e.title),
+      nVenue: normVenue(e.venue),
+      fam: familyOf(e.source),
+      vTokens: venueMergeTokens(e.venue),
+    });
   }
   const merged = [];
   for (const list of byDay.values()) {
@@ -509,21 +587,29 @@ function weekendDays(now) {
 // Venues that are music rooms — whatever is on at these is a music event.
 const MUSIC_VENUE_RE = /jannus live|orpheum|crowbar|the ritz|floridian social/i;
 
-// Word-boundary rules, tested in order. Music BEFORE sports so
-// "Queen vs. ABBA Tribute" lands music, not sports.
+// Word-boundary rules, tested in order. Stage-works (opera/ballet) come FIRST
+// so "La Bohème" with a symphony-orchestra description lands theatre, not
+// music. Music stays BEFORE sports so "Queen vs. ABBA Tribute" lands music.
 const CATEGORY_RULES = [
+  ['theatre', /\bopera\b|\bboh[eèé]me\b|\bballets?\b/i],
   ['music', /\bconcerts?\b|\bbands?\b|\bdj\b|\btour\b|\borchestra\b|\bsymphony\b|\blive music\b|\balbum\b|\btribute\b|\bunplugged\b|\bacoustic\b|\blive at\b|\bkaraoke\b|\bopen mic\b|\bjazz\b|\bblues\b|\bsongwriters?\b|\bhip.?hop\b|\bvinyl\b/i],
   ['sports', /\bvs\.?\b|\bgame\b|\bmatch day\b|\bgrand prix\b|\braces?\b|\broller derby\b|\bwrestling\b|\bpickleball\b/i],
-  ['theatre', /\btheatre\b|\btheater\b|\bmusicals?\b|\bopera\b|\bballet\b|\bbroadway\b|\bcabaret\b/i],
+  ['theatre', /\btheatre\b|\btheater\b|\bmusicals?\b|\bbroadway\b|\bcabaret\b/i],
   ['comedy', /\bcomedy\b|\bstand-?up\b|\bimprov\b|\bcomedians?\b/i],
-  ['art', /\barts?\b|\bgallery\b|\bmuseum\b|\bexhibits?\b|\bexhibitions?\b|\bmurals?\b|\bcrafts?\b|\bpottery\b|\bpainting\b/i],
+  ['art', /\barts?\b|\bgallery\b|\bmuseum\b|\bexhibits?\b|\bexhibitions?\b|\bmurals?\b|\bcrafts?\b|\bpottery\b|\bpainting\b|\bfilms?\b|\bscreenings?\b|\bcinema\b/i],
   ['market', /\bmarkets?\b|\bflea\b|\bfairs?\b|\bbazaar\b|\bexpo\b|\bvendors?\b/i],
   ['food', /\bfood\b|\bbrunch\b|\bdinner\b|\btastings?\b|\bbeer\b|\bwine\b|\bcocktails?\b|\btacos?\b|\bbbq\b|\bculinary\b|\bchef\b/i],
-  ['outdoors', /\bparks?\b|\bbeach\b|\bkayak\b|\bhikes?\b|\brun club\b|\b5k\b|\boutdoor\b|\bgardens?\b|\bnature\b|\btrails?\b/i],
-  ['nightlife', /\bparty\b|\bclub night\b|\bburlesque\b|\bball\b|\brave\b|\bnightlife\b|\bdrag\b/i],
+  ['outdoors', /\bparks?\b|\bbeach\b|\bkayak\b|\bhikes?\b|\brun club\b|\b5k\b|\boutdoor\b|\bgardens?\b|\bnature\b|\btrails?\b|\byoga\b/i],
+  ['nightlife', /\bparty\b|\bclub night\b|\bburlesque\b|\bball\b|\brave\b|\bnightlife\b|\bdrag\b|\btrivia\b|\bbingo\b/i],
   ['family', /\bfamily\b|\bkids?\b|\bchildren\b|\btoddlers?\b|\bteens?\b|\bstory ?time\b/i],
-  ['community', /\bmeetup\b|\bworkshops?\b|\bclass(?:es)?\b|\bclubs?\b|\blibrary\b|\bnetworking\b|\bvolunteer\b|\bseminar\b|\blectures?\b|\bbook\b/i],
+  ['community', /\bmeetup\b|\bworkshops?\b|\bclass(?:es)?\b|\bclubs?\b|\blibrary\b|\bnetworking\b|\bvolunteer\b|\bseminar\b|\blectures?\b|\bbook\b|\bgrand opening\b|\bconferences?\b|\bauthor\b|\bfundraisers?\b|\breceptions?\b|\bmixers?\b/i],
 ];
+
+// Every category value this pipeline can emit — used to validate native hints.
+const KNOWN_CATEGORIES = new Set([
+  'music', 'sports', 'theatre', 'comedy', 'art', 'market', 'food',
+  'outdoors', 'nightlife', 'family', 'community', 'other',
+]);
 
 // Source-level category hints, applied only when no text rule matched.
 const SOURCE_CATEGORY = {
@@ -532,6 +618,11 @@ const SOURCE_CATEGORY = {
 };
 
 function categorize(e) {
+  // Native category from a source module's API — respect it, don't re-derive.
+  // 'other' carries no information, so the text classifier still gets a shot.
+  if (e.category && e.category !== 'other' && KNOWN_CATEGORIES.has(e.category)) {
+    return e.category;
+  }
   if (MUSIC_VENUE_RE.test(e.venue || '')) return 'music';
   const text = `${e.title || ''} ${e.description || ''}`;
   for (const [cat, re] of CATEGORY_RULES) {
@@ -544,7 +635,9 @@ function categorize(e) {
 // Recurring = same normalized title+venue on >= 3 distinct dates in this pull,
 // OR recurrence language in the title/description ("weekly", "every Tuesday",
 // "Thursdays", "nights from ...") — series often publish only one instance.
-const RECURRING_TEXT_RE = /\bweekly\b|\bevery (mon|tues|wednes|thurs|fri|satur|sun)|\b(mon|tues|wednes|thurs|fri|satur|sun)days?\b|\bnights? from\b/i;
+// The weekday match REQUIRES the plural ("Thursdays", never "Thursday"):
+// a bare "Thursday, June 11" date mention is not recurrence language.
+const RECURRING_TEXT_RE = /\bweekly\b|\bevery (mon|tues|wednes|thurs|fri|satur|sun)days?\b|\b(mon|tues|wednes|thurs|fri|satur|sun)days\b|\bnights? from\b/i;
 
 function detectRecurring(events) {
   const datesByKey = new Map();
@@ -627,14 +720,20 @@ function loadGeoCache() {
     return {};
   }
   let purged = 0;
+  let nullPurged = 0;
   for (const [key, val] of Object.entries(cache)) {
     if (JUNK_GEO_KEY_RE.test(key.trim()) || (val && !inBox(val.lat, val.lng))) {
       delete cache[key];
       purged++;
+    } else if (val == null) {
+      // null = "no result last time". Queries improve between versions, so a
+      // miss must not be cached forever — give it another chance each run.
+      delete cache[key];
+      nullPurged++;
     }
   }
-  if (purged) {
-    console.log(`  🧹 purged ${purged} junk/out-of-area geocode cache entries`);
+  if (purged || nullPurged) {
+    console.log(`  🧹 purged ${purged} junk/out-of-area + ${nullPurged} null geocode cache entries`);
     writeFileSync(GEO, JSON.stringify(cache, null, 2));
   }
   return cache;
@@ -644,6 +743,7 @@ async function main() {
   console.log('\n🔎 Tampa Bay Event Finder — pulling real events from free sources...\n');
   const all = [];
   const report = [];
+  let onlineDropped = 0;
 
   mkdirSync(CACHE, { recursive: true });
   for (const src of SOURCES) {
@@ -653,7 +753,9 @@ async function main() {
       const blocks = ldJsonBlocks(html);
       const nodes = [];
       for (const b of blocks) collectEvents(b, nodes);
-      const events = nodes.map((n) => normalize(n, src.name)).filter((e) => e.title && e.start);
+      const withDates = nodes.map((n) => normalize(n, src.name)).filter((e) => e.title && e.start);
+      const events = withDates.filter((e) => !isOnlineOnly(e));
+      onlineDropped += withDates.length - events.length;
       // Events from a "free" source query are free by definition (e.g. Eventbrite's
       // free filter), even though their JSON-LD omits the price.
       if (src.free) for (const e of events) { e.isFree = true; e.price = 0; }
@@ -665,14 +767,18 @@ async function main() {
       // Live fetch failed — fall back to the last good pull so one outage
       // doesn't drop the whole source.
       if (existsSync(cacheFile)) {
-        const cached = JSON.parse(readFileSync(cacheFile, 'utf8'));
-        all.push(...cached);
-        report.push({ source: src.name, found: cached.length, ok: false, cached: true });
-        console.log(`  ⚠️  ${src.name.padEnd(26)} ${cached.length} events (cached — live failed: ${e.message || e})`);
-      } else {
-        report.push({ source: src.name, found: 0, ok: false, error: String(e.message || e) });
-        console.log(`  ❌ ${src.name.padEnd(26)} failed, no cache (${e.message || e})`);
+        try {
+          const cached = JSON.parse(readFileSync(cacheFile, 'utf8'));
+          all.push(...cached);
+          report.push({ source: src.name, found: cached.length, ok: false, cached: true });
+          console.log(`  ⚠️  ${src.name.padEnd(26)} ${cached.length} events (cached — live failed: ${e.message || e})`);
+          continue;
+        } catch {
+          // corrupt cache — fall through to the no-cache failure path
+        }
       }
+      report.push({ source: src.name, found: 0, ok: false, error: String(e.message || e) });
+      console.log(`  ❌ ${src.name.padEnd(26)} failed, no cache (${e.message || e})`);
     }
   }
 
@@ -714,7 +820,8 @@ async function main() {
     const srcDir = join(HERE, 'sources');
     let files = [];
     try {
-      files = readdirSync(srcDir).filter((f) => f.endsWith('.mjs')).sort();
+      // "_"-prefixed files are shared helpers (e.g. _shared.mjs), not sources.
+      files = readdirSync(srcDir).filter((f) => f.endsWith('.mjs') && !f.startsWith('_')).sort();
     } catch {
       // no sources/ directory — nothing to load
     }
@@ -756,30 +863,28 @@ async function main() {
     console.log(`  ⏭️  ${'Extra source modules'.padEnd(26)} skipped (SKIP_EXTRA=1)`);
   }
 
+  if (onlineDropped) {
+    console.log(`  🌐 dropped ${onlineDropped} online-only events (OnlineEventAttendanceMode)`);
+  }
+
   // Fuzzy cross-source merge: duplicate listings of the same real-world event
   // collapse into one record whose `buzz` = number of distinct source families.
   const rawCount = all.length;
   let events = fuzzyMerge(all);
   console.log(`  🔀 merged ${rawCount} raw listings → ${events.length} unique events`);
 
-  // Keep upcoming events (from ~today on), sorted soonest first.
-  // Keep an event until it has fully ENDED, so multi-day events still
-  // running today don't drop off.
-  // Date-only stamps are treated as local end-of-day, so an all-day event
-  // happening today isn't dropped by UTC parsing.
-  const aliveUntilMs = (e) => {
-    const s = String(e.end || e.start || '');
-    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-      const [y, m, d] = s.split('-').map(Number);
-      return new Date(y, m - 1, d + 1).getTime();
-    }
-    return Date.parse(s);
-  };
-  const cutoff = Date.now() - 12 * 3600 * 1000;
+  // Keep upcoming events, sorted soonest first. An event stays until it has
+  // fully ENDED as of run time — never ship an ended event:
+  //  - date-only stamps end at local end-of-day (all-day event today survives,
+  //    yesterday's is gone at midnight — no UTC drift, no grace period);
+  //  - a timed start with an explicit end ends exactly then;
+  //  - a timed start with NO end gets a 3-hour assumed duration, so a show
+  //    that started an hour ago isn't dropped mid-set.
+  const runEpoch = Date.now();
   events = events
     .filter((e) => {
-      const d = aliveUntilMs(e);
-      return !isNaN(d) && d >= cutoff;
+      const d = endedAtMs(e);
+      return !isNaN(d) && d > runEpoch;
     })
     .sort((a, b) => startMs(a.start) - startMs(b.start));
 
@@ -842,7 +947,21 @@ async function main() {
   const now = new Date();
   const todayStr = localDayStr(now);
   const weekend = weekendDays(now);
+  let junkTimesStripped = 0;
   events = events.map((e) => {
+    const category = categorize(e);
+    // Output sanity: a 01:00–05:59 start on anything that isn't nightlife is
+    // a publisher's junk placeholder time — keep the date, strip the time.
+    if (category !== 'nightlife') {
+      const h = startHourOf(e.start);
+      if (h !== null && h >= 1 && h <= 5) {
+        const day = dayOf(e.start);
+        if (day) {
+          e.start = day;
+          junkTimesStripped++;
+        }
+      }
+    }
     const tags = tagsFor(e, todayStr, weekend);
     return {
       title: e.title,
@@ -863,13 +982,16 @@ async function main() {
       buzz: e.buzz,
       hotScore: hotScore(e, tags, now),
       tags,
-      category: categorize(e),
+      category,
       // Paid promotion (e.g. Creative Loafing promoted strip). The UI renders
       // a "Sponsored" label off this; sponsored events get no staff-pick
       // bonus and no hidden-gem tag.
       sponsored: e.promoted === true,
     };
   });
+  if (junkTimesStripped) {
+    console.log(`  🕑 stripped ${junkTimesStripped} junk 01:00–05:59 start times (kept the date)`);
+  }
 
   // Hidden gems: a curated shelf, not a census. Qualify = single-family buzz,
   // one-off, not sponsored, demonstrably cheap (free or <= $25 — unknown price
@@ -985,6 +1107,21 @@ async function main() {
   console.log(`    ${counts.buzz2 >= 3 ? '✅' : '❌'} events with buzz >= 2: ${counts.buzz2} (need >= 3 — merge works, family-collapsed)`);
   console.log(`    ${counts.gems >= 5 && counts.gems <= GEM_CAP ? '✅' : '❌'} hidden gems: ${counts.gems} (need 5..${GEM_CAP} — curated shelf)`);
   console.log(`    ${outOfBox === 0 ? '✅' : '❌'} coords outside Tampa Bay box: ${outOfBox} (need 0)`);
+  const junkHourCount = events.filter((e) => {
+    const h = startHourOf(e.start);
+    return e.category !== 'nightlife' && h !== null && h >= 1 && h <= 5;
+  }).length;
+  console.log(`    ${junkHourCount === 0 ? '✅' : '❌'} non-nightlife events starting 01:00–05:59: ${junkHourCount} (need 0)`);
+  const otherCount = catDist.other || 0;
+  console.log(`    ${otherCount <= 90 ? '✅' : '❌'} 'other' category: ${otherCount} (need <= 90)`);
+  const NOISE_TITLE_RE = /procurement|RFQ|RFP|working group|evaluation meeting|regular meeting/i;
+  const noiseCount = events.filter((e) => NOISE_TITLE_RE.test(e.title || '')).length;
+  console.log(`    ${noiseCount === 0 ? '✅' : '❌'} gov-noise titles (procurement/RFQ/RFP/meetings): ${noiseCount} (need 0)`);
+  const endedCount = events.filter((e) => !(endedAtMs(e) > runEpoch)).length;
+  console.log(`    ${endedCount === 0 ? '✅' : '❌'} fully-ended events in output: ${endedCount} (need 0)`);
+  const libraryCount = events.filter((e) =>
+    (e.sources || []).some((s) => /librar/i.test(String(s)))).length;
+  console.log(`    📚 library records in output: ${libraryCount} (was 207 pre-merge-fix; expect ~440+ on a full run — 0/low is normal with SKIP_EXTRA=1)`);
   const redBull = events.find((e) => /cliff diving|red bull/i.test(e.title));
   console.log(`    ${redBull ? '👀 present: "' + redBull.title + '"' : '✅ absent'} — Red Bull Cliff Diving (legacy canary — event ended 6/6, expected absent)`);
   console.log('──────────────────────────────────────────');

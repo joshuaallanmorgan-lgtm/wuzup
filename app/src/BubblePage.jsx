@@ -11,7 +11,7 @@
 //   onSelect      — (event, cardEl|null) opens the detail (stacks on top)
 //   onClose       — slide back out to the Hot tab
 //
-// Lens semantics: kind 'time' → _tonight/_weekend, 'free' → _free, 'cat' →
+// Filter semantics: kind 'time' → _tonight/_weekend, 'free' → _free, 'cat' →
 // e.category, 'sort' (Near Me) → everything upcoming, distance-sorted once the
 // user grants location (never hide events: no coords ≠ no list). Day-grouped
 // (Today/Tomorrow/weekday), hotScore desc within a day, RowFeed pages ~30 rows
@@ -35,6 +35,7 @@ const TAGLINES = {
   night: 'Sleep is for Sundays.',
   comedy: 'Cheaper than therapy.',
   theatre: 'Drama — the good kind.',
+  family: 'Fun the whole crew can join.',
   markets: 'Treasure hunting, sanctioned.',
   clubs: 'Your people are out there.',
 }

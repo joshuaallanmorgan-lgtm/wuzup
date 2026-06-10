@@ -1,53 +1,54 @@
 // Visit Tampa Bay (Simpleview DMO) event source.
 // Two-step flow: fetch a per-session token, then query the events_by_date REST plugin.
 // Date range boundaries MUST be midnight Eastern Time (the API errors otherwise).
+import { decodeEntities, cleanText, fetchWithTimeout } from './_shared.mjs';
 
 export const name = 'Visit Tampa Bay';
 
 const BASE = 'https://www.visittampabay.com';
 const UA = 'tampabay-events-finder/0.1';
-const TIMEOUT_MS = 20000;
 const DAYS_AHEAD = 45;
-const PAGE_LIMIT = 100; // keep responses under the API's ~200KB result-set cap
-const MAX_PAGES = 5;
+const PAGE_LIMIT = 50; // keep responses under the API's ~200KB result-set cap (categories field adds bulk)
+const MAX_PAGES = 10;
 const TZ = 'America/New_York';
 
-async function fetchWithTimeout(url, options = {}) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  try {
-    return await fetch(url, {
-      ...options,
-      signal: controller.signal,
-      headers: { 'user-agent': UA, ...(options.headers || {}) },
-    });
-  } finally {
-    clearTimeout(timer);
+function vtbFetch(url) {
+  return fetchWithTimeout(url, { headers: { 'user-agent': UA } });
+}
+
+// Native Simpleview catName -> our category vocabulary.
+// Iteration order IS priority: first hit wins for multi-category events, so
+// specific signals (comedy/theatre/music) beat the broad "Family Friendly".
+// Sense decisions from live data sampling (2026-06):
+// - "Dining & Nightlife" titles are mostly dinners/high teas/food trucks -> food
+// - "Brewery Event" is drinks-first -> nightlife (and outranks Dining & Nightlife)
+// - "Classes & Workshops" titles are mostly paint-and-sip / canvas classes -> art
+// Unmapped on purpose (no categorical sense): Free Event, Holiday, Fun/Adventure.
+const CATNAME_MAP = new Map([
+  ['Comedy', 'comedy'],
+  ['Theatre/Performing Arts', 'theatre'],
+  ['Concerts', 'music'],
+  ['Sports and Recreation', 'sports'],
+  ['Festivals, Expos & Fairs', 'market'],
+  ['Arts & Culture Events', 'art'],
+  ['Classes & Workshops', 'art'],
+  ['Brewery Event', 'nightlife'],
+  ['Dining & Nightlife', 'food'],
+  ['Shopping', 'market'],
+  ['Health & Wellness', 'community'],
+  ['Fundraising', 'community'],
+  ['Family Friendly', 'family'],
+]);
+
+function mapCategory(categories) {
+  if (!Array.isArray(categories)) return null;
+  const present = new Set(
+    categories.map((c) => (c && typeof c.catName === 'string' ? c.catName.trim() : '')).filter(Boolean)
+  );
+  for (const [catName, category] of CATNAME_MAP) {
+    if (present.has(catName)) return category;
   }
-}
-
-const NAMED_ENTITIES = {
-  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
-  ndash: '–', mdash: '—', hellip: '…',
-  lsquo: '‘', rsquo: '’', ldquo: '“', rdquo: '”',
-};
-
-function decodeEntities(str) {
-  if (!str) return str;
-  return str
-    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
-    .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(parseInt(dec, 10)))
-    .replace(/&([a-z]+);/gi, (m, name) => NAMED_ENTITIES[name.toLowerCase()] ?? m);
-}
-
-function cleanText(html, maxLen = 250) {
-  if (!html) return null;
-  let text = decodeEntities(String(html).replace(/<[^>]*>/g, ' '))
-    .replace(/\s+/g, ' ')
-    .trim();
-  if (!text) return null;
-  if (text.length > maxLen) text = text.slice(0, maxLen - 1).trimEnd() + '…';
-  return text;
+  return null;
 }
 
 // 'YYYY-MM-DD' for a Date instant, evaluated in Eastern time.
@@ -102,7 +103,7 @@ function parseAdmission(admission) {
 }
 
 async function getToken() {
-  const res = await fetchWithTimeout(`${BASE}/plugins/core/get_simple_token/`);
+  const res = await vtbFetch(`${BASE}/plugins/core/get_simple_token/`);
   if (!res.ok) throw new Error(`Visit Tampa Bay token request failed: HTTP ${res.status}`);
   const token = (await res.text()).trim();
   if (!token || token.length > 200 || /[<>\s]/.test(token)) {
@@ -126,13 +127,13 @@ async function fetchPage(token, startISO, endISO, skip) {
         startTime: 1, endTime: 1, recurType: 1,
         location: 1, address1: 1, city: 1, state: 1, zip: 1,
         latitude: 1, longitude: 1, absoluteUrl: 1, media_raw: 1,
-        description: 1, admission: 1,
+        description: 1, admission: 1, categories: 1,
       },
     },
   };
   const url = `${BASE}/includes/rest_v2/plugins_events_events_by_date/find/` +
     `?json=${encodeURIComponent(JSON.stringify(query))}&token=${encodeURIComponent(token)}`;
-  const res = await fetchWithTimeout(url);
+  const res = await vtbFetch(url);
   if (!res.ok) {
     throw new Error(`Visit Tampa Bay events request failed: HTTP ${res.status} ${(await res.text()).slice(0, 200)}`);
   }
@@ -182,7 +183,7 @@ function mapDoc(doc, todayDay, lastDay) {
     ? (doc.media_raw.find((m) => m && m.mediaurl)?.mediaurl ?? null)
     : null;
 
-  return {
+  const event = {
     title,
     start,
     end,
@@ -197,6 +198,9 @@ function mapDoc(doc, todayDay, lastDay) {
     description: cleanText(doc.description),
     source: name,
   };
+  const category = mapCategory(doc.categories);
+  if (category) event.category = category;
+  return event;
 }
 
 export async function fetchEvents() {
@@ -236,6 +240,7 @@ import { pathToFileURL } from 'node:url';
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const events = await fetchEvents();
   console.log(`count: ${events.length}`);
+  console.log(`categorized: ${events.filter((e) => e.category).length}`);
   for (const sample of events.slice(0, 3)) {
     console.log(JSON.stringify(sample));
   }

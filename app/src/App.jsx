@@ -90,7 +90,36 @@ export default function App() {
     }
   }, [displayMode])
 
-  const anchors = useMemo(() => makeAnchors(), [])
+  // anchors must track the real clock: an app left open past midnight (or
+  // resumed from background the next day) would otherwise show yesterday's
+  // "Today". Recompute when the tab becomes visible and shortly after each
+  // local midnight; only re-set state when the day actually rolled over.
+  const [anchors, setAnchors] = useState(() => makeAnchors())
+  useEffect(() => {
+    const refresh = () => setAnchors((prev) => {
+      const next = makeAnchors()
+      return next.todayTs === prev.todayTs ? prev : next
+    })
+    const onVis = () => {
+      if (document.visibilityState === 'visible') refresh()
+    }
+    document.addEventListener('visibilitychange', onVis)
+    let timer
+    const schedule = () => {
+      const now = new Date()
+      // 30s past local midnight (cushion for clock skew / timer coalescing)
+      const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 30)
+      timer = setTimeout(() => {
+        refresh()
+        schedule()
+      }, next.getTime() - now.getTime())
+    }
+    schedule()
+    return () => {
+      document.removeEventListener('visibilitychange', onVis)
+      clearTimeout(timer)
+    }
+  }, [])
   const norm = useMemo(() => events.map((e) => normalize(e, anchors)), [events, anchors])
   const displayCtx = useMemo(() => ({ mode: displayMode, setMode: setDisplayMode }), [displayMode])
 
@@ -172,7 +201,7 @@ export default function App() {
       setDetail(e)
     }
   }, [])
-  const closeDetail = () => {
+  const closeDetail = useCallback(() => {
     const el = morphElRef.current
     if (vtOpen && supportsVT()) {
       const t = document.startViewTransition(() => {
@@ -190,7 +219,7 @@ export default function App() {
         setClosing(false)
       }, 240)
     }
-  }
+  }, [vtOpen])
 
   // Escape closes the topmost layer: detail first, then any open subpage
   useEffect(() => {
@@ -201,7 +230,7 @@ export default function App() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  })
+  }, [detail, page, pageClosing, closeDetail, closePage])
 
   return (
     <DisplayModeContext.Provider value={displayCtx}>
@@ -219,7 +248,7 @@ export default function App() {
             />
           </section>
           <section className="page page-map">
-            <MapView events={norm} onSelect={openDetail} active={active === 1} />
+            <MapView events={norm} anchors={anchors} onSelect={openDetail} active={active === 1} />
           </section>
           <section className="page">
             <CalendarView events={norm} anchors={anchors} onSelect={openDetail} />
@@ -231,7 +260,8 @@ export default function App() {
             🎲
           </button>
         )}
-        {active === 0 && <DisplayModeToggle />}
+        {/* 🎨 pill hides while Find My Night is open — it floats dead over the dark flow */}
+        {active === 0 && page?.type !== 'night' && <DisplayModeToggle />}
         {page && (
           <div className={'subpage' + (pageClosing ? ' subpage-closing' : '')}>
             {page.type === 'bubble' && (

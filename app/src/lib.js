@@ -23,6 +23,7 @@ export const BUBBLES = [
   { id: 'night', emoji: '🪩', label: 'Nightlife', kind: 'cat', value: 'nightlife', hue: 265 },
   { id: 'comedy', emoji: '😂', label: 'Comedy', kind: 'cat', value: 'comedy', hue: 50 },
   { id: 'theatre', emoji: '🎭', label: 'Theatre', kind: 'cat', value: 'theatre', hue: 350 },
+  { id: 'family', emoji: '👨‍👩‍👧', label: 'Family', kind: 'cat', value: 'family', hue: 190 },
   { id: 'markets', emoji: '🛍️', label: 'Markets', kind: 'cat', value: 'market', hue: 80 },
   { id: 'clubs', emoji: '🤝', label: 'Clubs', kind: 'cat', value: 'community', hue: 175 },
 ]
@@ -102,10 +103,10 @@ export function normalize(raw, anchors) {
   const _endDay = dayTs(raw.end) ?? _day
   const _t = parseDate(raw.start)?.getTime() ?? Number.MAX_SAFE_INTEGER
   const _free = raw.isFree === true || tags.includes('free')
-  const _tonight =
-    tags.includes('tonight') || (_day != null && anchors.todayTs >= _day && anchors.todayTs <= (_endDay ?? _day))
-  const _weekend =
-    tags.includes('weekend') || (_day != null && _day <= anchors.wkEndTs && (_endDay ?? _day) >= anchors.wkStartTs)
+  // computed from the live anchors only — baked _tonight/_weekend tags in the
+  // snapshot can be a day old and must never override the runtime range math
+  const _tonight = _day != null && anchors.todayTs >= _day && anchors.todayTs <= (_endDay ?? _day)
+  const _weekend = _day != null && _day <= anchors.wkEndTs && (_endDay ?? _day) >= anchors.wkStartTs
   return { ...raw, tags, sources, hotScore, buzz, category, sponsored, _day, _endDay, _t, _free, _tonight, _weekend, _ongoing }
 }
 // 'ongoing' events show "Ongoing" instead of a stale start date/time

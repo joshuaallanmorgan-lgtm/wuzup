@@ -1,9 +1,24 @@
 {
-  "fetchedAt": "2026-06-10T01:22:16.013Z",
+  "fetchedAt": "2026-06-10T14:59:47.902Z",
   "events": [
     {
+      "title": "Scene & Heard: DIY & Making Your Own Space",
+      "start": null,
+      "end": null,
+      "venue": null,
+      "address": null,
+      "price": null,
+      "isFree": null,
+      "url": "https://community.cltampa.com/event/scene-and-heard-diy-and-making-your-own-space-21477151",
+      "image": "https://media1.cltampa.com/cltampa/imager/scene-and-heard-diy-and-making-your-own-space/u/r-bigsquare/21477150/scene_heard_diy_no_clubs.webp?cb=920ee37177724d0fa3d4dbd6da7f862b",
+      "description": null,
+      "staffPick": false,
+      "promoted": true,
+      "source": "Creative Loafing"
+    },
+    {
       "title": "'Beetlejuice' the musical",
-      "start": "2026-06-09T19:30:00",
+      "start": "2026-06-10T19:30:00",
       "end": null,
       "venue": "Carol and Frank Morsani Center for the Arts",
       "address": "21030 Cortez Boulevard, Brooksville",
@@ -17,15 +32,15 @@
       "source": "Creative Loafing"
     },
     {
-      "title": "Bright Light Social Hour",
+      "title": "Funk N Ting: DJ Mike Blenda & DJ Shafiq",
       "start": null,
       "end": null,
       "venue": null,
       "address": null,
       "price": null,
       "isFree": null,
-      "url": "https://community.cltampa.com/event/bright-light-social-hour-21455511",
-      "image": "https://media1.cltampa.com/cltampa/imager/bright-light-social-hour/u/r-bigsquare/21455510/jaycee_grover_bright_light_social_hour.webp?cb=5cd8e0646af417e202687067f32af6c7",
+      "url": "https://community.cltampa.com/event/funk-n-ting-dj-mike-blenda-and-dj-shafiq-18706357",
+      "image": "https://media1.cltampa.com/cltampa/imager/funk-n-ting-dj-mike-blenda-and-dj-shafiq/u/r-bigsquare/18706356/funk_n_tings.png?cb=1727970545",
       "description": null,
       "staffPick": false,
       "promoted": true,
@@ -33,7 +48,7 @@
     },
     {
       "title": "St. Pete Opera: 'La Bohéme'",
-      "start": "2026-06-09T19:30:00",
+      "start": "2026-06-12T20:00:00",
       "end": null,
       "venue": "Palladium Theater",
       "address": "253 Fifth Ave. N, St. Petersburg",
@@ -43,7 +58,22 @@
       "image": "https://media1.cltampa.com/cltampa/imager/st-pete-opera-la-boheme/u/r-bigsquare/21479344/palladium_theater_st_petersburg.webp?cb=5a9e9c69f2b536600238f7cdbede82e0",
       "description": "Theater, Live Music",
       "staffPick": true,
-      "promoted": true,
+      "promoted": false,
+      "source": "Creative Loafing"
+    },
+    {
+      "title": "Heights Drive Thru 1 Year Anniversary BASH",
+      "start": "2026-06-13T12:00:00",
+      "end": "2026-06-13T16:00:00",
+      "venue": "Heights Drive-Thru",
+      "address": "6505 North Florida Ave., Tampa",
+      "price": null,
+      "isFree": null,
+      "url": "https://community.cltampa.com/event/heights-drive-thru-1-year-anniversary-bash-21495991",
+      "image": "https://media2.cltampa.com/cltampa/imager/heights-drive-thru-1-year-anniversary-bash/u/r-bigsquare/21495989/image__2_.webp?cb=d76adad7fa1de80f40b9d4911f6128b3",
+      "description": null,
+      "staffPick": true,
+      "promoted": false,
       "source": "Creative Loafing"
     },
     {
@@ -447,21 +477,6 @@
       "url": "https://community.cltampa.com/event/19th-annual-fire-charity-fishing-tournament-and-festival-21379521",
       "image": "https://media2.cltampa.com/cltampa/imager/19th-annual-fire-charity-fishing-tournament-and-festival/u/r-bigsquare/21379522/img_5868.webp?cb=1777906273",
       "description": "The 19th Annual Fire Charity Fishing Tournament is gearing up for its biggest year yet, announcing cash payouts exceeding $50,000, participation in the prestigious Triple Crown Series, and a full weekend of community events along the scenic Bradenton Riverwalk. Nearshore and Offshore weigh‑ins begin at 2:00 PM. Bringing the soundtrack to Saturday night is Bradenton’s own Dylan Cotrone, a singer‑songwriter who’s been making waves nationwide. Dylan is coming home to play where it all started. Anglers, sponsors, and spectators are encouraged to register early and join a weekend that blends competition, community, and a powerful charitable mission. 727-320-7859",
-      "staffPick": false,
-      "promoted": false,
-      "source": "Creative Loafing"
-    },
-    {
-      "title": "Special Guest DJ Landis at Lower Deck",
-      "start": "2026-06-13T16:00:00",
-      "end": "2026-06-13T02:00:00",
-      "venue": "Lower Deck Harbour Island",
-      "address": "601 S Harbour Island Blvd Suite 110, Tampa",
-      "price": 0,
-      "isFree": true,
-      "url": "https://community.cltampa.com/event/special-guest-dj-landis-at-lower-deck-21472771",
-      "image": "https://media1.cltampa.com/cltampa/imager/special-guest-dj-landis-at-lower-deck/u/r-bigsquare/21472770/149214-special_guest_dj_landis_at_lower_deck.webp?cb=1780611308",
-      "description": "Water views, ice-cold drinks, and special guest DJ Landis spinning all night—there's no better place to be than Lower Deck. Grab your crew and catch the party! Saturday, June 13th, 4:00pm - 2:00am Reserve VIP tables and couches here Learn more on our website www.lowerdecktampa.com 8132513130",
       "staffPick": false,
       "promoted": false,
       "source": "Creative Loafing"

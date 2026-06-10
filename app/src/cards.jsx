@@ -39,6 +39,22 @@ export const CATEGORY_HUES = {
 }
 export const hueFor = (e) => CATEGORY_HUES[e.category] ?? CATEGORY_HUES.other
 
+// one emoji per category — poster-mode artwork for events without an image
+export const CATEGORY_EMOJI = {
+  music: '🎵',
+  sports: '🏟️',
+  art: '🎨',
+  theatre: '🎭',
+  comedy: '😂',
+  food: '🍔',
+  market: '🛍️',
+  outdoors: '🌳',
+  nightlife: '🪩',
+  family: '👨‍👩‍👧',
+  community: '🤝',
+  other: '⭐',
+}
+
 // 🎨 pill: cycles editorial → poster → cinematic. key={mode} remounts the label
 // so it plays a tiny flash (opacity/transform pop) on every switch.
 export function DisplayModeToggle() {
@@ -80,6 +96,10 @@ export function SponsoredTag({ e }) {
 // children render on top (heat badges, FREE badge, …).
 export function CardImg({ e, className = '', children }) {
   const [ok, setOk] = useState(false)
+  const mode = useDisplayMode()
+  // poster tiles are image-first: a time-as-artwork fallback would just repeat
+  // the meta line, so poster mode shows the category emoji instead
+  const fall = mode === 'poster' ? CATEGORY_EMOJI[e.category] ?? CATEGORY_EMOJI.other : startLabel(e) || '★'
   return (
     <span
       className={'imgbox ' + className}
@@ -96,7 +116,7 @@ export function CardImg({ e, className = '', children }) {
           onLoad={() => setOk(true)}
         />
       ) : (
-        <span className="imgbox-fall">{startLabel(e) || '★'}</span>
+        <span className="imgbox-fall">{fall}</span>
       )}
       {children}
     </span>
@@ -263,7 +283,8 @@ export function Row({ e, dist, style, onSelect }) {
     <button className="row row--editorial pressable" style={st} onClick={open}>
       <CardImg e={e} className="row-img" />
       <div className="row-main">
-        <div className="row-cat">{e.category}</div>
+        {/* 'other' is a fallback bucket, not a real category — no overline */}
+        {e.category !== 'other' && <div className="row-cat">{e.category}</div>}
         <div className="row-title">{e.title}</div>
         <div className="row-meta">{meta || 'Tap for details'}</div>
         <SponsoredTag e={e} />

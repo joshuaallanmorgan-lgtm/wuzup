@@ -102,7 +102,7 @@ export default function HotView({ events, anchors, loading, displayMode, onSelec
         <div className="hero-text">
           <div className="hero-kicker">WHAT'S HOT · THIS WEEK</div>
           <h1 className="hero-city">{CITY.name}</h1>
-          <div className="hero-sub">{events.length} events near you</div>
+          <div className="hero-sub">{upcoming.length} events near you</div>
         </div>
       </header>
 
@@ -141,7 +141,7 @@ export default function HotView({ events, anchors, loading, displayMode, onSelec
               ))}
             </div>
             <button className="gems-more" onClick={() => scrollToList(evRef.current)}>
-              More gems →
+              Browse everything →
             </button>
           </section>
         )}
@@ -166,11 +166,7 @@ export default function HotView({ events, anchors, loading, displayMode, onSelec
           </section>
         )}
         {!loading && upcoming.length === 0 && (
-          <div className="empty">
-            No upcoming events found.
-            <br />
-            Re-run the finder to refresh.
-          </div>
+          <div className="empty">Nothing on the radar right now — check back soon 🌴</div>
         )}
       </div>
     </div>

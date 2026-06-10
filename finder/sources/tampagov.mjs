@@ -1,50 +1,22 @@
 // City of Tampa calendar RSS (tampa.gov Drupal feed), parsed with string ops only.
 import { pathToFileURL } from 'node:url';
+import { decodeEntities, stripHtml, truncate, fetchWithTimeout } from './_shared.mjs';
 
 export const name = 'City of Tampa';
 
 const FEED_URL = 'https://www.tampa.gov/calendar/rss.xml';
 const WINDOW_DAYS = 45;
-const TIMEOUT_MS = 20000;
 const USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36';
 
-// Government-meeting noise filter.
-const NOISE = /board|commission|committee|council|hearing|advisory|authority|task force/i;
+// Government-meeting / admin noise filter.
+const NOISE = /board|commission|committee|council|hearing|advisory|authority|task force|agency|webinar|stretch break/i;
 
-const NAMED_ENTITIES = {
-  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
-  rsquo: '’', lsquo: '‘', rdquo: '”', ldquo: '“',
-  ndash: '–', mdash: '—', hellip: '…', eacute: 'é',
-};
-
-function decodeEntities(str) {
-  if (!str) return str;
-  return str
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
-    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
-    .replace(/&([a-zA-Z]+);/g, (m, n) => NAMED_ENTITIES[n] ?? m);
-}
-
-function stripHtml(str) {
-  if (!str) return str;
-  return decodeEntities(str.replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
-}
-
-function truncate(str, max = 250) {
-  if (!str) return str;
-  return str.length <= max ? str : str.slice(0, max - 1).trimEnd() + '…';
-}
-
-async function fetchWithTimeout(url, options = {}) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  try {
-    return await fetch(url, { ...options, signal: controller.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-}
+// Virtual / online-only markers. Title check is broad; the description check
+// demands an explicit virtual/online-only phrasing so a body that merely says
+// "register online" doesn't kill an in-person event.
+const VIRTUAL_TITLE = /\bvirtual\b|\bonline\b|\bwebinar\b|\bzoom\b/i;
+const VIRTUAL_DESC = /\b(virtual|online)[\s-]only\b|\bvirtual (event|meeting|program|session)\b|\bwebinar\b|\bvia zoom\b|\bzoom (meeting|link)\b|\bheld (online|virtually)\b/i;
 
 function tagText(xml, tag) {
   const m = xml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`));
@@ -97,6 +69,7 @@ export async function fetchEvents() {
   for (const item of items) {
     const title = decodeEntities((tagText(item, 'title') || '').trim());
     if (!title || NOISE.test(title)) continue;
+    if (VIRTUAL_TITLE.test(title)) continue;
 
     const link = tagText(item, 'link');
     // <description> holds XML-escaped HTML; decode once to get real markup.
@@ -140,6 +113,10 @@ export async function fetchEvents() {
     let description = null;
     const bodyBlock = fieldBlock(descHtml, 'body');
     if (bodyBlock) description = truncate(stripHtml(bodyBlock.replace(/^[^>]*>/, ''))) || null;
+
+    // Virtual/online-only events (explicitly marked in the body) aren't
+    // attendable city events — skip entirely.
+    if (description && VIRTUAL_DESC.test(description)) continue;
 
     // Explicit "Free/Open to the public?" field when present; otherwise free
     // unless a dollar amount appears in the body text.

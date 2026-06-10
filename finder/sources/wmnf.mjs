@@ -2,54 +2,21 @@
 // List endpoint supports relation includes (Datetime, Venue) and `where` filters,
 // so one request usually suffices; per-event datetime fetches are a capped fallback.
 
+import { decodeEntities, stripHtml, truncate, fetchWithTimeout } from './_shared.mjs';
+
 export const name = 'WMNF 88.5';
 
 const API_BASE = 'https://www.wmnf.org/wp-json/ee/v4.8.36';
 const USER_AGENT = 'tampabay-events-finder/0.1';
 const WINDOW_DAYS = 45;
-const TIMEOUT_MS = 20000;
 const MAX_DETAIL_CALLS = 20;
 
-const ENTITIES = {
-  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
-  ndash: '–', mdash: '—', hellip: '…', rsquo: '’',
-  lsquo: '‘', ldquo: '“', rdquo: '”',
-};
-
-function decodeEntities(s) {
-  if (!s) return s;
-  return s
-    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
-    .replace(/&([a-z]+);/gi, (m, e) => ENTITIES[e.toLowerCase()] ?? m);
-}
-
-function stripHtml(s) {
-  if (!s) return s;
-  return decodeEntities(
-    s.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*>/g, ' ')
-  ).replace(/\s+/g, ' ').trim();
-}
-
-function truncate(s, n = 250) {
-  if (!s) return s;
-  return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s;
-}
-
 async function fetchJson(url) {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-  try {
-    const res = await fetch(url, {
-      headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
-      signal: ctrl.signal,
-      redirect: 'follow',
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
-    return await res.json();
-  } finally {
-    clearTimeout(timer);
-  }
+  const res = await fetchWithTimeout(url, {
+    headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+  return await res.json();
 }
 
 function pad(n) {

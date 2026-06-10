@@ -1,5 +1,4 @@
 {
-  "USF Theatre 1": null,
   "Raymond James Stadium": {
     "lat": 27.9759793,
     "lng": -82.5033545
@@ -16,8 +15,6 @@
     "lat": 27.9600695,
     "lng": -82.4427667
   },
-  "Side Splitters Comedy Club": null,
-  "Mahaffey Theater At The Duke Energy Center for the Arts": null,
   "Tropicana Field": {
     "lat": 27.7680559,
     "lng": -82.6532755
@@ -26,22 +23,18 @@
     "lat": 27.9717307,
     "lng": -82.7316413
   },
-  "Carol Morsani Hall - The Straz Center": null,
   "Ruth Eckerd Hall": {
     "lat": 27.9760792,
     "lng": -82.7046899
   },
-  "FloridaRAMA": null,
   "The Palladium Theater": {
     "lat": 27.7778779,
     "lng": -82.6367975
   },
-  "Carol and Frank Morsani Center for the Arts": null,
   "Museum of Fine Arts St. Petersburg": {
     "lat": 27.7744658,
     "lng": -82.6318274
   },
-  "Museum of the Amercian Arts and Crafts Movement": null,
   "Peace Memorial Presbyterian Church": {
     "lat": 27.9643355,
     "lng": -82.8002847
@@ -50,12 +43,10 @@
     "lat": 27.7683643,
     "lng": -82.6330913
   },
-  "Catherine A. Hickman Theater": null,
   "The Dali": {
     "lat": 27.7659874,
     "lng": -82.6314611
   },
-  "St Petersburg Distillery": null,
   "Shore Acres Recreation Center": {
     "lat": 27.8108052,
     "lng": -82.6094571
@@ -64,8 +55,6 @@
     "lat": 27.9602989,
     "lng": -82.4515816
   },
-  "The Studio@620": null,
-  "3 Daughters Brewing &#8211; St. Pete": null,
   "St. Petersburg Shuffleboard Club": {
     "lat": 27.7756085,
     "lng": -82.6412655
@@ -74,13 +63,6 @@
     "lat": 27.7903595,
     "lng": -82.6379044
   },
-  "New World Music Hall": null,
-  "MidFlorida Credit Union Amphitheatre At The Florida State Fairgrounds": null,
-  "The Fringe Theatre": null,
-  "GÜD Essence": null,
-  "Lower Deck Harbour Island": null,
-  "Carrollwood Players Theatre": null,
-  "Funny Bone Comedy Club - Tampa": null,
   "Bradenton Riverwalk": {
     "lat": 27.499686,
     "lng": -82.5674058
@@ -93,7 +75,6 @@
     "lat": 28.1885231,
     "lng": -82.6262169
   },
-  "Hernando County Fairgrounds": null,
   "Ology Brewing": {
     "lat": 28.0051375,
     "lng": -82.459291
@@ -102,15 +83,10 @@
     "lat": 28.1445127,
     "lng": -82.7553608
   },
-  "St Pete Biking": null,
-  "Tailgreeter All-Inclusive Tailgate - Raymond James Stadium": null,
-  "Centro Asturiano de Tampa": null,
-  "2606 Fairfield Ave S, Building 6, St. Petersburg, 33712": null,
   "St. Petersburg": {
     "lat": 27.7712264,
     "lng": -82.6340259
   },
-  "253 Fifth Ave. N., St. Petersburg, 33701": null,
   "255 Beach Dr NE, St. Petersburg, FL, 33701": {
     "lat": 27.7744658,
     "lng": -82.6318274
@@ -151,8 +127,6 @@
     "lat": 27.8110372,
     "lng": -82.6091119
   },
-  "620 First Avenue South, St. Petersburg, FL, 33701": null,
-  "1010 North Macinnes Place, Tampa, FL, 33602": null,
   "222 22nd Street S, St. Petersburg, FL, 33712": {
     "lat": 27.7690478,
     "lng": -82.6625983
@@ -169,7 +143,6 @@
     "lat": 28.0324572,
     "lng": -82.4524536
   },
-  "4802 US Highway 301 North, Tampa, FL, 33610": null,
   "1600 E 8th Ave, Tampa, FL, 33605": {
     "lat": 27.9614582,
     "lng": -82.4416202
@@ -186,12 +159,10 @@
     "lat": 27.977898,
     "lng": -82.505391
   },
-  "C. Blythe Andrews, Jr. Public Library": null,
   "78th Street Community Library": {
     "lat": 27.9403933,
     "lng": -82.3715854
   },
-  "Bruton Memorial Library": null,
   "Jan Kaminis Platt Regional Library": {
     "lat": 27.9073768,
     "lng": -82.5173706
@@ -228,7 +199,6 @@
     "lat": 27.872136,
     "lng": -82.6723733
   },
-  "Virtual Meeting": null,
   "Brandon Regional Library": {
     "lat": 27.9294049,
     "lng": -82.2883894
@@ -253,7 +223,6 @@
     "lat": 27.962351,
     "lng": -82.43538
   },
-  "Online event": null,
   "5501 27th Ave. S, Gulfport": {
     "lat": 27.7437088,
     "lng": -82.7134915
@@ -274,7 +243,6 @@
     "lat": 27.9603786,
     "lng": -82.4518618
   },
-  "910 Skipper Rd., Tampa, FL 33613": null,
   "Charles J. Fendig Public Library": {
     "lat": 27.9308227,
     "lng": -82.5086764
@@ -283,13 +251,10 @@
     "lat": 27.9219625,
     "lng": -82.4932255
   },
-  "810 East Skagway Blvd, Tampa, FL 33604": null,
-  "1624 E 7th Ave Ste 307, Tampa": null,
   "28540 US Hwy 19 N, Clearwater": {
     "lat": 27.9794958,
     "lng": -82.7296591
   },
-  "601 S Harbour Island Blvd Suite 110, Tampa": null,
   "816 Manatee Avenue East, Bradenton": {
     "lat": 27.4951149,
     "lng": -82.5562236
@@ -306,7 +271,6 @@
     "lat": 27.4972081,
     "lng": -82.5665083
   },
-  "8551 West Venable Street Crystal River, FL 34429, Crystal River, FL": null,
   "1208 E Kennedy Blvd #112, Tampa, FL": {
     "lat": 27.9510309,
     "lng": -82.4470651
@@ -355,12 +319,10 @@
     "lat": 27.9230138,
     "lng": -82.4934854
   },
-  "5701 East Hillsborough Avenue #Suite 2409, Tampa, FL": null,
   "2101 East Palm Avenue, Tampa, FL": {
     "lat": 27.962353,
     "lng": -82.435384
   },
-  "Tampa-Hillsborough County Public Library": null,
   "811 E 7th Ave, Tampa, FL 33602": {
     "lat": 27.9603806,
     "lng": -82.4518648
@@ -369,15 +331,33 @@
     "lat": 27.8719606,
     "lng": -82.6738287
   },
-  "11909 125th St. N., Largo, FL 33774": null,
   "1700 Park St. N., St. Petersburg, FL 33710": {
     "lat": 27.788578,
     "lng": -82.752724
   },
-  "Riverview Public Library": null,
-  "315 Court St, 5th Floor, Clearwater, FL 33756": null,
   "14700 Terminal Blvd., Clearwater, FL 33762": {
     "lat": 27.9099433,
     "lng": -82.6877179
-  }
+  },
+  "221 2nd Ave N, St. Petersburg, FL, 33701": {
+    "lat": 27.7736215,
+    "lng": -82.6359676
+  },
+  "6505 North Florida Ave., Tampa": {
+    "lat": 28.0067509,
+    "lng": -82.4593871
+  },
+  "2606 Fairfield Ave S, Building 6, St. Petersburg, 33712": null,
+  "2020 W Brandon Blvd , Unit 105, FL": null,
+  "620 First Avenue South, St. Petersburg, FL, 33701": null,
+  "1010 North Macinnes Place, Tampa, FL, 33602": null,
+  "910 Skipper Rd., Tampa, FL 33613": null,
+  "810 East Skagway Blvd, Tampa, FL 33604": null,
+  "1624 E 7th Ave Ste 307, Tampa": null,
+  "253 Fifth Ave. N., St. Petersburg, 33701": null,
+  "601 S Harbour Island Blvd Suite 110, Tampa": null,
+  "8551 West Venable Street Crystal River, FL 34429, Crystal River, FL": null,
+  "5701 East Hillsborough Avenue #Suite 2409, Tampa, FL": null,
+  "Tampa-Hillsborough County Public Library": null,
+  "11909 125th St. N., Largo, FL 33774": null
 }

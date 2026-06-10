@@ -3,6 +3,8 @@
 // in four Tampa Bay listing pages. Listing-level startDate is often date-only; we
 // deliberately do NOT fetch detail pages (politeness + speed).
 
+import { cleanText, fetchWithTimeout } from './_shared.mjs';
+
 export const name = 'AllEvents';
 
 const PAGES = [
@@ -12,49 +14,17 @@ const PAGES = [
   { url: 'https://allevents.in/clearwater', free: false },
 ];
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36';
-const TIMEOUT_MS = 20000;
 const DAYS_AHEAD = 45;
 const TZ = 'America/New_York';
 
-async function fetchWithTimeout(url) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  try {
-    return await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        'user-agent': UA,
-        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'accept-language': 'en-US,en;q=0.9',
-      },
-    });
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-const NAMED_ENTITIES = {
-  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
-  ndash: '–', mdash: '—', hellip: '…',
-  lsquo: '‘', rsquo: '’', ldquo: '“', rdquo: '”',
-};
-
-function decodeEntities(str) {
-  if (!str) return str;
-  return str
-    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
-    .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(parseInt(dec, 10)))
-    .replace(/&([a-z]+);/gi, (m, name) => NAMED_ENTITIES[name.toLowerCase()] ?? m);
-}
-
-function cleanText(html, maxLen = 250) {
-  if (!html) return null;
-  let text = decodeEntities(String(html).replace(/<[^>]*>/g, ' '))
-    .replace(/\s+/g, ' ')
-    .trim();
-  if (!text) return null;
-  if (text.length > maxLen) text = text.slice(0, maxLen - 1).trimEnd() + '…';
-  return text;
+function aeFetch(url) {
+  return fetchWithTimeout(url, {
+    headers: {
+      'user-agent': UA,
+      accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'accept-language': 'en-US,en;q=0.9',
+    },
+  });
 }
 
 // 'YYYY-MM-DD' for "today" in Tampa's timezone.
@@ -169,7 +139,7 @@ export async function fetchEvents() {
   for (const page of PAGES) {
     let items;
     try {
-      const res = await fetchWithTimeout(page.url);
+      const res = await aeFetch(page.url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       items = extractLdEvents(await res.text());
     } catch (err) {

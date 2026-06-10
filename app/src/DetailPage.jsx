@@ -53,7 +53,16 @@ export default function DetailPage({ e, closing, vt, onClose }) {
       </div>
       {e.url && (
         <a className="detail-cta" href={e.url} target="_blank" rel="noreferrer">
-          Get Tickets <span className="cta-arr">→</span>
+          {/* "Get Tickets" only when there's actually something to buy */}
+          {e.isFree === true || !(e.price > 0) ? (
+            <>
+              View event <span className="cta-arr">↗</span>
+            </>
+          ) : (
+            <>
+              Get Tickets <span className="cta-arr">→</span>
+            </>
+          )}
         </a>
       )}
     </div>

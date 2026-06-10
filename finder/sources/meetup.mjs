@@ -4,6 +4,8 @@
 // so parsing is a defensive recursive walk: collect anything event-shaped,
 // warn and return [] when nothing is found — never throw on shape surprises.
 
+import { decodeEntities, stripHtml, truncate, fetchWithTimeout } from './_shared.mjs';
+
 export const name = 'Meetup';
 
 const BASE_URL = 'https://www.meetup.com/find/?location=us--fl--tampa&source=EVENTS';
@@ -11,48 +13,15 @@ const EXTRA_URL = BASE_URL + '&dateRange=this-week';
 const USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36';
 const WINDOW_DAYS = 45;
-const TIMEOUT_MS = 20000;
 
-const ENTITIES = {
-  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
-  ndash: '–', mdash: '—', hellip: '…', rsquo: '’',
-  lsquo: '‘', ldquo: '“', rdquo: '”',
-};
-
-function decodeEntities(s) {
-  if (!s) return s;
-  return s
-    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
-    .replace(/&([a-z]+);/gi, (m, e) => ENTITIES[e.toLowerCase()] ?? m);
-}
-
-function stripHtml(s) {
-  if (!s) return s;
-  return decodeEntities(s.replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
-}
-
-function truncate(s, n = 250) {
-  if (!s) return s;
-  return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s;
-}
-
-async function fetchWithTimeout(url) {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-  try {
-    return await fetch(url, {
-      headers: {
-        'User-Agent': USER_AGENT,
-        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-      },
-      signal: ctrl.signal,
-      redirect: 'follow',
-    });
-  } finally {
-    clearTimeout(timer);
-  }
+function meetupFetch(url) {
+  return fetchWithTimeout(url, {
+    headers: {
+      'User-Agent': USER_AGENT,
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.9',
+    },
+  });
 }
 
 // Resolve Apollo-style { __ref: "Group:123" } references against the state map.
@@ -106,6 +75,22 @@ function mapEvent(node, refMap) {
   const end = node.endTime || null;
 
   const venueObj = deref(node.venue, refMap);
+
+  // Skip virtual/online events: Meetup marks them eventType "ONLINE" with a
+  // placeholder "Online event" venue; titles carry "(Virtual)" or "Online"
+  // (e.g. "Tampa Online Speed Dating" is a Zoom-from-home event even though
+  // its listing has eventType PHYSICAL and a street venue).
+  const venueName =
+    venueObj && typeof venueObj === 'object' && typeof venueObj.name === 'string'
+      ? venueObj.name.trim()
+      : '';
+  if (
+    String(node.eventType || '').toUpperCase() === 'ONLINE' ||
+    /\b(virtual|online)\b/i.test(venueName) ||
+    /\b(virtual|online)\b/i.test(title)
+  ) {
+    return null;
+  }
   let venue = null;
   let address = null;
   let lat = null;
@@ -167,7 +152,7 @@ function mapEvent(node, refMap) {
 }
 
 async function fetchPageEvents(url, todayStart, windowEnd) {
-  const res = await fetchWithTimeout(url);
+  const res = await meetupFetch(url);
   if (!res.ok) {
     console.warn(`[${name}] HTTP ${res.status} for ${url}`);
     return [];
@@ -198,7 +183,8 @@ async function fetchPageEvents(url, todayStart, windowEnd) {
   const events = [];
   for (const node of nodes) {
     try {
-      events.push(mapEvent(node, refMap));
+      const ev = mapEvent(node, refMap);
+      if (ev) events.push(ev);
     } catch (err) {
       console.warn(`[${name}] skipping unmappable event node: ${err.message}`);
     }
