@@ -71,6 +71,12 @@ Month-grid toggle shipping now; **year view** and other calendar zoom levels = f
 ## 🎯 Personalization
 "Slightly tailored, not heavily algorithmic." Onboarding questions + learned swipe/tap preferences **re-order** events for digestibility but **never hide** them. Post-MVP.
 
+## 🏖️ Events vs. Evergreen Places layer (Josh, day 3 pt 2)
+Long-term: layer DATED events against EVERGREEN spots (beaches, parks, hidden gems, always-available places). Weekend planning = pick from events OR **make your own event from a place the app knows** (ties into the Add Event pipeline: pick a place → set a time → it's your plan). This revives the night-1 "ambient places" concept with a creative twist. Needs a places dataset (free mapping POI data), a places UI surface, and the place→personal-event flow. Post-v1.
+
+## 📡 Sprint F (deploy/PWA) — PARKED by Josh (day 3 pt 2)
+No hosting needed yet. Revisit late in the week when Charles is coming over.
+
 ## 🌗 Dark mode
 Light theme is the identity (inviting, Apple-ish). A proper dark mode is wanted later — design tokens are already CSS variables, so it's a `prefers-color-scheme` / toggle pass when we get there.
 
