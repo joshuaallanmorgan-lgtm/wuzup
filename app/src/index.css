@@ -1,0 +1,35 @@
+:root {
+  --accent: #ff5a3c; /* vivid coral */
+  --accent-2: #ff2d78; /* hot pink */
+  --free: #0a9d6e;
+  --ink: #15171c;
+  --muted: #6b7280;
+  --line: #eceef1;
+  --card: #ffffff;
+  --bg: #f7f8fa;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: #16181d;
+  color: var(--ink);
+}
+
+/* phone-sized frame centered on desktop */
+#root {
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  min-height: 100svh;
+  background: var(--bg);
+  position: relative;
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+a { color: inherit; }

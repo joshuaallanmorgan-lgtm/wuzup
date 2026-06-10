@@ -1,0 +1,34 @@
+{
+  "USF Theatre 1": null,
+  "Raymond James Stadium": {
+    "lat": 27.9759793,
+    "lng": -82.5033545
+  },
+  "George M. Steinbrenner Field": {
+    "lat": 27.9801645,
+    "lng": -82.5066542
+  },
+  "Orpheum - Tampa": {
+    "lat": 27.9600473,
+    "lng": -82.437391
+  },
+  "The Ritz Ybor": {
+    "lat": 27.9600695,
+    "lng": -82.4427667
+  },
+  "Side Splitters Comedy Club": null,
+  "Mahaffey Theater At The Duke Energy Center for the Arts": null,
+  "Tropicana Field": {
+    "lat": 27.7680559,
+    "lng": -82.6532755
+  },
+  "BayCare Ballpark": {
+    "lat": 27.9717307,
+    "lng": -82.7316413
+  },
+  "Carol Morsani Hall - The Straz Center": null,
+  "Ruth Eckerd Hall": {
+    "lat": 27.9760792,
+    "lng": -82.7046899
+  }
+}
