@@ -5,8 +5,35 @@ import { BUBBLES, CITY, DAY, dayLabel, keyOf, orderDay, tonightModel } from './l
 import { BigOne, EndCap, FreeCard, GemRow, RowFeed, SecHead, TonightCard } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
 import { confidence, tasteNudge, topCategories, useTaste } from './taste.js'
+import { useRecents } from './recents.js'
 
-export default function HotView({ events, anchors, loading, displayMode, onSelect, onOpenBubble, onOpenSearch, onOpenAdd }) {
+// H2 — time-aware hero kicker (replaces the static "WHAT'S HOT · THIS WEEK").
+// Pure (now, tonightLeft, whenPref) → string; plain text, zero animation.
+// tonightLeft = tonightModel's futureN: TIMED events still to come today —
+// at night that IS "still to come"; earlier in the day the claim is widened
+// to "TODAY" so a morning market never gets sold as a tonight count (no
+// fabricated claims). whenPref (from the H1 primer, its only use for now)
+// adds a one-word "YOUR" flavor when the clock matches the stated habit —
+// 'whenever' adds nothing (every night being "yours" is noise). DRAFT COPY.
+function heroKicker(now, tonightLeft, whenPref) {
+  const wd = now.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase()
+  const h = now.getHours()
+  const dow = now.getDay()
+  const night = h >= 17 || h < 5
+  const part = h < 5 ? 'LATE NIGHT' : h < 12 ? 'MORNING' : h < 17 ? 'AFTERNOON' : 'NIGHT'
+  const prefHit =
+    night &&
+    (whenPref === 'weekends'
+      ? dow === 5 || dow === 6 || dow === 0
+      : whenPref === 'weeknights'
+        ? dow >= 1 && dow <= 4
+        : false)
+  const head = (prefHit ? 'YOUR ' : '') + wd + ' ' + part
+  if (tonightLeft > 0) return `${head} — ${tonightLeft} STILL TO COME${night ? '' : ' TODAY'}`
+  return `${head} IN ${CITY.name.toUpperCase()}`
+}
+
+export default function HotView({ events, anchors, loading, displayMode, whenPref, onSelect, onOpenBubble, onOpenSearch, onOpenAdd }) {
   const scrollRef = useRef(null)
   const evRef = useRef(null)
   const [entered, setEntered] = useState(false) // entrance animations already played?
@@ -117,6 +144,22 @@ export default function HotView({ events, anchors, loading, displayMode, onSelec
       .map((x) => x.e)
     return picks.length >= 3 ? picks : null // a 1-card "rail" reads broken, wait for data
   }, [upcoming, taste])
+  // H3 "Recently viewed" + H4 session recap — both read the recents store.
+  // Rail: persisted keys resolved against the LIVE upcoming set only (vanished
+  // or already-ended events silently drop — keys, never snapshots), max 6,
+  // shown once ≥2 resolve (a 1-row rail reads broken, same bar as the taste
+  // rail). Recap: ≥3 DISTINCT details opened THIS session (in-memory list,
+  // resets on reload) upgrades the end-of-Everything message — see `recap`.
+  const { keys: recentKeys, session } = useRecents()
+  const byKey = useMemo(() => {
+    const m = new Map()
+    for (const e of upcoming) m.set(keyOf(e), e)
+    return m
+  }, [upcoming])
+  const recents = useMemo(() => {
+    const out = recentKeys.map((k) => byKey.get(k)).filter(Boolean).slice(0, 6)
+    return out.length >= 2 ? out : []
+  }, [recentKeys, byKey])
   // Everything: grouped by day, WITHIN each day diversity-interleaved on
   // adjustedScore (G1 orderDay: no >2-run of one source family or category;
   // count-preserving — never hides). Taste is read at compute time; the order
@@ -129,6 +172,32 @@ export default function HotView({ events, anchors, loading, displayMode, onSelec
     }
     return [...m.entries()].map(([ts, items]) => ({ label: dayLabel(ts, anchors), items: orderDay(items, tasteNudge) }))
   }, [upcoming, anchors])
+  // H4 — the gentle stopping cue, feed END only (GPT report). 3+ distinct
+  // details opened this session upgrades RowFeed's "that's everything" line to
+  // a recap card: count + the last 3 viewed (live-resolved; vanished ones just
+  // shorten the list) + a save nudge. Calm, never nagging, never a popup.
+  const recapRows = useMemo(
+    () => session.slice(0, 3).map((k) => byKey.get(k)).filter(Boolean),
+    [session, byKey]
+  )
+  const daypart = new Date(nowMs).getHours() >= 17 || new Date(nowMs).getHours() < 5 ? 'tonight' : 'today'
+  const recap =
+    session.length >= 3 ? (
+      <div className="recap">
+        <div className="recap-over">Before you go</div>
+        <div className="recap-title">
+          You eyed {session.length} ideas {daypart}
+        </div>
+        {recapRows.length > 0 && (
+          <div className="recap-rows">
+            {recapRows.map((e, i) => (
+              <GemRow key={keyOf(e) + i} e={e} onSelect={onSelect} />
+            ))}
+          </div>
+        )}
+        <div className="recap-nudge">Save the ones you mean ♥</div>
+      </div>
+    ) : undefined
 
   const scrollToList = (el) => {
     const sc = scrollRef.current
@@ -150,7 +219,8 @@ export default function HotView({ events, anchors, loading, displayMode, onSelec
           🔎
         </button>
         <div className="hero-text">
-          <div className="hero-kicker">WHAT'S HOT · THIS WEEK</div>
+          {/* H2: time-aware greeting (tracks nowMs — re-seeded on visibility + every 10 min) */}
+          <div className="hero-kicker">{heroKicker(new Date(nowMs), tonight.futureN, whenPref)}</div>
           <h1 className="hero-city">{CITY.name}</h1>
           <div className="hero-sub">{upcoming.length} events near you</div>
         </div>
@@ -250,6 +320,17 @@ export default function HotView({ events, anchors, loading, displayMode, onSelec
             </div>
           </section>
         )}
+        {recents.length > 0 && (
+          <section className="sec">
+            {/* H3: placed LOW on purpose — after Free, before Everything */}
+            <SecHead overline="Pick up where you left off" title="Recently viewed" />
+            <div className="gems">
+              {recents.map((e, i) => (
+                <GemRow key={keyOf(e) + i} e={e} onSelect={onSelect} />
+              ))}
+            </div>
+          </section>
+        )}
         {upcoming.length > 0 && (
           <section className="sec sec-ev" ref={evRef}>
             <div className={ent(4).className.trim()} style={ent(4).style}>
@@ -262,8 +343,8 @@ export default function HotView({ events, anchors, loading, displayMode, onSelec
                 sub="All upcoming, by date"
               />
             </div>
-            {/* rows themselves never entrance-animate */}
-            <RowFeed sections={evSections} scrollRootRef={scrollRef} onSelect={onSelect} />
+            {/* rows themselves never entrance-animate; endSlot = the H4 recap */}
+            <RowFeed sections={evSections} scrollRootRef={scrollRef} onSelect={onSelect} endSlot={recap} />
           </section>
         )}
         {!loading && upcoming.length === 0 && (

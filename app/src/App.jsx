@@ -5,6 +5,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { CITY, Icon, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, saveMyEvents } from './lib.js'
 import { recordSignal } from './taste.js'
+import { recordView } from './recents.js'
+import Primer, { loadPrimerState } from './Primer.jsx'
 import { DISPLAY_MODES, DisplayModeContext, DisplayModeToggle, WxContext } from './cards.jsx'
 import { getForecast } from './weather.js'
 import HotView from './HotView.jsx'
@@ -69,6 +71,10 @@ export default function App() {
       return 'editorial'
     }
   })
+  // H1 mood primer: mounts while no stored state exists (first open only).
+  // Primer.jsx owns 'primer-v1' + the taste seeding; App only gates the mount
+  // and passes the when-preference down for the H2 greeting flavor.
+  const [primer, setPrimer] = useState(() => loadPrimerState())
   const pagerRef = useRef(null)
   const morphElRef = useRef(null)
   const pageTRef = useRef(null)
@@ -249,6 +255,7 @@ export default function App() {
   // useCallback: a stable identity so MapView's marker effect never re-runs because of us.
   const openDetail = useCallback((e, cardEl) => {
     recordSignal('open', e) // taste seam: opening a detail = +1 category interest
+    recordView(e) // recents seam (H3): FIFO 'recents-v1' + the in-session list (H4)
     setClosing(false)
     const el = cardEl ? cardEl.querySelector('[data-vt]') : null
     if (supportsVT() && el) {
@@ -302,13 +309,16 @@ export default function App() {
     <DisplayModeContext.Provider value={displayCtx}>
       <WxContext.Provider value={wx}>
       <div className="app">
-        <div className="pager" ref={pagerRef} onScroll={onScroll}>
+        {/* inert while the primer overlay is up: Tab must not reach (and Enter
+            must not activate) the obscured app behind it */}
+        <div className="pager" ref={pagerRef} onScroll={onScroll} inert={!primer ? true : undefined}>
           <section className="page page-hot">
             <HotView
               events={norm}
               anchors={anchors}
               loading={loading}
               displayMode={displayMode}
+              whenPref={primer?.when ?? null}
               onSelect={openDetail}
               onOpenBubble={openBubble}
               onOpenSearch={openSearch}
@@ -354,6 +364,9 @@ export default function App() {
             )}
           </div>
         )}
+        {/* H1: first open only — Primer persists its own state + seeds taste;
+            onDone hands the saved state back so the gate closes for good */}
+        {!primer && <Primer onDone={setPrimer} />}
         {/* keyed by event: a More-like-this swap REMOUNTS the detail (scroll resets
             to top, mini-map is destroyed + rebuilt for the new coords) */}
         {detail && (

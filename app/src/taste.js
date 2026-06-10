@@ -40,6 +40,11 @@ const CONF_FULL = 15 // confidence = min(n / 15, 1)
 // categories the user never actually touched (adversarial review, Sprint G)
 const INC = { save: 3, open: 1, fmn: 1, bubble: 0.5, add: 2 }
 
+// H1 primer seed weights (recordPrimer)
+const PRIMER_CAT = 4 // per chosen category (≈ 1.3 saves / 4 opens of head start)
+const PRIMER_FREE = 6 // freeAffinity when "free-leaning" (crosses the ≥5 gate)
+const PRIMER_N = 3 // interactions credited for the whole primer
+
 const empty = () => ({ catScores: {}, freeAffinity: 0, n: 0, v: 1 })
 
 const cleanNum = (v, cap) => (typeof v === 'number' && isFinite(v) && v > 0 ? Math.min(v, cap) : 0)
@@ -123,6 +128,35 @@ export function recordSignal(type, e) {
     next.freeAffinity = Math.min(next.freeAffinity + 1, CAT_CAP)
   }
   next.n += 1
+  profile = next
+  persist()
+  emit()
+}
+
+// H1 — PRIMER SEED (the one taste.js seam for Sprint H). One-shot, called by
+// Primer.jsx ONLY on finish (skip calls nothing → zero profile mutation).
+// THE MATH, documented:
+//   +4 per chosen category (max 3, UI-enforced + clamped here) ≈ 1.3 saves or
+//      4 detail opens of head start — never near the 25 cap.
+//   +6 freeAffinity when free-leaning — crosses tasteNudge's ≥5 free gate, but
+//      the free bonus stays ≤ 3 × (6/25) × conf ≈ 0.3 pts at n=6. Pennies.
+//   n += 3 → confidence 3/15 = 0.2. The rail gate (HotView) needs 0.4 = n ≥ 6,
+//      so a single primer run can't light the rail: it takes ~3 real taps more
+//      (caveat: if 'primer-v1' is lost while 'taste-v1' survives, a re-run
+//      stacks — acceptable edge; real taps still dominate either way)
+//      ("light the rail soon"). At n=6 a primer-only category nudges
+//      15 × (4/25) × 0.4 ≈ 0.96 pts — flavor. An organic 20-signal profile
+//      (any saved-up category ≥ 15 → nudge ≥ 9 at full confidence) rolls
+//      straight over it ("real taps overtake").
+// No-op when nothing was actually chosen — done-with-zero-picks must not
+// inflate confidence with fake signal.
+export function recordPrimer({ cats = [], freeLeaning = false } = {}) {
+  const list = (Array.isArray(cats) ? cats : []).filter((c) => typeof c === 'string' && c).slice(0, 3)
+  if (!list.length && freeLeaning !== true) return
+  const next = { catScores: { ...profile.catScores }, freeAffinity: profile.freeAffinity, n: profile.n, v: 1 }
+  for (const c of list) next.catScores[c] = Math.min((next.catScores[c] || 0) + PRIMER_CAT, CAT_CAP)
+  if (freeLeaning === true) next.freeAffinity = Math.min(next.freeAffinity + PRIMER_FREE, CAT_CAP)
+  next.n += PRIMER_N
   profile = next
   persist()
   emit()

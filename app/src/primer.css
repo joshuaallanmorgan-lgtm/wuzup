@@ -1,0 +1,194 @@
+/* primer.css — Sprint H1 mood primer. One-shot full-screen overlay over the
+   hero-photo ambiance. z 1900: above tabbar (1100) / FAB (1090) / subpages
+   (1500) / 🎨 toggle (1510), below detail (2000) and boot (2100). Teal is the
+   selection color — the primer is app identity, not hot-ness. Scoped under
+   .primer; nothing here leaks into the shared chrome. */
+
+.primer {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 460px;
+  height: 100svh;
+  z-index: 1900;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #16181d;
+  color: #fff;
+  animation: primerIn 400ms var(--ease-emphasis) both;
+}
+@keyframes primerIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.primer-leaving { animation: primerOut 280ms ease forwards; pointer-events: none; }
+@keyframes primerOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* hero-photo ambiance: the city image under a deep teal-tinted scrim */
+.primer-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+.primer-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 50% at 85% -6%, rgba(var(--accent-rgb), 0.28), transparent 60%),
+    linear-gradient(180deg, rgba(13, 18, 24, 0.78) 0%, rgba(13, 18, 24, 0.9) 52%, rgba(13, 18, 24, 0.97) 100%);
+}
+
+.primer-body {
+  position: relative;
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: calc(26px + env(safe-area-inset-top)) 24px 12px;
+}
+.primer-body::-webkit-scrollbar { display: none; }
+
+.primer-kicker {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #5eead4; /* light teal — readable on the dark scrim */
+}
+.primer-note { margin-top: 6px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.62); }
+.primer-dots { display: flex; gap: 6px; margin-top: 14px; }
+.primer-dot {
+  width: 22px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.primer-dot.on { background: var(--accent-2); }
+.primer-dot.done { background: rgba(94, 234, 212, 0.55); }
+
+.primer-step { margin-top: 26px; padding-bottom: 18px; animation: primerSlide 250ms var(--ease-emphasis) both; }
+@keyframes primerSlide {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: none; }
+}
+.primer-q { margin: 0; font-size: 29px; font-weight: 900; letter-spacing: -0.6px; line-height: 1.12; }
+.primer-sub { margin-top: 7px; font-size: 13.5px; font-weight: 600; color: rgba(255, 255, 255, 0.6); }
+
+/* step 1: category chips, multi-select up to 3 */
+.primer-chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.primer-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out),
+    transform var(--dur-micro);
+}
+.primer-chip:active { transform: scale(0.95); }
+.primer-chip.sel { border-color: var(--accent-2); background: rgba(6, 182, 212, 0.24); }
+.primer-chip.dim { opacity: 0.45; } /* 3 already picked — extra taps are no-ops */
+
+.primer-next {
+  margin-top: 26px;
+  width: 100%;
+  height: 52px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform var(--dur-micro);
+}
+.primer-next:active { transform: scale(0.98); }
+
+/* steps 2–3: big tappable option cards (FMN's rhythm, teal selection) */
+.primer-opts { display: grid; gap: 12px; margin-top: 22px; }
+.primer-opt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 18px 16px;
+  border-radius: 18px;
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+}
+.primer-opt.sel {
+  border-color: var(--accent-2);
+  background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.3), rgba(6, 182, 212, 0.22));
+}
+.primer-opt-emoji { font-size: 28px; line-height: 1; }
+.primer-opt-label { font-size: 17px; font-weight: 800; letter-spacing: -0.2px; }
+.primer-opt-sub { font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.6); }
+
+.primer-back {
+  margin-top: 18px;
+  padding: 8px 0;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.62);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ONE-TAP SKIP — pinned under the scroll area, never covered, every step */
+.primer-skip {
+  position: relative;
+  flex: 0 0 auto;
+  margin: 6px 24px calc(16px + env(safe-area-inset-bottom));
+  height: 48px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(6px);
+  color: rgba(255, 255, 255, 0.85);
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform var(--dur-micro);
+}
+.primer-skip:active { transform: scale(0.97); }
+
+/* reduced motion: no fades, no slides, no presses — content appears instantly */
+@media (prefers-reduced-motion: reduce) {
+  .primer,
+  .primer-leaving,
+  .primer-step { animation: none !important; }
+  .primer-chip,
+  .primer-opt,
+  .primer-dot { transition: none; }
+  .primer-chip:active,
+  .primer-next:active,
+  .primer-skip:active { transform: none; }
+}

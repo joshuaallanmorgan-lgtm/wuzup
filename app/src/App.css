@@ -401,6 +401,26 @@
   animation-duration: var(--dur-fast);
 }
 
+/* ===== H4 session recap (replaces .feed-end at the END of Everything once
+   3+ details were opened this session — the gentle stopping cue) ===== */
+.recap {
+  margin: 26px 20px 10px;
+  padding: 18px 16px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: var(--card);
+}
+.recap-over {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+.recap-title { margin-top: 4px; font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+.recap-rows { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.recap-nudge { margin-top: 14px; text-align: center; font-size: 13px; font-weight: 600; color: var(--muted); }
+
 /* ===== boot (gated 300ms in JS; topmost chrome) ===== */
 .boot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--bg); color: var(--muted); font-weight: 700; z-index: 2100; }
 

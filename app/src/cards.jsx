@@ -347,7 +347,9 @@ export function Row({ e, dist, style, onSelect }) {
 // vertical feed with optional date headers + infinite paging (30 rows/page).
 // sections: [{ label: string|null, items: event[] }]. stagger=true plays a one-shot
 // staggered rise on the first 6 rows (use when a page swaps its list in).
-export function RowFeed({ sections, showDist, stagger, scrollRootRef, onSelect }) {
+// endSlot (H4): an optional node that REPLACES the default end-of-feed line
+// once the whole list is rendered (HotView's session recap card).
+export function RowFeed({ sections, showDist, stagger, scrollRootRef, endSlot, onSelect }) {
   const mode = useDisplayMode()
   const [limit, setLimit] = useState(PAGE_SIZE)
   const sentRef = useRef(null)
@@ -398,7 +400,7 @@ export function RowFeed({ sections, showDist, stagger, scrollRootRef, onSelect }
     <div className={cls}>
       {out}
       {limit < total && <div className="feed-sentinel" ref={sentRef} />}
-      {total > 0 && limit >= total && <div className="feed-end">That's everything. Go touch grass 🌴</div>}
+      {total > 0 && limit >= total && (endSlot ?? <div className="feed-end">That's everything. Go touch grass 🌴</div>)}
     </div>
   )
 }
