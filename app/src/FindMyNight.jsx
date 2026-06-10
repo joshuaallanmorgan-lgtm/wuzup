@@ -11,6 +11,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DAY, Icon, dayLoose, keyOf, milesBetween, timeOf } from './lib.js'
 import { CardImg, HeatBadge, PriceChip, SponsoredTag } from './cards.jsx'
+import { recordSignal } from './taste.js'
 import './fmn.css'
 
 const QUESTIONS = [
@@ -258,6 +259,10 @@ export default function FindMyNight({ events, anchors, coords, onSelect, onClose
     const go = () => {
       const missing = QUESTIONS.findIndex((q) => next[q.id] == null)
       if (missing === -1) {
+        // taste seam: a completed brief = one signal, +2 to each category in
+        // the chosen who/vibe affinity sets ('surprise' vibe maps to none)
+        const cats = new Set([...(WHO_SETS[next.who] || []), ...(VIBE_SETS[next.vibe] || [])])
+        if (cats.size) recordSignal('fmn', { categories: [...cats] })
         if (reduced) setPhase('results') // cut the theater to instant
         else {
           setPhase('think')

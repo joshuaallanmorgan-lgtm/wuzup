@@ -31,6 +31,106 @@ export const BUBBLES = [
 // hotScore desc, nulls last, ties by start time
 export const hotDesc = (x, y) => (y.hotScore ?? -Infinity) - (x.hotScore ?? -Infinity) || x._t - y._t
 
+// source-family: 'Eventbrite (Tampa p2)' and 'Eventbrite (Free)' are ONE family
+// (the parenthetical is a finder pagination/area detail, not a different voice);
+// primary source = sources[0]. Used by orderDay's diversity constraint.
+export function sourceFamily(e) {
+  const s = (Array.isArray(e.sources) && e.sources.length ? e.sources[0] : e.source) || ''
+  return s.replace(/\s*\([^)]*\)\s*$/, '').trim() || 'unknown'
+}
+
+// G1 — diversity-aware ordering WITHIN a day group (replaces raw hotDesc in
+// HotView Everything / BubblePage / SearchPage day groups). Score each item
+// adjustedScore = (hotScore ?? 30) + nudge(e) (nudge optional: taste.js's
+// bounded tasteNudge), then interleave so no run of >2 consecutive items
+// shares the same source-family OR category while alternatives exist (the
+// library de-flood). Pure reordering — COUNT-PRESERVING by construction:
+// every item is consumed exactly once, nothing hidden, nothing added.
+//
+// Implementation: bucket by family+category (each bucket stays score-desc),
+// then repeatedly take the best bucket head by (1) fewest run-violations
+// (0 → 1 → 2 — the tiered fallback matters on single-category pages: a Music
+// bubble can never satisfy the category constraint, but family interleaving
+// must survive), then (2) highest score minus a small RECENCY penalty:
+// −4/appearance of the same family and −2/same category within the last 8
+// picks. The hard constraint alone only stops 3-runs; the soft penalty makes
+// the filler slots ROTATE families instead of ping-ponging between the top
+// two (verified effect: ≥4 distinct families in the first 10 on the heaviest
+// library day). The top-scored item always leads; within the 8-pick window,
+// penalties (≤48 effective pts) can locally reorder mid-pack items — that
+// reordering IS the de-flood. O(n log n) sort + O(n·B) selection, B =
+// family×category buckets present that day (a few dozen at most).
+const RUN_WIN = 8 // recency window for the soft de-flood penalty
+const FAM_PEN = 4 // per same-family appearance in the window
+const CAT_PEN = 2 // per same-category appearance in the window
+export function orderDay(items, nudge) {
+  const n = items.length
+  if (n <= 1) return [...items]
+  const scored = items.map((e) => ({
+    e,
+    s: (e.hotScore ?? 30) + (nudge ? nudge(e) : 0),
+    fam: sourceFamily(e),
+    cat: e.category || 'other',
+  }))
+  scored.sort((a, b) => b.s - a.s || a.e._t - b.e._t)
+  if (n === 2) return scored.map((x) => x.e)
+  const buckets = new Map()
+  for (const it of scored) {
+    const k = it.fam + '|' + it.cat
+    const b = buckets.get(k)
+    if (b) b.push(it)
+    else buckets.set(k, [it])
+  }
+  const lists = [...buckets.values()]
+  const heads = lists.map(() => 0)
+  const out = []
+  const win = [] // the last RUN_WIN picks (soft-penalty memory)
+  const winFam = new Map()
+  const winCat = new Map()
+  let f1 = null, f2 = null, c1 = null, c2 = null // the last two families/categories placed
+  for (let step = 0; step < n; step++) {
+    const banFam = f1 != null && f1 === f2 ? f1 : null // placing this fam again = run of 3
+    const banCat = c1 != null && c1 === c2 ? c1 : null
+    let best = -1
+    let bestViol = 3
+    let bestEff = -Infinity
+    let bestS = -Infinity
+    let bestT = Infinity
+    for (let i = 0; i < lists.length; i++) {
+      if (heads[i] >= lists[i].length) continue
+      const it = lists[i][heads[i]]
+      const viol = (banFam !== null && it.fam === banFam ? 1 : 0) + (banCat !== null && it.cat === banCat ? 1 : 0)
+      const eff = it.s - FAM_PEN * (winFam.get(it.fam) || 0) - CAT_PEN * (winCat.get(it.cat) || 0)
+      if (
+        viol < bestViol ||
+        (viol === bestViol &&
+          (eff > bestEff || (eff === bestEff && (it.s > bestS || (it.s === bestS && it.e._t < bestT)))))
+      ) {
+        best = i
+        bestViol = viol
+        bestEff = eff
+        bestS = it.s
+        bestT = it.e._t
+      }
+    }
+    const pick = lists[best][heads[best]++]
+    out.push(pick.e)
+    f2 = f1
+    f1 = pick.fam
+    c2 = c1
+    c1 = pick.cat
+    win.push(pick)
+    winFam.set(pick.fam, (winFam.get(pick.fam) || 0) + 1)
+    winCat.set(pick.cat, (winCat.get(pick.cat) || 0) + 1)
+    if (win.length > RUN_WIN) {
+      const old = win.shift()
+      winFam.set(old.fam, winFam.get(old.fam) - 1)
+      winCat.set(old.cat, winCat.get(old.cat) - 1)
+    }
+  }
+  return out
+}
+
 // --- date / formatting helpers ---
 export function parseDate(iso) {
   if (!iso) return null

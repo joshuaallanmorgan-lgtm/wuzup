@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { CITY, Icon, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, saveMyEvents } from './lib.js'
+import { recordSignal } from './taste.js'
 import { DISPLAY_MODES, DisplayModeContext, DisplayModeToggle, WxContext } from './cards.jsx'
 import { getForecast } from './weather.js'
 import HotView from './HotView.jsx'
@@ -212,6 +213,9 @@ export default function App() {
 
   // subpages: slide in over the Hot tab (z 1500, below detail 2000)
   const openBubble = useCallback((bubble) => {
+    // taste seam: tapping a CATEGORY bubble is a (weak) interest signal;
+    // time/free/near bubbles say nothing about category taste
+    if (bubble.kind === 'cat') recordSignal('bubble', { category: bubble.value })
     clearTimeout(pageTRef.current)
     setPageClosing(false)
     setPage({ type: 'bubble', bubble })
@@ -244,6 +248,7 @@ export default function App() {
   // detail open/close with App-Store morph: View Transitions when available, slide-up otherwise.
   // useCallback: a stable identity so MapView's marker effect never re-runs because of us.
   const openDetail = useCallback((e, cardEl) => {
+    recordSignal('open', e) // taste seam: opening a detail = +1 category interest
     setClosing(false)
     const el = cardEl ? cardEl.querySelector('[data-vt]') : null
     if (supportsVT() && el) {

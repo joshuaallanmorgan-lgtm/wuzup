@@ -1,9 +1,10 @@
 // HotView — the Hot tab magazine: hero (+ 🔎 search), bubble strip (each bubble
 // opens a full BubblePage via onOpenBubble), alternating sections, Everything feed.
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { BUBBLES, CITY, DAY, dayLabel, hotDesc, keyOf, tonightModel } from './lib.js'
+import { BUBBLES, CITY, DAY, dayLabel, keyOf, orderDay, tonightModel } from './lib.js'
 import { BigOne, EndCap, FreeCard, GemRow, RowFeed, SecHead, TonightCard } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
+import { confidence, tasteNudge, topCategories, useTaste } from './taste.js'
 
 export default function HotView({ events, anchors, loading, displayMode, onSelect, onOpenBubble, onOpenSearch, onOpenAdd }) {
   const scrollRef = useRef(null)
@@ -97,14 +98,36 @@ export default function HotView({ events, anchors, loading, displayMode, onSelec
   const { list: savedList } = useSaves()
   const shelf = useMemo(() => shelfItems(savedList, events, anchors), [savedList, events, anchors])
   const shelfOn = shelf.length > 0 // any saved item keeps the shelf — past saves grey out, they don't vanish it
-  // Everything: grouped by day, WITHIN each day ordered by hotScore desc (nulls last)
+  // "Your kind of night" rail (G4): renders ONLY once the local taste profile
+  // has real signal (confidence ≥ 0.4 = 6+ interactions) AND a top category
+  // exists — absent silently before that. Up to 8 upcoming events from the
+  // top-2 categories by adjustedScore; items may also appear in other
+  // sections (normal magazine behavior). useTaste = live, no remount needed.
+  const taste = useTaste()
+  const rail = useMemo(() => {
+    if (confidence(taste) < 0.4) return null
+    const top = topCategories(taste, 2)
+    if (!top.length) return null
+    const set = new Set(top)
+    const picks = upcoming
+      .filter((e) => set.has(e.category))
+      .map((e) => ({ e, s: (e.hotScore ?? 30) + tasteNudge(e, taste) }))
+      .sort((a, b) => b.s - a.s || a.e._t - b.e._t)
+      .slice(0, 8)
+      .map((x) => x.e)
+    return picks.length >= 3 ? picks : null // a 1-card "rail" reads broken, wait for data
+  }, [upcoming, taste])
+  // Everything: grouped by day, WITHIN each day diversity-interleaved on
+  // adjustedScore (G1 orderDay: no >2-run of one source family or category;
+  // count-preserving — never hides). Taste is read at compute time; the order
+  // intentionally does NOT reshuffle mid-session as signals accrue.
   const evSections = useMemo(() => {
     const m = new Map()
     for (const e of upcoming) {
       if (!m.has(e._clamp)) m.set(e._clamp, [])
       m.get(e._clamp).push(e)
     }
-    return [...m.entries()].map(([ts, items]) => ({ label: dayLabel(ts, anchors), items: [...items].sort(hotDesc) }))
+    return [...m.entries()].map(([ts, items]) => ({ label: dayLabel(ts, anchors), items: orderDay(items, tasteNudge) }))
   }, [upcoming, anchors])
 
   const scrollToList = (el) => {
@@ -185,6 +208,16 @@ export default function HotView({ events, anchors, loading, displayMode, onSelec
                 <TonightCard key={keyOf(e) + i} e={e} onSelect={onSelect} withDate={withDate} />
               ))}
               <EndCap onClick={() => seeAll('tonight')} />
+            </div>
+          </section>
+        )}
+        {rail && (
+          <section className="sec">
+            <SecHead overline="For you" title="Your kind of night" sub="from your taps — not an algorithm cloud" />
+            <div className="carousel">
+              {rail.map((e, i) => (
+                <TonightCard key={keyOf(e) + i} e={e} onSelect={onSelect} withDate />
+              ))}
             </div>
           </section>
         )}

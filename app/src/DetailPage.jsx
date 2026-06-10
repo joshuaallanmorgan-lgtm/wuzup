@@ -13,6 +13,7 @@ import 'leaflet/dist/leaflet.css'
 import { DAY, dayKey, gradFor, hotDesc, keyOf, parseDate, priceLabel, timeOf } from './lib.js'
 import { CATEGORY_EMOJI, HeatBadge, SecHead, TonightCard, hueFor } from './cards.jsx'
 import { SaveHeart } from './saves.js'
+import { whyReasons } from './taste.js'
 import { CONDITION, dateKey } from './weather.js'
 import './detail.css'
 
@@ -135,9 +136,16 @@ export default function DetailPage({ e, events = [], anchors, wx, closing, vt, o
         encodeURIComponent([e.venue, e.address].filter(Boolean).join(', '))
       : null
 
-  // ===== trust: multi-source buzz vs plain found-via =====
+  // ===== trust + transparency (G3): ONE honest block. whyReasons (taste.js)
+  // composes only TRUE chips — buzz≥2, free, tonight/this-weekend (live
+  // anchors-math, not baked tags), hidden-gem, staff-pick, sponsored
+  // disclosure, and "You open a lot of {category}" ONLY when the taste nudge
+  // actually boosted this event (>5 pts). The old Buzz/gem/staff rows merge
+  // in here rather than duplicating; zero reasons → no why-line at all, just
+  // the plain found-via row. =====
   const via = e.sources && e.sources.length ? e.sources.join(' · ') : e.source
   const multiSource = typeof e.buzz === 'number' && e.buzz >= 2
+  const why = whyReasons(e)
 
   // ===== user-added event? (Add Event MVP) — provenance label + Remove =====
   const mine = Array.isArray(e.tags) && e.tags.includes('added-by-you')
@@ -325,8 +333,6 @@ export default function DetailPage({ e, events = [], anchors, wx, closing, vt, o
       <div className="detail-body">
         {e.sponsored === true && <div className="sp-label detail-sp">Sponsored</div>}
         {mine && <div className="sp-label my-label detail-sp">Added by you</div>}
-        {e.tags?.includes('hidden-gem') && <div className="d-flag">💎 Hidden gem — most people miss this one</div>}
-        {e.tags?.includes('staff-pick') && <div className="d-flag">⭐ Staff pick — vouched for by a local editor</div>}
         <div className="detail-rows">
           <div className="d-row"><span className="d-ic">📅</span><div><div className="d-k">When</div><div className="d-v">{when}</div></div></div>
           {whereMain && (
@@ -343,13 +349,19 @@ export default function DetailPage({ e, events = [], anchors, wx, closing, vt, o
           {wxLine && (
             <div className="d-row"><span className="d-ic">{w.emoji}</span><div><div className="d-k">Weather</div><div className="d-v">{wxLine}</div></div></div>
           )}
-          {multiSource ? (
+          {why.length > 0 ? (
             <div className="d-row">
-              <span className="d-ic">🔥</span>
+              <span className="d-ic">{multiSource ? '🔥' : '🧭'}</span>
               <div>
-                <div className="d-k">Buzz</div>
-                <div className="d-v">Listed by {e.buzz} local sources</div>
-                {via && <div className="d-sub">{via}</div>}
+                <div className="d-k">Why this is here</div>
+                <div className="why-chips">
+                  {why.map((r) => (
+                    <span className="why-chip" key={r}>
+                      {r}
+                    </span>
+                  ))}
+                </div>
+                {via && <div className="d-sub">{multiSource ? via : 'Found via ' + via}</div>}
               </div>
             </div>
           ) : via ? (

@@ -9,6 +9,7 @@
 // the future submission pipeline (PLAN.md Sprint C).
 import { useEffect, useRef, useState } from 'react'
 import { BUBBLES, dayTs, Icon, MY_SOURCE } from './lib.js'
+import { recordSignal } from './taste.js'
 import './addevent.css'
 
 // 12 category chips: the 11 real categories (canonical emoji/label/hue from
@@ -80,6 +81,9 @@ export default function AddEvent({ anchors, myEvents, onAdd, onClose }) {
     if (!f.free && priceNum != null && !(priceNum >= 0)) errs.price = 'Price in dollars, 0 or more.'
     setErrors(errs)
     if (Object.keys(errs).length) return
+    // taste seam: creating an event is a strong category signal (+2). Recorded
+    // HERE, not in App.addMine — an undo-restore must not double-count.
+    recordSignal('add', { category: f.cat || 'other' })
     // full schema-v2 shape — identical fields to a fetched event, honest values
     onAdd({
       title,

@@ -15,8 +15,9 @@
 // (Today/Tomorrow/weekday) like BubblePage, hotScore desc within a day; undated
 // events that match land in a trailing "Anytime" group (never hide events).
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { dayLabel, hotDesc, Icon, milesBetween } from './lib.js'
+import { dayLabel, Icon, milesBetween, orderDay } from './lib.js'
 import { RowFeed } from './cards.jsx'
+import { tasteNudge } from './taste.js'
 import './bubble.css'
 
 // case + diacritic folding ("José" matches "jose")
@@ -69,10 +70,13 @@ export default function SearchPage({ events, anchors, coords, onSelect, onClose 
       if (!byDay.has(e._clamp)) byDay.set(e._clamp, [])
       byDay.get(e._clamp).push(e)
     }
+    // within-day order: G1 orderDay (diversity-interleaved adjustedScore) —
+    // a "library" search still floods honestly, but mixed-result queries
+    // stop reading as one source's wall. "Anytime" is a group like any other.
     const secs = [...byDay.entries()]
       .sort((a, b) => a[0] - b[0])
-      .map(([ts, items]) => ({ label: dayLabel(ts, anchors), items: items.sort(hotDesc) }))
-    if (undated.length) secs.push({ label: 'Anytime', items: undated.sort(hotDesc) })
+      .map(([ts, items]) => ({ label: dayLabel(ts, anchors), items: orderDay(items, tasteNudge) }))
+    if (undated.length) secs.push({ label: 'Anytime', items: orderDay(undated, tasteNudge) })
     return { sections: secs, total: hits.length }
   }, [indexed, tokens, anchors])
 

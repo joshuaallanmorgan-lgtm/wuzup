@@ -19,19 +19,24 @@
   color: hsl(var(--ch) 55% 27%);
 }
 
-/* ===== signal flags (hidden gem / staff pick) ===== */
-.d-flag {
-  display: block;
-  margin: 0 0 10px;
-  padding: 10px 14px;
-  border-radius: 12px;
+/* ===== "Why this is here" (Sprint G3): quiet true-reason chips inside the
+   trust row — absorbed the old standalone gem/staff d-flag banners and the
+   Buzz row into one honest block ===== */
+.why-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 5px;
+}
+.why-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
   background: rgba(var(--accent-rgb), 0.08);
   color: var(--ink);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   line-height: 1.4;
 }
-.detail-sp + .d-flag, .d-flag + .d-flag { margin-top: 0; }
 
 /* ===== editorial info rows: hairline dividers, 11px uppercase labels,
    a touch more air than the v1 rows ===== */

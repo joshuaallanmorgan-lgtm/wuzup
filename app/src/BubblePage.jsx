@@ -17,8 +17,9 @@
 // (Today/Tomorrow/weekday), hotScore desc within a day, RowFeed pages ~30 rows
 // via IntersectionObserver rooted at this page's own .pg scroller.
 import { useMemo, useRef, useState } from 'react'
-import { CITY, dayLabel, hotDesc, Icon, milesBetween } from './lib.js'
+import { CITY, dayLabel, hotDesc, Icon, milesBetween, orderDay } from './lib.js'
 import { RowFeed } from './cards.jsx'
+import { tasteNudge } from './taste.js'
 import './bubble.css'
 
 // one-line personality per bubble (Charles: every destination gets a wink)
@@ -64,8 +65,11 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
     return up // 'sort' (Near Me): all upcoming; ordering handles the rest
   }, [events, anchors, bubble])
 
-  // day-grouped sections; Near Me + coords swaps the within-day order to
-  // distance (missing lat/lng sinks to the bottom, ties break by hotness)
+  // day-grouped sections. Default within-day order = G1 orderDay (diversity-
+  // interleaved adjustedScore — on a category page the family constraint still
+  // de-floods single-source runs). Near Me + coords keeps the DISTANCE order:
+  // the user asked "what's closest", scrambling that for diversity would lie
+  // (missing lat/lng sinks to the bottom, ties break by hotness).
   const sections = useMemo(() => {
     const list =
       near && coords
@@ -74,10 +78,7 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
             _dist: e.lat != null && e.lng != null ? milesBetween(coords, e) : null,
           }))
         : filtered
-    const cmp =
-      near && coords
-        ? (x, y) => (x._dist ?? Infinity) - (y._dist ?? Infinity) || hotDesc(x, y)
-        : hotDesc
+    const byDist = (x, y) => (x._dist ?? Infinity) - (y._dist ?? Infinity) || hotDesc(x, y)
     const byDay = new Map()
     for (const e of list) {
       if (!byDay.has(e._clamp)) byDay.set(e._clamp, [])
@@ -85,7 +86,10 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
     }
     return [...byDay.entries()]
       .sort((a, b) => a[0] - b[0])
-      .map(([ts, items]) => ({ label: dayLabel(ts, anchors), items: items.sort(cmp) }))
+      .map(([ts, items]) => ({
+        label: dayLabel(ts, anchors),
+        items: near && coords ? items.sort(byDist) : orderDay(items, tasteNudge),
+      }))
   }, [filtered, near, coords, anchors])
 
   const count = filtered.length

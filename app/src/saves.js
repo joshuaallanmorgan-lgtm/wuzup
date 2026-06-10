@@ -16,6 +16,7 @@
 // createElement.
 import { createElement as h, useState, useSyncExternalStore } from 'react'
 import { DAY, keyOf, normalize } from './lib.js'
+import { recordSignal } from './taste.js'
 import './saves.css'
 
 const KEY = 'saved-events-v1'
@@ -72,6 +73,7 @@ export function toggleSave(e) {
   if (map[k]) {
     delete map[k]
   } else {
+    recordSignal('save', e) // taste seam: toggle-ON only (un-saving says nothing)
     map[k] = {
       savedAt: Date.now(),
       snapshot: {
