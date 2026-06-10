@@ -64,8 +64,8 @@ Deploy + PWA (Sprint F, Josh-gated) · accounts/social layer · public submissio
 - **Pause ONLY on the ⚑ flags below + anything destructive/outward-facing.** Everything else: full autonomy.
 - Order: G → H → I → (J∥L) → K → M → N. Ambition over completion — if Charles arrives mid-wave, we present from wherever we are with N pulled forward.
 
-## ⚑ THE FLAGS (Josh input needed once, then no more pausing)
-1. **FLAG-1 Diversity quotas** — interleaving de-floods libraries via pure reordering. Sign off that this satisfies "never hide"? (My position: it's exactly "reorder, never hide.")
-2. **FLAG-2 Mood primer** — 3-tap skippable onboarding quiz, local-only. Build now with Charles reviewing copy later, or park until he's seen it?
-3. **FLAG-3 Map pass** — previously "parked"; the GPT report includes map work. Un-park for Sprint J, or keep parked?
-4. **FLAG-4 Weekend Builder** — genuinely new surface (expansion of the sanctioned weekend-planning hook + saves). Prototype now as the demo centerpiece, or hold for Charles's blessing first?
+## ⚑ THE FLAGS — defaults applied (Josh was asked 2026-06-10, no answer; proceeding per the driver's-seat contract. OVERRIDE ANY OF THESE ANY TIME — all work is on the revertable pt2 branch.)
+1. **FLAG-1 Diversity quotas → YES + bounded taste engine.** Interleaving is pure reordering ("never hide" intact); Charles's "slightly tailored, not heavily algorithmic" is the bound spec.
+2. **FLAG-2 Mood primer → BUILD, skippable, local-only.** Josh himself floated the start-survey idea; Charles reviews copy at his next session.
+3. **FLAG-3 Map pass → UN-PARKED for one utility pass** (Josh's pasted research includes the map asks).
+4. **FLAG-4 Weekend Builder → PROTOTYPE when Sprint K is reached** (it's an expansion of Charles's own weekend-planning framing + today's "people plan their weekend from events" note; built last in its wave, trivially cut if Charles vetoes).
