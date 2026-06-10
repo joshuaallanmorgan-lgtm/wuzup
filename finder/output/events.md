@@ -1,14 +1,14 @@
-# Tampa Bay Events — found 1331 real events
+# Tampa Bay Events — found 1342 real events
 
-_Generated 6/10/2026, 11:06:28 AM · sources: Eventbrite (Free), Eventbrite (Tampa), Eventbrite (Tampa p2), Eventbrite (St. Pete), Eventbrite (St. Pete p2), Eventbrite (St. Pete Free), Eventbrite (Clearwater), Eventbrite (Clearwater p2), Eventbrite (Clearwater Free), I Love the Burg, Tampa Bay Events, AllEvents, Hillsborough Libraries, Meetup, Pinellas County, City of Tampa, Univ. of Tampa, Visit Tampa Bay, WMNF 88.5 + render_
+_Generated 6/10/2026, 11:18:00 AM · sources: Eventbrite (Free), Eventbrite (Tampa), Eventbrite (Tampa p2), Eventbrite (St. Pete), Eventbrite (St. Pete p2), Eventbrite (St. Pete Free), Eventbrite (Clearwater), Eventbrite (Clearwater p2), Eventbrite (Clearwater Free), I Love the Burg, Tampa Bay Events, AllEvents, Don't Tell Comedy, Hillsborough Libraries, Meetup, Pinellas County, City of Tampa, Univ. of Tampa, Visit Tampa Bay, WMNF 88.5 + render_
 
 ## Summary
 
 - Tonight: 53
-- This weekend: 176
-- Free: 911
+- This weekend: 179
+- Free: 912
 - Hidden gems: 24
-- Recurring: 502
+- Recurring: 510
 - Ongoing (already started): 1
 - Sponsored: 1
 
@@ -179,6 +179,7 @@ _Generated 6/10/2026, 11:06:28 AM · sources: Eventbrite (Free), Eventbrite (Tam
 - WORLD CUP 2026 (USA vs Paraguay) · Wild Rover Brewing Company · _—_ · 🔥48 · buzz 1 · (Eventbrite (Clearwater)) · [details](https://www.eventbrite.com/e/world-cup-2026-usa-vs-paraguay-tickets-1987019229003)
 - Rise & Thrive Breakfast Club by WE Empower Together Network · Benedict's Breakfast and Lunch · _—_ · 🔥48 · buzz 1 · (Eventbrite (Clearwater)) · [details](https://www.eventbrite.com/e/rise-thrive-breakfast-club-by-we-empower-together-network-tickets-1988719075289)
 - PRIDE NIGHT- Centre Club After Dark · Centre Club - Tampa · _—_ · 🔥48 · buzz 1 · (AllEvents) · [details](https://allevents.in/tampa/pride-night-centre-club-after-dark/100001991158741396)
+- Landon McNamara in Saint Petersburg · Jannus Live · _—_ · 🔥48 · buzz 1 · (AllEvents) · [details](https://allevents.in/st-petersburg/landon-mcnamara-in-saint-petersburg/3300029642089455)
 - Voyage - A Journey Tribute · Nancy and David Bilheimer Capitol Theatre · _—_ · 🔥48 · buzz 1 · (AllEvents) · [details](https://allevents.in/clearwater/voyage-a-journey-tribute/2300029637949504)
 - **6:30 AM** — Friday Stairs · Friday Stairs · _—_ · 🔥48 · buzz 1 · (Visit Tampa Bay) · [details](https://www.visittampabay.com/tampa-events/details/friday-stairs/101437/)
 - **9:00 AM** — Storytime with the Animals · Fat Beet Farms · _—_ · 🔥48 · buzz 1 · (Visit Tampa Bay) · [details](https://www.visittampabay.com/tampa-events/details/storytime-with-the-animals/101174/)
@@ -224,6 +225,7 @@ _Generated 6/10/2026, 11:06:28 AM · sources: Eventbrite (Free), Eventbrite (Tam
 - **8:00 PM** — Johnny G Lyon/JGLB and Friends @ Skippers · Skipper's Smokehouse · _—_ · 🔥35 · buzz 1 · (WMNF 88.5) · [details](https://www.wmnf.org/wmnf_events/johnny-g-lyon-jglb-and-friends/)
 - **6:30 PM** — Clearwater Threshers vs. Lakeland Flying Tigers · BayCare Ballpark · _—_ · 🔥33 · buzz 1 · (Tampa Bay Events)
 - **8:00 PM** — Beetlejuice - The Musical · Carol Morsani Hall - The Straz Center · _—_ · 🔥33 · buzz 1 · (Tampa Bay Events)
+- **8:00 PM** — Don't Tell Comedy — Grand Central District · Grand Central District (secret location) · _—_ · 🔥33 · buzz 1 · (Don't Tell Comedy) · [details](https://www.donttellcomedy.com/shows/st-petersburg-3f0a5f5b/)
 - **8:00 PM** — I Love You, You're Perfect, Now Change · Stageworks Theatre · _—_ · 🔥33 · buzz 1 · (Visit Tampa Bay) · [details](https://www.visittampabay.com/tampa-events/details/i-love-you-youre-perfect-now-change/101096/)
 
 ## Saturday, June 13
@@ -270,10 +272,9 @@ _Generated 6/10/2026, 11:06:28 AM · sources: Eventbrite (Free), Eventbrite (Tam
 - Tampa Pride Bar Crawl · Centro Cantina · _—_ · 🔥43 · buzz 1 · (AllEvents) · [details](https://allevents.in/tampa/tampa-pride-bar-crawl/100001730715971059)
 - Iroko Fuego Latin Night · 8211 N Florida Ave, Tampa, FL, United States, Florida 33604 · _—_ · 🔥43 · buzz 1 · (AllEvents) · [details](https://allevents.in/tampa/iroko-fuego-latin-night/200030204447927)
 - Lainey Wilson — Tampa · Tampa, FL · _—_ · 🔥43 · buzz 1 · (AllEvents) · [details](https://allevents.in/tampa/lainey-wilson-—-tampa/200029533589048)
-- Model Train Show & Sale · Crystal River Armory · _—_ · 🔥43 · buzz 1 · (AllEvents) · [details](https://allevents.in/crystal-river/model-train-show-and-sale-tickets/80003148149978)
 - FREE Dog Training Class · Elite K9 Service · _—_ · 🔥43 · buzz 1 · (AllEvents) · [details](https://allevents.in/plant-city/free-dog-training-class-tickets/80002704521012)
+- Model Train Show & Sale · Crystal River Armory · _—_ · 🔥43 · buzz 1 · (AllEvents) · [details](https://allevents.in/crystal-river/model-train-show-and-sale-tickets/80003148149978)
 - Rowdies vs Hartford Athletic | Pride Night · 230 1st St SE, Saint Petersburg, FL, United States, Florida 33701 · _—_ · 🔥43 · buzz 1 · (AllEvents) · [details](https://allevents.in/st-petersburg/rowdies-vs-hartford-athletic-|-pride-night/200030110721120)
-- **9:00 AM** — Coffee & Games ☕️ 🎲 · Ginger Beard Coffee · _—_ · 🔥43 · buzz 1 · (Meetup) · [details](https://www.meetup.com/gulfside-gatherings/events/315093865/)
 - **10:00 AM** — Summer Kick-Off · Bay Paws Pet Resort - Trinity · _—_ · 🔥43 · buzz 1 · (Creative Loafing) · [details](https://community.cltampa.com/event/summer-kick-off-21421626)
 - **10:30 AM** — Beach Pilates @ Oystercatchers Grand Hyatt · Oystercatchers · _—_ · 🔥43 · buzz 1 · (Visit Tampa Bay) · [details](https://www.visittampabay.com/tampa-events/details/beach-pilates-%40-oystercatchers-grand-hyatt/97051/)
 - **12:00 PM** — Attic Cat x SCS | A Midsummer Pool Social · _—_ · 🔥43 · buzz 1 · (Meetup) · [details](https://www.meetup.com/sun-city-sapphics/events/314087976/)
@@ -287,6 +288,7 @@ _Generated 6/10/2026, 11:06:28 AM · sources: Eventbrite (Free), Eventbrite (Tam
 - **7:00 PM** — Die Sexual · New World Music Hall · _—_ · 🔥43 · buzz 1 · (Tampa Bay Events)
 - **7:00 PM** — Kali Uchis - For The Girls Tour · Florida State Fairgrounds · _—_ · 🔥43 · buzz 1 · (Visit Tampa Bay) · [details](https://www.visittampabay.com/tampa-events/details/kali-uchis-for-the-girls-tour/100806/)
 - **7:00 PM** — Rockabilly Revival: Big Sandy and His Fly-Rite Boys + Rocket 88 · Skipper's Smokehouse · _—_ · 🔥43 · buzz 1 · (WMNF 88.5) · [details](https://www.wmnf.org/wmnf_events/big-sandy-and-his-fly-rite-boys-rocket-88/)
+- **8:00 PM** — Don't Tell Comedy — Downtown · Downtown (secret location) · _—_ · 🔥43 · buzz 1 · (Don't Tell Comedy) · [details](https://www.donttellcomedy.com/shows/tampa-19888/)
 - **10:00 PM** — Ian Asher · The Ritz Ybor · _—_ · 🔥43 · buzz 1 · (Visit Tampa Bay) · [details](https://www.visittampabay.com/tampa-events/details/ian-asher/101044/)
 - **8:30 AM** — FREE HUD Approved In person Homebuyer workshop · _Free_ · 🔥40 · buzz 1 · (City of Tampa) · [details](https://www.tampa.gov/events/free-hud-approved-person-homebuyer-workshop/190516)
 - **9:30 AM** — Free Class: Plumerias · _Free_ · 🔥40 · buzz 1 · (City of Tampa) · [details](https://www.tampa.gov/events/free-class-plumerias/191066)
@@ -309,6 +311,7 @@ _Generated 6/10/2026, 11:06:28 AM · sources: Eventbrite (Free), Eventbrite (Tam
 - **2:00 PM** — Beetlejuice - The Musical · Carol Morsani Hall - The Straz Center · _—_ · 🔥33 · buzz 1 · (Tampa Bay Events)
 - **3:00 PM** — I Love You, You're Perfect, Now Change · Stageworks Theatre · _—_ · 🔥33 · buzz 1 · (Visit Tampa Bay) · [details](https://www.visittampabay.com/tampa-events/details/i-love-you-youre-perfect-now-change/101097/)
 - **6:30 PM** — Clearwater Threshers vs. Lakeland Flying Tigers · BayCare Ballpark · _—_ · 🔥33 · buzz 1 · (Tampa Bay Events)
+- **8:00 PM** — Don't Tell Comedy — Grand Central District · Grand Central District (secret location) · _—_ · 🔥33 · buzz 1 · (Don't Tell Comedy) · [details](https://www.donttellcomedy.com/shows/st-petersburg-b97f9c9f/)
 
 ## Sunday, June 14
 
@@ -400,6 +403,7 @@ _Generated 6/10/2026, 11:06:28 AM · sources: Eventbrite (Free), Eventbrite (Tam
 - **3:00 PM** — Science Extravaganza · Charles J. Fendig Public Library · _Free_ · 🔥48 · buzz 1 · (Hillsborough Libraries) · [details](https://hcplc.libnet.info/event/15994493)
 - **3:00 PM** — Razzmatazz Magic Class · New Tampa Regional Library · _Free_ · 🔥48 · buzz 1 · (Hillsborough Libraries) · [details](https://hcplc.libnet.info/event/15945349)
 - **3:00 PM** — Legendary Statues & Myths · West Tampa Branch Library · _Free_ · 🔥48 · buzz 1 · (Hillsborough Libraries) · [details](https://hcplc.libnet.info/event/15956733)
+- **3:00 PM** — Interactive Drum Circles by Giving Tree Music · Seffner-Mango Branch Library · _Free_ · 🔥48 · buzz 1 · (Hillsborough Libraries) · [details](https://hcplc.libnet.info/event/16381539)
 - **4:00 PM** — Sew Good · Bruton Memorial Library · _Free_ · 🔥48 · buzz 1 · (Hillsborough Libraries) · [details](https://hcplc.libnet.info/event/16345172)
 - **6:00 PM** — Canvas Painting with Color Express · Maureen B. Gauzza Public Library · _Free_ · 🔥48 · buzz 1 · (Hillsborough Libraries) · [details](https://hcplc.libnet.info/event/15994494)
 - **6:30 PM** — Hatha Yoga · New Tampa Regional Library · _Free_ · 🔥48 · buzz 1 · (Hillsborough Libraries) · [details](https://hcplc.libnet.info/event/15860472)
@@ -603,6 +607,7 @@ _Generated 6/10/2026, 11:06:28 AM · sources: Eventbrite (Free), Eventbrite (Tam
 - **12:00 PM** — Tai Chi Flow · Bruton Memorial Library · _Free_ · 🔥33 · buzz 1 · (Hillsborough Libraries) · [details](https://hcplc.libnet.info/event/16415506)
 - **6:00 PM** — Country Fridays · Keel Farms · _Free_ · 🔥33 · buzz 1 · (Visit Tampa Bay) · [details](https://www.visittampabay.com/tampa-events/details/country-fridays/98931/)
 - **8:00 PM** — DELTA SLEEP @ Crowbar · Crowbar · _—_ · 🔥30 · buzz 1 · (WMNF 88.5) · [details](https://www.wmnf.org/wmnf_events/delta-sleep-crowbar/)
+- **8:00 PM** — Don't Tell Comedy — Grand Central District · Grand Central District (secret location) · _—_ · 🔥28 · buzz 1 · (Don't Tell Comedy) · [details](https://www.donttellcomedy.com/shows/st-petersburg-2d45c0e0/)
 
 ## Saturday, June 20
 
@@ -646,6 +651,7 @@ _Generated 6/10/2026, 11:06:28 AM · sources: Eventbrite (Free), Eventbrite (Tam
 - **10:00 AM** — Fresh Market at Wiregrass · The Shops at Wiregrass · _—_ · 🔥38 · buzz 1 · (Visit Tampa Bay) · [details](https://www.visittampabay.com/tampa-events/details/fresh-market-at-wiregrass/81526/)
 - **12:00 PM** — Father's Day Weekend Traditional Kölsch Service at BarrieHaus Beer Co. · BarrieHaus Beer Co. · _—_ · 🔥38 · buzz 1 · (Visit Tampa Bay) · [details](https://www.visittampabay.com/tampa-events/details/fathers-day-weekend-traditional-k%c3%b6lsch-service-at-barriehaus-beer-co/101385/)
 - **6:00 PM** — The Dinner Detective True Crime Murder Mystery Dinner Show - Tampa, FL · Hilton Garden Inn Tampa Airport · _—_ · 🔥38 · buzz 1 · (Visit Tampa Bay) · [details](https://www.visittampabay.com/tampa-events/details/the-dinner-detective-true-crime-murder-mystery-dinner-show-tampa-fl/101006/)
+- **9:00 PM** — Don't Tell Comedy — Seminole Heights · Seminole Heights (secret location) · _—_ · 🔥38 · buzz 1 · (Don't Tell Comedy) · [details](https://www.donttellcomedy.com/shows/tampa-19557/)
 - Gallery @ 2607 Presents: Made in Florida · C. Blythe Andrews, Jr. Public Library · _Free_ · 🔥33 · buzz 1 · (Hillsborough Libraries) · [details](https://hcplc.libnet.info/event/16156523)
 - Gallery on the Avenue: Made in Florida · Robert W. Saunders, Sr. Public Library · _Free_ · 🔥33 · buzz 1 · (Hillsborough Libraries) · [details](https://hcplc.libnet.info/event/16156305)
 - Made in Florida · Riverview Public Library · _Free_ · 🔥33 · buzz 1 · (Hillsborough Libraries) · [details](https://hcplc.libnet.info/event/16156809)
@@ -833,8 +839,8 @@ _Generated 6/10/2026, 11:06:28 AM · sources: Eventbrite (Free), Eventbrite (Tam
 - Singles After Dark: Speed Dating at Dracula's Legacy Wine Bar · Dracula's Legacy Wine Bar & Bistro · _—_ · 🔥38 · buzz 1 · (Eventbrite (St. Pete p2)) · [details](https://www.eventbrite.com/e/singles-after-dark-speed-dating-at-draculas-legacy-wine-bar-tickets-1990248856907)
 - Ye - Artist · Raymond James Stadium · _—_ · 🔥38 · buzz 1 · (AllEvents) · [details](https://allevents.in/tampa/ye-artist/2300030158138814)
 - Tampa Bay Rays vs. Arizona Diamondbacks · Tropicana Field · _—_ · 🔥38 · buzz 1 · (AllEvents) · [details](https://allevents.in/st-petersburg/tampa-bay-rays-vs-arizona-diamondbacks/2300028775100837)
-- St Pete Pride Transtastic · The James Museum of Western & Wildlife Art · _—_ · 🔥38 · buzz 1 · (AllEvents) · [details](https://allevents.in/st-petersburg/st-pete-pride-transtastic/200030057178120)
 - Thievery Corporation · Jannus Live · _—_ · 🔥38 · buzz 1 · (AllEvents) · [details](https://allevents.in/st-petersburg/thievery-corporation/210003709551710)
+- St Pete Pride Transtastic · The James Museum of Western & Wildlife Art · _—_ · 🔥38 · buzz 1 · (AllEvents) · [details](https://allevents.in/st-petersburg/st-pete-pride-transtastic/200030057178120)
 - Thievery Corporation w/ City of The Sun · Jannus Live · _—_ · 🔥38 · buzz 1 · (AllEvents) · [details](https://allevents.in/st-petersburg/thievery-corporation-w-city-of-the-sun/200029828517219)
 - **6:30 PM** — Tampa Sip and Paint – Happy Citrus · La La's Sangria Bar · _$39_ · 🔥38 · buzz 1 · (Visit Tampa Bay) · [details](https://www.visittampabay.com/tampa-events/details/tampa-sip-and-paint-%26%238211%3b-happy-citrus/101244/)
 - **6:30 PM** — Wesley Chapel Paint and Sip Event – Martinis · The Brass Tap · _—_ · 🔥38 · buzz 1 · (Visit Tampa Bay) · [details](https://www.visittampabay.com/tampa-events/details/wesley-chapel-paint-and-sip-event-%26%238211%3b-martinis/101340/)
@@ -899,8 +905,8 @@ _Generated 6/10/2026, 11:06:28 AM · sources: Eventbrite (Free), Eventbrite (Tam
 - The Heart of the Father Apostolic Men's Conference JUNE 26TH-27TH · The Center For Manifestation · _—_ · 🔥38 · buzz 1 · (Eventbrite (Tampa p2)) · [details](https://www.eventbrite.com/e/the-heart-of-the-father-apostolic-mens-conference-june-26th-27th-tickets-1981751863170)
 - Caribbean Chillers - Jimmy Buffett Tribute · Wild Rover Brewing Company · _—_ · 🔥38 · buzz 1 · (Eventbrite (Clearwater)) · [details](https://www.eventbrite.com/e/caribbean-chillers-jimmy-buffett-tribute-tickets-1986919282059)
 - Forged Pride Workout Party · 13763 N Nebraska Ave, Tampa, FL, United States, Florida 33613 · _—_ · 🔥38 · buzz 1 · (AllEvents) · [details](https://allevents.in/tampa/forged-pride-workout-party/200030205752634)
-- Horizon of Color: Butterfly Stained Glass Workshop ✨ · Imagine Museum · _$49.87_ · 🔥38 · buzz 1 · (AllEvents) · [details](https://allevents.in/st-petersburg/horizon-of-color-butterfly-stained-glass-workshop/100001989925505755)
 - Asian Summer Food & Music Fest · 10490 Gandy Blvd N · _—_ · 🔥38 · buzz 1 · (AllEvents) · [details](https://allevents.in/st-petersburg/asian-summer-food-and-music-fest/100001984942191528)
+- Horizon of Color: Butterfly Stained Glass Workshop ✨ · Imagine Museum · _$49.87_ · 🔥38 · buzz 1 · (AllEvents) · [details](https://allevents.in/st-petersburg/horizon-of-color-butterfly-stained-glass-workshop/100001989925505755)
 - Tampa Bay Rays vs. Arizona Diamondbacks · Tropicana Field · _—_ · 🔥38 · buzz 1 · (Visit Tampa Bay) · [details](https://www.visittampabay.com/tampa-events/details/tampa-bay-rays-vs-arizona-diamondbacks/100636/)
 - **9:00 AM** — De Cadiz a La Habana: Flamenco Passion, Cuban Soul. · Cuban Civic Club · _—_ · 🔥38 · buzz 1 · (Visit Tampa Bay) · [details](https://www.visittampabay.com/tampa-events/details/de-cadiz-a-la-habana%3a-flamenco-passion-cuban-soul/101419/)
 - **6:00 PM** — Dining in the Dark: A Unique Blindfolded Experience at Centre Club · Centre Club - Tampa · _—_ · 🔥38 · buzz 1 · (Visit Tampa Bay) · [details](https://www.visittampabay.com/tampa-events/details/dining-in-the-dark%3a-a-unique-blindfolded-experience-at-centre-club/101092/)
@@ -1380,6 +1386,7 @@ _Generated 6/10/2026, 11:06:28 AM · sources: Eventbrite (Free), Eventbrite (Tam
 - **6:45 PM** — Matt Nathanson · MidFlorida Credit Union Amphitheatre At The Florida State Fairgrounds · _—_ · 🔥38 · buzz 1 · (Visit Tampa Bay) · [details](https://www.visittampabay.com/tampa-events/details/matt-nathanson/99192/)
 - **8:00 PM** — All Your Friends - The Indie Party · The Orpheum · _—_ · 🔥38 · buzz 1 · (Visit Tampa Bay) · [details](https://www.visittampabay.com/tampa-events/details/all-your-friends-the-indie-party/101261/)
 - **8:00 PM** — Sounds of 97 @ Crowbar · Crowbar · _—_ · 🔥30 · buzz 1 · (WMNF 88.5) · [details](https://www.wmnf.org/wmnf_events/sounds-of-97/)
+- **8:00 PM** — Don't Tell Comedy — Grand Central District · Grand Central District (secret location) · _—_ · 🔥28 · buzz 1 · (Don't Tell Comedy) · [details](https://www.donttellcomedy.com/shows/st-petersburg-50aa3744/)
 
 ## Saturday, July 11
 
@@ -1389,6 +1396,7 @@ _Generated 6/10/2026, 11:06:28 AM · sources: Eventbrite (Free), Eventbrite (Tam
 - **6:30 PM** — Purrr-Fect Pairing Wine Tasting Night · _—_ · 🔥38 · buzz 1 · (WMNF 88.5) · [details](https://www.wmnf.org/wmnf_events/purrr-fect-pairing-wine-tasting-night/)
 - **9:00 AM** — Household Chemical Collection at HHW North · HHW North · _Free_ · 🔥33 · buzz 1 · (Pinellas County) · [details](https://pinellas.gov/event/household-chemical-collection-at-hhw-north-34/)
 - **8:00 PM** — PARROTFISH @ Crowbar · Crowbar · _—_ · 🔥30 · buzz 1 · (WMNF 88.5) · [details](https://www.wmnf.org/wmnf_events/parrotfish-crowbar/)
+- **8:00 PM** — Don't Tell Comedy — Grand Central District · Grand Central District (secret location) · _—_ · 🔥28 · buzz 1 · (Don't Tell Comedy) · [details](https://www.donttellcomedy.com/shows/st-petersburg-6b776cd5/)
 
 ## Sunday, July 12
 
@@ -1442,8 +1450,8 @@ _Generated 6/10/2026, 11:06:28 AM · sources: Eventbrite (Free), Eventbrite (Tam
 
 ## Wednesday, July 22
 
-- Jo Koy at Seminole Hard Rock Hotel and Casino - Tampa · Seminole Hard Rock Hotel and Casino - Tampa · _—_ · 🔥38 · buzz 1 · (AllEvents) · [details](https://allevents.in/tampa/jo-koy-at-seminole-hard-rock-hotel-and-casino-tampa/2400029969054916)
 - Lionel Richie with Earth Wind and Fire at Benchmark International Arena · Benchmark International Arena · _—_ · 🔥38 · buzz 1 · (AllEvents) · [details](https://allevents.in/tampa/lionel-richie-with-earth-wind-and-fire-at-benchmark-international-arena/2400029969501656)
+- Jo Koy at Seminole Hard Rock Hotel and Casino - Tampa · Seminole Hard Rock Hotel and Casino - Tampa · _—_ · 🔥38 · buzz 1 · (AllEvents) · [details](https://allevents.in/tampa/jo-koy-at-seminole-hard-rock-hotel-and-casino-tampa/2400029969054916)
 - **6:30 PM** — Light Wine Bottle Painting · Keel Farms · _—_ · 🔥38 · buzz 1 · (Visit Tampa Bay) · [details](https://www.visittampabay.com/tampa-events/details/light-wine-bottle-painting/101197/)
 
 ## Thursday, July 23
@@ -1477,3 +1485,15 @@ _Generated 6/10/2026, 11:06:28 AM · sources: Eventbrite (Free), Eventbrite (Tam
 ## Friday, July 31
 
 - Jaded - Aerosmith Tribute · Wild Rover Brewing Company · _—_ · 🔥38 · buzz 1 · (Eventbrite (Clearwater p2)) · [details](https://www.eventbrite.com/e/jaded-aerosmith-tribute-tickets-1988635393996)
+
+## Friday, August 21
+
+- **8:00 PM** — Don't Tell Comedy — Grand Central District · Grand Central District (secret location) · _—_ · 🔥28 · buzz 1 · (Don't Tell Comedy) · [details](https://www.donttellcomedy.com/shows/st-petersburg-e06a84e1/)
+
+## Saturday, August 22
+
+- **8:00 PM** — Don't Tell Comedy — Grand Central District · Grand Central District (secret location) · _—_ · 🔥28 · buzz 1 · (Don't Tell Comedy) · [details](https://www.donttellcomedy.com/shows/st-petersburg-6e16fd98/)
+
+## Friday, September 11
+
+- **8:00 PM** — Don't Tell Comedy — Grand Central District · Grand Central District (secret location) · _—_ · 🔥28 · buzz 1 · (Don't Tell Comedy) · [details](https://www.donttellcomedy.com/shows/st-petersburg-d80049bb/)

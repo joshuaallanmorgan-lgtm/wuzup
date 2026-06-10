@@ -1124,6 +1124,14 @@ async function main() {
   console.log(`    📚 library records in output: ${libraryCount} (was 207 pre-merge-fix; expect ~440+ on a full run — 0/low is normal with SKIP_EXTRA=1)`);
   const redBull = events.find((e) => /cliff diving|red bull/i.test(e.title));
   console.log(`    ${redBull ? '👀 present: "' + redBull.title + '"' : '✅ absent'} — Red Bull Cliff Diving (legacy canary — event ended 6/6, expected absent)`);
+  // Hidden-event-class benchmark (Josh, 2026-06-10): Don't Tell Comedy sells
+  // secret-location shows only through its own site — if we stop catching them,
+  // the "hidden events" differentiation has regressed. Skipped in fast mode
+  // (the module loader is what produces them).
+  if (process.env.SKIP_EXTRA !== '1') {
+    const dtc = events.filter((e) => /don'?t tell comedy/i.test(e.title));
+    console.log(`    ${dtc.length ? '✅' : '❌'} Don't Tell Comedy secret shows captured: ${dtc.length} (need >= 1 — hidden-event class)`);
+  }
   console.log('──────────────────────────────────────────');
   console.log(`  Wrote: finder/output/events.json  (structured)`);
   console.log(`  Wrote: finder/output/events.md    (readable)`);

@@ -3795,6 +3795,33 @@
     "sponsored": false
   },
   {
+    "title": "Landon McNamara in Saint Petersburg",
+    "start": "2026-06-12",
+    "end": null,
+    "venue": "Jannus Live",
+    "address": "Jannus Live, St. Petersburg, FL, United States, St. Petersburg, FL",
+    "price": null,
+    "currency": null,
+    "isFree": null,
+    "lat": 27.767601013183594,
+    "lng": -82.64028930664062,
+    "url": "https://allevents.in/st-petersburg/landon-mcnamara-in-saint-petersburg/3300029642089455",
+    "image": "https://cdn-ip.allevents.in/s/rs:fill:500:250/g:sm/sh:100/aHR0cHM6Ly9jZG4tYXouYWxsZXZlbnRzLmluL2V2ZW50czQvYmFubmVycy80MjkxY2Y2MC0wNWE5LTExZjEtYWY4MC02M2M3ZDQ2NTJiODQtcmltZy13MTIwMC1oNjc1LWRjZjZmNmY2LWdtaXIud2VicD92PTE3NzA2MzU5OTU.avif",
+    "description": null,
+    "source": "AllEvents",
+    "sources": [
+      "AllEvents"
+    ],
+    "buzz": 1,
+    "hotScore": 48,
+    "tags": [
+      "weekend",
+      "one-off"
+    ],
+    "category": "music",
+    "sponsored": false
+  },
+  {
     "title": "Voyage - A Journey Tribute",
     "start": "2026-06-12",
     "end": null,
@@ -5437,6 +5464,33 @@
     "sponsored": false
   },
   {
+    "title": "Don't Tell Comedy — Grand Central District",
+    "start": "2026-06-12T20:00:00",
+    "end": null,
+    "venue": "Grand Central District (secret location)",
+    "address": "Grand Central District, St. Petersburg, FL",
+    "price": null,
+    "currency": null,
+    "isFree": false,
+    "lat": 27.7712,
+    "lng": -82.6638,
+    "url": "https://www.donttellcomedy.com/shows/st-petersburg-3f0a5f5b/",
+    "image": "https://dont-tell-comedy.mo.cloudinary.net/private/audience_6_CQLnH47.webp",
+    "description": "Secret pop-up standup in Grand Central District — a curated lineup of local and national comics, exact location revealed only to ticket-holders. BYOB.",
+    "source": "Don't Tell Comedy",
+    "sources": [
+      "Don't Tell Comedy"
+    ],
+    "buzz": 1,
+    "hotScore": 33,
+    "tags": [
+      "weekend",
+      "recurring"
+    ],
+    "category": "comedy",
+    "sponsored": false
+  },
+  {
     "title": "Game Night @ Dave & Busters",
     "start": "2026-06-12T20:00:00-04:00",
     "end": null,
@@ -6290,33 +6344,6 @@
     "sponsored": false
   },
   {
-    "title": "Model Train Show & Sale",
-    "start": "2026-06-13",
-    "end": null,
-    "venue": "Crystal River Armory",
-    "address": "8551 West Venable Street Crystal River, FL 34429, Crystal River, FL",
-    "price": null,
-    "currency": null,
-    "isFree": null,
-    "lat": null,
-    "lng": null,
-    "url": "https://allevents.in/crystal-river/model-train-show-and-sale-tickets/80003148149978",
-    "image": "https://cdn-ip.allevents.in/s/rs:fill:600:300/g:sm/sh:100/aHR0cHM6Ly9jZG4yLmFsbGV2ZW50cy5pbi90aHVtYnMvdGh1bWI2OWZiYzIyOTdhYjA0LmpwZw.avif",
-    "description": "Regal Railways Presents Model Train Show& Sale Saturday June 13, 2026 US Army National Guard Armory Crystal River",
-    "source": "AllEvents",
-    "sources": [
-      "AllEvents"
-    ],
-    "buzz": 1,
-    "hotScore": 43,
-    "tags": [
-      "weekend",
-      "one-off"
-    ],
-    "category": "other",
-    "sponsored": false
-  },
-  {
     "title": "FREE Dog Training Class",
     "start": "2026-06-13",
     "end": null,
@@ -6341,6 +6368,33 @@
       "one-off"
     ],
     "category": "community",
+    "sponsored": false
+  },
+  {
+    "title": "Model Train Show & Sale",
+    "start": "2026-06-13",
+    "end": null,
+    "venue": "Crystal River Armory",
+    "address": "8551 West Venable Street Crystal River, FL 34429, Crystal River, FL",
+    "price": null,
+    "currency": null,
+    "isFree": null,
+    "lat": null,
+    "lng": null,
+    "url": "https://allevents.in/crystal-river/model-train-show-and-sale-tickets/80003148149978",
+    "image": "https://cdn-ip.allevents.in/s/rs:fill:600:300/g:sm/sh:100/aHR0cHM6Ly9jZG4yLmFsbGV2ZW50cy5pbi90aHVtYnMvdGh1bWI2OWZiYzIyOTdhYjA0LmpwZw.avif",
+    "description": "Regal Railways Presents Model Train Show& Sale Saturday June 13, 2026 US Army National Guard Armory Crystal River",
+    "source": "AllEvents",
+    "sources": [
+      "AllEvents"
+    ],
+    "buzz": 1,
+    "hotScore": 43,
+    "tags": [
+      "weekend",
+      "one-off"
+    ],
+    "category": "other",
     "sponsored": false
   },
   {
@@ -6589,33 +6643,6 @@
     "tags": [
       "weekend",
       "free",
-      "one-off"
-    ],
-    "category": "community",
-    "sponsored": false
-  },
-  {
-    "title": "Coffee & Games ☕️ 🎲",
-    "start": "2026-06-13T09:00:00-04:00",
-    "end": null,
-    "venue": "Ginger Beard Coffee",
-    "address": "1208 E Kennedy Blvd #112, Tampa, FL",
-    "price": null,
-    "currency": null,
-    "isFree": null,
-    "lat": 27.9510309,
-    "lng": -82.4470651,
-    "url": "https://www.meetup.com/gulfside-gatherings/events/315093865/",
-    "image": "https://secure.meetupstatic.com/photos/event/4/e/1/d/highres_534559997.jpeg",
-    "description": "[Gulfside Gatherings] Looking for a relaxed way to spend your time? Join us for our Coffee & Casual Board Games meetup! Whether you’re a seasoned tabletop enthusiast or just looking for a low-press...",
-    "source": "Meetup",
-    "sources": [
-      "Meetup"
-    ],
-    "buzz": 1,
-    "hotScore": 43,
-    "tags": [
-      "weekend",
       "one-off"
     ],
     "category": "community",
@@ -7833,6 +7860,60 @@
       "one-off"
     ],
     "category": "music",
+    "sponsored": false
+  },
+  {
+    "title": "Don't Tell Comedy — Grand Central District",
+    "start": "2026-06-13T20:00:00",
+    "end": null,
+    "venue": "Grand Central District (secret location)",
+    "address": "Grand Central District, St. Petersburg, FL",
+    "price": null,
+    "currency": null,
+    "isFree": false,
+    "lat": 27.7712,
+    "lng": -82.6638,
+    "url": "https://www.donttellcomedy.com/shows/st-petersburg-b97f9c9f/",
+    "image": "https://dont-tell-comedy.mo.cloudinary.net/private/skateshop-comicaudience_Dul1kNe.webp",
+    "description": "Secret pop-up standup in Grand Central District — a curated lineup of local and national comics, exact location revealed only to ticket-holders. BYOB.",
+    "source": "Don't Tell Comedy",
+    "sources": [
+      "Don't Tell Comedy"
+    ],
+    "buzz": 1,
+    "hotScore": 33,
+    "tags": [
+      "weekend",
+      "recurring"
+    ],
+    "category": "comedy",
+    "sponsored": false
+  },
+  {
+    "title": "Don't Tell Comedy — Downtown",
+    "start": "2026-06-13T20:00:00",
+    "end": null,
+    "venue": "Downtown (secret location)",
+    "address": "Downtown, Tampa, FL",
+    "price": null,
+    "currency": null,
+    "isFree": false,
+    "lat": 27.9555017,
+    "lng": -82.4589685,
+    "url": "https://www.donttellcomedy.com/shows/tampa-19888/",
+    "image": "https://dont-tell-comedy.mo.cloudinary.net/private/office_chicago_1_si3RoqT.webp",
+    "description": "Secret pop-up standup in Downtown — a curated lineup of local and national comics, exact location revealed only to ticket-holders. BYOB.",
+    "source": "Don't Tell Comedy",
+    "sources": [
+      "Don't Tell Comedy"
+    ],
+    "buzz": 1,
+    "hotScore": 43,
+    "tags": [
+      "weekend",
+      "one-off"
+    ],
+    "category": "comedy",
     "sponsored": false
   },
   {
@@ -10732,6 +10813,33 @@
     "url": "https://hcplc.libnet.info/event/15956733",
     "image": "https://hcplc.libnet.info/images/events/hcplc/HCPL_Summer_Reading_2026_Approved.jpg",
     "description": "Learn about the history of statues that feature different legends and myths from around the world. Then, create your own miniature statue using air-dry clay.",
+    "source": "Hillsborough Libraries",
+    "sources": [
+      "Hillsborough Libraries"
+    ],
+    "buzz": 1,
+    "hotScore": 48,
+    "tags": [
+      "free",
+      "one-off"
+    ],
+    "category": "community",
+    "sponsored": false
+  },
+  {
+    "title": "Interactive Drum Circles by Giving Tree Music",
+    "start": "2026-06-16T15:00:00",
+    "end": "2026-06-16T16:00:00",
+    "venue": "Seffner-Mango Branch Library",
+    "address": "410 N. Kingsway Rd., Seffner, FL 33584",
+    "price": 0,
+    "currency": "USD",
+    "isFree": true,
+    "lat": 28.000958,
+    "lng": -82.278469,
+    "url": "https://hcplc.libnet.info/event/16381539",
+    "image": "https://hcplc.libnet.info/images/events/hcplc/HCPL_Summer_Reading_2026_Approved.jpg",
+    "description": "?Participants will drum, dance, laugh and learn about drums, gratitude, teamwork and community. Presented by Giving Tree Music.?",
     "source": "Hillsborough Libraries",
     "sources": [
       "Hillsborough Libraries"
@@ -15223,7 +15331,7 @@
     "lat": 27.942737579345703,
     "lng": -82.45177459716797,
     "url": "https://allevents.in/tampa/josh-groban-with-jennifer-hudson-at-benchmark-international-arena/2400029403194740",
-    "image": "https://cdn-ip.allevents.in/s/rs:fill:500:250/g:sm/sh:100/aHR0cHM6Ly9jZG4tYXouYWxsZXZlbnRzLmluL2V2ZW50czEvYmFubmVycy9lY2EyNjNkMC01ZTg2LTExZjEtYWRjMi1iNTM0MmI4YjY1ZWEtcmltZy13MTIwMC1oNDUwLWRjN2EyZTE4LWdtaXIuanBnP3Y9MTc4MDQwNjkwMQ.avif",
+    "image": "https://cdn-ip.allevents.in/s/rs:fill:500:250/g:sm/sh:100/aHR0cHM6Ly9jZG4tYXouYWxsZXZlbnRzLmluL2V2ZW50czYvYmFubmVycy85ZDk2M2I2MC02M2YyLTExZjEtOWM4Ni1jM2QzMjcwZDQ5YTctcmltZy13MTIwMC1oNDUwLWRjN2EyZTE4LWdtaXIuanBnP3Y9MTc4MTAwMjkxMA.avif",
     "description": "\"Welcome to Benchmark International Arena in Tampa, Florida! Get ready to be mesmerized by the one and only Jennifer Hudson on June 19, 2026, at 8:00 PM. Known for her powerhouse vocals and captiva...",
     "source": "AllEvents",
     "sources": [
@@ -15234,6 +15342,32 @@
     "hotScore": 63,
     "tags": [
       "one-off"
+    ],
+    "category": "comedy",
+    "sponsored": false
+  },
+  {
+    "title": "Don't Tell Comedy — Grand Central District",
+    "start": "2026-06-19T20:00:00",
+    "end": null,
+    "venue": "Grand Central District (secret location)",
+    "address": "Grand Central District, St. Petersburg, FL",
+    "price": null,
+    "currency": null,
+    "isFree": false,
+    "lat": 27.7712,
+    "lng": -82.6638,
+    "url": "https://www.donttellcomedy.com/shows/st-petersburg-2d45c0e0/",
+    "image": "https://dont-tell-comedy.mo.cloudinary.net/private/audience_3_u3R74at.webp",
+    "description": "Secret pop-up standup in Grand Central District — a curated lineup of local and national comics, exact location revealed only to ticket-holders. BYOB.",
+    "source": "Don't Tell Comedy",
+    "sources": [
+      "Don't Tell Comedy"
+    ],
+    "buzz": 1,
+    "hotScore": 28,
+    "tags": [
+      "recurring"
     ],
     "category": "comedy",
     "sponsored": false
@@ -16531,6 +16665,32 @@
       "one-off"
     ],
     "category": "music",
+    "sponsored": false
+  },
+  {
+    "title": "Don't Tell Comedy — Seminole Heights",
+    "start": "2026-06-20T21:00:00",
+    "end": null,
+    "venue": "Seminole Heights (secret location)",
+    "address": "Seminole Heights, Tampa, FL",
+    "price": null,
+    "currency": null,
+    "isFree": false,
+    "lat": 27.9966,
+    "lng": -82.4598,
+    "url": "https://www.donttellcomedy.com/shows/tampa-19557/",
+    "image": "https://dont-tell-comedy.mo.cloudinary.net/private/audience_12_W0uFyZg.webp",
+    "description": "Secret pop-up standup in Seminole Heights — a curated lineup of local and national comics, exact location revealed only to ticket-holders. BYOB.",
+    "source": "Don't Tell Comedy",
+    "sources": [
+      "Don't Tell Comedy"
+    ],
+    "buzz": 1,
+    "hotScore": 38,
+    "tags": [
+      "one-off"
+    ],
+    "category": "comedy",
     "sponsored": false
   },
   {
@@ -20458,32 +20618,6 @@
     "sponsored": false
   },
   {
-    "title": "St Pete Pride Transtastic",
-    "start": "2026-06-25",
-    "end": null,
-    "venue": "The James Museum of Western & Wildlife Art",
-    "address": "101 1st Ave S, St Petersburg, FL 33701-4303, United States, St. Petersburg, FL",
-    "price": null,
-    "currency": null,
-    "isFree": null,
-    "lat": 27.770790100097656,
-    "lng": -82.63475799560547,
-    "url": "https://allevents.in/st-petersburg/st-pete-pride-transtastic/200030057178120",
-    "image": "https://cdn-ip.allevents.in/s/rs:fill:500:250/g:sm/sh:100/aHR0cHM6Ly9jZG4tYXouYWxsZXZlbnRzLmluL2V2ZW50czIvYmFubmVycy8xNmQ1MmQxZTY2ODhjMjI3YmRkYTQ0MDM1NjFlNDU2ZjhjZDRlZjRlZWJlZTU0OTk0NTRlMTRmMjYzOGFlNjZlLXJpbWctdzEyMDAtaDYyOC1kYzE1MTUxNS1nbWlyP3Y9MTc4MDU3MTI3MQ.avif",
-    "description": null,
-    "source": "AllEvents",
-    "sources": [
-      "AllEvents"
-    ],
-    "buzz": 1,
-    "hotScore": 38,
-    "tags": [
-      "one-off"
-    ],
-    "category": "other",
-    "sponsored": false
-  },
-  {
     "title": "Thievery Corporation",
     "start": "2026-06-25",
     "end": null,
@@ -20507,6 +20641,32 @@
       "one-off"
     ],
     "category": "music",
+    "sponsored": false
+  },
+  {
+    "title": "St Pete Pride Transtastic",
+    "start": "2026-06-25",
+    "end": null,
+    "venue": "The James Museum of Western & Wildlife Art",
+    "address": "101 1st Ave S, St Petersburg, FL 33701-4303, United States, St. Petersburg, FL",
+    "price": null,
+    "currency": null,
+    "isFree": null,
+    "lat": 27.770790100097656,
+    "lng": -82.63475799560547,
+    "url": "https://allevents.in/st-petersburg/st-pete-pride-transtastic/200030057178120",
+    "image": "https://cdn-ip.allevents.in/s/rs:fill:500:250/g:sm/sh:100/aHR0cHM6Ly9jZG4tYXouYWxsZXZlbnRzLmluL2V2ZW50czIvYmFubmVycy8xNmQ1MmQxZTY2ODhjMjI3YmRkYTQ0MDM1NjFlNDU2ZjhjZDRlZjRlZWJlZTU0OTk0NTRlMTRmMjYzOGFlNjZlLXJpbWctdzEyMDAtaDYyOC1kYzE1MTUxNS1nbWlyP3Y9MTc4MDU3MTI3MQ.avif",
+    "description": null,
+    "source": "AllEvents",
+    "sources": [
+      "AllEvents"
+    ],
+    "buzz": 1,
+    "hotScore": 38,
+    "tags": [
+      "one-off"
+    ],
+    "category": "other",
     "sponsored": false
   },
   {
@@ -22040,32 +22200,6 @@
     "sponsored": false
   },
   {
-    "title": "Horizon of Color: Butterfly Stained Glass Workshop ✨",
-    "start": "2026-06-26",
-    "end": null,
-    "venue": "Imagine Museum",
-    "address": "1901 Central Avenue, St. Petersburg, FL",
-    "price": 49.87,
-    "currency": "USD",
-    "isFree": false,
-    "lat": 27.77126693725586,
-    "lng": -82.65937805175781,
-    "url": "https://allevents.in/st-petersburg/horizon-of-color-butterfly-stained-glass-workshop/100001989925505755",
-    "image": "https://cdn-ip.allevents.in/s/rs:fill:500:250/g:sm/sh:100/aHR0cHM6Ly9jZG4tYXouYWxsZXZlbnRzLmluL2V2ZW50czMvYmFubmVycy9iMDI4MDA2OTNlOWZiMzJkM2JjZTA4MjI0NmFhNzdmOTk4ODBlYzZjMzYyNzE2N2Q1YTQwYzNjMDMwOWFkNDIyLXJpbWctdzQ4MS1oNjQxLWRjNzg5MDJmLWdtaXIuanBnP3Y9MTc3OTIxOTEwMQ.avif",
-    "description": null,
-    "source": "AllEvents",
-    "sources": [
-      "AllEvents"
-    ],
-    "buzz": 1,
-    "hotScore": 38,
-    "tags": [
-      "one-off"
-    ],
-    "category": "community",
-    "sponsored": false
-  },
-  {
     "title": "Asian Summer Food & Music Fest",
     "start": "2026-06-26",
     "end": "2026-06-28",
@@ -22089,6 +22223,32 @@
       "one-off"
     ],
     "category": "food",
+    "sponsored": false
+  },
+  {
+    "title": "Horizon of Color: Butterfly Stained Glass Workshop ✨",
+    "start": "2026-06-26",
+    "end": null,
+    "venue": "Imagine Museum",
+    "address": "1901 Central Avenue, St. Petersburg, FL",
+    "price": 49.87,
+    "currency": "USD",
+    "isFree": false,
+    "lat": 27.77126693725586,
+    "lng": -82.65937805175781,
+    "url": "https://allevents.in/st-petersburg/horizon-of-color-butterfly-stained-glass-workshop/100001989925505755",
+    "image": "https://cdn-ip.allevents.in/s/rs:fill:500:250/g:sm/sh:100/aHR0cHM6Ly9jZG4tYXouYWxsZXZlbnRzLmluL2V2ZW50czMvYmFubmVycy9iMDI4MDA2OTNlOWZiMzJkM2JjZTA4MjI0NmFhNzdmOTk4ODBlYzZjMzYyNzE2N2Q1YTQwYzNjMDMwOWFkNDIyLXJpbWctdzQ4MS1oNjQxLWRjNzg5MDJmLWdtaXIuanBnP3Y9MTc3OTIxOTEwMQ.avif",
+    "description": null,
+    "source": "AllEvents",
+    "sources": [
+      "AllEvents"
+    ],
+    "buzz": 1,
+    "hotScore": 38,
+    "tags": [
+      "one-off"
+    ],
+    "category": "community",
     "sponsored": false
   },
   {
@@ -31725,8 +31885,8 @@
     "lat": 27.975868225097656,
     "lng": -82.50333404541016,
     "url": "https://allevents.in/tampa/post-malone-and-jelly-roll-at-raymond-james-stadium/2400029650857238",
-    "image": "https://cdn-ip.allevents.in/s/rs:fill:500:250/g:sm/sh:100/aHR0cHM6Ly9jZG4tYXouYWxsZXZlbnRzLmluL2V2ZW50czIvYmFubmVycy84MmJlNDA0MC01ZjFlLTExZjEtODRlOS1hNzg1NTA3YmYwZjctcmltZy13MTAyNC1oMTAyNC1kYzVkNTg3Mi1nbWlyLnBuZz92PTE3ODA0NzIwMDc.avif",
-    "description": "✨ Enter a world of endless possibilities at Post Malone and Jelly Roll at Raymond James Stadium, where every moment tells a story! 🏛️ The stunning Raymond James Stadium in vibrant Tampa, FL",
+    "image": "https://cdn-ip.allevents.in/s/rs:fill:500:250/g:sm/sh:100/aHR0cHM6Ly9jZG4tYXouYWxsZXZlbnRzLmluL2V2ZW50czEwL2Jhbm5lcnMvZDkzODA5ZDAtNjQ2Yy0xMWYxLTk5OGUtN2Q2NjU1YTFiN2E0LXJpbWctdzEwMjQtaDEwMjQtZGM1ZDU4NzItZ21pci5wbmc_dj0xNzgxMDU1NDA5.avif",
+    "description": "🌟 Be part of history at Post Malone and Jelly Roll at Raymond James Stadium, an extraordinary gathering that will captivate your imagination! 🏛️ The prestigious Raymond James Stadium in Tampa, FL",
     "source": "AllEvents",
     "sources": [
       "AllEvents"
@@ -34342,6 +34502,32 @@
     "sponsored": false
   },
   {
+    "title": "Don't Tell Comedy — Grand Central District",
+    "start": "2026-07-10T20:00:00",
+    "end": null,
+    "venue": "Grand Central District (secret location)",
+    "address": "Grand Central District, St. Petersburg, FL",
+    "price": null,
+    "currency": null,
+    "isFree": false,
+    "lat": 27.7712,
+    "lng": -82.6638,
+    "url": "https://www.donttellcomedy.com/shows/st-petersburg-50aa3744/",
+    "image": "https://dont-tell-comedy.mo.cloudinary.net/private/audience_7_6wp9w4d.webp",
+    "description": "Secret pop-up standup in Grand Central District — a curated lineup of local and national comics, exact location revealed only to ticket-holders. BYOB.",
+    "source": "Don't Tell Comedy",
+    "sources": [
+      "Don't Tell Comedy"
+    ],
+    "buzz": 1,
+    "hotScore": 28,
+    "tags": [
+      "recurring"
+    ],
+    "category": "comedy",
+    "sponsored": false
+  },
+  {
     "title": "All Your Friends - The Indie Party",
     "start": "2026-07-10T20:00:00-04:00",
     "end": "2026-07-10T22:00:00-04:00",
@@ -34522,6 +34708,32 @@
       "one-off"
     ],
     "category": "food",
+    "sponsored": false
+  },
+  {
+    "title": "Don't Tell Comedy — Grand Central District",
+    "start": "2026-07-11T20:00:00",
+    "end": null,
+    "venue": "Grand Central District (secret location)",
+    "address": "Grand Central District, St. Petersburg, FL",
+    "price": null,
+    "currency": null,
+    "isFree": false,
+    "lat": 27.7712,
+    "lng": -82.6638,
+    "url": "https://www.donttellcomedy.com/shows/st-petersburg-6b776cd5/",
+    "image": "https://dont-tell-comedy.mo.cloudinary.net/private/skateshop-comicaudience_2jreJfd.webp",
+    "description": "Secret pop-up standup in Grand Central District — a curated lineup of local and national comics, exact location revealed only to ticket-holders. BYOB.",
+    "source": "Don't Tell Comedy",
+    "sources": [
+      "Don't Tell Comedy"
+    ],
+    "buzz": 1,
+    "hotScore": 28,
+    "tags": [
+      "recurring"
+    ],
+    "category": "comedy",
     "sponsored": false
   },
   {
@@ -35231,18 +35443,18 @@
     "sponsored": false
   },
   {
-    "title": "Jo Koy at Seminole Hard Rock Hotel and Casino - Tampa",
+    "title": "Lionel Richie with Earth Wind and Fire at Benchmark International Arena",
     "start": "2026-07-22",
-    "end": "2026-07-23",
-    "venue": "Seminole Hard Rock Hotel and Casino - Tampa",
-    "address": "5223 Orient Road, Tampa, FL 33610, Tampa, FL",
+    "end": null,
+    "venue": "Benchmark International Arena",
+    "address": "401 Channelside Drive, Tampa, FL 33602, Tampa, FL",
     "price": null,
     "currency": null,
     "isFree": null,
-    "lat": 27.99365234375,
-    "lng": -82.3711166381836,
-    "url": "https://allevents.in/tampa/jo-koy-at-seminole-hard-rock-hotel-and-casino-tampa/2400029969054916",
-    "image": "https://cdn-ip.allevents.in/s/rs:fill:500:250/g:sm/sh:100/aHR0cHM6Ly9jZG4tYXouYWxsZXZlbnRzLmluL2V2ZW50czEvYmFubmVycy8zZmQzYzFiMC02M2VjLTExZjEtOWM4Ni1jM2QzMjcwZDQ5YTctcmltZy13MTAyNC1oMTAyNC1kYzE2MTQxOS1nbWlyLmpwZz92PTE3ODEwMDAxNzY.avif",
+    "lat": 27.942737579345703,
+    "lng": -82.45177459716797,
+    "url": "https://allevents.in/tampa/lionel-richie-with-earth-wind-and-fire-at-benchmark-international-arena/2400029969501656",
+    "image": "https://cdn-ip.allevents.in/s/rs:fill:500:250/g:sm/sh:100/aHR0cHM6Ly9jZG4tYXouYWxsZXZlbnRzLmluL2V2ZW50czIvYmFubmVycy84NWExYzBkMC0zZGEzLTExZjEtOTQ2Yi1hMTJmMmM2NWU0YjMtcmltZy13MTA4MC1oMTA4MC1kYzE2MWMyZS1nbWlyLmpwZz92PTE3NzY3OTA3OTU.avif",
     "description": null,
     "source": "AllEvents",
     "sources": [
@@ -35257,18 +35469,18 @@
     "sponsored": false
   },
   {
-    "title": "Lionel Richie with Earth Wind and Fire at Benchmark International Arena",
+    "title": "Jo Koy at Seminole Hard Rock Hotel and Casino - Tampa",
     "start": "2026-07-22",
-    "end": null,
-    "venue": "Benchmark International Arena",
-    "address": "401 Channelside Drive, Tampa, FL 33602, Tampa, FL",
+    "end": "2026-07-23",
+    "venue": "Seminole Hard Rock Hotel and Casino - Tampa",
+    "address": "5223 Orient Road, Tampa, FL 33610, Tampa, FL",
     "price": null,
     "currency": null,
     "isFree": null,
-    "lat": 27.942737579345703,
-    "lng": -82.45177459716797,
-    "url": "https://allevents.in/tampa/lionel-richie-with-earth-wind-and-fire-at-benchmark-international-arena/2400029969501656",
-    "image": "https://cdn-ip.allevents.in/s/rs:fill:500:250/g:sm/sh:100/aHR0cHM6Ly9jZG4tYXouYWxsZXZlbnRzLmluL2V2ZW50czIvYmFubmVycy84NWExYzBkMC0zZGEzLTExZjEtOTQ2Yi1hMTJmMmM2NWU0YjMtcmltZy13MTA4MC1oMTA4MC1kYzE2MWMyZS1nbWlyLmpwZz92PTE3NzY3OTA3OTU.avif",
+    "lat": 27.99365234375,
+    "lng": -82.3711166381836,
+    "url": "https://allevents.in/tampa/jo-koy-at-seminole-hard-rock-hotel-and-casino-tampa/2400029969054916",
+    "image": "https://cdn-ip.allevents.in/s/rs:fill:500:250/g:sm/sh:100/aHR0cHM6Ly9jZG4tYXouYWxsZXZlbnRzLmluL2V2ZW50czEvYmFubmVycy8zZmQzYzFiMC02M2VjLTExZjEtOWM4Ni1jM2QzMjcwZDQ5YTctcmltZy13MTAyNC1oMTAyNC1kYzE2MTQxOS1nbWlyLmpwZz92PTE3ODEwMDAxNzY.avif",
     "description": null,
     "source": "AllEvents",
     "sources": [
@@ -35830,6 +36042,84 @@
       "one-off"
     ],
     "category": "music",
+    "sponsored": false
+  },
+  {
+    "title": "Don't Tell Comedy — Grand Central District",
+    "start": "2026-08-21T20:00:00",
+    "end": null,
+    "venue": "Grand Central District (secret location)",
+    "address": "Grand Central District, St. Petersburg, FL",
+    "price": null,
+    "currency": null,
+    "isFree": false,
+    "lat": 27.7712,
+    "lng": -82.6638,
+    "url": "https://www.donttellcomedy.com/shows/st-petersburg-e06a84e1/",
+    "image": "https://dont-tell-comedy.mo.cloudinary.net/private/audience_4_0puCSz3.webp",
+    "description": "Secret pop-up standup in Grand Central District — a curated lineup of local and national comics, exact location revealed only to ticket-holders. BYOB.",
+    "source": "Don't Tell Comedy",
+    "sources": [
+      "Don't Tell Comedy"
+    ],
+    "buzz": 1,
+    "hotScore": 28,
+    "tags": [
+      "recurring"
+    ],
+    "category": "comedy",
+    "sponsored": false
+  },
+  {
+    "title": "Don't Tell Comedy — Grand Central District",
+    "start": "2026-08-22T20:00:00",
+    "end": null,
+    "venue": "Grand Central District (secret location)",
+    "address": "Grand Central District, St. Petersburg, FL",
+    "price": null,
+    "currency": null,
+    "isFree": false,
+    "lat": 27.7712,
+    "lng": -82.6638,
+    "url": "https://www.donttellcomedy.com/shows/st-petersburg-6e16fd98/",
+    "image": "https://dont-tell-comedy.mo.cloudinary.net/private/audience_12_jWRIuR3.webp",
+    "description": "Secret pop-up standup in Grand Central District — a curated lineup of local and national comics, exact location revealed only to ticket-holders. BYOB.",
+    "source": "Don't Tell Comedy",
+    "sources": [
+      "Don't Tell Comedy"
+    ],
+    "buzz": 1,
+    "hotScore": 28,
+    "tags": [
+      "recurring"
+    ],
+    "category": "comedy",
+    "sponsored": false
+  },
+  {
+    "title": "Don't Tell Comedy — Grand Central District",
+    "start": "2026-09-11T20:00:00",
+    "end": null,
+    "venue": "Grand Central District (secret location)",
+    "address": "Grand Central District, St. Petersburg, FL",
+    "price": null,
+    "currency": null,
+    "isFree": false,
+    "lat": 27.7712,
+    "lng": -82.6638,
+    "url": "https://www.donttellcomedy.com/shows/st-petersburg-d80049bb/",
+    "image": "https://dont-tell-comedy.mo.cloudinary.net/private/audience_2_ALx1Wsy.webp",
+    "description": "Secret pop-up standup in Grand Central District — a curated lineup of local and national comics, exact location revealed only to ticket-holders. BYOB.",
+    "source": "Don't Tell Comedy",
+    "sources": [
+      "Don't Tell Comedy"
+    ],
+    "buzz": 1,
+    "hotScore": 28,
+    "tags": [
+      "recurring"
+    ],
+    "category": "comedy",
     "sponsored": false
   }
 ]
