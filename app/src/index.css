@@ -1,12 +1,29 @@
 :root {
-  --accent: #ff5a3c; /* vivid coral */
-  --accent-2: #ff2d78; /* hot pink */
+  /* light teal/aqua identity (Tampa = water) — interactive elements, links,
+     overlines, selected states, calendar selection */
+  --accent: #0d9488;
+  --accent-2: #06b6d4; /* gradients with accent */
+  --accent-rgb: 13, 148, 136;
+  /* hot palette: RESERVED for hot-ness semantics only (Hot tab active, flame/heat
+     badges, The Big One overline, Surprise-me dice, calendar heat shading) */
+  --hot: #ff5a3c;
+  --hot-2: #ff2d78;
+  --hot-rgb: 255, 90, 60;
   --free: #0a9d6e;
   --ink: #15171c;
   --muted: #6b7280;
   --line: #eceef1;
   --card: #ffffff;
   --bg: #f7f8fa;
+
+  /* motion tokens (UI_SPEC §3) */
+  --dur-micro: 120ms; /* press, chip fill */
+  --dur-fast: 200ms; /* toggles, crossfades, tab switch, lens swap-in */
+  --dur-base: 400ms; /* section entrances, lens-swap clear window */
+  --dur-page: 400ms; /* detail open, sheets, view toggle */
+  --ease-out: cubic-bezier(0.165, 0.84, 0.44, 1);
+  --ease-emphasis: cubic-bezier(0.16, 1, 0.3, 1); /* "the Apple curve" */
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;

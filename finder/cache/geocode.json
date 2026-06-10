@@ -30,5 +30,354 @@
   "Ruth Eckerd Hall": {
     "lat": 27.9760792,
     "lng": -82.7046899
+  },
+  "FloridaRAMA": null,
+  "The Palladium Theater": {
+    "lat": 27.7778779,
+    "lng": -82.6367975
+  },
+  "Carol and Frank Morsani Center for the Arts": null,
+  "Museum of Fine Arts St. Petersburg": {
+    "lat": 27.7744658,
+    "lng": -82.6318274
+  },
+  "Museum of the Amercian Arts and Crafts Movement": null,
+  "Peace Memorial Presbyterian Church": {
+    "lat": 27.9643355,
+    "lng": -82.8002847
+  },
+  "Al Lang Stadium": {
+    "lat": 27.7683643,
+    "lng": -82.6330913
+  },
+  "Catherine A. Hickman Theater": null,
+  "The Dali": {
+    "lat": 27.7659874,
+    "lng": -82.6314611
+  },
+  "St Petersburg Distillery": null,
+  "Shore Acres Recreation Center": {
+    "lat": 27.8108052,
+    "lng": -82.6094571
+  },
+  "The Commodore": {
+    "lat": 27.9602989,
+    "lng": -82.4515816
+  },
+  "The Studio@620": null,
+  "3 Daughters Brewing &#8211; St. Pete": null,
+  "St. Petersburg Shuffleboard Club": {
+    "lat": 27.7756085,
+    "lng": -82.6412655
+  },
+  "Great Explorations Children’s Museum": {
+    "lat": 27.7903595,
+    "lng": -82.6379044
+  },
+  "New World Music Hall": null,
+  "MidFlorida Credit Union Amphitheatre At The Florida State Fairgrounds": null,
+  "The Fringe Theatre": null,
+  "GÜD Essence": null,
+  "Lower Deck Harbour Island": null,
+  "Carrollwood Players Theatre": null,
+  "Funny Bone Comedy Club - Tampa": null,
+  "Bradenton Riverwalk": {
+    "lat": 27.499686,
+    "lng": -82.5674058
+  },
+  "Hotel Haya": {
+    "lat": 27.9606527,
+    "lng": -82.4438278
+  },
+  "Bay Paws Pet Resort - Trinity": {
+    "lat": 28.1885231,
+    "lng": -82.6262169
+  },
+  "Hernando County Fairgrounds": null,
+  "Ology Brewing": {
+    "lat": 28.0051375,
+    "lng": -82.459291
+  },
+  "Tarpon Springs Public Library": {
+    "lat": 28.1445127,
+    "lng": -82.7553608
+  },
+  "St Pete Biking": null,
+  "Tailgreeter All-Inclusive Tailgate - Raymond James Stadium": null,
+  "Centro Asturiano de Tampa": null,
+  "2606 Fairfield Ave S, Building 6, St. Petersburg, 33712": null,
+  "St. Petersburg": {
+    "lat": 27.7712264,
+    "lng": -82.6340259
+  },
+  "253 Fifth Ave. N., St. Petersburg, 33701": null,
+  "255 Beach Dr NE, St. Petersburg, FL, 33701": {
+    "lat": 27.7744658,
+    "lng": -82.6318274
+  },
+  "355 4th Street North, St. Petersburg, 33701": {
+    "lat": 27.7769176,
+    "lng": -82.6384264
+  },
+  "110 S. Ft. Harrison Ave., Clearwater, FL, 33756": {
+    "lat": 27.9645983,
+    "lng": -82.8000549
+  },
+  "601 N. Old Coachman Road, Clearwater, FL, 33765": {
+    "lat": 27.9834453,
+    "lng": -82.7419998
+  },
+  "230 1st St. S, St. Petersburg, FL, 33701": {
+    "lat": 27.7712264,
+    "lng": -82.6340259
+  },
+  "465 7th Ave N, St. Petersburg, FL, 33701": {
+    "lat": 27.7797575,
+    "lng": -82.6398751
+  },
+  "14802 N Nebraska Ave, Tampa, FL, 33613": {
+    "lat": 28.055676,
+    "lng": -82.451061
+  },
+  "One Dalí Blvd, St. Petersburg, 33701": {
+    "lat": 27.7652607,
+    "lng": -82.6314304
+  },
+  "800 31st St S, St Petersburg, 33712": {
+    "lat": 27.7619712,
+    "lng": -82.675182
+  },
+  "4230 Shore Acres Blvd NE, St. Petersburg, FL, 33703": {
+    "lat": 27.8110372,
+    "lng": -82.6091119
+  },
+  "620 First Avenue South, St. Petersburg, FL, 33701": null,
+  "1010 North Macinnes Place, Tampa, FL, 33602": null,
+  "222 22nd Street S, St. Petersburg, FL, 33712": {
+    "lat": 27.7690478,
+    "lng": -82.6625983
+  },
+  "559 Mirror Lake Drive N, St. Petersburg, 33701": {
+    "lat": 27.7758828,
+    "lng": -82.6416131
+  },
+  "1925 4th Street North, St. Petersburg, FL, 33704": {
+    "lat": 27.7903595,
+    "lng": -82.6379044
+  },
+  "810 E Skagway Avenue, Tampa, FL, 33604": {
+    "lat": 28.0324572,
+    "lng": -82.4524536
+  },
+  "4802 US Highway 301 North, Tampa, FL, 33610": null,
+  "1600 E 8th Ave, Tampa, FL, 33605": {
+    "lat": 27.9614582,
+    "lng": -82.4416202
+  },
+  "4109 North Himes Avenue, Tampa, FL, 33607": {
+    "lat": 27.9764039,
+    "lng": -82.5013547
+  },
+  "1913 N Nebraska Ave, Tampa, FL, 33602": {
+    "lat": 27.9620169,
+    "lng": -82.4508352
+  },
+  "4201 North Dale Mabry Highway, Tampa, FL, 33607": {
+    "lat": 27.977898,
+    "lng": -82.505391
+  },
+  "C. Blythe Andrews, Jr. Public Library": null,
+  "78th Street Community Library": {
+    "lat": 27.9403933,
+    "lng": -82.3715854
+  },
+  "Bruton Memorial Library": null,
+  "Jan Kaminis Platt Regional Library": {
+    "lat": 27.9073768,
+    "lng": -82.5173706
+  },
+  "Maureen B. Gauzza Public Library": {
+    "lat": 28.062518,
+    "lng": -82.6230955
+  },
+  "Lutz Branch Library": {
+    "lat": 28.1514686,
+    "lng": -82.4625754
+  },
+  "West Tampa Branch Library": {
+    "lat": 27.9577301,
+    "lng": -82.4832862
+  },
+  "Temple Terrace Public Library": {
+    "lat": 28.0328271,
+    "lng": -82.3913041
+  },
+  "John F. Germany Public Library": {
+    "lat": 27.9509908,
+    "lng": -82.4621735
+  },
+  "Seffner-Mango Branch Library": {
+    "lat": 28.0009502,
+    "lng": -82.2783872
+  },
+  "1812 N. 17th Street, Tampa, FL 33605": {
+    "lat": 27.9608255,
+    "lng": -82.4406176
+  },
+  "2857 110th Avenue N., St. Petersburg, FL 33716": {
+    "lat": 27.872136,
+    "lng": -82.6723733
+  },
+  "Virtual Meeting": null,
+  "Brandon Regional Library": {
+    "lat": 27.9294049,
+    "lng": -82.2883894
+  },
+  "New Tampa Regional Library": {
+    "lat": 28.141093,
+    "lng": -82.3280492
+  },
+  "Bloomingdale Regional Public Library": {
+    "lat": 27.8944813,
+    "lng": -82.2524397
+  },
+  "Seminole Heights Branch Library": {
+    "lat": 27.9884828,
+    "lng": -82.4549064
+  },
+  "Arthenia L. Joyner University Area Community Library": {
+    "lat": 28.0720054,
+    "lng": -82.4325749
+  },
+  "2101 E Palm Ave, Tampa, FL": {
+    "lat": 27.962351,
+    "lng": -82.43538
+  },
+  "Online event": null,
+  "5501 27th Ave. S, Gulfport": {
+    "lat": 27.7437088,
+    "lng": -82.7134915
+  },
+  "Ruskin Branch Library": {
+    "lat": 27.7187111,
+    "lng": -82.4336334
+  },
+  "Thonotosassa Branch Library": {
+    "lat": 28.0576641,
+    "lng": -82.2948337
+  },
+  "2401 E. Yukon St., Tampa, FL": {
+    "lat": 28.0290182,
+    "lng": -82.4560221
+  },
+  "811 E. 7th Avenue, Tampa": {
+    "lat": 27.9603786,
+    "lng": -82.4518618
+  },
+  "910 Skipper Rd., Tampa, FL 33613": null,
+  "Charles J. Fendig Public Library": {
+    "lat": 27.9308227,
+    "lng": -82.5086764
+  },
+  "2616 South MacDill Ave, Tampa": {
+    "lat": 27.9219625,
+    "lng": -82.4932255
+  },
+  "810 East Skagway Blvd, Tampa, FL 33604": null,
+  "1624 E 7th Ave Ste 307, Tampa": null,
+  "28540 US Hwy 19 N, Clearwater": {
+    "lat": 27.9794958,
+    "lng": -82.7296591
+  },
+  "601 S Harbour Island Blvd Suite 110, Tampa": null,
+  "816 Manatee Avenue East, Bradenton": {
+    "lat": 27.4951149,
+    "lng": -82.5562236
+  },
+  "10209 Estuary Lakes, Tampa, FL": {
+    "lat": 27.9359266,
+    "lng": -82.3343791
+  },
+  "1503 E 7th Ave, Tampa": {
+    "lat": 27.9600695,
+    "lng": -82.4427667
+  },
+  "452 3rd Ave W, Bradenton": {
+    "lat": 27.4972081,
+    "lng": -82.5665083
+  },
+  "8551 West Venable Street Crystal River, FL 34429, Crystal River, FL": null,
+  "1208 E Kennedy Blvd #112, Tampa, FL": {
+    "lat": 27.9510309,
+    "lng": -82.4470651
+  },
+  "29582 US Highway 19 N., Clearwater, FL 33761": {
+    "lat": 28.0145368,
+    "lng": -82.7366422
+  },
+  "1412 E 7th Ave, Tampa": {
+    "lat": 27.9606527,
+    "lng": -82.4438278
+  },
+  "11387 Lowman Lane, Trinity": {
+    "lat": 28.1883873,
+    "lng": -82.6266393
+  },
+  "6436 Broad St, Brooksville": {
+    "lat": 28.5253579,
+    "lng": -82.4118703
+  },
+  "Egypt Lake Partnership Library": {
+    "lat": 28.0075971,
+    "lng": -82.4971857
+  },
+  "6401 N Florida Ave., Tampa": {
+    "lat": 28.0051375,
+    "lng": -82.459291
+  },
+  "138 East Lemon Street, Tarpon Springs": {
+    "lat": 28.1449254,
+    "lng": -82.7558054
+  },
+  "1975 3rd Ave S, St Petersburg": {
+    "lat": 27.7686357,
+    "lng": -82.659828
+  },
+  "10475 Gibsonton Dr, Riverview, FL 33569": {
+    "lat": 27.8569808,
+    "lng": -82.3271094
+  },
+  "2101 E. Palm Avenue, Tampa, FL": {
+    "lat": 27.962351,
+    "lng": -82.43538
+  },
+  "2506 S. MacDill Ave, Tampa, FL": {
+    "lat": 27.9230138,
+    "lng": -82.4934854
+  },
+  "5701 East Hillsborough Avenue #Suite 2409, Tampa, FL": null,
+  "2101 East Palm Avenue, Tampa, FL": {
+    "lat": 27.962353,
+    "lng": -82.435384
+  },
+  "Tampa-Hillsborough County Public Library": null,
+  "811 E 7th Ave, Tampa, FL 33602": {
+    "lat": 27.9603806,
+    "lng": -82.4518648
+  },
+  "2940 110th Ave N., St. Petersburg, FL 33716": {
+    "lat": 27.8719606,
+    "lng": -82.6738287
+  },
+  "11909 125th St. N., Largo, FL 33774": null,
+  "1700 Park St. N., St. Petersburg, FL 33710": {
+    "lat": 27.788578,
+    "lng": -82.752724
+  },
+  "Riverview Public Library": null,
+  "315 Court St, 5th Floor, Clearwater, FL 33756": null,
+  "14700 Terminal Blvd., Clearwater, FL 33762": {
+    "lat": 27.9099433,
+    "lng": -82.6877179
   }
 }

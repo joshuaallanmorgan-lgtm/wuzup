@@ -60,11 +60,18 @@ Venue names/addresses → lat-long must eventually be **as accurate as Google Ma
 ## 🌐 True comprehensiveness ("show ALL events")
 MVP coverage = our curator sources' coverage (the "best" events). Long-term goal is **literally every event** in an area, which means going beyond curators to primary sources (venue sites, Instagram, user submissions). This is the hard, real version of Charles's "show ALL events" priority.
 
-## 👥 Social layer
+## 👥 Social layer / gamified feed
 User-submitted events, organizers advertising their own community/small-group events, "who's going," friends, permanent-business advertising. The app "sort of acts as social media." **Whole second product — hard parked.** MVP gets only a basic "add an event" form to prove the concept.
+Expanded vision (2026-06-09): the Hot tab eventually becomes a **gamified feed** — each event is a post users can **comment on, like, and interact with** (requires accounts); you can **see what friends are interacting with** and link up with them for events. Real popularity signals from this eventually replace the heuristic hot-score.
+
+## 📅 Calendar views (future)
+Month-grid toggle shipping now; **year view** and other calendar zoom levels = future. Also: section-specific data pipelines are an anti-pattern — sections are VIEWS over one rich dataset (one finder, many lenses).
 
 ## 🎯 Personalization
 "Slightly tailored, not heavily algorithmic." Onboarding questions + learned swipe/tap preferences **re-order** events for digestibility but **never hide** them. Post-MVP.
+
+## 🌗 Dark mode
+Light theme is the identity (inviting, Apple-ish). A proper dark mode is wanted later — design tokens are already CSS variables, so it's a `prefers-color-scheme` / toggle pass when we get there.
 
 ## 🗺️ Three coexisting UI surfaces
 Calendar + Map + List as three buttons over one dataset, each opening a shared detail page. The real UX challenge is making them feel like one coherent body. Design work for after the data engine is proven.
