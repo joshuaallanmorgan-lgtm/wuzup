@@ -11,6 +11,7 @@
 // (the 🎨 pill, mounted by App bottom-left) cycles through DISPLAY_MODES.
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { dayLabelLoose, dayLoose, gradFor, keyOf, priceLabel, startLabel, timeOf } from './lib.js'
+import { dateKey } from './weather.js'
 import './cards.css'
 import './modes.css'
 
@@ -21,6 +22,10 @@ export const DisplayModeContext = createContext({ mode: 'editorial', setMode: ()
 export function useDisplayMode() {
   return useContext(DisplayModeContext).mode
 }
+
+// 16-day forecast map { 'YYYY-MM-DD': {emoji,hi,rain} } | null — App owns the
+// single getForecast() fetch and provides it here; outdoor rows show a rain hint.
+export const WxContext = createContext(null)
 
 // one hue per category — reused by every mode (spine, glow, overline tint)
 export const CATEGORY_HUES = {
@@ -234,13 +239,17 @@ export function EndCap({ square, onClick, children = 'See all →' }) {
 // Same props in every mode; CardImg keeps [data-vt] so the detail morph works.
 export function Row({ e, dist, style, onSelect }) {
   const mode = useDisplayMode()
+  // outdoor events on a rainy forecast day carry a tiny honesty hint in the meta
+  const wx = useContext(WxContext)
+  const wxDay = e.category === 'outdoors' && e._day != null && wx ? wx[dateKey(e._day)] : null
+  const rain = wxDay && wxDay.rain != null && wxDay.rain >= 30 ? '🌧 ' + wxDay.rain + '%' : null
   const st = { ...style, '--ch': hueFor(e) }
   const open = (ev) => onSelect(e, ev.currentTarget)
   const mi = dist != null ? dist.toFixed(1) + ' mi' : null
 
   if (mode === 'poster') {
     const free = e._free === true || e.isFree === true
-    const meta = [...(e._ongoing ? ['Ongoing'] : [dayLoose(e), timeOf(e.start)]), mi, free ? null : priceLabel(e)]
+    const meta = [...(e._ongoing ? ['Ongoing'] : [dayLoose(e), timeOf(e.start)]), mi, free ? null : priceLabel(e), rain]
       .filter(Boolean)
       .join(' · ')
     return (
@@ -257,7 +266,7 @@ export function Row({ e, dist, style, onSelect }) {
   }
 
   if (mode === 'cinematic') {
-    const meta = [...(e._ongoing ? ['Ongoing'] : [startLabel(e)]), e.venue, mi, priceLabel(e)]
+    const meta = [...(e._ongoing ? ['Ongoing'] : [startLabel(e)]), e.venue, mi, priceLabel(e), rain]
       .filter(Boolean)
       .join(' · ')
     return (
@@ -276,7 +285,7 @@ export function Row({ e, dist, style, onSelect }) {
   }
 
   // editorial (default)
-  const meta = (e._ongoing ? ['Ongoing', e.venue] : [dayLabelLoose(e), timeOf(e.start), e.venue])
+  const meta = (e._ongoing ? ['Ongoing', e.venue, rain] : [dayLabelLoose(e), timeOf(e.start), e.venue, rain])
     .filter(Boolean)
     .join(' · ')
   return (

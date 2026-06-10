@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
-export default function MapView({ events, anchors, onSelect, active }) {
+export default function MapView({ events, anchors, onSelect, active, focusTarget }) {
   const elRef = useRef(null)
   const mapRef = useRef(null)
   const layerRef = useRef(null)
@@ -57,6 +57,19 @@ export default function MapView({ events, anchors, onSelect, active }) {
   useEffect(() => {
     if (active && mapRef.current) setTimeout(() => mapRef.current.invalidateSize(), 80)
   }, [active])
+  // focus-on-event (detail mini-map tap): pan/zoom straight to the target.
+  // If the tab was never visited, the create-effect above has just run in this
+  // same commit (App's focusMap flips `active` together with focusTarget), so
+  // mapRef is already set here. `ready` stays in the deps so the post-creation
+  // re-render re-asserts the view AFTER the marker effect draws — whose
+  // first-data fitBounds is suppressed by marking didFitRef below.
+  useEffect(() => {
+    if (!focusTarget || focusTarget.lat == null || focusTarget.lng == null) return
+    const map = mapRef.current
+    if (!map) return
+    didFitRef.current = true // the focused view IS the view — never fit-to-all over it
+    map.setView([focusTarget.lat, focusTarget.lng], 15, { animate: false })
+  }, [focusTarget, ready])
   return (
     <div className="map-wrap">
       <div ref={elRef} className="map" />

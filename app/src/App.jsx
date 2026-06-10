@@ -3,8 +3,9 @@
 // geolocation (requestCoords), and display-mode state (localStorage 'display-mode').
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
-import { CITY, Icon, makeAnchors, normalize } from './lib.js'
-import { DISPLAY_MODES, DisplayModeContext, DisplayModeToggle } from './cards.jsx'
+import { CITY, Icon, keyOf, makeAnchors, normalize } from './lib.js'
+import { DISPLAY_MODES, DisplayModeContext, DisplayModeToggle, WxContext } from './cards.jsx'
+import { getForecast } from './weather.js'
 import HotView from './HotView.jsx'
 import MapView from './MapView.jsx'
 import CalendarView from './CalendarView.jsx'
@@ -123,6 +124,20 @@ export default function App() {
   const norm = useMemo(() => events.map((e) => normalize(e, anchors)), [events, anchors])
   const displayCtx = useMemo(() => ({ mode: displayMode, setMode: setDisplayMode }), [displayMode])
 
+  // 16-day Tampa forecast, fetched ONCE at App level (was CalendarView-local):
+  // CalendarView (prop), DetailPage (prop) and outdoor feed rows (WxContext)
+  // all read the same map. null = no weather, every consumer degrades silently.
+  const [wx, setWx] = useState(null)
+  useEffect(() => {
+    let on = true
+    getForecast().then((m) => {
+      if (on && m) setWx(m)
+    })
+    return () => {
+      on = false
+    }
+  }, [])
+
   const goTo = (i) => {
     setActive(i)
     const p = pagerRef.current
@@ -134,6 +149,22 @@ export default function App() {
     if (!p) return
     const i = Math.round(p.scrollLeft / p.clientWidth)
     if (i !== active) setActive(i)
+  }
+
+  // detail mini-map tap → close the detail + any subpage, jump to the Map tab,
+  // and hand MapView a focus target ({lat,lng,key}; fresh object every call so
+  // re-focusing the same event re-runs MapView's focus effect).
+  const [mapFocus, setMapFocus] = useState(null)
+  const focusMap = (e) => {
+    morphElRef.current = null // card name is already cleared post-open; just drop the ref
+    setDetail(null)
+    setClosing(false)
+    setVtOpen(false)
+    clearTimeout(pageTRef.current)
+    setPage(null)
+    setPageClosing(false)
+    setMapFocus({ lat: e.lat, lng: e.lng, key: keyOf(e) })
+    goTo(1)
   }
 
   // geolocation lifted into App so any page can ask: resolves to coords or null
@@ -234,6 +265,7 @@ export default function App() {
 
   return (
     <DisplayModeContext.Provider value={displayCtx}>
+      <WxContext.Provider value={wx}>
       <div className="app">
         <div className="pager" ref={pagerRef} onScroll={onScroll}>
           <section className="page page-hot">
@@ -248,10 +280,10 @@ export default function App() {
             />
           </section>
           <section className="page page-map">
-            <MapView events={norm} anchors={anchors} onSelect={openDetail} active={active === 1} />
+            <MapView events={norm} anchors={anchors} onSelect={openDetail} active={active === 1} focusTarget={mapFocus} />
           </section>
           <section className="page">
-            <CalendarView events={norm} anchors={anchors} onSelect={openDetail} />
+            <CalendarView events={norm} anchors={anchors} onSelect={openDetail} wx={wx} />
           </section>
         </div>
         <TabBar active={active} onTab={goTo} />
@@ -283,9 +315,25 @@ export default function App() {
             )}
           </div>
         )}
-        {detail && <DetailPage e={detail} closing={closing} vt={vtOpen} onClose={closeDetail} />}
+        {/* keyed by event: a More-like-this swap REMOUNTS the detail (scroll resets
+            to top, mini-map is destroyed + rebuilt for the new coords) */}
+        {detail && (
+          <DetailPage
+            key={keyOf(detail)}
+            e={detail}
+            events={norm}
+            anchors={anchors}
+            wx={wx}
+            closing={closing}
+            vt={vtOpen}
+            onClose={closeDetail}
+            onSelect={openDetail}
+            onFocusMap={focusMap}
+          />
+        )}
         {loading && bootVis && <div className="boot">Loading {CITY.name}…</div>}
       </div>
+      </WxContext.Provider>
     </DisplayModeContext.Provider>
   )
 }

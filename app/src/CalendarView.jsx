@@ -1,8 +1,8 @@
 // CalendarView — List | Month segmented calendar with heat-shaded month grid.
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { keyOf } from './lib.js'
 import { EventCard } from './cards.jsx'
-import { getForecast, dateKey, CONDITION } from './weather.js'
+import { dateKey, CONDITION } from './weather.js'
 import './calendar.css'
 
 // "🌧️ Showers likely · high 93° · 47% rain" — null when no forecast for the day
@@ -14,22 +14,13 @@ function wxSummary(w) {
   return parts.join(' · ')
 }
 
-export default function CalendarView({ events, anchors, onSelect }) {
+export default function CalendarView({ events, anchors, onSelect, wx }) {
   const [mode, setMode] = useState('list')
   const [selKey, setSelKey] = useState(null) // day timestamp; persists across List/Month toggle
   const [monthOff, setMonthOff] = useState(0)
 
-  // 16-day Tampa forecast: { 'YYYY-MM-DD': {emoji,hi,rain} } | null (graceful no-weather)
-  const [wx, setWx] = useState(null)
-  useEffect(() => {
-    let on = true
-    getForecast().then((m) => {
-      if (on && m) setWx(m)
-    })
-    return () => {
-      on = false
-    }
-  }, [])
+  // 16-day Tampa forecast: { 'YYYY-MM-DD': {emoji,hi,rain} } | null (graceful
+  // no-weather). App owns the single getForecast() fetch and passes it down.
   const wxFor = (ts) => (wx ? wx[dateKey(ts)] : null)
 
   const dayMap = useMemo(() => {
