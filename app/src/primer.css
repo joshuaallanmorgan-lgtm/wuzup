@@ -145,6 +145,14 @@
   border-color: var(--accent-2);
   background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.3), rgba(6, 182, 212, 0.22));
 }
+/* I1 reward moment: the FINISH beat — the third (last) tap highlights in the
+   reward violet for the ~230ms before the primer closes. Static colors + a
+   static soft glow only; nothing animates, so reduced motion needs no kill. */
+.primer-final .primer-opt.sel {
+  border-color: var(--reward);
+  background: linear-gradient(135deg, rgba(var(--reward-rgb), 0.3), rgba(var(--reward-rgb), 0.16));
+  box-shadow: 0 0 0 1px rgba(var(--reward-rgb), 0.25), 0 6px 22px rgba(var(--reward-rgb), 0.2);
+}
 .primer-opt-emoji { font-size: 28px; line-height: 1; }
 .primer-opt-label { font-size: 17px; font-weight: 800; letter-spacing: -0.2px; }
 .primer-opt-sub { font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.6); }

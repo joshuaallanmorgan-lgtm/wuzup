@@ -126,6 +126,24 @@
   color: var(--hot);
 }
 .fmn-res-title { margin: 6px 0 3px; font-size: 26px; font-weight: 900; letter-spacing: -0.5px; color: #fff; }
+/* I1 reward moment: the reveal beat — a short reward-violet underline draws in
+   under "I've got you 🔥". Static under reduced motion (color may appear;
+   the draw-in must not animate — killed below). */
+.fmn-res-title::after {
+  content: '';
+  display: block;
+  width: 64px;
+  height: 3px;
+  margin-top: 8px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--reward), rgba(var(--reward-rgb), 0.25));
+  transform-origin: left;
+  animation: fmnReward 600ms var(--ease-emphasis) 150ms both;
+}
+@keyframes fmnReward {
+  from { transform: scaleX(0); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
 .fmn-res-sub { font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.6); }
 
 .fmn-picks { display: grid; gap: 12px; }
@@ -150,7 +168,7 @@
 .fmn-pick-img { flex: 0 0 92px; height: 92px; border-radius: 12px; }
 .fmn-pick-main { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
 .fmn-pick-title {
-  font-size: 15.5px;
+  font-size: 15px; /* I4 type scale: list-card titles sit at 15 */
   font-weight: 800;
   letter-spacing: -0.2px;
   line-height: 1.25;
@@ -214,6 +232,7 @@
   .fmn-q,
   .fmn-think,
   .fmn-res-head,
+  .fmn-res-title::after,
   .fmn-pick { animation: none !important; }
   .fmn-think-dots span { animation: none !important; opacity: 1; }
   .fmn-dot,

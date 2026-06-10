@@ -113,6 +113,17 @@ a.d-row { text-decoration: none; color: inherit; }
 .detail-rail { margin: 34px -20px 0; } /* full-bleed back out of .detail-body's 20px gutters */
 .detail-rail .sec-head { margin-bottom: 12px; }
 
+/* ===== I4: demoted provenance footer ("Found via …") — internal info, not
+   decision info; smallest text on the page, centered, end of the body ===== */
+.detail-via {
+  margin-top: 30px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  opacity: 0.85;
+}
+
 /* ===== "Link copied ✓" toast (above the fixed CTA, never blocks taps) ===== */
 .detail-toast {
   position: fixed;

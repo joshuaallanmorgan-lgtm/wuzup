@@ -35,6 +35,34 @@
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
 
+/* ===== I3 no-image composition: a designed tile, not a dark block.
+   Layered gradients in the category hue (--ch set inline by CardImg), an
+   oversized rotated emoji watermark clipped at the corner, the time/emoji
+   foreground on top. container-type:size lets the watermark + foreground use
+   cqmin units so ONE composition holds 58px → 420px. Every .imgbox is sized
+   by its parent class, so size containment changes no layout. ===== */
+.imgbox-art {
+  container-type: size;
+  background:
+    radial-gradient(120% 95% at 88% -12%, hsl(var(--ch, 220) 78% 60% / 0.5), transparent 58%),
+    radial-gradient(135% 110% at -18% 112%, hsl(var(--ch, 220) 70% 20% / 0.85), transparent 62%),
+    linear-gradient(155deg, hsl(var(--ch, 220) 60% 42%), hsl(var(--ch, 220) 68% 25%));
+}
+.imgbox-mark {
+  position: absolute;
+  right: -45cqmin;
+  bottom: -55cqmin;
+  font-size: 230cqmin; /* ~2.3x the box's short side — deliberately clipped */
+  line-height: 1;
+  opacity: 0.18;
+  transform: rotate(-12deg);
+  pointer-events: none;
+  user-select: none;
+}
+/* foreground scales with the tile, clamped so the time stays legible on the
+   58px agenda thumb and never goes billboard on the 420px BigOne */
+.imgbox-art .imgbox-fall { font-size: clamp(11px, 14cqmin, 26px); }
+
 /* ===== 🔥 heat badge (hot palette: buzz-driven, hot-ness only) ===== */
 .heat-badge {
   position: absolute;
@@ -51,7 +79,7 @@
   border-radius: 999px;
   background: linear-gradient(135deg, var(--hot), var(--hot-2));
   color: #fff;
-  box-shadow: 0 2px 8px rgba(255, 60, 90, 0.35);
+  box-shadow: 0 2px 8px rgba(var(--hot-rgb), 0.35); /* was a 255,60,90 transposition of --hot-rgb */
 }
 .gem-img .heat-badge { top: 4px; right: 4px; padding: 3px 6px; font-size: 10px; }
 .bigone-img .heat-badge { top: 14px; right: 14px; padding: 5px 10px; font-size: 12px; }

@@ -206,7 +206,8 @@ export default function Primer({ onDone }) {
         )}
 
         {step === 2 && (
-          <div className="primer-step" key={2}>
+          /* primer-final: the last tap is the I1 reward-tinted finish beat */
+          <div className="primer-step primer-final" key={2}>
             <h1 className="primer-q">When do you usually go out?</h1>
             <div className="primer-sub">Last one — then it’s all yours.</div>
             <div className="primer-opts">

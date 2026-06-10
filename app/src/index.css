@@ -9,6 +9,11 @@
   --hot: #ff5a3c;
   --hot-2: #ff2d78;
   --hot-rgb: 255, 90, 60;
+  /* reward accent (Sprint I1): violet, RESERVED for the four micro-reward
+     moments only — save-heart pop, FMN reveal beat, session-recap accent,
+     primer finish beat. Its scarcity is its meaning: nowhere else, ever. */
+  --reward: #a855f7;
+  --reward-rgb: 168, 85, 247;
   --free: #0a9d6e;
   --ink: #15171c;
   --muted: #6b7280;

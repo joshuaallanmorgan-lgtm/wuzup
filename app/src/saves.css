@@ -25,13 +25,16 @@
 .save-btn.on { color: var(--hot); } /* filled ♥ wears the hot palette */
 .save-ic { display: block; }
 
-/* pop on toggle-on only (saves.js gates the class to real local toggles) */
+/* pop on toggle-on only (saves.js gates the class to real local toggles).
+   I1 reward moment: the pop flashes --reward with a soft glow, then settles
+   back to the heart's resting --hot (the .save-btn.on color). Reduced motion
+   kills the whole animation below — no glow ever pulses there. */
 @keyframes savePop {
-  0% { transform: scale(0.4); }
-  60% { transform: scale(1.3); }
-  100% { transform: none; }
+  0% { transform: scale(0.4); color: var(--reward); text-shadow: 0 0 0 rgba(var(--reward-rgb), 0); }
+  55% { transform: scale(1.3); color: var(--reward); text-shadow: 0 0 14px rgba(var(--reward-rgb), 0.85); }
+  100% { transform: none; color: var(--hot); text-shadow: 0 0 0 rgba(var(--reward-rgb), 0); }
 }
-.save-ic.pop { animation: savePop 200ms var(--ease-emphasis); }
+.save-ic.pop { animation: savePop 380ms var(--ease-emphasis); }
 
 /* heart + heat badge share an imgbox top edge → badge slides left */
 .imgbox .save-btn ~ .heat-badge { right: 40px; }

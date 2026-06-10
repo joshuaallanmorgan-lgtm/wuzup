@@ -241,7 +241,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(255, 60, 90, 0.38);
+  box-shadow: 0 8px 24px rgba(var(--hot-rgb), 0.38); /* was a 255,60,90 transposition of --hot-rgb */
   transition: transform var(--dur-micro);
 }
 .dice:active { transform: scale(0.92); }
@@ -275,7 +275,7 @@
   gap: 10px;
   padding: calc(12px + env(safe-area-inset-top)) 14px 12px;
 }
-.pg-head-title { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
+.pg-head-title { margin: 0; font-size: 21px; font-weight: 800; letter-spacing: -0.3px; } /* I4: on the 21px section step */
 .pg-back {
   flex: 0 0 40px;
   width: 40px;
@@ -402,24 +402,29 @@
 }
 
 /* ===== H4 session recap (replaces .feed-end at the END of Everything once
-   3+ details were opened this session — the gentle stopping cue) ===== */
+   3+ details were opened this session — the gentle stopping cue).
+   I1/I5 reward moment: the card wears the reward accent — violet overline,
+   hairline + a faint corner wash. Entirely static: calm, nothing animates. ===== */
 .recap {
   margin: 26px 20px 10px;
-  padding: 18px 16px 16px;
+  padding: 20px 18px 16px;
   border-radius: 18px;
-  border: 1px solid var(--line);
-  background: var(--card);
+  border: 1px solid rgba(var(--reward-rgb), 0.22);
+  background:
+    radial-gradient(130% 90% at 100% 0%, rgba(var(--reward-rgb), 0.07), transparent 55%),
+    var(--card);
+  box-shadow: 0 2px 14px rgba(var(--reward-rgb), 0.08);
 }
 .recap-over {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--accent);
+  color: var(--reward);
 }
-.recap-title { margin-top: 4px; font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+.recap-title { margin-top: 4px; font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
 .recap-rows { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
-.recap-nudge { margin-top: 14px; text-align: center; font-size: 13px; font-weight: 600; color: var(--muted); }
+.recap-nudge { margin-top: 16px; text-align: center; font-size: 13px; font-weight: 600; color: var(--muted); }
 
 /* ===== boot (gated 300ms in JS; topmost chrome) ===== */
 .boot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--bg); color: var(--muted); font-weight: 700; z-index: 2100; }

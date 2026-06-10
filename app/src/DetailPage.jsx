@@ -10,7 +10,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { DAY, dayKey, gradFor, hotDesc, keyOf, parseDate, priceLabel, timeOf } from './lib.js'
+import { DAY, dayKey, hotDesc, keyOf, parseDate, priceLabel, timeOf } from './lib.js'
 import { CATEGORY_EMOJI, HeatBadge, SecHead, TonightCard, hueFor } from './cards.jsx'
 import { SaveHeart } from './saves.js'
 import { whyReasons } from './taste.js'
@@ -306,12 +306,22 @@ export default function DetailPage({ e, events = [], anchors, wx, closing, vt, o
 
   return (
     <div className={'detail' + (closing ? ' detail-closing' : '') + (vt ? ' detail-vt' : '')}>
+      {/* no-image hero shares the I3 .imgbox-art composition (same hue + watermark
+          the card showed), so the VT morph lands on matching artwork */}
       <div
-        className="detail-hero"
-        style={{ viewTransitionName: 'evt-hero', background: e.image ? '#1d212a' : gradFor(e.title) }}
+        className={'detail-hero' + (e.image ? '' : ' imgbox-art')}
+        style={
+          e.image
+            ? { viewTransitionName: 'evt-hero', background: '#1d212a' }
+            : { viewTransitionName: 'evt-hero', '--ch': hueFor(e) }
+        }
       >
-        {e.image && (
+        {e.image ? (
           <div className={'detail-hero-img' + (imgOk ? ' on' : '')} style={{ backgroundImage: `url(${e.image})` }} />
+        ) : (
+          <span className="imgbox-mark" aria-hidden>
+            {CATEGORY_EMOJI[e.category] ?? CATEGORY_EMOJI.other}
+          </span>
         )}
         <button className="detail-back" onClick={onClose} aria-label="Back">
           <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -349,7 +359,9 @@ export default function DetailPage({ e, events = [], anchors, wx, closing, vt, o
           {wxLine && (
             <div className="d-row"><span className="d-ic">{w.emoji}</span><div><div className="d-k">Weather</div><div className="d-v">{wxLine}</div></div></div>
           )}
-          {why.length > 0 ? (
+          {/* I4: provenance ("Found via …") is internal, not decision info — it
+              lives in the page footer now (.detail-via); the why-chips stay */}
+          {why.length > 0 && (
             <div className="d-row">
               <span className="d-ic">{multiSource ? '🔥' : '🧭'}</span>
               <div>
@@ -361,12 +373,9 @@ export default function DetailPage({ e, events = [], anchors, wx, closing, vt, o
                     </span>
                   ))}
                 </div>
-                {via && <div className="d-sub">{multiSource ? via : 'Found via ' + via}</div>}
               </div>
             </div>
-          ) : via ? (
-            <div className="d-row"><span className="d-ic">🔎</span><div><div className="d-k">Found via</div><div className="d-v">{via}</div></div></div>
-          ) : null}
+          )}
         </div>
         {hasCoords && (
           <div className="mini-map">
@@ -407,6 +416,8 @@ export default function DetailPage({ e, events = [], anchors, wx, closing, vt, o
             </div>
           </div>
         )}
+        {/* I4: demoted provenance footer — never hidden, just quiet */}
+        {via && <div className="detail-via">Found via {via}</div>}
       </div>
       {toast && <div className="detail-toast">{toast}</div>}
       {undoVis && (

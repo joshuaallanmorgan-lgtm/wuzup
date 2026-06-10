@@ -10,7 +10,7 @@
 // `useDisplayMode()` → 'editorial' | 'poster' | 'cinematic'. <DisplayModeToggle/>
 // (the 🎨 pill, mounted by App bottom-left) cycles through DISPLAY_MODES.
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
-import { dayLabelLoose, dayLoose, gradFor, keyOf, priceLabel, startLabel, timeOf } from './lib.js'
+import { dayLabelLoose, dayLoose, keyOf, priceLabel, startLabel, timeOf } from './lib.js'
 import { SaveHeart, useSaves } from './saves.js'
 import { dateKey } from './weather.js'
 import './cards.css'
@@ -109,24 +109,28 @@ export function SponsoredTag({ e }) {
   )
 }
 
-// image box: dark placeholder + 300ms fade-in on load; gradient fallback when no image.
+// image box: dark placeholder + 300ms fade-in on load. No-image events get the
+// I3 designed composition instead of an empty block: .imgbox-art layers a
+// category-hue gradient (via --ch / CATEGORY_HUES) under an oversized rotated
+// CATEGORY_EMOJI watermark (.imgbox-mark, cqmin-sized so the SAME composition
+// holds from the 58px agenda thumb to the 420px BigOne), with the existing
+// time/emoji foreground on top. Pure CSS + emoji — no assets, no canvas.
 // data-vt marks the element that morphs into the detail hero via View Transitions.
 // children render on top (heat badges, FREE badge, …).
 export function CardImg({ e, className = '', children }) {
   const [ok, setOk] = useState(false)
   const mode = useDisplayMode()
+  const emoji = CATEGORY_EMOJI[e.category] ?? CATEGORY_EMOJI.other
   // poster tiles are image-first: a time-as-artwork fallback would just repeat
-  // the meta line, so poster mode shows the category emoji instead. Artwork is
-  // the TIME, not the status — strip startLabel's "Started " prefix here only.
-  const fall =
-    mode === 'poster'
-      ? CATEGORY_EMOJI[e.category] ?? CATEGORY_EMOJI.other
-      : startLabel(e).replace(/^Started /, '') || '★'
+  // the meta line, so poster mode keeps the category emoji as the crisp
+  // foreground mark. Artwork is the TIME, not the status — strip startLabel's
+  // "Started " prefix here only.
+  const fall = mode === 'poster' ? emoji : startLabel(e).replace(/^Started /, '') || '★'
   return (
     <span
-      className={'imgbox ' + className}
+      className={'imgbox ' + className + (e.image ? '' : ' imgbox-art')}
       data-vt
-      style={e.image ? undefined : { background: gradFor(e.title) }}
+      style={e.image ? undefined : { '--ch': hueFor(e) }}
     >
       {e.image ? (
         <img
@@ -138,7 +142,12 @@ export function CardImg({ e, className = '', children }) {
           onLoad={() => setOk(true)}
         />
       ) : (
-        <span className="imgbox-fall">{fall}</span>
+        <>
+          <span className="imgbox-mark" aria-hidden>
+            {emoji}
+          </span>
+          <span className="imgbox-fall">{fall}</span>
+        </>
       )}
       {children}
     </span>
