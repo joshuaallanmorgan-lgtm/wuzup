@@ -170,3 +170,32 @@ export const Icon = {
       })
     ),
 }
+
+// --- "Added by you" events (Add Event MVP, Sprint C) ---
+// Raw schema-v2 objects the user created via AddEvent, persisted to
+// localStorage and merged into the normalized feed by App (same normalize()
+// path as fetched events; tag 'added-by-you' drives the provenance label).
+export const MY_EVENTS_KEY = 'my-events-v1'
+export const MY_SOURCE = 'Added by you'
+export function loadMyEvents() {
+  try {
+    const v = JSON.parse(localStorage.getItem(MY_EVENTS_KEY))
+    return Array.isArray(v) ? v : []
+  } catch {
+    return [] // missing key / corrupt JSON / private mode — never crash the boot
+  }
+}
+export function saveMyEvents(list) {
+  try {
+    localStorage.setItem(MY_EVENTS_KEY, JSON.stringify(list))
+  } catch {
+    /* storage unavailable — events still live in App state for the session */
+  }
+}
+// strip normalize()'s computed _fields → a clean schema-v2 object (an
+// undo-restored event persists as raw data, identical to a fresh submission)
+export function rawOf(e) {
+  const out = {}
+  for (const k in e) if (k[0] !== '_') out[k] = e[k]
+  return out
+}

@@ -12,6 +12,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { DAY, dayKey, gradFor, hotDesc, keyOf, parseDate, priceLabel, timeOf } from './lib.js'
 import { CATEGORY_EMOJI, HeatBadge, SecHead, TonightCard, hueFor } from './cards.jsx'
+import { SaveHeart } from './saves.js'
 import { CONDITION, dateKey } from './weather.js'
 import './detail.css'
 
@@ -97,10 +98,11 @@ function icsText(e) {
   return lines.join('\r\n') + '\r\n'
 }
 
-// tags that say *when*, not what the event feels like — excluded from vibe matching
-const GENERIC_TAGS = new Set(['tonight', 'weekend', 'one-off', 'recurring', 'ongoing'])
+// tags that say *when* or *where it came from*, not what the event feels like —
+// excluded from vibe matching ('added-by-you' is provenance, not a vibe)
+const GENERIC_TAGS = new Set(['tonight', 'weekend', 'one-off', 'recurring', 'ongoing', 'added-by-you'])
 
-export default function DetailPage({ e, events = [], anchors, wx, closing, vt, onClose, onSelect, onFocusMap }) {
+export default function DetailPage({ e, events = [], anchors, wx, closing, vt, onClose, onSelect, onFocusMap, onRemoveMine, onRestoreMine }) {
   // ===== WHEN: end-date honesty (multi-day ranges, same-day time ranges, ongoing) =====
   let when
   const DAY_MS = 86400000
@@ -136,6 +138,9 @@ export default function DetailPage({ e, events = [], anchors, wx, closing, vt, o
   // ===== trust: multi-source buzz vs plain found-via =====
   const via = e.sources && e.sources.length ? e.sources.join(' · ') : e.source
   const multiSource = typeof e.buzz === 'number' && e.buzz >= 2
+
+  // ===== user-added event? (Add Event MVP) — provenance label + Remove =====
+  const mine = Array.isArray(e.tags) && e.tags.includes('added-by-you')
 
   // ===== event-day weather (only within the 16-day forecast window) =====
   const w = wx && e._day != null ? wx[dateKey(e._day)] : null
@@ -271,6 +276,26 @@ export default function DetailPage({ e, events = [], anchors, wx, closing, vt, o
     }
   }
 
+  // ===== Remove (added events only): instant delete from my-events + 6s undo.
+  // The open detail keeps showing the removed event so Undo can restore it;
+  // closing during/after the window simply commits the removal. =====
+  const [undoVis, setUndoVis] = useState(false)
+  const undoTRef = useRef(null)
+  useEffect(() => () => clearTimeout(undoTRef.current), [])
+  const removeMine = () => {
+    if (!onRemoveMine) return
+    onRemoveMine(e)
+    setUndoVis(true)
+    clearTimeout(undoTRef.current)
+    undoTRef.current = setTimeout(() => setUndoVis(false), 6000)
+  }
+  const undoRemove = () => {
+    clearTimeout(undoTRef.current)
+    setUndoVis(false)
+    if (onRestoreMine) onRestoreMine(e)
+    flash('Restored ✓')
+  }
+
   return (
     <div className={'detail' + (closing ? ' detail-closing' : '') + (vt ? ' detail-vt' : '')}>
       <div
@@ -283,6 +308,8 @@ export default function DetailPage({ e, events = [], anchors, wx, closing, vt, o
         <button className="detail-back" onClick={onClose} aria-label="Back">
           <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </button>
+        {/* ♥ save toggle (saves.js) — heat badge slides left of it via saves.css */}
+        <SaveHeart e={e} big />
         <HeatBadge e={e} />
         <div className="detail-hero-grad" />
         <div className="detail-hero-text">
@@ -297,6 +324,7 @@ export default function DetailPage({ e, events = [], anchors, wx, closing, vt, o
       </div>
       <div className="detail-body">
         {e.sponsored === true && <div className="sp-label detail-sp">Sponsored</div>}
+        {mine && <div className="sp-label my-label detail-sp">Added by you</div>}
         {e.tags?.includes('hidden-gem') && <div className="d-flag">💎 Hidden gem — most people miss this one</div>}
         {e.tags?.includes('staff-pick') && <div className="d-flag">⭐ Staff pick — vouched for by a local editor</div>}
         <div className="detail-rows">
@@ -351,6 +379,11 @@ export default function DetailPage({ e, events = [], anchors, wx, closing, vt, o
           )}
           <button className="util-btn" onClick={share}>🔗 Share</button>
         </div>
+        {mine && onRemoveMine && (
+          <button className="d-remove" onClick={removeMine} disabled={undoVis}>
+            Remove from my feed
+          </button>
+        )}
         {similar.length > 0 && (
           <div className="detail-rail">
             <SecHead overline="Keep the night going" title="More like this" />
@@ -364,6 +397,14 @@ export default function DetailPage({ e, events = [], anchors, wx, closing, vt, o
         )}
       </div>
       {toast && <div className="detail-toast">{toast}</div>}
+      {undoVis && (
+        <div className="detail-toast undo-toast">
+          Removed from your feed
+          <button className="undo-btn" onClick={undoRemove}>
+            Undo
+          </button>
+        </div>
+      )}
       {e.url && (
         <a className="detail-cta" href={e.url} target="_blank" rel="noreferrer">
           {/* "Get Tickets" only when there's actually something to buy */}

@@ -11,6 +11,7 @@
 // (the 🎨 pill, mounted by App bottom-left) cycles through DISPLAY_MODES.
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { dayLabelLoose, dayLoose, gradFor, keyOf, priceLabel, startLabel, timeOf } from './lib.js'
+import { SaveHeart, useSaves } from './saves.js'
 import { dateKey } from './weather.js'
 import './cards.css'
 import './modes.css'
@@ -91,9 +92,17 @@ export function HeatBadge({ e }) {
   )
 }
 
-// sponsored integrity: never hide, always disclose
+// provenance integrity: never hide, always disclose — paid placement
+// ("Sponsored", muted) and user-submitted data ("Added by you", accent) share
+// this slot, so user-added events are labeled everywhere a sponsored label
+// would show (the Add Event invariant)
 export function SponsoredTag({ e }) {
-  return e.sponsored === true ? <span className="sp-label">Sponsored</span> : null
+  return (
+    <>
+      {e.sponsored === true && <span className="sp-label">Sponsored</span>}
+      {e.tags?.includes('added-by-you') && <span className="sp-label my-label">Added by you</span>}
+    </>
+  )
 }
 
 // image box: dark placeholder + 300ms fade-in on load; gradient fallback when no image.
@@ -128,8 +137,9 @@ export function CardImg({ e, className = '', children }) {
   )
 }
 
-// compact 58px card — kept for the Calendar agenda
+// compact 58px card — kept for the Calendar agenda (saved events show their ♥)
 export function EventCard({ e, onSelect, index = 0 }) {
+  const { has } = useSaves()
   return (
     <button className="card" style={{ animationDelay: Math.min(index, 12) * 22 + 'ms' }} onClick={(ev) => onSelect(e, ev.currentTarget)}>
       <CardImg e={e} className="card-thumb" />
@@ -138,6 +148,7 @@ export function EventCard({ e, onSelect, index = 0 }) {
         <div className="card-meta">{[startLabel(e), e.venue].filter(Boolean).join(' · ') || 'Tap for details'}</div>
         <SponsoredTag e={e} />
       </div>
+      {has(e) && <span className="card-heart" aria-hidden>♥</span>}
       <PriceChip e={e} />
     </button>
   )
@@ -160,14 +171,17 @@ export function SecHead({ overline, title, sub, onSeeAll }) {
   )
 }
 
-export function TonightCard({ e, onSelect }) {
+export function TonightCard({ e, onSelect, withDate = false }) {
+  // withDate: shelf/cross-day contexts where the DATE is the headline fact
+  const meta = [withDate ? dayLabelLoose(e) : null, startLabel(e), e.venue]
   return (
     <button className="tcard pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
       <CardImg e={e} className="tcard-img">
+        <SaveHeart e={e} />
         <HeatBadge e={e} />
       </CardImg>
       <div className="tcard-title">{e.title}</div>
-      <div className="tcard-meta">{[startLabel(e), e.venue].filter(Boolean).join(' · ') || 'Details inside'}</div>
+      <div className="tcard-meta">{meta.filter(Boolean).join(' · ') || 'Details inside'}</div>
       <SponsoredTag e={e} />
     </button>
   )
@@ -180,6 +194,7 @@ export function BigOne({ e, onSelect, animate }) {
   return (
     <button className={'bigone pressable' + (animate ? ' bigone-reveal' : '')} onClick={(ev) => onSelect(e, ev.currentTarget)}>
       <CardImg e={e} className="bigone-img">
+        <SaveHeart e={e} />
         <HeatBadge e={e} />
       </CardImg>
       <div className="bigone-grad" />
@@ -197,6 +212,7 @@ export function GemRow({ e, onSelect }) {
   return (
     <button className="gem pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
       <CardImg e={e} className="gem-img">
+        <SaveHeart e={e} />
         <HeatBadge e={e} />
       </CardImg>
       <div className="gem-main">
@@ -212,7 +228,9 @@ export function FreeCard({ e, onSelect }) {
   return (
     <button className="fcard pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
       <span className="fcard-imgwrap">
-        <CardImg e={e} className="fcard-img" />
+        <CardImg e={e} className="fcard-img">
+          <SaveHeart e={e} />
+        </CardImg>
         <span className="free-badge">FREE</span>
       </span>
       <div className="fcard-title">{e.title}</div>
@@ -255,6 +273,7 @@ export function Row({ e, dist, style, onSelect }) {
     return (
       <button className="row row--poster pressable" style={st} onClick={open}>
         <CardImg e={e} className="row-img">
+          <SaveHeart e={e} />
           <HeatBadge e={e} />
           {free && <span className="free-badge">FREE</span>}
         </CardImg>
@@ -273,6 +292,7 @@ export function Row({ e, dist, style, onSelect }) {
       <button className="row row--cinematic pressable" style={st} onClick={open}>
         <CardImg e={e} className="row-img">
           <span className="row-scrim" />
+          <SaveHeart e={e} />
           <HeatBadge e={e} />
         </CardImg>
         <div className="row-text">
@@ -290,7 +310,9 @@ export function Row({ e, dist, style, onSelect }) {
     .join(' · ')
   return (
     <button className="row row--editorial pressable" style={st} onClick={open}>
-      <CardImg e={e} className="row-img" />
+      <CardImg e={e} className="row-img">
+        <SaveHeart e={e} />
+      </CardImg>
       <div className="row-main">
         {/* 'other' is a fallback bucket, not a real category — no overline */}
         {e.category !== 'other' && <div className="row-cat">{e.category}</div>}

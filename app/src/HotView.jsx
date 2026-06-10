@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { BUBBLES, CITY, DAY, dayLabel, hotDesc, keyOf } from './lib.js'
 import { BigOne, EndCap, FreeCard, GemRow, RowFeed, SecHead, TonightCard } from './cards.jsx'
+import { shelfItems, useSaves } from './saves.js'
 
-export default function HotView({ events, anchors, loading, displayMode, onSelect, onOpenBubble, onOpenSearch }) {
+export default function HotView({ events, anchors, loading, displayMode, onSelect, onOpenBubble, onOpenSearch, onOpenAdd }) {
   const scrollRef = useRef(null)
   const evRef = useRef(null)
   const [entered, setEntered] = useState(false) // entrance animations already played?
@@ -70,6 +71,13 @@ export default function HotView({ events, anchors, loading, displayMode, onSelec
     () => upcoming.filter((e) => e._free && e._clamp <= anchors.todayTs + 6 * DAY).slice(0, 10),
     [upcoming, anchors]
   )
+  // ♥ Saved shelf (Sprint C): saved events, live-from-dataset when possible,
+  // snapshot otherwise; past saves grey out + drop after 7 days (saves.js).
+  // useSaves re-renders this view on any toggle — even one made from the
+  // detail page — so the shelf appears/updates live, no remount.
+  const { list: savedList } = useSaves()
+  const shelf = useMemo(() => shelfItems(savedList, events, anchors), [savedList, events, anchors])
+  const shelfOn = shelf.length > 0 // any saved item keeps the shelf — past saves grey out, they don't vanish it
   // Everything: grouped by day, WITHIN each day ordered by hotScore desc (nulls last)
   const evSections = useMemo(() => {
     const m = new Map()
@@ -113,9 +121,34 @@ export default function HotView({ events, anchors, loading, displayMode, onSelec
             <span className="bubble-label">{b.label}</span>
           </button>
         ))}
+        {/* ghost bubble: the Add Event MVP entry (Sprint C) */}
+        <button className="bubble bubble-add" onClick={onOpenAdd} aria-label="Add your own event">
+          <span className="bubble-emoji">➕</span>
+          <span className="bubble-label">Add event</span>
+        </button>
       </div>
 
       <div className="hot-body">
+        {shelfOn && (
+          <section className="sec shelf-sec">
+            <SecHead
+              overline="Saved for later"
+              title={
+                <>
+                  Your list ❤️<span className="shelf-count">{shelf.length}</span>
+                </>
+              }
+            />
+            <div className="carousel">
+              {shelf.map(({ e, past }) => (
+                <div key={keyOf(e)} className={'shelf-item' + (past ? ' shelf-past' : '')}>
+                  {past && <span className="shelf-happened">Happened</span>}
+                  <TonightCard e={e} onSelect={onSelect} withDate />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
         {tonight.length > 0 && (
           <section className={'sec' + ent(0).className} style={ent(0).style}>
             <SecHead overline="Happening today" title="Tonight" onSeeAll={() => seeAll('tonight')} />

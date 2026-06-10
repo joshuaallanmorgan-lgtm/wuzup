@@ -3,7 +3,7 @@
 // geolocation (requestCoords), and display-mode state (localStorage 'display-mode').
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
-import { CITY, Icon, keyOf, makeAnchors, normalize } from './lib.js'
+import { CITY, Icon, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, saveMyEvents } from './lib.js'
 import { DISPLAY_MODES, DisplayModeContext, DisplayModeToggle, WxContext } from './cards.jsx'
 import { getForecast } from './weather.js'
 import HotView from './HotView.jsx'
@@ -13,6 +13,7 @@ import DetailPage from './DetailPage.jsx'
 import BubblePage from './BubblePage.jsx'
 import SearchPage from './SearchPage.jsx'
 import FindMyNight from './FindMyNight.jsx'
+import AddEvent from './AddEvent.jsx'
 import './App.css'
 
 const VIEWS = [
@@ -54,7 +55,7 @@ export default function App() {
   const [detail, setDetail] = useState(null)
   const [closing, setClosing] = useState(false)
   const [vtOpen, setVtOpen] = useState(false)
-  // subpage overlay: null | {type:'bubble',bubble} | {type:'search'} | {type:'night'}
+  // subpage overlay: null | {type:'bubble',bubble} | {type:'search'} | {type:'night'} | {type:'add'}
   const [page, setPage] = useState(null)
   const [pageClosing, setPageClosing] = useState(false)
   const [coords, setCoords] = useState(null)
@@ -121,7 +122,31 @@ export default function App() {
       clearTimeout(timer)
     }
   }, [])
-  const norm = useMemo(() => events.map((e) => normalize(e, anchors)), [events, anchors])
+  // "Added by you" events (Sprint C MVP): raw schema-v2 objects from the
+  // AddEvent form, persisted to localStorage 'my-events-v1' and concat'd into
+  // norm below — same normalize() path as fetched events, so they surface
+  // everywhere list-wise (feed, bubbles, search, calendar; lat/lng null → no
+  // map pin). rawOf strips computed _fields when an undo restores a
+  // normalized copy, keeping storage pure schema-v2.
+  const [myEvents, setMyEvents] = useState(loadMyEvents)
+  useEffect(() => {
+    saveMyEvents(myEvents)
+  }, [myEvents])
+  // Re-read storage inside the setters: a stale tab must never clobber another
+  // tab's adds. Duplicate adds (same title+date, no URL → same key) are no-ops.
+  const addMine = useCallback((raw) => {
+    setMyEvents(() => {
+      const fresh = loadMyEvents()
+      const r = rawOf(raw)
+      if (fresh.some((x) => keyOf(x) === keyOf(r))) return fresh
+      return [...fresh, r]
+    })
+  }, [])
+  const removeMine = useCallback((e) => {
+    const k = keyOf(e)
+    setMyEvents(() => loadMyEvents().filter((x) => keyOf(x) !== k))
+  }, [])
+  const norm = useMemo(() => [...events, ...myEvents].map((e) => normalize(e, anchors)), [events, myEvents, anchors])
   const displayCtx = useMemo(() => ({ mode: displayMode, setMode: setDisplayMode }), [displayMode])
 
   // 16-day Tampa forecast, fetched ONCE at App level (was CalendarView-local):
@@ -201,6 +226,11 @@ export default function App() {
     setPageClosing(false)
     setPage({ type: 'night' })
   }, [])
+  const openAdd = useCallback(() => {
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    setPage({ type: 'add' })
+  }, [])
   const closePage = useCallback(() => {
     setPageClosing(true)
     clearTimeout(pageTRef.current)
@@ -277,6 +307,7 @@ export default function App() {
               onSelect={openDetail}
               onOpenBubble={openBubble}
               onOpenSearch={openSearch}
+              onOpenAdd={openAdd}
             />
           </section>
           <section className="page page-map">
@@ -293,7 +324,7 @@ export default function App() {
           </button>
         )}
         {/* 🎨 pill hides while Find My Night is open — it floats dead over the dark flow */}
-        {active === 0 && page?.type !== 'night' && <DisplayModeToggle />}
+        {active === 0 && page?.type !== 'night' && page?.type !== 'add' && <DisplayModeToggle />}
         {page && (
           <div className={'subpage' + (pageClosing ? ' subpage-closing' : '')}>
             {page.type === 'bubble' && (
@@ -313,6 +344,9 @@ export default function App() {
             {page.type === 'night' && (
               <FindMyNight events={norm} anchors={anchors} onSelect={openDetail} onClose={closePage} />
             )}
+            {page.type === 'add' && (
+              <AddEvent anchors={anchors} myEvents={myEvents} onAdd={addMine} onClose={closePage} />
+            )}
           </div>
         )}
         {/* keyed by event: a More-like-this swap REMOUNTS the detail (scroll resets
@@ -329,6 +363,8 @@ export default function App() {
             onClose={closeDetail}
             onSelect={openDetail}
             onFocusMap={focusMap}
+            onRemoveMine={removeMine}
+            onRestoreMine={addMine}
           />
         )}
         {loading && bootVis && <div className="boot">Loading {CITY.name}…</div>}

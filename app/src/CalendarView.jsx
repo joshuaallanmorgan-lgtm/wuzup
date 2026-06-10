@@ -2,6 +2,7 @@
 import { useMemo, useState } from 'react'
 import { keyOf } from './lib.js'
 import { EventCard } from './cards.jsx'
+import { useSaves } from './saves.js'
 import { dateKey, CONDITION } from './weather.js'
 import './calendar.css'
 
@@ -34,6 +35,15 @@ export default function CalendarView({ events, anchors, onSelect, wx }) {
     return m
   }, [events])
   const days = useMemo(() => [...dayMap.keys()].sort((a, b) => a - b), [dayMap])
+
+  // ♥ saves: days containing ≥1 saved event get the reserved 4px dot
+  // (UI_SPEC §4 kept dots free for exactly this); live across toggles
+  const { ids: savedIds } = useSaves()
+  const savedDays = useMemo(() => {
+    const s = new Set()
+    for (const [d, list] of dayMap) if (list.some((e) => savedIds.has(keyOf(e)))) s.add(d)
+    return s
+  }, [dayMap, savedIds])
   const sel = selKey ?? days.find((d) => d >= anchors.todayTs) ?? days[0] ?? anchors.todayTs
   const selEvents = dayMap.get(sel) || []
 
@@ -77,6 +87,7 @@ export default function CalendarView({ events, anchors, onSelect, wx }) {
               const w = wxFor(d)
               return (
                 <button key={d} className={'date-pill' + (d === sel ? ' active' : '')} onClick={() => setSelKey(d)}>
+                  {savedDays.has(d) && <span className="save-dot" />}
                   <span className="dp-dow">{dd.toLocaleDateString('en-US', { weekday: 'short' })}</span>
                   <span className="dp-num">{dd.getDate()}</span>
                   {w && (
@@ -126,6 +137,7 @@ export default function CalendarView({ events, anchors, onSelect, wx }) {
                   onClick={() => setSelKey(ts)}
                 >
                   <span className="mcell-bg" />
+                  {savedDays.has(ts) && <span className="save-dot" />}
                   <span className="mnum">{new Date(ts).getDate()}</span>
                   {w && <span className="mwx">{w.emoji}</span>}
                 </button>

@@ -1,0 +1,193 @@
+/* addevent.css — Add Event MVP (Sprint C, add-event agent owns this file):
+   the ghost "+ Add event" bubble at the end of HotView's strip, the AddEvent
+   form page (.ae-*), the "Added by you" provenance label (accent twin of
+   .sp-label, rendered everywhere a Sponsored label would show), and the
+   detail-page Remove button + 6s undo toast. */
+
+/* ===== ghost bubble: quiet affordance at the end of the strip ===== */
+.bubble.bubble-add {
+  background: none;
+  border: 1.5px dashed #d3d7de;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* ===== provenance: user-added twin of the Sponsored label (accent, never hidden) ===== */
+.sp-label.my-label { color: var(--accent); }
+.row--cinematic .sp-label.my-label { color: #5eead4; } /* readable on the dark cover */
+
+/* ===== form page ===== */
+.ae-form { padding: 4px 20px 28px; }
+.ae-field { margin-top: 18px; }
+.ae-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+.ae-input {
+  display: block;
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  font: inherit;
+  font-size: 15px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+.ae-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.12); }
+.ae-input[aria-invalid='true'] { border-color: #dc2626; }
+textarea.ae-input { height: auto; min-height: 96px; padding: 11px 14px; resize: vertical; line-height: 1.5; }
+.ae-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ae-err { margin-top: 6px; font-size: 12.5px; font-weight: 600; color: #dc2626; }
+.ae-count { margin-top: 5px; text-align: right; font-size: 11.5px; font-weight: 600; color: var(--muted); }
+.ae-hint { font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+
+/* category chip-row (single-select radio; tap the active chip to clear) */
+.ae-cats { display: flex; flex-wrap: wrap; gap: 8px; }
+.ae-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-fast), border-color var(--dur-fast), color var(--dur-fast),
+    transform var(--dur-micro);
+}
+.ae-cat:active { transform: scale(0.95); }
+.ae-cat.on { background: hsl(var(--bh, 200) 55% 34%); border-color: hsl(var(--bh, 200) 55% 34%); color: #fff; }
+
+/* free toggle (switch) */
+.ae-free { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.ae-free .ae-label { margin-bottom: 3px; }
+.ae-switch {
+  flex: 0 0 52px;
+  width: 52px;
+  height: 30px;
+  border: none;
+  border-radius: 999px;
+  background: #d8dbe1;
+  cursor: pointer;
+  position: relative;
+  transition: background var(--dur-fast);
+}
+.ae-switch.on { background: var(--accent); }
+.ae-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.ae-switch.on .ae-knob { transform: translateX(22px); }
+
+/* price with $ prefix */
+.ae-price { position: relative; }
+.ae-price .ae-input { padding-left: 30px; }
+.ae-price-sign {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+/* submit */
+.ae-submit {
+  width: 100%;
+  height: 50px;
+  margin-top: 26px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(var(--accent-rgb), 0.3);
+  transition: transform var(--dur-micro), filter var(--dur-fast);
+}
+.ae-submit:active { transform: scale(0.98); filter: brightness(0.95); }
+
+/* footer: tiny export link — the future submission pipeline's seed */
+.ae-foot { margin-top: 22px; text-align: center; }
+.ae-export {
+  background: none;
+  border: none;
+  padding: 6px 10px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.ae-export:hover { color: var(--accent); }
+
+/* success beat */
+.ae-done { padding: 90px 28px; text-align: center; animation: aeDone var(--dur-base) var(--ease-out) both; }
+@keyframes aeDone {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+.ae-done-emoji { font-size: 44px; }
+.ae-done-title { margin-top: 14px; font-size: 24px; font-weight: 800; letter-spacing: -0.4px; }
+.ae-done-sub { margin-top: 6px; font-size: 14.5px; font-weight: 600; color: var(--muted); }
+
+/* ===== detail page: Remove (added events only) + 6s undo toast ===== */
+.d-remove {
+  display: block;
+  margin: 16px auto 0;
+  padding: 8px 14px;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #b91c1c;
+  cursor: pointer;
+}
+.d-remove:disabled { opacity: 0.45; cursor: default; }
+/* .detail-toast is pointer-events:none — the undo variant must take taps */
+.undo-toast { pointer-events: auto; display: flex; align-items: center; gap: 12px; }
+.undo-btn {
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  color: #5eead4;
+  cursor: pointer;
+}
+
+/* ===== reduced motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .ae-done { animation: none !important; }
+  .ae-cat:active,
+  .ae-submit:active { transform: none; }
+}
