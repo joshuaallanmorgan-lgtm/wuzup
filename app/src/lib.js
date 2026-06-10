@@ -164,12 +164,6 @@ export function priceLabel(e) {
   if (e.price > 0) return '$' + e.price
   return null
 }
-// deterministic gradient for events without an image (keeps the UI colorful)
-export function gradFor(s) {
-  let h2 = 0
-  for (let i = 0; i < (s || '').length; i++) h2 = (h2 * 31 + s.charCodeAt(i)) % 360
-  return `linear-gradient(135deg, hsl(${h2} 68% 52%), hsl(${(h2 + 45) % 360} 72% 42%))`
-}
 export function keyOf(e) {
   return (e.url || e.title || '') + '|' + (e.start || '')
 }

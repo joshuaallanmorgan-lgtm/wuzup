@@ -5,10 +5,13 @@
   --accent-2: #06b6d4; /* gradients with accent */
   --accent-rgb: 13, 148, 136;
   /* hot palette: RESERVED for hot-ness semantics only (Hot tab active, flame/heat
-     badges, The Big One overline, Surprise-me dice, calendar heat shading) */
+     badges, The Big One overline, Surprise-me dice, calendar heat shading) —
+     plus ONE sanctioned exception: filled save-hearts. A red heart is a
+     universal affordance; a teal one reads broken (deliberate I2 call). */
   --hot: #ff5a3c;
   --hot-2: #ff2d78;
   --hot-rgb: 255, 90, 60;
+  --hot2-rgb: 255, 45, 120;
   /* reward accent (Sprint I1): violet, RESERVED for the four micro-reward
      moments only — save-heart pop, FMN reveal beat, session-recap accent,
      primer finish beat. Its scarcity is its meaning: nowhere else, ever. */

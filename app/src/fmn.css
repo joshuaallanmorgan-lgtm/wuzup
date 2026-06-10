@@ -7,7 +7,7 @@
 .fmn {
   background:
     radial-gradient(120% 55% at 88% -8%, rgba(var(--hot-rgb), 0.30), transparent 62%),
-    radial-gradient(110% 60% at -12% 104%, rgba(255, 45, 120, 0.20), transparent 60%),
+    radial-gradient(110% 60% at -12% 104%, rgba(var(--hot2-rgb), 0.20), transparent 60%),
     linear-gradient(168deg, #1c1118 0%, #16181d 55%, #1c1216 100%);
   color: #fff;
 }
@@ -90,7 +90,7 @@
 }
 .fmn-opt.sel {
   border-color: var(--hot);
-  background: linear-gradient(135deg, rgba(var(--hot-rgb), 0.30), rgba(255, 45, 120, 0.22));
+  background: linear-gradient(135deg, rgba(var(--hot-rgb), 0.30), rgba(var(--hot2-rgb), 0.22));
 }
 .fmn-opt-emoji { font-size: 30px; line-height: 1; }
 .fmn-opt-label { font-size: 17px; font-weight: 800; letter-spacing: -0.2px; }
@@ -129,7 +129,9 @@
 /* I1 reward moment: the reveal beat — a short reward-violet underline draws in
    under "I've got you 🔥". Static under reduced motion (color may appear;
    the draw-in must not animate — killed below). */
-.fmn-res-title::after {
+/* scoped to .fmn-res-reward: the reward underline belongs to SUCCESS reveals
+   only — "Tough brief 😅" / "Closest I could find 🤏" earn no reward beat */
+.fmn-res-title.fmn-res-reward::after {
   content: '';
   display: block;
   width: 64px;
@@ -232,7 +234,7 @@
   .fmn-q,
   .fmn-think,
   .fmn-res-head,
-  .fmn-res-title::after,
+  .fmn-res-title.fmn-res-reward::after,
   .fmn-pick { animation: none !important; }
   .fmn-think-dots span { animation: none !important; opacity: 1; }
   .fmn-dot,

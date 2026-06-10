@@ -373,7 +373,7 @@ export default function FindMyNight({ events, anchors, coords, onSelect, onClose
               <div className="fmn-res-over">
                 {picks.length >= 5 ? 'Your five' : picks.length > 0 ? `Best ${picks.length} I found` : 'Hmm'}
               </div>
-              <h2 className="fmn-res-title">
+              <h2 className={'fmn-res-title' + (picks.length && !softReveal ? ' fmn-res-reward' : '')}>
                 {!picks.length
                   ? 'Tough brief 😅'
                   : usedTomorrow
