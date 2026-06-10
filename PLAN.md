@@ -1,5 +1,15 @@
 # Sprint Plan — "Everything Catches Up to the Data"
-_v1 · 2026-06-10 · drafted solo-Josh day 3. Will be patched with audit findings before execution._
+_v1 · 2026-06-10 · drafted solo-Josh day 3. Audit-patched, then executed._
+
+## ✅ EXECUTION STATUS (end of day 3, all adversarially reviewed + live-verified)
+- **Sprint A — DONE** → `main` (e815c41). 738→1,331 events at the time; staleness/merge/category/noise/coords fixed; `npm run refresh` + Task Scheduler XML (Josh: import once, see REFRESH.md).
+- **DTC benchmark — DONE** → branch (6f3968f). Don't Tell Comedy captured naturally (10 secret shows), standing benchmark added.
+- **Sprint B — DONE** → branch (b5c3ca8). Detail page v2.
+- **Sprint C — DONE** → branch (8fdd042). ♥ saves + Add Event.
+- **Sprint E — DONE** → branch (e0b3c88). VSPC cracked (+176 Pinellas events), stpete.org, Meetup 3.4x; do813 dormant (auto-revives). **1,603 events.**
+- **Sprint D — DONE** → branch (4d6cf58). FMN v2 (2.6x distinct), time-awareness, calendar clamp, Editorial consolidation.
+- **Sprint F — STILL GATED on Josh** (hosting account + Ticketmaster key).
+- Known leftovers: 'other' category = 128 (benchmark prints ❌ honestly); library share of feed = 60% (ranking-diversity question for Josh+Charles); do813 dormant; cltampa promoted details still CF-blocked some runs.
 
 ## Ground rules (from Josh, day 3)
 - **No new creative initiatives.** Every sprint expands something Josh & Charles already asked for — each task cites its sanction.
