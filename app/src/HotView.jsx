@@ -1,7 +1,7 @@
 // HotView — the Hot tab magazine: hero (+ 🔎 search), bubble strip (each bubble
 // opens a full BubblePage via onOpenBubble), alternating sections, Everything feed.
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { BUBBLES, CITY, DAY, dayLabel, hotDesc, keyOf } from './lib.js'
+import { BUBBLES, CITY, DAY, dayLabel, hotDesc, keyOf, tonightModel } from './lib.js'
 import { BigOne, EndCap, FreeCard, GemRow, RowFeed, SecHead, TonightCard } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
 
@@ -59,16 +59,35 @@ export default function HotView({ events, anchors, loading, displayMode, onSelec
       .sort((x, y) => x._clamp - y._clamp || x._t - y._t)
   }, [events, anchors])
   const hasHot = useMemo(() => upcoming.some((e) => e.hotScore != null), [upcoming])
-  const tonight = useMemo(() => upcoming.filter((e) => e._tonight).sort(hotDesc), [upcoming])
+  // Tonight startedness must track the CLOCK, not just the data: anchors only
+  // change at midnight/day-rollover, but "7 PM has passed" happens mid-session.
+  // Re-seed when the tab returns to view + every 10 min while open.
+  const [nowMs, setNowMs] = useState(() => Date.now())
+  useEffect(() => {
+    const tick = () => setNowMs(Date.now())
+    const onVis = () => {
+      if (document.visibilityState === 'visible') tick()
+    }
+    document.addEventListener('visibilitychange', onVis)
+    const t = setInterval(tick, 10 * 60000)
+    return () => {
+      document.removeEventListener('visibilitychange', onVis)
+      clearInterval(t)
+    }
+  }, [])
+  // { items:[{e,withDate}], late, futureN, tomorrowN } — future first, started
+  // sunk (never hidden); late nights fold in tomorrow's early evening (lib.js)
+  const tonight = useMemo(() => tonightModel(upcoming, anchors, new Date(nowMs)), [upcoming, anchors, nowMs])
   const bigOne = useMemo(() => {
     if (!hasHot) return null // hotScore data absent → skip section gracefully
     const oneOffs = upcoming.filter((e) => e.tags.includes('one-off') && e.hotScore != null)
     const pool = oneOffs.length ? oneOffs : upcoming.filter((e) => e.hotScore != null)
     return pool.reduce((best, e) => (best == null || e.hotScore > best.hotScore ? e : best), null)
   }, [upcoming, hasHot])
-  const gems = useMemo(() => upcoming.filter((e) => e.tags.includes('hidden-gem')).slice(0, 3), [upcoming])
+  // unsliced — section subs report the real totals; renders slice to 3 / 10
+  const gems = useMemo(() => upcoming.filter((e) => e.tags.includes('hidden-gem')), [upcoming])
   const freeWeek = useMemo(
-    () => upcoming.filter((e) => e._free && e._clamp <= anchors.todayTs + 6 * DAY).slice(0, 10),
+    () => upcoming.filter((e) => e._free && e._clamp <= anchors.todayTs + 6 * DAY),
     [upcoming, anchors]
   )
   // ♥ Saved shelf (Sprint C): saved events, live-from-dataset when possible,
@@ -149,12 +168,21 @@ export default function HotView({ events, anchors, loading, displayMode, onSelec
             </div>
           </section>
         )}
-        {tonight.length > 0 && (
+        {tonight.items.length > 0 && (
           <section className={'sec' + ent(0).className} style={ent(0).style}>
-            <SecHead overline="Happening today" title="Tonight" onSeeAll={() => seeAll('tonight')} />
+            <SecHead
+              overline={tonight.late ? 'Still going · up next' : 'Happening today'}
+              title={tonight.late ? 'Late tonight + tomorrow' : 'Tonight'}
+              sub={
+                tonight.late
+                  ? `${tonight.futureN} left tonight · ${tonight.tomorrowN} tomorrow`
+                  : `${tonight.futureN} still to come`
+              }
+              onSeeAll={() => seeAll('tonight')}
+            />
             <div className="carousel">
-              {tonight.slice(0, 8).map((e, i) => (
-                <TonightCard key={keyOf(e) + i} e={e} onSelect={onSelect} />
+              {tonight.items.slice(0, 8).map(({ e, withDate }, i) => (
+                <TonightCard key={keyOf(e) + i} e={e} onSelect={onSelect} withDate={withDate} />
               ))}
               <EndCap onClick={() => seeAll('tonight')} />
             </div>
@@ -167,9 +195,9 @@ export default function HotView({ events, anchors, loading, displayMode, onSelec
         )}
         {gems.length > 0 && (
           <section className={'sec' + ent(2).className} style={ent(2).style}>
-            <SecHead overline="Under the radar" title="Hidden Gems" />
+            <SecHead overline="Under the radar" title="Hidden Gems" sub={`${gems.length} hand-scored finds`} />
             <div className="gems">
-              {gems.map((e, i) => (
+              {gems.slice(0, 3).map((e, i) => (
                 <GemRow key={keyOf(e) + i} e={e} onSelect={onSelect} />
               ))}
             </div>
@@ -180,9 +208,9 @@ export default function HotView({ events, anchors, loading, displayMode, onSelec
         )}
         {freeWeek.length > 0 && (
           <section className={'sec' + ent(3).className} style={ent(3).style}>
-            <SecHead overline="$0 well spent" title="Free This Week" onSeeAll={() => seeAll('free')} />
+            <SecHead overline="$0 well spent" title="Free" sub={`${freeWeek.length} this week`} onSeeAll={() => seeAll('free')} />
             <div className="carousel">
-              {freeWeek.map((e, i) => (
+              {freeWeek.slice(0, 10).map((e, i) => (
                 <FreeCard key={keyOf(e) + i} e={e} onSelect={onSelect} />
               ))}
               <EndCap square onClick={() => seeAll('free')} />
@@ -192,7 +220,14 @@ export default function HotView({ events, anchors, loading, displayMode, onSelec
         {upcoming.length > 0 && (
           <section className="sec sec-ev" ref={evRef}>
             <div className={ent(4).className.trim()} style={ent(4).style}>
-              <SecHead title="Everything" sub="All upcoming, by date" />
+              <SecHead
+                title={
+                  <>
+                    Everything <span className="sec-count">· {upcoming.length.toLocaleString('en-US')}</span>
+                  </>
+                }
+                sub="All upcoming, by date"
+              />
             </div>
             {/* rows themselves never entrance-animate */}
             <RowFeed sections={evSections} scrollRootRef={scrollRef} onSelect={onSelect} />

@@ -55,12 +55,19 @@
 }
 .gem-img .heat-badge { top: 4px; right: 4px; padding: 3px 6px; font-size: 10px; }
 .bigone-img .heat-badge { top: 14px; right: 14px; padding: 5px 10px; font-size: 12px; }
+/* agenda card: badge sits in the row (58px thumb is too small), editorial-rail style */
+.card > .heat-badge { position: static; flex: 0 0 auto; align-self: center; }
 
 /* ===== sponsored disclosure (tiny, muted, never hidden) ===== */
 .sp-label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.02em; }
 .tcard .sp-label, .gem .sp-label, .fcard .sp-label { display: block; margin-top: 2px; }
 .bigone .sp-label { display: block; margin-top: 5px; color: rgba(255, 255, 255, 0.78); }
+.bigone .sp-label.my-label { color: #5eead4; } /* teal accent unreadable on the dark scrim */
 .card .sp-label { display: block; margin-top: 2px; }
+
+/* "Started 7:00 PM …" metas (event already underway) read quieter — class is a
+   presentational hook set when the meta string leads with lib's startLabel */
+.meta-started { opacity: 0.78; }
 
 /* ===== Tonight carousel (280×210 landscape cards) ===== */
 .carousel {
@@ -133,10 +140,12 @@
 .bigone-img { position: absolute; inset: 0; border-radius: 0; }
 @keyframes bigScale { from { transform: scale(1.04); } to { transform: none; } }
 .bigone-reveal .bigone-img { animation: bigScale 700ms var(--ease-emphasis) both; }
+/* The Big One is the sanctioned dark-drama surface (tasting verdict): its scrim
+   carries cinematic's blue-black tint and runs slightly deeper, in every mode */
 .bigone-grad {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.06) 35%, rgba(0, 0, 0, 0.74) 100%);
+  background: linear-gradient(180deg, rgba(6, 8, 13, 0.1) 30%, rgba(6, 8, 13, 0.82) 100%);
 }
 .bigone-text { position: absolute; left: 20px; right: 20px; bottom: 20px; }
 .bigone-over {
@@ -147,8 +156,8 @@
   color: var(--hot); /* The Big One = hot-ness semantics, stays warm */
   margin-bottom: 8px;
 }
-.bigone-title { margin: 0 0 7px; font-size: 26px; font-weight: 800; line-height: 1.06; letter-spacing: -0.5px; text-shadow: 0 2px 18px rgba(0, 0, 0, 0.4); }
-.bigone-meta { font-size: 13px; font-weight: 600; opacity: 0.88; }
+.bigone-title { margin: 0 0 7px; font-size: 26px; font-weight: 800; line-height: 1.06; letter-spacing: -0.5px; text-shadow: 0 2px 22px rgba(0, 0, 0, 0.55); }
+.bigone-meta { font-size: 13px; font-weight: 600; opacity: 0.92; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45); }
 
 /* ===== Hidden Gems (compact 3-row list) ===== */
 .gems { display: flex; flex-direction: column; gap: 12px; padding: 0 20px; }
@@ -164,7 +173,7 @@
   text-align: left;
   cursor: pointer;
 }
-.gem-img { flex: 0 0 72px; width: 72px; height: 72px; border-radius: 12px; }
+.gem-img { flex: 0 0 72px; width: 72px; height: 72px; border-radius: 13px; } /* editorial radii band 13–16 */
 .gem-main { flex: 1; min-width: 0; }
 .gem-title {
   font-size: 15px;
@@ -186,7 +195,9 @@
   font-weight: 600;
   color: var(--accent);
   cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-out); /* ≤120ms press answer */
 }
+.gems-more:active { transform: scale(0.97); transition-duration: var(--dur-micro); }
 
 /* ===== Free This Week (160×160 squares) ===== */
 .fcard {
@@ -345,5 +356,6 @@
   .dm-label,
   .card { animation: none !important; }
   .pressable:active,
+  .gems-more:active,
   .card:active { transform: none; }
 }

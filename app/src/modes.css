@@ -4,10 +4,11 @@
    Anything NOT in the feed (hero, magazine sections, tabbar) is untouched. */
 
 /* ============================================================
-   1) EDITORIAL — magazine elegance (default)
-   110×110 image, category overline + 3px spine in the category
-   hue, right-aligned rail (heat badge / price / distance),
-   14px row gaps, hairline dividers between days only.
+   1) EDITORIAL — magazine elegance (THE design system, tasting verdict)
+   110×110 image (FREE overlay for free events), category overline
+   + 3px glowing spine in the category hue, right-aligned rail
+   (heat badge / price when priced / distance), 14px row gaps,
+   hairline dividers between days only.
    ============================================================ */
 .row--editorial {
   display: flex;
@@ -17,6 +18,8 @@
   margin: 0 20px 14px;
   padding-left: 13px; /* 3px spine + 10px breathing room */
 }
+/* category-hue presence tuned slightly bolder (poster's color energy folded in):
+   richer spine with a soft same-hue glow, deeper overline ink */
 .row--editorial::before {
   content: '';
   position: absolute;
@@ -25,16 +28,19 @@
   bottom: 8px;
   width: 3px;
   border-radius: 2px;
-  background: hsl(var(--ch) 70% 48%);
+  background: hsl(var(--ch) 76% 45%);
+  box-shadow: 0 0 6px hsl(var(--ch) 76% 50% / 0.35);
 }
 .row--editorial .row-img { flex: 0 0 110px; width: 110px; height: 110px; border-radius: 14px; }
+/* FREE overlay (from poster) sized down for the 110px editorial image */
+.row--editorial .free-badge { top: 6px; left: 6px; font-size: 10px; padding: 3px 7px; }
 .row--editorial .row-main { flex: 1; min-width: 0; }
 .row--editorial .row-cat {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: hsl(var(--ch) 62% 38%);
+  color: hsl(var(--ch) 70% 34%);
   margin-bottom: 3px;
 }
 .row--editorial .row-title {

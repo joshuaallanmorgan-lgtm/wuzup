@@ -18,6 +18,10 @@ import './modes.css'
 
 const PAGE_SIZE = 30
 
+// presentational hook only: lib's startLabel may emit "Started 7:00 PM" for
+// already-underway events — metas that LEAD with it read quieter (.meta-started)
+const startedCls = (m) => (m.startsWith('Started') ? ' meta-started' : '')
+
 export const DISPLAY_MODES = ['editorial', 'poster', 'cinematic']
 export const DisplayModeContext = createContext({ mode: 'editorial', setMode: () => {} })
 export function useDisplayMode() {
@@ -112,8 +116,12 @@ export function CardImg({ e, className = '', children }) {
   const [ok, setOk] = useState(false)
   const mode = useDisplayMode()
   // poster tiles are image-first: a time-as-artwork fallback would just repeat
-  // the meta line, so poster mode shows the category emoji instead
-  const fall = mode === 'poster' ? CATEGORY_EMOJI[e.category] ?? CATEGORY_EMOJI.other : startLabel(e) || '★'
+  // the meta line, so poster mode shows the category emoji instead. Artwork is
+  // the TIME, not the status — strip startLabel's "Started " prefix here only.
+  const fall =
+    mode === 'poster'
+      ? CATEGORY_EMOJI[e.category] ?? CATEGORY_EMOJI.other
+      : startLabel(e).replace(/^Started /, '') || '★'
   return (
     <span
       className={'imgbox ' + className}
@@ -140,15 +148,17 @@ export function CardImg({ e, className = '', children }) {
 // compact 58px card — kept for the Calendar agenda (saved events show their ♥)
 export function EventCard({ e, onSelect, index = 0 }) {
   const { has } = useSaves()
+  const meta = [startLabel(e), e.venue].filter(Boolean).join(' · ')
   return (
     <button className="card" style={{ animationDelay: Math.min(index, 12) * 22 + 'ms' }} onClick={(ev) => onSelect(e, ev.currentTarget)}>
       <CardImg e={e} className="card-thumb" />
       <div className="card-main">
         <div className="card-title">{e.title}</div>
-        <div className="card-meta">{[startLabel(e), e.venue].filter(Boolean).join(' · ') || 'Tap for details'}</div>
+        <div className={'card-meta' + startedCls(meta)}>{meta || 'Tap for details'}</div>
         <SponsoredTag e={e} />
       </div>
       {has(e) && <span className="card-heart" aria-hidden>♥</span>}
+      <HeatBadge e={e} />
       <PriceChip e={e} />
     </button>
   )
@@ -163,7 +173,7 @@ export function SecHead({ overline, title, sub, onSeeAll }) {
         {sub && <div className="sec-sub">{sub}</div>}
       </div>
       {onSeeAll && (
-        <button className="sec-seeall" onClick={onSeeAll}>
+        <button className="sec-seeall pressable" onClick={onSeeAll}>
           See all
         </button>
       )}
@@ -173,7 +183,7 @@ export function SecHead({ overline, title, sub, onSeeAll }) {
 
 export function TonightCard({ e, onSelect, withDate = false }) {
   // withDate: shelf/cross-day contexts where the DATE is the headline fact
-  const meta = [withDate ? dayLabelLoose(e) : null, startLabel(e), e.venue]
+  const meta = [withDate ? dayLabelLoose(e) : null, startLabel(e), e.venue].filter(Boolean).join(' · ')
   return (
     <button className="tcard pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
       <CardImg e={e} className="tcard-img">
@@ -181,7 +191,7 @@ export function TonightCard({ e, onSelect, withDate = false }) {
         <HeatBadge e={e} />
       </CardImg>
       <div className="tcard-title">{e.title}</div>
-      <div className="tcard-meta">{meta.filter(Boolean).join(' · ') || 'Details inside'}</div>
+      <div className={'tcard-meta' + startedCls(meta)}>{meta || 'Details inside'}</div>
       <SponsoredTag e={e} />
     </button>
   )
@@ -230,6 +240,7 @@ export function FreeCard({ e, onSelect }) {
       <span className="fcard-imgwrap">
         <CardImg e={e} className="fcard-img">
           <SaveHeart e={e} />
+          <HeatBadge e={e} />
         </CardImg>
         <span className="free-badge">FREE</span>
       </span>
@@ -251,7 +262,8 @@ export function EndCap({ square, onClick, children = 'See all →' }) {
 
 // the Everything/feed row — three live-switchable treatments (DisplayModeToggle):
 //   editorial — 110px image left, category overline + spine in the category hue,
-//               price chip / heat badge / distance in a right-aligned rail
+//               FREE overlay on the image (folded in from poster), heat badge /
+//               price chip (priced only) / distance in a right-aligned rail
 //   poster    — 2-up image-first grid (1:1, hue glow ring, FREE overlay), scan-fast
 //   cinematic — 92px full-width cover card, 0.55 scrim, white text bottom-left
 // Same props in every mode; CardImg keeps [data-vt] so the detail morph works.
@@ -264,9 +276,9 @@ export function Row({ e, dist, style, onSelect }) {
   const st = { ...style, '--ch': hueFor(e) }
   const open = (ev) => onSelect(e, ev.currentTarget)
   const mi = dist != null ? dist.toFixed(1) + ' mi' : null
+  const free = e._free === true || e.isFree === true
 
   if (mode === 'poster') {
-    const free = e._free === true || e.isFree === true
     const meta = [...(e._ongoing ? ['Ongoing'] : [dayLoose(e), timeOf(e.start)]), mi, free ? null : priceLabel(e), rain]
       .filter(Boolean)
       .join(' · ')
@@ -297,7 +309,7 @@ export function Row({ e, dist, style, onSelect }) {
         </CardImg>
         <div className="row-text">
           <div className="row-title">{e.title}</div>
-          <div className="row-meta">{meta || 'Tap for details'}</div>
+          <div className={'row-meta' + startedCls(meta)}>{meta || 'Tap for details'}</div>
           <SponsoredTag e={e} />
         </div>
       </button>
@@ -312,6 +324,8 @@ export function Row({ e, dist, style, onSelect }) {
     <button className="row row--editorial pressable" style={st} onClick={open}>
       <CardImg e={e} className="row-img">
         <SaveHeart e={e} />
+        {/* poster's best element folded in (tasting verdict): FREE overlay */}
+        {free && <span className="free-badge">FREE</span>}
       </CardImg>
       <div className="row-main">
         {/* 'other' is a fallback bucket, not a real category — no overline */}
@@ -322,7 +336,8 @@ export function Row({ e, dist, style, onSelect }) {
       </div>
       <div className="row-side">
         <HeatBadge e={e} />
-        <PriceChip e={e} />
+        {/* free-ness lives on the image badge now — rail chip only for priced */}
+        {!free && <PriceChip e={e} />}
         {mi && <span className="row-dist">{mi}</span>}
       </div>
     </button>

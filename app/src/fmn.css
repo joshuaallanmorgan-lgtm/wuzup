@@ -168,10 +168,25 @@
   text-overflow: ellipsis;
 }
 .fmn-pick-extra { display: flex; align-items: center; gap: 8px; min-height: 16px; }
+/* honesty chip: this pick matched neither answer — flagged, never disguised */
+.fmn-wild {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px dashed rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.55);
+}
 /* re-tint the shared chips/labels for the dark card */
 .fmn-pick .chip { background: rgba(255, 255, 255, 0.12); color: rgba(255, 255, 255, 0.85); }
 .fmn-pick .chip-free { background: rgba(10, 157, 110, 0.28); color: #6fe3b6; }
 .fmn-pick .sp-label { color: rgba(255, 255, 255, 0.55); }
+/* "Added by you" teal --accent fails AA on the dark cards — use the light
+   teal BigOne/cinematic already use for this label */
+.fmn-pick .sp-label.my-label { color: #5eead4; }
 
 .fmn-empty { padding: 48px 24px; text-align: center; color: rgba(255, 255, 255, 0.65); line-height: 1.65; }
 

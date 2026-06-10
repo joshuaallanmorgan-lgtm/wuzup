@@ -4,6 +4,9 @@
 // Props contract:
 //   events   — normalized events
 //   anchors  — { todayTs, tomorrowTs, wkStartTs, wkEndTs }
+//   coords   — last known { lat, lng } | null (App-held); when present, result
+//              rows wear distance pills (same showDist mechanism as BubblePage).
+//              Passive: this page never PROMPTS for location.
 //   onSelect — (event, cardEl|null) opens the detail (stacks on top)
 //   onClose  — slide back out to the Hot tab
 //
@@ -12,7 +15,7 @@
 // (Today/Tomorrow/weekday) like BubblePage, hotScore desc within a day; undated
 // events that match land in a trailing "Anytime" group (never hide events).
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { dayLabel, hotDesc, Icon } from './lib.js'
+import { dayLabel, hotDesc, Icon, milesBetween } from './lib.js'
 import { RowFeed } from './cards.jsx'
 import './bubble.css'
 
@@ -25,7 +28,7 @@ const fold = (s) =>
 
 const SUGGESTIONS = ['trivia', 'market', 'jazz', 'comedy', 'food truck']
 
-export default function SearchPage({ events, anchors, onSelect, onClose }) {
+export default function SearchPage({ events, anchors, coords, onSelect, onClose }) {
   const pgRef = useRef(null) // the scrolling ancestor — RowFeed's IO root
   const inputRef = useRef(null)
   const [q, setQ] = useState('') // live input value
@@ -36,15 +39,20 @@ export default function SearchPage({ events, anchors, onSelect, onClose }) {
   }, [q])
 
   // searchable pool indexed once: upcoming (start clamped to today for grouping)
-  // plus undated events (_day null → "Anytime"); haystack folded ahead of time
+  // plus undated events (_day null → "Anytime"); haystack folded ahead of time;
+  // _dist attached when App already has a location fix (RowFeed's showDist)
   const indexed = useMemo(() => {
     return events
       .filter((e) => e._day == null || (e._endDay ?? e._day) >= anchors.todayTs)
       .map((e) => ({
-        e: { ...e, _clamp: e._day == null ? null : Math.max(e._day, anchors.todayTs) },
+        e: {
+          ...e,
+          _clamp: e._day == null ? null : Math.max(e._day, anchors.todayTs),
+          _dist: coords && e.lat != null && e.lng != null ? milesBetween(coords, e) : null,
+        },
         hay: fold([e.title, e.venue, e.description, e.category].filter(Boolean).join(' ')),
       }))
-  }, [events, anchors])
+  }, [events, anchors, coords])
 
   const tokens = useMemo(() => fold(dq.trim()).split(/\s+/).filter(Boolean), [dq])
 
@@ -116,7 +124,7 @@ export default function SearchPage({ events, anchors, onSelect, onClose }) {
               {total} result{total === 1 ? '' : 's'} for “{dq.trim()}”
             </div>
             {/* key resets pagination + replays the stagger per query */}
-            <RowFeed key={tokens.join(' ')} sections={sections} stagger scrollRootRef={pgRef} onSelect={onSelect} />
+            <RowFeed key={tokens.join(' ')} sections={sections} showDist={!!coords} stagger scrollRootRef={pgRef} onSelect={onSelect} />
           </>
         )}
         {hasQ && total === 0 && (

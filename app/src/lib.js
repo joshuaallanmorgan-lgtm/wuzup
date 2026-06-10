@@ -109,9 +109,63 @@ export function normalize(raw, anchors) {
   const _weekend = _day != null && _day <= anchors.wkEndTs && (_endDay ?? _day) >= anchors.wkStartTs
   return { ...raw, tags, sources, hotScore, buzz, category, sponsored, _day, _endDay, _t, _free, _tonight, _weekend, _ongoing }
 }
-// 'ongoing' events show "Ongoing" instead of a stale start date/time
-export function startLabel(e) {
-  return e._ongoing ? 'Ongoing' : timeOf(e.start)
+// 'ongoing' events show "Ongoing" instead of a stale start date/time; a timed
+// start that already passed TODAY reads "Started 7:00 PM" — the card stays
+// visible, it just stops posing as a plan. Date-only events NEVER say Started
+// (an all-day event isn't late). `now` injectable for tests.
+export function startLabel(e, now = new Date()) {
+  if (e._ongoing) return 'Ongoing'
+  const t = timeOf(e.start)
+  if (!t) return ''
+  const d = new Date(e.start)
+  const sameDay =
+    d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()
+  return sameDay && d.getTime() < now.getTime() ? 'Started ' + t : t
+}
+
+// startedness for sorting: timed starts compare against the clock; date-only
+// events only count as started once their whole day is behind todayTs (a
+// date-only event today is an all-day plan, never "missed")
+export function startedPast(e, todayTs, nowMs = Date.now()) {
+  if (e.start && /T\d/.test(e.start)) return e._t < nowMs
+  return e._day != null && e._day < todayTs
+}
+
+// Tonight section model (HotView): not-yet-started events lead (hotScore desc),
+// already-started ones SINK below — never hidden, they wear startLabel's
+// "Started …" line. After ~22:00 local with < 3 future events left tonight, the
+// section turns into "Late tonight + tomorrow": tomorrow's early-evening timed
+// events (4–10 PM starts) fold in between tonight's future and tonight's
+// started picks, date-labeled via TonightCard's withDate prop. Pure + clock-
+// injectable so the ordering is Node-traceable.
+export function tonightModel(upcoming, anchors, now = new Date()) {
+  const nowMs = now.getTime()
+  const all = upcoming.filter((e) => e._tonight)
+  const future = all.filter((e) => !startedPast(e, anchors.todayTs, nowMs)).sort(hotDesc)
+  const started = all.filter((e) => startedPast(e, anchors.todayTs, nowMs)).sort(hotDesc)
+  // late-mode + the "N still to come" count consider TIMED events only: a
+  // date-only listing at 11 PM is almost certainly over, not "still to come" —
+  // counting them kept late mode permanently dead (41 phantom futures at 11 PM)
+  const futureTimed = future.filter((e) => /T\d/.test(e.start || ''))
+  const late = now.getHours() >= 22 && futureTimed.length < 3
+  let tomorrow = []
+  if (late) {
+    // strictly tomorrow-starting (an in-progress event already lives in `all`,
+    // so nothing renders twice), timed, early-evening start
+    tomorrow = upcoming
+      .filter((e) => e._day === anchors.tomorrowTs && /T\d/.test(e.start || ''))
+      .filter((e) => {
+        const h = new Date(e.start).getHours()
+        return h >= 16 && h < 22
+      })
+      .sort(hotDesc)
+  }
+  const items = [
+    ...future.map((e) => ({ e, withDate: false })),
+    ...tomorrow.map((e) => ({ e, withDate: true })),
+    ...started.map((e) => ({ e, withDate: false })),
+  ]
+  return { items, late, futureN: futureTimed.length, tomorrowN: tomorrow.length }
 }
 export function dayLabelLoose(e) {
   return e._day != null ? new Date(e._day).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : null

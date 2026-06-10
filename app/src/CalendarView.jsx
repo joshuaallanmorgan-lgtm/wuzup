@@ -24,16 +24,23 @@ export default function CalendarView({ events, anchors, onSelect, wx }) {
   // no-weather). App owns the single getForecast() fetch and passes it down.
   const wxFor = (ts) => (wx ? wx[dateKey(ts)] : null)
 
+  // Day buckets, clamped to today: an in-progress multi-day event surfaces
+  // under TODAY (not its stale start day), fully-ended events drop (so the day
+  // rail starts at today — no past pills), and every event lands on exactly ONE
+  // day (full multi-day spanning = parked owner decision). Month-grid heat and
+  // the day lists read these same buckets, so counts stay consistent.
   const dayMap = useMemo(() => {
     const m = new Map()
     for (const e of events) {
       if (e._day == null) continue
-      if (!m.has(e._day)) m.set(e._day, [])
-      m.get(e._day).push(e)
+      if ((e._endDay ?? e._day) < anchors.todayTs) continue // already over
+      const day = Math.max(e._day, anchors.todayTs)
+      if (!m.has(day)) m.set(day, [])
+      m.get(day).push(e)
     }
     for (const list of m.values()) list.sort((a, b) => a._t - b._t)
     return m
-  }, [events])
+  }, [events, anchors])
   const days = useMemo(() => [...dayMap.keys()].sort((a, b) => a - b), [dayMap])
 
   // ♥ saves: days containing ≥1 saved event get the reserved 4px dot

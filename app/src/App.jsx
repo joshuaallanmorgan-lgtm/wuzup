@@ -339,10 +339,10 @@ export default function App() {
               />
             )}
             {page.type === 'search' && (
-              <SearchPage events={norm} anchors={anchors} onSelect={openDetail} onClose={closePage} />
+              <SearchPage events={norm} anchors={anchors} coords={coords} onSelect={openDetail} onClose={closePage} />
             )}
             {page.type === 'night' && (
-              <FindMyNight events={norm} anchors={anchors} onSelect={openDetail} onClose={closePage} />
+              <FindMyNight events={norm} anchors={anchors} coords={coords} onSelect={openDetail} onClose={closePage} />
             )}
             {page.type === 'add' && (
               <AddEvent anchors={anchors} myEvents={myEvents} onAdd={addMine} onClose={closePage} />
