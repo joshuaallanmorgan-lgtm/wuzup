@@ -107,19 +107,25 @@ export function NavProvider({ children }) {
 
   // ===== subpage overlay: null | {type:'bubble',bubble} | {type:'search'} |
   // {type:'night'} | {type:'add'} | {type:'weekend'} | {type:'settings'} |
-  // {type:'interview'} | {type:'deck'} — slides in over the active tab
-  // (z 1500, below detail 2000). Sprint P added the last three: settings
+  // {type:'interview'} | {type:'deck'} | {type:'lensdeck',lens} — slides in
+  // over the active tab (z 1500, below detail 2000). Sprint P added settings
   // (Profile's gear), the full interview and the calibration deck (both
   // launched FROM settings — they stack by replacing the page, and their
   // back/finish affordances reopen settings, so "one level deep" stays true
-  // in feel while the union stays flat in state). =====
+  // in feel while the union stays flat in state). Sprint Q2 added lensdeck
+  // (the finite "Deck this" mode) on the same replace-the-page pattern: a
+  // bubble-lens deck's back affordance reopens its bubble via the quiet
+  // openBubble flag below. =====
   const [page, setPage] = useState(null)
   const [pageClosing, setPageClosing] = useState(false)
   const pageTRef = useRef(null)
-  const openBubble = useCallback((bubble) => {
+  const openBubble = useCallback((bubble, opts) => {
     // taste seam: tapping a CATEGORY bubble is a (weak) interest signal;
-    // time/free/near bubbles say nothing about category taste
-    if (bubble.kind === 'cat') recordSignal('bubble', { category: bubble.value })
+    // time/free/near bubbles say nothing about category taste. {quiet:true}
+    // skips the signal — LensDeck's back affordance RE-opens the bubble the
+    // user already tapped once, and navigation back is not a second interest
+    // tap (the exactly-once seam contract, Sprint Q3).
+    if (bubble.kind === 'cat' && !opts?.quiet) recordSignal('bubble', { category: bubble.value })
     clearTimeout(pageTRef.current)
     setPageClosing(false)
     setPage({ type: 'bubble', bubble })
@@ -162,6 +168,15 @@ export function NavProvider({ children }) {
     clearTimeout(pageTRef.current)
     setPageClosing(false)
     setPage({ type: 'deck' })
+  }, [])
+  // Sprint Q2: the finite lens deck ("Deck this" on day-headers + bubble
+  // pages). lens = {kind:'day',dayTs} | {kind:'bubble',bubble} — LensDeck
+  // owns the dealing; this is ONLY ever called from an explicit tap (the
+  // deck never autoplays and is never the default view).
+  const openLensDeck = useCallback((lens) => {
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    setPage({ type: 'lensdeck', lens })
   }, [])
   const closePage = useCallback(() => {
     setPageClosing(true)
@@ -270,6 +285,7 @@ export function NavProvider({ children }) {
       openSettings,
       openInterview,
       openDeck,
+      openLensDeck,
       closePage,
       // detail
       detail,
@@ -297,6 +313,7 @@ export function NavProvider({ children }) {
       openSettings,
       openInterview,
       openDeck,
+      openLensDeck,
       closePage,
       detail,
       closing,

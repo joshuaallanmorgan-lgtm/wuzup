@@ -1,0 +1,59 @@
+/* swipedeck.css — SwipeDeck's gesture MECHANICS only (Sprint Q1), extracted
+   1:1 from deck.css (the verified Sprint-P surface). Generic sd-* selectors:
+   positioning, drag spring-back transition, stack depth, exit flights,
+   reduced-motion fades. AESTHETICS (radius, borders, backgrounds, shadows,
+   stamp/button looks) stay with each consumer — deck.css styles the
+   calibration deck via the classPrefix="deck" mirror classes, lensdeck.css
+   styles the lens deck. NO --reward here, ever: SwipeDeck is generic chrome,
+   reward moments belong to sanctioned consumer beats only. */
+
+.sd-stack { position: relative; }
+.sd-card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  touch-action: none; /* the drag owns the gesture — no scroll fights */
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
+}
+.sd-top { z-index: 3; cursor: grab; }
+.sd-top.grabbed { transition: none; cursor: grabbing; }
+.sd-under1 { z-index: 2; transform: scale(0.95) translateY(16px); opacity: 0.65; }
+.sd-under2 { z-index: 1; transform: scale(0.9) translateY(30px); opacity: 0.35; }
+
+/* ===== flying exit clone (starts where the drag let go: --dx/--dy/--rot) ===== */
+.sd-exit { z-index: 4; pointer-events: none; }
+.sd-exit-right { animation: sdFlyRight 400ms var(--ease-out) both; }
+.sd-exit-left { animation: sdFlyLeft 400ms var(--ease-out) both; }
+.sd-exit-up { animation: sdFlyUp 400ms var(--ease-out) both; }
+@keyframes sdFlyRight {
+  from { transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg)); opacity: 1; }
+  to { transform: translate(130%, -8%) rotate(18deg); opacity: 0; }
+}
+@keyframes sdFlyLeft {
+  from { transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg)); opacity: 1; }
+  to { transform: translate(-130%, -8%) rotate(-18deg); opacity: 0; }
+}
+@keyframes sdFlyUp {
+  from { transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg)); opacity: 1; }
+  to { transform: translate(0, -120%) rotate(-4deg); opacity: 0; }
+}
+
+/* ===== reduced motion: gestures are detached in JS (buttons only — they are
+   the primary affordance and render regardless); cards CROSSFADE instead of
+   flying ===== */
+@media (prefers-reduced-motion: reduce) {
+  .sd-card { transition: none; }
+  .sd-exit-right,
+  .sd-exit-left,
+  .sd-exit-up { animation: sdFadeOut 200ms ease both; }
+}
+@keyframes sdFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}

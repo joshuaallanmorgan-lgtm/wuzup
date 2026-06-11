@@ -8,6 +8,7 @@ import { BigOne, EndCap, FreeCard, GemRow, RowFeed, SecHead, TonightCard } from 
 import { shelfItems, useSaves } from './saves.js'
 import { confidence, tasteNudge, topCategories, useTaste } from './taste.js'
 import { useRecents } from './recents.js'
+import { DeckThisButton } from './LensDeck.jsx'
 
 // H2 — time-aware hero kicker (replaces the static "WHAT'S HOT · THIS WEEK").
 // Pure (now, tonightLeft, whenPref) → string; plain text, zero animation.
@@ -180,7 +181,11 @@ export default function HotView({ events, anchors, loading, displayMode, whenPre
       if (!m.has(e._clamp)) m.set(e._clamp, [])
       m.get(e._clamp).push(e)
     }
-    return [...m.entries()].map(([ts, items]) => ({ label: dayLabel(ts, anchors), items: orderDay(items, tasteNudge) }))
+    return [...m.entries()].map(([ts, items]) => ({
+      label: dayLabel(ts, anchors),
+      dayTs: ts, // Q2: the lens identity for this day's "Deck this" entry
+      items: orderDay(items, tasteNudge),
+    }))
   }, [upcoming, anchors])
   // H4 — the gentle stopping cue, feed END only (GPT report). 3+ distinct
   // details opened this session upgrades RowFeed's "that's everything" line to
@@ -363,8 +368,16 @@ export default function HotView({ events, anchors, loading, displayMode, whenPre
                 sub="All upcoming, by date"
               />
             </div>
-            {/* rows themselves never entrance-animate; endSlot = the H4 recap */}
-            <RowFeed sections={evSections} scrollRootRef={scrollRef} onSelect={onSelect} endSlot={recap} />
+            {/* rows themselves never entrance-animate; endSlot = the H4 recap.
+                headerExtra (Q2): every day-header carries its 🃏 "Deck this"
+                entry — a finite deck of exactly that day's list */}
+            <RowFeed
+              sections={evSections}
+              scrollRootRef={scrollRef}
+              onSelect={onSelect}
+              endSlot={recap}
+              headerExtra={(s) => (s.dayTs != null ? <DeckThisButton lens={{ kind: 'day', dayTs: s.dayTs }} /> : null)}
+            />
           </section>
         )}
         {!loading && upcoming.length === 0 && (

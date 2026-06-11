@@ -1,0 +1,172 @@
+/* lensdeck.css — LensDeck (Sprint Q2) + the "Deck this" entry affordance.
+   Dark deck-family ambiance (the calibration deck's sibling), tinted by the
+   lens hue (--lh = bubble hue when the lens is a bubble; teal default).
+   Gesture mechanics come from swipedeck.css (sd-*); the verified card FACE
+   classes (deck-img/-info/-cat/-title/-meta/-extra) come from deck.css via
+   the shared DeckFace component — only the ldk-* chrome lives here.
+   ZERO --reward IN THIS FILE, BY CONTRACT: the lens-deck end card is NOT one
+   of the six sanctioned reward moments. Don't add it. Ever. */
+
+/* ===== dark ambiance, lens-hue tinted ===== */
+.ldk {
+  --lh: 187; /* default tint ≈ the app's teal; bubble lenses override inline */
+  background:
+    radial-gradient(120% 55% at 10% -8%, hsla(var(--lh), 70%, 45%, 0.30), transparent 62%),
+    radial-gradient(110% 60% at 110% 106%, hsla(var(--lh), 60%, 50%, 0.14), transparent 60%),
+    linear-gradient(168deg, #10181c 0%, #16181d 55%, #131a1d 100%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+}
+.ldk .pg-head-title {
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ldk .pg-back {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+.ldk-counthead {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.55);
+  font-variant-numeric: tabular-nums;
+}
+/* .ldk .ldk-body (not bare): must out-specify App.css's .pg-body padding no
+   matter which module's CSS lands first in the bundle (deck.css precedent) */
+.ldk .ldk-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 20px 28px;
+}
+
+/* ===== kicker — the count-exact header claim ("18 for Friday") ===== */
+.ldk-kicker { padding: 4px 4px 14px; }
+.ldk-kicker-title { font-size: 22px; font-weight: 900; letter-spacing: -0.4px; }
+.ldk-kicker-sub { margin-top: 4px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.55); }
+
+/* ===== stack sizing + the dark card look (mechanics in swipedeck.css) ===== */
+.ldk-stack {
+  flex: 1;
+  min-height: 340px;
+  max-height: 470px;
+}
+.ldk-card {
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: #1b2027;
+}
+.ldk-top,
+.ldk-exit { box-shadow: 0 14px 38px rgba(0, 0, 0, 0.45); }
+
+/* ===== verdict stamps (opacity driven by --like/--nope/--keep from SwipeDeck) ===== */
+.ldk-stamp {
+  position: absolute;
+  top: 16px;
+  z-index: 5;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 2.5px solid;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  pointer-events: none;
+  opacity: 0;
+  background: rgba(0, 0, 0, 0.35);
+}
+/* the keep stamp wears the heart's sanctioned --hot (I2 save-heart exception) */
+.ldk-stamp-keep { left: 14px; transform: rotate(-10deg); color: var(--hot); border-color: var(--hot); opacity: var(--like, 0); }
+.ldk-stamp-pass { right: 14px; transform: rotate(10deg); color: rgba(255, 255, 255, 0.85); border-color: rgba(255, 255, 255, 0.7); opacity: var(--nope, 0); }
+.ldk-stamp-open { left: 50%; top: auto; bottom: 18px; transform: translateX(-50%) rotate(-3deg); color: #2dd4bf; border-color: #2dd4bf; opacity: var(--keep, 0); }
+
+/* ===== always-visible button fallbacks (✕ pass · ↗ open · ♥ keep) ===== */
+.ldk-actions { display: flex; justify-content: center; gap: 20px; padding: 18px 0 4px; }
+.ldk-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ldk-btn-pass { color: rgba(255, 255, 255, 0.75); }
+.ldk-btn-open { color: #2dd4bf; border-color: rgba(45, 212, 191, 0.45); }
+/* the heart button is the save affordance — the sanctioned --hot heart */
+.ldk-btn-keep { color: var(--hot); border-color: rgba(var(--hot-rgb), 0.45); }
+.ldk-btn-keep.is-saved { background: rgba(var(--hot-rgb), 0.18); }
+
+/* ===== end card — honest stopping cue, deliberately NOT a reward beat ===== */
+.ldk-done { text-align: center; padding: 64px 16px 24px; animation: ldkDoneIn 400ms var(--ease-out) both; }
+@keyframes ldkDoneIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+.ldk-done-emoji { font-size: 44px; line-height: 1; }
+.ldk-done-title { margin: 16px auto 6px; max-width: 320px; font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #fff; }
+.ldk-done-sub { font-size: 13.5px; font-weight: 600; color: rgba(255, 255, 255, 0.6); }
+.ldk-done-btn {
+  margin-top: 30px;
+  height: 50px;
+  padding: 0 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* ===== defensive empty deal ===== */
+.ldk-empty { padding: 80px 24px; text-align: center; color: rgba(255, 255, 255, 0.7); line-height: 1.6; }
+.ldk-empty-emoji { font-size: 40px; margin-bottom: 12px; }
+
+/* ===== the entry affordance (HotView day-headers + bubble pages) =====
+   Fresh: accent-tinted pill. Already dealt this session: the quieter
+   "Deck again" ghost — same tap target, honest about not being fresh. */
+.deckthis {
+  border: 1px solid rgba(var(--accent-rgb), 0.35);
+  border-radius: 999px;
+  background: rgba(var(--accent-rgb), 0.08);
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--accent);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.deckthis-again {
+  border-color: var(--line);
+  background: none;
+  color: var(--muted);
+}
+/* day-header variant: the .feed-date flexes to fit label + button on one line */
+.feed-date-deck {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+/* bubble-band variant: sits under the tagline, on the tinted band */
+.bub-deckthis { margin-top: 12px; }
+
+/* ===== reduced motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .ldk-done { animation: none; }
+}

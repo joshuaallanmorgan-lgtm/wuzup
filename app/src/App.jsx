@@ -22,6 +22,7 @@ import WeekendBuilder from './WeekendBuilder.jsx'
 import SettingsPage from './SettingsPage.jsx'
 import Interview from './Interview.jsx'
 import CalibrationDeck from './CalibrationDeck.jsx'
+import LensDeck from './LensDeck.jsx'
 import './App.css'
 
 function TabBar({ active, onTab, inert }) {
@@ -306,6 +307,10 @@ function Shell() {
             {page.type === 'deck' && (
               <CalibrationDeck events={norm} anchors={anchors} onClose={openSettings} />
             )}
+            {/* Sprint Q2: the finite "Deck this" mode — opened ONLY by the
+                explicit 🃏 entry buttons (HotView day-headers, bubble pages);
+                its back/finish affordances return to where the user came from */}
+            {page.type === 'lensdeck' && <LensDeck lens={page.lens} events={norm} anchors={anchors} />}
           </div>
         )}
         {/* H1: first open only — Primer persists its own state + seeds taste;

@@ -42,8 +42,9 @@ Beyond features, shipping requires: **(a) availability** — it runs somewhere t
 ### Sprint Q — Deck mode (the scoped Tinder)
 - **Q1 Reusable SwipeDeck component** (pointer-events, no deps; spring-feel transforms within UI_SPEC motion rules; reduced-motion = button fallbacks always visible: ✕ / ♥ / open).
 - **Q2 Entry points:** "🃏 Deck this" on Everything day-headers and bubble pages → a **finite** deck ("18 for Friday"), drawn from that exact lens, diversity-interleaved. End card: summary ("kept 4 ♥") + into-the-feed return. Never autoplays, never the default.
-- **Q3 Signals:** right = save, left = pass (−1 taste, also FMN-seen so rerolls respect it), up/tap = detail (counts as open). End-of-deck recap is a stopping cue, not a loop — no infinite re-deal (the research's fatigue warning, honored).
+- **Q3 Signals:** right = save, left = pass (−1 taste, also FMN-seen so rerolls respect it), up = detail (counts as open). End-of-deck recap is a stopping cue, not a loop — no infinite re-deal (the research's fatigue warning, honored).
 - DoD: deck works from both entry points, signal flow verified, fatigue guard (one deck per lens per session unless explicitly re-dealt).
+- **AS-BUILT ratifications (2026-06-11):** up-swipe/↗ = PEEK (detail opens, card stays — looking closer must not cost the keep/pass call; plain tap not implemented, it's how a drag starts) · 'sort'-kind bubbles (Near Me) get NO deck entry (a 1,518-card "deck" is no decision aid; category/time/free bubbles + day headers keep it) · re-deal shows the full lens again including rated cards (the lens IS the list; excluding would violate never-hide; −1 re-pass still floors at 0).
 
 ### Sprint Q2 — Connective tissue (Josh's coherence feedback, 2026-06-11: "the surveys feel like they just kinda sit there… the app should be intuitive in terms of the path you take")
 *Principle adopted app-wide: every feature must have an obvious path TO it and FROM it — no surfaces that just sit there in a menu.*

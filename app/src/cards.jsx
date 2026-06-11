@@ -364,7 +364,10 @@ const STAGGER_STYLES = [0, 30, 60, 90, 120, 150].map((ms) => Object.freeze({ ani
 // staggered rise on the first 6 rows (use when a page swaps its list in).
 // endSlot (H4): an optional node that REPLACES the default end-of-feed line
 // once the whole list is rendered (HotView's session recap card).
-export function RowFeed({ sections, showDist, stagger, scrollRootRef, endSlot, onSelect }) {
+// headerExtra (Q2): optional (section) => node rendered inside the day header
+// (HotView's 🃏 "Deck this" entry); when it returns something the header flexes
+// via .feed-date-deck — consumers that don't pass it render byte-identically.
+export function RowFeed({ sections, showDist, stagger, scrollRootRef, endSlot, headerExtra, onSelect }) {
   const mode = useDisplayMode()
   const [limit, setLimit] = useState(PAGE_SIZE)
   const sentRef = useRef(null)
@@ -389,9 +392,11 @@ export function RowFeed({ sections, showDist, stagger, scrollRootRef, endSlot, o
     if (count >= limit) break
     const items = s.items.slice(0, limit - count)
     if (s.label && items.length) {
+      const extra = headerExtra ? headerExtra(s) : null
       out.push(
-        <div className="feed-date" key={'h' + s.label}>
+        <div className={'feed-date' + (extra ? ' feed-date-deck' : '')} key={'h' + s.label}>
           {s.label}
+          {extra}
         </div>
       )
     }

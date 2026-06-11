@@ -2,7 +2,12 @@
    Dark ritual ambiance like FMN, but TEAL-leaning — the hot palette stays the
    dice's; --reward appears ONLY in the finish beat (sanctioned moment #6).
    Everything scoped under .deck; the shared .pg chrome from App.css is only
-   re-tinted, never redefined. */
+   re-tinted, never redefined.
+   SPRINT Q1: the gesture MECHANICS (card positioning, drag spring-back,
+   stack depth, exit flights, reduced-motion fades) moved 1:1 to swipedeck.css
+   under sd-* selectors — SwipeDeck's classPrefix="deck" keeps these legacy
+   class names on the same elements, so every rule remaining here (the
+   calibration AESTHETICS) still lands exactly where it always did. */
 
 /* ===== dark / teal-gradient ambiance ===== */
 .deck {
@@ -41,33 +46,19 @@
 .deck-kicker-title { font-size: 22px; font-weight: 900; letter-spacing: -0.4px; }
 .deck-kicker-sub { margin-top: 4px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.55); }
 
-/* ===== the card stack ===== */
+/* ===== the card stack (mechanics live in swipedeck.css — sizing + the dark
+   card look stay here) ===== */
 .deck-stack {
-  position: relative;
   flex: 1;
   min-height: 340px;
   max-height: 470px;
 }
 .deck-card {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
   border-radius: 22px;
   border: 1px solid rgba(255, 255, 255, 0.10);
   background: #1b2027;
-  overflow: hidden;
-  touch-action: none; /* the drag owns the gesture — no scroll fights */
-  user-select: none;
-  -webkit-user-select: none;
-  transition:
-    transform var(--dur-fast) var(--ease-out),
-    opacity var(--dur-fast) var(--ease-out);
 }
-.deck-top { z-index: 3; cursor: grab; box-shadow: 0 14px 38px rgba(0, 0, 0, 0.45); }
-.deck-top.grabbed { transition: none; cursor: grabbing; }
-.deck-under1 { z-index: 2; transform: scale(0.95) translateY(16px); opacity: 0.65; }
-.deck-under2 { z-index: 1; transform: scale(0.90) translateY(30px); opacity: 0.35; }
+.deck-top { box-shadow: 0 14px 38px rgba(0, 0, 0, 0.45); }
 
 /* card face: image on top (CardImg fallback art included), info panel below */
 .deck-img { display: block; width: 100%; flex: 1; min-height: 0; }
@@ -130,23 +121,8 @@
 /* the save stamp wears the heart's sanctioned --hot (I2 save-heart exception) */
 .deck-stamp-save { left: 50%; top: auto; bottom: 18px; transform: translateX(-50%) rotate(-3deg); color: var(--hot); border-color: var(--hot); opacity: var(--keep, 0); }
 
-/* ===== flying exit clone (starts where the drag let go: --dx/--dy/--rot) ===== */
-.deck-exit { z-index: 4; pointer-events: none; box-shadow: 0 14px 38px rgba(0, 0, 0, 0.45); }
-.deck-exit-right { animation: deckFlyRight 400ms var(--ease-out) both; }
-.deck-exit-left { animation: deckFlyLeft 400ms var(--ease-out) both; }
-.deck-exit-up { animation: deckFlyUp 400ms var(--ease-out) both; }
-@keyframes deckFlyRight {
-  from { transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg)); opacity: 1; }
-  to { transform: translate(130%, -8%) rotate(18deg); opacity: 0; }
-}
-@keyframes deckFlyLeft {
-  from { transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg)); opacity: 1; }
-  to { transform: translate(-130%, -8%) rotate(-18deg); opacity: 0; }
-}
-@keyframes deckFlyUp {
-  from { transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg)); opacity: 1; }
-  to { transform: translate(0, -120%) rotate(-4deg); opacity: 0; }
-}
+/* ===== flying exit clone — flight animations live in swipedeck.css ===== */
+.deck-exit { box-shadow: 0 14px 38px rgba(0, 0, 0, 0.45); }
 
 /* ===== always-visible button fallbacks ===== */
 .deck-actions { display: flex; justify-content: center; gap: 20px; padding: 18px 0 4px; }
@@ -257,20 +233,12 @@
 .deck-empty { padding: 80px 24px; text-align: center; color: rgba(255, 255, 255, 0.7); line-height: 1.6; }
 .deck-empty-emoji { font-size: 40px; margin-bottom: 12px; }
 
-/* ===== reduced motion: buttons only (JS detaches drag), cards CROSSFADE
-   instead of flying, the reward beat appears without choreography (static
+/* ===== reduced motion: buttons-only gestures + crossfade exits live in
+   swipedeck.css; the reward beat appears without choreography (static
    color allowed — motion killed, the moment kept) ===== */
 @media (prefers-reduced-motion: reduce) {
-  .deck-card { transition: none; }
-  .deck-exit-right,
-  .deck-exit-left,
-  .deck-exit-up { animation: deckFadeOut 200ms ease both; }
   .deck-done,
   .deck-done-spark,
   .deck-done-title::after { animation: none !important; }
   .deck-dot { transition: none; }
-}
-@keyframes deckFadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
 }

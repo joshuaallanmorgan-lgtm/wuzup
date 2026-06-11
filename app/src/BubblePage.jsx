@@ -20,6 +20,7 @@ import { CITY, dayLabel, hotDesc, Icon, milesBetween, orderDay } from './lib.js'
 import { useNav } from './nav.jsx'
 import { RowFeed } from './cards.jsx'
 import { tasteNudge } from './taste.js'
+import { DeckThisButton } from './LensDeck.jsx'
 import './bubble.css'
 
 // one-line personality per bubble (Charles: every destination gets a wink)
@@ -116,6 +117,14 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
             {count.toLocaleString('en-US')} event{count === 1 ? '' : 's'} in {CITY.name}
           </div>
           <div className="bub-tag">{TAGLINES[bubble.id] || 'Picked fresh for you.'}</div>
+          {/* Q2: this lens, as a finite swipe deck — explicit tap only.
+              'sort' (Near Me) is the whole upcoming list: a four-digit
+              "deck" is no decision aid, so that one gets no entry. */}
+          {count > 0 && bubble.kind !== 'sort' && (
+            <div className="bub-deckthis">
+              <DeckThisButton lens={{ kind: 'bubble', bubble }} />
+            </div>
+          )}
         </div>
       </header>
       <div className="pg-body">
