@@ -30,7 +30,8 @@ import { GemRow, SecHead, SponsoredTag } from './cards.jsx'
 import { markBeen, shelfItems, useBeenThere, useSaves } from './saves.js'
 import { confidence, interviewAnswers, topCategories, useTaste } from './taste.js'
 import { useRecents } from './recents.js'
-import { DAY_IDS, SLOT_IDS, filledCount, loadHistory, loadPlan, visibleWeekend, weekendDays } from './weekend.js'
+import { DAY_IDS, SLOT_IDS, filledCount, loadHistory, visibleWeekend, weekendDays } from './weekend.js'
+import { PARTS, dayEntryFor, filledForDays, loadDayHistory, loadDayPlans } from './dayplan.js'
 import './profile.css'
 
 const fmtShort = (ts) =>
@@ -118,29 +119,40 @@ export default function ProfileView({ events, anchors, primer }) {
   // ===== Your list (O3): the full saved shelf, upcoming first, past greyed =====
   const shelf = useMemo(() => shelfItems(savedList, events, anchors), [savedList, events, anchors])
 
-  // ===== Your plans (O5): current weekend summary + read-only history =====
-  // loadPlan/loadHistory are plain localStorage reads (not reactive stores);
-  // plans only ever change through a Weekend Builder subpage, so re-reading
-  // on every WB open/close edge (wbOpen flip) keeps this card honest — the
-  // close-edge recompute picks up whatever WB persisted, and the open-edge
-  // one is a harmless refresh. (WB's own archive write happens at ITS mount,
-  // so the close edge sees fresh history too.)
-  const wbOpen = page?.type === 'weekend'
-  const plan = useMemo(() => {
-    void wbOpen // re-read trigger (see above)
-    return loadPlan(anchors.wkStartTs)
-  }, [anchors.wkStartTs, wbOpen])
+  // ===== Your plans (O5, re-pointed in U-a): the current weekend summarized
+  // FROM THE DAY-PLAN STORE ('day-plans-v1' — the Fri–Sun window derived over
+  // day entries via anchors), plus the read-only weekend history. The stores
+  // aren't reactive; plans only ever change inside the weekend/day subpages,
+  // so re-reading on every such open/close edge keeps the cards honest — the
+  // close-edge recompute picks up whatever the subpage persisted. =====
+  const planPageUp = page?.type === 'weekend' || page?.type === 'day'
+  const dayPlans = useMemo(() => {
+    void planPageUp // re-read trigger (see above)
+    return loadDayPlans(anchors)
+  }, [anchors, planPageUp])
+  // past weekends keep reading 'weekend-history-v1' — NOT migrated, by design
   const history = useMemo(() => {
-    void wbOpen
+    void planPageUp
     return loadHistory()
       .filter((p) => p.weekendStartTs !== anchors.wkStartTs) // current weekend renders live above
       .reverse() // most recent past weekend first
-  }, [anchors.wkStartTs, wbOpen])
+  }, [anchors.wkStartTs, planPageUp])
+  // past DAYS accumulate in 'day-history-v1' going forward (U-d makes the
+  // list rich; this is the honest simple version)
+  const dayHist = useMemo(() => {
+    void planPageUp
+    return loadDayHistory().reverse().slice(0, 10) // most recent first
+  }, [planPageUp])
   const days = useMemo(() => visibleWeekend(anchors), [anchors])
-  const visibleSlotIds = days.flatMap((d) => ['day', 'night'].map((p) => d.id + '_' + p))
-  const filledVis = filledCount(plan, visibleSlotIds)
-  const planTitles = visibleSlotIds
-    .map((id) => (plan.slots[id] ? titleByKey.get(plan.slots[id]) : null))
+  const visibleSlotN = days.length * PARTS.length
+  const filledVis = filledForDays(dayPlans, days.map((d) => d.ts))
+  const restN = days.filter((d) => dayEntryFor(dayPlans[String(d.ts)])?.state === 'rest').length
+  const planTitles = days
+    .flatMap((d) => {
+      const e = dayEntryFor(dayPlans[String(d.ts)])
+      return e ? PARTS.map((p) => e.slots[p]) : []
+    })
+    .map((k) => (k ? titleByKey.get(k) : null))
     .filter(Boolean)
     .slice(0, 3)
   const range =
@@ -261,8 +273,10 @@ export default function ProfileView({ events, anchors, primer }) {
             <span className="pf-plan-range">{range}</span>
             <span className="pf-plan-fill">
               {filledVis > 0
-                ? `${filledVis}/${visibleSlotIds.length} slots planned`
-                : 'Nothing planned yet — tap to build it 🗓️'}
+                ? `${filledVis}/${visibleSlotN} slots planned` + (restN > 0 ? ' · quiet day 🌙' : '')
+                : restN > 0
+                  ? 'A quiet weekend on the books 🌙'
+                  : 'Nothing planned yet — tap to build it 🗓️'}
             </span>
             {planTitles.length > 0 && (
               <span className="pf-plan-picks">
@@ -282,6 +296,29 @@ export default function ProfileView({ events, anchors, primer }) {
               <div className="pf-hist-label">Past weekends</div>
               {history.map((p) => (
                 <HistoryCard key={p.weekendStartTs} p={p} byKey={byKey} titleByKey={titleByKey} onSelect={onSelect} />
+              ))}
+            </>
+          )}
+          {/* U-a: past planned/rest DAYS from 'day-history-v1' — a simple
+              honest list (Sprint U-d turns this into the journal). Quiet days
+              render as exactly that: a record, never a gap. */}
+          {dayHist.length > 0 && (
+            <>
+              <div className="pf-hist-label">Past days</div>
+              {dayHist.map((h) => (
+                <div className="pf-dayh" key={h.dayTs}>
+                  <span className="pf-dayh-date">🗓️ {fmtShort(h.dayTs)}</span>
+                  <span className="pf-dayh-what">
+                    {h.state === 'rest'
+                      ? 'Quiet day 🌙'
+                      : PARTS.filter((p) => h.slots[p])
+                          .map(
+                            (p) =>
+                              (p === 'day' ? '☀️ ' : '🌙 ') + (titleByKey.get(h.slots[p]) ?? 'no longer listed')
+                          )
+                          .join(' · ')}
+                  </span>
+                </div>
               ))}
             </>
           )}

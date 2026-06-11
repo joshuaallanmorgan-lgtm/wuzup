@@ -55,11 +55,16 @@ export function lsGet(key) {
   }
 }
 
+// returns true on a persisted write, false when storage swallowed it (quota /
+// private mode) — MOST callers ignore this (session state still works), but
+// destructive sequences (write-then-remove-source, e.g. the dayplan migration)
+// must check it so a failed write can't silently orphan the source data
 export function lsSet(key, value) {
   try {
     localStorage.setItem(PREFIX + key, value)
+    return true
   } catch {
-    /* quota / private mode — in-memory session state still works everywhere */
+    return false /* quota / private mode — in-memory session state still works */
   }
 }
 

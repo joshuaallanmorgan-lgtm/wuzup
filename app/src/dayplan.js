@@ -1,0 +1,275 @@
+// dayplan.js — the day-plan store (Sprint U-a, CALENDAR_BRIEF Model C).
+// weekend.js generalized: ANY day can carry a two-slot plan or a rest state,
+// not just the Fri–Sun window. Pure logic only — plain .js, NO JSX and no
+// React (same rule as lib.js / weekend.js) so the Node verification sims can
+// import it directly. The slot semantics (daypartOf / fitsSlot / pickerModel /
+// shareText) deliberately STAY in weekend.js — this module imports what it
+// needs and the smoke harness's weekend.js imports never move.
+//
+// STORAGE: 'day-plans-v1' (auto-prefixed twh: via storage.js) = an object
+// keyed by dayTs STRING (local-midnight ms, String(ts)):
+//   { [dayTs]: { state: 'rest'|null, slots: { day: keyOf|null, night: keyOf|null }, done: false, v: 1 } }
+// · state==='rest' is the user-initiated quiet-day mark. REST AND SLOTS ARE
+//   MUTUALLY EXCLUSIVE: withSlot() clears rest, withRest(on) refuses while a
+//   slot is filled (the UI only offers the toggle on slot-empty days; this is
+//   the defensive backstop). Rest is a calm filled state, never an absence.
+// · done is RESERVED for Sprint U-d's one-shot planned→did conversion (the
+//   sanctioned violet moment #7). NOTHING in U-a sets it — it exists in the
+//   shape so U-d needs no migration. Validation preserves it; UI ignores it.
+//
+// ARCHIVE SWEEP (risk register: the rest-day-marked-yesterday transition):
+// loadDayPlans() moves every entry whose dayTs < anchors.todayTs into
+// 'day-history-v1' (array of { dayTs, ...entry }, cap 120 ≈ 4 months, dedup
+// by dayTs — first write wins, an already-archived day is never overwritten).
+// ARCHIVE-BEFORE-REMOVAL: past plans are the raw material of U-d's journal.
+// An empty past entry (no slots, no rest state) is NOT history and drops.
+//
+// MIGRATION (⚑U-WB, default ratified): migrateWeekendPlan() converts a stored
+// 'weekend-plan-v1' exactly once — see the function comment for semantics.
+import { lsGet, lsRemove, lsSet } from './storage.js'
+import { DAY_IDS, PLAN_KEY, planFor, weekendDays } from './weekend.js'
+
+export const DAYPLANS_KEY = 'day-plans-v1' // stored as twh:day-plans-v1
+const DAYHISTORY_KEY = 'day-history-v1'
+const WEEKEND_DONE_KEY = 'weekend-done-v1' // the WB completion beat's one-shot memory (see below)
+export const HISTORY_CAP = 120
+export const PARTS = ['day', 'night']
+
+export const emptyDay = () => ({ state: null, slots: { day: null, night: null }, done: false, v: 1 })
+
+// stored → clean entry, planFor-grade: wrong shape / wrong version returns
+// null (the caller DROPS it — never crash on a corrupt blob); a valid entry
+// is rebuilt field-by-field so junk keys and wrong-typed slots can't survive.
+export function dayEntryFor(stored) {
+  if (!stored || typeof stored !== 'object' || Array.isArray(stored) || stored.v !== 1) return null
+  if (!stored.slots || typeof stored.slots !== 'object' || Array.isArray(stored.slots)) return null
+  const d = emptyDay()
+  for (const part of PARTS) {
+    const k = stored.slots[part]
+    if (typeof k === 'string' && k) d.slots[part] = k
+  }
+  // rest+slots is a contradiction no mutator can produce — a hand-edited blob
+  // carrying both would render as an invisible-but-counted plan (rest card
+  // hides the slot, Profile counts it), so slots win and rest drops here
+  if (stored.state === 'rest' && !d.slots.day && !d.slots.night) d.state = 'rest'
+  d.done = stored.done === true
+  return d
+}
+
+// "is this entry worth keeping/archiving?" — a rest mark or any filled slot.
+// (done alone is impossible in U-a and meaningless without content anyway)
+export const hasContent = (d) => d.state === 'rest' || !!d.slots.day || !!d.slots.night
+
+function readMap() {
+  try {
+    const v = JSON.parse(lsGet(DAYPLANS_KEY))
+    if (v && typeof v === 'object' && !Array.isArray(v)) return v
+  } catch {
+    /* absent, corrupt, or private mode — start empty */
+  }
+  return {}
+}
+
+function readHistory() {
+  try {
+    const v = JSON.parse(lsGet(DAYHISTORY_KEY))
+    if (Array.isArray(v)) return v
+  } catch {
+    /* absent, corrupt, or private mode — no history */
+  }
+  return []
+}
+
+// Profile's past-days list (U-d makes it rich): validated { dayTs, ...entry }
+// rows, oldest → newest as stored (callers reverse for most-recent-first).
+// Read-only — the archive is only ever WRITTEN by the sweep in loadDayPlans.
+export function loadDayHistory() {
+  const out = []
+  for (const h of readHistory()) {
+    if (!h || typeof h !== 'object' || Array.isArray(h)) continue
+    if (typeof h.dayTs !== 'number' || !Number.isFinite(h.dayTs)) continue
+    const entry = dayEntryFor(h)
+    if (entry) out.push({ dayTs: h.dayTs, ...entry })
+  }
+  return out
+}
+
+// append-only, deduped by dayTs (an already-archived day NEVER gets
+// overwritten — first write wins, same contract as weekend.js archivePlan)
+function archiveDays(rows) {
+  if (!rows.length) return
+  const list = readHistory()
+  const have = new Set(list.map((h) => h && h.dayTs))
+  const add = rows.filter((h) => !have.has(h.dayTs))
+  if (!add.length) return
+  lsSet(DAYHISTORY_KEY, JSON.stringify(list.concat(add).slice(-HISTORY_CAP)))
+}
+
+// the ONE read path: runs the one-shot WB migration, validates every entry
+// (wrong shapes drop silently), sweeps past days into history, persists the
+// cleaned map when anything changed, returns { [String(dayTs)]: entry }.
+export function loadDayPlans(anchors) {
+  migrateWeekendPlan(anchors) // idempotent; a missing weekend-plan-v1 is one lsGet
+  const raw = readMap()
+  const map = {}
+  const past = []
+  let dirty = false
+  for (const k of Object.keys(raw)) {
+    const ts = Number(k)
+    const entry = Number.isInteger(ts) && ts > 0 ? dayEntryFor(raw[k]) : null
+    if (!entry) {
+      dirty = true // junk key or corrupt entry — drop, never crash
+      continue
+    }
+    if (ts < anchors.todayTs) {
+      // ARCHIVE-BEFORE-REMOVAL: yesterday's plan (or rest mark) becomes
+      // history; an empty past entry is not history and just falls away
+      dirty = true
+      if (hasContent(entry)) past.push({ dayTs: ts, ...entry })
+      continue
+    }
+    // field-level scrubs (junk slot types, bogus state, extra keys) also mark
+    // dirty so the cleaned entry actually persists, not just the cleaned READ
+    // (mutator-written entries are canonical, so this stays byte-equal there)
+    if (JSON.stringify(entry) !== JSON.stringify(raw[k])) dirty = true
+    map[String(ts)] = entry
+  }
+  if (past.length) {
+    past.sort((a, b) => a.dayTs - b.dayTs)
+    archiveDays(past)
+  }
+  if (dirty) saveDayPlans(map)
+  return map
+}
+
+export function saveDayPlans(map) {
+  // returns lsSet's persisted? boolean — the migration checks it (a failed
+  // write must not let the source plan get removed); other callers ignore it
+  return lsSet(DAYPLANS_KEY, JSON.stringify(map))
+}
+
+// ===== pure mutation helpers (return a NEW map; callers save) =====
+// withSlot: filling a slot CLEARS a rest mark — rest and slots never coexist
+export function withSlot(map, dayTs, part, key) {
+  const k = String(dayTs)
+  const cur = dayEntryFor(map[k]) ?? emptyDay()
+  return { ...map, [k]: { ...cur, state: null, slots: { ...cur.slots, [part]: key } } }
+}
+
+export function withClearedSlot(map, dayTs, part) {
+  const k = String(dayTs)
+  const cur = dayEntryFor(map[k])
+  if (!cur || !cur.slots[part]) return map
+  const next = { ...cur, slots: { ...cur.slots, [part]: null } }
+  const out = { ...map }
+  // a fully-empty entry doesn't persist (an unplanned day is a blank page,
+  // not a record of nothing) — but a done flag, once U-d sets one, survives
+  if (hasContent(next) || next.done) out[k] = next
+  else delete out[k]
+  return out
+}
+
+// withRest(on=true) only ever succeeds on a slot-empty day — the UI only
+// offers the toggle there, and this guard makes the rule hold from any caller
+export function withRest(map, dayTs, on) {
+  const k = String(dayTs)
+  const cur = dayEntryFor(map[k]) ?? emptyDay()
+  if (on) {
+    if (cur.slots.day || cur.slots.night) return map
+    return { ...map, [k]: { ...cur, state: 'rest' } }
+  }
+  const next = { ...cur, state: null }
+  const out = { ...map }
+  if (hasContent(next) || next.done) out[k] = next
+  else delete out[k]
+  return out
+}
+
+// filled-slot count across a list of day timestamps (WB header, Profile card)
+export function filledForDays(map, dayTsList) {
+  let n = 0
+  for (const ts of dayTsList) {
+    const e = dayEntryFor(map[String(ts)])
+    if (!e) continue
+    for (const part of PARTS) if (e.slots[part]) n++
+  }
+  return n
+}
+
+// ===== ⚑U-WB — the one-shot Weekend Builder migration =====
+// A stored 'weekend-plan-v1' whose weekendStartTs is current-or-future
+// converts into day entries (fri/sat/sun dayTs; fri_day → slots.day etc.,
+// 1:1) — existing day entries keep their already-filled slots (migration
+// never clobbers; in practice the day store is empty when this runs). A PAST
+// plan goes through weekend.js's existing archive path (planFor archives
+// internally) into 'weekend-history-v1'. weekend-history-v1 itself is NOT
+// migrated and NOT deleted — Profile keeps reading it for past weekends;
+// day-history-v1 accumulates going forward. weekend-plan-v1 is REMOVED after,
+// which is exactly what makes a second run a no-op (idempotent by absence).
+//
+// plan.done (the WB completion beat already fired) carries over into
+// 'weekend-done-v1' = { weekendStartTs, done: true, v: 1 } — a single-slot
+// memory keyed to one weekend, so the sanctioned --reward beat can never
+// re-fire after migration. (The DAY entry's done flag is NOT used for this:
+// that flag belongs to U-d's planned→did conversion and means something else.)
+export function migrateWeekendPlan(anchors) {
+  const raw = lsGet(PLAN_KEY)
+  if (raw === null) return // already migrated (or never planned) — the normal case
+  let stored = null
+  try {
+    stored = JSON.parse(raw)
+  } catch {
+    /* corrupt blob — no recoverable plan; fall through to removal */
+  }
+  const valid =
+    stored &&
+    typeof stored === 'object' &&
+    !Array.isArray(stored) &&
+    stored.v === 1 &&
+    typeof stored.weekendStartTs === 'number' &&
+    stored.slots &&
+    typeof stored.slots === 'object' &&
+    !Array.isArray(stored.slots)
+  if (valid) {
+    if (stored.weekendStartTs >= anchors.wkStartTs) {
+      // current (or future) weekend → day entries, slot-for-slot
+      const dayTsArr = weekendDays({ wkStartTs: stored.weekendStartTs })
+      const map = readMap()
+      for (let i = 0; i < DAY_IDS.length; i++) {
+        for (const part of PARTS) {
+          const key = stored.slots[DAY_IDS[i] + '_' + part]
+          if (typeof key !== 'string' || !key) continue
+          const k = String(dayTsArr[i])
+          const cur = dayEntryFor(map[k]) ?? emptyDay()
+          if (cur.slots[part]) continue // never clobber an existing day slot
+          map[k] = { ...cur, state: null, slots: { ...cur.slots, [part]: key } }
+        }
+      }
+      // HARDENING (review #9): archive-before-removal can silently invert if
+      // the day-plans write fails (quota) but the removal below succeeds — a
+      // failed write keeps weekend-plan-v1 alive for a retry on the next load
+      if (!saveDayPlans(map)) return
+      if (stored.done === true) markWeekendDone(stored.weekendStartTs)
+    } else {
+      // a PAST weekend's plan — weekend.js's own archive path preserves it
+      // in weekend-history-v1 before we drop the live key
+      planFor(stored, anchors.wkStartTs)
+    }
+  }
+  lsRemove(PLAN_KEY)
+}
+
+// ===== the WB completion beat's persistence (replaces plan.done) =====
+// Single-slot: only the CURRENT weekend's flag ever matters; a stale ts
+// simply reads false and the next markWeekendDone overwrites it.
+export function loadWeekendDone(wkStartTs) {
+  try {
+    const v = JSON.parse(lsGet(WEEKEND_DONE_KEY))
+    return !!(v && typeof v === 'object' && !Array.isArray(v) && v.v === 1 && v.weekendStartTs === wkStartTs && v.done === true)
+  } catch {
+    return false
+  }
+}
+export function markWeekendDone(wkStartTs) {
+  lsSet(WEEKEND_DONE_KEY, JSON.stringify({ weekendStartTs: wkStartTs, done: true, v: 1 }))
+}

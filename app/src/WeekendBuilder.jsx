@@ -1,60 +1,70 @@
-// WeekendBuilder — Sprint K2 (⚑FLAG-4 approved prototype; self-contained so a
-// Charles veto is one import + one button per entry point to cut).
+// WeekendBuilder — Sprint K2 prototype, re-founded in Sprint U-a (⚑U-WB,
+// default ratified) as a three-column VIEW over the generalized day-plan
+// store. There is no weekend-shaped plan anymore: each column reads/writes
+// the SAME 'day-plans-v1' entry the day screen (DayPage) uses, so a slot
+// filled here shows up there and vice versa — one store, two lenses.
 //
-// The upcoming weekend (Fri/Sat/Sun — already-finished days drop) as day
-// columns, each with two slots: ☀️ Day (start before 17:00) and 🌙 Night
-// (17:00+); date-only events count as "anytime" and fit either. Tapping an
-// empty slot opens a picker sheet: your saved events that fit first ("From
-// your list ❤️"), then up to 8 hot-ranked, taste-nudged suggestions. Slotted
-// events render as mini-cards (tap → detail, ✕ → clear). The plan persists to
-// 'weekend-plan-v1' (weekend.js owns the shape + window/daypart/picker logic);
-// a NEW weekend silently overwrites the old plan. "Share plan" composes an
-// emoji-rich text via navigator.share with a clipboard-toast fallback (the
-// detail-page share pattern). The one --reward beat: the first moment a plan
-// becomes complete (all 6 slots, or ≥3 + "Done planning") — one-shot, persisted
-// via plan.done, reduced-motion-safe (weekend.css).
+// What stayed the K2 original: the Fri/Sat/Sun columns (finished days drop),
+// the ☀️/🌙 slot semantics (weekend.js daypartOf/fitsSlot), the saved-first
+// picker (pickerModel via the shared PickerSheet), "Share plan" composed
+// text, and the ONE --reward beat — the first moment the weekend's plan
+// completes. The beat's one-shot memory moved from plan.done (a weekend-plan
+// field that no longer exists) to dayplan.js's 'weekend-done-v1' single-slot
+// key; the DAY entries' done flag is NOT touched — it belongs to Sprint U-d's
+// planned→did conversion and means something else entirely.
+//
+// Rest days (U-a): a column whose day entry carries state:'rest' renders the
+// calm quiet-day card instead of two empty slots — rest and slots are
+// mutually exclusive (dayplan.js enforces it; "plan this day instead" clears
+// the mark and the slots return). Rest is a filled state, never an absence.
 //
 // App mounts this inside the sliding .subpage overlay (z 1500, below detail
-// 2000). Props contract (same wiring as BubblePage/FindMyNight):
+// 2000), keyed by anchors.wkStartTs (midnight-rollover remount). Props:
 //   events   — normalized events
 //   anchors  — { todayTs, tomorrowTs, wkStartTs, wkEndTs }
-// Detail-open (stacks on top) + close-slide-out come from useNav() (O6).
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon, keyOf, timeOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { CardImg, SponsoredTag } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
 import { tasteNudge } from './taste.js'
+import { daypartOf, fitsDay, pickerModel, shareText, visibleWeekend, weekendDays } from './weekend.js'
 import {
-  SLOT_IDS,
-  daypartOf,
-  filledCount,
-  fitsDay,
-  loadPlan,
-  pickerModel,
-  savePlan,
-  shareText,
-  visibleWeekend,
-} from './weekend.js'
+  PARTS,
+  dayEntryFor,
+  emptyDay,
+  filledForDays,
+  loadDayPlans,
+  loadWeekendDone,
+  markWeekendDone,
+  saveDayPlans,
+  withClearedSlot,
+  withRest,
+  withSlot,
+} from './dayplan.js'
+import PickerSheet from './PickerSheet.jsx'
 import './weekend.css'
 
 const wd = (ts) => new Date(ts).toLocaleDateString('en-US', { weekday: 'long' })
 const fmtShort = (ts) =>
   new Date(ts).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+// 3 days × 2 parts — the auto-complete threshold (all six, K2's original rule)
+const DAY_PARTS_TOTAL = 6
 
 export default function WeekendBuilder({ events, anchors }) {
   const { openDetail: onSelect, closePage: onClose } = useNav()
   // the columns: Fri/Sat/Sun of the current anchors weekend, today-or-later only
   const days = useMemo(() => visibleWeekend(anchors), [anchors])
 
-  // plan state: loaded once for this weekend, persisted on every change.
-  // App keys this component by anchors.wkStartTs, so a midnight rollover into
-  // a NEW weekend remounts with that weekend's (empty) plan — the old one is
-  // archived by simply being overwritten on the next save.
-  const [plan, setPlan] = useState(() => loadPlan(anchors.wkStartTs))
+  // the day-plan map: loaded once on mount (loadDayPlans runs the one-shot
+  // weekend-plan-v1 migration + the past-day archive sweep), persisted on
+  // every change. App keys this component by anchors.wkStartTs, so a midnight
+  // rollover into a NEW weekend remounts onto that weekend's day entries.
+  const [plans, setPlans] = useState(() => loadDayPlans(anchors))
   useEffect(() => {
-    savePlan(plan)
-  }, [plan])
+    saveDayPlans(plans)
+  }, [plans])
+  const entryFor = (ts) => dayEntryFor(plans[String(ts)]) ?? emptyDay()
 
   // resolution: live dataset events win; saved snapshots cover saves whose
   // event vanished in a refresh; anything else is null → slot renders empty
@@ -83,32 +93,39 @@ export default function WeekendBuilder({ events, anchors }) {
     [byKey]
   )
 
-  // ===== the one-shot complete beat (--reward, K2 spec) =====
-  // `plan.done` persists "this plan already celebrated"; `celebrate` marks the
+  // ===== the one-shot complete beat (--reward, K2 spec; memory in
+  // 'weekend-done-v1' since U-a — see dayplan.js) =====
+  // `done` persists "this weekend already celebrated"; `celebrate` marks the
   // live transition in THIS session so the beat animates exactly once, ever.
+  const [done, setDone] = useState(() => loadWeekendDone(anchors.wkStartTs))
   const [celebrate, setCelebrate] = useState(false)
-  const commitPlan = (next) => {
-    if (!next.done && filledCount(next) === SLOT_IDS.length) {
-      next = { ...next, done: true }
+  const wkDayTs = useMemo(() => weekendDays(anchors), [anchors])
+  const commitPlans = (next) => {
+    // auto-complete = all 6 slots across the FULL weekend (only reachable
+    // while all three days are still live — the K2 behavior, preserved)
+    if (!done && filledForDays(next, wkDayTs) === DAY_PARTS_TOTAL) {
+      markWeekendDone(anchors.wkStartTs)
+      setDone(true)
       setCelebrate(true)
     }
-    setPlan(next)
+    setPlans(next)
   }
   const donePlanning = () => {
-    if (plan.done) return
+    if (done) return
+    markWeekendDone(anchors.wkStartTs)
     setCelebrate(true)
-    setPlan({ ...plan, done: true })
+    setDone(true)
   }
 
   // ===== picker sheet =====
-  const [picker, setPicker] = useState(null) // { ts, id, part } | null
+  const [picker, setPicker] = useState(null) // { ts, part } | null
   const [sheetClosing, setSheetClosing] = useState(false)
   const sheetTRef = useRef(null)
   useEffect(() => () => clearTimeout(sheetTRef.current), [])
   const openSheet = (d, part) => {
     clearTimeout(sheetTRef.current)
     setSheetClosing(false)
-    setPicker({ ts: d.ts, id: d.id, part })
+    setPicker({ ts: d.ts, part })
   }
   const closeSheet = useCallback(() => {
     setSheetClosing(true)
@@ -118,42 +135,37 @@ export default function WeekendBuilder({ events, anchors }) {
       setSheetClosing(false)
     }, 240)
   }, [])
-  // Escape closes the sheet BEFORE App's window listener can close the whole
-  // page (capture phase runs first; stopPropagation keeps the page up)
-  useEffect(() => {
-    if (!picker) return
-    const onKey = (ev) => {
-      if (ev.key !== 'Escape') return
-      ev.stopPropagation()
-      closeSheet()
-    }
-    window.addEventListener('keydown', onKey, true)
-    return () => window.removeEventListener('keydown', onKey, true)
-  }, [picker, closeSheet])
 
   const model = useMemo(() => {
     if (!picker) return null
-    // a stale slotted key (event vanished/moved since planning) must not keep
-    // blocking its event from every picker — null unresolvable keys first
-    const liveSlots = Object.fromEntries(
-      Object.entries(plan.slots).map(([id, k]) => [id, k && byKey.has(k) ? k : null])
-    )
+    // dedup pool: every slotted key across the weekend's day entries — a
+    // stale key (event vanished/moved since planning) must not keep blocking
+    // its event from every picker, so unresolvable keys null out first
+    const liveSlots = {}
+    for (const ts of wkDayTs) {
+      const en = dayEntryFor(plans[String(ts)])
+      if (!en) continue
+      for (const part of PARTS) {
+        const k = en.slots[part]
+        liveSlots[ts + '_' + part] = k && byKey.has(k) ? k : null
+      }
+    }
     return pickerModel({
       ts: picker.ts,
       part: picker.part,
       upcoming,
       saved: savedEvents,
-      plan: { ...plan, slots: liveSlots },
+      plan: { slots: liveSlots },
       nudge: tasteNudge,
     })
-  }, [picker, upcoming, savedEvents, plan, byKey])
+  }, [picker, upcoming, savedEvents, plans, byKey, wkDayTs])
 
   const assign = (e) => {
     if (!picker) return
-    commitPlan({ ...plan, slots: { ...plan.slots, [picker.id + '_' + picker.part]: keyOf(e) } })
+    commitPlans(withSlot(plans, picker.ts, picker.part, keyOf(e)))
     closeSheet()
   }
-  const clearSlot = (slotId) => setPlan({ ...plan, slots: { ...plan.slots, [slotId]: null } })
+  const clearSlot = (ts, part) => setPlans(withClearedSlot(plans, ts, part))
 
   // ===== share: composed text via navigator.share, clipboard fallback w/ toast
   // (the detail-page pattern) =====
@@ -166,7 +178,11 @@ export default function WeekendBuilder({ events, anchors }) {
     toastTRef.current = setTimeout(() => setToast(null), 1600)
   }
   const sharePlan = async () => {
-    const text = shareText(plan, days, resolveSlot)
+    // shareText still speaks weekend-plan shape ({ slots: { fri_day… } }) —
+    // adapt the day entries into that shape so the composer stays untouched
+    const slots = {}
+    for (const d of days) for (const part of PARTS) slots[d.id + '_' + part] = entryFor(d.ts).slots[part]
+    const text = shareText({ slots }, days, resolveSlot)
     if (navigator.share) {
       try {
         await navigator.share({ title: 'My weekend plan', text })
@@ -186,16 +202,15 @@ export default function WeekendBuilder({ events, anchors }) {
   }
 
   // header line: "Fri, Jun 12 – Sun, Jun 14 · 2/6 planned" (visible slots only)
-  const visibleSlotIds = days.flatMap((d) => ['day', 'night'].map((p) => d.id + '_' + p))
-  const filledVis = filledCount(plan, visibleSlotIds)
+  const filledVis = filledForDays(plans, days.map((d) => d.ts))
+  const visibleSlotN = days.length * PARTS.length
   const range =
     days.length > 1 ? fmtShort(days[0].ts) + ' – ' + fmtShort(days[days.length - 1].ts) : fmtShort(days[0].ts)
 
   const renderSlot = (d, part) => {
-    const slotId = d.id + '_' + part
-    const e = resolveSlot(plan.slots[slotId], d.ts)
+    const e = resolveSlot(entryFor(d.ts).slots[part], d.ts)
     return (
-      <div className="wkb-slot" key={slotId}>
+      <div className="wkb-slot" key={d.id + '_' + part}>
         <div className="wkb-part">{part === 'day' ? '☀️ Day' : '🌙 Night'}</div>
         {e ? (
           <div className="wkb-filled">
@@ -211,7 +226,7 @@ export default function WeekendBuilder({ events, anchors }) {
             </button>
             <button
               className="wkb-clear"
-              onClick={() => clearSlot(slotId)}
+              onClick={() => clearSlot(d.ts, part)}
               aria-label={`Clear ${e.title} from ${wd(d.ts)} ${part}`}
             >
               ✕
@@ -230,22 +245,6 @@ export default function WeekendBuilder({ events, anchors }) {
     )
   }
 
-  const pickRow = (e) => (
-    <button key={keyOf(e)} className="wkb-pick pressable" onClick={() => assign(e)}>
-      <CardImg e={e} className="wkb-pick-img" />
-      <span className="wkb-pick-main">
-        <span className="wkb-pick-title">{e.title}</span>
-        <span className="wkb-pick-meta">
-          {[daypartOf(e) === 'any' ? 'Anytime' : timeOf(e.start) || null, e.venue].filter(Boolean).join(' · ')}
-        </span>
-        <SponsoredTag e={e} />
-      </span>
-      <span className="wkb-pick-add" aria-hidden>
-        +
-      </span>
-    </button>
-  )
-
   return (
     <div className="pg wkb">
       <header className="pg-head">
@@ -255,28 +254,45 @@ export default function WeekendBuilder({ events, anchors }) {
         <div>
           <h1 className="pg-head-title">Build my weekend</h1>
           <div className="pg-count">
-            {range} · {filledVis}/{visibleSlotIds.length} planned
+            {range} · {filledVis}/{visibleSlotN} planned
           </div>
         </div>
       </header>
       <div className="pg-body wkb-body">
         <div className={'wkb-days wkb-n' + days.length}>
-          {days.map((d) => (
-            <div className="wkb-col" key={d.id}>
-              <div className="wkb-day-head">
-                <span className="wkb-dow">{new Date(d.ts).toLocaleDateString('en-US', { weekday: 'short' })}</span>
-                <span className="wkb-date">
-                  {d.ts === anchors.todayTs
-                    ? 'Today'
-                    : new Date(d.ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                </span>
+          {days.map((d) => {
+            const rest = entryFor(d.ts).state === 'rest'
+            return (
+              <div className="wkb-col" key={d.id}>
+                <div className="wkb-day-head">
+                  <span className="wkb-dow">{new Date(d.ts).toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                  <span className="wkb-date">
+                    {d.ts === anchors.todayTs
+                      ? 'Today'
+                      : new Date(d.ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </span>
+                </div>
+                {rest ? (
+                  /* a rest day marked on the day screen renders here as the
+                     same calm filled state — never an empty slot to "fix" */
+                  <div className="wkb-rest">
+                    <div className="wkb-rest-title">🌙 Quiet day</div>
+                    <div className="wkb-rest-sub">Resting is a plan too.</div>
+                    <button className="wkb-rest-undo" onClick={() => setPlans(withRest(plans, d.ts, false))}>
+                      Plan this day instead
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    {renderSlot(d, 'day')}
+                    {renderSlot(d, 'night')}
+                  </>
+                )}
               </div>
-              {renderSlot(d, 'day')}
-              {renderSlot(d, 'night')}
-            </div>
-          ))}
+            )
+          })}
         </div>
-        {plan.done && filledVis > 0 && (
+        {done && filledVis > 0 && (
           <div className={'wkb-done-card' + (celebrate ? ' beat' : '')}>
             <div className="wkb-done-over">Planned ✓</div>
             <div className="wkb-done-title">That's a weekend.</div>
@@ -285,7 +301,7 @@ export default function WeekendBuilder({ events, anchors }) {
         )}
         {filledVis > 0 && (
           <div className="wkb-actions">
-            {filledVis >= Math.min(3, visibleSlotIds.length) && !plan.done && (
+            {filledVis >= Math.min(3, visibleSlotN) && !done && (
               <button className="wkb-btn wkb-btn-done" onClick={donePlanning}>
                 Done planning
               </button>
@@ -300,41 +316,16 @@ export default function WeekendBuilder({ events, anchors }) {
       </div>
 
       {picker && model && (
-        <div className={'wkb-sheet-wrap' + (sheetClosing ? ' closing' : '')}>
-          <button className="wkb-scrim" onClick={closeSheet} aria-label="Close picker" />
-          <div className="wkb-sheet" role="dialog" aria-label="Pick an event">
-            <div className="wkb-sheet-head">
-              <div className="wkb-sheet-title">
-                {(picker.part === 'day' ? '☀️ ' : '🌙 ') +
-                  wd(picker.ts) +
-                  (picker.part === 'day' ? ' daytime' : ' night')}
-              </div>
-              <button className="wkb-sheet-close" onClick={closeSheet} aria-label="Close">
-                ✕
-              </button>
-            </div>
-            <div className="wkb-sheet-body">
-              {model.saved.length > 0 && (
-                <>
-                  <div className="wkb-group">From your list ❤️</div>
-                  {model.saved.map(pickRow)}
-                </>
-              )}
-              {savedList.length === 0 && (
-                <div className="wkb-note">♥ save things and they'll show up here first</div>
-              )}
-              {model.suggestions.length > 0 && (
-                <>
-                  <div className="wkb-group">Top picks 🔥</div>
-                  {model.suggestions.map(pickRow)}
-                </>
-              )}
-              {model.saved.length === 0 && model.suggestions.length === 0 && (
-                <div className="wkb-note">Nothing on the books for this one yet 🦗</div>
-              )}
-            </div>
-          </div>
-        </div>
+        <PickerSheet
+          title={
+            (picker.part === 'day' ? '☀️ ' : '🌙 ') + wd(picker.ts) + (picker.part === 'day' ? ' daytime' : ' night')
+          }
+          model={model}
+          noSaves={savedList.length === 0}
+          closing={sheetClosing}
+          onPick={assign}
+          onClose={closeSheet}
+        />
       )}
       {toast && <div className="detail-toast wkb-toast">{toast}</div>}
     </div>

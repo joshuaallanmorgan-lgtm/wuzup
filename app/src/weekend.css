@@ -135,6 +135,32 @@
 }
 .wkb-clear:active { transform: scale(0.88); }
 
+/* ===== U-a: a rest day in a weekend column — the calm filled state =====
+   replaces BOTH slots (rest and slots are mutually exclusive, dayplan.js);
+   muted ink on a soft wash, zero alarm — never reads as something to fix */
+.wkb-rest {
+  margin-top: 10px;
+  padding: 14px 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  text-align: center;
+}
+.wkb-rest-title { font-size: 12.5px; font-weight: 800; }
+.wkb-rest-sub { margin-top: 3px; font-size: 11px; font-weight: 500; color: var(--muted); line-height: 1.35; }
+.wkb-rest-undo {
+  margin-top: 10px;
+  padding: 6px 10px;
+  border: 1px solid rgba(var(--accent-rgb), 0.35);
+  border-radius: 999px;
+  background: none;
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 /* ===== complete banner + the one-shot reward beat =====
    Resting state is calm teal-on-white; .beat plays ONCE (the moment the plan
    first completes): rises in wearing --reward, settles to the resting look.

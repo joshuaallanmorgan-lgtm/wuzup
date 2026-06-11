@@ -18,6 +18,7 @@ import SearchPage from './SearchPage.jsx'
 import FindMyNight from './FindMyNight.jsx'
 import AddEvent from './AddEvent.jsx'
 import WeekendBuilder from './WeekendBuilder.jsx'
+import DayPage from './DayPage.jsx'
 import SettingsPage from './SettingsPage.jsx'
 import InterestEditor from './InterestEditor.jsx'
 import CalibrationDeck from './CalibrationDeck.jsx'
@@ -290,6 +291,14 @@ function Shell() {
             {page.type === 'weekend' && (
               /* keyed by weekend: a midnight rollover into a new weekend remounts with that weekend's plan */
               <WeekendBuilder key={anchors.wkStartTs} events={norm} anchors={anchors} />
+            )}
+            {page.type === 'day' && (
+              /* Sprint U-a day screen — keyed by day ts AND todayTs: opening
+                 another day remounts, and a midnight rollover remounts too
+                 (page.ts alone never changes at midnight — review LOW-1; the
+                 remount re-runs the archive sweep so a now-past day stops
+                 offering slots) */
+              <DayPage key={page.ts + '-' + anchors.todayTs} ts={page.ts} events={norm} anchors={anchors} wx={wx} />
             )}
             {/* Sprint P/Q2c: settings + the taste flows. Single-slot union —
                 interests/deck REPLACE the settings page and hand back via

@@ -48,6 +48,16 @@ export function dateKey(ts) {
   return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate())
 }
 
+// "🌧️ Showers likely · high 93° · 47% rain" — null when no forecast for the
+// day. Shared by CalendarView's selected-day line and the U-a day screen.
+export function wxSummary(w) {
+  if (!w) return null
+  const parts = [w.emoji + ' ' + (CONDITION[w.emoji] || 'Forecast')]
+  if (w.hi != null) parts.push('high ' + w.hi + '°')
+  if (w.rain != null) parts.push(w.rain + '% rain')
+  return parts.join(' · ')
+}
+
 function readCache() {
   try {
     const c = JSON.parse(lsGet(CACHE_KEY))

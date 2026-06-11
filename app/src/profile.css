@@ -207,6 +207,29 @@
 .pf-hist-live .pf-hist-title { color: var(--accent); }
 .pf-hist-gone { color: var(--muted); font-style: italic; font-weight: 500; }
 
+/* ===== U-a: past DAYS from day-history-v1 — one quiet row per day
+   (U-d makes this rich; same card voice as the weekend history) ===== */
+.pf-dayh {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 20px 8px;
+  padding: 11px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+.pf-dayh-date { flex: 0 0 auto; font-size: 12px; font-weight: 700; color: var(--muted); }
+.pf-dayh-what {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ===== Been there: the "Did you make it?" prompt rows ===== */
 .pf-asks { display: flex; flex-direction: column; gap: 10px; padding: 0 20px; margin-bottom: 14px; }
 .pf-ask {

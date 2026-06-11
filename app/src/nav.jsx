@@ -106,7 +106,8 @@ export function NavProvider({ children }) {
   }, [visit])
 
   // ===== subpage overlay: null | {type:'bubble',bubble} | {type:'search'} |
-  // {type:'night'} | {type:'add'} | {type:'weekend'} | {type:'settings'} |
+  // {type:'night'} | {type:'add'} | {type:'weekend'} | {type:'day',ts} |
+  // {type:'settings'} |
   // {type:'interests',from} | {type:'deck',from} | {type:'lensdeck',lens} —
   // slides in over the active tab (z 1500, below detail 2000). Sprint P added
   // settings (Profile's gear) and the calibration deck (launched FROM
@@ -151,6 +152,17 @@ export function NavProvider({ children }) {
     clearTimeout(pageTRef.current)
     setPageClosing(false)
     setPage({ type: 'weekend' })
+  }, [])
+  // Sprint U-a: the day screen — `ts` is the day's local-midnight timestamp.
+  // App keys the mount on ts + anchors.todayTs, so opening another day AND
+  // crossing midnight both remount cleanly (ts alone wouldn't roll over).
+  // Opened from CalendarView's day-rail pills and month-grid cells;
+  // non-numeric input is ignored defensively.
+  const openDay = useCallback((ts) => {
+    if (typeof ts !== 'number' || !Number.isFinite(ts)) return
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    setPage({ type: 'day', ts })
   }, [])
   // Sprint P: settings (Profile gear) + the taste flows it launches.
   // Opening one while another is up REPLACES the page (single-slot union) —
@@ -292,6 +304,7 @@ export function NavProvider({ children }) {
       openNight,
       openAdd,
       openWeekend,
+      openDay,
       openSettings,
       openInterests,
       openDeck,
@@ -320,6 +333,7 @@ export function NavProvider({ children }) {
       openNight,
       openAdd,
       openWeekend,
+      openDay,
       openSettings,
       openInterests,
       openDeck,

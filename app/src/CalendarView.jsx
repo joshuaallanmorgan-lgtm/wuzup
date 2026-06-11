@@ -1,24 +1,19 @@
 // CalendarView — List | Month segmented calendar with heat-shaded month grid.
-// Detail-open + Weekend-Builder entry come from useNav() (O6).
+// Detail-open + Weekend-Builder entry come from useNav() (O6). Sprint U-a:
+// tapping a day (rail pill or today-or-later month cell) opens the DAY SCREEN
+// for it — the day screen carries the agenda, so browse stays whole; the
+// selected-day list below the grid still tracks the tap underneath.
 import { useMemo, useState } from 'react'
 import { keyOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { EventCard } from './cards.jsx'
 import { useSaves } from './saves.js'
-import { dateKey, CONDITION } from './weather.js'
+import { dateKey, wxSummary } from './weather.js'
+import { hasContent, loadDayPlans } from './dayplan.js'
 import './calendar.css'
 
-// "🌧️ Showers likely · high 93° · 47% rain" — null when no forecast for the day
-function wxSummary(w) {
-  if (!w) return null
-  const parts = [w.emoji + ' ' + (CONDITION[w.emoji] || 'Forecast')]
-  if (w.hi != null) parts.push('high ' + w.hi + '°')
-  if (w.rain != null) parts.push(w.rain + '% rain')
-  return parts.join(' · ')
-}
-
 export default function CalendarView({ events, anchors, wx }) {
-  const { openDetail: onSelect, openWeekend: onOpenWeekend } = useNav()
+  const { openDetail: onSelect, openWeekend: onOpenWeekend, openDay, page } = useNav()
   const [mode, setMode] = useState('list')
   const [selKey, setSelKey] = useState(null) // day timestamp; persists across List/Month toggle
   const [monthOff, setMonthOff] = useState(0)
@@ -54,6 +49,25 @@ export default function CalendarView({ events, anchors, wx }) {
     for (const [d, list] of dayMap) if (list.some((e) => savedIds.has(keyOf(e)))) s.add(d)
     return s
   }, [dayMap, savedIds])
+
+  // U-a (⚑U-GRID): the day-plan store, for the grid's ONE quiet personal
+  // mark. localStorage isn't reactive — plans only change inside the day/WB
+  // subpages, so re-reading on every subpage open/close edge (`page` flips
+  // null ↔ object) keeps the marks honest; the read is one small JSON parse.
+  const dayPlans = useMemo(() => {
+    void page // re-read trigger (see above)
+    return loadDayPlans(anchors)
+  }, [anchors, page])
+  const plannedDays = useMemo(() => {
+    const s = new Set()
+    for (const [k, e] of Object.entries(dayPlans)) if (hasContent(e) && e.state !== 'rest') s.add(Number(k))
+    return s
+  }, [dayPlans])
+  const restDays = useMemo(() => {
+    const s = new Set()
+    for (const [k, e] of Object.entries(dayPlans)) if (e.state === 'rest') s.add(Number(k))
+    return s
+  }, [dayPlans])
   const sel = selKey ?? days.find((d) => d >= anchors.todayTs) ?? days[0] ?? anchors.todayTs
   const selEvents = dayMap.get(sel) || []
 
@@ -113,7 +127,10 @@ export default function CalendarView({ events, anchors, wx }) {
                 <button
                   key={d}
                   className={'date-pill' + (d === sel ? ' active' : '') + (hotDays.has(d) ? ' hot' : '')}
-                  onClick={() => setSelKey(d)}
+                  onClick={() => {
+                    setSelKey(d) // browse state tracks the tap…
+                    openDay(d) // …and the day screen opens over it (U-a)
+                  }}
                 >
                   {savedDays.has(d) && <span className="save-dot" />}
                   <span className="dp-dow">{dd.toLocaleDateString('en-US', { weekday: 'short' })}</span>
@@ -174,11 +191,23 @@ export default function CalendarView({ events, anchors, wx }) {
                     (hotDays.has(ts) ? ' hot' : '')
                   }
                   style={{ '--heat': heat }}
-                  onClick={() => setSelKey(ts)}
+                  onClick={() => {
+                    setSelKey(ts) // browse state tracks the tap…
+                    // …and today-or-later cells open the day screen (U-a).
+                    // Past cells stay browse-only: personal past days are
+                    // Sprint U-d's journal, not a planning surface.
+                    if (ts >= anchors.todayTs) openDay(ts)
+                  }}
                 >
                   <span className="mcell-bg" />
                   {savedDays.has(ts) && <span className="save-dot" />}
                   <span className="mnum">{new Date(ts).getDate()}</span>
+                  {/* U-a ⚑U-GRID: the ONE quiet personal mark — a teal
+                      underline tucked under the digit for planned days, a
+                      muted crescent for rest days. Mutually exclusive by the
+                      store's own rule; never rendered on unplanned days. */}
+                  {plannedDays.has(ts) && <span className="mday-plan" />}
+                  {restDays.has(ts) && <span className="mday-rest" />}
                   {w && <span className="mwx">{w.emoji}</span>}
                 </button>
               )

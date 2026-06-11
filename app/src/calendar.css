@@ -161,6 +161,43 @@
 .mcell.today .mnum { box-shadow: inset 0 0 0 2px var(--accent); color: var(--accent); font-weight: 800; }
 .mcell.sel .mnum { background: var(--accent); color: #fff; box-shadow: none; font-weight: 800; }
 .mcell:active .mnum { transform: scale(0.92); }
+/* ===== U-a ⚑U-GRID: the ONE quiet personal mark =====
+   The 56px cell's channels are spoken for: heat tint + hot ring own the bg
+   rect (coral = supply only), today/selected own the numeral circle, the
+   saved dot owns top-center (UI_SPEC §4), the weather emoji owns the 44–54px
+   bottom band. The only clean free pixels are INSIDE the numeral circle below
+   the digit — so a planned day wears a 10×2.5px teal underline there, and a
+   rest day wears a tiny muted crescent in the same spot. One channel, two
+   quiet variants; nothing on unplanned days, nothing red, nothing dimmed. */
+.mday-plan {
+  position: absolute;
+  left: 50%;
+  bottom: 16px; /* inside the 32px numeral circle (12–44px band), under the digit */
+  width: 10px;
+  height: 2.5px;
+  margin-left: -5px;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0.9;
+  z-index: 1;
+  pointer-events: none;
+}
+.mcell.sel .mday-plan { background: #fff; } /* the selected fill is teal — stay visible */
+.mday-rest {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 50%;
+  /* a crescent: inset shadow offset across a transparent circle */
+  box-shadow: inset 2.5px -1.5px 0 0 rgba(107, 114, 128, 0.65);
+  z-index: 1;
+  pointer-events: none;
+}
+.mcell.sel .mday-rest { box-shadow: inset 2.5px -1.5px 0 0 rgba(255, 255, 255, 0.9); }
+
 /* month-cell weather emoji: bottom-center, subtle — must not fight heat tint or numeral */
 .mwx {
   position: absolute;
