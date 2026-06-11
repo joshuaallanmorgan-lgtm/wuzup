@@ -106,8 +106,13 @@ export function NavProvider({ children }) {
   }, [visit])
 
   // ===== subpage overlay: null | {type:'bubble',bubble} | {type:'search'} |
-  // {type:'night'} | {type:'add'} | {type:'weekend'} — slides in over the Hot
-  // tab (z 1500, below detail 2000) =====
+  // {type:'night'} | {type:'add'} | {type:'weekend'} | {type:'settings'} |
+  // {type:'interview'} | {type:'deck'} — slides in over the active tab
+  // (z 1500, below detail 2000). Sprint P added the last three: settings
+  // (Profile's gear), the full interview and the calibration deck (both
+  // launched FROM settings — they stack by replacing the page, and their
+  // back/finish affordances reopen settings, so "one level deep" stays true
+  // in feel while the union stays flat in state). =====
   const [page, setPage] = useState(null)
   const [pageClosing, setPageClosing] = useState(false)
   const pageTRef = useRef(null)
@@ -138,6 +143,25 @@ export function NavProvider({ children }) {
     clearTimeout(pageTRef.current)
     setPageClosing(false)
     setPage({ type: 'weekend' })
+  }, [])
+  // Sprint P: settings (Profile gear) + the two taste flows it launches.
+  // Opening one while another is up REPLACES the page (single-slot union) —
+  // the .subpage shell stays mounted, so settings → interview → settings
+  // reads as layers without any stack state.
+  const openSettings = useCallback(() => {
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    setPage({ type: 'settings' })
+  }, [])
+  const openInterview = useCallback(() => {
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    setPage({ type: 'interview' })
+  }, [])
+  const openDeck = useCallback(() => {
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    setPage({ type: 'deck' })
   }, [])
   const closePage = useCallback(() => {
     setPageClosing(true)
@@ -243,6 +267,9 @@ export function NavProvider({ children }) {
       openNight,
       openAdd,
       openWeekend,
+      openSettings,
+      openInterview,
+      openDeck,
       closePage,
       // detail
       detail,
@@ -267,6 +294,9 @@ export function NavProvider({ children }) {
       openNight,
       openAdd,
       openWeekend,
+      openSettings,
+      openInterview,
+      openDeck,
       closePage,
       detail,
       closing,

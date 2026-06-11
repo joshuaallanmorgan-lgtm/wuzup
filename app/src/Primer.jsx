@@ -14,8 +14,21 @@
 // zero profile mutation is the contract.
 //
 // Fully local, no account, no network. ALL COPY IS DRAFT for Charles's review
-// (inventory in the sprint report). Re-entry/“Tune your taste” is a Charles
-// question later — the primer is one-shot by design.
+// (inventory in the sprint report).
+//
+// RE-ENTRY MODE (Sprint P1 — Settings' "Retake the quick primer"): the
+// `reentry` prop relaxes exactly TWO things and nothing else, so the
+// first-open flow stays byte-identical:
+//   · skip leaves WITHOUT touching the stored state — a retake abandoned
+//     must never clobber a real {done, when} with {skipped} (and it still
+//     seeds nothing, the original skip contract);
+//   · its Escape handler runs CAPTURE-phase + stopPropagation so nav.jsx's
+//     bubble-phase Escape doesn't also close the Settings subpage underneath
+//     (the MapView/WeekendBuilder layering precedent).
+// Finish in re-entry is the SAME finish: recordPrimer seeds again (the
+// documented stacking edge in taste.js — primer weights are small and real
+// taps dominate either way) and {done, when} overwrites, which is the point
+// of a retake. Header copy swaps to retake phrasing (DRAFT).
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { categoryById } from './categories.js'
 import { CITY } from './lib.js'
@@ -75,7 +88,7 @@ const WHEN = [
 const prefersReduced = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-export default function Primer({ onDone }) {
+export default function Primer({ onDone, reentry = false }) {
   const [step, setStep] = useState(0)
   const [cats, setCats] = useState([]) // array → preserves pick order, max 3
   const [free, setFree] = useState(null) // null | true | false
@@ -100,18 +113,23 @@ export default function Primer({ onDone }) {
   }
 
   const skip = () => {
+    if (reentry) return close(null) // retake abandoned: stored state untouched, nothing seeded
     const s = { skipped: true, v: 1 }
     savePrimerState(s)
     close(s) // NO recordPrimer — skip seeds nothing, ever
   }
 
-  // Escape = skip (one-keystroke parity with the one-tap skip button)
+  // Escape = skip (one-keystroke parity with the one-tap skip button).
+  // Re-entry runs capture-phase + stopPropagation so the Settings subpage
+  // behind it doesn't ALSO close (nav.jsx's Escape is bubble-phase by design).
   useEffect(() => {
     const onKey = (ev) => {
-      if (ev.key === 'Escape') skip()
+      if (ev.key !== 'Escape') return
+      if (reentry) ev.stopPropagation()
+      skip()
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    window.addEventListener('keydown', onKey, reentry)
+    return () => window.removeEventListener('keydown', onKey, reentry)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -145,8 +163,10 @@ export default function Primer({ onDone }) {
       <div className="primer-scrim" />
       <div className="primer-body">
         <header className="primer-head">
-          <div className="primer-kicker">NEW HERE? MAKE IT YOURS</div>
-          <div className="primer-note">3 taps, no account, all on your phone.</div>
+          <div className="primer-kicker">{reentry ? 'TUNE YOUR TASTE' : 'NEW HERE? MAKE IT YOURS'}</div>
+          <div className="primer-note">
+            {reentry ? '3 taps — a fresh read on you.' : '3 taps, no account, all on your phone.'}
+          </div>
           <div className="primer-dots" aria-hidden>
             {[0, 1, 2].map((i) => (
               <span key={i} className={'primer-dot' + (i === step ? ' on' : i < step ? ' done' : '')} />
@@ -224,7 +244,7 @@ export default function Primer({ onDone }) {
 
       {/* ONE-TAP SKIP — visible on every step, always */}
       <button className="primer-skip" onClick={skip}>
-        Skip — just show me everything
+        {reentry ? 'Never mind — back to settings' : 'Skip — just show me everything'}
       </button>
     </div>
   )

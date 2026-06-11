@@ -8,7 +8,10 @@
 // localStorage 'display-mode') and wraps the tree in <DisplayModeContext.Provider
 // value={{ mode, setMode }}>. Any card component reads the current mode with
 // `useDisplayMode()` → 'editorial' | 'poster' | 'cinematic'. <DisplayModeToggle/>
-// (the 🎨 pill, mounted by App bottom-left) cycles through DISPLAY_MODES.
+// is the control: a 3-option segmented row living in Profile → Settings →
+// Display (Sprint P1 — the floating 🎨 pill RETIRED; per the UI_SPEC tasting
+// verdict the toggle survives only as a comparison tool, and a comparison
+// tool belongs in settings, not floating over every feed).
 import { createContext, memo, useContext, useEffect, useRef, useState } from 'react'
 import { CATEGORY_EMOJI, CATEGORY_HUES } from './categories.js'
 import { dayLabelLoose, dayLoose, keyOf, priceLabel, startLabel, timeOf } from './lib.js'
@@ -41,20 +44,26 @@ export const WxContext = createContext(null)
 export { CATEGORY_EMOJI, CATEGORY_HUES } from './categories.js'
 export const hueFor = (e) => CATEGORY_HUES[e.category] ?? CATEGORY_HUES.other
 
-// 🎨 pill: cycles editorial → poster → cinematic. key={mode} remounts the label
-// so it plays a tiny flash (opacity/transform pop) on every switch. `inert`
-// passes through so App's primer gate covers this floating control too (O
-// audit prep #6 — Tab must not reach it behind the primer overlay).
-export function DisplayModeToggle({ inert }) {
+// display-mode control, P1 form: a proper 3-option segmented row (Settings →
+// Display). Same context contract as the retired pill — reads + writes
+// DisplayModeContext, so every Row/CardImg repaints live as before. No inert
+// pass-through anymore: it no longer floats over the primer.
+export function DisplayModeToggle() {
   const { mode, setMode } = useContext(DisplayModeContext)
-  const next = DISPLAY_MODES[(DISPLAY_MODES.indexOf(mode) + 1) % DISPLAY_MODES.length]
   return (
-    <button className="dm-toggle" inert={inert} onClick={() => setMode(next)} aria-label={`Display mode: ${mode} (tap for ${next})`}>
-      🎨{' '}
-      <span className="dm-label" key={mode}>
-        {mode}
-      </span>
-    </button>
+    <div className="dm-seg" role="radiogroup" aria-label="Display mode">
+      {DISPLAY_MODES.map((m) => (
+        <button
+          key={m}
+          className={'dm-opt' + (m === mode ? ' on' : '')}
+          role="radio"
+          aria-checked={m === mode}
+          onClick={() => setMode(m)}
+        >
+          {m}
+        </button>
+      ))}
+    </div>
   )
 }
 

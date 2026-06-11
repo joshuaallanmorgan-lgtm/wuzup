@@ -75,6 +75,7 @@ Beyond features, shipping requires: **(a) availability** — it runs somewhere t
 
 ### Sprint V — Taste engine v2 + transparency
 - **V1** Interview/deck/primer weights unified + documented; **V2** profile shows "why your feed looks like this" (the inspectable promise, user-facing); **V3** per-category mute/boost chips in settings (explicit control beats inference — never filters, only ordering, the invariant holds); **V4** recommendation quality benchmark: a sim-able metric (top-20 feed diversity + taste-match rate) asserted in the harness so regressions get caught numerically.
+- **Sprint P review carry-ins (V1 scope):** (a) primer retake STACKS seeds (interview got `_interview` replace-not-stack bookkeeping; primer needs the same — 5 retakes alone = full confidence today); (b) seed-only rail crossing: primer n=3 + interview n=5 = conf 0.53 lights "Your kind of night" with zero organic taps — decide whether seeds should count toward the rail gate or only organic signals; (c) an affinity-free interview (dayparts/indoor/paid only) still credits n+=5 — "Tuned by N taps" counts answers that moved no scores; (d) interview's chill set deliberately drops FMN's outdoors+market (comment in taste.js documents the delta — unify or bless it).
 
 # PHASE 4 — SHIP IT (availability, trust, feedback) — ~2 sessions + Josh gates
 

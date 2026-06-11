@@ -349,43 +349,44 @@
 }
 .card-meta { font-size: 12.5px; color: var(--muted); margin-top: 3px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* ===== 🎨 display-mode toggle (pill, bottom-left above the tabbar) ===== */
-.dm-toggle {
-  position: absolute;
-  left: 18px;
-  bottom: calc(88px + env(safe-area-inset-bottom));
-  z-index: 1510; /* above subpages (1500), below detail (2000) */
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 36px;
-  padding: 0 12px;
-  border-radius: 999px;
+/* ===== display-mode control (Sprint P1): segmented 3-option row, lives in
+   Settings → Display. The floating 🎨 pill (.dm-toggle, z 1510) RETIRED. ===== */
+.dm-seg {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(10px);
+  border-radius: 999px;
+  background: var(--bg);
+}
+.dm-opt {
+  flex: 1;
+  height: 34px;
+  border: none;
+  border-radius: 999px;
+  background: none;
   font-family: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
-  color: var(--ink);
+  text-transform: capitalize;
+  color: var(--muted);
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(20, 23, 28, 0.12);
-  transition: transform var(--dur-micro);
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
 }
-.dm-toggle:active { transform: scale(0.94); }
-/* tiny label flash on mode switch — span remounts (key={mode}) and pops in */
-@keyframes dmFlash {
-  from { opacity: 0; transform: translateY(5px) scale(0.85); }
-  to { opacity: 1; transform: none; }
+.dm-opt.on {
+  background: var(--card);
+  color: var(--accent);
+  box-shadow: 0 1px 6px rgba(20, 23, 28, 0.1);
 }
-.dm-label { text-transform: capitalize; min-width: 52px; animation: dmFlash var(--dur-fast) var(--ease-out); }
 
 /* ===== reduced motion (card-scope) ===== */
 @media (prefers-reduced-motion: reduce) {
   .bigone-reveal .bigone-img,
   .feed-stagger .row,
-  .dm-label,
   .card { animation: none !important; }
+  .dm-opt { transition: none; }
   .pressable:active,
   .gems-more:active,
   .card:active { transform: none; }

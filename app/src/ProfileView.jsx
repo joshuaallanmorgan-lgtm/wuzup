@@ -1,7 +1,8 @@
-// ProfileView — the Profile tab (Sprint O3/O4/O5). TASTE-IDENTITY FIRST,
-// dating-profile energy: who you are here, not knobs (NO settings, NO email —
-// Sprint P adds settings; until then there is deliberately no gear at all,
-// a dead button being worse than no button).
+// ProfileView — the Profile tab (Sprint O3/O4/O5 + P1's gear). TASTE-IDENTITY
+// FIRST, dating-profile energy: who you are here, not knobs. The knobs now
+// have a real home — the quiet gear (top-right of the header) opens the
+// Settings subpage (SettingsPage.jsx); it stays deliberately muted because
+// the page is the identity, the gear is the maintenance hatch.
 //
 // Sections, all from REAL local data (every empty state is an invitation):
 //   · VIBE HEADER — derived live from taste.js: top-category chips (emoji+hue
@@ -44,8 +45,26 @@ const WHEN_LINE = {
   whenever: '🤷 Out whenever the mood hits',
 }
 
+// a quiet stroke gear (no emoji color noise — the header stays editorial)
+const GearIc = () => (
+  <svg
+    viewBox="0 0 24 24"
+    width="19"
+    height="19"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+  >
+    <circle cx="12" cy="12" r="3.2" />
+    <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.12-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.56-1.12 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.56 1.03z" />
+  </svg>
+)
+
 export default function ProfileView({ events, anchors, primer }) {
-  const { openDetail: onSelect, openWeekend: onOpenWeekend, page } = useNav()
+  const { openDetail: onSelect, openWeekend: onOpenWeekend, openSettings, page } = useNav()
   const taste = useTaste()
   const { list: savedList } = useSaves()
   const been = useBeenThere()
@@ -164,6 +183,9 @@ export default function ProfileView({ events, anchors, primer }) {
   return (
     <div className="pf-scroll">
       <header className="pf-head">
+        <button className="pf-gear" onClick={openSettings} aria-label="Settings">
+          <GearIc />
+        </button>
         <div className="pf-over">Profile</div>
         <h1 className="pf-title">{vibeTitle}</h1>
         {(chips.length > 0 || freeLeaning) && (

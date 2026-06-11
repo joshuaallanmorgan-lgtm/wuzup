@@ -1,0 +1,111 @@
+/* settings.css — Profile → Settings (Sprint P1). Editorial-clean and QUIET:
+   white cards, hairlines, teal accents only where a row really acts. No
+   --hot (nothing here is hot-ness) and no --reward (maintenance is not a
+   micro-moment). The reset confirm is sober ink-on-card, deliberately not a
+   red alarm — the copy carries the weight, the palette stays calm. Scoped
+   under .st; the segmented display row (.dm-seg) lives in cards.css with its
+   component. */
+
+.st { background: var(--bg); }
+.st-body { padding: 4px 0 120px; }
+
+.st-sec { margin-top: 26px; padding: 0 20px; }
+.st-sec:first-child { margin-top: 8px; }
+.st-over {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+/* ===== card: the section's quiet plate ===== */
+.st-card {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+}
+.st-label { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+.st-hint { margin-top: 10px; font-size: 12px; font-weight: 500; color: var(--muted); line-height: 1.5; }
+.st-line { font-size: 13.5px; font-weight: 600; line-height: 1.6; }
+.st-line + .st-line { margin-top: 4px; }
+.st-dim { color: var(--muted); font-weight: 500; }
+
+/* ===== taste summary (read-only mini vibe) ===== */
+.st-taste-line { font-size: 13.5px; font-weight: 600; }
+.st-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.st-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: hsla(var(--ph, 200), 80%, 45%, 0.12);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.st-wiped { margin-top: 10px; font-size: 12.5px; font-weight: 600; color: var(--free); }
+
+/* ===== action rows ===== */
+.st-rows { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.st-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  font-family: inherit;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--dur-micro);
+}
+.st-row:active { transform: scale(0.98); }
+.st-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.st-row-title { font-size: 14px; font-weight: 700; }
+.st-row-sub { font-size: 12px; font-weight: 500; color: var(--muted); }
+.st-row-go { font-size: 16px; font-weight: 800; color: var(--accent); }
+
+/* reset: muted by default — danger reads in the words, not the chrome */
+.st-row-danger .st-row-title { color: var(--muted); }
+
+/* ===== the two-step confirm: sober, explicit, no accidental wipes ===== */
+.st-confirm {
+  padding: 13px 14px;
+  border: 1.5px solid var(--ink);
+  border-radius: 14px;
+  background: var(--card);
+}
+.st-confirm-q { font-size: 13px; font-weight: 600; line-height: 1.5; }
+.st-confirm-btns { display: flex; gap: 8px; margin-top: 11px; }
+.st-confirm-yes,
+.st-confirm-no {
+  flex: 1;
+  padding: 9px 10px;
+  border-radius: 11px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform var(--dur-micro);
+}
+.st-confirm-yes:active,
+.st-confirm-no:active { transform: scale(0.96); }
+.st-confirm-yes { border: none; background: var(--ink); color: #fff; }
+.st-confirm-no { border: 1px solid var(--line); background: none; color: var(--ink); }
+
+/* ===== reduced motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .st-row,
+  .st-confirm-yes,
+  .st-confirm-no { transition: none; }
+  .st-row:active,
+  .st-confirm-yes:active,
+  .st-confirm-no:active { transform: none; }
+}

@@ -1,0 +1,276 @@
+/* deck.css — Calibration Deck (Sprint P3). Owned by the deck agent.
+   Dark ritual ambiance like FMN, but TEAL-leaning — the hot palette stays the
+   dice's; --reward appears ONLY in the finish beat (sanctioned moment #6).
+   Everything scoped under .deck; the shared .pg chrome from App.css is only
+   re-tinted, never redefined. */
+
+/* ===== dark / teal-gradient ambiance ===== */
+.deck {
+  background:
+    radial-gradient(120% 55% at 10% -8%, rgba(var(--accent-rgb), 0.30), transparent 62%),
+    radial-gradient(110% 60% at 110% 106%, rgba(6, 182, 212, 0.18), transparent 60%),
+    linear-gradient(168deg, #0f1b1c 0%, #16181d 55%, #121a1d 100%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+}
+.deck .pg-head-title { color: #fff; }
+.deck .pg-back {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+.deck-counthead {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.55);
+  font-variant-numeric: tabular-nums;
+}
+/* .deck .deck-body (not bare .deck-body): must out-specify App.css's .pg-body
+   padding no matter which module's CSS lands first in the bundle order */
+.deck .deck-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 20px 28px;
+}
+
+/* ===== kicker ===== */
+.deck-kicker { padding: 4px 4px 14px; }
+.deck-kicker-title { font-size: 22px; font-weight: 900; letter-spacing: -0.4px; }
+.deck-kicker-sub { margin-top: 4px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.55); }
+
+/* ===== the card stack ===== */
+.deck-stack {
+  position: relative;
+  flex: 1;
+  min-height: 340px;
+  max-height: 470px;
+}
+.deck-card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: #1b2027;
+  overflow: hidden;
+  touch-action: none; /* the drag owns the gesture — no scroll fights */
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
+}
+.deck-top { z-index: 3; cursor: grab; box-shadow: 0 14px 38px rgba(0, 0, 0, 0.45); }
+.deck-top.grabbed { transition: none; cursor: grabbing; }
+.deck-under1 { z-index: 2; transform: scale(0.95) translateY(16px); opacity: 0.65; }
+.deck-under2 { z-index: 1; transform: scale(0.90) translateY(30px); opacity: 0.35; }
+
+/* card face: image on top (CardImg fallback art included), info panel below */
+.deck-img { display: block; width: 100%; flex: 1; min-height: 0; }
+.deck-info { flex: 0 0 auto; padding: 14px 16px 16px; display: grid; gap: 6px; justify-items: start; }
+.deck-cat {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: hsl(var(--ch, 220) 70% 55% / 0.22);
+  border: 1px solid hsl(var(--ch, 220) 80% 70% / 0.35);
+  color: hsl(var(--ch, 220) 90% 82%);
+}
+.deck-title {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.deck-meta {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.deck-extra { display: flex; align-items: center; gap: 8px; min-height: 16px; }
+/* re-tint shared chips/labels for the dark card (FMN precedent) */
+.deck-extra .chip { background: rgba(255, 255, 255, 0.12); color: rgba(255, 255, 255, 0.85); }
+.deck-extra .chip-free { background: rgba(10, 157, 110, 0.28); color: #6fe3b6; }
+.deck-extra .sp-label { color: rgba(255, 255, 255, 0.55); }
+.deck-extra .sp-label.my-label { color: #5eead4; } /* teal --accent fails AA on dark */
+
+/* ===== verdict stamps (opacity driven by --like/--nope/--keep from JS) ===== */
+.deck-stamp {
+  position: absolute;
+  top: 16px;
+  z-index: 5;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 2.5px solid;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  pointer-events: none;
+  opacity: 0;
+  background: rgba(0, 0, 0, 0.35);
+}
+.deck-stamp-yes { left: 14px; transform: rotate(-10deg); color: #2dd4bf; border-color: #2dd4bf; opacity: var(--like, 0); }
+.deck-stamp-no { right: 14px; transform: rotate(10deg); color: rgba(255, 255, 255, 0.85); border-color: rgba(255, 255, 255, 0.7); opacity: var(--nope, 0); }
+/* the save stamp wears the heart's sanctioned --hot (I2 save-heart exception) */
+.deck-stamp-save { left: 50%; top: auto; bottom: 18px; transform: translateX(-50%) rotate(-3deg); color: var(--hot); border-color: var(--hot); opacity: var(--keep, 0); }
+
+/* ===== flying exit clone (starts where the drag let go: --dx/--dy/--rot) ===== */
+.deck-exit { z-index: 4; pointer-events: none; box-shadow: 0 14px 38px rgba(0, 0, 0, 0.45); }
+.deck-exit-right { animation: deckFlyRight 400ms var(--ease-out) both; }
+.deck-exit-left { animation: deckFlyLeft 400ms var(--ease-out) both; }
+.deck-exit-up { animation: deckFlyUp 400ms var(--ease-out) both; }
+@keyframes deckFlyRight {
+  from { transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg)); opacity: 1; }
+  to { transform: translate(130%, -8%) rotate(18deg); opacity: 0; }
+}
+@keyframes deckFlyLeft {
+  from { transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg)); opacity: 1; }
+  to { transform: translate(-130%, -8%) rotate(-18deg); opacity: 0; }
+}
+@keyframes deckFlyUp {
+  from { transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg)); opacity: 1; }
+  to { transform: translate(0, -120%) rotate(-4deg); opacity: 0; }
+}
+
+/* ===== always-visible button fallbacks ===== */
+.deck-actions { display: flex; justify-content: center; gap: 20px; padding: 18px 0 4px; }
+.deck-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.deck-btn-no { color: rgba(255, 255, 255, 0.75); }
+/* the heart button is the save affordance — the sanctioned --hot heart */
+.deck-btn-save { color: var(--hot); border-color: rgba(var(--hot-rgb), 0.45); }
+.deck-btn-save.is-saved { background: rgba(var(--hot-rgb), 0.18); }
+.deck-btn-yes { color: #2dd4bf; border-color: rgba(45, 212, 191, 0.45); }
+
+/* ===== progress dots + early exit ===== */
+.deck-progress {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 12px 0 0;
+}
+.deck-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  transition: background var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+.deck-dot.done { background: rgba(45, 212, 191, 0.85); }
+.deck-dot.on { background: #fff; transform: scale(1.35); }
+.deck-early {
+  margin: 14px auto 0;
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.55);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* ===== finish beat — THE --reward moment (sanctioned #6, one-shot) ===== */
+.deck-done { text-align: center; padding: 56px 16px 24px; animation: deckDoneIn 500ms var(--ease-emphasis) both; }
+@keyframes deckDoneIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+.deck-done-spark {
+  font-size: 44px;
+  line-height: 1;
+  filter: drop-shadow(0 0 18px rgba(var(--reward-rgb), 0.65));
+  animation: deckSpark 700ms var(--ease-emphasis) 150ms both;
+}
+@keyframes deckSpark {
+  from { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.18); opacity: 1; }
+  to { transform: none; opacity: 1; }
+}
+.deck-done-title { margin: 16px auto 6px; max-width: 320px; font-size: 25px; font-weight: 900; letter-spacing: -0.5px; color: #fff; }
+/* the reward-violet underline draws in once (FMN's reveal pattern, sibling beat) */
+.deck-done-title::after {
+  content: '';
+  display: block;
+  width: 72px;
+  height: 3px;
+  margin: 10px auto 0;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--reward), rgba(var(--reward-rgb), 0.25));
+  transform-origin: center;
+  animation: deckReward 600ms var(--ease-emphasis) 250ms both;
+}
+@keyframes deckReward {
+  from { transform: scaleX(0); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+.deck-done-sub { font-size: 13.5px; font-weight: 600; color: rgba(255, 255, 255, 0.6); }
+.deck-vibes { margin-top: 22px; font-size: 15px; font-weight: 700; color: rgba(255, 255, 255, 0.85); }
+.deck-vibes-now { font-size: 24px; margin-left: 6px; letter-spacing: 5px; vertical-align: middle; }
+.deck-vibes-was { display: block; margin-top: 6px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.5); }
+.deck-done-btn {
+  margin-top: 30px;
+  height: 50px;
+  padding: 0 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* ===== empty deal ===== */
+.deck-empty { padding: 80px 24px; text-align: center; color: rgba(255, 255, 255, 0.7); line-height: 1.6; }
+.deck-empty-emoji { font-size: 40px; margin-bottom: 12px; }
+
+/* ===== reduced motion: buttons only (JS detaches drag), cards CROSSFADE
+   instead of flying, the reward beat appears without choreography (static
+   color allowed — motion killed, the moment kept) ===== */
+@media (prefers-reduced-motion: reduce) {
+  .deck-card { transition: none; }
+  .deck-exit-right,
+  .deck-exit-left,
+  .deck-exit-up { animation: deckFadeOut 200ms ease both; }
+  .deck-done,
+  .deck-done-spark,
+  .deck-done-title::after { animation: none !important; }
+  .deck-dot { transition: none; }
+}
+@keyframes deckFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}

@@ -7,7 +7,7 @@ import { CITY, DAY, Icon, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, sa
 import { lsGet, lsSet } from './storage.js'
 import { NavProvider, VIEWS, viewIndex, useNav } from './nav.jsx'
 import Primer, { loadPrimerState } from './Primer.jsx'
-import { DISPLAY_MODES, DisplayModeContext, DisplayModeToggle, WxContext } from './cards.jsx'
+import { DISPLAY_MODES, DisplayModeContext, WxContext } from './cards.jsx'
 import { getForecast } from './weather.js'
 import HotView from './HotView.jsx'
 import MapView from './MapView.jsx'
@@ -19,6 +19,9 @@ import SearchPage from './SearchPage.jsx'
 import FindMyNight from './FindMyNight.jsx'
 import AddEvent from './AddEvent.jsx'
 import WeekendBuilder from './WeekendBuilder.jsx'
+import SettingsPage from './SettingsPage.jsx'
+import Interview from './Interview.jsx'
+import CalibrationDeck from './CalibrationDeck.jsx'
 import './App.css'
 
 function TabBar({ active, onTab, inert }) {
@@ -80,8 +83,13 @@ function Shell() {
 
   // navigation (nav.js): tab index + pager wiring, visited set (lazy tab
   // mounting, O1), subpage union, detail, map focus
-  const { active, goTo, attachPager, onPagerScroll, visited, page, pageClosing, openNight, detail } = useNav()
+  const { active, goTo, attachPager, onPagerScroll, visited, page, pageClosing, openNight, openSettings, detail } =
+    useNav()
 
+  // the snapshot's Last-Modified ms (null when the header is absent) — the
+  // stale banner reads it through staleAt; Settings' "Events updated {when}"
+  // line reads it directly (P1: lifted to state instead of a second fetch)
+  const [dataAt, setDataAt] = useState(null)
   // M2a stale-data banner: Last-Modified ms when the snapshot is > 48h old
   const [staleAt, setStaleAt] = useState(null)
   const [staleHidden, setStaleHidden] = useState(false) // ✕ dismiss (this load only)
@@ -100,6 +108,7 @@ function Shell() {
           const lm = Date.parse(r.headers.get('last-modified') || '')
           return r.json().then((d) => {
             if (!on) return
+            if (!Number.isNaN(lm)) setDataAt(lm)
             if (!Number.isNaN(lm) && Date.now() - lm > STALE_MS) setStaleAt(lm)
             setEvents(Array.isArray(d) ? d : [])
             setLoading(false)
@@ -219,7 +228,8 @@ function Shell() {
 
   // inert while the primer overlay is up: Tab must not reach (and Enter must
   // not activate) the obscured app behind it — the pager AND the floating
-  // chrome (tabbar, 🎲 FAB, 🎨 pill) all gate on this (audit prep #6)
+  // chrome (tabbar, 🎲 FAB) gate on this (audit prep #6). The 🎨 pill used to
+  // gate here too — retired in P1; display mode now lives in Settings.
   const inertAll = !primer ? true : undefined
 
   return (
@@ -268,10 +278,6 @@ function Shell() {
             🎲
           </button>
         )}
-        {/* 🎨 pill hides while Find My Night / Add / Weekend Builder are open — it floats dead over those flows */}
-        {active === viewIndex('hot') && page?.type !== 'night' && page?.type !== 'add' && page?.type !== 'weekend' && (
-          <DisplayModeToggle inert={inertAll} />
-        )}
         {page && (
           <div className={'subpage' + (pageClosing ? ' subpage-closing' : '')}>
             {page.type === 'bubble' && (
@@ -289,6 +295,16 @@ function Shell() {
             {page.type === 'weekend' && (
               /* keyed by weekend: a midnight rollover into a new weekend remounts with that weekend's plan */
               <WeekendBuilder key={anchors.wkStartTs} events={norm} anchors={anchors} />
+            )}
+            {/* Sprint P: settings + the two taste flows it launches. Single-slot
+                union — interview/deck REPLACE the settings page and hand back
+                via openSettings, so the trio feels stacked without stack state */}
+            {page.type === 'settings' && (
+              <SettingsPage events={norm} dataAt={dataAt} primer={primer} onPrimerDone={setPrimer} />
+            )}
+            {page.type === 'interview' && <Interview />}
+            {page.type === 'deck' && (
+              <CalibrationDeck events={norm} anchors={anchors} onClose={openSettings} />
             )}
           </div>
         )}
