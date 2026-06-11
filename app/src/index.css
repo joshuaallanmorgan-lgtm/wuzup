@@ -12,9 +12,11 @@
   --hot-2: #ff2d78;
   --hot-rgb: 255, 90, 60;
   --hot2-rgb: 255, 45, 120;
-  /* reward accent (Sprint I1): violet, RESERVED for the four micro-reward
-     moments only — save-heart pop, FMN reveal beat, session-recap accent,
-     primer finish beat. Its scarcity is its meaning: nowhere else, ever. */
+  /* reward accent (Sprint I1): violet, RESERVED for FIVE micro-reward moments
+     only — save-heart pop, FMN reveal beat, session-recap accent, primer
+     finish beat, and the weekend-plan completion beat (sanctioned Sprint K:
+     completing a plan is precisely the achievement this token exists for).
+     Its scarcity is its meaning: nowhere else, ever. */
   --reward: #a855f7;
   --reward-rgb: 168, 85, 247;
   --free: #0a9d6e;

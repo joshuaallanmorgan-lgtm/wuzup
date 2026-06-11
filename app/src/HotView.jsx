@@ -33,7 +33,7 @@ function heroKicker(now, tonightLeft, whenPref) {
   return `${head} IN ${CITY.name.toUpperCase()}`
 }
 
-export default function HotView({ events, anchors, loading, displayMode, whenPref, onSelect, onOpenBubble, onOpenSearch, onOpenAdd }) {
+export default function HotView({ events, anchors, loading, displayMode, whenPref, onSelect, onOpenBubble, onOpenSearch, onOpenAdd, onOpenWeekend }) {
   const scrollRef = useRef(null)
   const evRef = useRef(null)
   const [entered, setEntered] = useState(false) // entrance animations already played?
@@ -251,6 +251,8 @@ export default function HotView({ events, anchors, loading, displayMode, whenPre
                 </>
               }
             />
+            {/* K2 seam: the Weekend Builder entry lives on the Saved shelf (styles in weekend.css) */}
+            <button className="wkb-entry pressable" onClick={onOpenWeekend}>Build my weekend 🗓️</button>
             <div className="carousel">
               {shelf.map(({ e, past }) => (
                 <div key={keyOf(e)} className={'shelf-item' + (past ? ' shelf-past' : '')}>

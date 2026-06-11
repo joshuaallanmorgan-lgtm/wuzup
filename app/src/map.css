@@ -1,0 +1,171 @@
+/* map.css — Sprint J map-utility styles (MapView.jsx only).
+   Base map chrome (.map-wrap / .map / .map-note) stays in App.css; this file
+   owns the J2 cluster bubbles + the J3 pin-preview bottom sheet. Everything
+   lives inside .map-wrap's isolated stacking context: Leaflet panes run up to
+   z 1000 and the note sits at 1001, so the sheet's 1010 clears them all while
+   the whole map stack stays under the fixed tabbar (z 1100). */
+
+/* ===== J2 cluster bubbles (divIcon) =====
+   TEAL on purpose: clusters are navigation ("more here"), never heat — coral
+   on this screen belongs to hot pin rings + the sheet's heat badge/heart only.
+   width/height/font-size arrive inline from MapView (log2-of-count sizing). */
+.cl-ico {
+  background: none; /* kill Leaflet's default .leaflet-div-icon white box */
+  border: none;
+}
+.cl-bubble {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  border: 2.5px solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
+  cursor: pointer;
+}
+
+/* ===== J3 pin-preview bottom sheet =====
+   Two layers so transforms never fight: .msheet-pop (outer) plays the one-shot
+   entrance rise; .msheet (inner) carries the live swipe-down drag transform
+   and the snap-back transition (.dragging suspends it while the finger owns
+   the sheet). Remounting on pin swap replays the rise. */
+.msheet-pop {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: calc(74px + env(safe-area-inset-bottom)); /* clears the 64px tabbar */
+  z-index: 1010;
+  animation: msheetIn var(--dur-page) var(--ease-emphasis) both;
+}
+@keyframes msheetIn {
+  from {
+    transform: translateY(120%);
+    opacity: 0.5;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.msheet {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.2);
+  padding: 22px 14px 12px; /* top band hosts the grip + ✕ */
+  touch-action: none; /* the sheet owns vertical gestures (swipe-down close) */
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.msheet.dragging {
+  transition: none;
+}
+.msheet-grip {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 36px;
+  height: 4px;
+  margin-left: -18px;
+  border-radius: 999px;
+  background: var(--line);
+}
+.msheet-x {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: #f0f1f4;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+.msheet-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+/* 72px thumb — same scale as the gem rail, so the heart tucks the same way */
+.msheet-thumb {
+  flex: 0 0 72px;
+  width: 72px;
+  height: 72px;
+  border-radius: 14px;
+}
+.msheet-thumb .save-btn {
+  top: 4px;
+  right: 4px;
+}
+.msheet-main {
+  flex: 1;
+  min-width: 0;
+  padding-right: 16px; /* long first lines stay clear of the ✕ */
+}
+.msheet-title {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  line-height: 1.18;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.msheet-meta {
+  margin-top: 3px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.msheet-chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 7px;
+}
+/* heat badge rides the chips row here, not the thumb (cards.css .card trick) */
+.msheet .heat-badge {
+  position: static;
+}
+.msheet-cta {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 11px;
+  border: none;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.1px;
+  cursor: pointer;
+}
+.msheet-cta:active {
+  filter: brightness(0.95);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .msheet-pop {
+    animation: none;
+  }
+  .msheet {
+    transition: none;
+  }
+}

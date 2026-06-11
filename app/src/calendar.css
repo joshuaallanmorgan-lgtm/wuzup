@@ -3,8 +3,9 @@
 
 .cal-wrap { min-height: 100svh; background: var(--bg); padding-bottom: 100px; }
 .cal-top { background: linear-gradient(135deg, var(--accent), var(--accent-2)); padding: 20px 0 15px; color: #fff; }
-.cal-top-row { display: flex; align-items: center; justify-content: space-between; padding: 0 20px; margin-bottom: 14px; }
-.cal-title { margin: 0; font-size: 27px; font-weight: 900; letter-spacing: -0.7px; }
+/* title left, Weekend pill + segmented control right (wraps on very narrow frames) */
+.cal-top-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 0 20px; margin-bottom: 14px; }
+.cal-title { margin: 0 auto 0 0; font-size: 27px; font-weight: 900; letter-spacing: -0.7px; }
 
 /* segmented control: 32px pill, sliding thumb */
 .seg {
@@ -63,6 +64,10 @@
 }
 .date-pill:active { transform: scale(0.94); }
 .date-pill.active { background: #fff; color: var(--accent); }
+/* K1 hot-day affordance: count >= p90 wears a subtle coral ring (heat
+   semantics — coral in the calendar is ONLY this ring + the grid heat tint).
+   Inset shadows: zero geometry change, nothing clips, dots/emoji untouched. */
+.date-pill.hot { box-shadow: inset 0 0 0 2px rgba(var(--hot-rgb), 0.6); }
 .dp-dow { font-size: 11px; font-weight: 800; text-transform: uppercase; opacity: 0.9; }
 .dp-num { font-size: 18px; font-weight: 900; line-height: 1; }
 .dp-count { font-size: 10px; font-weight: 800; background: rgba(0, 0, 0, 0.14); border-radius: 999px; padding: 1px 7px; }
@@ -136,6 +141,9 @@
   border-radius: 10px;
   background: rgba(var(--hot-rgb), var(--heat, 0)); /* heat = hotness: stays warm, 4 quantized buckets */
 }
+/* K1 hot-day ring, month grid: same coral semantics as .date-pill.hot;
+   selected/today numeral states stay teal and sit above, unchanged */
+.mcell.hot .mcell-bg { box-shadow: inset 0 0 0 1.5px rgba(var(--hot-rgb), 0.5); }
 .mnum {
   position: relative;
   z-index: 1;

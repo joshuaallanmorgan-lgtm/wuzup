@@ -89,6 +89,9 @@ export function toggleSave(e) {
         category: e.category ?? null,
         isFree: e.isFree ?? null,
         price: e.price ?? null,
+        // the labeling invariant survives a dataset refresh: a vanished
+        // sponsored save must still wear its disclosure everywhere
+        sponsored: e.sponsored === true,
       },
     }
   }

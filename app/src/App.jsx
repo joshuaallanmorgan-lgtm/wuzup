@@ -17,6 +17,7 @@ import BubblePage from './BubblePage.jsx'
 import SearchPage from './SearchPage.jsx'
 import FindMyNight from './FindMyNight.jsx'
 import AddEvent from './AddEvent.jsx'
+import WeekendBuilder from './WeekendBuilder.jsx'
 import './App.css'
 
 const VIEWS = [
@@ -58,7 +59,7 @@ export default function App() {
   const [detail, setDetail] = useState(null)
   const [closing, setClosing] = useState(false)
   const [vtOpen, setVtOpen] = useState(false)
-  // subpage overlay: null | {type:'bubble',bubble} | {type:'search'} | {type:'night'} | {type:'add'}
+  // subpage overlay: null | {type:'bubble',bubble} | {type:'search'} | {type:'night'} | {type:'add'} | {type:'weekend'}
   const [page, setPage] = useState(null)
   const [pageClosing, setPageClosing] = useState(false)
   const [coords, setCoords] = useState(null)
@@ -241,6 +242,11 @@ export default function App() {
     setPageClosing(false)
     setPage({ type: 'add' })
   }, [])
+  const openWeekend = useCallback(() => {
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    setPage({ type: 'weekend' })
+  }, [])
   const closePage = useCallback(() => {
     setPageClosing(true)
     clearTimeout(pageTRef.current)
@@ -323,13 +329,14 @@ export default function App() {
               onOpenBubble={openBubble}
               onOpenSearch={openSearch}
               onOpenAdd={openAdd}
+              onOpenWeekend={openWeekend}
             />
           </section>
           <section className="page page-map">
             <MapView events={norm} anchors={anchors} onSelect={openDetail} active={active === 1} focusTarget={mapFocus} />
           </section>
           <section className="page">
-            <CalendarView events={norm} anchors={anchors} onSelect={openDetail} wx={wx} />
+            <CalendarView events={norm} anchors={anchors} onSelect={openDetail} wx={wx} onOpenWeekend={openWeekend} />
           </section>
         </div>
         <TabBar active={active} onTab={goTo} />
@@ -338,8 +345,8 @@ export default function App() {
             🎲
           </button>
         )}
-        {/* 🎨 pill hides while Find My Night is open — it floats dead over the dark flow */}
-        {active === 0 && page?.type !== 'night' && page?.type !== 'add' && <DisplayModeToggle />}
+        {/* 🎨 pill hides while Find My Night / Add / Weekend Builder are open — it floats dead over those flows */}
+        {active === 0 && page?.type !== 'night' && page?.type !== 'add' && page?.type !== 'weekend' && <DisplayModeToggle />}
         {page && (
           <div className={'subpage' + (pageClosing ? ' subpage-closing' : '')}>
             {page.type === 'bubble' && (
@@ -361,6 +368,10 @@ export default function App() {
             )}
             {page.type === 'add' && (
               <AddEvent anchors={anchors} myEvents={myEvents} onAdd={addMine} onClose={closePage} />
+            )}
+            {page.type === 'weekend' && (
+              /* keyed by weekend: a midnight rollover into a new weekend remounts with that weekend's plan */
+              <WeekendBuilder key={anchors.wkStartTs} events={norm} anchors={anchors} onSelect={openDetail} onClose={closePage} />
             )}
           </div>
         )}

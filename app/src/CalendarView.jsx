@@ -15,7 +15,7 @@ function wxSummary(w) {
   return parts.join(' · ')
 }
 
-export default function CalendarView({ events, anchors, onSelect, wx }) {
+export default function CalendarView({ events, anchors, onSelect, wx, onOpenWeekend }) {
   const [mode, setMode] = useState('list')
   const [selKey, setSelKey] = useState(null) // day timestamp; persists across List/Month toggle
   const [monthOff, setMonthOff] = useState(0)
@@ -59,6 +59,14 @@ export default function CalendarView({ events, anchors, onSelect, wx }) {
     const counts = days.map((d) => dayMap.get(d).length).sort((a, b) => a - b)
     return counts.length ? Math.max(counts[Math.floor(0.9 * (counts.length - 1))], 1) : 1
   }, [days, dayMap])
+  // K1 "hot day" affordance: days with count >= p90 wear a subtle coral ring
+  // (heat semantics — the ONLY coral here besides the grid heat shading).
+  // Gated off for tiny/flat datasets where the percentile is meaningless
+  // (under 8 days, or p90 of 1 → every day would ring = coral flood).
+  const hotDays = useMemo(() => {
+    if (days.length < 8 || p90 <= 1) return new Set()
+    return new Set(days.filter((d) => dayMap.get(d).length >= p90))
+  }, [days, dayMap, p90])
 
   const base = new Date(anchors.todayTs)
   const month = new Date(base.getFullYear(), base.getMonth() + monthOff, 1)
@@ -77,6 +85,12 @@ export default function CalendarView({ events, anchors, onSelect, wx }) {
       <div className="cal-top">
         <div className="cal-top-row">
           <h2 className="cal-title">Calendar</h2>
+          {/* K2 seam: second Weekend Builder entry (covers the no-saves path) */}
+          {onOpenWeekend && (
+            <button className="cal-wkb" onClick={onOpenWeekend}>
+              Weekend 🗓️
+            </button>
+          )}
           <div className="seg">
             <div className={'seg-thumb' + (mode === 'month' ? ' right' : '')} />
             <button className={'seg-btn' + (mode === 'list' ? ' on' : '')} onClick={() => setMode('list')}>
@@ -93,7 +107,11 @@ export default function CalendarView({ events, anchors, onSelect, wx }) {
               const dd = new Date(d)
               const w = wxFor(d)
               return (
-                <button key={d} className={'date-pill' + (d === sel ? ' active' : '')} onClick={() => setSelKey(d)}>
+                <button
+                  key={d}
+                  className={'date-pill' + (d === sel ? ' active' : '') + (hotDays.has(d) ? ' hot' : '')}
+                  onClick={() => setSelKey(d)}
+                >
                   {savedDays.has(d) && <span className="save-dot" />}
                   <span className="dp-dow">{dd.toLocaleDateString('en-US', { weekday: 'short' })}</span>
                   <span className="dp-num">{dd.getDate()}</span>
@@ -139,7 +157,12 @@ export default function CalendarView({ events, anchors, onSelect, wx }) {
               return (
                 <button
                   key={ts}
-                  className={'mcell' + (ts === sel ? ' sel' : '') + (ts === anchors.todayTs ? ' today' : '')}
+                  className={
+                    'mcell' +
+                    (ts === sel ? ' sel' : '') +
+                    (ts === anchors.todayTs ? ' today' : '') +
+                    (hotDays.has(ts) ? ' hot' : '')
+                  }
                   style={{ '--heat': heat }}
                   onClick={() => setSelKey(ts)}
                 >
