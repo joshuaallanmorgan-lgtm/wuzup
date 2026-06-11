@@ -53,6 +53,14 @@ The centerpiece. All signals LOCAL (no accounts): saves, event opens, FMN answer
 ### Sprint N — Demo polish
 Fresh data run → walk every surface → embarrassment list → fix → rehearse the demo path (open → mood primer → bubbles → FMN → save 3 → Weekend Builder → detail → map). PLAN: this is where we pause and present.
 
+# NEXT INITIATIVES — directed by Josh + Charles (2026-06-11, mid-Wave-3). Sequencing: finish N → Fable codebase audit (while they compile feedback) → their feedback → Fable writes the multi-day plan v2 for these.
+## A. THE PLACES LAYER (heavy lift — "huge plan" required before building)
+Events answer WHEN; places answer WHERE-ALWAYS. The app must also surface evergreen locations: the basics (Tampa Riverwalk, Julian B. Lane Park, Bayshore) AND the hidden tier — free tennis courts, nature paths, under-the-radar spots. Built to live INTELLIGENTLY alongside events (one app, two time-natures — connects to Weekend Builder's "make your own event from a place" future).
+**Benchmark roster (Josh's own research, nature class — the DTC pattern applied to places; rosters for OTHER place classes still needed):** Moonlight Beach · Caladesi Island State Park · Fort De Soto · Weedon Island Preserve · Davis Islands dog park beach. Rule unchanged: benchmarks pass by GENERATION, never hardcoding.
+## B. THE FOURTH TAB: PROFILE (possibly first — two SEPARATE tracks, each deserving its own attention)
+**B1 Profile display (Josh's track):** identity-by-taste, not personal info — "dating-profile energy" (what you're into: outdoors person / clubber / culture head), your saved events, events attended (history), events planned. **Weekend Builder RELOCATES here** (loved, expand it — but it doesn't fit in Hot).
+**B2 Settings & calibration (Charles's track):** settings live inside profile — interest interview / onboarding re-entry (the primer finally gets a home), recommendation calibration loop ("are these starting to suit you?" — throw events, learn), basic settings (email TBD if ever needed).
+
 # POST-V1 PARKING LOT (logged, not scheduled)
 Deploy + PWA (Sprint F, Josh-gated) · accounts/social layer · public submissions pipeline · evergreen Places layer + make-your-own-event · multi-city + city selection + per-city heroes · native wrap · Ticketmaster key · dark mode · year calendar view.
 
