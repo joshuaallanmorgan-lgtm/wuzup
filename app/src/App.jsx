@@ -1,17 +1,18 @@
-// App — shell: data fetch + normalize, anchors, pager + tabbar, subpage mounting
-// (BubblePage / SearchPage / FindMyNight), detail open/close (View Transitions),
-// geolocation (requestCoords), and display-mode state (localStorage 'display-mode').
+// App — the DATA shell: events fetch + normalize, anchors, weather, my-events,
+// geolocation (requestCoords), display-mode state and the primer gate. All
+// NAVIGATION state (active tab, subpage union, detail open/close + VT morph,
+// map focus) lives in nav.js (Sprint O6) — components reach it via useNav().
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { flushSync } from 'react-dom'
 import { CITY, DAY, Icon, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, saveMyEvents } from './lib.js'
-import { recordSignal } from './taste.js'
-import { recordView } from './recents.js'
+import { lsGet, lsSet } from './storage.js'
+import { NavProvider, VIEWS, viewIndex, useNav } from './nav.jsx'
 import Primer, { loadPrimerState } from './Primer.jsx'
 import { DISPLAY_MODES, DisplayModeContext, DisplayModeToggle, WxContext } from './cards.jsx'
 import { getForecast } from './weather.js'
 import HotView from './HotView.jsx'
 import MapView from './MapView.jsx'
 import CalendarView from './CalendarView.jsx'
+import ProfileView from './ProfileView.jsx'
 import DetailPage from './DetailPage.jsx'
 import BubblePage from './BubblePage.jsx'
 import SearchPage from './SearchPage.jsx'
@@ -20,15 +21,9 @@ import AddEvent from './AddEvent.jsx'
 import WeekendBuilder from './WeekendBuilder.jsx'
 import './App.css'
 
-const VIEWS = [
-  { id: 'hot', label: 'Hot' },
-  { id: 'map', label: 'Map' },
-  { id: 'calendar', label: 'Calendar' },
-]
-
-function TabBar({ active, onTab }) {
+function TabBar({ active, onTab, inert }) {
   return (
-    <nav className="tabbar">
+    <nav className="tabbar" inert={inert}>
       {VIEWS.map((v, i) => {
         const I = Icon[v.id]
         return (
@@ -46,11 +41,6 @@ function TabBar({ active, onTab }) {
   )
 }
 
-const supportsVT = () =>
-  typeof document !== 'undefined' &&
-  typeof document.startViewTransition === 'function' &&
-  !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
 // M2 resilience constants: one retry on a failed boot fetch, and the
 // staleness threshold for the quiet "events from {day}" banner. events.json
 // ships no generatedAt field (finder-owned schema), so the banner reads the
@@ -65,34 +55,32 @@ const staleDayLabel = (ms) =>
     : new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 
 export default function App() {
+  return (
+    <NavProvider>
+      <Shell />
+    </NavProvider>
+  )
+}
+
+function Shell() {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [bootVis, setBootVis] = useState(false) // boot overlay gated 300ms (no flash on fast loads)
-  const [active, setActive] = useState(0)
-  const [detail, setDetail] = useState(null)
-  const [closing, setClosing] = useState(false)
-  const [vtOpen, setVtOpen] = useState(false)
-  // subpage overlay: null | {type:'bubble',bubble} | {type:'search'} | {type:'night'} | {type:'add'} | {type:'weekend'}
-  const [page, setPage] = useState(null)
-  const [pageClosing, setPageClosing] = useState(false)
   const [coords, setCoords] = useState(null)
-  // display mode: 'editorial' | 'poster' | 'cinematic', persisted to localStorage
+  // display mode: 'editorial' | 'poster' | 'cinematic', persisted via storage.js
   const [displayMode, setDisplayMode] = useState(() => {
-    try {
-      const v = localStorage.getItem('display-mode')
-      return DISPLAY_MODES.includes(v) ? v : 'editorial'
-    } catch {
-      return 'editorial'
-    }
+    const v = lsGet('display-mode')
+    return DISPLAY_MODES.includes(v) ? v : 'editorial'
   })
   // H1 mood primer: mounts while no stored state exists (first open only).
-  // Primer.jsx owns 'primer-v1' + the taste seeding; App only gates the mount
-  // and passes the when-preference down for the H2 greeting flavor.
+  // Primer.jsx owns the primer store + the taste seeding; App only gates the
+  // mount and passes the when-preference down for the H2 greeting flavor.
   const [primer, setPrimer] = useState(() => loadPrimerState())
-  const pagerRef = useRef(null)
-  const morphElRef = useRef(null)
-  const pageTRef = useRef(null)
   const coordsRef = useRef(null)
+
+  // navigation (nav.js): tab index + pager wiring, visited set (lazy tab
+  // mounting, O1), subpage union, detail, map focus
+  const { active, goTo, attachPager, onPagerScroll, visited, page, pageClosing, openNight, detail } = useNav()
 
   // M2a stale-data banner: Last-Modified ms when the snapshot is > 48h old
   const [staleAt, setStaleAt] = useState(null)
@@ -137,11 +125,7 @@ export default function App() {
     return () => clearTimeout(t)
   }, [])
   useEffect(() => {
-    try {
-      localStorage.setItem('display-mode', displayMode)
-    } catch {
-      /* private mode etc. — mode still works for the session */
-    }
+    lsSet('display-mode', displayMode) // guarded inside storage.js — private mode still works for the session
   }, [displayMode])
 
   // anchors must track the real clock: an app left open past midnight (or
@@ -175,7 +159,7 @@ export default function App() {
     }
   }, [])
   // "Added by you" events (Sprint C MVP): raw schema-v2 objects from the
-  // AddEvent form, persisted to localStorage 'my-events-v1' and concat'd into
+  // AddEvent form, persisted via lib.js (storage.js-backed) and concat'd into
   // norm below — same normalize() path as fetched events, so they surface
   // everywhere list-wise (feed, bubbles, search, calendar; lat/lng null → no
   // map pin). rawOf strips computed _fields when an undo restores a
@@ -215,35 +199,6 @@ export default function App() {
     }
   }, [])
 
-  const goTo = (i) => {
-    setActive(i)
-    const p = pagerRef.current
-    // instant jump: never slide through intermediate pages (finger-swipe snap unaffected)
-    if (p) p.scrollTo({ left: i * p.clientWidth, behavior: 'instant' })
-  }
-  const onScroll = () => {
-    const p = pagerRef.current
-    if (!p) return
-    const i = Math.round(p.scrollLeft / p.clientWidth)
-    if (i !== active) setActive(i)
-  }
-
-  // detail mini-map tap → close the detail + any subpage, jump to the Map tab,
-  // and hand MapView a focus target ({lat,lng,key}; fresh object every call so
-  // re-focusing the same event re-runs MapView's focus effect).
-  const [mapFocus, setMapFocus] = useState(null)
-  const focusMap = (e) => {
-    morphElRef.current = null // card name is already cleared post-open; just drop the ref
-    setDetail(null)
-    setClosing(false)
-    setVtOpen(false)
-    clearTimeout(pageTRef.current)
-    setPage(null)
-    setPageClosing(false)
-    setMapFocus({ lat: e.lat, lng: e.lng, key: keyOf(e) })
-    goTo(1)
-  }
-
   // geolocation lifted into App so any page can ask: resolves to coords or null
   // (denied / unsupported). Last fix is cached and also exposed via the coords prop.
   const requestCoords = useCallback(() => {
@@ -262,106 +217,22 @@ export default function App() {
     })
   }, [])
 
-  // subpages: slide in over the Hot tab (z 1500, below detail 2000)
-  const openBubble = useCallback((bubble) => {
-    // taste seam: tapping a CATEGORY bubble is a (weak) interest signal;
-    // time/free/near bubbles say nothing about category taste
-    if (bubble.kind === 'cat') recordSignal('bubble', { category: bubble.value })
-    clearTimeout(pageTRef.current)
-    setPageClosing(false)
-    setPage({ type: 'bubble', bubble })
-  }, [])
-  const openSearch = useCallback(() => {
-    clearTimeout(pageTRef.current)
-    setPageClosing(false)
-    setPage({ type: 'search' })
-  }, [])
-  const openNight = useCallback(() => {
-    clearTimeout(pageTRef.current)
-    setPageClosing(false)
-    setPage({ type: 'night' })
-  }, [])
-  const openAdd = useCallback(() => {
-    clearTimeout(pageTRef.current)
-    setPageClosing(false)
-    setPage({ type: 'add' })
-  }, [])
-  const openWeekend = useCallback(() => {
-    clearTimeout(pageTRef.current)
-    setPageClosing(false)
-    setPage({ type: 'weekend' })
-  }, [])
-  const closePage = useCallback(() => {
-    setPageClosing(true)
-    clearTimeout(pageTRef.current)
-    pageTRef.current = setTimeout(() => {
-      setPage(null)
-      setPageClosing(false)
-    }, 400)
-  }, [])
-  useEffect(() => () => clearTimeout(pageTRef.current), [])
-
-  // detail open/close with App-Store morph: View Transitions when available, slide-up otherwise.
-  // useCallback: a stable identity so MapView's marker effect never re-runs because of us.
-  const openDetail = useCallback((e, cardEl) => {
-    recordSignal('open', e) // taste seam: opening a detail = +1 category interest
-    recordView(e) // recents seam (H3): FIFO 'recents-v1' + the in-session list (H4)
-    setClosing(false)
-    const el = cardEl ? cardEl.querySelector('[data-vt]') : null
-    if (supportsVT() && el) {
-      morphElRef.current = el
-      el.style.viewTransitionName = 'evt-hero' // old snapshot: the card image owns the name
-      document.startViewTransition(() => {
-        el.style.viewTransitionName = '' // new snapshot: only the detail hero owns it
-        flushSync(() => {
-          setVtOpen(true)
-          setDetail(e)
-        })
-      })
-    } else {
-      morphElRef.current = null
-      setVtOpen(false)
-      setDetail(e)
-    }
-  }, [])
-  const closeDetail = useCallback(() => {
-    const el = morphElRef.current
-    if (vtOpen && supportsVT()) {
-      const t = document.startViewTransition(() => {
-        flushSync(() => setDetail(null))
-        if (el && el.isConnected) el.style.viewTransitionName = 'evt-hero'
-      })
-      t.finished.finally(() => {
-        if (el) el.style.viewTransitionName = ''
-        morphElRef.current = null
-      })
-    } else {
-      setClosing(true)
-      setTimeout(() => {
-        setDetail(null)
-        setClosing(false)
-      }, 240)
-    }
-  }, [vtOpen])
-
-  // Escape closes the topmost layer: detail first, then any open subpage
-  useEffect(() => {
-    const onKey = (ev) => {
-      if (ev.key !== 'Escape') return
-      if (detail) closeDetail()
-      else if (page && !pageClosing) closePage()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [detail, page, pageClosing, closeDetail, closePage])
+  // inert while the primer overlay is up: Tab must not reach (and Enter must
+  // not activate) the obscured app behind it — the pager AND the floating
+  // chrome (tabbar, 🎲 FAB, 🎨 pill) all gate on this (audit prep #6)
+  const inertAll = !primer ? true : undefined
 
   return (
     <DisplayModeContext.Provider value={displayCtx}>
       <WxContext.Provider value={wx}>
       <div className="app">
-        {/* inert while the primer overlay is up: Tab must not reach (and Enter
-            must not activate) the obscured app behind it */}
-        <div className="pager" ref={pagerRef} onScroll={onScroll} inert={!primer ? true : undefined}>
+        {/* O1 lazy mounting: every section SHELL renders (scroll-snap needs all
+            N page widths) but children mount on FIRST VISIT only — Events is
+            the boot tab (eager); Map/Calendar/Profile mount when first reached
+            (tap, swipe, or focusMap). Mounted-once tabs STAY mounted so their
+            state (Leaflet map, calendar selection) survives tab hops.
+            Adding a tab = one VIEWS entry (nav.jsx) + one section here. */}
+        <div className="pager" ref={attachPager} onScroll={onPagerScroll} inert={inertAll}>
           <section className="page page-hot">
             <HotView
               events={norm}
@@ -369,38 +240,38 @@ export default function App() {
               loading={loading}
               displayMode={displayMode}
               whenPref={primer?.when ?? null}
-              onSelect={openDetail}
-              onOpenBubble={openBubble}
-              onOpenSearch={openSearch}
-              onOpenAdd={openAdd}
-              onOpenWeekend={openWeekend}
             />
           </section>
           <section className="page page-map">
-            <MapView events={norm} anchors={anchors} onSelect={openDetail} active={active === 1} focusTarget={mapFocus} />
+            {visited.has('map') && <MapView events={norm} anchors={anchors} />}
           </section>
           <section className="page">
-            <CalendarView events={norm} anchors={anchors} onSelect={openDetail} wx={wx} onOpenWeekend={openWeekend} />
+            {visited.has('calendar') && <CalendarView events={norm} anchors={anchors} wx={wx} />}
+          </section>
+          <section className="page">
+            {visited.has('profile') && <ProfileView events={norm} anchors={anchors} primer={primer} />}
           </section>
         </div>
-        <TabBar active={active} onTab={goTo} />
+        <TabBar active={active} onTab={goTo} inert={inertAll} />
         {/* M2a: quiet staleness disclosure — one line, dismissible, never blocks
             (z 1200: subpages/detail/primer all render over it) */}
         {staleAt != null && !staleHidden && (
-          <div className="stale-note" role="status">
+          <div className="stale-note" role="status" inert={inertAll}>
             <span className="stale-txt">Events from {staleDayLabel(staleAt)} — they may have changed</span>
             <button className="stale-x" onClick={() => setStaleHidden(true)} aria-label="Dismiss">
               ✕
             </button>
           </div>
         )}
-        {active === 0 && norm.length > 0 && (
-          <button className="dice" onClick={openNight} aria-label="Find my night">
+        {active === viewIndex('hot') && norm.length > 0 && (
+          <button className="dice" onClick={openNight} aria-label="Find my night" inert={inertAll}>
             🎲
           </button>
         )}
         {/* 🎨 pill hides while Find My Night / Add / Weekend Builder are open — it floats dead over those flows */}
-        {active === 0 && page?.type !== 'night' && page?.type !== 'add' && page?.type !== 'weekend' && <DisplayModeToggle />}
+        {active === viewIndex('hot') && page?.type !== 'night' && page?.type !== 'add' && page?.type !== 'weekend' && (
+          <DisplayModeToggle inert={inertAll} />
+        )}
         {page && (
           <div className={'subpage' + (pageClosing ? ' subpage-closing' : '')}>
             {page.type === 'bubble' && (
@@ -410,22 +281,14 @@ export default function App() {
                 anchors={anchors}
                 coords={coords}
                 requestCoords={requestCoords}
-                onSelect={openDetail}
-                onClose={closePage}
               />
             )}
-            {page.type === 'search' && (
-              <SearchPage events={norm} anchors={anchors} coords={coords} onSelect={openDetail} onClose={closePage} />
-            )}
-            {page.type === 'night' && (
-              <FindMyNight events={norm} anchors={anchors} coords={coords} onSelect={openDetail} onClose={closePage} />
-            )}
-            {page.type === 'add' && (
-              <AddEvent anchors={anchors} myEvents={myEvents} onAdd={addMine} onClose={closePage} />
-            )}
+            {page.type === 'search' && <SearchPage events={norm} anchors={anchors} coords={coords} />}
+            {page.type === 'night' && <FindMyNight events={norm} anchors={anchors} coords={coords} />}
+            {page.type === 'add' && <AddEvent anchors={anchors} myEvents={myEvents} onAdd={addMine} />}
             {page.type === 'weekend' && (
               /* keyed by weekend: a midnight rollover into a new weekend remounts with that weekend's plan */
-              <WeekendBuilder key={anchors.wkStartTs} events={norm} anchors={anchors} onSelect={openDetail} onClose={closePage} />
+              <WeekendBuilder key={anchors.wkStartTs} events={norm} anchors={anchors} />
             )}
           </div>
         )}
@@ -441,11 +304,6 @@ export default function App() {
             events={norm}
             anchors={anchors}
             wx={wx}
-            closing={closing}
-            vt={vtOpen}
-            onClose={closeDetail}
-            onSelect={openDetail}
-            onFocusMap={focusMap}
             onRemoveMine={removeMine}
             onRestoreMine={addMine}
           />

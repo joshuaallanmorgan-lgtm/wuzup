@@ -4,8 +4,10 @@
 // Plain .js with NO JSX and no React so the Node verification sim can import
 // it directly (same rule as lib.js / taste.js); WeekendBuilder.jsx is the UI.
 import { keyOf, timeOf } from './lib.js'
+import { lsGet, lsSet } from './storage.js'
 
-export const PLAN_KEY = 'weekend-plan-v1'
+export const PLAN_KEY = 'weekend-plan-v1' // stored as twh:weekend-plan-v1 via storage.js
+const HISTORY_KEY = 'weekend-history-v1'
 export const DAY_IDS = ['fri', 'sat', 'sun']
 export const SLOT_IDS = ['fri_day', 'fri_night', 'sat_day', 'sat_night', 'sun_day', 'sun_night']
 export const SUGGEST_MAX = 8
@@ -66,13 +68,38 @@ function archivePlan(stored) {
   try {
     const filled = Object.values(stored.slots || {}).some((k) => typeof k === 'string' && k)
     if (!filled) return // an empty stale plan is not history
-    const prev = JSON.parse(localStorage.getItem('weekend-history-v1'))
+    const prev = JSON.parse(lsGet(HISTORY_KEY))
     const list = Array.isArray(prev) ? prev : []
     if (list.some((p) => p && p.weekendStartTs === stored.weekendStartTs)) return
-    localStorage.setItem('weekend-history-v1', JSON.stringify(list.concat(stored).slice(-26)))
+    lsSet(HISTORY_KEY, JSON.stringify(list.concat(stored).slice(-26)))
   } catch {
     /* private mode — best-effort */
   }
+}
+
+// Profile's plan history (O5): the archived past plans, validated, oldest →
+// newest as stored (callers reverse for most-recent-first). Read-only — the
+// archive is only ever WRITTEN by archivePlan above.
+export function loadHistory() {
+  try {
+    const v = JSON.parse(lsGet(HISTORY_KEY))
+    if (Array.isArray(v)) {
+      return v.filter(
+        (p) =>
+          p &&
+          typeof p === 'object' &&
+          !Array.isArray(p) &&
+          p.v === 1 &&
+          typeof p.weekendStartTs === 'number' &&
+          p.slots &&
+          typeof p.slots === 'object' &&
+          !Array.isArray(p.slots)
+      )
+    }
+  } catch {
+    /* absent, corrupt, or private mode — no history */
+  }
+  return []
 }
 
 // stored → live plan, fully guarded: wrong shape, wrong version, or a
@@ -107,18 +134,14 @@ export function planFor(stored, weekendStartTs) {
 export function loadPlan(weekendStartTs) {
   let stored = null
   try {
-    stored = JSON.parse(localStorage.getItem(PLAN_KEY))
+    stored = JSON.parse(lsGet(PLAN_KEY))
   } catch {
     /* absent, corrupt, or private mode — start empty */
   }
   return planFor(stored, weekendStartTs)
 }
 export function savePlan(plan) {
-  try {
-    localStorage.setItem(PLAN_KEY, JSON.stringify(plan))
-  } catch {
-    /* storage unavailable — the plan still works for the session */
-  }
+  lsSet(PLAN_KEY, JSON.stringify(plan)) // guarded in storage.js — the plan still works for the session
 }
 
 export const filledCount = (plan, slotIds = SLOT_IDS) =>

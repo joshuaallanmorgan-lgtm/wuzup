@@ -1,7 +1,9 @@
 // HotView — the Hot tab magazine: hero (+ 🔎 search), bubble strip (each bubble
-// opens a full BubblePage via onOpenBubble), alternating sections, Everything feed.
+// opens a full BubblePage), alternating sections, Everything feed. Navigation
+// (detail/bubble/search/add/weekend openers) comes from useNav() — O6.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { BUBBLES, CITY, DAY, dayLabel, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
+import { useNav, viewIndex } from './nav.jsx'
 import { BigOne, EndCap, FreeCard, GemRow, RowFeed, SecHead, TonightCard } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
 import { confidence, tasteNudge, topCategories, useTaste } from './taste.js'
@@ -33,7 +35,10 @@ function heroKicker(now, tonightLeft, whenPref) {
   return `${head} IN ${CITY.name.toUpperCase()}`
 }
 
-export default function HotView({ events, anchors, loading, displayMode, whenPref, onSelect, onOpenBubble, onOpenSearch, onOpenAdd, onOpenWeekend }) {
+export default function HotView({ events, anchors, loading, displayMode, whenPref }) {
+  // onSelect identity note: openDetail is useCallback-stable in nav.js, so the
+  // memo'd Rows (M1) keep their referential-stability contract intact.
+  const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, goTo } = useNav()
   const scrollRef = useRef(null)
   const evRef = useRef(null)
   const [entered, setEntered] = useState(false) // entrance animations already played?
@@ -258,8 +263,11 @@ export default function HotView({ events, anchors, loading, displayMode, whenPre
                 </>
               }
             />
-            {/* K2 seam: the Weekend Builder entry lives on the Saved shelf (styles in weekend.css) */}
-            <button className="wkb-entry pressable" onClick={onOpenWeekend}>Build my weekend 🗓️</button>
+            {/* O5: the Weekend Builder's shelf entry followed the full list to
+                Profile — this is the slim pointer it left behind (DRAFT copy) */}
+            <button className="shelf-to-profile pressable" onClick={() => goTo(viewIndex('profile'))}>
+              Full list + weekend plans → Profile
+            </button>
             <div className="carousel">
               {shelf.map(({ e, past }) => (
                 <div key={keyOf(e)} className={'shelf-item' + (past ? ' shelf-past' : '')}>

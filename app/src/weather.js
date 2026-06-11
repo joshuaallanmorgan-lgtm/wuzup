@@ -6,9 +6,11 @@
 // Cached in localStorage ('wx-tampa-v1', 6h TTL); on fetch failure serves stale
 // cache or null so the UI degrades gracefully to "no weather".
 
+import { lsGet, lsSet } from './storage.js'
+
 const WX_URL =
   'https://api.open-meteo.com/v1/forecast?latitude=27.95&longitude=-82.46&daily=weather_code,temperature_2m_max,precipitation_probability_max&timezone=America%2FNew_York&forecast_days=16'
-const CACHE_KEY = 'wx-tampa-v1'
+const CACHE_KEY = 'wx-tampa-v1' // stored as twh:wx-tampa-v1 via storage.js
 const TTL = 6 * 60 * 60 * 1000 // 6h
 const FETCH_TIMEOUT = 10000 // 10s
 
@@ -48,7 +50,7 @@ export function dateKey(ts) {
 
 function readCache() {
   try {
-    const c = JSON.parse(localStorage.getItem(CACHE_KEY))
+    const c = JSON.parse(lsGet(CACHE_KEY))
     return c && typeof c.fetchedAt === 'number' && c.data ? c : null
   } catch {
     return null
@@ -85,11 +87,7 @@ export async function getForecast() {
         rain: typeof rain === 'number' ? Math.round(rain) : null,
       }
     }
-    try {
-      localStorage.setItem(CACHE_KEY, JSON.stringify({ fetchedAt: now, data }))
-    } catch {
-      /* storage full/blocked — still return fresh data */
-    }
+    lsSet(CACHE_KEY, JSON.stringify({ fetchedAt: now, data })) // guarded in storage.js — still returns fresh data
     return data
   } catch {
     return cached ? cached.data : null // stale-if-error, else no weather

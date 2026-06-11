@@ -17,6 +17,9 @@
 //            who/vibe affinity sets)     — FindMyNight, on brief completion
 //   'bubble' +0.5 to e.category          — App.jsx openBubble, 'cat' bubbles only
 //   'add'    +2 to e.category            — AddEvent submit
+//   'went'   +2 to e.category            — saves.js markBeen, "I went 🎉" only
+//            (O4 ⚑FLAG-O2 mechanic: self-reported attendance is the strongest
+//            honest signal we have without accounts; "missed it" records nothing)
 // Each call = one interaction (n += 1). Beyond n=50 every stored score decays
 // ×0.98 per new signal (slow drift, no timestamps needed). Any catScore and
 // freeAffinity cap at 25.
@@ -28,8 +31,9 @@
 // NOTE: plain .js file (same rule as lib.js) — no JSX. Deliberately imports
 // nothing from lib.js so saves.js / lib.js can depend on this file cycle-free.
 import { useSyncExternalStore } from 'react'
+import { PREFIX, lsGet, lsSet } from './storage.js'
 
-const KEY = 'taste-v1'
+const KEY = 'taste-v1' // stored as twh:taste-v1 via storage.js
 const CAT_CAP = 25
 const DECAY_AFTER = 50 // signals beyond this each decay all scores…
 const DECAY = 0.98 // …by this factor
@@ -38,7 +42,7 @@ const CONF_FULL = 15 // confidence = min(n / 15, 1)
 // fmn is 1 (not 2): one brief touches up to 7-8 categories at once — at 2 a
 // single brief outweighed ~5 real saves and could open the rail gate with
 // categories the user never actually touched (adversarial review, Sprint G)
-const INC = { save: 3, open: 1, fmn: 1, bubble: 0.5, add: 2 }
+const INC = { save: 3, open: 1, fmn: 1, bubble: 0.5, add: 2, went: 2 }
 
 // H1 primer seed weights (recordPrimer)
 const PRIMER_CAT = 4 // per chosen category (≈ 1.3 saves / 4 opens of head start)
@@ -51,7 +55,7 @@ const cleanNum = (v, cap) => (typeof v === 'number' && isFinite(v) && v > 0 ? Ma
 
 function load() {
   try {
-    const p = JSON.parse(localStorage.getItem(KEY))
+    const p = JSON.parse(lsGet(KEY))
     if (p && typeof p === 'object' && !Array.isArray(p) && p.v === 1) {
       const catScores = {}
       if (p.catScores && typeof p.catScores === 'object' && !Array.isArray(p.catScores)) {
@@ -82,17 +86,13 @@ const subscribe = (l) => {
 }
 
 function persist() {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(profile))
-  } catch {
-    /* storage unavailable — the session profile still works */
-  }
+  lsSet(KEY, JSON.stringify(profile)) // guarded in storage.js — the session profile still works
 }
 
 // cross-tab: a signal recorded in another tab folds in (never fires in the writing tab)
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (ev) => {
-    if (ev.key !== KEY && ev.key !== null) return
+    if (ev.key !== PREFIX + KEY && ev.key !== null) return
     profile = load()
     emit()
   })

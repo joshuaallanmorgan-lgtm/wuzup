@@ -10,6 +10,7 @@
 // `useDisplayMode()` → 'editorial' | 'poster' | 'cinematic'. <DisplayModeToggle/>
 // (the 🎨 pill, mounted by App bottom-left) cycles through DISPLAY_MODES.
 import { createContext, memo, useContext, useEffect, useRef, useState } from 'react'
+import { CATEGORY_EMOJI, CATEGORY_HUES } from './categories.js'
 import { dayLabelLoose, dayLoose, keyOf, priceLabel, startLabel, timeOf } from './lib.js'
 import { SaveHeart, useSaves } from './saves.js'
 import { dateKey } from './weather.js'
@@ -32,46 +33,23 @@ export function useDisplayMode() {
 // single getForecast() fetch and provides it here; outdoor rows show a rain hint.
 export const WxContext = createContext(null)
 
-// one hue per category — reused by every mode (spine, glow, overline tint)
-export const CATEGORY_HUES = {
-  music: 265,
-  nightlife: 320,
-  food: 25,
-  market: 45,
-  outdoors: 140,
-  sports: 210,
-  art: 285,
-  theatre: 350,
-  comedy: 15,
-  family: 190,
-  community: 170,
-  other: 220,
-}
+// one hue per category (spine, glow, overline tint) + one emoji per category
+// (poster-mode artwork for events without an image). Both maps now DERIVE
+// from the canonical registry (categories.js, Sprint O audit prep #7) and are
+// re-exported here as shims so MapView/DetailPage/etc. keep importing from
+// cards.jsx unchanged — values verified identical to the old literals.
+export { CATEGORY_EMOJI, CATEGORY_HUES } from './categories.js'
 export const hueFor = (e) => CATEGORY_HUES[e.category] ?? CATEGORY_HUES.other
 
-// one emoji per category — poster-mode artwork for events without an image
-export const CATEGORY_EMOJI = {
-  music: '🎵',
-  sports: '🏟️',
-  art: '🎨',
-  theatre: '🎭',
-  comedy: '😂',
-  food: '🍔',
-  market: '🛍️',
-  outdoors: '🌳',
-  nightlife: '🪩',
-  family: '👨‍👩‍👧',
-  community: '🤝',
-  other: '⭐',
-}
-
 // 🎨 pill: cycles editorial → poster → cinematic. key={mode} remounts the label
-// so it plays a tiny flash (opacity/transform pop) on every switch.
-export function DisplayModeToggle() {
+// so it plays a tiny flash (opacity/transform pop) on every switch. `inert`
+// passes through so App's primer gate covers this floating control too (O
+// audit prep #6 — Tab must not reach it behind the primer overlay).
+export function DisplayModeToggle({ inert }) {
   const { mode, setMode } = useContext(DisplayModeContext)
   const next = DISPLAY_MODES[(DISPLAY_MODES.indexOf(mode) + 1) % DISPLAY_MODES.length]
   return (
-    <button className="dm-toggle" onClick={() => setMode(next)} aria-label={`Display mode: ${mode} (tap for ${next})`}>
+    <button className="dm-toggle" inert={inert} onClick={() => setMode(next)} aria-label={`Display mode: ${mode} (tap for ${next})`}>
       🎨{' '}
       <span className="dm-label" key={mode}>
         {mode}

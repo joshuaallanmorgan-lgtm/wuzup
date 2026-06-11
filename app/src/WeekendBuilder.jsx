@@ -18,10 +18,10 @@
 // 2000). Props contract (same wiring as BubblePage/FindMyNight):
 //   events   — normalized events
 //   anchors  — { todayTs, tomorrowTs, wkStartTs, wkEndTs }
-//   onSelect — (event, cardEl|null) opens the detail (stacks on top)
-//   onClose  — slide back out
+// Detail-open (stacks on top) + close-slide-out come from useNav() (O6).
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon, keyOf, timeOf } from './lib.js'
+import { useNav } from './nav.jsx'
 import { CardImg, SponsoredTag } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
 import { tasteNudge } from './taste.js'
@@ -42,7 +42,8 @@ const wd = (ts) => new Date(ts).toLocaleDateString('en-US', { weekday: 'long' })
 const fmtShort = (ts) =>
   new Date(ts).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
 
-export default function WeekendBuilder({ events, anchors, onSelect, onClose }) {
+export default function WeekendBuilder({ events, anchors }) {
+  const { openDetail: onSelect, closePage: onClose } = useNav()
   // the columns: Fri/Sat/Sun of the current anchors weekend, today-or-later only
   const days = useMemo(() => visibleWeekend(anchors), [anchors])
 

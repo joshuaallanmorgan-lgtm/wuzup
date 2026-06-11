@@ -1,10 +1,20 @@
-// saves.js — localStorage ♥ saves (Sprint C, sanctioned round-2 #4).
+// saves.js — localStorage ♥ saves (Sprint C, sanctioned round-2 #4) + the
+// "Been there" store (Sprint O4).
 //
 // STORAGE: 'saved-events-v1' = { [keyOf(e)]: { savedAt, snapshot } }. The
 // snapshot keeps just enough of the event (title/start/venue/image/url/
 // category/isFree/price) to render a shelf card even after a dataset refresh
 // drops the event itself. Every localStorage access is guarded — in private
 // mode saves still work for the session, they just don't persist.
+//
+// BEEN THERE (O4, ⚑FLAG-O2 default mechanic): 'been-there-v1' = an ARRAY of
+// { key, snapshot, savedAt?, archivedAt?, status?: 'went'|'missed', statusAt? }.
+// Entries arrive two ways: shelf expiry auto-archives them status-less (the
+// pre-O archive-before-prune, unchanged shape — old entries stay valid), and
+// markBeen() answers the Profile's "Did you make it?" prompt. SELF-REPORTED,
+// zero tracking: 'went' feeds taste (+2 category, taste.js) and moves the
+// item off the saved list into Been-there; 'missed' just records the answer
+// so the prompt never re-asks — no taste signal, nothing else changes.
 //
 // SYNC: a module-level store + subscriber set exposed to React through
 // useSyncExternalStore. Any toggle() rebuilds the store object and notifies
@@ -16,14 +26,16 @@
 // createElement.
 import { createElement as h, useState, useSyncExternalStore } from 'react'
 import { DAY, keyOf, normalize } from './lib.js'
+import { PREFIX, lsGet, lsSet } from './storage.js'
 import { recordSignal } from './taste.js'
 import './saves.css'
 
-const KEY = 'saved-events-v1'
+const KEY = 'saved-events-v1' // stored as twh:saved-events-v1 via storage.js
+const BEEN_KEY = 'been-there-v1'
 
 function loadMap() {
   try {
-    const p = JSON.parse(localStorage.getItem(KEY))
+    const p = JSON.parse(lsGet(KEY))
     if (p && typeof p === 'object' && !Array.isArray(p)) return p
   } catch {
     /* absent, corrupt, or private mode — start empty */
@@ -44,20 +56,42 @@ const emit = () => listeners.forEach((l) => l())
 
 function commit(map) {
   store = mk(map)
-  try {
-    localStorage.setItem(KEY, JSON.stringify(map))
-  } catch {
-    /* private mode / quota — keep the in-memory session working */
-  }
+  lsSet(KEY, JSON.stringify(map)) // guarded in storage.js — in-memory session keeps working
   emit()
 }
 
-// cross-tab: another tab toggled (key match) or cleared storage (key null)
+// ===== the Been-there store (same module-store pattern, own subscriber set
+// so save toggles don't re-render been-there consumers and vice versa) =====
+const BEEN_CAP = 200
+function loadBeen() {
+  try {
+    const v = JSON.parse(lsGet(BEEN_KEY))
+    if (Array.isArray(v)) return v.filter((x) => x && typeof x === 'object' && typeof x.key === 'string')
+  } catch {
+    /* absent, corrupt, or private mode — start empty */
+  }
+  return []
+}
+let been = loadBeen()
+const beenListeners = new Set()
+const emitBeen = () => beenListeners.forEach((l) => l())
+function commitBeen(list) {
+  been = list.slice(-BEEN_CAP)
+  lsSet(BEEN_KEY, JSON.stringify(been)) // guarded in storage.js
+  emitBeen()
+}
+
+// cross-tab: another tab toggled (prefixed-key match) or cleared storage (key null)
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (ev) => {
-    if (ev.key !== KEY && ev.key !== null) return
-    store = mk(loadMap())
-    emit()
+    if (ev.key === PREFIX + KEY || ev.key === null) {
+      store = mk(loadMap())
+      emit()
+    }
+    if (ev.key === PREFIX + BEEN_KEY || ev.key === null) {
+      been = loadBeen()
+      emitBeen()
+    }
   })
 }
 
@@ -66,6 +100,41 @@ const subscribe = (l) => {
   return () => listeners.delete(l)
 }
 const getSnapshot = () => store
+const subscribeBeen = (l) => {
+  beenListeners.add(l)
+  return () => beenListeners.delete(l)
+}
+const getBeen = () => been
+
+// live been-there list for React (ProfileView) — array identity changes on commit
+export function useBeenThere() {
+  return useSyncExternalStore(subscribeBeen, getBeen)
+}
+
+// O4 — answer a "Did you make it?" prompt. Idempotent: an entry that already
+// carries a status never re-answers (so the +2 taste signal can't be farmed
+// by re-tapping). 'went' also removes the save (the item MOVES to Been-there);
+// 'missed' leaves the save alone — it greys out and expires off the shelf on
+// its own schedule, and the existing archive dedupe (by key) preserves the
+// recorded answer when that expiry lands.
+export function markBeen(key, snapshot, status) {
+  if (status !== 'went' && status !== 'missed') return
+  const idx = been.findIndex((x) => x.key === key)
+  if (idx >= 0 && been[idx].status) return
+  const snap = (idx >= 0 ? been[idx].snapshot : null) ?? snapshot ?? null
+  const now = Date.now()
+  const next =
+    idx >= 0
+      ? been.map((x, i) => (i === idx ? { ...x, snapshot: snap, status, statusAt: now } : x))
+      : been.concat({ key, snapshot: snap, archivedAt: now, status, statusAt: now })
+  if (status === 'went' && snap) recordSignal('went', snap) // +2 category (taste.js 'went')
+  commitBeen(next)
+  if (status === 'went' && store.map[key]) {
+    const map = { ...store.map }
+    delete map[key]
+    commit(map)
+  }
+}
 
 export function toggleSave(e) {
   const k = keyOf(e)
@@ -142,17 +211,12 @@ export function shelfItems(list, events, anchors) {
         }
       }
       if (changed) {
-        try {
-          const prev = JSON.parse(localStorage.getItem('been-there-v1'))
-          const list = Array.isArray(prev) ? prev : []
-          const have = new Set(list.map((x) => x.key))
-          localStorage.setItem(
-            'been-there-v1',
-            JSON.stringify(list.concat(archived.filter((x) => !have.has(x.key))).slice(-200))
-          )
-        } catch {
-          /* private mode — the shelf prune still proceeds; archive is best-effort */
-        }
+        // archive THROUGH the been store (commitBeen) so an open Profile sees
+        // the new entries live. Dedupe by key keeps any already-recorded
+        // went/missed answer intact — expiry never overwrites an answer.
+        const have = new Set(been.map((x) => x.key))
+        const add = archived.filter((x) => !have.has(x.key))
+        if (add.length) commitBeen(been.concat(add))
         commit(map)
       }
     }, 0)

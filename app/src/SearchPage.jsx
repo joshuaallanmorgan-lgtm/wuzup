@@ -7,8 +7,7 @@
 //   coords   — last known { lat, lng } | null (App-held); when present, result
 //              rows wear distance pills (same showDist mechanism as BubblePage).
 //              Passive: this page never PROMPTS for location.
-//   onSelect — (event, cardEl|null) opens the detail (stacks on top)
-//   onClose  — slide back out to the Hot tab
+// Detail-open (stacks on top) + close-slide-out come from useNav() (O6).
 //
 // Behavior: autofocused round input, ~120ms debounce, case/diacritic-insensitive
 // AND-token match across title+venue+description+category. Results group by day
@@ -16,6 +15,7 @@
 // events that match land in a trailing "Anytime" group (never hide events).
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { dayLabel, Icon, milesBetween, orderDay } from './lib.js'
+import { useNav } from './nav.jsx'
 import { RowFeed } from './cards.jsx'
 import { tasteNudge } from './taste.js'
 import './bubble.css'
@@ -29,7 +29,8 @@ const fold = (s) =>
 
 const SUGGESTIONS = ['trivia', 'market', 'jazz', 'comedy', 'food truck']
 
-export default function SearchPage({ events, anchors, coords, onSelect, onClose }) {
+export default function SearchPage({ events, anchors, coords }) {
+  const { openDetail: onSelect, closePage: onClose } = useNav()
   const pgRef = useRef(null) // the scrolling ancestor — RowFeed's IO root
   const inputRef = useRef(null)
   const [q, setQ] = useState('') // live input value

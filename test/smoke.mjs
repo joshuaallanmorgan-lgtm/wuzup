@@ -422,6 +422,26 @@ test('tasteNudge: bounded 0..18, exact ceiling, neutral profile = 0', () => {
   }
 })
 
+// O1 lazy tab mounting — the boot-perf guard. The app can't DOM-render in
+// this Node harness, so the assertion is structural: every non-boot tab's
+// children must be gated on the nav visited-set (mount on first visit), and
+// the set must seed with ONLY the boot tab. Boot therefore renders exactly
+// one tab's tree — strictly less than the old eager three-tab boot.
+test('O1 lazy mounting: non-Events tabs gate on visited, boot seeds one tab', () => {
+  const appSrc = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
+  for (const id of ['map', 'calendar', 'profile']) {
+    assert.ok(
+      appSrc.includes(`visited.has('${id}') &&`),
+      `App.jsx must gate the '${id}' tab's children on visited.has('${id}') — lazy mounting (O1) regressed`
+    )
+  }
+  const navSrc = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
+  assert.ok(
+    navSrc.includes('new Set([VIEWS[0].id])'),
+    'nav.jsx must seed the visited set with the boot tab only — eager mounting crept back in'
+  )
+})
+
 test('weekend window: Fri–Sun for 3 different start days', () => {
   const wd = (d) => new Date(d).getDay()
   // Wednesday → upcoming Fri 12 / Sat 13 / Sun 14

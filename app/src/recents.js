@@ -21,13 +21,14 @@
 // NOTE: plain .js file (same rule as lib.js/saves.js) — no JSX.
 import { useSyncExternalStore } from 'react'
 import { keyOf } from './lib.js'
+import { PREFIX, lsGet, lsSet } from './storage.js'
 
-const KEY = 'recents-v1'
+const KEY = 'recents-v1' // stored as twh:recents-v1 via storage.js
 const CAP = 12
 
 function load() {
   try {
-    const v = JSON.parse(localStorage.getItem(KEY))
+    const v = JSON.parse(lsGet(KEY))
     if (Array.isArray(v)) return v.filter((k) => typeof k === 'string' && k.length > 1).slice(0, CAP)
   } catch {
     /* absent, corrupt, or private mode — start empty */
@@ -50,17 +51,13 @@ const subscribe = (l) => {
 const getSnap = () => snap
 
 function persist() {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(keys))
-  } catch {
-    /* storage unavailable — the session list still works */
-  }
+  lsSet(KEY, JSON.stringify(keys)) // guarded in storage.js — the session list still works
 }
 
 // cross-tab: a view recorded in another tab folds in (never fires in the writing tab)
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (ev) => {
-    if (ev.key !== KEY && ev.key !== null) return
+    if (ev.key !== PREFIX + KEY && ev.key !== null) return
     keys = load()
     rebuild()
     emit()

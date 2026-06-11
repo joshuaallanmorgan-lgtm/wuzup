@@ -1,6 +1,8 @@
 // lib.js — shared data helpers, constants, and (JSX-free) icon components.
 // NOTE: this file is plain .js, so NO JSX here — icons use createElement.
 import { createElement as h } from 'react'
+import { categoryById } from './categories.js'
+import { lsGet, lsSet } from './storage.js'
 
 // Per-city hero art is a future, multi-city feature; hardcoded to Tampa for now.
 export const CITY = {
@@ -9,23 +11,32 @@ export const CITY = {
 }
 export const DAY = 86400000
 
-// bubble destinations: every bubble opens a full BubblePage (round-3)
+// bubble destinations: every bubble opens a full BubblePage (round-3).
+// Category bubbles derive their identity (emoji/label/category id) from the
+// canonical registry (categories.js — audit prep #7); the bubble id (used by
+// BubblePage's TAGLINES/EMPTIES + HotView's seeAll) and the tile hue stay
+// bubble-local facts: the tile tints predate the card hues and deliberately
+// differ from them — unifying would be a visible change, not a refactor.
+const catBubble = (bubbleId, catId, hue) => {
+  const c = categoryById[catId]
+  return { id: bubbleId, emoji: c.emoji, label: c.label, kind: 'cat', value: c.id, hue }
+}
 export const BUBBLES = [
   { id: 'tonight', emoji: '🌙', label: 'Tonight', kind: 'time', value: 'tonight', hue: 250 },
   { id: 'weekend', emoji: '🎉', label: 'This Weekend', kind: 'time', value: 'weekend', hue: 35 },
   { id: 'free', emoji: '🆓', label: 'Free', kind: 'free', value: true, hue: 145 },
   { id: 'near', emoji: '📍', label: 'Near Me', kind: 'sort', value: 'near', hue: 200 },
-  { id: 'music', emoji: '🎵', label: 'Music', kind: 'cat', value: 'music', hue: 285 },
-  { id: 'food', emoji: '🍔', label: 'Food & Drink', kind: 'cat', value: 'food', hue: 15 },
-  { id: 'outdoors', emoji: '🌳', label: 'Outdoors', kind: 'cat', value: 'outdoors', hue: 110 },
-  { id: 'sports', emoji: '🏟️', label: 'Sports', kind: 'cat', value: 'sports', hue: 220 },
-  { id: 'arts', emoji: '🎨', label: 'Arts', kind: 'cat', value: 'art', hue: 330 },
-  { id: 'night', emoji: '🪩', label: 'Nightlife', kind: 'cat', value: 'nightlife', hue: 265 },
-  { id: 'comedy', emoji: '😂', label: 'Comedy', kind: 'cat', value: 'comedy', hue: 50 },
-  { id: 'theatre', emoji: '🎭', label: 'Theatre', kind: 'cat', value: 'theatre', hue: 350 },
-  { id: 'family', emoji: '👨‍👩‍👧', label: 'Family', kind: 'cat', value: 'family', hue: 190 },
-  { id: 'markets', emoji: '🛍️', label: 'Markets', kind: 'cat', value: 'market', hue: 80 },
-  { id: 'clubs', emoji: '🤝', label: 'Clubs', kind: 'cat', value: 'community', hue: 175 },
+  catBubble('music', 'music', 285),
+  catBubble('food', 'food', 15),
+  catBubble('outdoors', 'outdoors', 110),
+  catBubble('sports', 'sports', 220),
+  catBubble('arts', 'art', 330),
+  catBubble('night', 'nightlife', 265),
+  catBubble('comedy', 'comedy', 50),
+  catBubble('theatre', 'theatre', 350),
+  catBubble('family', 'family', 190),
+  catBubble('markets', 'market', 80),
+  catBubble('clubs', 'community', 175),
 ]
 
 // hotScore desc, nulls last, ties by start time
@@ -307,6 +318,37 @@ export const Icon = {
       h('rect', { x: 3, y: 5, width: 18, height: 16, rx: 3, fill: 'none', stroke: 'currentColor', strokeWidth: 2.1 }),
       h('path', { d: 'M3 9.5h18M8 3v4M16 3v4', stroke: 'currentColor', strokeWidth: 2.1, strokeLinecap: 'round' })
     ),
+  // Profile tab (Sprint O1) — head + shoulders, same 2.1 stroke voice
+  profile: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('circle', { cx: 12, cy: 8, r: 3.7, fill: 'none', stroke: 'currentColor', strokeWidth: 2.1 }),
+      h('path', {
+        d: 'M4.8 20.4c1-3.7 3.8-5.6 7.2-5.6s6.2 1.9 7.2 5.6',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinecap: 'round',
+        strokeLinejoin: 'round',
+      })
+    ),
+  // Locations tab pin — DRAWN AND READY for Sprint S, intentionally unused
+  // until the tab has content (O1 driver's-seat call: no dead tabs)
+  locations: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('path', {
+        d: 'M12 21.2S5.4 15.3 5.4 10.6a6.6 6.6 0 0 1 13.2 0c0 4.7-6.6 10.6-6.6 10.6Z',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinejoin: 'round',
+        strokeLinecap: 'round',
+      }),
+      h('circle', { cx: 12, cy: 10.6, r: 2.4, fill: 'none', stroke: 'currentColor', strokeWidth: 2.1 })
+    ),
   // back chevron used by detail + subpage headers
   chevron: (p) =>
     h(
@@ -327,22 +369,18 @@ export const Icon = {
 // Raw schema-v2 objects the user created via AddEvent, persisted to
 // localStorage and merged into the normalized feed by App (same normalize()
 // path as fetched events; tag 'added-by-you' drives the provenance label).
-export const MY_EVENTS_KEY = 'my-events-v1'
+export const MY_EVENTS_KEY = 'my-events-v1' // stored as twh:my-events-v1 via storage.js
 export const MY_SOURCE = 'Added by you'
 export function loadMyEvents() {
   try {
-    const v = JSON.parse(localStorage.getItem(MY_EVENTS_KEY))
+    const v = JSON.parse(lsGet(MY_EVENTS_KEY))
     return Array.isArray(v) ? v : []
   } catch {
     return [] // missing key / corrupt JSON / private mode — never crash the boot
   }
 }
 export function saveMyEvents(list) {
-  try {
-    localStorage.setItem(MY_EVENTS_KEY, JSON.stringify(list))
-  } catch {
-    /* storage unavailable — events still live in App state for the session */
-  }
+  lsSet(MY_EVENTS_KEY, JSON.stringify(list)) // guarded in storage.js — session state still works
 }
 // strip normalize()'s computed _fields → a clean schema-v2 object (an
 // undo-restored event persists as raw data, identical to a fresh submission)

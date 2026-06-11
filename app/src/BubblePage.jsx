@@ -8,8 +8,7 @@
 //   anchors       — { todayTs, tomorrowTs, wkStartTs, wkEndTs }
 //   coords        — last known { lat, lng } | null (App-held)
 //   requestCoords — () => Promise<{lat,lng}|null>; asks geolocation via App
-//   onSelect      — (event, cardEl|null) opens the detail (stacks on top)
-//   onClose       — slide back out to the Hot tab
+// Detail-open (stacks on top) + close-slide-out come from useNav() (O6).
 //
 // Filter semantics: kind 'time' → _tonight/_weekend, 'free' → _free, 'cat' →
 // e.category, 'sort' (Near Me) → everything upcoming, distance-sorted once the
@@ -18,6 +17,7 @@
 // via IntersectionObserver rooted at this page's own .pg scroller.
 import { useMemo, useRef, useState } from 'react'
 import { CITY, dayLabel, hotDesc, Icon, milesBetween, orderDay } from './lib.js'
+import { useNav } from './nav.jsx'
 import { RowFeed } from './cards.jsx'
 import { tasteNudge } from './taste.js'
 import './bubble.css'
@@ -49,7 +49,8 @@ const EMPTIES = {
   near: '🗺️ The map is quiet right now.',
 }
 
-export default function BubblePage({ bubble, events, anchors, coords, requestCoords, onSelect, onClose }) {
+export default function BubblePage({ bubble, events, anchors, coords, requestCoords }) {
+  const { openDetail: onSelect, closePage: onClose } = useNav()
   const pgRef = useRef(null) // the scrolling ancestor — RowFeed's IO root
   const [locState, setLocState] = useState('idle') // 'idle' | 'asking' | 'denied'
   const near = bubble.kind === 'sort'

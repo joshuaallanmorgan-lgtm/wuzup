@@ -6,10 +6,11 @@
 // Props contract:
 //   events   — normalized events
 //   anchors  — { todayTs, tomorrowTs, wkStartTs, wkEndTs }
-//   onSelect — (event, cardEl|null) opens the detail (stacks on top)
-//   onClose  — slide back out to the Hot tab
+// Detail-open (stacks on top) + close-slide-out come from useNav() (O6).
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DAY, Icon, dayLoose, keyOf, milesBetween, timeOf } from './lib.js'
+import { useNav } from './nav.jsx'
+import { lsGet, lsSet } from './storage.js'
 import { CardImg, HeatBadge, PriceChip, SponsoredTag } from './cards.jsx'
 import { SaveHeart } from './saves.js'
 import { recordSignal } from './taste.js'
@@ -85,26 +86,23 @@ const lateStart = (e) => /T\d/.test(e.start || '') && new Date(e.start).getHours
 
 // --- no-repeat memory: keys shown in recent reveals (FIFO, cap 40) ---
 // Seen events are de-prioritized at scoring time, never excluded.
-const SEEN_KEY = 'fmn-seen-v1'
+const SEEN_KEY = 'fmn-seen-v1' // stored as twh:fmn-seen-v1 via storage.js
 const SEEN_CAP = 40
 function loadSeen() {
   try {
-    const v = JSON.parse(localStorage.getItem(SEEN_KEY))
+    const v = JSON.parse(lsGet(SEEN_KEY))
     return Array.isArray(v) ? v.filter((k) => typeof k === 'string') : []
   } catch {
     return [] // missing key / corrupt JSON / private mode — memory just starts empty
   }
 }
 function pushSeen(keys) {
-  try {
-    const kept = loadSeen().filter((k) => !keys.includes(k))
-    localStorage.setItem(SEEN_KEY, JSON.stringify(kept.concat(keys).slice(-SEEN_CAP)))
-  } catch {
-    /* storage unavailable — fine, memory just doesn't persist */
-  }
+  const kept = loadSeen().filter((k) => !keys.includes(k))
+  lsSet(SEEN_KEY, JSON.stringify(kept.concat(keys).slice(-SEEN_CAP))) // guarded in storage.js
 }
 
-export default function FindMyNight({ events, anchors, coords, onSelect, onClose }) {
+export default function FindMyNight({ events, anchors, coords }) {
+  const { openDetail: onSelect, closePage: onClose } = useNav()
   const [step, setStep] = useState(0) // which question is showing (phase 'ask')
   const [phase, setPhase] = useState('ask') // 'ask' | 'think' | 'results'
   const [ans, setAns] = useState({ when: null, who: null, vibe: null })

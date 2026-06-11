@@ -19,12 +19,19 @@
 //   J4 the map note carries a live "N in view" count of events inside the
 //      current bounds (moveend, debounced 150ms).
 import { useEffect, useMemo, useRef, useState } from 'react'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
+import { getLeaflet } from './leaflet-lazy.js'
+import { useNav, viewIndex } from './nav.jsx'
 import { CATEGORY_HUES, CardImg, HeatBadge, PriceChip, SponsoredTag } from './cards.jsx'
 import { SaveHeart } from './saves.js'
 import { dayLabelLoose, keyOf, startLabel } from './lib.js'
 import './map.css'
+
+// Leaflet arrives via the shared lazy loader (leaflet-lazy.js, audit prep #3):
+// the module is fetched on the Map tab's FIRST activation, never in the boot
+// chunk. L is set before the map is created; everything below that touches L
+// (pinFor / redraw / fitBounds) only runs once the map exists, so L is always
+// loaded by then.
+let L = null
 
 // J2 thresholds: zoom >= PIN_ZOOM → every event is its own pin; below it,
 // grid clusters. CELL is the bucket size in projected px (~a thumb's width).
@@ -56,7 +63,10 @@ function bucketEvents(list, project) {
   return buckets
 }
 
-export default function MapView({ events, anchors, onSelect, active, focusTarget }) {
+export default function MapView({ events, anchors }) {
+  // navigation via useNav (O6): tab activation, detail opener, focus handoff
+  const { active: activeIdx, openDetail: onSelect, mapFocus: focusTarget } = useNav()
+  const active = activeIdx === viewIndex('map')
   const elRef = useRef(null)
   const mapRef = useRef(null)
   const layerRef = useRef(null)
@@ -165,31 +175,44 @@ export default function MapView({ events, anchors, onSelect, active, focusTarget
     coordsRef.current = withCoords
   })
 
-  // create the map exactly once, on first activation of the tab
+  // create the map exactly once, on first activation of the tab. Leaflet
+  // itself loads lazily here (shared loader): the first activation awaits the
+  // chunk, every later pass resolves instantly off the cached promise. The
+  // cancelled flag covers unmount-before-resolve; the mapRef/elRef re-checks
+  // inside .then() cover a re-run racing an in-flight load (StrictMode's
+  // double-invoke included — the second resolve finds mapRef set and bails).
   useEffect(() => {
     if (!active || mapRef.current || !elRef.current) return
-    const map = L.map(elRef.current, { zoomControl: false, preferCanvas: true }).setView([27.95, -82.46], 10)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap © CARTO',
-    }).addTo(map)
-    layerRef.current = L.layerGroup().addTo(map)
-    const t = timersRef.current
-    // zoomend → pins↔clusters rebuild (debounced; buckets depend on zoom only)
-    map.on('zoomend', () => {
-      clearTimeout(t.zoom)
-      t.zoom = setTimeout(() => redrawRef.current(), 120)
+    let cancelled = false
+    getLeaflet().then((mod) => {
+      if (cancelled || mapRef.current || !elRef.current) return
+      L = mod
+      const map = L.map(elRef.current, { zoomControl: false, preferCanvas: true }).setView([27.95, -82.46], 10)
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap © CARTO',
+      }).addTo(map)
+      layerRef.current = L.layerGroup().addTo(map)
+      const t = timersRef.current
+      // zoomend → pins↔clusters rebuild (debounced; buckets depend on zoom only)
+      map.on('zoomend', () => {
+        clearTimeout(t.zoom)
+        t.zoom = setTimeout(() => redrawRef.current(), 120)
+      })
+      // moveend → in-view count ONLY (J4): the bucket grid is world-anchored,
+      // so panning never invalidates it. (Leaflet fires moveend after zooms too,
+      // which keeps the count fresh on zoom for free.)
+      map.on('moveend', () => {
+        clearTimeout(t.move)
+        t.move = setTimeout(() => countRef.current(), 150)
+      })
+      map.on('click', () => setSheet(null)) // bare-map tap dismisses the preview
+      mapRef.current = map
+      setReady(true)
     })
-    // moveend → in-view count ONLY (J4): the bucket grid is world-anchored,
-    // so panning never invalidates it. (Leaflet fires moveend after zooms too,
-    // which keeps the count fresh on zoom for free.)
-    map.on('moveend', () => {
-      clearTimeout(t.move)
-      t.move = setTimeout(() => countRef.current(), 150)
-    })
-    map.on('click', () => setSheet(null)) // bare-map tap dismisses the preview
-    mapRef.current = map
-    setReady(true)
+    return () => {
+      cancelled = true
+    }
   }, [active])
   useEffect(() => {
     const t = timersRef.current
@@ -217,11 +240,13 @@ export default function MapView({ events, anchors, onSelect, active, focusTarget
 
   // focus-on-event (detail mini-map tap): pan/zoom straight to the target.
   // Zoom 15 >= PIN_ZOOM, so focus always lands in pin mode (zoomend rebuilds).
-  // If the tab was never visited, the create-effect above has just run in this
-  // same commit (App's focusMap flips `active` together with focusTarget), so
-  // mapRef is already set here. `ready` stays in the deps so the post-creation
-  // re-render re-asserts the view AFTER the marker effect draws — whose
-  // first-data fitBounds is suppressed by marking didFitRef below. The focused
+  // If the tab was never visited, the create-effect above starts the (lazy)
+  // Leaflet load in the same commit nav's focusMap flips `active` together
+  // with focusTarget; this effect bails on the null mapRef, then `ready` in
+  // the deps re-runs it once the map exists. On that ready-flip pass the
+  // marker effect (declared above) runs first — its first-data fitBounds and
+  // this setView land in the same effect flush, so the user only ever sees
+  // the focused view (didFitRef then suppresses later fit-to-all). The focused
   // event also opens its preview sheet (J3) so the target pin is identified.
   useEffect(() => {
     if (!focusTarget || focusTarget.lat == null || focusTarget.lng == null) return

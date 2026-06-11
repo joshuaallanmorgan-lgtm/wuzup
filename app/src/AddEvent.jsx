@@ -9,6 +9,7 @@
 // the future submission pipeline (PLAN.md Sprint C).
 import { useEffect, useRef, useState } from 'react'
 import { BUBBLES, dayTs, Icon, MY_SOURCE } from './lib.js'
+import { useNav } from './nav.jsx'
 import { recordSignal } from './taste.js'
 import './addevent.css'
 
@@ -38,7 +39,8 @@ function checkUrl(v) {
   }
 }
 
-export default function AddEvent({ anchors, myEvents, onAdd, onClose }) {
+export default function AddEvent({ anchors, myEvents, onAdd }) {
+  const { closePage: onClose } = useNav() // slide back out (O6)
   const [f, setF] = useState({
     title: '',
     date: '',

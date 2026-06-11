@@ -17,11 +17,13 @@
 // (inventory in the sprint report). Re-entry/“Tune your taste” is a Charles
 // question later — the primer is one-shot by design.
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { categoryById } from './categories.js'
 import { CITY } from './lib.js'
+import { lsGet, lsSet } from './storage.js'
 import { recordPrimer } from './taste.js'
 import './primer.css'
 
-export const PRIMER_KEY = 'primer-v1'
+export const PRIMER_KEY = 'primer-v1' // stored as twh:primer-v1 via storage.js
 const WHEN_VALUES = ['weeknights', 'weekends', 'whenever']
 
 // App's mount gate: a valid stored state means the primer already ran (or was
@@ -29,7 +31,7 @@ const WHEN_VALUES = ['weeknights', 'weekends', 'whenever']
 // shows again next launch; the in-session state still closes it today).
 export function loadPrimerState() {
   try {
-    const p = JSON.parse(localStorage.getItem(PRIMER_KEY))
+    const p = JSON.parse(lsGet(PRIMER_KEY))
     if (p && typeof p === 'object' && !Array.isArray(p) && p.v === 1 && (p.done === true || p.skipped === true)) {
       return {
         done: p.done === true,
@@ -45,26 +47,19 @@ export function loadPrimerState() {
 }
 
 function savePrimerState(s) {
-  try {
-    localStorage.setItem(PRIMER_KEY, JSON.stringify(s))
-  } catch {
-    /* private mode — the session still remembers via App state */
-  }
+  lsSet(PRIMER_KEY, JSON.stringify(s)) // guarded in storage.js — the session still remembers via App state
 }
 
-// Step 1 — multi-select up to 3 (values = real dataset categories)
-const CATS = [
-  { v: 'music', emoji: '🎵', label: 'Music' },
-  { v: 'food', emoji: '🍔', label: 'Food & Drink' },
-  { v: 'outdoors', emoji: '🌳', label: 'Outdoors' },
-  { v: 'sports', emoji: '🏟️', label: 'Sports' },
-  { v: 'art', emoji: '🎨', label: 'Arts' },
-  { v: 'nightlife', emoji: '🪩', label: 'Nightlife' },
-  { v: 'comedy', emoji: '😂', label: 'Comedy' },
-  { v: 'theatre', emoji: '🎭', label: 'Theatre' },
-  { v: 'market', emoji: '🛍️', label: 'Markets' },
-  { v: 'community', emoji: '🤝', label: 'Clubs' },
-]
+// Step 1 — multi-select up to 3. Identity (emoji/label) derives from the
+// canonical registry (categories.js — audit prep #7); this list owns only the
+// primer's curation: WHICH ten categories show, in WHAT order ('family' and
+// the 'other' fallback bucket deliberately sit out the first-open ask).
+const CATS = ['music', 'food', 'outdoors', 'sports', 'art', 'nightlife', 'comedy', 'theatre', 'market', 'community'].map(
+  (id) => {
+    const c = categoryById[id]
+    return { v: c.id, emoji: c.emoji, label: c.label }
+  }
+)
 // Step 2 — money mood (v = freeLeaning)
 const MONEY = [
   { v: true, emoji: '🆓', label: 'Free-leaning', sub: '$0 is the best price' },

@@ -1,6 +1,8 @@
 // CalendarView — List | Month segmented calendar with heat-shaded month grid.
+// Detail-open + Weekend-Builder entry come from useNav() (O6).
 import { useMemo, useState } from 'react'
 import { keyOf } from './lib.js'
+import { useNav } from './nav.jsx'
 import { EventCard } from './cards.jsx'
 import { useSaves } from './saves.js'
 import { dateKey, CONDITION } from './weather.js'
@@ -15,7 +17,8 @@ function wxSummary(w) {
   return parts.join(' · ')
 }
 
-export default function CalendarView({ events, anchors, onSelect, wx, onOpenWeekend }) {
+export default function CalendarView({ events, anchors, wx }) {
+  const { openDetail: onSelect, openWeekend: onOpenWeekend } = useNav()
   const [mode, setMode] = useState('list')
   const [selKey, setSelKey] = useState(null) // day timestamp; persists across List/Month toggle
   const [monthOff, setMonthOff] = useState(0)

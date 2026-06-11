@@ -4,12 +4,12 @@
 // gem/staff-pick flags, hero heat badge), 130px non-interactive mini-map
 // (tap → Map tab via onFocusMap), event-day weather, utility row (.ics download /
 // directions / share), and a More-like-this rail (swaps the detail via onSelect).
-// View Transitions open/close logic lives in App.jsx; base detail layout in
+// View Transitions open/close logic lives in nav.js (O6); base detail layout in
 // App.css; Sprint-B styles in detail.css. App keys this component by event, so
 // a rail swap remounts: scroll resets, the mini-map is destroyed + rebuilt.
 import { useEffect, useMemo, useRef, useState } from 'react'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
+import { getLeaflet } from './leaflet-lazy.js'
+import { useNav } from './nav.jsx'
 import { DAY, dayKey, hotDesc, keyOf, parseDate, priceLabel, timeOf } from './lib.js'
 import { CATEGORY_EMOJI, HeatBadge, SecHead, TonightCard, hueFor } from './cards.jsx'
 import { SaveHeart } from './saves.js'
@@ -103,7 +103,9 @@ function icsText(e) {
 // excluded from vibe matching ('added-by-you' is provenance, not a vibe)
 const GENERIC_TAGS = new Set(['tonight', 'weekend', 'one-off', 'recurring', 'ongoing', 'added-by-you'])
 
-export default function DetailPage({ e, events = [], anchors, wx, closing, vt, onClose, onSelect, onFocusMap, onRemoveMine, onRestoreMine }) {
+export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, onRestoreMine }) {
+  // navigation via useNav (O6): close/swap/map-handoff + the open-state flags
+  const { closing, vtOpen: vt, closeDetail: onClose, openDetail: onSelect, focusMap: onFocusMap } = useNav()
   // ===== WHEN: end-date honesty (multi-day ranges, same-day time ranges, ongoing) =====
   let when
   const DAY_MS = 86400000
@@ -176,37 +178,48 @@ export default function DetailPage({ e, events = [], anchors, wx, closing, vt, o
   }, [e.image])
   const imgOk = loadedSrc === e.image
 
-  // ===== mini-map: lazy non-interactive Leaflet, DESTROYED on unmount =====
+  // ===== mini-map: lazy non-interactive Leaflet, DESTROYED on unmount.
+  // Leaflet itself arrives via the shared lazy loader (leaflet-lazy.js) — the
+  // first map of the session awaits the chunk, later ones resolve instantly.
+  // unmount-before-resolve: the cancelled flag stops creation; el.isConnected
+  // covers the keyed remount where the old node is already out of the DOM. =====
   const mapElRef = useRef(null)
   useEffect(() => {
     const el = mapElRef.current
     if (e.lat == null || e.lng == null || !el) return
-    const m = L.map(el, {
-      zoomControl: false,
-      attributionControl: false,
-      dragging: false,
-      scrollWheelZoom: false,
-      touchZoom: false,
-      doubleClickZoom: false,
-      boxZoom: false,
-      keyboard: false,
-    }).setView([e.lat, e.lng], 14)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19,
-    }).addTo(m)
-    L.circleMarker([e.lat, e.lng], {
-      radius: 8,
-      color: '#fff',
-      weight: 2.5,
-      fillColor: '#0d9488',
-      fillOpacity: 1,
-      interactive: false,
-    }).addTo(m)
-    // detail mounts mid open-animation; one size sanity pass after it settles
-    const t = setTimeout(() => m.invalidateSize(), 280)
+    let cancelled = false
+    let m = null
+    let t = null
+    getLeaflet().then((L) => {
+      if (cancelled || !el.isConnected) return
+      m = L.map(el, {
+        zoomControl: false,
+        attributionControl: false,
+        dragging: false,
+        scrollWheelZoom: false,
+        touchZoom: false,
+        doubleClickZoom: false,
+        boxZoom: false,
+        keyboard: false,
+      }).setView([e.lat, e.lng], 14)
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+      }).addTo(m)
+      L.circleMarker([e.lat, e.lng], {
+        radius: 8,
+        color: '#fff',
+        weight: 2.5,
+        fillColor: '#0d9488',
+        fillOpacity: 1,
+        interactive: false,
+      }).addTo(m)
+      // detail mounts mid open-animation; one size sanity pass after it settles
+      t = setTimeout(() => m.invalidateSize(), 280)
+    })
     return () => {
+      cancelled = true
       clearTimeout(t)
-      m.remove() // tears down panes, layers and ALL listeners — no leaks on close
+      if (m) m.remove() // tears down panes, layers and ALL listeners — no leaks on close
     }
   }, [e.lat, e.lng])
 
