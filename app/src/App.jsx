@@ -1,13 +1,12 @@
 // App — the DATA shell: events fetch + normalize, anchors, weather, my-events,
-// geolocation (requestCoords), display-mode state and the primer gate. All
+// geolocation (requestCoords) and the primer gate. All
 // NAVIGATION state (active tab, subpage union, detail open/close + VT morph,
 // map focus) lives in nav.js (Sprint O6) — components reach it via useNav().
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CITY, DAY, Icon, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, saveMyEvents } from './lib.js'
-import { lsGet, lsSet } from './storage.js'
 import { NavProvider, VIEWS, viewIndex, useNav } from './nav.jsx'
 import Primer, { loadPrimerState } from './Primer.jsx'
-import { DISPLAY_MODES, DisplayModeContext, WxContext } from './cards.jsx'
+import { WxContext } from './cards.jsx'
 import { getForecast } from './weather.js'
 import HotView from './HotView.jsx'
 import MapView from './MapView.jsx'
@@ -71,11 +70,6 @@ function Shell() {
   const [loading, setLoading] = useState(true)
   const [bootVis, setBootVis] = useState(false) // boot overlay gated 300ms (no flash on fast loads)
   const [coords, setCoords] = useState(null)
-  // display mode: 'editorial' | 'poster' | 'cinematic', persisted via storage.js
-  const [displayMode, setDisplayMode] = useState(() => {
-    const v = lsGet('display-mode')
-    return DISPLAY_MODES.includes(v) ? v : 'editorial'
-  })
   // H1 mood primer: mounts while no stored state exists (first open only).
   // Primer.jsx owns the primer store + the taste seeding; App only gates the
   // mount and passes the when-preference down for the H2 greeting flavor.
@@ -134,10 +128,6 @@ function Shell() {
     const t = setTimeout(() => setBootVis(true), 300)
     return () => clearTimeout(t)
   }, [])
-  useEffect(() => {
-    lsSet('display-mode', displayMode) // guarded inside storage.js — private mode still works for the session
-  }, [displayMode])
-
   // anchors must track the real clock: an app left open past midnight (or
   // resumed from background the next day) would otherwise show yesterday's
   // "Today". Recompute when the tab becomes visible and shortly after each
@@ -193,7 +183,6 @@ function Shell() {
     setMyEvents(() => loadMyEvents().filter((x) => keyOf(x) !== k))
   }, [])
   const norm = useMemo(() => [...events, ...myEvents].map((e) => normalize(e, anchors)), [events, myEvents, anchors])
-  const displayCtx = useMemo(() => ({ mode: displayMode, setMode: setDisplayMode }), [displayMode])
 
   // 16-day Tampa forecast, fetched ONCE at App level (was CalendarView-local):
   // CalendarView (prop), DetailPage (prop) and outdoor feed rows (WxContext)
@@ -234,8 +223,7 @@ function Shell() {
   const inertAll = !primer ? true : undefined
 
   return (
-    <DisplayModeContext.Provider value={displayCtx}>
-      <WxContext.Provider value={wx}>
+    <WxContext.Provider value={wx}>
       <div className="app">
         {/* O1 lazy mounting: every section SHELL renders (scroll-snap needs all
             N page widths) but children mount on FIRST VISIT only — Events is
@@ -245,13 +233,7 @@ function Shell() {
             Adding a tab = one VIEWS entry (nav.jsx) + one section here. */}
         <div className="pager" ref={attachPager} onScroll={onPagerScroll} inert={inertAll}>
           <section className="page page-hot">
-            <HotView
-              events={norm}
-              anchors={anchors}
-              loading={loading}
-              displayMode={displayMode}
-              whenPref={primer?.when ?? null}
-            />
+            <HotView events={norm} anchors={anchors} loading={loading} whenPref={primer?.when ?? null} />
           </section>
           <section className="page page-map">
             {visited.has('map') && <MapView events={norm} anchors={anchors} />}
@@ -331,7 +313,6 @@ function Shell() {
         )}
         {loading && bootVis && <div className="boot">Loading {CITY.name}…</div>}
       </div>
-      </WxContext.Provider>
-    </DisplayModeContext.Provider>
+    </WxContext.Provider>
   )
 }

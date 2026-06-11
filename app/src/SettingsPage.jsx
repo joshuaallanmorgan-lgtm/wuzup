@@ -1,10 +1,10 @@
-// SettingsPage — Profile → ⚙️ (Sprint P1). The app's ONLY knobs page, and it
-// shows nothing it can't honestly do: display mode (the retired 🎨 pill's
-// real home, a proper segmented row), the taste tools (read-only summary,
-// primer retake, full interview, calibration deck, a sober two-step reset),
-// data provenance (the Last-Modified stamp App's fetch already carries + a
-// live source count) and an about stub Phase 4 will fill. NO email, NO
-// account fields, NO dead buttons — every row does the thing it says.
+// SettingsPage — Profile → ⚙️ (Sprint P1, slimmed in Q2a: display modes
+// retired entirely — editorial IS the app). Shows nothing it can't honestly
+// do: the taste tools (read-only summary, primer retake, full interview,
+// calibration deck, a sober two-step reset), data provenance (the
+// Last-Modified stamp App's fetch already carries + a live source count) and
+// an about stub Phase 4 will fill. NO email, NO account fields, NO dead
+// buttons — every row does the thing it says.
 //
 // Mounted in App's .subpage slot ({type:'settings'}); the interview and deck
 // rows REPLACE the page via their nav openers and hand back via openSettings.
@@ -16,7 +16,6 @@
 import { useMemo, useState } from 'react'
 import { Icon, sourceFamily } from './lib.js'
 import { useNav } from './nav.jsx'
-import { DisplayModeToggle } from './cards.jsx'
 import { categoryById } from './categories.js'
 import { lsRemove } from './storage.js'
 import { confidence, resetTaste, topCategories, useTaste } from './taste.js'
@@ -83,16 +82,8 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone }) {
       </header>
 
       <div className="st-body">
-        {/* ===== DISPLAY ===== */}
-        <section className="st-sec">
-          <div className="st-over">Display</div>
-          <div className="st-card">
-            <div className="st-label">Card style</div>
-            <DisplayModeToggle />
-            <div className="st-hint">Editorial is the house look — the other two are comparison styles.</div>
-          </div>
-        </section>
-
+        {/* Display section RETIRED with the display modes (Q2a) — editorial
+            is the app, there's nothing honest left to toggle here */}
         {/* ===== YOUR TASTE ===== */}
         <section className="st-sec">
           <div className="st-over">Your taste</div>

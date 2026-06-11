@@ -1,17 +1,15 @@
 /* eslint-disable react-refresh/only-export-components --
-   the interface contract pins DISPLAY_MODES / DisplayModeContext / useDisplayMode /
-   CATEGORY_HUES / hueFor to this file alongside the card components; the rule only
-   affects dev-time Fast Refresh granularity, not runtime behavior. */
-// cards.jsx — shared card/row building blocks + the display-mode mechanism.
+   the interface contract pins WxContext / CATEGORY_HUES / hueFor to this file
+   alongside the card components; the rule only affects dev-time Fast Refresh
+   granularity, not runtime behavior. */
+// cards.jsx — shared card/row building blocks.
 //
-// DISPLAY MODE: React context (canonical). App owns the state (persisted to
-// localStorage 'display-mode') and wraps the tree in <DisplayModeContext.Provider
-// value={{ mode, setMode }}>. Any card component reads the current mode with
-// `useDisplayMode()` → 'editorial' | 'poster' | 'cinematic'. <DisplayModeToggle/>
-// is the control: a 3-option segmented row living in Profile → Settings →
-// Display (Sprint P1 — the floating 🎨 pill RETIRED; per the UI_SPEC tasting
-// verdict the toggle survives only as a comparison tool, and a comparison
-// tool belongs in settings, not floating over every feed).
+// DISPLAY MODES RETIRED (Q2a, Josh 2026-06-11: "editorial main, poster flavor,
+// cinematic seasoning"): editorial IS the design — the mode context, the
+// settings toggle and the poster/cinematic row treatments are gone. Poster's
+// wins live on inside editorial (FREE overlay, hue energy); cinematic survives
+// only as bespoke styling on naturally dark surfaces (FMN, Big One) — their
+// own CSS, not a mode.
 import { createContext, memo, useContext, useEffect, useRef, useState } from 'react'
 import { CATEGORY_EMOJI, CATEGORY_HUES } from './categories.js'
 import { dayLabelLoose, dayLoose, keyOf, priceLabel, startLabel, timeOf } from './lib.js'
@@ -26,46 +24,17 @@ const PAGE_SIZE = 30
 // already-underway events — metas that LEAD with it read quieter (.meta-started)
 const startedCls = (m) => (m.startsWith('Started') ? ' meta-started' : '')
 
-export const DISPLAY_MODES = ['editorial', 'poster', 'cinematic']
-export const DisplayModeContext = createContext({ mode: 'editorial', setMode: () => {} })
-export function useDisplayMode() {
-  return useContext(DisplayModeContext).mode
-}
-
 // 16-day forecast map { 'YYYY-MM-DD': {emoji,hi,rain} } | null — App owns the
 // single getForecast() fetch and provides it here; outdoor rows show a rain hint.
 export const WxContext = createContext(null)
 
 // one hue per category (spine, glow, overline tint) + one emoji per category
-// (poster-mode artwork for events without an image). Both maps now DERIVE
+// (imgbox-art watermark for events without an image). Both maps now DERIVE
 // from the canonical registry (categories.js, Sprint O audit prep #7) and are
 // re-exported here as shims so MapView/DetailPage/etc. keep importing from
 // cards.jsx unchanged — values verified identical to the old literals.
 export { CATEGORY_EMOJI, CATEGORY_HUES } from './categories.js'
 export const hueFor = (e) => CATEGORY_HUES[e.category] ?? CATEGORY_HUES.other
-
-// display-mode control, P1 form: a proper 3-option segmented row (Settings →
-// Display). Same context contract as the retired pill — reads + writes
-// DisplayModeContext, so every Row/CardImg repaints live as before. No inert
-// pass-through anymore: it no longer floats over the primer.
-export function DisplayModeToggle() {
-  const { mode, setMode } = useContext(DisplayModeContext)
-  return (
-    <div className="dm-seg" role="radiogroup" aria-label="Display mode">
-      {DISPLAY_MODES.map((m) => (
-        <button
-          key={m}
-          className={'dm-opt' + (m === mode ? ' on' : '')}
-          role="radio"
-          aria-checked={m === mode}
-          onClick={() => setMode(m)}
-        >
-          {m}
-        </button>
-      ))}
-    </div>
-  )
-}
 
 export function PriceChip({ e }) {
   const label = priceLabel(e)
@@ -106,13 +75,9 @@ export function SponsoredTag({ e }) {
 // children render on top (heat badges, FREE badge, …).
 export function CardImg({ e, className = '', children }) {
   const [ok, setOk] = useState(false)
-  const mode = useDisplayMode()
   const emoji = CATEGORY_EMOJI[e.category] ?? CATEGORY_EMOJI.other
-  // poster tiles are image-first: a time-as-artwork fallback would just repeat
-  // the meta line, so poster mode keeps the category emoji as the crisp
-  // foreground mark. Artwork is the TIME, not the status — strip startLabel's
-  // "Started " prefix here only.
-  const fall = mode === 'poster' ? emoji : startLabel(e).replace(/^Started /, '') || '★'
+  // artwork is the TIME, not the status — strip startLabel's "Started " prefix here only
+  const fall = startLabel(e).replace(/^Started /, '') || '★'
   return (
     <span
       className={'imgbox ' + className + (e.image ? '' : ' imgbox-art')}
@@ -261,13 +226,11 @@ export function EndCap({ square, onClick, children = 'See all →' }) {
   )
 }
 
-// the Everything/feed row — three live-switchable treatments (DisplayModeToggle):
-//   editorial — 110px image left, category overline + spine in the category hue,
-//               FREE overlay on the image (folded in from poster), heat badge /
-//               price chip (priced only) / distance in a right-aligned rail
-//   poster    — 2-up image-first grid (1:1, hue glow ring, FREE overlay), scan-fast
-//   cinematic — 92px full-width cover card, 0.55 scrim, white text bottom-left
-// Same props in every mode; CardImg keeps [data-vt] so the detail morph works.
+// the Everything/feed row, editorial treatment (THE design system): 110px
+// image left, category overline + spine in the category hue, FREE overlay on
+// the image (poster's best element, folded in), heat badge / price chip
+// (priced only) / distance in a right-aligned rail. CardImg keeps [data-vt]
+// so the detail morph works.
 //
 // memo'd (Sprint M1): HotView re-renders on every taste/recents/saves emit —
 // i.e. on every detail open — and RowFeed reconciles up to `limit` rows each
@@ -275,10 +238,9 @@ export function EndCap({ square, onClick, children = 'See all →' }) {
 // referentially stable across those re-renders (e: from the evSections memo;
 // onSelect: App's useCallback'd openDetail; dist: null; style: undefined or a
 // hoisted STAGGER_STYLES constant), so memo turns ~1,600 row re-renders per
-// card tap into ~0. Context reads (display mode, weather) bypass memo by
-// design, so mode switches and forecast arrival still repaint every row.
+// card tap into ~0. Context reads (weather) bypass memo by design, so
+// forecast arrival still repaints every row.
 export const Row = memo(function Row({ e, dist, style, onSelect }) {
-  const mode = useDisplayMode()
   // outdoor events on a rainy forecast day carry a tiny honesty hint in the meta
   const wx = useContext(WxContext)
   const wxDay = e.category === 'outdoors' && e._day != null && wx ? wx[dateKey(e._day)] : null
@@ -288,45 +250,6 @@ export const Row = memo(function Row({ e, dist, style, onSelect }) {
   const mi = dist != null ? dist.toFixed(1) + ' mi' : null
   const free = e._free === true || e.isFree === true
 
-  if (mode === 'poster') {
-    const meta = [...(e._ongoing ? ['Ongoing'] : [dayLoose(e), timeOf(e.start)]), mi, free ? null : priceLabel(e), rain]
-      .filter(Boolean)
-      .join(' · ')
-    return (
-      <button className="row row--poster pressable" style={st} onClick={open}>
-        <CardImg e={e} className="row-img">
-          <SaveHeart e={e} />
-          <HeatBadge e={e} />
-          {free && <span className="free-badge">FREE</span>}
-        </CardImg>
-        <div className="row-title">{e.title}</div>
-        <div className="row-meta">{meta || 'Tap for details'}</div>
-        <SponsoredTag e={e} />
-      </button>
-    )
-  }
-
-  if (mode === 'cinematic') {
-    const meta = [...(e._ongoing ? ['Ongoing'] : [startLabel(e)]), e.venue, mi, priceLabel(e), rain]
-      .filter(Boolean)
-      .join(' · ')
-    return (
-      <button className="row row--cinematic pressable" style={st} onClick={open}>
-        <CardImg e={e} className="row-img">
-          <span className="row-scrim" />
-          <SaveHeart e={e} />
-          <HeatBadge e={e} />
-        </CardImg>
-        <div className="row-text">
-          <div className="row-title">{e.title}</div>
-          <div className={'row-meta' + startedCls(meta)}>{meta || 'Tap for details'}</div>
-          <SponsoredTag e={e} />
-        </div>
-      </button>
-    )
-  }
-
-  // editorial (default)
   const meta = (e._ongoing ? ['Ongoing', e.venue, rain] : [dayLabelLoose(e), timeOf(e.start), e.venue, rain])
     .filter(Boolean)
     .join(' · ')
@@ -368,7 +291,6 @@ const STAGGER_STYLES = [0, 30, 60, 90, 120, 150].map((ms) => Object.freeze({ ani
 // (HotView's 🃏 "Deck this" entry); when it returns something the header flexes
 // via .feed-date-deck — consumers that don't pass it render byte-identically.
 export function RowFeed({ sections, showDist, stagger, scrollRootRef, endSlot, headerExtra, onSelect }) {
-  const mode = useDisplayMode()
   const [limit, setLimit] = useState(PAGE_SIZE)
   const sentRef = useRef(null)
   const total = sections.reduce((n, s) => n + s.items.length, 0)
@@ -414,8 +336,7 @@ export function RowFeed({ sections, showDist, stagger, scrollRootRef, endSlot, h
     }
     count += items.length
   }
-  // .mode-cinematic scopes the near-black list backdrop (list container only)
-  const cls = 'feed feed--' + mode + (mode === 'cinematic' ? ' mode-cinematic' : '') + (stagger ? ' feed-stagger' : '')
+  const cls = 'feed feed--editorial' + (stagger ? ' feed-stagger' : '')
   return (
     <div className={cls}>
       {out}

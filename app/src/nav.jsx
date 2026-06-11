@@ -6,7 +6,7 @@
 // the user is": the active tab + goTo, the subpage union, the detail
 // open/close (View-Transition morph included) and the detail→Map focus
 // handoff. App.jsx keeps the DATA (events/norm/anchors/wx/myEvents/coords/
-// primer/displayMode); components reach navigation via useNav() instead of
+// primer); components reach navigation via useNav() instead of
 // 5-deep callback prop-drilling. ZERO behavior change — the logic below moved
 // here verbatim from App.jsx; the smoke harness + a hand pass guard it.
 //

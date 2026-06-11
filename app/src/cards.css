@@ -1,6 +1,6 @@
 /* cards.css — styles for everything exported by cards.jsx:
    pressable, imgbox, badges, chips, carousels (tcard/fcard/endcap),
-   BigOne, gems, Everything rows + RowFeed, compact .card, DisplayModeToggle. */
+   BigOne, gems, Everything rows + RowFeed, compact .card. */
 
 /* ===== shared press state: every tappable card ===== */
 .pressable { transition: transform var(--dur-fast) var(--ease-out); }
@@ -349,44 +349,14 @@
 }
 .card-meta { font-size: 12.5px; color: var(--muted); margin-top: 3px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* ===== display-mode control (Sprint P1): segmented 3-option row, lives in
-   Settings → Display. The floating 🎨 pill (.dm-toggle, z 1510) RETIRED. ===== */
-.dm-seg {
-  display: flex;
-  gap: 4px;
-  padding: 4px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--bg);
-}
-.dm-opt {
-  flex: 1;
-  height: 34px;
-  border: none;
-  border-radius: 999px;
-  background: none;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: capitalize;
-  color: var(--muted);
-  cursor: pointer;
-  transition:
-    background var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out);
-}
-.dm-opt.on {
-  background: var(--card);
-  color: var(--accent);
-  box-shadow: 0 1px 6px rgba(20, 23, 28, 0.1);
-}
+/* (display-mode control fully retired in Q2a — pill in P1, segmented row +
+   the modes themselves here; editorial is the app) */
 
 /* ===== reduced motion (card-scope) ===== */
 @media (prefers-reduced-motion: reduce) {
   .bigone-reveal .bigone-img,
   .feed-stagger .row,
   .card { animation: none !important; }
-  .dm-opt { transition: none; }
   .pressable:active,
   .gems-more:active,
   .card:active { transform: none; }

@@ -36,7 +36,7 @@ function heroKicker(now, tonightLeft, whenPref) {
   return `${head} IN ${CITY.name.toUpperCase()}`
 }
 
-export default function HotView({ events, anchors, loading, displayMode, whenPref }) {
+export default function HotView({ events, anchors, loading, whenPref }) {
   // onSelect identity note: openDetail is useCallback-stable in nav.js, so the
   // memo'd Rows (M1) keep their referential-stability contract intact.
   const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, goTo } = useNav()
@@ -44,7 +44,6 @@ export default function HotView({ events, anchors, loading, displayMode, whenPre
   const evRef = useRef(null)
   const [entered, setEntered] = useState(false) // entrance animations already played?
   const [heroOk, setHeroOk] = useState(false)
-  void displayMode // reserved for the display-mode agent (cards also read it via context)
 
   // hero image: preload + 300ms fade (no pop). onload fires even for cached
   // images because the handler is attached before src is set.
