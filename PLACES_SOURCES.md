@@ -2,7 +2,7 @@
 _Produced by the R1 research scout workflow (3 agents), 2026-06-11. Every endpoint live-verified that day._
 _This is the build spec for R2 (finder/places.mjs + finder/places-sources/*). Companion to MASTER_PLAN2.md Sprint R and CALENDAR_BRIEF.md (the durable-doc pattern)._
 
-> ⚑R-MOON (OPEN — Josh): "Moonlight Beach" does not exist in Tampa Bay; benchmark slot vacant until re-ratified. Recommended: Honeymoon Island State Park. Details in §0.3 / Appendix A §3 / Appendix B alert.
+> ⚑R-MOON (RESOLVED — Josh, 2026-06-11): "Moonlight Beach" does not exist in Tampa Bay; Josh ratified **Honeymoon Island State Park** as the fifth roster benchmark (and confirmed Weedon Island was the intended spelling — the county's "Weeden" is the typo). The R2 build ran with the slot vacant per the original flag; the Honeymoon benchmark is added at fix-application and must pass by generation. Evidence trail in §0.3 / Appendix A §3 / Appendix B alert.
 
 ---
 # Sprint R — Places Data-Source Plan (R1 synthesis, decision-ready)
