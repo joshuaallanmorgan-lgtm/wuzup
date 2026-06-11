@@ -1,2 +1,6 @@
 node_modules/
 dist/
+# places-pipeline fetch caches: bulky (~5MB/run), reproducible, weekly-churning
+# (committing them is the same git-history sleeper W3 already flags for events)
+finder/cache/osm-*.json
+finder/cache/places-*.json

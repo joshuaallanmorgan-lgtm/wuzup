@@ -263,6 +263,86 @@ test(`data invariants: full events.json (${fullEvents.length} events)`, () => {
 })
 
 // ============================================================
+// 2b) PLACES DATA INVARIANTS on the CURRENT app/public/places.json
+//     (Sprint R2 — schema v1 asserts, same style as the events block above;
+//     the places pipeline is NOT spawned here: it's Overpass-politeness-slow
+//     by design, and these invariants hold on whatever it last wrote)
+// ============================================================
+const APP_PLACES = path.join(ROOT, 'app', 'public', 'places.json')
+const TB_BOX = { latMin: 27.3, latMax: 28.6, lngMin: -83.3, lngMax: -81.9 } // == finder TB_BOX
+const PLACE_CATEGORIES = new Set(['music', 'sports', 'theatre', 'comedy', 'art', 'market', 'food', 'outdoors', 'nightlife', 'family', 'community', 'other'])
+const PLACE_TYPES = new Set(['park', 'preserve', 'beach', 'trail', 'dog_park', 'garden', 'pier', 'boat_ramp', 'playground', 'viewpoint', 'courts'])
+
+test('places data invariants: schema v1 places.json', () => {
+  assert.ok(existsSync(APP_PLACES), `missing ${APP_PLACES} — run "node finder/places.mjs" first; the places layer has no data`)
+  const doc = JSON.parse(readFileSync(APP_PLACES, 'utf8'))
+  assert.equal(doc.schemaVersion, 1, `places.json schemaVersion must be 1 (got ${doc.schemaVersion})`)
+  const places = doc.places
+  assert.ok(Array.isArray(places) && places.length > 0, 'places.json .places is not a non-empty array')
+  assert.ok(places.length >= 300, `places total ${places.length} below the 300 floor — a source regressed (R DoD)`)
+
+  const problems = []
+  const keys = new Set()
+  for (let i = 0; i < places.length; i++) {
+    const p = places[i]
+    const id = `place[${i}] "${String(p?.name).slice(0, 50)}"`
+    // required core: key/kind/name/placeType/category/lat/lng/sources
+    if (typeof p.key !== 'string' || !p.key.startsWith('p|')) problems.push(`${id}: key must start with 'p|' (got ${p.key})`)
+    if (keys.has(p.key)) problems.push(`${id}: duplicate key ${p.key}`)
+    keys.add(p.key)
+    if (p.kind !== 'place') problems.push(`${id}: kind must be 'place' (got ${p.kind})`)
+    if (typeof p.name !== 'string' || !p.name.trim()) problems.push(`${id}: nameless place (need 0)`)
+    if (!PLACE_TYPES.has(p.placeType)) problems.push(`${id}: unknown placeType "${p.placeType}"`)
+    if (!Array.isArray(p.classes) || !p.classes.length) problems.push(`${id}: classes must be a non-empty array`)
+    if (!PLACE_CATEGORIES.has(p.category)) problems.push(`${id}: category "${p.category}" not in the 12-category taxonomy`)
+    if (typeof p.lat !== 'number' || typeof p.lng !== 'number' ||
+        p.lat < TB_BOX.latMin || p.lat > TB_BOX.latMax || p.lng < TB_BOX.lngMin || p.lng > TB_BOX.lngMax)
+      problems.push(`${id}: coords (${p.lat},${p.lng}) outside the Tampa Bay box`)
+    if (!Array.isArray(p.sources) || p.sources.length < 1 || p.sources.some((s) => typeof s !== 'string'))
+      problems.push(`${id}: sources must be a non-empty string array`)
+    if (typeof p.srcCount !== 'number' || p.srcCount !== p.sources?.length)
+      problems.push(`${id}: srcCount must equal sources.length`)
+    // hidden shelf: no hidden without hiddenScore (PLACES_SOURCES.md §2 asserts)
+    if (typeof p.hidden !== 'boolean') problems.push(`${id}: hidden must be a boolean`)
+    if (typeof p.hiddenScore !== 'number') problems.push(`${id}: hiddenScore must be a number`)
+    if (p.hidden === true && !(p.hiddenScore > 0)) problems.push(`${id}: hidden without a positive hiddenScore`)
+    // optional fields, type-checked when present (omit-not-null contract)
+    if ('amenities' in p && (!Array.isArray(p.amenities) || !p.amenities.length || p.amenities.some((a) => typeof a !== 'string')))
+      problems.push(`${id}: amenities, when present, must be a non-empty string array`)
+    if ('aliases' in p && (!Array.isArray(p.aliases) || p.aliases.length < 2 || p.aliases.some((a) => typeof a !== 'string')))
+      problems.push(`${id}: aliases, when present, must be a string array of 2+ variant spellings`)
+    for (const k of ['address', 'description', 'hours', 'url', 'phone', 'designation', 'operator', 'fee', 'wikidata']) {
+      if (k in p && (typeof p[k] !== 'string' || !p[k])) problems.push(`${id}: ${k}, when present, must be a non-empty string`)
+    }
+    if ('isFree' in p && typeof p.isFree !== 'boolean') problems.push(`${id}: isFree, when present, must be boolean`)
+  }
+  assert.equal(problems.length, 0, `places schema problems (${problems.length}):\n  ${problems.slice(0, 12).join('\n  ')}`)
+
+  // coverage + curation invariants (mirror the pipeline's benchmark block)
+  const withHours = places.filter((p) => p.hours).length
+  assert.ok(withHours >= 150, `places with hours ${withHours} below the 150 floor`)
+  const withAmenities = places.filter((p) => p.amenities && p.amenities.length).length
+  assert.ok(withAmenities >= 250, `places with amenities ${withAmenities} below the 250 floor`)
+  const hidden = places.filter((p) => p.hidden === true).length
+  assert.ok(hidden <= 24, `hidden shelf ${hidden} exceeds the cap of 24 — curation regressed`)
+
+  // ROSTER BENCHMARKS on the artifact (review HARDENING: the pipeline's bench
+  // lines are console-only — a generation regression must fail npm test too)
+  for (const slug of ['honeymoon-island-state-park', 'caladesi-island-state-park', 'weedon-island-preserve', 'davis-islands-beach']) {
+    assert.ok(keys.has('p|' + slug), `roster benchmark missing from generation: ${slug}`)
+  }
+  const fortDeSoto = places.filter((p) => p.key.startsWith('p|fort-de-soto') && p.classes.includes('park'))
+  assert.equal(fortDeSoto.length, 1, `Fort De Soto must be exactly ONE park record (got: ${fortDeSoto.map((p) => p.key).join(', ') || 'none'})`)
+  assert.ok(!keys.has('p|weedon-island-preserve-2'), 'Weedon Island split into two records — the o/e-typo merge regressed')
+
+  // the finder copy and the app copy must be the same artifact (no drift)
+  const FINDER_PLACES = path.join(ROOT, 'finder', 'output', 'places.json')
+  assert.ok(existsSync(FINDER_PLACES), 'finder/output/places.json missing while the app copy exists')
+  assert.equal(readFileSync(FINDER_PLACES, 'utf8'), readFileSync(APP_PLACES, 'utf8'),
+    'finder/output/places.json and app/public/places.json drifted — re-run node finder/places.mjs')
+})
+
+// ============================================================
 // 3+4) APP BUILD + LINT (started together, asserted separately)
 // ============================================================
 let buildP = null
