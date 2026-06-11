@@ -29,6 +29,17 @@
 // documented stacking edge in taste.js — primer weights are small and real
 // taps dominate either way) and {done, when} overwrites, which is the point
 // of a retake. Header copy swaps to retake phrasing (DRAFT).
+//
+// THE FINISH SCREEN (Q2d, FIRST-OPEN ONLY — re-entry retakes skip the offer
+// and close on the third tap exactly as before): the third tap still seeds
+// taste + persists {done, when} immediately (the reward beat), then lands on
+// a finish screen instead of closing: a primary "into the app" dismiss plus
+// a QUIET optional second act — "Dial it in — rate 15 events" — that closes
+// the primer and hands App the saved state through onDeck, which opens the
+// calibration deck AFTER the primer is gone. Explicit tap only, never
+// autoplayed. Once the state is saved, skip/Escape on the finish screen
+// dismiss WITHOUT rewriting (a {skipped} must never clobber the fresh
+// {done}) — the doneRef guard below.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { categoryById } from './categories.js'
 import { CITY } from './lib.js'
@@ -88,13 +99,16 @@ const WHEN = [
 const prefersReduced = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-export default function Primer({ onDone, reentry = false }) {
+export default function Primer({ onDone, onDeck, reentry = false }) {
   const [step, setStep] = useState(0)
   const [cats, setCats] = useState([]) // array → preserves pick order, max 3
   const [free, setFree] = useState(null) // null | true | false
   const [when, setWhen] = useState(null)
   const [leaving, setLeaving] = useState(false)
   const tRef = useRef(null)
+  // set the moment {done, when} is persisted (first-open finish): from then
+  // on every exit path hands THIS state back and writes nothing further
+  const doneRef = useRef(null)
   const reduced = useMemo(() => prefersReduced(), [])
   useEffect(() => () => clearTimeout(tRef.current), [])
 
@@ -104,15 +118,21 @@ export default function Primer({ onDone, reentry = false }) {
     )
   }
 
-  // fade out, then unmount via App (reduced motion = instant)
-  const close = (state) => {
-    if (reduced) return onDone(state)
+  // fade out, then unmount via App (reduced motion = instant). cb defaults to
+  // the plain dismiss; the finish screen's deck offer passes onDeck instead —
+  // either way the handoff fires only after the fade, so whatever App opens
+  // next appears strictly AFTER the primer is gone.
+  const close = (state, cb = onDone) => {
+    if (reduced) return cb(state)
     setLeaving(true)
     clearTimeout(tRef.current)
-    tRef.current = setTimeout(() => onDone(state), 280)
+    tRef.current = setTimeout(() => cb(state), 280)
   }
 
   const skip = () => {
+    // already finished (the Q2d finish screen is up): state is saved, taste is
+    // seeded — Escape here is just a dismiss, never a {skipped} overwrite
+    if (doneRef.current) return close(doneRef.current)
     if (reentry) return close(null) // retake abandoned: stored state untouched, nothing seeded
     const s = { skipped: true, v: 1 }
     savePrimerState(s)
@@ -137,7 +157,11 @@ export default function Primer({ onDone, reentry = false }) {
     recordPrimer({ cats, freeLeaning: free === true })
     const s = { done: true, when: whenV, v: 1 }
     savePrimerState(s)
-    close(s)
+    if (reentry) return close(s) // retakes close on the third tap, no offer
+    // first-open (Q2d): seeded + saved already — land on the finish screen
+    // with the optional deck offer instead of closing
+    doneRef.current = s
+    setStep(3)
   }
 
   // money tap: show the highlight for a beat, then slide on (FMN's rhythm)
@@ -163,15 +187,24 @@ export default function Primer({ onDone, reentry = false }) {
       <div className="primer-scrim" />
       <div className="primer-body">
         <header className="primer-head">
-          <div className="primer-kicker">{reentry ? 'TUNE YOUR TASTE' : 'NEW HERE? MAKE IT YOURS'}</div>
-          <div className="primer-note">
-            {reentry ? '3 taps — a fresh read on you.' : '3 taps, no account, all on your phone.'}
+          {/* the finish screen (step 3) drops the ask-y framing — "3 taps, no
+              account" + progress dots describe a flow that's already over
+              (Q2 review INFO-4; DRAFT for Charles like all primer copy) */}
+          <div className="primer-kicker">
+            {step === 3 ? 'ALL SET' : reentry ? 'TUNE YOUR TASTE' : 'NEW HERE? MAKE IT YOURS'}
           </div>
-          <div className="primer-dots" aria-hidden>
-            {[0, 1, 2].map((i) => (
-              <span key={i} className={'primer-dot' + (i === step ? ' on' : i < step ? ' done' : '')} />
-            ))}
-          </div>
+          {step < 3 && (
+            <div className="primer-note">
+              {reentry ? '3 taps — a fresh read on you.' : '3 taps, no account, all on your phone.'}
+            </div>
+          )}
+          {step < 3 && (
+            <div className="primer-dots" aria-hidden>
+              {[0, 1, 2].map((i) => (
+                <span key={i} className={'primer-dot' + (i === step ? ' on' : i < step ? ' done' : '')} />
+              ))}
+            </div>
+          )}
         </header>
 
         {step === 0 && (
@@ -240,12 +273,40 @@ export default function Primer({ onDone, reentry = false }) {
             <button className="primer-back" onClick={() => { clearTimeout(tRef.current); setStep(1) }}>← Back</button>
           </div>
         )}
+
+        {step === 3 && (
+          /* Q2d FINISH SCREEN (first-open only — finish() never routes
+             re-entry here). State is already saved + seeded; both buttons are
+             pure exits. The deck offer is the QUIET one by design — the
+             default path into the app stays primary. No --reward here: the
+             sanctioned beat was the third tap's highlight, not this screen. */
+          <div className="primer-step" key={3}>
+            <h1 className="primer-q">You’re in.</h1>
+            <div className="primer-sub">
+              {cats.length
+                ? 'Your picks give the feed a head start — every tap from here sharpens it.'
+                : 'Every tap from here shapes your feed — all on your phone.'}
+            </div>
+            <button className="primer-next" onClick={() => close(doneRef.current)}>
+              Show me what’s on
+            </button>
+            {typeof onDeck === 'function' && (
+              <button className="primer-deckbtn" onClick={() => close(doneRef.current, onDeck)}>
+                <span className="primer-deckbtn-main">🃏 Dial it in — rate 15 events</span>
+                <span className="primer-deckbtn-sub">Optional — swipe a quick deck, skippable anytime</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* ONE-TAP SKIP — visible on every step, always */}
-      <button className="primer-skip" onClick={skip}>
-        {reentry ? 'Never mind — back to settings' : 'Skip — just show me everything'}
-      </button>
+      {/* ONE-TAP SKIP — visible on every asking step (the finish screen has
+          its own two explicit exits; Escape still dismisses safely there) */}
+      {step < 3 && (
+        <button className="primer-skip" onClick={skip}>
+          {reentry ? 'Never mind — back to settings' : 'Skip — just show me everything'}
+        </button>
+      )}
     </div>
   )
 }

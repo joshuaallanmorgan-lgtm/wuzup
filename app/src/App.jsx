@@ -19,7 +19,7 @@ import FindMyNight from './FindMyNight.jsx'
 import AddEvent from './AddEvent.jsx'
 import WeekendBuilder from './WeekendBuilder.jsx'
 import SettingsPage from './SettingsPage.jsx'
-import Interview from './Interview.jsx'
+import InterestEditor from './InterestEditor.jsx'
 import CalibrationDeck from './CalibrationDeck.jsx'
 import LensDeck from './LensDeck.jsx'
 import './App.css'
@@ -78,8 +78,20 @@ function Shell() {
 
   // navigation (nav.js): tab index + pager wiring, visited set (lazy tab
   // mounting, O1), subpage union, detail, map focus
-  const { active, goTo, attachPager, onPagerScroll, visited, page, pageClosing, openNight, openSettings, detail } =
-    useNav()
+  const {
+    active,
+    goTo,
+    attachPager,
+    onPagerScroll,
+    visited,
+    page,
+    pageClosing,
+    openNight,
+    openSettings,
+    openDeck,
+    closePage,
+    detail,
+  } = useNav()
 
   // the snapshot's Last-Modified ms (null when the header is absent) — the
   // stale banner reads it through staleAt; Settings' "Events updated {when}"
@@ -279,15 +291,23 @@ function Shell() {
               /* keyed by weekend: a midnight rollover into a new weekend remounts with that weekend's plan */
               <WeekendBuilder key={anchors.wkStartTs} events={norm} anchors={anchors} />
             )}
-            {/* Sprint P: settings + the two taste flows it launches. Single-slot
-                union — interview/deck REPLACE the settings page and hand back
-                via openSettings, so the trio feels stacked without stack state */}
+            {/* Sprint P/Q2c: settings + the taste flows. Single-slot union —
+                interests/deck REPLACE the settings page and hand back via
+                their `from` origin, so the trio feels stacked without stack
+                state (the 7-screen Interview retired into the editor, Q2d) */}
             {page.type === 'settings' && (
               <SettingsPage events={norm} dataAt={dataAt} primer={primer} onPrimerDone={setPrimer} />
             )}
-            {page.type === 'interview' && <Interview />}
+            {page.type === 'interests' && <InterestEditor from={page.from} />}
             {page.type === 'deck' && (
-              <CalibrationDeck events={norm} anchors={anchors} onClose={openSettings} />
+              /* primer-origin (the onboarding offer) closes to the tab — a
+                 fresh user has no Settings page to "go back" to */
+              <CalibrationDeck
+                events={norm}
+                anchors={anchors}
+                onClose={page.from === 'primer' ? closePage : openSettings}
+                closeLabel={page.from === 'primer' ? 'Take me to the events' : undefined}
+              />
             )}
             {/* Sprint Q2: the finite "Deck this" mode — opened ONLY by the
                 explicit 🃏 entry buttons (HotView day-headers, bubble pages);
@@ -296,8 +316,20 @@ function Shell() {
           </div>
         )}
         {/* H1: first open only — Primer persists its own state + seeds taste;
-            onDone hands the saved state back so the gate closes for good */}
-        {!primer && <Primer onDone={setPrimer} />}
+            onDone hands the saved state back so the gate closes for good.
+            Q2d: the finish screen's optional "dial it in" offer routes through
+            onDeck — primer gate closes and the deck subpage mounts in the
+            SAME commit, so the deck only ever appears after the primer is
+            gone (explicit tap only; the primer never autoplays anything) */}
+        {!primer && (
+          <Primer
+            onDone={setPrimer}
+            onDeck={(s) => {
+              setPrimer(s)
+              openDeck('primer')
+            }}
+          />
+        )}
         {/* keyed by event: a More-like-this swap REMOUNTS the detail (scroll resets
             to top, mini-map is destroyed + rebuilt for the new coords) */}
         {detail && (

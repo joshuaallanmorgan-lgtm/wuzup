@@ -1,0 +1,102 @@
+/* interests.css — the InterestEditor subpage (Sprint Q2c). Editorial-light
+   like Settings (white cards, hairlines) but the chip grid carries the
+   registry hues — stated interests should feel like the Profile header's
+   vibe chips, just tappable. Selection is the chip's OWN hue (an interest is
+   identity, not an accent-colored control); the question rows select in the
+   app teal like every other quiet control. NO --hot, NO --reward (editing
+   preferences is maintenance, not a sanctioned micro-moment). Scoped .ie. */
+
+.ie { background: var(--bg); }
+.ie-body { padding: 4px 20px 120px; }
+
+.ie-framing {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.ie-sec { margin-top: 24px; }
+.ie-over {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+/* ===== the chip grid: every category, directly tappable ===== */
+.ie-grid { display: flex; flex-wrap: wrap; gap: 9px; }
+.ie-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-micro);
+}
+.ie-chip:active { transform: scale(0.95); }
+.ie-chip.sel {
+  border-color: hsla(var(--ph, 200), 70%, 45%, 0.55);
+  background: hsla(var(--ph, 200), 80%, 45%, 0.14);
+}
+.ie-grid-note { margin-top: 10px; font-size: 12px; font-weight: 600; color: var(--muted); }
+
+/* ===== the question rows ===== */
+.ie-qs { display: flex; flex-direction: column; gap: 10px; }
+.ie-q {
+  padding: 13px 14px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+.ie-q-title { font-size: 14px; font-weight: 700; }
+.ie-q-sub { margin-top: 2px; font-size: 12px; font-weight: 500; color: var(--muted); }
+.ie-opts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.ie-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 13px;
+  border-radius: 999px;
+  border: 1.5px solid var(--line);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-micro);
+}
+.ie-opt:active { transform: scale(0.95); }
+.ie-opt.sel {
+  border-color: rgba(var(--accent-rgb), 0.55);
+  background: rgba(var(--accent-rgb), 0.1);
+}
+
+.ie-foot { margin-top: 14px; font-size: 12px; font-weight: 500; color: var(--muted); line-height: 1.5; }
+
+/* ===== reduced motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .ie-chip,
+  .ie-opt { transition: none; }
+  .ie-chip:active,
+  .ie-opt:active { transform: none; }
+}

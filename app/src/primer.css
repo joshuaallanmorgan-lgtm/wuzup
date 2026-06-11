@@ -1,13 +1,13 @@
-/* primer.css — Sprint H1 mood primer (+ Sprint P re-uses: Settings' re-entry
-   mount and the Interview's .primer.ivw skin both ride these classes — the
-   "same visual language" is literally the same stylesheet). First-open: a
-   one-shot full-screen overlay over the hero-photo ambiance, z 1900: above
-   tabbar (1100) / FAB (1090) / subpages (1500), below detail (2000) and boot
-   (2100). When mounted INSIDE a .subpage (re-entry / interview), the
-   subpage's persisted transform contains this fixed overlay, so it fills the
-   460px frame identically while layering at the subpage's own z. Teal is the
-   selection color — the primer is app identity, not hot-ness. Scoped under
-   .primer; nothing here leaks into the shared chrome. */
+/* primer.css — Sprint H1 mood primer (+ Sprint P re-use: Settings' re-entry
+   mount rides these classes too; the 7-screen Interview that also wore them
+   retired into the InterestEditor, Q2d). First-open: a one-shot full-screen
+   overlay over the hero-photo ambiance, z 1900: above tabbar (1100) / FAB
+   (1090) / subpages (1500), below detail (2000) and boot (2100). When mounted
+   INSIDE a .subpage (re-entry), the subpage's persisted transform contains
+   this fixed overlay, so it fills the 460px frame identically while layering
+   at the subpage's own z. Teal is the selection color — the primer is app
+   identity, not hot-ness. Scoped under .primer; nothing here leaks into the
+   shared chrome. */
 
 .primer {
   position: fixed;
@@ -174,6 +174,30 @@
   cursor: pointer;
 }
 
+/* Q2d finish screen: the QUIET optional deck offer under the primary exit —
+   ghost-pill quiet on purpose (the default path into the app stays loud).
+   Teal text, not --reward: the sanctioned beat already happened on tap 3. */
+.primer-deckbtn {
+  margin-top: 14px;
+  width: 100%;
+  padding: 13px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  color: #5eead4; /* the kicker's light teal — readable on the dark scrim */
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform var(--dur-micro);
+}
+.primer-deckbtn:active { transform: scale(0.97); }
+.primer-deckbtn-sub { font-size: 11.5px; font-weight: 600; color: rgba(255, 255, 255, 0.55); }
+
 /* ONE-TAP SKIP — pinned under the scroll area, never covered, every step */
 .primer-skip {
   position: relative;
@@ -203,5 +227,6 @@
   .primer-dot { transition: none; }
   .primer-chip:active,
   .primer-next:active,
+  .primer-deckbtn:active,
   .primer-skip:active { transform: none; }
 }

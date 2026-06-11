@@ -54,18 +54,33 @@
   line-height: 1.1;
 }
 .pf-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+/* tappable since Q2 (buttons → the InterestEditor) — same look, plus the
+   press affordance every other tappable chip in the app carries */
 .pf-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 8px 13px;
+  border: none;
   border-radius: 999px;
   background: hsla(var(--ph, 200), 80%, 45%, 0.12);
+  font: inherit;
   font-size: 13px;
   font-weight: 700;
   color: var(--ink);
+  cursor: pointer;
+  transition: transform var(--dur-micro);
 }
+.pf-chip:active { transform: scale(0.95); }
 .pf-chip-free { background: rgba(var(--accent-rgb), 0.1); color: var(--free); }
+/* the visible door: dashed = "this is editable", muted so it never competes
+   with the identity chips it sits behind */
+.pf-chip-edit {
+  background: none;
+  border: 1.5px dashed var(--line);
+  padding: 6.5px 12px;
+  color: var(--muted);
+}
 .pf-when { margin-top: 12px; font-size: 14px; font-weight: 600; }
 .pf-note { margin-top: 8px; font-size: 13px; font-weight: 500; color: var(--muted); line-height: 1.5; }
 
@@ -234,4 +249,17 @@
   color: var(--muted);
   text-align: center;
   line-height: 1.5;
+}
+
+/* ===== reduced motion: no press-scales (added with the tappable chips, Q2 —
+   also covers the page's pre-existing micro-presses) ===== */
+@media (prefers-reduced-motion: reduce) {
+  .pf-chip,
+  .pf-gear,
+  .pf-ask-yes,
+  .pf-ask-no { transition: none; }
+  .pf-chip:active,
+  .pf-gear:active,
+  .pf-ask-yes:active,
+  .pf-ask-no:active { transform: none; }
 }

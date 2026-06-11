@@ -248,8 +248,8 @@
 .dice:active { transform: scale(0.92); }
 
 /* ===== subpage overlay (BubblePage / SearchPage / FindMyNight / Settings /
-   Interview / CalibrationDeck) ===== slide-in from the right over the active
-   tab; z 1500: above tabbar (1100) + FAB (1090), below detail (2000).
+   InterestEditor / CalibrationDeck) ===== slide-in from the right over the
+   active tab; z 1500: above tabbar (1100) + FAB (1090), below detail (2000).
    (The 🎨 toggle that used to sit at 1510 retired in Sprint P1.) */
 .subpage {
   position: fixed;

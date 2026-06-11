@@ -107,15 +107,17 @@ export function NavProvider({ children }) {
 
   // ===== subpage overlay: null | {type:'bubble',bubble} | {type:'search'} |
   // {type:'night'} | {type:'add'} | {type:'weekend'} | {type:'settings'} |
-  // {type:'interview'} | {type:'deck'} | {type:'lensdeck',lens} — slides in
-  // over the active tab (z 1500, below detail 2000). Sprint P added settings
-  // (Profile's gear), the full interview and the calibration deck (both
-  // launched FROM settings — they stack by replacing the page, and their
-  // back/finish affordances reopen settings, so "one level deep" stays true
-  // in feel while the union stays flat in state). Sprint Q2 added lensdeck
-  // (the finite "Deck this" mode) on the same replace-the-page pattern: a
-  // bubble-lens deck's back affordance reopens its bubble via the quiet
-  // openBubble flag below. =====
+  // {type:'interests',from} | {type:'deck',from} | {type:'lensdeck',lens} —
+  // slides in over the active tab (z 1500, below detail 2000). Sprint P added
+  // settings (Profile's gear) and the calibration deck (launched FROM
+  // settings — they stack by replacing the page, and their back/finish
+  // affordances reopen settings, so "one level deep" stays true in feel while
+  // the union stays flat in state). Sprint Q2 added lensdeck (the finite
+  // "Deck this" mode) on the same replace-the-page pattern (a bubble-lens
+  // deck's back affordance reopens its bubble via the quiet openBubble flag
+  // below) and Q2c swapped the retired 7-screen interview for interests (the
+  // InterestEditor) — both interests and deck carry a `from` origin so their
+  // back affordances return where the user actually came from. =====
   const [page, setPage] = useState(null)
   const [pageClosing, setPageClosing] = useState(false)
   const pageTRef = useRef(null)
@@ -150,24 +152,32 @@ export function NavProvider({ children }) {
     setPageClosing(false)
     setPage({ type: 'weekend' })
   }, [])
-  // Sprint P: settings (Profile gear) + the two taste flows it launches.
+  // Sprint P: settings (Profile gear) + the taste flows it launches.
   // Opening one while another is up REPLACES the page (single-slot union) —
-  // the .subpage shell stays mounted, so settings → interview → settings
+  // the .subpage shell stays mounted, so settings → interests → settings
   // reads as layers without any stack state.
   const openSettings = useCallback(() => {
     clearTimeout(pageTRef.current)
     setPageClosing(false)
     setPage({ type: 'settings' })
   }, [])
-  const openInterview = useCallback(() => {
+  // Q2c: the InterestEditor. `from` is honored ONLY as the literal 'settings'
+  // (callers pass it through onClick, so a click-event arg must read as "not
+  // from settings") — it routes the editor's back affordance: settings row →
+  // back to Settings; Profile's vibe chips (or anywhere else) → close to tab.
+  const openInterests = useCallback((from) => {
     clearTimeout(pageTRef.current)
     setPageClosing(false)
-    setPage({ type: 'interview' })
+    setPage({ type: 'interests', from: from === 'settings' ? 'settings' : null })
   }, [])
-  const openDeck = useCallback(() => {
+  // Q2d: the deck gained a second door (the primer's finish-screen offer).
+  // Same literal-string guard as openInterests: anything but 'primer' —
+  // including the click event Settings' row hands over — means the historical
+  // settings origin, so the deck's close keeps returning to Settings there.
+  const openDeck = useCallback((origin) => {
     clearTimeout(pageTRef.current)
     setPageClosing(false)
-    setPage({ type: 'deck' })
+    setPage({ type: 'deck', from: origin === 'primer' ? 'primer' : 'settings' })
   }, [])
   // Sprint Q2: the finite lens deck ("Deck this" on day-headers + bubble
   // pages). lens = {kind:'day',dayTs} | {kind:'bubble',bubble} — LensDeck
@@ -283,7 +293,7 @@ export function NavProvider({ children }) {
       openAdd,
       openWeekend,
       openSettings,
-      openInterview,
+      openInterests,
       openDeck,
       openLensDeck,
       closePage,
@@ -311,7 +321,7 @@ export function NavProvider({ children }) {
       openAdd,
       openWeekend,
       openSettings,
-      openInterview,
+      openInterests,
       openDeck,
       openLensDeck,
       closePage,

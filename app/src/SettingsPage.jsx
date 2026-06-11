@@ -1,12 +1,13 @@
-// SettingsPage — Profile → ⚙️ (Sprint P1, slimmed in Q2a: display modes
-// retired entirely — editorial IS the app). Shows nothing it can't honestly
-// do: the taste tools (read-only summary, primer retake, full interview,
+// SettingsPage — Profile → ⚙️ (Sprint P1, slimmed in Q2a/Q2b: display modes
+// retired entirely — editorial IS the app — and the 7-screen interview row
+// LEFT for the InterestEditor). Shows nothing it can't honestly do: the
+// taste tools (read-only summary, Customize interests, primer retake,
 // calibration deck, a sober two-step reset), data provenance (the
 // Last-Modified stamp App's fetch already carries + a live source count) and
 // an about stub Phase 4 will fill. NO email, NO account fields, NO dead
 // buttons — every row does the thing it says.
 //
-// Mounted in App's .subpage slot ({type:'settings'}); the interview and deck
+// Mounted in App's .subpage slot ({type:'settings'}); the interests and deck
 // rows REPLACE the page via their nav openers and hand back via openSettings.
 // The primer retake mounts Primer in re-entry mode right here (its fixed
 // overlay is contained by the subpage's transform — fills the frame, layers
@@ -35,7 +36,7 @@ const fmtUpdated = (ms) => {
 }
 
 export default function SettingsPage({ events, dataAt, primer, onPrimerDone }) {
-  const { closePage: onClose, openInterview, openDeck } = useNav()
+  const { closePage: onClose, openInterests, openDeck } = useNav()
   const taste = useTaste()
   const [retaking, setRetaking] = useState(false)
   const [arming, setArming] = useState(false) // reset's two-step confirm
@@ -102,18 +103,20 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone }) {
           </div>
 
           <div className="st-rows">
+            {/* Q2c: the editor REPLACED the 7-screen interview row — stated
+                interests are a page you edit, not a wizard you re-run */}
+            <button className="st-row" onClick={() => openInterests('settings')}>
+              <span className="st-row-main">
+                <span className="st-row-title">Customize interests</span>
+                <span className="st-row-sub">Pick categories + the quick ones — live, any time</span>
+              </span>
+              <span className="st-row-go" aria-hidden>→</span>
+            </button>
             <button className="st-row" onClick={() => setRetaking(true)}>
               <span className="st-row-main">
                 {/* honest verb: a skipped first-open never "re"-takes */}
                 <span className="st-row-title">{primer?.done ? 'Retake the quick primer' : 'Take the quick primer'}</span>
                 <span className="st-row-sub">3 taps — the first-open questions{primer?.done ? ', again' : ''}</span>
-              </span>
-              <span className="st-row-go" aria-hidden>→</span>
-            </button>
-            <button className="st-row" onClick={openInterview}>
-              <span className="st-row-main">
-                <span className="st-row-title">Full interview</span>
-                <span className="st-row-sub">7 quick ones — the deeper read</span>
               </span>
               <span className="st-row-go" aria-hidden>→</span>
             </button>

@@ -119,6 +119,36 @@
 }
 .srch-sug-btn:active { transform: scale(0.94); }
 
+/* ===== Q2e zero-state: recent searches block (above the suggestions) ===== */
+.srch-recents { padding: 14px 20px 0; }
+.srch-recents-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.srch-recents-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+/* the quiet clear control: plain muted text, no chrome */
+.srch-recents-clear {
+  border: none;
+  background: none;
+  padding: 4px 0 4px 12px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+.srch-recents-clear:active { opacity: 0.6; }
+/* recents chips read as "yours" (ink), suggestions keep the accent voice */
+.srch-sug--recents { justify-content: flex-start; margin-top: 10px; }
+.srch-sug-btn--recent { color: var(--ink); }
+
 /* ===== reduced motion: drop the press scales ===== */
 @media (prefers-reduced-motion: reduce) {
   .bub-locate-btn:active,

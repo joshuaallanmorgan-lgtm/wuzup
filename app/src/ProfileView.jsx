@@ -28,7 +28,7 @@ import { useNav } from './nav.jsx'
 import { categoryById } from './categories.js'
 import { GemRow, SecHead, SponsoredTag } from './cards.jsx'
 import { markBeen, shelfItems, useBeenThere, useSaves } from './saves.js'
-import { confidence, topCategories, useTaste } from './taste.js'
+import { confidence, interviewAnswers, topCategories, useTaste } from './taste.js'
 import { useRecents } from './recents.js'
 import { DAY_IDS, SLOT_IDS, filledCount, loadHistory, loadPlan, visibleWeekend, weekendDays } from './weekend.js'
 import './profile.css'
@@ -64,7 +64,7 @@ const GearIc = () => (
 )
 
 export default function ProfileView({ events, anchors, primer }) {
-  const { openDetail: onSelect, openWeekend: onOpenWeekend, openSettings, page } = useNav()
+  const { openDetail: onSelect, openWeekend: onOpenWeekend, openSettings, openInterests, page } = useNav()
   const taste = useTaste()
   const { list: savedList } = useSaves()
   const been = useBeenThere()
@@ -92,7 +92,13 @@ export default function ProfileView({ events, anchors, primer }) {
     .map((c) => categoryById[c])
     .filter(Boolean)
   const freeLeaning = taste.freeAffinity >= 5 // the same gate tasteNudge's free bonus uses
-  const whenLine = primer?.done && primer.when ? WHEN_LINE[primer.when] : null
+  // two surfaces answer "when do you head out": the editor's dayparts (newer,
+  // re-editable any time) WINS over the primer's first-open answer — otherwise
+  // setting Weeknights in the editor leaves Profile asserting an old "Weekends
+  // are your nights" and the app reads as not listening (Q2 review LOW-1;
+  // 'both' wears the whenever line). Full unification is Sprint V1's job.
+  const editedWhen = { weeknights: 'weeknights', weekends: 'weekends', both: 'whenever' }[interviewAnswers(taste)?.dayparts]
+  const whenLine = editedWhen ? WHEN_LINE[editedWhen] : primer?.done && primer.when ? WHEN_LINE[primer.when] : null
   const learning = conf < 0.4 // the rail gate's own bar: under it, the profile is a sketch
   const vibeTitle =
     taste.n === 0
@@ -188,20 +194,35 @@ export default function ProfileView({ events, anchors, primer }) {
         </button>
         <div className="pf-over">Profile</div>
         <h1 className="pf-title">{vibeTitle}</h1>
-        {(chips.length > 0 || freeLeaning) && (
-          <div className="pf-chips">
-            {chips.map((c) => (
-              <span key={c.id} className="pf-chip" style={{ '--ph': c.hue }}>
-                <span aria-hidden>{c.emoji}</span> {c.label}
-              </span>
-            ))}
-            {freeLeaning && (
-              <span className="pf-chip pf-chip-free">
-                <span aria-hidden>🆓</span> Free-leaning
-              </span>
-            )}
-          </div>
-        )}
+        {/* Q2: the vibe chips are TAPPABLE now — the intuitive path from
+            where taste is displayed to where it's edited (InterestEditor).
+            The trailing ✎ chip makes the affordance visible instead of
+            guessable, and doubles as the blank-profile invitation. */}
+        <div className="pf-chips">
+          {chips.map((c) => (
+            <button
+              key={c.id}
+              className="pf-chip"
+              style={{ '--ph': c.hue }}
+              onClick={openInterests}
+              aria-label={`${c.label} — edit your interests`}
+            >
+              <span aria-hidden>{c.emoji}</span> {c.label}
+            </button>
+          ))}
+          {freeLeaning && (
+            <button
+              className="pf-chip pf-chip-free"
+              onClick={openInterests}
+              aria-label="Free-leaning — edit your interests"
+            >
+              <span aria-hidden>🆓</span> Free-leaning
+            </button>
+          )}
+          <button className="pf-chip pf-chip-edit" onClick={openInterests} aria-label="Edit your interests">
+            <span aria-hidden>✎</span> {chips.length > 0 || freeLeaning ? 'Edit' : 'Pick your interests'}
+          </button>
+        </div>
         {whenLine && <div className="pf-when">{whenLine}</div>}
         <div className="pf-note">{vibeNote}</div>
       </header>

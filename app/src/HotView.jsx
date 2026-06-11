@@ -6,7 +6,7 @@ import { BUBBLES, CITY, DAY, dayLabel, hotDesc, keyOf, orderDay, tonightModel } 
 import { useNav, viewIndex } from './nav.jsx'
 import { BigOne, EndCap, FreeCard, GemRow, RowFeed, SecHead, TonightCard } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
-import { confidence, tasteNudge, topCategories, useTaste } from './taste.js'
+import { confidence, interviewAnswers, tasteNudge, topCategories, useTaste } from './taste.js'
 import { useRecents } from './recents.js'
 import { DeckThisButton } from './LensDeck.jsx'
 
@@ -234,7 +234,19 @@ export default function HotView({ events, anchors, loading, whenPref }) {
         </button>
         <div className="hero-text">
           {/* H2: time-aware greeting (tracks nowMs — re-seeded on visibility + every 10 min) */}
-          <div className="hero-kicker">{heroKicker(new Date(nowMs), tonight.futureN, whenPref)}</div>
+          <div className="hero-kicker">
+            {/* the editor's dayparts (re-editable) outrank the primer's
+                first-open answer — same precedence as Profile's when-line
+                (Q2 review LOW-1). An explicit 'both' OVERRIDES the old primer
+                lean to neutral; only an unset editor falls back to the primer. */}
+            {heroKicker(
+              new Date(nowMs),
+              tonight.futureN,
+              interviewAnswers(taste)?.dayparts != null
+                ? { weeknights: 'weeknights', weekends: 'weekends' }[interviewAnswers(taste).dayparts] ?? null
+                : whenPref
+            )}
+          </div>
           <h1 className="hero-city">{CITY.name}</h1>
           {/* "across Tampa Bay", not "near you" — the app never asks for location
               here, so a proximity claim would be fabricated (DRAFT for Charles) */}

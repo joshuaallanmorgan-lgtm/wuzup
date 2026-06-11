@@ -168,7 +168,10 @@ export function DeckFace({ e }) {
   )
 }
 
-export default function CalibrationDeck({ events, anchors, onClose }) {
+// closeLabel: the done/empty button's text — defaults to the settings-origin
+// phrasing; the primer-origin mount (Q2d onboarding offer) passes its own,
+// since a fresh user closes to the Events tab, not to Settings.
+export default function CalibrationDeck({ events, anchors, onClose, closeLabel = 'Back to Settings' }) {
   const reduced = useMemo(() => prefersReduced(), [])
   const { has, toggle } = useSaves()
   // ONE deal per mount (deliberately not a useMemo on [events]: App rebuilds
@@ -248,7 +251,7 @@ export default function CalibrationDeck({ events, anchors, onClose }) {
               </div>
             )}
             <button className="deck-done-btn pressable" onClick={onClose}>
-              Back to Settings
+              {closeLabel}
             </button>
           </div>
         </div>
@@ -278,7 +281,7 @@ export default function CalibrationDeck({ events, anchors, onClose }) {
             </div>
             <p>Nothing to rate right now — come back once fresh events land.</p>
             <button className="deck-done-btn pressable" onClick={onClose}>
-              Back to Settings
+              {closeLabel}
             </button>
           </div>
         ) : (

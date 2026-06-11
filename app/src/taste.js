@@ -14,8 +14,10 @@
 //                recordInterview (screen 7) today; future consumers: the
 //                calibration deck's sampler spread + FMN's surprise weighting
 //                read it later (documented forward contract, MASTER_PLAN2 P2).
-//   _interview — the last full interview's APPLIED contribution, kept so a
-//                re-take REPLACES it instead of stacking (see recordInterview).
+//   _interview — the last stated-interests write's APPLIED contribution, kept
+//                so a re-write REPLACES it instead of stacking (see
+//                recordInterview). Q2c adds answers (the raw answer set) so
+//                the InterestEditor reopens showing what was picked.
 //
 // SIGNALS (one cheap recordSignal(type, e) call at each seam):
 //   'save'   +3 to e.category, +1 freeAffinity when the event is free
@@ -31,8 +33,10 @@
 // Plus ONE deliberate-rating seam (Sprint P3/P4): recordCalibration(verdict, e)
 //   'yes' +3 / 'no' −1 floored at 0 — the calibration deck's swipe verdicts.
 //   The engine's only subtraction; bounds documented at the function.
-// Plus ONE batch seed seam (Sprint P2): recordInterview(answers) — the full
-//   interview's weighted write, replace-not-stack; math documented there.
+// Plus ONE batch seed seam (Sprint P2, generalized in Q2c): recordInterview
+//   (answers, opts) — the STATED-INTERESTS write, replace-not-stack; math
+//   documented there. Caller today: InterestEditor (the manual editor +
+//   onboarding answers are ONE store through this seam).
 // Plus ONE destructive control (Sprint P1): resetTaste() — settings' "Reset
 //   my taste"; wipes store + module profile (callers own the confirm step).
 // Each call = one interaction (n += 1). Beyond n=50 every stored score decays
@@ -74,6 +78,28 @@ const empty = () => ({ catScores: {}, freeAffinity: 0, n: 0, explore: EXPLORE_DE
 
 const cleanNum = (v, cap) => (typeof v === 'number' && isFinite(v) && v > 0 ? Math.min(v, cap) : 0)
 
+// the raw-answers validator (Q2c): _interview.answers is what the
+// InterestEditor reads back to show current picks. Same defensive posture as
+// everything else here — a corrupt answers blob degrades to null and the
+// editor simply opens blank (the deltas bookkeeping above it is untouched, so
+// replace-not-stack still removes the right amounts). Pre-Q2 blobs have no
+// answers field at all → null, same graceful blank.
+function cleanAnswers(a) {
+  if (!a || typeof a !== 'object' || Array.isArray(a)) return null
+  return {
+    cats: Array.isArray(a.cats) ? [...new Set(a.cats.filter((c) => typeof c === 'string' && c))] : [],
+    indoorOutdoor: a.indoorOutdoor === 'indoor' || a.indoorOutdoor === 'outdoor' ? a.indoorOutdoor : null,
+    free: a.free === true ? true : a.free === false ? false : null,
+    energy: a.energy === 'chill' || a.energy === 'wild' ? a.energy : null,
+    company: a.company === 'solo' || a.company === 'social' ? a.company : null,
+    dayparts: typeof a.dayparts === 'string' ? a.dayparts : null,
+    explore:
+      typeof a.explore === 'number' && isFinite(a.explore) && a.explore >= 0 && a.explore <= 1
+        ? a.explore
+        : null,
+  }
+}
+
 // stored-_interview validator (same defensive posture as load's catScores):
 // a corrupt blob degrades to null — the next interview simply has nothing to
 // subtract, which only ever UNDER-removes (bounded by one interview's size)
@@ -94,6 +120,7 @@ function cleanInterview(iv) {
     n: typeof iv.n === 'number' && isFinite(iv.n) && iv.n > 0 ? Math.min(Math.floor(iv.n), IV_N) : 0,
     exploreSet: iv.exploreSet === true,
     dayparts: typeof iv.dayparts === 'string' ? iv.dayparts : null,
+    answers: cleanAnswers(iv.answers),
   }
 }
 
@@ -264,16 +291,25 @@ export function recordCalibration(verdict, e) {
   emit()
 }
 
-// P2 — THE FULL INTERVIEW (recordInterview): the primer's grown-up sibling.
-// Called by Interview.jsx ONLY on finish (exiting early calls nothing — the
-// primer's zero-mutation skip rule, inherited).
+// P2 — STATED INTERESTS (recordInterview), generalized in Q2c: born as the
+// full interview's finish-only write, now the InterestEditor's LIVE write —
+// every editor change calls this with the COMPLETE current answer set, and
+// the replace-not-stack bookkeeping makes each call a clean restatement
+// (manual edits and onboarding answers are ONE store, Josh's ask).
 //
 // THE MATH, documented (every weight a named constant below):
-//   · category picks (screen 1, ≤4 UI-enforced + clamped here): +5 each —
-//     ≈ 1.7 saves of head start per pick, well under the 25 cap.
-//   · indoor/outdoor (screen 2): 'outdoor' → outdoors +3, sports +3.
-//     'indoor' maps to NOTHING (no honest positive exists; negative signal is
-//     recordCalibration's job, not a lean's).
+//   · category picks (UNLIMITED since Q2c — the editor's grid is the whole
+//     registry; duplicates deduped here): +5 each — ≈ 1.7 saves of head
+//     start per pick, each category independently capped at 25. Picking
+//     everything just flattens the seed layer (equal nudges everywhere =
+//     ordering unchanged relative to itself) — it cannot exceed any bound.
+//   · indoor/outdoor: 'outdoor' → outdoors +3, sports +3. 'indoor' maps to
+//     NOTHING (no honest positive exists; negative signal is
+//     recordCalibration's job, not a lean's). NOTE (Q2d): the InterestEditor
+//     does not surface this question (cut with the wizard — fewer
+//     questionnaires); the parameter stays honored so the seam needs no
+//     breaking change, and an old stored outdoor lean is simply replaced
+//     away by the editor's first write.
 //   · paid/free (screen 3): free-leaning → freeAffinity +8 (crosses the ≥5
 //     gate alone; the free bonus is still ≤3 pts by tasteNudge's own clamp).
 //   · chill/wild (screen 4): chill → art +2, food +2; wild → nightlife +2,
@@ -304,16 +340,24 @@ export function recordCalibration(verdict, e) {
 // A re-take first subtracts that stored contribution (floored at 0; n
 // floored at 0; explore reverted to 0.5 when the prior interview set it),
 // then applies the new answers fresh. Run twice with the same answers ≡ run
-// once — sim-asserted in the Sprint-P verification. Known drift, accepted +
-// bounded: post-interview decay (n≥50 ×0.98/signal) shrinks the applied
-// scores but not the stored deltas, so a much-later re-take can over-subtract
-// by at most the decayed slice of ONE interview — floors keep it safe, real
-// taps re-accumulate.
+// once — sim-asserted in the Sprint-P verification (re-proven for the editor
+// flow in Q2c). Known drift, accepted + bounded: post-interview decay
+// (n≥50 ×0.98/signal) shrinks the applied scores but not the stored deltas,
+// so a much-later re-write can over-subtract by at most the decayed slice of
+// ONE write — floors keep it safe, real taps re-accumulate.
 //
-// All-null answers (skipped every screen, then finished) = no-op — the
-// primer's done-with-zero-picks rule: never inflate confidence with fake
-// signal, and never wipe a previous interview on an answerless walk-through.
-const IV_CAT = 5 // per picked category (max 4)
+// Q2c additions, exactly two:
+//   · _interview.answers — the raw answer set stored verbatim (validated on
+//     load by cleanAnswers) so the editor reopens showing what was picked.
+//     Pure bookkeeping: zero score math reads it.
+//   · opts.allowClear — the editor's "I un-picked everything" path. All-null
+//     answers WITH allowClear subtract the previous contribution and store
+//     _interview = null: a clean removal of prior deltas only — organic
+//     signal untouched, no n credited for stating nothing. WITHOUT allowClear
+//     (the historical default) an all-null write stays a full no-op: never
+//     inflate confidence with fake signal, never wipe a previous interview on
+//     an answerless walk-through.
+const IV_CAT = 5 // per picked category (unlimited picks — each capped at CAT_CAP)
 const IV_OUTDOOR = 3 // outdoor lean → outdoors + sports
 const IV_FREE = 8 // free lean → freeAffinity
 const IV_LEAN = 2 // chill/wild + solo/social set members
@@ -324,16 +368,19 @@ const IV_COMPANY = {
   social: ['nightlife', 'music', 'sports', 'comedy', 'market'],
 }
 
-export function recordInterview({
-  cats = [],
-  indoorOutdoor = null,
-  free = null,
-  energy = null,
-  company = null,
-  dayparts = null,
-  explore = null,
-} = {}) {
-  const picks = (Array.isArray(cats) ? cats : []).filter((c) => typeof c === 'string' && c).slice(0, 4)
+export function recordInterview(
+  {
+    cats = [],
+    indoorOutdoor = null,
+    free = null,
+    energy = null,
+    company = null,
+    dayparts = null,
+    explore = null,
+  } = {},
+  { allowClear = false } = {}
+) {
+  const picks = [...new Set((Array.isArray(cats) ? cats : []).filter((c) => typeof c === 'string' && c))]
   const answered =
     picks.length > 0 ||
     indoorOutdoor === 'indoor' ||
@@ -346,7 +393,9 @@ export function recordInterview({
     company === 'social' ||
     typeof dayparts === 'string' ||
     (typeof explore === 'number' && isFinite(explore))
-  if (!answered) return
+  // all-null without allowClear = the historical no-op; with allowClear and
+  // nothing stored there is equally nothing to do (a blank restating a blank)
+  if (!answered && (!allowClear || !profile._interview)) return
 
   const next = clone(profile)
 
@@ -361,6 +410,16 @@ export function recordInterview({
     next.freeAffinity = Math.max(next.freeAffinity - prev.free, 0)
     next.n = Math.max(next.n - prev.n, 0)
     if (prev.exploreSet) next.explore = EXPLORE_DEFAULT
+  }
+
+  // allowClear + all-null: the subtraction above WAS the whole job — store no
+  // new contribution (and credit no n: stating nothing is not signal)
+  if (!answered) {
+    next._interview = null
+    profile = next
+    persist()
+    emit()
+    return
   }
 
   // 2) the nominal additions this run wants
@@ -399,10 +458,44 @@ export function recordInterview({
     n: IV_N,
     exploreSet,
     dayparts: typeof dayparts === 'string' ? dayparts : null,
+    // the raw answer set, stored canonically (validated values only) so a
+    // re-write with identical answers produces a byte-identical store and the
+    // editor reopens showing exactly what was picked
+    answers: {
+      cats: picks,
+      indoorOutdoor: indoorOutdoor === 'indoor' || indoorOutdoor === 'outdoor' ? indoorOutdoor : null,
+      free: free === true ? true : free === false ? false : null,
+      energy: energy === 'chill' || energy === 'wild' ? energy : null,
+      company: company === 'solo' || company === 'social' ? company : null,
+      dayparts: typeof dayparts === 'string' ? dayparts : null,
+      explore: exploreSet ? next.explore : null,
+    },
   }
   profile = next
   persist()
   emit()
+}
+
+// Q2c — the editor's read-back: the current stated answers, or null when none
+// exist. Pre-Q2 _interview blobs carry no answers field; reconstruct ONLY the
+// honestly derivable parts (dayparts is stored verbatim; a positive stored
+// free delta can only come from free === true; exploreSet means the live
+// explore scalar IS the stated preference) and leave the rest blank — the
+// first editor write replaces the old contribution wholesale anyway, so a
+// blank-opening editor under-shows but never corrupts.
+export function interviewAnswers(p = profile) {
+  const iv = p._interview
+  if (!iv) return null
+  if (iv.answers) return { ...iv.answers, cats: [...iv.answers.cats] }
+  return {
+    cats: [],
+    indoorOutdoor: null,
+    free: iv.free > 0 ? true : null,
+    energy: null,
+    company: null,
+    dayparts: iv.dayparts,
+    explore: iv.exploreSet ? p.explore : null,
+  }
 }
 
 // P1 — settings' "Reset my taste": wipe the stored profile AND the module
