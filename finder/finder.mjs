@@ -196,6 +196,60 @@ function cleanDescription(desc) {
   return t;
 }
 
+// ===================== title hygiene (fixer pass, 2026-06-10) =====================
+// Aggregator titles ship demo-wincing junk: ALL-CAPS SHOUTING, "- ST PETE"
+// city suffixes, "Tampa Tickets" resale suffixes, trailing colons, "TBD at"
+// placeholders, date ranges jammed into the name. Cleaned for EVERY source,
+// BEFORE merging (normalized titles also dedupe better). Facts are never
+// added — only formatting noise removed; orthography fixes are limited to an
+// explicit, reviewable list.
+
+const TITLE_CITY_SUFFIX_RE = /\s+[-–—]\s*(?:st\.?\s*pete(?:rsburg)?(?:\s+beach)?|saint petersburg|tampa|ybor(?:\s+city)?|clearwater|dunedin|largo|gulfport|pinellas park|palm harbor|safety harbor|tarpon springs|wesley chapel|brandon|riverview|seminole|bradenton|sarasota|treasure island)\s*$/i;
+const TITLE_CITY_TICKETS_RE = /\s+(?:tampa|st\.?\s*pete(?:rsburg)?|clearwater)\s+tickets\s*$/i;
+const TITLE_TICKETS_RE = /\s+tickets\s*$/i;
+const TITLE_DATE_RANGE_RE = /\s*[-–—]\s*(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{1,2}\s*[-–—]\s*\d{1,2},?\s*\d{4}\s*$/i;
+// stylized tokens that must survive title-casing
+const TITLE_KEEP_CAPS = new Set([
+  'DJ', 'DJS', 'USA', 'UK', 'VIP', 'BYOB', 'NYE', 'BBQ', 'MFA', 'EDM', 'UFC',
+  'WWE', 'MMA', 'TV', 'NFL', 'NBA', 'MLB', 'NHL', 'USF', 'LGBTQ', 'LGBTQ+',
+  'R&B', 'II', 'III', 'IV', 'VI', 'VII', 'VIII', 'IX', 'XL',
+]);
+const TITLE_SMALL_WORDS = new Set(['a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'from', 'in', 'of', 'on', 'or', 'the', 'to', 'vs', 'with']);
+// explicit orthography corrections (reviewable, idempotent)
+const TITLE_FIXES = [[/\bBoh[éeè]me\b/g, 'Bohème']];
+
+// ">85% caps and 10+ letters" = shouting, not stylization — recase it.
+function smartTitleCase(t) {
+  const letters = t.replace(/[^a-zA-Z]/g, '');
+  if (letters.length < 10) return t;
+  if (letters.replace(/[^A-Z]/g, '').length / letters.length <= 0.85) return t;
+  const words = t.split(' ');
+  return words
+    .map((w, i) => {
+      const core = w.replace(/[^\w&+']/g, '');
+      if (TITLE_KEEP_CAPS.has(core.toUpperCase()) && core === core.toUpperCase()) return w;
+      const lower = w.toLowerCase();
+      if (i > 0 && i < words.length - 1 && TITLE_SMALL_WORDS.has(lower)) return lower;
+      return lower.replace(/(^|[-/.])([a-z])/g, (m, p, c) => p + c.toUpperCase());
+    })
+    .join(' ');
+}
+
+function cleanEventTitle(raw) {
+  let t = String(raw || '');
+  t = t.replace(/^\s*TBD\s+at\s+/i, ''); // "TBD at Tampa Bay Lightning — ..." placeholder prefix
+  t = t.replace(/\s*[:;]+\s*$/, ''); // "Movie Screening:" truncation colons
+  t = t.replace(TITLE_DATE_RANGE_RE, ''); // "End of the Rainbow- June 11-21, 2026"
+  t = t.replace(TITLE_CITY_TICKETS_RE, ''); // "Ye Tampa Tickets"
+  t = t.replace(TITLE_TICKETS_RE, '');
+  t = t.replace(TITLE_CITY_SUFFIX_RE, ''); // "KBONG & JOHNNY COSMIC - ST PETE"
+  t = t.replace(/\s*[-–—]\s*artist\s*$/i, ''); // aggregator's "Ye - Artist" type suffix
+  t = smartTitleCase(t.trim());
+  for (const [re, fix] of TITLE_FIXES) t = t.replace(re, fix);
+  t = t.trim();
+  return t.length >= 2 ? t : String(raw || '');
+}
+
 function normalize(node, sourceName) {
   const { venue, address } = venueAddress(node.location);
   const { price, currency, isFree } = priceInfo(node.offers);
@@ -316,6 +370,10 @@ function normalizeModuleEvent(r, fallbackSource) {
     // Native category hint: modules MAY set category to one of our values
     // when their API provides one — respect it downstream, don't re-derive.
     category: typeof r.category === 'string' ? r.category : null,
+    // Native recurring hint: a module that SEES the full occurrence series
+    // (VSPC's dates[]/recurrence) marks it, because a single shipped instance
+    // can never trip detectRecurring's 3-distinct-dates rule downstream.
+    recurring: r.recurring === true,
   };
 }
 
@@ -433,6 +491,25 @@ function venueMergeTokens(venue) {
   return out;
 }
 
+// Acronym venue identity: "MFA" names "Museum of Fine Arts St. Petersburg",
+// "MAACM" names "Museum of the American Arts and Crafts Movement". One side is
+// a single 3–5 letter token; the other's initials (stopwords dropped) start
+// with it. Without this, the same museum splits the venue-equality merge.
+const VENUE_ACR_STOP = new Set(['of', 'the', 'and', 'at', 'in', 'for']);
+function acronymVenueMatch(a, b) {
+  const isAcr = (x) => x.nVenue && !x.nVenue.includes(' ') && x.nVenue.length >= 3 && x.nVenue.length <= 5;
+  const acr = isAcr(a) ? a : isAcr(b) ? b : null;
+  if (!acr) return false;
+  const full = acr === a ? b : a;
+  if (!full.nVenue || !full.nVenue.includes(' ')) return false;
+  const initials = full.nVenue
+    .split(' ')
+    .filter((w) => w && !VENUE_ACR_STOP.has(w))
+    .map((w) => w[0])
+    .join('');
+  return initials.startsWith(acr.nVenue);
+}
+
 // Two same-day events are the same real-world event if their title token sets
 // overlap strongly OR they're at the same (normalized) venue.
 // e.g. "Red Sox vs. Tampa Bay Rays" / "Tampa Bay Rays vs. Boston Red Sox"
@@ -443,7 +520,7 @@ function venueMergeTokens(venue) {
 // at five library branches into one card — venue equality is required too.
 function sameEvent(a, b) {
   const titleMatch = jaccard(a.tokens, b.tokens) >= 0.5;
-  const venueMatch = !!(a.nVenue && b.nVenue && a.nVenue === b.nVenue);
+  const venueMatch = !!(a.nVenue && b.nVenue && (a.nVenue === b.nVenue || acronymVenueMatch(a, b)));
   if (a.fam && b.fam && a.fam === b.fam) {
     // Both venues null: the venue test can't separate them, and one publisher
     // listing the same title twice on one day is a duplicate (the PTSD-Matters /
@@ -451,17 +528,42 @@ function sameEvent(a, b) {
     if (!a.nVenue && !b.nVenue) return titleMatch;
     return titleMatch && venueMatch;
   }
-  // Cross-family: title OR venue (preserves the Red Sox/Rays cross-source
-  // merge), but veto a title-only merge when both venues are present and
-  // share zero non-generic tokens — those are two different rooms.
-  if (venueMatch) return true;
-  if (!titleMatch) return false;
-  if (a.vTokens.size && b.vTokens.size) {
+  // Cross-family. Venue+day equality ALONE is not identity: it merged a
+  // Scorpions tribute with a same-day afternoon tea at one brewery into a
+  // chimera card (Wild Rover, 2026-06-13 — tribute title, tea description).
+  // A venue merge also needs a shared significant title token, or both
+  // records clocking the SAME start hour.
+  if (venueMatch) {
     let shared = 0;
-    for (const t of a.vTokens) if (b.vTokens.has(t)) shared++;
-    if (shared === 0) return false;
+    for (const t of a.tokens) if (b.tokens.has(t)) shared++;
+    if (shared > 0) return true;
+    return a.hr != null && b.hr != null && a.hr === b.hr;
   }
-  return true;
+  if (titleMatch) {
+    // veto a title-only merge when both venues are present and share zero
+    // non-generic tokens — those are two different rooms.
+    if (a.vTokens.size && b.vTokens.size) {
+      let shared = 0;
+      for (const t of a.vTokens) if (b.vTokens.has(t)) shared++;
+      if (shared === 0) return false;
+    }
+    return true;
+  }
+  // Renamed listing of one clocked event ("Safety Harbor Ghost Tour — Haunted
+  // History & True Crime" vs "Safety Harbor Haunted History Tours", both 8 PM,
+  // one venue-null): same start hour, the shorter stemmed title ≥70% contained
+  // in the longer (≥3 significant tokens), and at most ONE venue present —
+  // both-venued pairs must match on venue above ("Art After Dark" really does
+  // run at two museums on the same night).
+  if (a.hr != null && a.hr === b.hr && (!a.vTokens.size || !b.vTokens.size)) {
+    const [small, big] = a.sTokens.size <= b.sTokens.size ? [a.sTokens, b.sTokens] : [b.sTokens, a.sTokens];
+    if (small.size >= 3) {
+      let inter = 0;
+      for (const t of small) if (big.has(t)) inter++;
+      if (inter / small.size >= 0.7) return true;
+    }
+  }
+  return false;
 }
 
 function pickFirst(members, key) {
@@ -534,6 +636,7 @@ function mergeCluster(members) {
     staffPick: members.some((m) => m.staffPick === true),
     promoted: members.some((m) => m.promoted === true),
     category: pickFirst(members, 'category'), // native module hint, if any
+    recurring: members.some((m) => m.recurring === true), // native series hint
   };
 }
 
@@ -695,6 +798,68 @@ export function dedupeOngoingOccurrences(events) {
   return { events: events.filter((e) => !drop.has(e)), folded };
 }
 
+// ============== cross-day "bare echo" dedupe (fixer pass, 2026-06-10) ==============
+// Aggregators (AllEvents especially) re-publish a big show as a second BARE
+// record — date-only start, no description, single family — stamped ±1 day
+// off: "Ye - Artist" Jun 25 echoing the timed "Ye" Jun 26 at Raymond James;
+// "Josh Groban & Jennifer Hudson" Jun 18 echoing the timed Jun 19 arena show.
+// Fold the bare echo into the rich record (sources/buzz union; the rich
+// record's date, time and description stand). Conservative by design: the
+// echo must be bare AND uncorroborated, titles must contain each other, and
+// named venues must overlap. Every fold is logged by the caller.
+export function dedupeBareEchoes(events) {
+  const rich = [];
+  for (const e of events) {
+    // "rich" = the record someone actually WROTE about (description present).
+    // A clocked time is corroborating but not required: the AllEvents
+    // one-day-early bug also echoes date-only described listings (Rays vs.
+    // D-backs Jun 25 echoing VTB's described Jun 26).
+    if (!e.description) continue;
+    const day = dayOf(e.start);
+    if (!day) continue;
+    rich.push({ e, day, tokens: stemmedTokens(e.title), vTokens: venueMergeTokens(e.venue) });
+  }
+  if (!rich.length) return { events, folded: [] };
+  const drop = new Set();
+  const folded = [];
+  for (const e of events) {
+    if (drop.has(e)) continue;
+    if (/T\d/.test(String(e.start)) || e.description || (e.buzz || 1) > 1) continue; // bare echoes only
+    const day = dayOf(e.start);
+    if (!day) continue;
+    const tokens = stemmedTokens(e.title);
+    if (!tokens.size) continue;
+    const vTokens = venueMergeTokens(e.venue);
+    for (const r of rich) {
+      if (r.e === e || drop.has(r.e)) continue;
+      if (Math.abs(startMs(r.day) - startMs(day)) !== 86400e3) continue; // exactly ±1 day
+      const [small, big] = tokens.size <= r.tokens.size ? [tokens, r.tokens] : [r.tokens, tokens];
+      let inter = 0;
+      for (const t of small) if (big.has(t)) inter++;
+      if (inter / small.size < 0.8) continue;
+      if (vTokens.size && r.vTokens.size) {
+        let shared = 0;
+        for (const t of vTokens) if (r.vTokens.has(t)) shared++;
+        if (shared === 0) continue;
+      }
+      const t = r.e;
+      t.sources = [...new Set([...(t.sources || []), ...(e.sources || [])])];
+      t.buzz = [...new Set(t.sources.map(familyOf).filter(Boolean))].length;
+      if (!t.image && e.image) t.image = e.image;
+      if (!t.url && e.url) t.url = e.url;
+      if (typeof e.price === 'number' && !isNaN(e.price) && (t.price === null || e.price < t.price)) {
+        t.price = e.price;
+      }
+      if (e.isFree === true) t.isFree = true;
+      if (t.lat == null && e.lat != null) { t.lat = e.lat; t.lng = e.lng; }
+      drop.add(e);
+      folded.push(`"${e.title}" (${day}) → "${t.title}" (${r.day})`);
+      break;
+    }
+  }
+  return { events: events.filter((e) => !drop.has(e)), folded };
+}
+
 // Cluster all raw listings by calendar day, then greedily merge matches.
 function fuzzyMerge(all) {
   const byDay = new Map();
@@ -704,9 +869,11 @@ function fuzzyMerge(all) {
     byDay.get(day).push({
       ...e,
       tokens: titleTokens(e.title),
+      sTokens: stemmedTokens(e.title),
       nVenue: normVenue(e.venue),
       fam: familyOf(e.source),
       vTokens: venueMergeTokens(e.venue),
+      hr: startHourOf(e.start),
     });
   }
   const merged = [];
@@ -763,7 +930,7 @@ const CATEGORY_RULES = [
   ['outdoors', /\bparks?\b|\bbeach\b|\bkayak\b|\bhikes?\b|\brun club\b|\b5k\b|\boutdoor\b|\bgardens?\b|\bnature\b|\btrails?\b|\byoga\b|\bpaddles?\b|\bpaddleboard\w*\b|\bfishing\b|\bdragon boats?\b|\bpilates\b|\bbarre\b|\bon the lawn\b|\bwho walk\b|\bwalk (?:&|and) talk\b/i],
   ['nightlife', /\bparty\b|\bclub night\b|\bburlesque\b|\bball\b|\brave\b|\bnightlife\b|\bdrag\b|\btrivia\b|\bbingo\b|\bbar crawls?\b|\bpub crawls?\b|\bspeed dating\b|\bsingles\b|\bhappy hour\b|\b(?:latin|salsa|disco|80s|90s) nights?\b|\bjuke joints?\b|\baxe throwing\b|\bthirsty thursday\b/i],
   ['family', /\bfamily\b|\bkids?\b|\bchildren\b|\btoddlers?\b|\bteens?\b|\bstory ?time\b|\b(?:father|daddy)[\s-]+daughter\b|\bmother[\s-]+son\b|\bfather[’']?s day\b|\bmother[’']?s day\b|\bback[\s-]+to[\s-]+school\b|\bvbs\b|\bvacation bible school\b/i],
-  ['community', /\bmeetup\b|\bworkshops?\b|\bclass(?:es)?\b|\bclubs?\b|\blibrary\b|\bnetworking\b|\bvolunteer\b|\bseminar\b|\blectures?\b|\bbooks?\b|\bgrand opening\b|\bconferences?\b|\bauthor\b|\bfundraisers?\b|\breceptions?\b|\bmixers?\b|\bpuzzles?\b|\bgame nights?\b|\bjuneteenth\b|\bpride\b|pridetopia|\bsummits?\b|\bsymposiums?\b|\bforums?\b|\binfo(?:rmation)? sessions?\b|\btown halls?\b|\bawareness\b|\bsupport (?:group|meeting)s?\b|\brecycling\b|\bchemical collection\b|\bcollection events?\b|\bsandbags?\b|\bclean-?ups?\b|\bcoffee (?:&|and) conversation\b|\bmingle\b|\bsocialize\b|\bentrepreneurs?\b|\bbusiness\b|\bfireside chats?\b|\blunch (?:&|and) learn\b|\bceu\b|\bwebinars?\b|\breal estate\b|\bnonprofits?\b|\bcareers?\b|\bemployers?\b|\bempower\w*\b|\bwellness\b|\breiki\b|\bsound bath\b|\btarot\b|\bheart disease\b|\bcancer\b|\bhealth\b|\bstaying safe\b|\bsafety\b|\binspections?\b|\bcyber\w*\b|\banniversar\w*\b|\bpups?\b|\bdog grooming\b|\bpaws\b|\badoptions?\b|\bstorytell\w*\b|\bcandidate forums?\b|\bcosplay\b|\bcon?ventions?\b|\bmeet (?:&|and) greet\b/i],
+  ['community', /\bmeetup\b|\bworkshops?\b|\bclass(?:es)?\b|\bclubs?\b|\blibrary\b|\bnetworking\b|\bvolunteer\b|\bseminar\b|\blectures?\b|\bbooks?\b|\bgrand opening\b|\bconferences?\b|\bauthor\b|\bfundraisers?\b|\breceptions?\b|\bmixers?\b|\bpuzzles?\b|\bgame nights?\b|\bjuneteenth\b|\bpride\b(?!\s+(?:and|&)\s+prejudice)|pridetopia|\bsummits?\b|\bsymposiums?\b|\bforums?\b|\binfo(?:rmation)? sessions?\b|\btown halls?\b|\bawareness\b|\bsupport (?:group|meeting)s?\b|\brecycling\b|\bchemical collection\b|\bcollection events?\b|\bsandbags?\b|\bclean-?ups?\b|\bcoffee (?:&|and) conversation\b|\bmingle\b|\bsocialize\b|\bentrepreneurs?\b|\bbusiness\b|\bfireside chats?\b|\blunch (?:&|and) learn\b|\bceu\b|\bwebinars?\b|\breal estate\b|\bnonprofits?\b|\bcareers?\b|\bemployers?\b|\bempower\w*\b|\bwellness\b|\breiki\b|\bsound bath\b|\btarot\b|\bheart disease\b|\bcancer\b|\bhealth\b|\bstaying safe\b|\bsafety\b|\binspections?\b|\bcyber\w*\b|\banniversar\w*\b|\bpups?\b|\bdog grooming\b|\bpaws\b|\badoptions?\b|\bstorytell\w*\b|\bcandidate forums?\b|\bcosplay\b|\bcon?ventions?\b|\bmeet (?:&|and) greet\b/i],
   // --- weak signals: last resort before the venue/source priors below ---
   // (headliner/genre/doors-showtime language also shows up in comedy and
   // theatre listings, so it must NOT outrank those rules above.)
@@ -777,6 +944,34 @@ const KNOWN_CATEGORIES = new Set([
   'music', 'sports', 'theatre', 'comedy', 'art', 'market', 'food',
   'outdoors', 'nightlife', 'family', 'community', 'other',
 ]);
+
+// ---- strong overrides (fixer pass, 2026-06-10) -----------------------------
+// High-precision rules that run FIRST, beating even native source categories:
+// the data walk found AllEvents/VSPC/VTB natives misfiling pride events as
+// art, a Juneteenth stretch session as sports, meet-ups as food, a seafood
+// festival as music and a stage play as art. [cat, regex, unlessRegex?] —
+// title-only, so a stray description word can't trip them.
+const STRONG_TITLE_RULES = [
+  // pride/juneteenth gatherings are community — but a "Pride Night" THEME at a
+  // ballgame stays sports (the unless-guard), and Pride & Prejudice is a play.
+  ['community', /\bpride\b(?!\s+(?:and|&)\s+prejudice)|pridetopia|\bjuneteenth\b/i, /\bvs\.?\b/i],
+  ['community', /\bmeet[\s-]?ups?\b|\bmeet (?:&|and) greet\b|\bgame nights?\b/i],
+  ['food', /\b(?:sea\s?food|tacos?|bbq|barbecue|wine|beer|brunch|chili|chowder|ribs?|oyster|shrimp|crawfish|food|culinary)[\w\s&+'-]{0,16}fest(?:ival)?s?\b/i],
+  // civic facility programming — "Solid Waste Disposal Complex Tour" was
+  // landing music via the \btour\b concert rule
+  ['community', /\bsolid waste\b|\blandfill\b|\bwastewater\b|\bwater treatment\b|\brecycling\b/i],
+  // industry networking — "Cocktails & Closings | Real Estate Mixer" was
+  // landing food via \bcocktails?\b and topping the gem shelf
+  ['community', /\breal estate\b/i],
+  // nature programming — a sea-turtle conservation ride-along carried a
+  // native "Sports & Recreation" tag
+  ['outdoors', /\bsea turtles?\b|\bbirdwatch\w*\b|\bnature preserve\b|\bwildlife\b/i],
+];
+// title+description rules of the same rank ("Written by X … Directed by Y" is
+// playbill language — "American Stage: The Hot Wing King" carried native art).
+const STRONG_TEXT_RULES = [
+  ['theatre', /\bwritten by\b[\s\S]{0,80}\bdirected by\b/i],
+];
 
 // ---- last-resort priors (documented as priors, not facts) ------------------
 // These fire ONLY after every text rule came up empty. They encode what kind
@@ -816,13 +1011,21 @@ const SOURCE_CATEGORY = {
 };
 
 export function categorize(e) {
+  // Strong overrides FIRST — they outrank native hints (see the rule comment).
+  const title = e.title || '';
+  const text = `${title} ${e.description || ''}`;
+  for (const [cat, re, unless] of STRONG_TITLE_RULES) {
+    if (re.test(title) && !(unless && unless.test(title))) return cat;
+  }
+  for (const [cat, re] of STRONG_TEXT_RULES) {
+    if (re.test(text)) return cat;
+  }
   // Native category from a source module's API — respect it, don't re-derive.
   // 'other' carries no information, so the text classifier still gets a shot.
   if (e.category && e.category !== 'other' && KNOWN_CATEGORIES.has(e.category)) {
     return e.category;
   }
   if (MUSIC_VENUE_RE.test(e.venue || '')) return 'music';
-  const text = `${e.title || ''} ${e.description || ''}`;
   for (const [cat, re] of CATEGORY_RULES) {
     if (re.test(text)) return cat;
   }
@@ -856,10 +1059,16 @@ function detectRecurring(events) {
     if (day) datesByKey.get(k).add(day);
   }
   for (const e of events) {
-    e._recurring = (datesByKey.get(keyOf(e))?.size || 0) >= 3
+    e._recurring = e.recurring === true
+      || (datesByKey.get(keyOf(e))?.size || 0) >= 3
       || RECURRING_TEXT_RE.test(`${e.title || ''} ${e.description || ''}`);
   }
 }
+
+// Somber gatherings (memorials, vigils, funerals) are listed honestly but
+// never CELEBRATED: no staff-pick chip, no hidden-gem tag, no 🔥 framing a
+// grieving community's service as a find. "Memorial Day" events are exempt.
+const SOMBER_TITLE_RE = /\bmemorial(?!\s+day\b)|\bvigils?\b|\bfunerals?\b|\bcelebration of life\b|\bin loving memory\b|\bremembrance\b/i;
 
 function tagsFor(e, todayStr, weekend) {
   const tags = [];
@@ -871,16 +1080,28 @@ function tagsFor(e, todayStr, weekend) {
   if (day && day < todayStr) tags.push('ongoing');
   if (e.isFree === true) tags.push('free');
   tags.push(e._recurring ? 'recurring' : 'one-off');
-  // Sponsored (paid promotion) events get NO staff-pick treatment.
-  if (e.staffPick && !e.promoted) tags.push('staff-pick');
+  // Sponsored (paid promotion) events get NO staff-pick treatment; somber
+  // gatherings get no celebratory chip either (SOMBER_TITLE_RE).
+  if (e.staffPick && !e.promoted && !SOMBER_TITLE_RE.test(e.title || '')) tags.push('staff-pick');
   return tags;
 }
 
-function hotScore(e, tags, now) {
+// Ancillary commerce sold as "events" — parking marketplaces and branded
+// tailgates cross-post to every aggregator, hit buzz 3, and outranked the
+// actual headliner by 50 points. Their heat is capped, never their listing.
+const ANCILLARY_TITLE_RE = /\btailgreeter\b|\bevent parking\b|\bparking pass(?:es)?\b|\bshuttle service\b/i;
+
+function hotScore(e, tags, now, megaFams) {
   let score = 20;
   score += Math.min((e.buzz - 1) * 25, 50);
   if (tags.includes('staff-pick')) score += 15;
-  if (tags.includes('one-off')) score += 10;
+  // Mega-family de-stack: a 700-record library system's "one-off" instances
+  // are programming, not scarcity — the +10 walled storytimes above real
+  // single-listing headliners. Buzz-1 events from families with > 300 records
+  // in this run skip the one-off bonus (corroborated events keep it).
+  const fam = familyOf((e.sources || [])[0] || e.source);
+  const mega = e.buzz === 1 && megaFams && megaFams.has(fam);
+  if (tags.includes('one-off') && !mega) score += 10;
   if (e.image) score += 8;
   const diff = startMs(e.start) - now.getTime();
   if (!isNaN(diff)) {
@@ -888,6 +1109,7 @@ function hotScore(e, tags, now) {
     else if (diff <= 7 * 86400e3) score += 5;
   }
   if (tags.includes('free')) score += 5;
+  if (ANCILLARY_TITLE_RE.test(e.title || '')) score = Math.min(score, 40);
   return Math.min(100, Math.round(score));
 }
 
@@ -910,6 +1132,147 @@ function fmtTime(iso) {
   const d = new Date(iso);
   if (isNaN(d)) return '';
   return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
+
+// ============== venue identity backfills (fixer pass, 2026-06-10) ==============
+// Data-internal only: every adopted fact comes from sibling records in this
+// same run. Two problems solved: (1) coordless events whose venue/address has
+// coord-bearing twins ("FloridaRAMA" vs "FloridaRAMA Gallery"); (2) raw street
+// addresses sitting in the VENUE slot of visible cards ("10165 McKinley Dr"
+// is Busch Gardens — a named twin at the same address/coords says so).
+
+const ADDRESSY_VENUE_RE = /^\d{1,6}\s+\S+/;
+const ADDR_STREET_TYPES = new Map(Object.entries({
+  street: 'st', st: 'st', avenue: 'ave', ave: 'ave', av: 'ave',
+  boulevard: 'blvd', blvd: 'blvd', drive: 'dr', dr: 'dr', road: 'rd', rd: 'rd',
+  lane: 'ln', ln: 'ln', court: 'ct', ct: 'ct', highway: 'hwy', hwy: 'hwy',
+  parkway: 'pkwy', pkwy: 'pkwy', terrace: 'ter', ter: 'ter', circle: 'cir',
+  cir: 'cir', place: 'pl', pl: 'pl', way: 'way', plaza: 'plaza', trail: 'trl', trl: 'trl',
+}));
+const ADDR_DIRECTIONALS = new Set(['n', 's', 'e', 'w', 'north', 'south', 'east', 'west', 'ne', 'nw', 'se', 'sw']);
+
+// "10165 N McKinley Drive, Tampa, FL 33612" -> "10165 mckinley dr": leading
+// number + street words + normalized street type; directionals dropped (the
+// SAME street publishes with and without them), street TYPE kept (2nd Ave ≠
+// 2nd St). Null when it doesn't start with a street number.
+function addrCore(s) {
+  const toks = String(s || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
+  if (!toks.length || !/^\d+$/.test(toks[0])) return null;
+  const out = [toks[0]];
+  for (let i = 1; i < toks.length && out.length < 4; i++) {
+    const t = toks[i];
+    if (ADDR_DIRECTIONALS.has(t)) continue;
+    const st = ADDR_STREET_TYPES.get(t);
+    if (st) { out.push(st); break; }
+    if (/^\d{5}$/.test(t)) break;
+    out.push(t);
+  }
+  return out.length >= 2 ? out.join(' ') : null;
+}
+
+// Venue-name core for coord donation: type words stripped so "FloridaRAMA"
+// and "FloridaRAMA Gallery" share a key. Donation still demands geographic
+// agreement (below), so a generic core can't teleport anything.
+const VENUE_TYPE_WORDS = new Set([
+  'gallery', 'museum', 'theatre', 'theater', 'center', 'centre', 'hall',
+  'park', 'club', 'brewery', 'brewing', 'company', 'co', 'stadium', 'arena',
+  'auditorium', 'ballroom', 'lounge', 'bar', 'grill', 'cafe', 'church',
+  'library', 'branch', 'the', 'at',
+]);
+function venueCoreKey(name) {
+  const toks = normVenue(name).split(' ').filter((t) => t && !VENUE_TYPE_WORDS.has(t));
+  return toks.length ? toks.join(' ') : null;
+}
+
+const COORD_AGREE_M = 1000;
+const metersApart = (a, b) => Math.hypot((a.lat - b.lat) * 111320, (a.lng - b.lng) * 92000);
+
+// Fill missing coords from same-venue/same-address siblings. Donors for a key
+// must agree within ~1 km with each other — "city hall" naming two real city
+// halls disqualifies itself. Returns the number filled.
+export function backfillCoords(events) {
+  const donors = new Map();
+  const add = (key, e) => {
+    if (!key) return;
+    let l = donors.get(key);
+    if (!l) donors.set(key, (l = []));
+    l.push({ lat: e.lat, lng: e.lng });
+  };
+  for (const e of events) {
+    if (e.lat == null) continue;
+    add(venueCoreKey(e.venue), e);
+    add(addrCore(e.address), e);
+  }
+  let filled = 0;
+  for (const e of events) {
+    if (e.lat != null) continue;
+    for (const key of [venueCoreKey(e.venue), addrCore(e.address)]) {
+      const list = key ? donors.get(key) : null;
+      if (!list) continue;
+      if (!list.every((p) => metersApart(p, list[0]) <= COORD_AGREE_M)) continue;
+      e.lat = list[0].lat;
+      e.lng = list[0].lng;
+      filled++;
+      break;
+    }
+  }
+  return filled;
+}
+
+// Rename address-as-venue records from named twins at the same address core /
+// identical coords; otherwise at least trim ", City, Florida, USA" tails.
+export function nameAddressVenues(events) {
+  const byAddr = new Map();
+  const byCoord = new Map();
+  const tally = (map, key, e) => {
+    if (!key) return;
+    let m = map.get(key);
+    if (!m) map.set(key, (m = new Map()));
+    const rec = m.get(e.venue) || { n: 0, lat: e.lat, lng: e.lng };
+    rec.n++;
+    m.set(e.venue, rec);
+  };
+  for (const e of events) {
+    if (!e.venue || ADDRESSY_VENUE_RE.test(e.venue)) continue;
+    tally(byAddr, addrCore(e.address), e);
+    if (e.lat != null) tally(byCoord, e.lat.toFixed(5) + ',' + e.lng.toFixed(5), e);
+  }
+  let renamed = 0;
+  let trimmed = 0;
+  for (const e of events) {
+    if (!e.venue || !ADDRESSY_VENUE_RE.test(e.venue)) continue;
+    const keys = [];
+    const a1 = addrCore(e.venue);
+    if (a1) keys.push([byAddr, a1]);
+    const a2 = addrCore(e.address);
+    if (a2 && a2 !== a1) keys.push([byAddr, a2]);
+    if (e.lat != null) keys.push([byCoord, e.lat.toFixed(5) + ',' + e.lng.toFixed(5)]);
+    let best = null;
+    for (const [map, k] of keys) {
+      const m = map.get(k);
+      if (!m) continue;
+      const top = [...m.entries()].sort((x, y) => y[1].n - x[1].n)[0];
+      // both sides located -> they must agree geographically
+      if (top[1].lat != null && e.lat != null && metersApart(top[1], e) > COORD_AGREE_M) continue;
+      best = top[0];
+      break;
+    }
+    if (best) {
+      if (!e.address) e.address = e.venue; // keep the raw address as the sub-line
+      e.venue = best;
+      renamed++;
+    } else {
+      const t = e.venue.replace(
+        /(?:,\s*(?:tampa|st\.?\s*pete(?:rsburg)?|saint petersburg|clearwater|dunedin|largo|gulfport|pinellas park|palm harbor|safety harbor|tarpon springs|wesley chapel|brandon|riverview|seminole|oldsmar|temple terrace|plant city|ruskin|st\.?\s*pete beach|treasure island|madeira beach))?(?:,?\s*(?:fl|florida))?(?:,?\s*(?:usa|united states(?: of america)?))?\s*$/i,
+        ''
+      ).replace(/[,\s]+$/, '');
+      if (t && t !== e.venue) {
+        e.venue = t;
+        trimmed++;
+      }
+    }
+  }
+  return { renamed, trimmed };
 }
 
 // ===================== geocode cache hygiene =====================
@@ -1161,6 +1524,19 @@ async function main() {
     console.log(`  🌐 dropped ${onlineDropped} online-only events (OnlineEventAttendanceMode)`);
   }
 
+  // Title hygiene (fixer pass): de-shout, strip city/tickets/date-range
+  // suffixes and placeholder prefixes on EVERY raw listing — before merging,
+  // so normalized titles also dedupe better.
+  let titlesCleaned = 0;
+  for (const e of all) {
+    const t2 = cleanEventTitle(e.title);
+    if (t2 !== e.title) {
+      e.title = t2;
+      titlesCleaned++;
+    }
+  }
+  if (titlesCleaned) console.log(`  ✏️  cleaned ${titlesCleaned} junk titles (caps/suffixes/colons)`);
+
   // Venue canonicalization (L4): rewrite alias spellings + jittery coords to
   // the committed canonical identity BEFORE merging, so venue-equality rules
   // see one venue as one venue.
@@ -1185,6 +1561,24 @@ async function main() {
   const exhibitsFolded = exhibitPass.folded;
   if (exhibitsFolded) {
     console.log(`  🖼️  folded ${exhibitsFolded} dated occurrence(s) into ongoing exhibit records`);
+  }
+
+  // Cross-day bare-echo dedupe (fixer): aggregator re-publishes of one show
+  // stamped ±1 day off fold into the timed, described record.
+  const echoPass = dedupeBareEchoes(events);
+  events = echoPass.events;
+  if (echoPass.folded.length) {
+    console.log(`  🪞 folded ${echoPass.folded.length} cross-day bare echo(es):`);
+    for (const line of echoPass.folded) console.log(`      ${line}`);
+  }
+
+  // Schedule/listing PAGES are not events ("Tampa Bay Rowdies Home Game
+  // Schedule" shipped as a Tonight card). Title-level drop, logged loud.
+  const SCHEDULE_PAGE_RE = /\bschedules?\s*$/i;
+  const schedDropped = events.filter((e) => SCHEDULE_PAGE_RE.test(e.title || ''));
+  if (schedDropped.length) {
+    events = events.filter((e) => !SCHEDULE_PAGE_RE.test(e.title || ''));
+    console.log(`  🗂️  dropped ${schedDropped.length} schedule-page listing(s): ${schedDropped.map((e) => `"${e.title}"`).join(', ')}`);
   }
 
   // Keep upcoming events, sorted soonest first. An event stays until it has
@@ -1219,17 +1613,19 @@ async function main() {
   }
   if (sweptCoords) console.log(`  🧭 nulled ${sweptCoords} out-of-area coordinate pairs`);
 
+  // Coord backfill from siblings (fixer): same venue-core / address-core
+  // records that DO carry coords donate them (1 km donor-agreement guard) —
+  // free, data-internal, and it saves Nominatim budget.
+  const coordsBackfilled = backfillCoords(events);
+  if (coordsBackfilled) console.log(`  🧲 backfilled ${coordsBackfilled} coordinate pairs from same-venue siblings`);
+
   // Fill in missing coordinates via free OpenStreetMap (Nominatim) geocoding.
   // Hardened: prefer the full street address (venue names are ambiguous —
   // they resolved to Key West, Argentina, Chile), constrain the search to the
   // Tampa Bay viewbox, and REJECT any result outside the box (coords stay
   // null instead). Cached per query key, rate-limited <= 1 req/sec.
   const geoCache = loadGeoCache();
-  let geocoded = 0;
-  for (const e of events) {
-    if (e.lat != null && e.lng != null) continue;
-    const key = e.address || e.venue;
-    if (!key) continue;
+  const geocodeKey = async (key) => {
     if (!(key in geoCache)) {
       try {
         const q = /\bfl\b|\bflorida\b/i.test(key) ? key : `${key}, Florida`;
@@ -1248,7 +1644,15 @@ async function main() {
       }
     }
     const hit = geoCache[key];
-    if (hit && inBox(hit.lat, hit.lng)) {
+    return hit && inBox(hit.lat, hit.lng) ? hit : null;
+  };
+  let geocoded = 0;
+  for (const e of events) {
+    if (e.lat != null && e.lng != null) continue;
+    const key = e.address || e.venue;
+    if (!key) continue;
+    const hit = await geocodeKey(key);
+    if (hit) {
       e.lat = hit.lat;
       e.lng = hit.lng;
       geocoded++;
@@ -1256,11 +1660,52 @@ async function main() {
   }
   if (geocoded) console.log(`  📍 geocoded ${geocoded} venues via OpenStreetMap`);
 
+  // Second chance (fixer): the street address failed but the venue has a NAME —
+  // landmark queries often succeed where abbreviated addresses fail ("The
+  // Palladium Theater" vs "253 Fifth Ave. N."). Same cache, same pacing, ≤40
+  // fresh lookups per run.
+  let geocoded2 = 0;
+  let nameBudget = 40;
+  for (const e of events) {
+    if (nameBudget <= 0) break;
+    if (e.lat != null || !e.venue || ADDRESSY_VENUE_RE.test(e.venue)) continue;
+    const city = (String(e.address || '').match(
+      /(tampa|st\.?\s*petersburg|st\.?\s*pete(?:\s+beach)?|clearwater|dunedin|largo|gulfport|safety harbor|palm harbor|tarpon springs|pinellas park|wesley chapel|brandon|ybor city)/i
+    ) || [])[1];
+    const key = `${e.venue}, ${city || 'Tampa Bay'}, Florida`;
+    if (!(key in geoCache)) nameBudget--;
+    const hit = await geocodeKey(key);
+    if (hit) {
+      e.lat = hit.lat;
+      e.lng = hit.lng;
+      geocoded2++;
+    }
+  }
+  if (geocoded2) console.log(`  📍 geocoded ${geocoded2} more via venue-name fallback queries`);
+
+  // Address-as-venue naming (fixer): "10165 McKinley Dr" on a visible card IS
+  // Busch Gardens when a named sibling shares the address/coords; renames are
+  // data-internal, the rest at least lose their ", City, Florida, USA" tails.
+  const venueNames = nameAddressVenues(events);
+  if (venueNames.renamed || venueNames.trimmed) {
+    console.log(`  🏷️  address-venues: ${venueNames.renamed} renamed from named siblings, ${venueNames.trimmed} de-tailed`);
+  }
+
   // Recurring detection, then tags / hot score / category per event.
   detectRecurring(events);
   const now = new Date();
   const todayStr = localDayStr(now);
   const weekend = weekendDays(now);
+  // Mega families (one publisher > 300 records this run — today: Hillsborough
+  // Libraries at ~780) lose the one-off heat bonus on uncorroborated records;
+  // see hotScore.
+  const famSizes = new Map();
+  for (const e of events) {
+    const f = familyOf((e.sources || [])[0] || e.source);
+    famSizes.set(f, (famSizes.get(f) || 0) + 1);
+  }
+  const megaFams = new Set([...famSizes].filter(([, n]) => n > 300).map(([f]) => f));
+  if (megaFams.size) console.log(`  🏛️  mega-family one-off de-stack active for: ${[...megaFams].join(', ')}`);
   let junkTimesStripped = 0;
   events = events.map((e) => {
     const category = categorize(e);
@@ -1294,7 +1739,7 @@ async function main() {
       source: e.source,
       sources: e.sources,
       buzz: e.buzz,
-      hotScore: hotScore(e, tags, now),
+      hotScore: hotScore(e, tags, now, megaFams),
       tags,
       category,
       // Paid promotion (e.g. Creative Loafing promoted strip). The UI renders
@@ -1309,19 +1754,49 @@ async function main() {
 
   // Hidden gems: a curated shelf, not a census. Qualify = single-family buzz,
   // one-off, not sponsored, demonstrably cheap (free or <= $25 — unknown price
-  // is NOT cheap), not community programming, not big-ticket. Then keep only
-  // the top 24 by hotScore.
+  // is NOT cheap), has something to SAY (description required — "hand-scored
+  // finds" can't be blank cards), not community programming, not the 'other'
+  // junk drawer, never somber gatherings, not big-ticket. Then: top by
+  // hotScore with ≤ 2 per source family (a 700-record library system was 13
+  // of 24 gems) and no repeated titles; if the family cap starves the shelf
+  // below 5 (fast mode has 3 families total), top back up past the cap.
   const GEM_CAP = 24;
-  const gemPicks = events
+  const GEM_FAMILY_CAP = 2;
+  const GEM_FLOOR = 5;
+  const gemCandidates = events
     .filter((e) =>
       e.buzz === 1 &&
       e.tags.includes('one-off') &&
       !e.sponsored &&
       (e.isFree === true || (typeof e.price === 'number' && e.price <= 25)) &&
+      e.description != null &&
       e.category !== 'community' &&
+      e.category !== 'other' &&
+      !SOMBER_TITLE_RE.test(e.title || '') &&
       !BIG_TICKET_RE.test(e.title || ''))
-    .sort((a, b) => b.hotScore - a.hotScore || startMs(a.start) - startMs(b.start))
-    .slice(0, GEM_CAP);
+    .sort((a, b) => b.hotScore - a.hotScore || startMs(a.start) - startMs(b.start));
+  const gemFams = new Map();
+  const gemTitles = new Set();
+  const gemPicks = [];
+  const gemOverflow = [];
+  for (const e of gemCandidates) {
+    if (gemPicks.length >= GEM_CAP) break;
+    const tKey = [...titleTokens(e.title)].sort().join(' ');
+    if (gemTitles.has(tKey)) continue; // two "Family Story Time" rows read broken
+    const fam = familyOf((e.sources || [])[0] || e.source);
+    const n = gemFams.get(fam) || 0;
+    if (n >= GEM_FAMILY_CAP) {
+      gemOverflow.push(e);
+      continue;
+    }
+    gemFams.set(fam, n + 1);
+    gemTitles.add(tKey);
+    gemPicks.push(e);
+  }
+  for (const e of gemOverflow) {
+    if (gemPicks.length >= GEM_FLOOR) break;
+    gemPicks.push(e);
+  }
   for (const e of gemPicks) e.tags.push('hidden-gem');
 
   // Counts used by the summary, the markdown block, and the benchmarks.

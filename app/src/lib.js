@@ -235,7 +235,11 @@ export function startedPast(e, todayTs, nowMs = Date.now()) {
 export function tonightModel(upcoming, anchors, now = new Date()) {
   const nowMs = now.getTime()
   const all = upcoming.filter((e) => e._tonight)
-  const future = all.filter((e) => !startedPast(e, anchors.todayTs, nowMs)).sort(hotDesc)
+  // future leads via G1 orderDay: hotScore-desc with the same family/category
+  // de-flood as the Everything feed (late at night, when every timed event has
+  // started, six same-program library cards led the rail). Count-preserving;
+  // when everything shares one family+category it degenerates to pure hot-desc.
+  const future = orderDay(all.filter((e) => !startedPast(e, anchors.todayTs, nowMs)))
   const started = all.filter((e) => startedPast(e, anchors.todayTs, nowMs)).sort(hotDesc)
   // late-mode + the "N still to come" count consider TIMED events only: a
   // date-only listing at 11 PM is almost certainly over, not "still to come" —

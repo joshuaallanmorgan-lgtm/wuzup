@@ -11,6 +11,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DAY, Icon, dayLoose, keyOf, milesBetween, timeOf } from './lib.js'
 import { CardImg, HeatBadge, PriceChip, SponsoredTag } from './cards.jsx'
+import { SaveHeart } from './saves.js'
 import { recordSignal } from './taste.js'
 import './fmn.css'
 
@@ -400,6 +401,10 @@ export default function FindMyNight({ events, anchors, coords, onSelect, onClose
                     onClick={(ev) => onSelect(e, ev.currentTarget)}
                   >
                     <CardImg e={e} className="fmn-pick-img">
+                      {/* the only card type without a save heart — consistency
+                          with TonightCard/GemRow/FreeCard/PinSheet (SaveHeart is
+                          a span[role=button], so no nested-button markup) */}
+                      <SaveHeart e={e} />
                       <HeatBadge e={e} />
                     </CardImg>
                     <div className="fmn-pick-main">

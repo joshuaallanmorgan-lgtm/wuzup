@@ -265,17 +265,20 @@ export default function DetailPage({ e, events = [], anchors, wx, closing, vt, o
     setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
   const share = async () => {
-    const url = e.url || window.location.href
+    // URL-less events (added-by-you etc.) share their facts as TEXT — never
+    // window.location.href, which is just this device's app address.
+    const url = e.url || null
+    const text = [e.title, when, whereMain].filter(Boolean).join(' · ')
     if (navigator.share) {
       try {
-        await navigator.share({ title: e.title, text: e.title, url })
+        await navigator.share(url ? { title: e.title, text: e.title, url } : { title: e.title, text })
       } catch {
         /* user dismissed the share sheet — not an error */
       }
     } else if (navigator.clipboard?.writeText) {
       try {
-        await navigator.clipboard.writeText(url)
-        flash('Link copied ✓')
+        await navigator.clipboard.writeText(url || text)
+        flash(url ? 'Link copied ✓' : 'Details copied ✓')
       } catch {
         flash("Couldn't copy link")
       }
@@ -410,8 +413,10 @@ export default function DetailPage({ e, events = [], anchors, wx, closing, vt, o
             <SecHead overline="Keep the night going" title="More like this" />
             <div className="carousel">
               {similar.map((x) => (
-                /* swap in place: null cardEl skips the VT morph (the detail is already open) */
-                <TonightCard key={keyOf(x)} e={x} onSelect={(e2) => onSelect(e2, null)} />
+                /* swap in place: null cardEl skips the VT morph (the detail is already open).
+                   withDate: picks span the whole upcoming window — a July event must
+                   never read as tonight under a "Keep the night going" overline. */
+                <TonightCard key={keyOf(x)} e={x} withDate onSelect={(e2) => onSelect(e2, null)} />
               ))}
             </div>
           </div>

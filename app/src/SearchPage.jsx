@@ -125,7 +125,7 @@ export default function SearchPage({ events, anchors, coords, onSelect, onClose 
         {hasQ && total > 0 && (
           <>
             <div className="srch-count">
-              {total} result{total === 1 ? '' : 's'} for “{dq.trim()}”
+              {total.toLocaleString('en-US')} result{total === 1 ? '' : 's'} for “{dq.trim()}”
             </div>
             {/* key resets pagination + replays the stagger per query */}
             <RowFeed key={tokens.join(' ')} sections={sections} showDist={!!coords} stagger scrollRootRef={pgRef} onSelect={onSelect} />
@@ -140,7 +140,7 @@ export default function SearchPage({ events, anchors, coords, onSelect, onClose 
         )}
         {!hasQ && (
           <div className="empty">
-            {events.length} events. One search bar. 🔎
+            {events.length.toLocaleString('en-US')} events. One search bar. 🔎
             <br />
             Try one of these:
             <div className="srch-sug">

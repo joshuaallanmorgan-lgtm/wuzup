@@ -67,11 +67,15 @@ export default function MapView({ events, anchors, onSelect, active, focusTarget
   const [sheet, setSheet] = useState(null) // J3: event previewed in the bottom sheet
   const [inView, setInView] = useState(null) // J4: count in bounds (null until the map exists)
   // Escape closes the preview sheet before App's listener can act (capture
-  // phase + stopPropagation — the same pattern as WeekendBuilder's picker)
+  // phase + stopPropagation — the same pattern as WeekendBuilder's picker).
+  // BUT when a detail page is stacked on top (pin sheet → "Full details"),
+  // the visible detail must win: bail out so App's handler closes IT first —
+  // otherwise the first Escape silently closes the hidden sheet underneath.
   useEffect(() => {
     if (!sheet) return
     const onKey = (ev) => {
       if (ev.key !== 'Escape') return
+      if (document.querySelector('.detail')) return
       ev.stopPropagation()
       setSheet(null)
     }
@@ -234,8 +238,8 @@ export default function MapView({ events, anchors, onSelect, active, focusTarget
       {!sheet && (
         <div className="map-note">
           {inView == null
-            ? `${withCoords.length} of ${upcoming.length} upcoming events on the map`
-            : `${inView} in view · ${withCoords.length}/${upcoming.length} upcoming on the map`}
+            ? `${withCoords.length.toLocaleString('en-US')} of ${upcoming.length.toLocaleString('en-US')} upcoming events on the map`
+            : `${inView.toLocaleString('en-US')} in view · ${withCoords.length.toLocaleString('en-US')}/${upcoming.length.toLocaleString('en-US')} upcoming on the map`}
         </div>
       )}
       {sheet && (

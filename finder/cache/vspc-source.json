@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-06-11T01:33:57.282Z",
+  "fetchedAt": "2026-06-11T03:05:58.462Z",
   "events": [
     {
       "title": "Busch Gardens Summer Nights",
@@ -15,12 +15,13 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2024-05/750x422_bgt_show_fireworks_rwb_02.jpg?itok=Lyuh4kpD",
       "description": "Stay Cool for the Summer! As the sun goes down, the party heats up at Busch Gardens Tampa Bay…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "music"
+      "category": "music",
+      "recurring": true
     },
     {
       "title": "Dunedin Food Tour",
-      "start": "2026-06-13",
-      "end": null,
+      "start": "2026-06-13T13:00:00-04:00",
+      "end": "2026-06-13T16:30:00-04:00",
       "venue": "Downtown Main St",
       "address": "Downtown Main St, Dunedin, FL 34698",
       "price": null,
@@ -31,7 +32,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/listing_images/Dunedin_Food%2520tjour%2520web%2520image.jpg?itok=9kHl-Lc7",
       "description": "Explore charming Dunedin on a guided walking food tour every Saturday and Sunday this year! The…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "Tarpon Springs July 4th Fireworks Celebration",
@@ -63,7 +65,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-05/Universal%20Narratives.png?itok=ScnjkFGn",
       "description": "Universal Narratives: A Group Show Presented by Taylor Robenalt On View: July 11 - September…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Gulfport Night Market",
@@ -79,7 +82,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-03/Gulfport_Night_Market.jpg?itok=B0aKrRZZ",
       "description": "The Gulfport Night Market is a lively evening market held year-round on the first Friday and third…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Gulfport Tuesday Fresh Market",
@@ -95,7 +99,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2025-07/gulfport-tuesday-fresh.jpg?itok=FXEjMzDM",
       "description": "The Gulfport Fresh Market takes place every Tuesday year round! The Market is located in…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "Largo 4th of July Fireworks",
@@ -115,8 +120,8 @@
     },
     {
       "title": "The Market Marie at Coachman Park",
-      "start": "2026-06-13",
-      "end": null,
+      "start": "2026-06-13T10:00:00-04:00",
+      "end": "2026-06-13T14:00:00-04:00",
       "venue": "Coachman Park",
       "address": "300 Cleveland St, Clearwater, FL 33755",
       "price": null,
@@ -127,7 +132,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2023-03/MarketMarieClearwater2023.jpeg?itok=OJXmKW0b",
       "description": "Shop Local on the Water at Coachman Park! Welcome to The Market Marie - your destination for all…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "Safety Harbor Third Friday Music Series",
@@ -143,12 +149,13 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2022-01/Third%20Friday.jpg?itok=rBwcUEIJ",
       "description": "All are invited every third Friday of the month to enjoy the restaurants, bars, shops of Safety…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "Safety Harbor's Market on Main",
-      "start": "2026-06-14",
-      "end": null,
+      "start": "2026-06-14T10:00:00-04:00",
+      "end": "2026-06-14T15:00:00-04:00",
       "venue": "400 Main St.",
       "address": "400 Main St., Safety Harbor, FL 34695",
       "price": null,
@@ -159,12 +166,13 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/listing_images/Best-of-Hollywood_111.jpg?itok=U3Hc5Ixa",
       "description": "Safety Harbor Market on Main is every Sunday and offers local hand-crafted items, local food…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "St. Pete Indie Flea Market Indoor Summer Series",
-      "start": "2026-06-14",
-      "end": null,
+      "start": "2026-06-14T12:00:00-04:00",
+      "end": "2026-06-14T16:00:00-04:00",
       "venue": "535 4th Ave N",
       "address": "535 4th Ave N, St. Petersburg, FL 33701",
       "price": null,
@@ -175,7 +183,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-05/Indie%20Flea%20Market%20St.%20Pete.jpg?itok=42AxIoo2",
       "description": "Summer is here and so is the Indie Flea Market! Beat the heat and shop with at the Indie Flea…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "St Pete Pride Festival",
@@ -191,7 +200,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2022-04/PrideFest-7147.jpg?itok=arm8d_yg",
       "description": "The St Pete Pride month-long festival is celebrating its 24th year in 2026. In June, rainbows don't…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "community",
+      "recurring": true
     },
     {
       "title": "St. Pete Beach Corey Area Craft Festival",
@@ -207,12 +217,13 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2025-11/St%20Pete%20Beach%20Corey%20Area%20Craft%20Festival.png?itok=Sd6HMdFT",
       "description": "Experience the vibrant atmosphere at the St. Pete Beach Corey Area Craft Festival as it comes alive…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "St. Pete Saturday Morning Market",
-      "start": "2026-06-13",
-      "end": null,
+      "start": "2026-06-13T09:00:00-04:00",
+      "end": "2026-06-13T14:00:00-04:00",
       "venue": "350 2nd Ave. N. OR 100 1st Ave SE",
       "address": "350 2nd Ave. N. OR 100 1st Ave SE, St. Petersburg, FL 33701",
       "price": null,
@@ -223,12 +234,13 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/listing_images/SaturdayMorningMarket_DTSP-4.jpg?itok=S91hakg3",
       "description": "Shop All Things Local at this Vibrant Market Visiting the Saturday Morning Market in St. Pete is an…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "Weekly St. Pete Walking Mural Tour",
-      "start": "2026-06-13",
-      "end": null,
+      "start": "2026-06-13T10:00:00-04:00",
+      "end": "2026-06-13T11:30:00-04:00",
       "venue": "501 Central Ave.",
       "address": "501 Central Ave., St. Petersburg, FL 33701",
       "price": null,
@@ -239,7 +251,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2024-04/Murals%20Tour.png?itok=qgozqjqJ",
       "description": "The original St. Pete Mural Tour! Saturdays at 10:00 a.m. Cost: $20 for adults, $11&nbsp…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Tarpon Springs First Friday",
@@ -255,7 +268,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/listing_images/stpetersburg-Tarpon-20Springs-20Chamber-20of-20Commerce_94e0bf6f-5056-a36a-07fbbcf4994cec22.jpg?itok=_Vyp9PJD",
       "description": "A free family event held the first Friday of the month – featuring Art, Food, Shops and Music, with…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Treasure Island 4th of July Fireworks",
@@ -287,7 +301,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/listing_images/Yoga_Dali%252B%25284%2529.jpg?itok=0Cw2bqBL",
       "description": "Join Lucky Cat Yoga on the third Sundays of each month at The Dalí – a remarkable environment where…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "sports",
+      "recurring": true
     },
     {
       "title": "Poetry at The Dalí",
@@ -303,7 +318,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/listing_images/St.%252BPetersburg%252B-%252BDali%252BMuseum%252BExterior%252BDay.jpg?itok=XPigEzJf",
       "description": "Poetry at The Dalí is an ongoing series hosted by former poet laureate of St. Petersburg, Helen…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Saturday Shoppes",
@@ -319,12 +335,13 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2021-09/IMG_5332.jpeg?itok=zP8XM8BA",
       "description": "A marketplace where everyone is included. Visit the Saturday Shoppes, the largest Southside…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "Vintage Marché Monthly Vintage Market",
-      "start": "2026-06-14",
-      "end": null,
+      "start": "2026-06-14T09:00:00-04:00",
+      "end": "2026-06-14T17:00:00-04:00",
       "venue": "2906 34th St S",
       "address": "2906 34th St S, Saint Petersburg, FL 33712",
       "price": null,
@@ -335,23 +352,25 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2021-10/82998924_146048553519047_8154902598743228416_n.jpeg?itok=1_20ackm",
       "description": "Vintage Marché is Tampa Bay’s largest monthly vintage market featuring 15,000 square feet of…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "Sensory Saturdays at MFA",
-      "start": "2026-06-13",
-      "end": null,
+      "start": "2026-06-13T10:00:00-04:00",
+      "end": "2026-06-13T12:00:00-04:00",
       "venue": "Museum of Fine Arts",
       "address": "255 Beach Dr NE, St. Petersburg, FL 33701",
       "price": null,
       "isFree": null,
       "lat": null,
       "lng": null,
-      "url": "https://www.visitstpeteclearwater.com/event/sensory-saturdays/43466",
+      "url": "https://www.visitstpeteclearwater.com/event/sensory-saturdays-mfa/43466",
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2025-08/sensory-saturday.png?itok=cprPiwg_",
       "description": "Sensory Saturday at the MFA | Hands-On with Curious Creations Co.Saturday, September 6, 2025 The…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "family",
+      "recurring": true
     },
     {
       "title": "James Playdate",
@@ -367,7 +386,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2022-01/james_playdates_november_5_2021_4_small.png?itok=AdQr5nz7",
       "description": "We welcome our youngest learners and their caregivers every first Friday. Grab your stroller and…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Tampa Bay Rays Home Game Schedule",
@@ -383,12 +403,13 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/listing_images/4b9f43b68dc65126e088938a0207854d.jpg?itok=8LO2IpoO",
       "description": "The 2026 MLB season marks the Tampa Bay Rays’ return to Tropicana Field, newly renovated and better…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "sports",
+      "recurring": true
     },
     {
       "title": "$6 Sundays at the St. Petersburg Museum of History",
-      "start": "2026-06-14",
-      "end": null,
+      "start": "2026-06-14T12:00:00-04:00",
+      "end": "2026-06-14T17:00:00-04:00",
       "venue": "St. Petersburg Museum of History",
       "address": "335 2nd Ave NE, St. Petersburg, FL 33701",
       "price": null,
@@ -399,7 +420,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2022-03/spmoh_6s_secondary.png?itok=mXf7zVsa",
       "description": "Make your weekend historic! Enjoy a special $6 Admission to the St. Petersburg Museum of History…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Beer Yoga presented by Crystal Kage",
@@ -415,7 +437,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2022-05/Screen%20Shot%202022-05-20%20at%208.48.35%20AM.png?itok=SOPL39xI",
       "description": "Join every fourth Sunday for a morning flow in the beer garden led by Crystal Kage. Crystal is…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "sports",
+      "recurring": true
     },
     {
       "title": "Dunedin Pride",
@@ -431,7 +454,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2022-05/Screen%20Shot%202022-05-27%20at%2010.23.14%20AM.png?itok=8joYV6Ej",
       "description": "Dunedin Pride will be held from May 30, 2026 and on various days in June, 2026, with many fun and…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "community"
+      "category": "community",
+      "recurring": true
     },
     {
       "title": "St. Pete Pier Run the 4th",
@@ -571,11 +595,12 @@
       "isFree": null,
       "lat": null,
       "lng": null,
-      "url": "https://www.visitstpeteclearwater.com/event/sunset-yoga-st-pete-pier/47356",
+      "url": "https://www.visitstpeteclearwater.com/event/free-sunset-yoga-st-pete-pier/47356",
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2023-09/Sunset-Yoga-Pier-FB-2_CE0E03AD-08DC-DAF0-C79BCACA5368B8DC_CE1AE282-E4C4-40E3-46F5326DA5C1CD28.jpg?itok=VNYXPKUR",
       "description": "Join us on the first Wednesday of every month for a Sunset Yoga Class in the great outdoors at the…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "outdoors",
+      "recurring": true
     },
     {
       "title": "Critical Mass Ride St. Pete",
@@ -591,7 +616,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2023-02/Critical%20Mass%20Bike%20Ride%20St.%20Pete.jpeg?itok=Alao_eFh",
       "description": "Join us on the last Friday of every month for a fun ride! We gather at 7 p.m. at the fountain in…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "sports",
+      "recurring": true
     },
     {
       "title": "Surreal Summer Nights At The Dalí: Celebrating Pride",
@@ -607,7 +633,7 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-05/1200x500-Building-Rainbow-St-Pete-Pride.jpg?itok=LFp4XqY8",
       "description": "In collaboration with St Pete Pride, we welcome you to join us in celebrating Pride at The Dalí!…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "community"
     },
     {
       "title": "Tampa Bay Rays Pride Game",
@@ -623,7 +649,7 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2023-01/tampa-bay-rays-logo-on-skyline-hero.jpg?itok=YdOsiJyk",
       "description": "Saturday, June 20 at 4:10 p.m. vs Washington Nationals Celebrate Pride presented by Chevrolet at…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "community"
     },
     {
       "title": "Faces of Inequality: Depression Era Photography Exhibit at MAACM",
@@ -639,7 +665,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-05/World%27s%20Highest%20Standard%20of%20Living.jpg?itok=VGGBa_WJ",
       "description": "MAACM Exhibit: Faces of Inequality - Depression-Era PhotographyOn View: June 2, 2026 - Ongoing Plan…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Backtrack Blues Band at Aspirations Winery",
@@ -687,7 +714,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2023-05/1900x700-bgt-events-fireworks-patriotic.jpg?itok=esdm860K",
       "description": "Celebrate Independence Day with 3 days of festivities at Busch Gardens in Tampa Bay! Enjoy dazzling…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "market"
+      "category": "market",
+      "recurring": true
     },
     {
       "title": "Jazzy Juneteenth Jubilee",
@@ -735,7 +763,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2025-04/SUMMER_Flyer_St._Pete_Sunday_Market_b06ee100-5f5e-4f0e-ac9d-6626cca27e4f_480x480.jpg?itok=1QajsQIZ",
       "description": "The monthly St. Pete Sunday Market is held every third Sunday from 11am - 4pm! Shop local with up…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "Fourth of July Weekend at Innisbrook Resort",
@@ -751,7 +780,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2023-06/Innisbrook%20Resort_Fourth%20of%20July%202023.jpeg?itok=dALHdBUz",
       "description": "Join us for an unforgettable Fourth of July Weekend at Innisbrook Resort! Join us for an…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "market"
+      "category": "market",
+      "recurring": true
     },
     {
       "title": "Dalí Alive 360°",
@@ -767,7 +797,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2023-08/Dali%20Alive%20360--4_0.jpg?itok=mTK7ZnF0",
       "description": "Don't miss the Dalí Museum's “Dalí Alive 360°”. Enjoy this immersive experience celebrating the…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Lealman Independence Day Celebration",
@@ -787,8 +818,8 @@
     },
     {
       "title": "$5 Sundays at Imagine Museum",
-      "start": "2026-06-14",
-      "end": null,
+      "start": "2026-06-14T10:00:00-04:00",
+      "end": "2026-06-14T12:00:00-04:00",
       "venue": "Imagine Museum",
       "address": "1901 Central Ave, St. Petersburg, FL 33713",
       "price": null,
@@ -799,7 +830,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2024-10/Five%20Dollar%20Sundays%20at%20Imagine%20Museum_2024.png?itok=4nxJqLWC",
       "description": "Did you hear? Imagine Museum is bringing back $5 Sundays from 10am - Noon! Join countless art…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Free F45 Training Bootcamp at the Pier",
@@ -815,7 +847,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2024-04/F45-Bootcamp-2.jpg?itok=OfaeLn86",
       "description": "Join us for a F45 Training FREE Bootcamp at the Pier! Get ready to sweat, have fun, and challenge…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "sports",
+      "recurring": true
     },
     {
       "title": "Little Surrealist Tour at The Dalí",
@@ -831,7 +864,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2023-08/Imagine%20Museum_Little%20Surrealist%20Tours_2023-2024.jpeg?itok=Slz3dc7o",
       "description": "Join us at The Dalí Museum for Little Surrealist Tours. On the first Sunday of each month, we…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "family",
+      "recurring": true
     },
     {
       "title": "Annual Suncoast Ladies Classic",
@@ -847,7 +881,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2023-08/fishing-logo_D0594911-AC39-6B66-CB360BDB4F6395CA_D0610157-072C-AEC2-0251FBC19AC85979.jpeg?itok=FiX2uKni",
       "description": "Join us for the 5th Annual Suncoast Ladies' Classic! Some of the highest payouts for an all ladies…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "sports",
+      "recurring": true
     },
     {
       "title": "American Stage Presents: Beach, Please!",
@@ -867,8 +902,8 @@
     },
     {
       "title": "Corey Ave Sunday Fresh Market on St. Pete Beach",
-      "start": "2026-06-14",
-      "end": null,
+      "start": "2026-06-14T10:00:00-04:00",
+      "end": "2026-06-14T14:00:00-04:00",
       "venue": "398-300 Corey Ave.",
       "address": "398-300 Corey Ave., St. Pete Beach, FL 33706",
       "price": null,
@@ -879,7 +914,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2023-10/Corey%20Ave%20St.%20Pete%20Beach%20Market%202023%20Produce%20Stand.jpg?itok=m7AKjKbD",
       "description": "Shop fresh produce, baked goods, handmaid jewelry, and more! J oin us every Sunday morning, all…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "Tito's Sundeck Splash at JW Marriott Clearwater Beach",
@@ -911,12 +947,13 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2025-10/Acro%20Yoga%20Class%20FB%20banner.png?itok=omjHSNk5",
       "description": "Fly, with no experience necessary! In our Acro Yoga class you will work in safe and…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "sports",
+      "recurring": true
     },
     {
       "title": "Kenwood Sunday Market St. Pete",
-      "start": "2026-06-14",
-      "end": null,
+      "start": "2026-06-14T09:00:00-04:00",
+      "end": "2026-06-14T13:00:00-04:00",
       "venue": "2501 5th Ave N",
       "address": "2501 5th Ave N, St. Petersburg, FL 33713",
       "price": null,
@@ -927,7 +964,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2024-09/Sunday%20Market%20St.%20Pete.jpg?itok=wzFkAFEO",
       "description": "Come and shop at the newest market to join St. Pete! The Sunday Market St. Pete is a huge local…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "History Tours in St. Pete",
@@ -943,12 +981,13 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2024-02/St.%20Pete%20Museum%20of%20Hisotry%20Outside%20Shot.jpeg?itok=9tFjDHI9",
       "description": "Travel back in time and experience a rich history tour! Featuring Segway Tours, Boat Tours, Ghost…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Pinellas Brewers Market",
-      "start": "2026-06-14",
-      "end": null,
+      "start": "2026-06-14T12:00:00-04:00",
+      "end": "2026-06-14T16:00:00-04:00",
       "venue": "6340 49th St N.",
       "address": "6340 49th St N., Pinellas Park, FL 33781",
       "price": null,
@@ -959,7 +998,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2024-02/Brewers-Market-_2D63C33F-D342-C631-C987847B6BFC25A4_2D679367-CE1B-4DCC-2AE8ED51BDE5B441.png?itok=ToOkyA1p",
       "description": "The Brewers Market is a free, monthly event held on the first Sunday at Pee- Pa's Garage Craft…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "Tarpon Springs Haunted History Tours",
@@ -975,7 +1015,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2024-03/Tarpon-Springs-Downtown-Sunset_9609FDFC-F164-287C-0B3B1F84E53DEFB1_962F8976-A828-CBC6-DB9CA2B979CFE126.png?itok=lXAGYnD5",
       "description": "Discover the spine-chilling mysteries of Tarpon Springs on our thrilling Haunted History Tour!…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Safety Harbor Haunted History Tours",
@@ -987,11 +1028,12 @@
       "isFree": null,
       "lat": null,
       "lng": null,
-      "url": "https://www.visitstpeteclearwater.com/event/safety-harbor-ghost-history-tours/53091",
+      "url": "https://www.visitstpeteclearwater.com/event/safety-harbor-haunted-history-tours/53091",
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2024-03/Safety-Harbor-Downtown-Sunset_95CED220-EB92-E3EA-7B12F8AC489E7D05_95F859BD-02F2-7AB6-3EF42D318E2F55B5.png?itok=NxrdX0lL",
       "description": "Join us on a spine-tingling journey through the historic and haunted areas of this charming city!…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "SHINE Mural Tour on Star Trolley",
@@ -1007,7 +1049,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2024-03/Mural%20Trolley%20Tours_Star%20Trolley_2024_StPete.jpeg?itok=sZSKrg5G",
       "description": "Join us for a SHINE Mural Tour on board Star Trolley for a 2.5-hour journey celebrating St. Pete's…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Fresh Squeezed 10: Emerging Artists in Florida Exhibit",
@@ -1023,7 +1066,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-03/Fresh%20Squeezed%2010%20.png?itok=_JVLEq3l",
       "description": "Each year since 2017, the Morean Arts Center invites emerging artists to submit entries for…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Tarpon Springs Sponge Docks Craft Art Festival",
@@ -1035,7 +1079,7 @@
       "isFree": null,
       "lat": null,
       "lng": null,
-      "url": "https://www.visitstpeteclearwater.com/event/tarpon-springs-sponge-docks-art-craft-festival/53651",
+      "url": "https://www.visitstpeteclearwater.com/event/tarpon-springs-sponge-docks-craft-festival/53651",
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2023-08/Tarpon%20Springs_Arts%20%26%20Crafts%20Festival_November%202019.jpg?itok=MWCtX0JV",
       "description": "Come out to the Tarpon Springs Sponge Docks Craft Art Festival! This show lines the docks of the…",
       "source": "Visit St. Pete/Clearwater",
@@ -1071,7 +1115,7 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-04/Stonewall%20Reception_Preview%20Image.png?itok=6o8cRFU9",
       "description": "Learn About Pride History Join us in celebrating the history of the Pride movement while supporting…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "community"
     },
     {
       "title": "St Pete Pride Transtastic",
@@ -1087,7 +1131,7 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-04/Trans%20Pride.png?itok=uW61zIGT",
       "description": "Join St Pete Pride at Transtastic, hosted at The James Museum! Come out to Transtastic on June 25th…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "community"
     },
     {
       "title": "Shades of Pride",
@@ -1099,7 +1143,7 @@
       "isFree": null,
       "lat": null,
       "lng": null,
-      "url": "https://www.visitstpeteclearwater.com/event/shades-pride-festival-honors-ball/54411",
+      "url": "https://www.visitstpeteclearwater.com/event/shades-pride/54411",
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2024-05/pride-lbtq-person-large.jpg?itok=FHfkTypW",
       "description": "This one-day celebration is a bold and unapologetic exploration of the multifaceted brilliance of…",
       "source": "Visit St. Pete/Clearwater",
@@ -1119,7 +1163,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2024-05/5-after-5-Thurs_AF46A19C-BCF0-8420-F80137C71A9A5B4D_AF51A095-F153-A2EF-1041801A5E857281.png?itok=6I5DhfWm",
       "description": "Visit Imagine Museum on Thursdays for only $5 between the hours of 5pm - 8pm! Imagine Museum…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Dunedin Pride Drag Queen Bingo",
@@ -1151,7 +1196,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2024-06/Dunedin%20Downtown%20Market_Image%202.jpeg?itok=t7ErKPqg",
       "description": "The Dunedin Downtown Market is a local open-air fresh market that supports 60+ local vendors who…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "MAACM \"Sense-sational\" Monthly Tours",
@@ -1183,7 +1229,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-06/pattern-and-pause-thumbnail-400x400.png?itok=KhIl_JjB",
       "description": "Chihuly Collection Exhibit Pattern and Pause by Matthew Szidik, Kailey Carleton and Kimberly Fahey…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "PAVA Cool Art Show",
@@ -1215,7 +1262,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2024-08/E-Bike%20St.%20Pete%20Mural%20Tours%20for%20Locals%202024.jpg?itok=e1HqHFJ2",
       "description": "Book our Mural & History E-Bike Tour of downtown St. Pete! Locals know all the best spots,…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "sports",
+      "recurring": true
     },
     {
       "title": "Vince Gill at Ruth Eckerd Hall",
@@ -1247,11 +1295,12 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/listing_images/stpetersburg-rowdies2_94e177f5-5056-a36a-07654d3dc2a76df2.jpg?itok=5g0J3ojI",
       "description": "The Tampa Bay Rowdies are a professional soccer team based in St. Petersburg, Florida. They are…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "sports",
+      "recurring": true
     },
     {
       "title": "MAACM Pour and Tour: The Works of Charles Rohlfs",
-      "start": "2026-06-13",
+      "start": "2026-06-13T10:00:00-04:00",
       "end": null,
       "venue": "355 4th Street North",
       "address": "355 4th Street North, St. Petersburg, FL 33701",
@@ -1279,7 +1328,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2024-12/Art-After-Dark-at-the-MFA.jpg?itok=M9KZg2yW",
       "description": "Join us for Art After Dark at the MFA on select Thursday evenings at the Museum of Fine Arts&nbsp…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Homeschool Hours at the MFA",
@@ -1295,7 +1345,7 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2024-12/Homeschool-Hours%20at%20the%20MFA.png?itok=vY6WGpjI",
       "description": "Homeschool groups and families are invited to join us as we look at the culture, history, math, and…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "family"
     },
     {
       "title": "The Sonder Atelier x FloridaRAMA Fashion Show",
@@ -1327,7 +1377,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2025-01/Pier%2060%20Sunset%20Festival-std.jpg?itok=z_NR7pOa",
       "description": "Experience the fun and excitement of street performers, artisans and vendors, along with a…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "FREE Entry to FloridaRAMA w/ OneBlood Donation",
@@ -1359,7 +1410,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2025-01/Pilates%20at%20the%20Pier.jpeg?itok=SSythFwp",
       "description": "Join us for monthly Pilates on the Pier hosted by Rare Body Studio! This event is free…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "sports",
+      "recurring": true
     },
     {
       "title": "$5 Museum Admission for Father's Day",
@@ -1395,8 +1447,8 @@
     },
     {
       "title": "Chad Mize Dance Party at the FloridaRAMA Gallery",
-      "start": "2026-06-13",
-      "end": null,
+      "start": "2026-06-13T20:00:00-04:00",
+      "end": "2026-06-13T23:00:00-04:00",
       "venue": "FloridaRAMA Gallery",
       "address": "2606 Fairfield Ave S, St. Petersburg, FL 33712",
       "price": null,
@@ -1407,7 +1459,7 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-05/Chad%20Mize%20Dance%20Party.png?itok=d6eSGqFA",
       "description": "Join us for an unforgettable night inside the gallery as we turn up the energy with a live DJ and…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "family"
     },
     {
       "title": "Independence Day Celebration in Safety Harbor",
@@ -1471,7 +1523,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-05/Father%27s%20Day%20at%20Imagine%20Museum%202026.png?itok=kp17HqVe",
       "description": "Dads Visit Free & Kids Admission is $5 at Imagine Museum: June 19 - 21 Celebrate Father’s Day…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "June MAACM Art Glass Classes",
@@ -1483,11 +1536,12 @@
       "isFree": null,
       "lat": null,
       "lng": null,
-      "url": "https://www.visitstpeteclearwater.com/event/june-maacm-art-glass-classes/59046",
+      "url": "https://www.visitstpeteclearwater.com/event/july-maacm-art-glass-classes/59046",
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2025-06/July%20Art%20Deco%20Glass%20Class_MAACM.jpg?itok=5ipn1xEt",
       "description": "This summer, sign up for an Art Glass Class at the Museum of the American Arts and Crafts Movement…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Zubrick Magic Theatre",
@@ -1503,7 +1557,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2021-08/Screen%20Shot%202021-08-23%20at%204.04.19%20PM.png?itok=mWt3vOg5",
       "description": "Illusionists Chris and Ryan Zubrick conjure up an exhilarating blend of sleight-of-hand, family…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "family",
+      "recurring": true
     },
     {
       "title": "Gigglewaters Annual Hot Dog Eating Contest",
@@ -1567,12 +1622,13 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2025-07/Hot%20Wing%20King.jpg?itok=wLhrkmy2",
       "description": "The Hot Wing King Written by Katori Hall & Directed by Kenny Moten Presented by American Stage…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "community",
+      "recurring": true
     },
     {
       "title": "Rock the Rocks: Monthly Market & Live Music",
-      "start": "2026-06-13",
-      "end": null,
+      "start": "2026-06-13T12:00:00-04:00",
+      "end": "2026-06-13T22:00:00-04:00",
       "venue": "401 Gulf Blvd",
       "address": "401 Gulf Blvd, Indian Rocks Beach, FL 33785",
       "price": null,
@@ -1583,12 +1639,13 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2025-07/Rock%20the%20Rocks.png?itok=unbcq4DV",
       "description": "Hosted by The Original Crabby Bill’s on Indian Rocks Beach - join us for our monthly FREE…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "Studio Saturdays at the MFA",
-      "start": "2026-06-13",
-      "end": null,
+      "start": "2026-06-13T09:00:00-04:00",
+      "end": "2026-06-13T11:00:00-04:00",
       "venue": "MFA",
       "address": "255 Beach Drive NE, St. Petersburg, FL 33701",
       "price": null,
@@ -1599,12 +1656,13 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2025-07/Studio%20Saturdays%20at%20MFA.png?itok=7g3udyF-",
       "description": "Come join the Museum of Fine Arts every second Saturday of each month from 9:00 - 11:00am for a…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "family",
+      "recurring": true
     },
     {
       "title": "Poolside Yoga at The Hollander Hotel in St. Pete",
-      "start": "2026-06-13",
-      "end": null,
+      "start": "2026-06-13T08:30:00-04:00",
+      "end": "2026-06-13T09:15:00-04:00",
       "venue": "Hollander Hotel",
       "address": "421 4th Ave N, St. Petersburg, FL 33701",
       "price": null,
@@ -1615,7 +1673,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2025-08/Poolside%20Yoga%20at%20Hollander%20Hotel%202025.jpg?itok=fiH-5rdO",
       "description": "It's Hollander season again! Join us flowing Poolside every Saturday morning this spring and summer…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "outdoors",
+      "recurring": true
     },
     {
       "title": "Free Barre Class at The St. Pete Pier",
@@ -1631,7 +1690,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2025-08/Mat%20Barre%20Class%20at%20the%20Pier.jpeg?itok=lD4FT5X7",
       "description": "Join us for a monthly Mat Barre Class on the Pier hosted by Freebird Fitness! This event is free…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "sports",
+      "recurring": true
     },
     {
       "title": "Marly Music Presents the Ibison Guitar Duo at the MFA",
@@ -1663,7 +1723,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2025-08/Wine%20Tuesdays%20at%20Melting%20Pot.jpg?itok=q-8I7kNs",
       "description": "Join us every Tuesday at The Melting Pot St. Pete for 50% off our featured wines. Plus, every other…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "After Hours (21+): The Alchemist at the MFA",
@@ -1695,7 +1756,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2025-09/Van%20Gogh%20Alive%20360_St.%20Pete_Dali%20Museum.png?itok=6mP1dX9M",
       "description": "Step into Van Gogh’s vivid world, reimagined in The Dalí Dome. Opens on Saturday, October 11th! For…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "St. Pete Night Market at Ferg's",
@@ -1707,16 +1769,17 @@
       "isFree": null,
       "lat": null,
       "lng": null,
-      "url": "https://www.visitstpeteclearwater.com/event/st-pete-night-market/60331",
+      "url": "https://www.visitstpeteclearwater.com/event/st-pete-night-market-fergs/60331",
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2025-10/St.%20Pete%20Night%20Market%20at%20Fergs%202025.png?itok=qYhxVlTf",
       "description": "The St. Pete Night Market is a fun evening market at Ferg's Sports Bar in St. Pete! It occurs on…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "Makers & Shakers Night Market",
-      "start": "2026-06-11",
-      "end": null,
+      "start": "2026-06-11T17:00:00-04:00",
+      "end": "2026-06-11T21:00:00-04:00",
       "venue": "800 31st St S",
       "address": "800 31st St S, St. Petersburg, FL 33712",
       "price": null,
@@ -1727,7 +1790,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-03/Makers%20%26%20Shakers%20Night%20Market%20St%20Pete.jpg?itok=UKFme_rx",
       "description": "Come hang out and discover some amazing local talent during the monthly Makers Market at the…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "Downtown Dunedin Walking Tours",
@@ -1743,7 +1807,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2025-10/Downtown%20Dunedin%20Interactive%20Walking%20Tour_2025_0.png?itok=51igdXlA",
       "description": "Meet at the entrance of the Museum and embark on a two-hour interactive historic walking tour…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "sports",
+      "recurring": true
     },
     {
       "title": "The Princess Concert at The Mahaffey Theater",
@@ -1807,7 +1872,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-04/Sip%20%26%20Stroll%20on%20Corey%20Ave.jpg?itok=bItk1GRW",
       "description": "Sip & Stroll on Corey Avenue Every Last Friday | 5–8 PM The last Friday of every month just got…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "Voices in REALM Exhibit at FloridaRAMA",
@@ -1823,7 +1889,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-05/Voices%20in%20REALM%20at%20FloridaRAMA.png?itok=B8hZKDnl",
       "description": "On View: May 8 - June 28Opening Reception: May 8, 7–10 PMVoices in REALM (Writers Talk): May 16, 6…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "4th of July Pops Spectacular",
@@ -1875,7 +1942,7 @@
     },
     {
       "title": "Dunedin Women Runners",
-      "start": "2026-06-12",
+      "start": "2026-06-12T07:00:00-04:00",
       "end": null,
       "venue": "472 Wood St",
       "address": "472 Wood St, Dunedin, FL 34698",
@@ -1887,7 +1954,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-01/Dunedin%20Women%20Runners.jpg?itok=d3o9lCr8",
       "description": "Welcome to Dunedin Women Runners! This is a women's only running group that runs in Dunedin. We…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "sports",
+      "recurring": true
     },
     {
       "title": "St. Pete Street Market",
@@ -1903,7 +1971,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-01/St.%20Pete%20Street%20Market%202026%20Poster.jpg?itok=lsTPxIbz",
       "description": "Fourth Saturdays belong at Pinellas Ale Works at the monthly St. Pete Street Market! We’re…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "Rock & Roll Community Fundraiser Concert at Bayboro Brewing",
@@ -1923,7 +1992,7 @@
     },
     {
       "title": "VOYAGE: Celebrating The Music of Journey",
-      "start": "2026-06-13",
+      "start": "2026-06-13T20:00:00-04:00",
       "end": null,
       "venue": "405 Cleveland Street",
       "address": "405 Cleveland Street, Clearwater, FL 33755",
@@ -1967,7 +2036,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-02/The%20Chef%20Upstairs.jpg?itok=RRc21T4S",
       "description": "Welcome to The Chef Upstairs! Featuring the most unique interactive cooking and private dining…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "Don Fulano Tequila & Massican Wine Dinner at Birch & Vine",
@@ -1987,8 +2057,8 @@
     },
     {
       "title": "Weekly Friday Night Shuffleboard in St. Pete",
-      "start": "2026-06-12",
-      "end": null,
+      "start": "2026-06-12T19:00:00-04:00",
+      "end": "2026-06-12T22:00:00-04:00",
       "venue": "559 Mirror Lake Dr N",
       "address": "559 Mirror Lake Dr N, St. Petersburg, FL 33701",
       "price": null,
@@ -1999,7 +2069,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/listing_images/84e18938cd7c440a21860cca77e4da92.jpg?itok=RbV8hsj5",
       "description": "Join us from 7:00 - 10:00pm every Friday (weather permitting) at St. Pete Shuffleboard Club. This…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "sports",
+      "recurring": true
     },
     {
       "title": "Mega Night Street Food Market",
@@ -2015,11 +2086,12 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-03/Mega%20Night%20Street%20Food%20Market%20Logo.jpg?itok=lwtE7oeU",
       "description": "Save the date for the Mega Night Street Food Market in St. Pete! This unique market celebrates the…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "Chocolate Making Classes",
-      "start": "2026-06-13",
+      "start": "2026-06-13T14:00:00-04:00",
       "end": null,
       "venue": "401 Central Ave",
       "address": "401 Central Ave, St. Petersburg, FL 33701",
@@ -2031,7 +2103,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-03/Chocolate%20Making%20Class_St.%20Pete.jpg?itok=DDb2gslO",
       "description": "Indulge in a delightful experience by joining our Chocolate 101 Class! Delve into the world…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "FLORIBUNDA Exhibit at the Morean Arts Center",
@@ -2047,12 +2120,13 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-05/FLORIBUNDA%20%281%29.png?itok=wEbUDRce",
       "description": "FLORIBUNDA: Botanical Paintings by Mary Grieco + Richard Seidel On View: June 6 - 25Reception &…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Dino Quest at DK Farms",
-      "start": "2026-06-13",
-      "end": null,
+      "start": "2026-06-13T10:00:00-04:00",
+      "end": "2026-06-13T16:00:00-04:00",
       "venue": "DK Farms",
       "address": "1750 Lake Ave SE, Largo, FL 33771",
       "price": null,
@@ -2063,12 +2137,13 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-03/Dino%20Quest.jpg?itok=Kk6sKPfR",
       "description": "Get ready for an unforgettable prehistoric adventure at DK Farms & Gardens Dino Quest! Travel…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "Pinellas Farmers & Flea Market",
-      "start": "2026-06-13",
-      "end": null,
+      "start": "2026-06-13T07:00:00-04:00",
+      "end": "2026-06-13T13:00:00-04:00",
       "venue": "10490 Gandy Blvd",
       "address": "10490 Gandy Blvd, St. Petersburg, FL 33702",
       "price": null,
@@ -2079,7 +2154,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-03/Pinellas%20Farmers%20%26%20Flea%20Market.png?itok=yNyxUzhv",
       "description": "Shop local at the Pinellas Farmers & Flea Market every Saturday & Sunday from 7AM - 1PM!…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "LED Night Kayaking on Clearwater Beach",
@@ -2095,7 +2171,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-03/group-of-led-light-kayaks-together-at-night-gloflo-kayaking-tours.jpg?itok=ytvEdwvL",
       "description": "After Dark: Glowing Kayak Tours on Clearwater Beach Ready for a totally unique After Dark adventure…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "outdoors",
+      "recurring": true
     },
     {
       "title": "Clear Kayak Tours on Clearwater Beach",
@@ -2111,7 +2188,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-03/Clear%20Kayak%20Tours%20on%20Clearwater%20Beach.jpg?itok=Ul8aCzn1",
       "description": "Intracoastal Paddle Adventure: Clear Kayak Tours on Clearwater Beach If you’re coming to Clearwater…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "outdoors",
+      "recurring": true
     },
     {
       "title": "Rum Runners, Spaniards & Natives Monthly Tour of West St. Pete",
@@ -2127,7 +2205,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-03/Rum-Runners-Spaniards-Natives-Historic-Trolley-Tour.jpg?itok=Or6cORBJ",
       "description": "Join the St. Petersburg Museum of History every third Saturday of the month for a historic trolley…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Historic Civil Rights Trolley Tour",
@@ -2143,7 +2222,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-03/Civil-Rights-Photo.jpg?itok=cHPNjqEN",
       "description": "Join the St. Petersburg Museum of History every fourth Saturday of the month for a historic 2-hour…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Billy Bob Thornton & The Boxmasters at the Bilheimer Capitol Theatre",
@@ -2175,7 +2255,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-04/Creative%20fun%20in%20the%20studio.png?itok=oC1cKAzw",
       "description": "This summer, creativity takes center stage in a unique collaboration between the teams at The Chef…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "The Architecture of The Dalí Exhibit",
@@ -2191,7 +2272,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-04/dali%20architecture%20exhibit.jpg?itok=QKB9c3tP",
       "description": "The Architecture of The Dalí Exhibit On View: May 2 – October 18th Inspired by the Museum’s…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Dalí in America Exhibit",
@@ -2207,7 +2289,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-04/gala-contemplating-1200x500-1.jpg?itok=p_W8Z7RX",
       "description": "Dalí in America Exhibit On View: May 9 – October 18th In celebration of the 250-year…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "$10 Tuesday Nights at Imagine Museum",
@@ -2223,7 +2306,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-04/%2410%20Tuesday%20Graphics.png?itok=Eaknhj3Z",
       "description": "Visit Imagine Museum on Tuesday nights for only $10 from 5-8 PM. Experience a vibrant mix of after…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Prime Time Wednesdays at Imagine Museum",
@@ -2239,12 +2323,13 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-04/Prime%20Time%20Wednesdays%20at%20Imagine%20Museum.png?itok=ChOuIH1d",
       "description": "Every Wednesday, visitors ages 65 and over are invited to experience Imagine Museum for just $5!…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Nina Samuels: Catch of the Day Ceramic Exhibit at the Morean",
-      "start": "2026-06-13",
-      "end": null,
+      "start": "2026-06-13T10:00:00-04:00",
+      "end": "2026-06-13T17:00:00-04:00",
       "venue": "Morean",
       "address": "420 22nd St S, St. Petersburg, FL 33712",
       "price": null,
@@ -2255,7 +2340,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-04/Catch%20of%20the%20Day%20Exhibit%20at%20the%20Morean%20Arts%20Center.png?itok=j_UckeLH",
       "description": "Catch of the Day Ceramic Exhibit Opening Reception: June 13, 5-9pm (RSVP for Free)On View:…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Ronan Donovan’s Wolves Exhibit at The James Museum",
@@ -2271,7 +2357,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-04/Wolves%20Exhibit_James%20Museum%202026.png?itok=LelGVIcm",
       "description": "The James Museum To Open Ronan Donovan’s Wolves Exhibition on May 9th! Opening Reception: Friday,…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "outdoors",
+      "recurring": true
     },
     {
       "title": "Edible Surrealism: A Dalí-Inspired Culinary Competition Experience",
@@ -2303,7 +2390,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-04/FL%20Now%20Exhibit%202026.png?itok=LrW_X8al",
       "description": "New Exhibit: Florida NOW Showcasing Artists from Across Florida On View: May 2 – June 13Opening…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Rockin' The Bay Vol 3 Dance Competition",
@@ -2323,7 +2411,7 @@
     },
     {
       "title": "KBong & Johnny Cosmic at Jannus Live",
-      "start": "2026-06-11",
+      "start": "2026-06-11T18:00:00-04:00",
       "end": null,
       "venue": "Jannus Live",
       "address": "200 1st Ave N, Suite 206, St. Petersburg, FL 33701",
@@ -2339,7 +2427,7 @@
     },
     {
       "title": "Landon McNamara at Jannus Live",
-      "start": "2026-06-12",
+      "start": "2026-06-12T19:00:00-04:00",
       "end": null,
       "venue": "Jannus Live",
       "address": "200 1st Ave N, Suite 206, St. Petersburg, FL 33701",
@@ -2355,7 +2443,7 @@
     },
     {
       "title": "Fortunate Youth at Jannus Live",
-      "start": "2026-06-13",
+      "start": "2026-06-13T19:00:00-04:00",
       "end": null,
       "venue": "Jannus Live",
       "address": "200 1st Ave N, Suite 206, St. Petersburg, FL 33701",
@@ -2431,12 +2519,13 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-05/Voodoo%20Brewing%20Co%20Weekly%20Trivia%20Nights%202026.jpg?itok=KvzP_tub",
       "description": "You're officially invited to Weekly Trivia Night every Wednesday at Voodoo Brewing Co. in downtown…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "Saturday Sunset Markets on St. Pete Beach",
-      "start": "2026-06-13",
-      "end": null,
+      "start": "2026-06-13T16:00:00-04:00",
+      "end": "2026-06-13T20:00:00-04:00",
       "venue": "4655 Gulf Blvd",
       "address": "4655 Gulf Blvd, St. Pete Beach, FL 33706",
       "price": null,
@@ -2447,7 +2536,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-05/Saturday%20Sunset%20Market.jpg?itok=aXMK9Obu",
       "description": "Stop by the Dolphin Village Shopping Center located on Gulf Blvd and the 46th Ave beach access for…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "food"
+      "category": "food",
+      "recurring": true
     },
     {
       "title": "Modern Urban Barn Quilts w/ Laura York at Morean Arts Center",
@@ -2467,7 +2557,7 @@
     },
     {
       "title": "Tampa Bay Rowdies Pride Night",
-      "start": "2026-06-13",
+      "start": "2026-06-13T19:30:00-04:00",
       "end": null,
       "venue": "230 1st St SE",
       "address": "230 1st St SE, St. Petersburg, FL 33701",
@@ -2479,7 +2569,7 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-05/pride-flag.png?itok=o4fpS-ZT",
       "description": "Join us for the annual Pride Night with the Tampa Bay Rowdies at Al Lang Stadium in St. Pete!…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "community"
     },
     {
       "title": "Romance on Central: Mini Book Fair",
@@ -2511,7 +2601,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-05/CMA-Sea-Turtle-Patrol-9956-1024x682.jpg?itok=d2zwgRso",
       "description": "Embark on an exclusive ride-along adventure with the CMA sea turtle patrol team! You will be fully…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "sports",
+      "recurring": true
     },
     {
       "title": "Hammered Hoops with MJ Hodges at Morean Arts Center",
@@ -2575,12 +2666,13 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-05/A%20Space%20Between%20Exhibit.png?itok=oNXy0v6b",
       "description": "New Exhibit: L I V (I N) G Estuary… A Space Between by Artist Ashley Rivers - The Nature of Fire On…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "SHARE the Love Block Party",
-      "start": "2026-06-13",
-      "end": null,
+      "start": "2026-06-13T10:00:00-04:00",
+      "end": "2026-06-13T14:00:00-04:00",
       "venue": "2629 McCormick Dr",
       "address": "2629 McCormick Dr, Building 6, Clearwater, FL 33759",
       "price": null,
@@ -2595,7 +2687,7 @@
     },
     {
       "title": "Christy's Thirsty \"Where's Waldo?\" Beer Ride",
-      "start": "2026-06-13",
+      "start": "2026-06-13T14:00:00-04:00",
       "end": null,
       "venue": "1975 3rd Ave S",
       "address": "1975 3rd Ave S, Suite A, St. Petersburg, FL 33712",
@@ -2607,7 +2699,7 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-06/Waldo%20event%20FB.jpg?itok=vAHVIggn",
       "description": "Back by popular demand, Christy's \"Where’s Waldo?\" Beer Ride is making its return! Throw on your…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "sports"
+      "category": "food"
     },
     {
       "title": "Benefit Concert at Jannus Live w/ Vertical Horizon & Tonic",
@@ -2639,12 +2731,13 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-05/Into%20the%20Mystic%20Exhibit.png?itok=uRAHQEZb",
       "description": "Into the Mystic Exhibition by Neverne Covington On View: July 11 – September 23Opening Reception:…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Pride Outdoor Market w/ Body Electric",
-      "start": "2026-06-13",
-      "end": null,
+      "start": "2026-06-13T08:00:00-04:00",
+      "end": "2026-06-13T13:30:00-04:00",
       "venue": "3015 7th St N",
       "address": "3015 7th St N, St. Petersburg, FL 33704",
       "price": null,
@@ -2655,7 +2748,7 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-05/Pride%20Bazaar%20Market.jpeg?itok=QS2eqfGS",
       "description": "Celebrate Pride with us at our free outdoor market featuring local vendors and artists! Shop,…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "community"
     },
     {
       "title": "Father’s Day Mugs & Monsters at Clay Co-op",
@@ -2671,11 +2764,11 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-05/Mugs%20and%20Monsters.jpg?itok=J3KcW_Q6",
       "description": "Celebrate Father's Day with a Creative Twist! In this special Sunday workshop, dads (or…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "family"
     },
     {
       "title": "PRIDE: A Ceramic Exhibit at Clay Co-op",
-      "start": "2026-06-13",
+      "start": "2026-06-13T18:00:00-04:00",
       "end": null,
       "venue": "Clay Co-op",
       "address": "2724 6th Ave S, St. Petersburg, FL 33712",
@@ -2687,7 +2780,7 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-05/Pride%20Ceramic%20Exhibit%202026.jpg?itok=CR7eZZK_",
       "description": "Come celebrate PRIDE month at Clay Co-op in St. Pete as we spotlight 10 local queer artists in our…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "community"
     },
     {
       "title": "Mug-nificent Designs: 5 Week Pottery Workshop at Clay Co-op",
@@ -2703,7 +2796,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-05/Mug-nificant%20Designs%20%283%29.jpg?itok=-1c2FEI9",
       "description": "Craft your own functional pottery in just 5 weeks! Join us at Clay Co-op in St. Pete for a special…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Beginner Wheel: 6 Week Pottery Workshop at Clay Co-op",
@@ -2719,7 +2813,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-05/Beginner%20Wheel%20%281%29.jpg?itok=2SqJh8zl",
       "description": "Craft your own functional pottery in just 6 weeks! Join us at Clay Co-op in St. Pete for a 6 Week…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Anchors, Anthems, & Ales: A Concert Benefiting The Jackson Copeland Foundation",
@@ -2739,8 +2834,8 @@
     },
     {
       "title": "GCAA ArtWorks “Free to Be Me” Spring Members' Show",
-      "start": "2026-06-11",
-      "end": null,
+      "start": "2026-06-11T11:00:00-04:00",
+      "end": "2026-06-11T17:00:00-04:00",
       "venue": "5546 1st Ave N",
       "address": "5546 1st Ave N, St. Petersburg, FL 33710",
       "price": null,
@@ -2751,7 +2846,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-05/Diana%20Pepper-We%20are%20HERE%21%21.jpeg?itok=q6z9ePfd",
       "description": "In honor of Pride month and the independent spirit of artists, members of the Gulf Coast Artists’…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "community",
+      "recurring": true
     },
     {
       "title": "Juneteenth All White Party at OCC Road House",
@@ -2815,7 +2911,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-06/2026-0649%20SMX%20Digital%20Graphics_Email%20Square_1080x1080%20.jpg?itok=l8uQqb21",
       "description": "From June 1 – August 13th, Regal’s Summer Movie Express is back with $1 family movies every Monday…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "Passport to Wellness at Wyndham Grand",
@@ -2847,7 +2944,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-06/JOYLAND%20Benaiah%20Cusack%20.png?itok=1hVA1eBh",
       "description": "Exhibit: JOYLAND by Benaiah CusackOn View: July 3 – August 8, 2026Exhibit Opening Reception: July…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "art"
+      "category": "art",
+      "recurring": true
     },
     {
       "title": "St. Pete Sunrise Tours",
@@ -2863,7 +2961,8 @@
       "image": "https://www.visitstpeteclearwater.com/sites/default/files/styles/profile_grid/public/2026-06/St.%20Pete%20Sunrise%20Tours.jpg?itok=fksuqRrS",
       "description": "Start your day the way locals do—slow, scenic, and unforgettable! St. Pete Sunrise Tours…",
       "source": "Visit St. Pete/Clearwater",
-      "category": "outdoors"
+      "category": "outdoors",
+      "recurring": true
     },
     {
       "title": "Father's Day Signature Cologne Experience at Lather Green Scent Studio",

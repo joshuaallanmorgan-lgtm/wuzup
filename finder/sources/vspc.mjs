@@ -67,20 +67,25 @@ const UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36';
 
 // Site category -> our vocabulary. Iteration order IS priority: specific signals
-// (music/sports/film/food) beat broad buckets (Festivals, Annual Festivals & Events).
+// (music/film/food) beat broad buckets (Festivals, Annual Festivals & Events).
 // Full live vocabulary as of 2026-06: Annual Festivals & Events, Arts & Crafts,
 // Civic, Cultural, Festivals, Film Events, Food + Drink, Kids, LGBTQ+,
 // Music & Concerts, Nature, Sports & Recreation.
+// Order notes (fixer pass 2026-06-10): LGBTQ+/Nature/Kids now outrank
+// Sports & Recreation and Arts & Crafts/Cultural — the site tags pride events
+// Cultural-first (they were landing "art") and nature programs ride the
+// "Recreation" half of Sports & Recreation (a sea-turtle conservation
+// ride-along was landing "sports").
 const CATEGORY_MAP = new Map([
   ['Music & Concerts', 'music'],
-  ['Sports & Recreation', 'sports'],
   ['Film Events', 'art'],
   ['Food + Drink', 'food'],
-  ['Arts & Crafts', 'art'],
-  ['Cultural', 'art'],
+  ['LGBTQ+', 'community'],
   ['Nature', 'outdoors'],
   ['Kids', 'family'],
-  ['LGBTQ+', 'community'],
+  ['Sports & Recreation', 'sports'],
+  ['Arts & Crafts', 'art'],
+  ['Cultural', 'art'],
   ['Civic', 'community'],
   ['Festivals', 'market'],
   ['Annual Festivals & Events', 'market'],
@@ -190,6 +195,11 @@ function mapResult(result, todayDay, lastDay) {
   };
   const category = mapCategory(j.categories);
   if (category) event.category = category;
+  // Recurring hint for the pipeline: the blob's recurrence field, or 3+
+  // occurrence days. We ship ONE instance, so the pipeline's own 3-distinct-
+  // dates detection can never fire — without this, a month-long attraction
+  // poses as a one-night event (one-off heat bonus, Tonight-rail filler).
+  if (j.recurrence || days.length >= 3) event.recurring = true;
   return event;
 }
 

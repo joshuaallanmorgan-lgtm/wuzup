@@ -40,13 +40,19 @@ const CATNAME_MAP = new Map([
   ['Family Friendly', 'family'],
 ]);
 
-function mapCategory(categories) {
+function mapCategory(categories, text = '') {
   if (!Array.isArray(categories)) return null;
   const present = new Set(
     categories.map((c) => (c && typeof c.catName === 'string' ? c.catName.trim() : '')).filter(Boolean)
   );
   for (const [catName, category] of CATNAME_MAP) {
-    if (present.has(catName)) return category;
+    if (!present.has(catName)) continue;
+    // 'Comedy' is the top-priority catName, but Simpleview venue self-tagging
+    // misfiles straight concerts under it (Josh Groban with Jennifer Hudson,
+    // live 2026-06). Trust it only when the listing's own words sound like
+    // comedy; otherwise fall through to the next category signal.
+    if (category === 'comedy' && !/\bcomed|\bstand-?up\b|\bimprov\b|\bfunny\b|\bjokes?\b/i.test(text)) continue;
+    return category;
   }
   return null;
 }
@@ -198,7 +204,7 @@ function mapDoc(doc, todayDay, lastDay) {
     description: cleanText(doc.description),
     source: name,
   };
-  const category = mapCategory(doc.categories);
+  const category = mapCategory(doc.categories, `${event.title || ''} ${event.description || ''}`);
   if (category) event.category = category;
   return event;
 }

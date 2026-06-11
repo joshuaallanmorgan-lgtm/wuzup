@@ -112,7 +112,7 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
             {bubble.label}
           </h1>
           <div className="pg-count">
-            {count} event{count === 1 ? '' : 's'} in {CITY.name}
+            {count.toLocaleString('en-US')} event{count === 1 ? '' : 's'} in {CITY.name}
           </div>
           <div className="bub-tag">{TAGLINES[bubble.id] || 'Picked fresh for you.'}</div>
         </div>
@@ -122,7 +122,9 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
           <div className="bub-locate">
             <div className="bub-locate-txt">
               {locState === 'denied'
-                ? "Couldn't get a fix 🛰️ — showing the hottest first instead."
+                ? /* the denied list is diversity-ordered (orderDay), not hotScore-
+                     desc — don't claim "hottest first" (DRAFT for Charles) */
+                  "Couldn't get a fix 🛰️ — showing the best of the bay instead."
                 : "Tampa Bay is big. Let's narrow it to your block."}
             </div>
             <button className="bub-locate-btn" onClick={locate} disabled={locState === 'asking'}>

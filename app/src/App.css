@@ -104,6 +104,7 @@
   padding: 14px 20px 4px;
   overflow-x: auto;
   scrollbar-width: none;
+  overscroll-behavior-x: contain; /* don't chain edge-swipes into the tab pager */
 }
 .bubbles::-webkit-scrollbar { display: none; }
 .bubble {

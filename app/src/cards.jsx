@@ -191,8 +191,13 @@ export function SecHead({ overline, title, sub, onSeeAll }) {
 }
 
 export function TonightCard({ e, onSelect, withDate = false }) {
-  // withDate: shelf/cross-day contexts where the DATE is the headline fact
-  const meta = [withDate ? dayLabelLoose(e) : null, startLabel(e), e.venue].filter(Boolean).join(' · ')
+  // withDate: shelf/cross-day contexts where the DATE is the headline fact.
+  // Ongoing events show "Ongoing" (dayLoose), never their weeks-old start date;
+  // the uniqueness filter stops it doubling with startLabel's own "Ongoing".
+  const meta = [withDate ? dayLoose(e) : null, startLabel(e), e.venue]
+    .filter(Boolean)
+    .filter((v, i, arr) => arr.indexOf(v) === i)
+    .join(' · ')
   return (
     <button className="tcard pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
       <CardImg e={e} className="tcard-img">

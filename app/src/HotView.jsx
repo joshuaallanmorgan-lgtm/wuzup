@@ -1,7 +1,7 @@
 // HotView — the Hot tab magazine: hero (+ 🔎 search), bubble strip (each bubble
 // opens a full BubblePage via onOpenBubble), alternating sections, Everything feed.
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { BUBBLES, CITY, DAY, dayLabel, keyOf, orderDay, tonightModel } from './lib.js'
+import { BUBBLES, CITY, DAY, dayLabel, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
 import { BigOne, EndCap, FreeCard, GemRow, RowFeed, SecHead, TonightCard } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
 import { confidence, tasteNudge, topCategories, useTaste } from './taste.js'
@@ -112,10 +112,15 @@ export default function HotView({ events, anchors, loading, displayMode, whenPre
     const pool = oneOffs.length ? oneOffs : upcoming.filter((e) => e.hotScore != null)
     return pool.reduce((best, e) => (best == null || e.hotScore > best.hotScore ? e : best), null)
   }, [upcoming, hasHot])
-  // unsliced — section subs report the real totals; renders slice to 3 / 10
-  const gems = useMemo(() => upcoming.filter((e) => e.tags.includes('hidden-gem')), [upcoming])
+  // unsliced — section subs report the real totals; renders slice to 3 / 10.
+  // Gems sort by score so the homepage trio is the BEST of the shelf, not
+  // whichever three happen soonest.
+  const gems = useMemo(() => upcoming.filter((e) => e.tags.includes('hidden-gem')).sort(hotDesc), [upcoming])
+  // G1 orderDay here too: raw date-asc order opened the carousel with six
+  // identical same-program library cards — diversity-interleave like the
+  // Everything feed does (count-preserving; taste read at compute time).
   const freeWeek = useMemo(
-    () => upcoming.filter((e) => e._free && e._clamp <= anchors.todayTs + 6 * DAY),
+    () => orderDay(upcoming.filter((e) => e._free && e._clamp <= anchors.todayTs + 6 * DAY), tasteNudge),
     [upcoming, anchors]
   )
   // ♥ Saved shelf (Sprint C): saved events, live-from-dataset when possible,
@@ -222,7 +227,9 @@ export default function HotView({ events, anchors, loading, displayMode, whenPre
           {/* H2: time-aware greeting (tracks nowMs — re-seeded on visibility + every 10 min) */}
           <div className="hero-kicker">{heroKicker(new Date(nowMs), tonight.futureN, whenPref)}</div>
           <h1 className="hero-city">{CITY.name}</h1>
-          <div className="hero-sub">{upcoming.length} events near you</div>
+          {/* "across Tampa Bay", not "near you" — the app never asks for location
+              here, so a proximity claim would be fabricated (DRAFT for Charles) */}
+          <div className="hero-sub">{upcoming.length.toLocaleString('en-US')} events across Tampa Bay</div>
         </div>
       </header>
 
@@ -271,7 +278,10 @@ export default function HotView({ events, anchors, loading, displayMode, whenPre
               sub={
                 tonight.late
                   ? `${tonight.futureN} left tonight · ${tonight.tomorrowN} tomorrow`
-                  : `${tonight.futureN} still to come`
+                  : // both counts, so the sub can't contradict the cards below it:
+                    // the carousel includes all-day/date-only events, the kicker
+                    // counts clocked showtimes only (DRAFT for Charles)
+                    `${tonight.items.length} on today · ${tonight.futureN} with showtimes ahead`
               }
               onSeeAll={() => seeAll('tonight')}
             />

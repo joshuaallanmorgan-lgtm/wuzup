@@ -134,7 +134,14 @@ export default function CalendarView({ events, anchors, onSelect, wx, onOpenWeek
           <div className="mon-head">
             <h3 className="mon-title">{monthTitle}</h3>
             <div className="mon-navs">
-              <button className="mon-nav" onClick={() => setMonthOff((o) => o - 1)} aria-label="Previous month">
+              {/* clamp at the current month: every past month is all-empty cells
+                  (day buckets clamp to today), so navigating back is a dead end */}
+              <button
+                className="mon-nav"
+                onClick={() => setMonthOff((o) => Math.max(o - 1, 0))}
+                disabled={monthOff === 0}
+                aria-label="Previous month"
+              >
                 <svg viewBox="0 0 24 24" width="16" height="16"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </button>
               <button className="mon-nav" onClick={() => setMonthOff((o) => o + 1)} aria-label="Next month">

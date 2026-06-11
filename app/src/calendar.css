@@ -44,7 +44,7 @@
 }
 .seg-btn.on { color: var(--accent); }
 
-.date-rail { display: flex; gap: 9px; overflow-x: auto; padding: 2px 16px 4px; scrollbar-width: none; }
+.date-rail { display: flex; gap: 9px; overflow-x: auto; padding: 2px 16px 4px; scrollbar-width: none; overscroll-behavior-x: contain; }
 .date-rail::-webkit-scrollbar { display: none; }
 .date-pill {
   flex: 0 0 auto;
@@ -119,6 +119,7 @@
   transition: transform var(--dur-micro);
 }
 .mon-nav:active { transform: scale(0.92); }
+.mon-nav:disabled { opacity: 0.35; pointer-events: none; }
 .mgrid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 0 12px; }
 .mdow { text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); padding: 8px 0 4px; }
 .mcell-blank { height: 56px; }

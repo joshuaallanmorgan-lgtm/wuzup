@@ -106,6 +106,9 @@
   scroll-snap-type: x mandatory;
   scroll-padding-left: 20px;
   scrollbar-width: none;
+  /* a swipe ending at the carousel edge must NOT chain into the snap-mandatory
+     tab pager (Hot snapping to Map mid-browse) */
+  overscroll-behavior-x: contain;
 }
 .carousel::-webkit-scrollbar { display: none; }
 .tcard {

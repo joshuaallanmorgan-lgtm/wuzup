@@ -899,8 +899,21 @@
     "lat": 27.952576,
     "lng": -82.459018
   },
-  "2606 Fairfield Ave S, Building 6, St. Petersburg, 33712": null,
+  "The Palladium Theater, St. Petersburg, Florida": {
+    "lat": 27.7778779,
+    "lng": -82.6367975
+  },
+  "Regal Largo, Largo, Florida": {
+    "lat": 27.8906275,
+    "lng": -82.7837506
+  },
+  "Innisbrook Resort, Palm Harbor, Florida": {
+    "lat": 28.1149291,
+    "lng": -82.7510341
+  },
   "620 First Avenue South, St. Petersburg, FL, 33701": null,
   "1010 North Macinnes Place, Tampa, FL, 33602": null,
-  "253 Fifth Ave. N., St. Petersburg, 33701": null
+  "253 Fifth Ave. N., St. Petersburg, 33701": null,
+  "The Studio@620, St. Petersburg, Florida": null,
+  "Carol Morsani Hall - The Straz Center, Tampa, Florida": null
 }
