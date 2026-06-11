@@ -127,11 +127,34 @@ export function shelfItems(list, events, anchors) {
   if (expired.length) {
     // shelfItems runs during render — defer the prune so the store never
     // mutates (and re-emits) mid-render. One-shot: next run finds nothing.
+    // ARCHIVE-BEFORE-PRUNE (pre-Sprint-O audit): expiring saves are the raw
+    // material of Profile's "Been there" — move them to 'been-there-v1'
+    // instead of erasing them. Archiving is reversible; deletion isn't.
     setTimeout(() => {
       const map = { ...store.map }
+      const archived = []
       let changed = false
-      for (const k of expired) if (k in map) { delete map[k]; changed = true }
-      if (changed) commit(map)
+      for (const k of expired) {
+        if (k in map) {
+          archived.push({ key: k, savedAt: map[k].savedAt, snapshot: map[k].snapshot, archivedAt: Date.now() })
+          delete map[k]
+          changed = true
+        }
+      }
+      if (changed) {
+        try {
+          const prev = JSON.parse(localStorage.getItem('been-there-v1'))
+          const list = Array.isArray(prev) ? prev : []
+          const have = new Set(list.map((x) => x.key))
+          localStorage.setItem(
+            'been-there-v1',
+            JSON.stringify(list.concat(archived.filter((x) => !have.has(x.key))).slice(-200))
+          )
+        } catch {
+          /* private mode — the shelf prune still proceeds; archive is best-effort */
+        }
+        commit(map)
+      }
     }, 0)
   }
   out.sort((a, b) =>

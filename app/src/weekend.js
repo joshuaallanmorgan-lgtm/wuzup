@@ -59,10 +59,26 @@ export const emptyPlan = (weekendStartTs) => ({
   v: 1,
 })
 
+// ARCHIVE-BEFORE-OVERWRITE (pre-Sprint-O audit): a stale plan with anything
+// in it is the raw material of Profile's "plan history" — push it to
+// 'weekend-history-v1' (cap 26 ≈ half a year) before the reset erases it.
+function archivePlan(stored) {
+  try {
+    const filled = Object.values(stored.slots || {}).some((k) => typeof k === 'string' && k)
+    if (!filled) return // an empty stale plan is not history
+    const prev = JSON.parse(localStorage.getItem('weekend-history-v1'))
+    const list = Array.isArray(prev) ? prev : []
+    if (list.some((p) => p && p.weekendStartTs === stored.weekendStartTs)) return
+    localStorage.setItem('weekend-history-v1', JSON.stringify(list.concat(stored).slice(-26)))
+  } catch {
+    /* private mode — best-effort */
+  }
+}
+
 // stored → live plan, fully guarded: wrong shape, wrong version, or a
 // weekendStartTs that no longer matches the CURRENT weekend all reset to an
-// empty plan (a stale plan auto-archives by being overwritten on the next
-// save — no history UI by design). Slot values must be non-empty strings.
+// empty plan — but a real stale plan is ARCHIVED first (Profile's plan
+// history). Slot values must be non-empty strings.
 export function planFor(stored, weekendStartTs) {
   if (
     stored &&
@@ -81,6 +97,9 @@ export function planFor(stored, weekendStartTs) {
     }
     p.done = stored.done === true
     return p
+  }
+  if (stored && typeof stored === 'object' && !Array.isArray(stored) && stored.v === 1 && stored.weekendStartTs !== weekendStartTs) {
+    archivePlan(stored) // a PAST weekend's plan — preserve before the reset
   }
   return emptyPlan(weekendStartTs)
 }

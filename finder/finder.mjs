@@ -1908,7 +1908,7 @@ async function main() {
   }).length;
   console.log(`    ${junkHourCount === 0 ? '✅' : '❌'} non-nightlife events starting 01:00–05:59: ${junkHourCount} (need 0)`);
   const otherCount = catDist.other || 0;
-  console.log(`    ${otherCount <= 60 ? '✅' : '❌'} 'other' category: ${otherCount} (need <= 60 — classifier round 3)`);
+  console.log(`    ${otherCount <= 40 ? '✅' : '❌'} 'other' category: ${otherCount} (need <= 40 — ratcheted from 60, current ~12)`);
   const NOISE_TITLE_RE = /procurement|RFQ|RFP|working group|evaluation meeting|regular meeting/i;
   const noiseCount = events.filter((e) => NOISE_TITLE_RE.test(e.title || '')).length;
   console.log(`    ${noiseCount === 0 ? '✅' : '❌'} gov-noise titles (procurement/RFQ/RFP/meetings): ${noiseCount} (need 0)`);
