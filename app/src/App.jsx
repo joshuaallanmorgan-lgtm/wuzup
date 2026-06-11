@@ -3,7 +3,7 @@
 // geolocation (requestCoords), and display-mode state (localStorage 'display-mode').
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
-import { CITY, Icon, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, saveMyEvents } from './lib.js'
+import { CITY, DAY, Icon, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, saveMyEvents } from './lib.js'
 import { recordSignal } from './taste.js'
 import { recordView } from './recents.js'
 import Primer, { loadPrimerState } from './Primer.jsx'
@@ -51,6 +51,19 @@ const supportsVT = () =>
   typeof document.startViewTransition === 'function' &&
   !window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
+// M2 resilience constants: one retry on a failed boot fetch, and the
+// staleness threshold for the quiet "events from {day}" banner. events.json
+// ships no generatedAt field (finder-owned schema), so the banner reads the
+// HTTP Last-Modified header off the fetch response instead — static hosts and
+// vite preview both send it; when the header is absent the banner simply
+// never shows (graceful, no fake claims).
+const RETRY_MS = 2500
+const STALE_MS = 48 * 3600 * 1000
+const staleDayLabel = (ms) =>
+  Date.now() - ms <= 6 * DAY
+    ? new Date(ms).toLocaleDateString('en-US', { weekday: 'long' })
+    : new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+
 export default function App() {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -81,12 +94,43 @@ export default function App() {
   const pageTRef = useRef(null)
   const coordsRef = useRef(null)
 
+  // M2a stale-data banner: Last-Modified ms when the snapshot is > 48h old
+  const [staleAt, setStaleAt] = useState(null)
+  const [staleHidden, setStaleHidden] = useState(false) // ✕ dismiss (this load only)
+  // M2b: one retry with backoff before giving up — a transient blip on a weak
+  // network shouldn't cost the whole session. The boot overlay stays up across
+  // the backoff (we ARE still trying); after the second failure the existing
+  // honest empty state takes over. Non-OK responses throw so a 404/500 retries
+  // too (the old .json() would have rejected on the error page anyway).
   useEffect(() => {
-    fetch('/events.json')
-      .then((r) => r.json())
-      .then((d) => setEvents(Array.isArray(d) ? d : []))
-      .catch(() => setEvents([]))
-      .finally(() => setLoading(false))
+    let on = true
+    let timer
+    const load = (attempt) => {
+      fetch('/events.json')
+        .then((r) => {
+          if (!r.ok) throw new Error('http ' + r.status)
+          const lm = Date.parse(r.headers.get('last-modified') || '')
+          return r.json().then((d) => {
+            if (!on) return
+            if (!Number.isNaN(lm) && Date.now() - lm > STALE_MS) setStaleAt(lm)
+            setEvents(Array.isArray(d) ? d : [])
+            setLoading(false)
+          })
+        })
+        .catch(() => {
+          if (!on) return
+          if (attempt === 0) timer = setTimeout(() => load(1), RETRY_MS)
+          else {
+            setEvents([])
+            setLoading(false)
+          }
+        })
+    }
+    load(0)
+    return () => {
+      on = false
+      clearTimeout(timer)
+    }
   }, [])
   useEffect(() => {
     const t = setTimeout(() => setBootVis(true), 300)
@@ -340,6 +384,16 @@ export default function App() {
           </section>
         </div>
         <TabBar active={active} onTab={goTo} />
+        {/* M2a: quiet staleness disclosure — one line, dismissible, never blocks
+            (z 1200: subpages/detail/primer all render over it) */}
+        {staleAt != null && !staleHidden && (
+          <div className="stale-note" role="status">
+            <span className="stale-txt">Events from {staleDayLabel(staleAt)} — they may have changed</span>
+            <button className="stale-x" onClick={() => setStaleHidden(true)} aria-label="Dismiss">
+              ✕
+            </button>
+          </div>
+        )}
         {active === 0 && norm.length > 0 && (
           <button className="dice" onClick={openNight} aria-label="Find my night">
             🎲

@@ -91,7 +91,6 @@ export async function fetchEvents() {
       const descHtml =
         (ev.EVT_desc && typeof ev.EVT_desc === 'object' ? ev.EVT_desc.rendered : ev.EVT_desc) ||
         ev.EVT_short_desc || '';
-      const imgMatch = typeof descHtml === 'string' ? descHtml.match(/<img[^>]+src="([^"]+)"/i) : null;
 
       events.push({
         title,
@@ -104,7 +103,12 @@ export async function fetchEvents() {
         lat: null,
         lng: null,
         url: ev.link || ev.EVT_external_URL || null,
-        image: imgMatch ? imgMatch[1] : null,
+        // No image: the <img> URLs inside the API's stored description HTML
+        // point at www.wmnf.org/wp-content/uploads/, which 404s since the
+        // site moved uploads to cdn.wmnf.org (probed 2026-06-10: 4/4 dead on
+        // origin, 3/4 still dead after a CDN-host rewrite). Fallback art
+        // beats a broken <img>.
+        image: null,
         description: truncate(stripHtml(typeof descHtml === 'string' ? descHtml : '')) || null,
         source: name,
       });

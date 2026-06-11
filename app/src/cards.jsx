@@ -9,7 +9,7 @@
 // value={{ mode, setMode }}>. Any card component reads the current mode with
 // `useDisplayMode()` → 'editorial' | 'poster' | 'cinematic'. <DisplayModeToggle/>
 // (the 🎨 pill, mounted by App bottom-left) cycles through DISPLAY_MODES.
-import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { createContext, memo, useContext, useEffect, useRef, useState } from 'react'
 import { dayLabelLoose, dayLoose, keyOf, priceLabel, startLabel, timeOf } from './lib.js'
 import { SaveHeart, useSaves } from './saves.js'
 import { dateKey } from './weather.js'
@@ -276,7 +276,16 @@ export function EndCap({ square, onClick, children = 'See all →' }) {
 //   poster    — 2-up image-first grid (1:1, hue glow ring, FREE overlay), scan-fast
 //   cinematic — 92px full-width cover card, 0.55 scrim, white text bottom-left
 // Same props in every mode; CardImg keeps [data-vt] so the detail morph works.
-export function Row({ e, dist, style, onSelect }) {
+//
+// memo'd (Sprint M1): HotView re-renders on every taste/recents/saves emit —
+// i.e. on every detail open — and RowFeed reconciles up to `limit` rows each
+// time (1,600+ once the Everything feed is fully paged). All four props are
+// referentially stable across those re-renders (e: from the evSections memo;
+// onSelect: App's useCallback'd openDetail; dist: null; style: undefined or a
+// hoisted STAGGER_STYLES constant), so memo turns ~1,600 row re-renders per
+// card tap into ~0. Context reads (display mode, weather) bypass memo by
+// design, so mode switches and forecast arrival still repaint every row.
+export const Row = memo(function Row({ e, dist, style, onSelect }) {
   const mode = useDisplayMode()
   // outdoor events on a rainy forecast day carry a tiny honesty hint in the meta
   const wx = useContext(WxContext)
@@ -351,7 +360,12 @@ export function Row({ e, dist, style, onSelect }) {
       </div>
     </button>
   )
-}
+})
+
+// the 6 distinct stagger delays as frozen module constants: an inline object
+// literal per row would hand memo(Row) a fresh `style` identity every render
+// and silently defeat it on the stagger pages (Bubble/Search)
+const STAGGER_STYLES = [0, 30, 60, 90, 120, 150].map((ms) => Object.freeze({ animationDelay: ms + 'ms' }))
 
 // vertical feed with optional date headers + infinite paging (30 rows/page).
 // sections: [{ label: string|null, items: event[] }]. stagger=true plays a one-shot
@@ -395,7 +409,7 @@ export function RowFeed({ sections, showDist, stagger, scrollRootRef, endSlot, o
           key={keyOf(it) + rowIdx}
           e={it}
           dist={showDist ? it._dist : null}
-          style={stagger ? { animationDelay: Math.min(rowIdx, 5) * 30 + 'ms' } : undefined}
+          style={stagger ? STAGGER_STYLES[Math.min(rowIdx, 5)] : undefined}
           onSelect={onSelect}
         />
       )

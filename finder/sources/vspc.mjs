@@ -17,9 +17,29 @@
 //   use 'domcontentloaded' + settle wait, then poll for the drupal-settings tag.
 //
 // Heavy-render contract:
-// - SKIP_RENDER=1  -> return cached events (any age) or [] without launching.
-// - Cache finder/cache/vspc.json {fetchedAt, events}, 6h TTL.
-// - On scrape failure, return stale cache (or []).
+// - SKIP_RENDER=1  -> return cached events (any age) without launching;
+//   no cache -> THROW so the orchestrator can serve its own last-good-pull
+//   fallback (returning [] would overwrite that fallback with nothing).
+// - Module cache finder/cache/vspc-source.json {fetchedAt, events}, 6h TTL.
+//   (NOT vspc.json — the orchestrator writes its own normalized fallback
+//   there and was silently clobbering this module's cache every run.)
+// - On scrape failure, return stale cache; no cache -> throw.
+//
+// Time enrichment (Sprint L2): the listing blob has NO times. Detail pages DO
+// carry per-occurrence times, but NOT in their schema.org JSON-LD — that block
+// ships junk epoch dates (startDate "1969-12-31", probed live 2026-06-10).
+// The real data sits in drupalSettings.vspc_listings.event_dates:
+//   [{ the_date: 'YYYY-MM-DD', start_time: '9:00 pm', end_time: '9:30 pm',
+//      times: [{...same per extra showtime}] }]
+// (the `timestamp` field there does NOT agree with the displayed start_time —
+// verified 1783213200 = 1pm EDT against a shown "9:00 pm" — so we trust the
+// human-visible the_date/start_time strings and never the epoch.)
+// We render a BUDGETED set of detail pages (soonest events first, same browser
+// session, polite pacing, per-page Cloudflare challenge wait) and lift the
+// time whose the_date matches the occurrence day we chose. Verdicts — incl.
+// "page has no usable time" misses — are cached in finder/cache/vspc-times.json
+// so repeat runs cost zero detail renders.
+// Honest fallback: no day-matched parseable time -> the event stays date-only.
 
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -31,9 +51,14 @@ export const name = 'Visit St. Pete/Clearwater';
 
 const BASE = 'https://www.visitstpeteclearwater.com';
 const LISTING_URL = `${BASE}/events-festivals`;
-const CACHE_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'cache', 'vspc.json');
+const CACHE_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'cache', 'vspc-source.json');
+const TIMES_CACHE_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'cache', 'vspc-times.json');
 const MAX_AGE_HOURS = 6;
 const DAYS_AHEAD = 45;
+const ENRICH_BUDGET = 40;          // detail pages per run, soonest events first
+const ENRICH_PACE_MS = 1500;       // polite gap between detail renders
+const ENRICH_WALL_CLOCK_MS = 5 * 60 * 1000; // hard stop for the whole pass
+const NEG_RECHECK_MS = 7 * 24 * 3600 * 1000; // re-probe no-time pages weekly
 // Festivals/exhibits spanning more than this many days from the chosen start get
 // end=null — emitting a months-long "end" for an exhibit run is more misleading
 // than no end at all.
@@ -195,50 +220,223 @@ function writeCache(events) {
 // Scrape
 // ---------------------------------------------------------------------------
 
-async function scrapeListingsGrid() {
-  const browser = await chromium.launch({
-    headless: true,
-    args: ['--disable-blink-features=AutomationControlled'],
-  });
-  try {
-    const context = await browser.newContext({ userAgent: UA, viewport: { width: 1366, height: 900 } });
-    const page = await context.newPage();
-    await page.goto(LISTING_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+async function scrapeListingsGrid(page) {
+  await page.goto(LISTING_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
-    // Poll for a parseable drupal-settings blob with grid results. The Cloudflare
-    // interstitial ("Just a moment...") renders first on a challenged session and
-    // is replaced after the JS challenge solves, so keep retrying for a while.
-    const deadline = Date.now() + 45000;
-    let results = null;
-    while (Date.now() < deadline) {
-      await page.waitForTimeout(3000);
-      const rawSettings = await page
-        .evaluate(() => {
-          const el = document.querySelector('script[data-drupal-selector="drupal-settings-json"]');
-          return el ? el.textContent : null;
-        })
-        .catch(() => null);
-      if (rawSettings) {
-        try {
-          const grid = JSON.parse(rawSettings)?.mmg_listings_grid;
-          if (grid && grid.results && Object.keys(grid.results).length) {
-            results = Object.values(grid.results);
-            break;
-          }
-        } catch {
-          /* settings tag present but truncated mid-hydration; retry */
+  // Poll for a parseable drupal-settings blob with grid results. The Cloudflare
+  // interstitial ("Just a moment...") renders first on a challenged session and
+  // is replaced after the JS challenge solves, so keep retrying for a while.
+  const deadline = Date.now() + 45000;
+  let results = null;
+  while (Date.now() < deadline) {
+    await page.waitForTimeout(3000);
+    const rawSettings = await page
+      .evaluate(() => {
+        const el = document.querySelector('script[data-drupal-selector="drupal-settings-json"]');
+        return el ? el.textContent : null;
+      })
+      .catch(() => null);
+    if (rawSettings) {
+      try {
+        const grid = JSON.parse(rawSettings)?.mmg_listings_grid;
+        if (grid && grid.results && Object.keys(grid.results).length) {
+          results = Object.values(grid.results);
+          break;
         }
+      } catch {
+        /* settings tag present but truncated mid-hydration; retry */
       }
-      const challenged = await page
-        .evaluate(() => /just a moment|access denied|verify you are human/i.test(document.title + ' ' + (document.body?.innerText || '').slice(0, 400)))
-        .catch(() => false);
-      if (challenged) console.error('[vspc] anti-bot interstitial showing; waiting it out');
     }
-    if (!results) throw new Error('mmg_listings_grid results never appeared (blocked or markup change)');
-    return results;
-  } finally {
-    await browser.close().catch(() => {});
+    const challenged = await page
+      .evaluate(() => /just a moment|access denied|verify you are human/i.test(document.title + ' ' + (document.body?.innerText || '').slice(0, 400)))
+      .catch(() => false);
+    if (challenged) console.error('[vspc] anti-bot interstitial showing; waiting it out');
   }
+  if (!results) throw new Error('mmg_listings_grid results never appeared (blocked or markup change)');
+  return results;
+}
+
+// ---------------------------------------------------------------------------
+// Detail-page time enrichment (Sprint L2)
+// ---------------------------------------------------------------------------
+
+function readTimesCache() {
+  try {
+    const raw = JSON.parse(fs.readFileSync(TIMES_CACHE_FILE, 'utf8'));
+    if (raw && typeof raw === 'object' && !Array.isArray(raw)) return raw;
+  } catch { /* missing or corrupt */ }
+  return {};
+}
+
+function writeTimesCache(cache) {
+  try {
+    fs.mkdirSync(path.dirname(TIMES_CACHE_FILE), { recursive: true });
+    fs.writeFileSync(TIMES_CACHE_FILE, JSON.stringify(cache, null, 1));
+  } catch (e) {
+    console.error('[vspc] times-cache write failed:', e.message);
+  }
+}
+
+// UTC offset in effect in Tampa on a given local day ('-04:00' / '-05:00').
+function easternOffsetFor(day) {
+  const probe = new Date(`${day}T12:00:00Z`);
+  const part = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York', timeZoneName: 'longOffset',
+  }).formatToParts(probe).find((p) => p.type === 'timeZoneName');
+  const m = /GMT([+-]\d{2}:\d{2})/.exec(part?.value || '');
+  return m ? m[1] : '-04:00';
+}
+
+// '9:00 pm' / '6 pm' / '10:30 AM' -> {h, min}; null when ambiguous (no am/pm).
+function parseClock(s) {
+  const m = String(s || '').trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(a|p)\.?m\.?$/i);
+  if (!m) return null;
+  let h = Number(m[1]) % 12;
+  if (/p/i.test(m[3])) h += 12;
+  const min = Number(m[2] || 0);
+  if (h > 23 || min > 59) return null;
+  return { h, min };
+}
+
+function clockToISO(day, clock) {
+  return `${day}T${pad(clock.h)}:${pad(clock.min)}:00${easternOffsetFor(day)}`;
+}
+
+// From a detail page's vspc_listings.event_dates, pick the start (and end)
+// whose the_date matches `day` — the occurrence we actually ship. A time on a
+// DIFFERENT day is not evidence about this occurrence; skip it.
+function pickTimesForDay(eventDates, day) {
+  const entries = [];
+  for (const d of Array.isArray(eventDates) ? eventDates : []) {
+    if (d && typeof d === 'object') {
+      entries.push(d);
+      for (const t of Array.isArray(d.times) ? d.times : []) {
+        if (t && typeof t === 'object') entries.push(t);
+      }
+    }
+  }
+  for (const entry of entries) {
+    if (entry.the_date !== day) continue;
+    const startClock = parseClock(entry.start_time);
+    if (!startClock) continue;
+    if (startClock.h === 0 && startClock.min === 0) continue; // midnight placeholder
+    const start = clockToISO(day, startClock);
+    const endClock = parseClock(entry.end_time);
+    let end = endClock ? clockToISO(day, endClock) : null;
+    if (end && end <= start) end = null; // past-midnight ends: skip rather than lie
+    return { start, end };
+  }
+  return null;
+}
+
+// Render up to ENRICH_BUDGET detail pages (soonest date-only events first)
+// and lift the drupalSettings occurrence times. Mutates events in place.
+// Each page gets a FRESH browser context: Cloudflare waves the first
+// navigation of a clean session through (~2 s) but challenge-loops the 2nd+
+// navigation in the same context indefinitely (probed live 2026-06-10).
+async function enrichTimes(browser, events) {
+  const cache = readTimesCache();
+  const now = Date.now();
+  let fromCache = 0;
+
+  const dateOnly = events
+    .filter((e) => e.url && /^\d{4}-\d{2}-\d{2}$/.test(e.start))
+    .sort((a, b) => (a.start < b.start ? -1 : 1));
+
+  // Pass 1 — cached verdicts are free, apply them to EVERY event.
+  const needsFetch = [];
+  for (const e of dateOnly) {
+    const key = `${e.url}#${e.start}`;
+    const hit = cache[key];
+    if (hit && hit.start) {
+      e.start = hit.start;
+      if (hit.end && !e.end) e.end = hit.end;
+      fromCache++;
+    } else if (hit && hit.none && now - (hit.at || 0) < NEG_RECHECK_MS) {
+      // known time-less page, checked recently — stays date-only
+    } else {
+      needsFetch.push(e);
+    }
+  }
+
+  // Pass 2 — spend the render budget on the soonest unknowns.
+  const batch = needsFetch.slice(0, ENRICH_BUDGET);
+  let enriched = 0;
+  let misses = 0;
+  let failures = 0;
+  if (batch.length) {
+    const deadline = now + ENRICH_WALL_CLOCK_MS;
+    for (const e of batch) {
+      if (Date.now() > deadline) {
+        console.error(`[vspc] enrichment wall clock hit — stopping early (${enriched} enriched)`);
+        break;
+      }
+      // Consecutive failures with zero successes means we're blocked; stop
+      // burning the politeness budget.
+      if (failures >= 5 && enriched + misses === 0) {
+        console.error('[vspc] enrichment aborted — detail pages not settling (blocked?)');
+        break;
+      }
+      const key = `${e.url}#${e.start}`;
+      const context = await browser.newContext({ userAgent: UA, viewport: { width: 1366, height: 900 } });
+      try {
+        const page = await context.newPage();
+        await page.goto(e.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        // Poll for the settled drupal-settings blob (first navigation of a
+        // fresh context typically settles in ~2 s; challenges are rare here).
+        const pageDeadline = Date.now() + 15000;
+        let eventDates = null;
+        let settled = false;
+        while (Date.now() < pageDeadline) {
+          await page.waitForTimeout(1500);
+          const settings = await page
+            .evaluate(() => {
+              const el = document.querySelector('script[data-drupal-selector="drupal-settings-json"]');
+              return el ? el.textContent : null;
+            })
+            .catch(() => null);
+          if (!settings) continue;
+          try {
+            const v = JSON.parse(settings)?.vspc_listings;
+            if (v) {
+              eventDates = Array.isArray(v.event_dates) ? v.event_dates : [];
+              settled = true;
+              break;
+            }
+          } catch { /* truncated mid-hydration; retry */ }
+        }
+        if (!settled) {
+          // challenge never cleared — NOT a verdict about the event; retry
+          // next run rather than caching a false "no time".
+          failures++;
+          console.error(`[vspc] detail page never settled (${e.url})`);
+        } else {
+          const times = pickTimesForDay(eventDates, e.start);
+          if (times) {
+            cache[key] = { ...times, at: Date.now() };
+            e.start = times.start;
+            if (times.end && !e.end) e.end = times.end;
+            enriched++;
+          } else {
+            cache[key] = { none: true, at: Date.now() };
+            misses++;
+          }
+          writeTimesCache(cache); // crash-safe: persist after every page
+        }
+      } catch (err) {
+        failures++;
+        console.error(`[vspc] detail render failed (${e.url}): ${err.message}`);
+      } finally {
+        await context.close().catch(() => {});
+      }
+      await new Promise((r) => setTimeout(r, ENRICH_PACE_MS));
+    }
+  }
+  console.error(
+    `[vspc] times: ${enriched} enriched live, ${fromCache} from cache, ` +
+    `${misses} pages without a day-matched time, ${failures} failures ` +
+    `(budget ${ENRICH_BUDGET}, ${needsFetch.length} candidates)`
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -249,8 +447,10 @@ export async function fetchEvents() {
   const cache = readCache();
 
   if (process.env.SKIP_RENDER === '1') {
-    if (!cache) console.warn('[vspc] SKIP_RENDER=1 and no cache; returning 0 events');
-    return cache ? cache.events : [];
+    // No module cache -> throw, so the orchestrator serves ITS last-good-pull
+    // fallback instead of us handing it an empty (and cache-clobbering) list.
+    if (!cache) throw new Error('SKIP_RENDER=1 and no module cache');
+    return cache.events;
   }
 
   if (cache && Date.now() - Date.parse(cache.fetchedAt) < MAX_AGE_HOURS * 3600 * 1000) {
@@ -261,17 +461,35 @@ export async function fetchEvents() {
   const lastDay = addDays(todayDay, DAYS_AHEAD);
 
   try {
-    const results = await scrapeListingsGrid();
-    const events = [];
-    for (const result of results) {
-      try {
-        const event = mapResult(result, todayDay, lastDay);
-        if (event) events.push(event);
-      } catch (e) {
-        console.warn(`[vspc] skipping result ${result?.id ?? '?'}: ${e.message}`);
+    const browser = await chromium.launch({
+      headless: true,
+      args: ['--disable-blink-features=AutomationControlled'],
+    });
+    let events;
+    try {
+      const context = await browser.newContext({ userAgent: UA, viewport: { width: 1366, height: 900 } });
+      const page = await context.newPage();
+      const results = await scrapeListingsGrid(page);
+      events = [];
+      for (const result of results) {
+        try {
+          const event = mapResult(result, todayDay, lastDay);
+          if (event) events.push(event);
+        } catch (e) {
+          console.warn(`[vspc] skipping result ${result?.id ?? '?'}: ${e.message}`);
+        }
       }
+      if (!events.length) throw new Error('grid rendered but zero events mapped');
+      // Budgeted detail-page time enrichment, same browser session
+      // (fresh context per page — see enrichTimes).
+      try {
+        await enrichTimes(browser, events);
+      } catch (e) {
+        console.error('[vspc] time enrichment failed (events stay date-only):', e.message);
+      }
+    } finally {
+      await browser.close().catch(() => {});
     }
-    if (!events.length) throw new Error('grid rendered but zero events mapped');
     writeCache(events);
     return events;
   } catch (e) {
@@ -280,7 +498,7 @@ export async function fetchEvents() {
       console.error(`[vspc] returning stale cache from ${cache.fetchedAt} (${cache.events.length} events)`);
       return cache.events;
     }
-    return [];
+    throw e; // orchestrator falls back to its own cached pull
   }
 }
 
@@ -294,6 +512,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   console.log(`categorized: ${events.filter((e) => e.category).length}`);
   console.log(`with address: ${events.filter((e) => e.address).length}`);
   console.log(`with end: ${events.filter((e) => e.end).length}`);
+  console.log(`with timed start: ${events.filter((e) => /T\d{2}:/.test(e.start)).length}`);
   console.log(`starting within 7 days: ${events.filter((e) => e.start <= addDays(localDayStr(new Date()), 7)).length}`);
   for (const sample of events.slice(0, 3)) console.log(JSON.stringify(sample));
 }

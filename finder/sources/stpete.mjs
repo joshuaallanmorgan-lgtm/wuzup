@@ -33,7 +33,10 @@ const FEED =
 const SITE = 'https://www.stpete.org';
 const WINDOW_DAYS = 45;
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
-const CACHE_FILE = join(dirname(fileURLToPath(import.meta.url)), '..', 'cache', 'stpete.json');
+// NOT cache/stpete.json — the orchestrator writes its own normalized fallback
+// there and was silently clobbering this module's {fetchedAt, events} cache
+// every run (so the 6h TTL never hit and the 5.9 MB dump re-downloaded).
+const CACHE_FILE = join(dirname(fileURLToPath(import.meta.url)), '..', 'cache', 'stpete-source.json');
 const UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 

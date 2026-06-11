@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-06-10T15:51:09.112Z",
+  "fetchedAt": "2026-06-11T01:44:40.357Z",
   "events": [
     {
       "title": "Scene & Heard: DIY & Making Your Own Space",
@@ -72,6 +72,21 @@
       "url": "https://community.cltampa.com/event/heights-drive-thru-1-year-anniversary-bash-21495991",
       "image": "https://media2.cltampa.com/cltampa/imager/heights-drive-thru-1-year-anniversary-bash/u/r-bigsquare/21495989/image__2_.webp?cb=d76adad7fa1de80f40b9d4911f6128b3",
       "description": null,
+      "staffPick": true,
+      "promoted": false,
+      "source": "Creative Loafing"
+    },
+    {
+      "title": "Always Remember Andrew Joseph Jr: A Community Memorial Service",
+      "start": "2026-06-13T17:00:00",
+      "end": null,
+      "venue": "The Portico",
+      "address": "1001 N. Florida Avenue, Tampa",
+      "price": 0,
+      "isFree": true,
+      "url": "https://community.cltampa.com/event/always-remember-andrew-joseph-jr-a-community-memorial-service-21498517",
+      "image": "https://media1.cltampa.com/cltampa/imager/always-remember-andrew-joseph-jr-a-community-memorial-service/u/r-bigsquare/21498516/andrew_joseph__iii_memorial_foundation__22aj_soars_22.webp?cb=cf3dea767fc53e0b095503e590819cd9",
+      "description": "Deanna Joseph expects folks coming to The Portico on Saturday to share stories of a man who was larger than life, funny, and had an uncanny ability to make people believe they could imagine more than they imagined. (813) 222-2233",
       "staffPick": true,
       "promoted": false,
       "source": "Creative Loafing"
@@ -462,21 +477,6 @@
       "url": "https://community.cltampa.com/event/christys-thirsty-wheres-waldo-beer-ride-21471416",
       "image": "https://media1.cltampa.com/cltampa/imager/christys-thirsty-wheres-waldo-beer-ride/u/r-bigsquare/21471415/waldo_event_fb.webp?cb=1780401626",
       "description": "Back by popular demand … our “Where’s Waldo” Beer Ride is making its return to St. Pete! Throw on your best Waldo gear and join us for a guided bike tour as we cruise through some of the best local breweries, where a hidden Waldo awaits at every stop. Be the first to find him and snag a free beer! 🍺 Expect cold drinks, great people, costume-worthy photo ops, and plenty of laughs along the way. Free Pizza, Complimentary beer at start, drink discounts, free parking, prizes, discounted bike rentals, fun! --- Who’s ready to go find Waldo?! 9192443472",
-      "staffPick": false,
-      "promoted": false,
-      "source": "Creative Loafing"
-    },
-    {
-      "title": "19th Annual Fire Charity Fishing Tournament and Festival",
-      "start": "2026-06-13",
-      "end": null,
-      "venue": "Bradenton Riverwalk",
-      "address": "452 3rd Ave W, Bradenton",
-      "price": 0,
-      "isFree": true,
-      "url": "https://community.cltampa.com/event/19th-annual-fire-charity-fishing-tournament-and-festival-21379521",
-      "image": "https://media2.cltampa.com/cltampa/imager/19th-annual-fire-charity-fishing-tournament-and-festival/u/r-bigsquare/21379522/img_5868.webp?cb=1777906273",
-      "description": "The 19th Annual Fire Charity Fishing Tournament is gearing up for its biggest year yet, announcing cash payouts exceeding $50,000, participation in the prestigious Triple Crown Series, and a full weekend of community events along the scenic Bradenton Riverwalk. Nearshore and Offshore weigh‑ins begin at 2:00 PM. Bringing the soundtrack to Saturday night is Bradenton’s own Dylan Cotrone, a singer‑songwriter who’s been making waves nationwide. Dylan is coming home to play where it all started. Anglers, sponsors, and spectators are encouraged to register early and join a weekend that blends competition, community, and a powerful charitable mission. 727-320-7859",
       "staffPick": false,
       "promoted": false,
       "source": "Creative Loafing"

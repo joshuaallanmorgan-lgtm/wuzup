@@ -537,6 +537,164 @@ function mergeCluster(members) {
   };
 }
 
+// ===================== venue canonicalization (Sprint L4) =====================
+// finder/venues.json is a GENERATED, committed canonical-venue table (built by
+// finder/build-venues.mjs from real pipeline output). At merge time, any raw
+// listing whose venue matches a canonical alias gets the canonical name +
+// coordinates + (if missing) address. One venue, one name, one coord — so
+// coordinate jitter and alias spellings ("The Dali" / "Salvador Dali Museum")
+// can't split the venue-equality merge or scatter map pins.
+
+const VENUES_FILE = join(HERE, 'venues.json');
+
+// Aggressive-normalize a venue name into a lookup key: fold diacritics
+// (Dalí → dali), lowercase, strip punctuation, drop a leading "the".
+function venueKey(name) {
+  return String(name || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/^the /, '');
+}
+
+function loadVenueTable() {
+  if (!existsSync(VENUES_FILE)) return null;
+  try {
+    const rows = JSON.parse(readFileSync(VENUES_FILE, 'utf8'));
+    if (!Array.isArray(rows)) return null;
+    const byAlias = new Map();
+    for (const row of rows) {
+      for (const alias of [row.canonicalName, ...(row.aliases || [])]) {
+        const k = venueKey(alias);
+        if (k) byAlias.set(k, row);
+      }
+    }
+    return { byAlias, size: rows.length };
+  } catch {
+    return null;
+  }
+}
+
+// Rewrite raw listings to canonical venue identity. Returns listings touched.
+function canonicalizeVenues(all, table) {
+  if (!table) return 0;
+  let touched = 0;
+  for (const e of all) {
+    const k = venueKey(e.venue);
+    if (!k) continue;
+    const row = table.byAlias.get(k);
+    if (!row) continue;
+    // An alias hit with WILDLY different own-coords is a different real place
+    // sharing a name (a generic "Pier" must not teleport to St. Pete) — trust
+    // the listing's own in-box coords over the table when they disagree >500m.
+    const ownCoordsFar =
+      e.lat != null && e.lng != null && row.lat != null && row.lng != null &&
+      Math.hypot((e.lat - row.lat) * 111320, (e.lng - row.lng) * 92000) > 500;
+    if (ownCoordsFar) continue;
+    let changed = false;
+    if (e.venue !== row.canonicalName) { e.venue = row.canonicalName; changed = true; }
+    if (row.lat != null && row.lng != null && (e.lat !== row.lat || e.lng !== row.lng)) {
+      e.lat = row.lat;
+      e.lng = row.lng;
+      changed = true;
+    }
+    if (!e.address && row.address) { e.address = row.address; changed = true; }
+    if (changed) touched++;
+  }
+  return touched;
+}
+
+// ============== ongoing-exhibit cross-day dedupe (Sprint L3) ==============
+// The "REALM Exhibition" class: one source publishes an exhibit as a single
+// ONGOING record (multi-week start→end span) while another publishes dated
+// single-day occurrence records inside that span. The same-day fuzzy merge
+// can't see those — fold each dated occurrence INTO the ongoing record
+// (sources/buzz union) so one exhibit = one card.
+
+// Light stemming so exhibit/exhibition and singular/plural compare equal
+// ("Voices in REALM Exhibit at FloridaRAMA" vs "REALM Exhibition & Voices in
+// REALM at FloridaRAMA Gallery").
+function stemToken(t) {
+  let s = t.replace(/ions?$/, '');
+  if (s.length < 3) s = t;
+  if (s.length > 3) s = s.replace(/s$/, '');
+  return s;
+}
+
+function stemmedTokens(title) {
+  return new Set([...titleTokens(title)].map(stemToken));
+}
+
+const EXHIBIT_SPAN_MIN_DAYS = 14;   // multi-week = an exhibit-style run
+const EXHIBIT_SPAN_MAX_DAYS = 270;  // longer = permanent installation, not a run
+const EXHIBIT_TITLE_JACCARD = 0.6;
+
+export function dedupeOngoingOccurrences(events) {
+  const ongoing = [];
+  for (const e of events) {
+    const sd = dayOf(e.start);
+    const ed = dayOf(e.end);
+    if (!sd || !ed) continue;
+    const span = (startMs(ed) - startMs(sd)) / 86400e3;
+    if (span >= EXHIBIT_SPAN_MIN_DAYS && span <= EXHIBIT_SPAN_MAX_DAYS) {
+      ongoing.push({
+        e, sd, ed,
+        tokens: stemmedTokens(e.title),
+        vTokens: venueMergeTokens(e.venue),
+        fams: new Set((e.sources || []).map(familyOf).filter(Boolean)),
+      });
+    }
+  }
+  if (!ongoing.length) return { events, folded: 0 };
+
+  const drop = new Set();
+  let folded = 0;
+  for (const e of events) {
+    const day = dayOf(e.start);
+    if (!day || e.end || drop.has(e)) continue; // single-day records only
+    for (const o of ongoing) {
+      if (o.e === e || drop.has(o.e)) continue;
+      if (day < o.sd || day > o.ed) continue; // must fall inside the run
+      // Cross-source only: the occurrence must add a family the ongoing
+      // record doesn't already carry (same-family repeats are a different
+      // problem and are left alone — conservative by design).
+      const eFams = (e.sources || []).map(familyOf).filter(Boolean);
+      if (!eFams.length || !eFams.some((f) => !o.fams.has(f))) continue;
+      if (jaccard(stemmedTokens(e.title), o.tokens) < EXHIBIT_TITLE_JACCARD) continue;
+      // Venue guard: when both name a venue they must share a non-generic
+      // token — otherwise it's a same-name run at a different place.
+      const vt = venueMergeTokens(e.venue);
+      if (vt.size && o.vTokens.size) {
+        let shared = 0;
+        for (const t of vt) if (o.vTokens.has(t)) shared++;
+        if (shared === 0) continue;
+      }
+      const t = o.e;
+      t.sources = [...new Set([...(t.sources || []), ...(e.sources || [])])];
+      t.buzz = [...new Set(t.sources.map(familyOf).filter(Boolean))].length;
+      for (const f of eFams) o.fams.add(f);
+      if (!t.image && e.image) t.image = e.image;
+      if (!t.url && e.url) t.url = e.url;
+      if (e.description && (!t.description || e.description.length > t.description.length)) {
+        t.description = e.description;
+      }
+      if (typeof e.price === 'number' && !isNaN(e.price) && (t.price === null || e.price < t.price)) {
+        t.price = e.price;
+      }
+      if (e.isFree === true) t.isFree = true;
+      if (t.lat == null && e.lat != null) { t.lat = e.lat; t.lng = e.lng; }
+      t.staffPick = t.staffPick || e.staffPick === true;
+      t.promoted = t.promoted || e.promoted === true;
+      drop.add(e);
+      folded++;
+      break;
+    }
+  }
+  return { events: events.filter((e) => !drop.has(e)), folded };
+}
+
 // Cluster all raw listings by calendar day, then greedily merge matches.
 function fuzzyMerge(all) {
   const byDay = new Map();
@@ -590,19 +748,28 @@ const MUSIC_VENUE_RE = /jannus live|orpheum|crowbar|the ritz|floridian social/i;
 // Word-boundary rules, tested in order. Stage-works (opera/ballet) come FIRST
 // so "La Bohème" with a symphony-orchestra description lands theatre, not
 // music. Music stays BEFORE sports so "Queen vs. ABBA Tribute" lands music.
+// WEAK rules sit at the END (below community): they only fire when nothing
+// stronger matched, so a soft signal ("w/ special guests", a brewery mention)
+// can't steal an event from a confident rule.
 const CATEGORY_RULES = [
-  ['theatre', /\bopera\b|\bboh[eèé]me\b|\bballets?\b/i],
-  ['music', /\bconcerts?\b|\bbands?\b|\bdj\b|\btour\b|\borchestra\b|\bsymphony\b|\blive music\b|\balbum\b|\btribute\b|\bunplugged\b|\bacoustic\b|\blive at\b|\bkaraoke\b|\bopen mic\b|\bjazz\b|\bblues\b|\bsongwriters?\b|\bhip.?hop\b|\bvinyl\b/i],
+  ['theatre', /\bopera\b|\bboh[eèé]me\b|\bballets?\b|\bfringe\b|\bdramatic play\b|\bplaywrights?\b/i],
+  ['music', /\bconcerts?\b|\bconciertos?\b|\bbands?\b|\bdj\b|\btour\b|\borchestra\b|\bsymphony\b|\blive music\b|\balbum\b|\btribute\b|\bunplugged\b|\bacoustic\b|\blive at\b|\bkaraoke\b|\bopen mic\b|\bjazz\b|\bblues\b|\bsongwriters?\b|\bhip.?hop\b|\bvinyl\b|\bgreatest hits\b/i],
   ['sports', /\bvs\.?\b|\bgame\b|\bmatch day\b|\bgrand prix\b|\braces?\b|\broller derby\b|\bwrestling\b|\bpickleball\b/i],
   ['theatre', /\btheatre\b|\btheater\b|\bmusicals?\b|\bbroadway\b|\bcabaret\b/i],
   ['comedy', /\bcomedy\b|\bstand-?up\b|\bimprov\b|\bcomedians?\b/i],
-  ['art', /\barts?\b|\bgallery\b|\bmuseum\b|\bexhibits?\b|\bexhibitions?\b|\bmurals?\b|\bcrafts?\b|\bpottery\b|\bpainting\b|\bfilms?\b|\bscreenings?\b|\bcinema\b/i],
-  ['market', /\bmarkets?\b|\bflea\b|\bfairs?\b|\bbazaar\b|\bexpo\b|\bvendors?\b/i],
-  ['food', /\bfood\b|\bbrunch\b|\bdinner\b|\btastings?\b|\bbeer\b|\bwine\b|\bcocktails?\b|\btacos?\b|\bbbq\b|\bculinary\b|\bchef\b/i],
-  ['outdoors', /\bparks?\b|\bbeach\b|\bkayak\b|\bhikes?\b|\brun club\b|\b5k\b|\boutdoor\b|\bgardens?\b|\bnature\b|\btrails?\b|\byoga\b/i],
-  ['nightlife', /\bparty\b|\bclub night\b|\bburlesque\b|\bball\b|\brave\b|\bnightlife\b|\bdrag\b|\btrivia\b|\bbingo\b/i],
-  ['family', /\bfamily\b|\bkids?\b|\bchildren\b|\btoddlers?\b|\bteens?\b|\bstory ?time\b/i],
-  ['community', /\bmeetup\b|\bworkshops?\b|\bclass(?:es)?\b|\bclubs?\b|\blibrary\b|\bnetworking\b|\bvolunteer\b|\bseminar\b|\blectures?\b|\bbook\b|\bgrand opening\b|\bconferences?\b|\bauthor\b|\bfundraisers?\b|\breceptions?\b|\bmixers?\b/i],
+  ['art', /\barts?\b|\bgallery\b|\bmuseum\b|\bexhibits?\b|\bexhibitions?\b|\bmurals?\b|\bcrafts?\b|\bpottery\b|\bpainting\b|\bfilms?\b|\bscreenings?\b|\bcinema\b|\bfashion\b|\brunway\b/i],
+  ['market', /\bmarkets?\b|\bflea\b|\bfairs?\b|\bbazaar\b|\bexpo\b|\bvendors?\b|\bbridal\b|\bboat show\b|\btrain show\b|\bshow (?:&|and) sale\b/i],
+  ['food', /\bfood\b|\bbrunch\b|\bdinner\b|\btastings?\b|\bbeer\b|\bwine\b|\bcocktails?\b|\btacos?\b|\bbbq\b|\bculinary\b|\bchefs?\b|\bbrewfests?\b/i],
+  ['outdoors', /\bparks?\b|\bbeach\b|\bkayak\b|\bhikes?\b|\brun club\b|\b5k\b|\boutdoor\b|\bgardens?\b|\bnature\b|\btrails?\b|\byoga\b|\bpaddles?\b|\bpaddleboard\w*\b|\bfishing\b|\bdragon boats?\b|\bpilates\b|\bbarre\b|\bon the lawn\b|\bwho walk\b|\bwalk (?:&|and) talk\b/i],
+  ['nightlife', /\bparty\b|\bclub night\b|\bburlesque\b|\bball\b|\brave\b|\bnightlife\b|\bdrag\b|\btrivia\b|\bbingo\b|\bbar crawls?\b|\bpub crawls?\b|\bspeed dating\b|\bsingles\b|\bhappy hour\b|\b(?:latin|salsa|disco|80s|90s) nights?\b|\bjuke joints?\b|\baxe throwing\b|\bthirsty thursday\b/i],
+  ['family', /\bfamily\b|\bkids?\b|\bchildren\b|\btoddlers?\b|\bteens?\b|\bstory ?time\b|\b(?:father|daddy)[\s-]+daughter\b|\bmother[\s-]+son\b|\bfather[’']?s day\b|\bmother[’']?s day\b|\bback[\s-]+to[\s-]+school\b|\bvbs\b|\bvacation bible school\b/i],
+  ['community', /\bmeetup\b|\bworkshops?\b|\bclass(?:es)?\b|\bclubs?\b|\blibrary\b|\bnetworking\b|\bvolunteer\b|\bseminar\b|\blectures?\b|\bbooks?\b|\bgrand opening\b|\bconferences?\b|\bauthor\b|\bfundraisers?\b|\breceptions?\b|\bmixers?\b|\bpuzzles?\b|\bgame nights?\b|\bjuneteenth\b|\bpride\b|pridetopia|\bsummits?\b|\bsymposiums?\b|\bforums?\b|\binfo(?:rmation)? sessions?\b|\btown halls?\b|\bawareness\b|\bsupport (?:group|meeting)s?\b|\brecycling\b|\bchemical collection\b|\bcollection events?\b|\bsandbags?\b|\bclean-?ups?\b|\bcoffee (?:&|and) conversation\b|\bmingle\b|\bsocialize\b|\bentrepreneurs?\b|\bbusiness\b|\bfireside chats?\b|\blunch (?:&|and) learn\b|\bceu\b|\bwebinars?\b|\breal estate\b|\bnonprofits?\b|\bcareers?\b|\bemployers?\b|\bempower\w*\b|\bwellness\b|\breiki\b|\bsound bath\b|\btarot\b|\bheart disease\b|\bcancer\b|\bhealth\b|\bstaying safe\b|\bsafety\b|\binspections?\b|\bcyber\w*\b|\banniversar\w*\b|\bpups?\b|\bdog grooming\b|\bpaws\b|\badoptions?\b|\bstorytell\w*\b|\bcandidate forums?\b|\bcosplay\b|\bcon?ventions?\b|\bmeet (?:&|and) greet\b/i],
+  // --- weak signals: last resort before the venue/source priors below ---
+  // (headliner/genre/doors-showtime language also shows up in comedy and
+  // theatre listings, so it must NOT outrank those rules above.)
+  ['music', /\bw\/\s|\bspecial guests?\b|\bfeat\.\s|\bft\.\s|\bheadlin\w*\b|\bafrobeats?\b|\bamapiano\b|\btechno\b|\bdoors\b.{0,24}\bshowtime\b|pm doors\b/i],
+  ['sports', /\bgames\b/i],
+  ['food', /\bbrewer(?:y|ies)\b/i],
 ];
 
 // Every category value this pipeline can emit — used to validate native hints.
@@ -611,13 +778,44 @@ const KNOWN_CATEGORIES = new Set([
   'outdoors', 'nightlife', 'family', 'community', 'other',
 ]);
 
-// Source-level category hints, applied only when no text rule matched.
+// ---- last-resort priors (documented as priors, not facts) ------------------
+// These fire ONLY after every text rule came up empty. They encode what kind
+// of programming a venue/source hosts in the overwhelming majority of cases —
+// a prior, not a per-event claim.
+
+// Touring stand-ups whose shows are listed title-only ("Jo Koy") at concert
+// venues — without this they'd take the concert-venue prior and land music.
+const KNOWN_COMEDIANS_RE = /\bjo koy\b|\bbert kreischer\b|\bnate bargatze\b|\bsebastian maniscalco\b|\bkatt williams\b|\bmatt rife\b|\btom segura\b|\bbill burr\b|\bgabriel iglesias\b|\bjeff dunham\b|\bnikki glaser\b|\btheo von\b|\bshane gillis\b|\bkevin hart\b|\bjim gaffigan\b|\btrevor noah\b|\bjohn mulaney\b|\bali wong\b|\btaylor tomlinson\b|\bleanne morgan\b/i;
+
+// Concert rooms/sheds/arenas: an event here that matched NO text rule is a
+// concert in practice (sports/comedy/family shows at these venues carry their
+// own keywords and were caught above).
+const CONCERT_VENUE_RE = /ruth eckerd|capitol theatre|bilheimer|music hall|new world (?:music hall|brewery|tampa)|zodiac live|music4life|amphitheat(?:re|er)|amalie arena|benchmark international arena|raymond james stadium|seminole hard rock|hard rock (?:event center|live)|baycare sound|coachman park/i;
+
+// Venue-type priors, checked after the concert list so "Bilheimer Capitol
+// Theatre" stays music. Sales-office "galleries" are why museum ≠ gallery here.
+const VENUE_TYPE_PRIORS = [
+  ['theatre', /theat(?:re|er)|playhouse/i],
+  ['community', /librar|\bbooks\b|bookstore|\bchurch\b/i],
+  ['art', /museum/i],
+  ['nightlife', /\blounge\b/i],
+];
+
+// Source-level category priors, applied only when no text/venue rule matched.
 const SOURCE_CATEGORY = {
   'WMNF 88.5': 'music',            // grassroots-music calendar by charter
   'Hillsborough Libraries': 'community',
+  // Civic calendars: their unmatched residue is municipal programming
+  // (collections, info sessions, campus dates) — community by definition.
+  'City of Tampa': 'community',
+  'City of St. Petersburg': 'community',
+  'Pinellas County': 'community',
+  'Univ. of Tampa': 'community',
+  // A meetup with no stronger signal is, definitionally, a community gathering.
+  'Meetup': 'community',
 };
 
-function categorize(e) {
+export function categorize(e) {
   // Native category from a source module's API — respect it, don't re-derive.
   // 'other' carries no information, so the text classifier still gets a shot.
   if (e.category && e.category !== 'other' && KNOWN_CATEGORIES.has(e.category)) {
@@ -627,6 +825,15 @@ function categorize(e) {
   const text = `${e.title || ''} ${e.description || ''}`;
   for (const [cat, re] of CATEGORY_RULES) {
     if (re.test(text)) return cat;
+  }
+  // Text gave nothing — fall through the documented priors, specific → broad.
+  if (KNOWN_COMEDIANS_RE.test(e.title || '')) return 'comedy';
+  // Touring-act listing convention: a title ending in "Live" is a show.
+  if (/\blive!?\s*$/i.test(e.title || '')) return 'music';
+  const venue = e.venue || '';
+  if (CONCERT_VENUE_RE.test(venue)) return 'music';
+  for (const [cat, re] of VENUE_TYPE_PRIORS) {
+    if (re.test(venue)) return cat;
   }
   const hinted = SOURCE_CATEGORY[familyOf(e.source)];
   return hinted || 'other';
@@ -734,9 +941,96 @@ function loadGeoCache() {
   }
   if (purged || nullPurged) {
     console.log(`  🧹 purged ${purged} junk/out-of-area + ${nullPurged} null geocode cache entries`);
-    writeFileSync(GEO, JSON.stringify(cache, null, 2));
+    try {
+      writeFileSync(GEO, JSON.stringify(cache, null, 2));
+    } catch (e) {
+      // best-effort persist: transient FS contention (AV/indexer, errno -4094)
+      // must not kill the run — the purged in-memory cache is what matters
+      console.log(`  ⚠️ geocode cache persist skipped (${e.code || e.message})`);
+    }
   }
   return cache;
+}
+
+// ===================== image sample audit (Sprint L5) =====================
+// HEAD-check a small per-source-family sample of image URLs (cap ~40 requests
+// total, concurrency 6). A source whose images systematically 404 ships WORSE
+// than no image — the app's fallback art beats a broken <img>. Feeds the
+// images-ok benchmark line. SKIP_IMGCHECK=1 skips it.
+
+const IMG_CHECK_CAP = 40;
+const IMG_MIN_BYTES = 2048; // below this it's a tracking pixel/placeholder
+
+async function checkImage(url) {
+  const probe = async (method) => {
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), 8000);
+    try {
+      const res = await fetch(url, {
+        method,
+        redirect: 'follow',
+        signal: ac.signal,
+        headers: { 'user-agent': UA, accept: 'image/*,*/*;q=0.8' },
+      });
+      try { await res.body?.cancel(); } catch { /* no body to cancel */ }
+      return res;
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+  try {
+    let res = await probe('HEAD');
+    // Some CDNs reject HEAD outright — retry those as GET (body cancelled).
+    if (!res.ok && [403, 405, 501].includes(res.status)) res = await probe('GET');
+    if (res.status === 403) {
+      // Cloudflare-style bot block: it refused OUR prober, which is NOT
+      // evidence the image fails in a real user's browser. Count separately.
+      return { ok: false, blocked: true, why: 'HTTP 403 (bot-blocked to prober)' };
+    }
+    if (!res.ok) return { ok: false, why: 'HTTP ' + res.status };
+    const type = String(res.headers.get('content-type') || '');
+    if (type && !/^image\//i.test(type)) return { ok: false, why: 'not image: ' + type.split(';')[0] };
+    const len = Number(res.headers.get('content-length') || NaN);
+    if (!isNaN(len) && len < IMG_MIN_BYTES) return { ok: false, why: 'tiny (' + len + ' B)' };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, why: e.name === 'AbortError' ? 'timeout' : (e.message || 'fetch failed') };
+  }
+}
+
+async function auditImages(events) {
+  const byFam = new Map();
+  for (const e of events) {
+    if (!e.image || !/^https?:/i.test(e.image)) continue;
+    const fam = familyOf(e.source);
+    if (!byFam.has(fam)) byFam.set(fam, []);
+    byFam.get(fam).push(e.image);
+  }
+  if (!byFam.size) return [];
+  const perFam = Math.max(1, Math.floor(IMG_CHECK_CAP / byFam.size));
+  const sample = [];
+  for (const [fam, urls] of byFam) {
+    const seen = new Set();
+    const step = Math.max(1, Math.ceil(urls.length / perFam));
+    for (let i = 0; i < urls.length && seen.size < perFam; i += step) {
+      if (!seen.has(urls[i])) {
+        seen.add(urls[i]);
+        sample.push({ fam, url: urls[i] });
+      }
+    }
+  }
+  const capped = sample.slice(0, IMG_CHECK_CAP);
+  const results = [];
+  let cursor = 0;
+  await Promise.all(
+    Array.from({ length: 6 }, async () => {
+      while (cursor < capped.length) {
+        const item = capped[cursor++];
+        results.push({ ...item, ...(await checkImage(item.url)) });
+      }
+    })
+  );
+  return results;
 }
 
 async function main() {
@@ -867,11 +1161,31 @@ async function main() {
     console.log(`  🌐 dropped ${onlineDropped} online-only events (OnlineEventAttendanceMode)`);
   }
 
+  // Venue canonicalization (L4): rewrite alias spellings + jittery coords to
+  // the committed canonical identity BEFORE merging, so venue-equality rules
+  // see one venue as one venue.
+  const venueTable = loadVenueTable();
+  const venuesCanonicalized = canonicalizeVenues(all, venueTable);
+  if (venueTable) {
+    console.log(`  🏛️  venue table: ${venueTable.size} canonical venues — rewrote ${venuesCanonicalized} listings`);
+  } else {
+    console.log('  ⚠️  finder/venues.json missing — venue canonicalization skipped (run finder/build-venues.mjs)');
+  }
+
   // Fuzzy cross-source merge: duplicate listings of the same real-world event
   // collapse into one record whose `buzz` = number of distinct source families.
   const rawCount = all.length;
   let events = fuzzyMerge(all);
   console.log(`  🔀 merged ${rawCount} raw listings → ${events.length} unique events`);
+
+  // Ongoing-exhibit cross-day dedupe (L3): fold dated occurrence records from
+  // other sources into the multi-week ongoing record they belong to.
+  const exhibitPass = dedupeOngoingOccurrences(events);
+  events = exhibitPass.events;
+  const exhibitsFolded = exhibitPass.folded;
+  if (exhibitsFolded) {
+    console.log(`  🖼️  folded ${exhibitsFolded} dated occurrence(s) into ongoing exhibit records`);
+  }
 
   // Keep upcoming events, sorted soonest first. An event stays until it has
   // fully ENDED as of run time — never ship an ended event:
@@ -1074,6 +1388,12 @@ async function main() {
     writeFileSync(join(appPublic, 'events.json'), JSON.stringify(events, null, 2));
   }
 
+  // Image sample audit (L5) — null means skipped, [] means nothing to check.
+  let imgAudit = null;
+  if (process.env.SKIP_IMGCHECK !== '1') {
+    imgAudit = await auditImages(events);
+  }
+
   // Console summary + mechanism benchmarks.
   const span = events.length
     ? `${fmtDateKey(events[0].start)} → ${fmtDateKey(events[events.length - 1].start)}`
@@ -1113,7 +1433,7 @@ async function main() {
   }).length;
   console.log(`    ${junkHourCount === 0 ? '✅' : '❌'} non-nightlife events starting 01:00–05:59: ${junkHourCount} (need 0)`);
   const otherCount = catDist.other || 0;
-  console.log(`    ${otherCount <= 90 ? '✅' : '❌'} 'other' category: ${otherCount} (need <= 90)`);
+  console.log(`    ${otherCount <= 60 ? '✅' : '❌'} 'other' category: ${otherCount} (need <= 60 — classifier round 3)`);
   const NOISE_TITLE_RE = /procurement|RFQ|RFP|working group|evaluation meeting|regular meeting/i;
   const noiseCount = events.filter((e) => NOISE_TITLE_RE.test(e.title || '')).length;
   console.log(`    ${noiseCount === 0 ? '✅' : '❌'} gov-noise titles (procurement/RFQ/RFP/meetings): ${noiseCount} (need 0)`);
@@ -1132,13 +1452,42 @@ async function main() {
     const dtc = events.filter((e) => /don'?t tell comedy/i.test(e.title));
     console.log(`    ${dtc.length ? '✅' : '❌'} Don't Tell Comedy secret shows captured: ${dtc.length} (need >= 1 — hidden-event class)`);
   }
+  // Sprint L data-v3 checks.
+  const vspcTimed = events.filter((e) =>
+    (e.sources || []).some((s) => familyOf(s) === 'Visit St. Pete/Clearwater') &&
+    /T\d{2}:/.test(String(e.start))).length;
+  if (process.env.SKIP_RENDER === '1' && vspcTimed < 10) {
+    console.log(`    ⚠️  VSPC events with a real start time: ${vspcTimed} (enrichment needs a render run)`);
+  } else {
+    console.log(`    ${vspcTimed >= 10 ? '✅' : '❌'} VSPC events with a real start time: ${vspcTimed} (need >= 10 — detail-page enrichment)`);
+  }
+  console.log(`    ${venueTable ? '✅' : '❌'} venue table loaded: ${venueTable ? venueTable.size : 0} canonical venues, ${venuesCanonicalized} listings rewritten`);
+  console.log(`    🖼️  ongoing-exhibit occurrences folded: ${exhibitsFolded} (cross-source, cross-day)`);
+  if (imgAudit === null) {
+    console.log('    ⚠️  images-ok sample: skipped (SKIP_IMGCHECK=1)');
+  } else {
+    const imgOk = imgAudit.filter((r) => r.ok).length;
+    const blocked = imgAudit.filter((r) => r.blocked).length;
+    const broken = imgAudit.length - imgOk - blocked;
+    const verifiable = imgOk + broken;
+    const pct = verifiable ? Math.round((imgOk / verifiable) * 100) : 100;
+    console.log(`    ${pct >= 90 ? '✅' : '❌'} images-ok sample: ${imgOk}/${verifiable} verifiable (${pct}% — need >= 90%; +${blocked} bot-blocked to prober, unverifiable)`);
+    for (const r of imgAudit.filter((x) => !x.ok && !x.blocked)) {
+      console.log(`        ✗ [${r.fam}] ${r.why} — ${r.url.slice(0, 90)}`);
+    }
+  }
   console.log('──────────────────────────────────────────');
   console.log(`  Wrote: finder/output/events.json  (structured)`);
   console.log(`  Wrote: finder/output/events.md    (readable)`);
   console.log('');
 }
 
-main().catch((e) => {
-  console.error('Finder crashed:', e);
-  process.exit(1);
-});
+// Run only when executed directly (node finder/finder.mjs) — importing this
+// module for its exported pure helpers (sims, the future smoke harness) must
+// NOT kick off a pipeline run.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((e) => {
+    console.error('Finder crashed:', e);
+    process.exit(1);
+  });
+}

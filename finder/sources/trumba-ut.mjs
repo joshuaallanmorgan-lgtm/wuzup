@@ -62,6 +62,9 @@ export async function fetchEvents() {
 
       // Invite-only campus events are not attendable city events.
       if (/invite[\s-]*only/i.test(title) || /invite[\s-]*only/i.test(String(ev.description || ''))) continue;
+      // Registrar/admin calendar noise ("grades due", "final registration and
+      // payment") — university administrivia, not a thing anyone attends.
+      if (/grades due|registration (and|&) payment|drop\/add|withdrawal deadline|tuition/i.test(title)) continue;
 
       const start = new Date(ev.startDateTime);
       if (Number.isNaN(start.getTime())) continue;
