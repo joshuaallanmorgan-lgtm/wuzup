@@ -200,6 +200,37 @@
   background: rgba(255, 255, 255, 0.05);
   color: rgba(255, 255, 255, 0.55);
 }
+/* T4 — the always-here place fallback: a calm 📍 tag (no flame, no time) that
+   reads apart from a scheduled event at a glance. DRAFT for Charles. */
+.fmn-place-tag {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(120, 220, 170, 0.45);
+  background: rgba(120, 220, 170, 0.12);
+  color: rgba(150, 235, 190, 0.95);
+}
+.fmn-place-free {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+}
+.fmn-place-note {
+  margin-top: 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+}
 /* re-tint the shared chips/labels for the dark card */
 .fmn-pick .chip { background: rgba(255, 255, 255, 0.12); color: rgba(255, 255, 255, 0.85); }
 .fmn-pick .chip-free { background: rgba(10, 157, 110, 0.28); color: #6fe3b6; }

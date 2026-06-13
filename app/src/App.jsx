@@ -26,6 +26,7 @@ import SettingsPage from './SettingsPage.jsx'
 import InterestEditor from './InterestEditor.jsx'
 import CalibrationDeck from './CalibrationDeck.jsx'
 import LensDeck from './LensDeck.jsx'
+import DayFillDeck from './DayFillDeck.jsx'
 import './App.css'
 
 function TabBar({ active, onTab, inert }) {
@@ -335,8 +336,16 @@ function Shell() {
             )}
             {/* Sprint Q2: the finite "Deck this" mode — opened ONLY by the
                 explicit 🃏 entry buttons (HotView day-headers, bubble pages);
-                its back/finish affordances return to where the user came from */}
-            {page.type === 'lensdeck' && <LensDeck lens={page.lens} events={norm} anchors={anchors} />}
+                its back/finish affordances return to where the user came from.
+                Sprint U-b: the SAME lensdeck slot also serves the day-fill deck
+                (lens.kind:'dayfill', the 🃏 "Fill this day" on DayPage) — a
+                different verdict set (slot/pass/save), so a distinct component */}
+            {page.type === 'lensdeck' && page.lens.kind === 'dayfill' && (
+              <DayFillDeck lens={page.lens} events={norm} anchors={anchors} coords={coords} />
+            )}
+            {page.type === 'lensdeck' && page.lens.kind !== 'dayfill' && (
+              <LensDeck lens={page.lens} events={norm} anchors={anchors} />
+            )}
           </div>
         )}
         {/* H1: first open only — Primer persists its own state + seeds taste;

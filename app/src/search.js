@@ -185,6 +185,93 @@ export function searchEvents(events, anchors, query) {
   return hits.map((h) => h.e)
 }
 
+// ===== T2: the PLACES matcher (cross-layer search, second result group) =====
+// A place has NO date — so the date tokens ("friday", "tonight", "weekend")
+// can never match one: a date-constrained query returns ZERO places (honest —
+// places aren't scheduled). "free" filters on isFree. Text tokens word-prefix
+// match across name(40)/placeType(30)/category(25)/amenities(20)/classes(15),
+// with plain-substring fallbacks on address (neighborhood — "ybor", "dunedin")
+// and description (lowest). Ordering is TASTE-NEUTRAL (relevance, then
+// srcCount corroboration, then folded name) — search results read identically
+// on every phone, same contract as the events path.
+//
+// placeType is a slug ("dog_park") AND amenities/classes are slugs — fold +
+// split on non-alphanumerics turns them into words so "dog" prefix-hits
+// "dog_park"/"dog-beach" and "tennis" hits the courts amenity.
+const PIX = new WeakMap()
+function placeIndexOf(p) {
+  let ix = PIX.get(p)
+  if (!ix) {
+    const cat = categoryById[p.category]
+    ix = {
+      name: words(p.name),
+      ptype: words(p.placeType),
+      cat: cat ? [...words(cat.label), cat.id] : words(p.category),
+      amen: (Array.isArray(p.amenities) ? p.amenities : []).flatMap(words),
+      cls: (Array.isArray(p.classes) ? p.classes : []).flatMap(words),
+      addr: fold(p.address),
+      desc: fold(p.description),
+    }
+    PIX.set(p, ix)
+  }
+  return ix
+}
+
+const PLACE_WORD_FIELDS = [
+  ['name', 40],
+  ['ptype', 30],
+  ['cat', 25],
+  ['amen', 20],
+  ['cls', 15],
+]
+function placeTokenScore(ix, t) {
+  let best = 0
+  for (const [f, base] of PLACE_WORD_FIELDS) {
+    for (const w of ix[f]) {
+      if (w === t) {
+        if (base + 10 > best) best = base + 10
+      } else if (w.startsWith(t) && base > best) best = base
+    }
+  }
+  if (best < 12 && ix.addr.includes(t)) best = 12
+  if (best < 6 && ix.desc.includes(t)) best = 6
+  return best
+}
+
+// searchPlaces(places, anchors, query) → NEW ranked array (input untouched).
+// places: normalizePlace()d pool. A date-constrained query → [] (places have
+// no date). Empty/connector-only query → [] (the page owns the zero-state).
+export function searchPlaces(places, anchors, query) {
+  const q = parseQuery(query, anchors)
+  if (q.empty || q.days.length) return [] // a place can never be "on Friday"
+  const hits = []
+  for (const p of places) {
+    if (q.free && !(p._free === true || p.isFree === true)) continue
+    let score = 0
+    let miss = false
+    if (q.text.length) {
+      const ix = placeIndexOf(p)
+      for (const t of q.text) {
+        const s = placeTokenScore(ix, t)
+        if (!s) {
+          miss = true
+          break
+        }
+        score += s
+      }
+    }
+    if (miss) continue
+    hits.push({ p, score })
+  }
+  hits.sort(
+    (a, b) =>
+      b.score - a.score ||
+      (b.p.srcCount ?? 0) - (a.p.srcCount ?? 0) ||
+      fold(a.p.name).localeCompare(fold(b.p.name))
+  )
+  return hits.map((h) => h.p)
+}
+
 // ---- recent searches ('search-recents-v1' → twh:search-recents-v1) ----
 export const SEARCH_RECENTS_KEY = 'search-recents-v1'
 const RECENTS_CAP = 8

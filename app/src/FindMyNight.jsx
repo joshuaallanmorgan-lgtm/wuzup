@@ -14,6 +14,7 @@ import { lsGet, lsSet } from './storage.js'
 import { CardImg, HeatBadge, PriceChip, SponsoredTag } from './cards.jsx'
 import { SaveHeart } from './saves.js'
 import { recordSignal } from './taste.js'
+import { usePlaces, placesForBrief } from './places.js'
 import './fmn.css'
 
 const QUESTIONS = [
@@ -221,6 +222,30 @@ export default function FindMyNight({ events, anchors, coords }) {
 
   const picks = useMemo(() => (pages.length ? pages[pageIdx % pages.length] : []), [pages, pageIdx])
 
+  // T4 — PLACES AS THE THIN-NIGHT FALLBACK. When the chosen-vibe EVENT supply
+  // is thin (this page of picks has fewer than 5), always-there places that fit
+  // the brief's affinity sets fill the rest — labeled "always here · no
+  // schedule", never given a fake time. The brief's affinity is the SAME set
+  // FMN already records to taste: who-set ∪ vibe-set (the "surprise" vibe maps
+  // to none, so a surprise brief never gets a generic park). We fetch
+  // /places.json ONLY when the brief is answered AND events came up short, so a
+  // healthy event night never pays the ~1.2MB fetch (the usePlaces enabled
+  // gate, exactly like DayPage). Places carry NO date — the event flow stays
+  // primary; places only ever backfill empty slots on a thin night.
+  const briefAffinity = useMemo(() => {
+    if (!ans.who || !ans.vibe) return null
+    const s = new Set([...(WHO_SETS[ans.who] || []), ...(VIBE_SETS[ans.vibe] || [])])
+    return s.size ? s : null
+  }, [ans.who, ans.vibe])
+  const thin = phase === 'results' && !!briefAffinity && picks.length < 5
+  const { places: placeList } = usePlaces(thin)
+  const placePicks = useMemo(() => {
+    if (!thin || !Array.isArray(placeList)) return []
+    const need = 5 - picks.length
+    return placesForBrief(placeList, briefAffinity, coords, need)
+  }, [thin, placeList, briefAffinity, coords, picks.length])
+  const revealN = picks.length + placePicks.length
+
   // WILDCARD HONESTY: a pick that matched neither the vibe-set nor the who-set
   // wears a tag instead of posing as a confident win ("surprise" matches all)
   const isWildcard = (e) => {
@@ -369,21 +394,25 @@ export default function FindMyNight({ events, anchors, coords }) {
         {phase === 'results' && (
           <div className="fmn-res">
             <div className="fmn-res-head">
+              {/* the over-line + title count BOTH event picks and the always-here
+                  place fallback, so a places-only night never reads as "Hmm" */}
               <div className="fmn-res-over">
-                {picks.length >= 5 ? 'Your five' : picks.length > 0 ? `Best ${picks.length} I found` : 'Hmm'}
+                {revealN >= 5 ? 'Your five' : revealN > 0 ? `Best ${revealN} I found` : 'Hmm'}
               </div>
               <h2 className={'fmn-res-title' + (picks.length && !softReveal ? ' fmn-res-reward' : '')}>
-                {!picks.length
+                {revealN === 0
                   ? 'Tough brief 😅'
                   : usedTomorrow
                     ? 'Tonight’s thin — here’s tomorrow 🌅'
                     : softReveal
                       ? 'Closest I could find 🤏'
-                      : 'I’ve got you 🔥'}
+                      : picks.length === 0
+                        ? 'Always-open spots for you 📍'
+                        : 'I’ve got you 🔥'}
               </h2>
               <div className="fmn-res-sub">{summary}</div>
             </div>
-            {picks.length === 0 ? (
+            {picks.length === 0 && placePicks.length === 0 ? (
               <div className="fmn-empty">
                 Nothing’s on in that window.
                 <br />
@@ -425,10 +454,51 @@ export default function FindMyNight({ events, anchors, coords }) {
                     </div>
                   </button>
                 ))}
+                {/* T4 — thin-night place fallback. Each is an always-there spot
+                    that fits the vibe; NO time is ever shown (a place has no
+                    date). The honest label "Always here · no schedule" + the 📍
+                    tag distinguish a place from an event. Tapping opens
+                    PlaceDetail via the shared detail layer (onSelect → App
+                    branches on kind:'place'). DRAFT copy for Charles. */}
+                {placePicks.map((p, i) => (
+                  <button
+                    key={p.key}
+                    className="fmn-pick fmn-pick-place pressable"
+                    style={{ animationDelay: (picks.length + i) * 70 + 'ms' }}
+                    onClick={(ev) => onSelect(p, ev.currentTarget)}
+                  >
+                    <CardImg e={p} className="fmn-pick-img">
+                      <SaveHeart e={p} />
+                    </CardImg>
+                    <div className="fmn-pick-main">
+                      <div className="fmn-pick-title">{p.title}</div>
+                      <div className="fmn-pick-meta">
+                        {['Always here · no schedule', p.venue]
+                          .concat(p._dist != null ? p._dist.toFixed(1) + ' mi' : [])
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </div>
+                      <div className="fmn-pick-extra">
+                        <span className="fmn-place-tag">📍 Spot</span>
+                        {p.isFree === true && <span className="fmn-place-free">Free</span>}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+            {/* honest header note when the night leaned on always-there spots */}
+            {placePicks.length > 0 && (
+              <div className="fmn-place-note">
+                {picks.length === 0
+                  ? 'Quiet night for events — but these spots are always open.'
+                  : 'Thin on events tonight — rounding it out with always-open spots.'}
               </div>
             )}
             <div className="fmn-actions">
-              {picks.length > 0 && (
+              {/* Reroll cycles EVENT pages only — places are a static fallback
+                  with no "next page", so a places-only night shows Start over */}
+              {pages.length > 0 && (
                 <button className="fmn-btn fmn-btn-hot pressable" onClick={reroll}>
                   🎲 Reroll
                 </button>

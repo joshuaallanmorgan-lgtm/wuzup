@@ -28,6 +28,7 @@ import { useNav } from './nav.jsx'
 import { CardImg, SponsoredTag } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
 import { tasteNudge } from './taste.js'
+import { usePlaces, isPlaceKey } from './places.js'
 import { daypartOf, fitsDay, pickerModel, shareText, visibleWeekend, weekendDays } from './weekend.js'
 import {
   PARTS,
@@ -78,17 +79,35 @@ export default function WeekendBuilder({ events, anchors }) {
     () => shelfItems(savedList, events, anchors).filter((x) => !x.past).map((x) => x.e),
     [savedList, events, anchors]
   )
+  // Sprint T3 (mirrors DayPage): a slot can hold a PLACE ('p|' key) from the
+  // place→plan bridge — fold the lazy places into the resolver so a slotted
+  // place renders instead of silently vanishing. Gate the ~1.2MB /places.json
+  // fetch on an ACTUAL place slot anywhere in the visible weekend — an
+  // event-only weekend pays nothing.
+  const hasPlaceSlot = useMemo(
+    () =>
+      days.some((d) => {
+        const en = dayEntryFor(plans[String(d.ts)])
+        return en && (isPlaceKey(en.slots.day) || isPlaceKey(en.slots.night))
+      }),
+    [days, plans]
+  )
+  const { places: placeList } = usePlaces(hasPlaceSlot)
   const byKey = useMemo(() => {
     const m = new Map()
     for (const e of savedEvents) m.set(keyOf(e), e) // snapshots first…
     for (const e of upcoming) m.set(keyOf(e), e) // …live events win
+    if (Array.isArray(placeList)) for (const p of placeList) m.set(p.key, p) // …places too
     return m
-  }, [upcoming, savedEvents])
-  // a slotted event must still FIT its day (a refresh can move dates) — else null
+  }, [upcoming, savedEvents, placeList])
+  // a slotted EVENT must still FIT its day (a refresh can move dates) — else
+  // null; a PLACE is "always there" and fits any day (the DayPage rule)
   const resolveSlot = useCallback(
     (k, ts) => {
       const e = k ? byKey.get(k) : null
-      return e && fitsDay(e, ts) ? e : null
+      if (!e) return null
+      if (e.kind === 'place') return e
+      return fitsDay(e, ts) ? e : null
     },
     [byKey]
   )
@@ -218,7 +237,10 @@ export default function WeekendBuilder({ events, anchors }) {
               <CardImg e={e} className="wkb-thumb" />
               <span className="wkb-card-title">{e.title}</span>
               <span className="wkb-card-meta">
-                {[daypartOf(e) === 'any' ? 'Anytime' : timeOf(e.start) || null, e.venue]
+                {[
+                  e.kind === 'place' ? 'Always here' : daypartOf(e) === 'any' ? 'Anytime' : timeOf(e.start) || null,
+                  e.venue,
+                ]
                   .filter(Boolean)
                   .join(' · ')}
               </span>

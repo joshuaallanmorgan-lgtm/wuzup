@@ -11,24 +11,33 @@
 //
 // Q2e: matching/ranking lives in search.js (pure, Node-simmed) — tokenized
 // word-prefix scoring over title/venue/category/address(+description), date
-// tokens ("friday", "tonight", "weekend"), "free". Results render as ONE flat
-// relevance-ranked feed (text relevance, then hotScore — each row's meta line
-// already carries its date, so day headers earn nothing here). Recent searches
+// tokens ("friday", "tonight", "weekend"), "free". Recent searches
 // ('search-recents-v1', cap 8) record on a tapped result or a submitted query —
 // never per keystroke — and surface in the zero-state next to honest chips
 // (registry category names + date shortcuts; every chip is a real query that
 // runs visibly in the input).
+//
+// T2 (cross-layer search): ONE search box, TWO result groups — "Events" (the
+// scheduled supply) and "Spots" (the always-there places). The places matcher
+// (searchPlaces) is a second pure function over the lazy /places.json store
+// (usePlaces) — date-constrained queries return zero places honestly (a place
+// has no date). A Spots result opens PlaceDetail through the SAME shared detail
+// layer (openDetail branches on kind:'place' in App). Both groups are
+// labeled-section RowFeeds; never-hide holds — every matching event and place
+// is shown, ordering is taste-neutral.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon, milesBetween } from './lib.js'
 import { useNav } from './nav.jsx'
 import { RowFeed } from './cards.jsx'
 import { CATEGORIES } from './categories.js'
+import { usePlaces } from './places.js'
 import {
   clearSearchRecents,
   loadSearchRecents,
   parseQuery,
   recordSearchRecent,
   searchEvents,
+  searchPlaces,
 } from './search.js'
 import './bubble.css'
 
@@ -64,17 +73,37 @@ export default function SearchPage({ events, anchors, coords }) {
       }))
   }, [events, anchors, coords])
 
+  // T2: the places pool — the SAME lazy /places.json store the Locations tab
+  // uses (usePlaces fires the one-shot fetch on first mount of this page).
+  // _dist is attached for the distance pill the same way events get it.
+  const { places } = usePlaces()
+  const placePool = useMemo(() => {
+    if (!Array.isArray(places)) return []
+    return places.map((p) => ({
+      ...p,
+      _dist: coords && p.lat != null && p.lng != null ? milesBetween(coords, p) : null,
+    }))
+  }, [places, coords])
+
   const parsed = useMemo(() => parseQuery(dq, anchors), [dq, anchors])
   const results = useMemo(
     () => (parsed.empty ? [] : searchEvents(pool, anchors, dq)),
     [parsed, pool, anchors, dq]
   )
+  const placeResults = useMemo(
+    () => (parsed.empty ? [] : searchPlaces(placePool, anchors, dq)),
+    [parsed, placePool, anchors, dq]
+  )
   const hasQ = !parsed.empty
-  const total = results.length
-  // one flat section: ranked order IS the content; label:null renders no header
-  const sections = useMemo(() => [{ label: null, items: results }], [results])
+  const total = results.length + placeResults.length
+  // TWO labeled groups: Events first (the question the home tab answers), then
+  // Spots. An empty group renders no header (RowFeed skips label-only sections
+  // with no items); a date-constrained query naturally yields zero Spots.
+  const eventSection = useMemo(() => [{ label: 'Events', items: results }], [results])
+  const placeSection = useMemo(() => [{ label: 'Spots', items: placeResults }], [placeResults])
 
-  // recents record on a tapped result (the query earned its keep) …
+  // recents record on a tapped result (the query earned its keep) — works for
+  // both an event and a place (openDetail branches on kind in App) …
   const select = useCallback(
     (e, el) => {
       setRecents(recordSearchRecent(dq))
@@ -83,10 +112,14 @@ export default function SearchPage({ events, anchors, coords }) {
     [dq, openDetail]
   )
   // … or on a submitted query — flush the debounce so what's recorded is what
-  // runs; only queries with ≥1 result are kept (a typo is not a shortcut)
+  // runs; only queries with ≥1 result (event OR place) are kept (a typo is not
+  // a shortcut)
   const submit = () => {
     setDq(q)
-    if (!parseQuery(q, anchors).empty && searchEvents(pool, anchors, q).length > 0) {
+    if (
+      !parseQuery(q, anchors).empty &&
+      (searchEvents(pool, anchors, q).length > 0 || searchPlaces(placePool, anchors, q).length > 0)
+    ) {
       setRecents(recordSearchRecent(q))
     }
   }
@@ -142,8 +175,18 @@ export default function SearchPage({ events, anchors, coords }) {
             <div className="srch-count">
               {total.toLocaleString('en-US')} result{total === 1 ? '' : 's'} for “{dq.trim()}”
             </div>
-            {/* key resets pagination + replays the stagger per query */}
-            <RowFeed key={dq.trim()} sections={sections} showDist={!!coords} stagger scrollRootRef={pgRef} onSelect={select} />
+            {/* T2: ONE RowFeed over BOTH labeled groups (Events, then Spots) so
+                pagination + the end-cap span the union; an empty group renders
+                no header. A Spots row opens PlaceDetail via the shared select.
+                key resets pagination + replays the stagger per query */}
+            <RowFeed
+              key={dq.trim()}
+              sections={[...eventSection, ...placeSection]}
+              showDist={!!coords}
+              stagger
+              scrollRootRef={pgRef}
+              onSelect={select}
+            />
           </>
         )}
         {hasQ && total === 0 && (

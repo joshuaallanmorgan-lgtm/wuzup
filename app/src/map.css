@@ -29,6 +29,123 @@
   cursor: pointer;
 }
 
+/* ===== T1 place pins (square divIcon) + the layer/filter toolbar =====
+   A place pin is a SQUARE in the category hue — square vs the round event
+   circleMarker is the at-a-glance "always here" vs "happening" read. divIcon
+   wrapper (.pl-ico) kills Leaflet's default white box; .pl-pin is the visible
+   rounded square with a white hairline so it pops on the basemap. */
+.pl-ico {
+  background: none;
+  border: none;
+}
+.pl-pin {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px; /* a soft square — unmistakably NOT a round event pin */
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.32);
+}
+
+/* the toolbar overlays the map top: segmented layer toggle + a scrolling chip
+   row. z 1005 clears Leaflet panes (≤1000) but sits under the pin sheet (1010)
+   and the fixed tabbar (1100). */
+.map-tools {
+  position: absolute;
+  top: calc(8px + env(safe-area-inset-top));
+  left: 8px;
+  right: 8px;
+  z-index: 1005;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none; /* let map drags through the gaps; children re-enable */
+}
+.map-seg {
+  align-self: center;
+  display: inline-flex;
+  background: rgba(21, 23, 28, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 3px;
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
+.map-seg-btn {
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.7);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 6px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.map-seg-btn.on {
+  background: var(--accent);
+  color: #fff;
+}
+.map-chips {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding: 2px 2px 4px;
+  scrollbar-width: none;
+  pointer-events: auto;
+}
+.map-chips::-webkit-scrollbar {
+  display: none;
+}
+.map-dates {
+  display: inline-flex;
+  gap: 7px;
+  flex: 0 0 auto;
+}
+.map-dates-off {
+  opacity: 0.4;
+}
+.map-chip {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(21, 23, 28, 0.86);
+  color: rgba(255, 255, 255, 0.88);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+.map-chip.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.map-chip-free.on {
+  background: var(--ok, #0a9d6e);
+  border-color: var(--ok, #0a9d6e);
+}
+.map-chip:disabled {
+  cursor: default;
+}
+
+/* a place's "📍 Spot" tag in the pin sheet (replaces the heat badge for places) */
+.msheet-spot-tag {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(10, 157, 110, 0.4);
+  background: rgba(10, 157, 110, 0.12);
+  color: var(--ok, #0a9d6e);
+}
+
 /* ===== J3 pin-preview bottom sheet =====
    Two layers so transforms never fight: .msheet-pop (outer) plays the one-shot
    entrance rise; .msheet (inner) carries the live swipe-down drag transform

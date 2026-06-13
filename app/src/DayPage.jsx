@@ -36,6 +36,7 @@ import { tasteNudge } from './taste.js'
 import { usePlaces, isPlaceKey } from './places.js'
 import { daypartOf, fitsDay, pickerModel } from './weekend.js'
 import { eventsIcs, shareDayText } from './share.js'
+import { FillDayButton } from './DayFillDeck.jsx'
 import {
   dayEntryFor,
   emptyDay,
@@ -258,7 +259,10 @@ export default function DayPage({ ts, events, anchors, wx }) {
               <span className="dpg-card-main">
                 <span className="dpg-card-title">{e.title}</span>
                 <span className="dpg-card-meta">
-                  {[daypartOf(e) === 'any' ? 'Anytime' : timeOf(e.start) || null, e.venue]
+                  {[
+                    e.kind === 'place' ? 'Always here' : daypartOf(e) === 'any' ? 'Anytime' : timeOf(e.start) || null,
+                    e.venue,
+                  ]
                     .filter(Boolean)
                     .join(' · ')}
                 </span>
@@ -325,6 +329,12 @@ export default function DayPage({ ts, events, anchors, wx }) {
               {renderSlot('night')}
             </div>
             <div className="dpg-plan-actions">
+              {/* day-fill deck (U-b): the THIRD decide-for-me lens — deal the
+                  events + always-there spots that could fill this day. Offered
+                  while at least one slot is open (a fully-planned day has
+                  nothing to fill); the deck itself falls back to the picker on
+                  ≤3 candidates. DRAFT */}
+              {!(entry.slots.day && entry.slots.night) && <FillDayButton ts={ts} />}
               {/* create-from-day (U-c): opens the existing Add flow with this
                   day pre-filled; submitting auto-slots it back here. DRAFT */}
               <button className="dpg-own-btn" onClick={() => openAdd(ts)}>

@@ -13,7 +13,7 @@
 // name, placeType, classes[], category, lat, lng, address?, description?,
 // amenities[]?, isFree?, fee?, hours?, url?, phone?, designation?, operator?,
 // sources[], srcCount, osm?, wikidata?, aliases?, hiddenScore, hidden }.
-import { useSyncExternalStore } from 'react'
+import { useEffect, useSyncExternalStore } from 'react'
 import { milesBetween } from './lib.js'
 
 // normalize a raw place into the UI shape the shared card/save/taste/recents
@@ -124,7 +124,14 @@ const getSnapshot = () => snap
 // leave it true (they exist to show places).
 export function usePlaces(enabled = true) {
   const s = useSyncExternalStore(subscribe, getSnapshot)
-  if (enabled && s.status === 'idle') loadPlaces() // fire-and-forget; the emit re-renders
+  // trigger the lazy load from an EFFECT, never during render — loadPlaces
+  // synchronously emit()s to subscribers, and doing that mid-render is the
+  // "setState while rendering another component" anti-pattern (it warned ×6
+  // from MapView). The effect re-checks live status so a second consumer
+  // mounting after the fetch started never double-fires.
+  useEffect(() => {
+    if (enabled && getSnapshot().status === 'idle') loadPlaces()
+  }, [enabled])
   return s
 }
 
@@ -142,4 +149,31 @@ export function nearest(list, coords, max = 12) {
     .sort((a, b) => a.d - b.d)
     .slice(0, max)
     .map((x) => ({ ...x.p, _dist: x.d }))
+}
+
+// ===== T4: places as FMN's thin-night fallback (pure, Node-simmed) =====
+// When tonight's EVENT supply for the chosen vibe is thin, FMN may answer with
+// an always-there PLACE that fits the vibe (chill/outdoors → a park, a sunset
+// spot). `affinity` is a Set of category ids the brief chose (the union of the
+// who-set + vibe-set, exactly what FMN already builds); a null/empty affinity
+// (the "surprise" vibe maps to none) matches nothing here — a surprise brief is
+// best served by real events, not a generic park. Ordering is taste-neutral:
+// corroboration (srcCount) desc, then hiddenScore (a quiet find edges a busy
+// one on a chill night), then name. NEVER fabricates a time — a place carries
+// no date, and the FMN card renders it "always here · no schedule".
+//
+// `coords` (optional) nudges nearer places up FIRST — a sunset spot 40 miles
+// away is not tonight's plan — but distance never excludes (never-hide).
+export function placesForBrief(list, affinity, coords, max = 5) {
+  if (!Array.isArray(list) || !affinity || affinity.size === 0) return []
+  const hits = list.filter((p) => affinity.has(p.category))
+  const withD = hits.map((p) => ({ p, d: coords ? milesBetween(coords, p) : null }))
+  withD.sort(
+    (a, b) =>
+      (a.d == null ? 0 : a.d <= 15 ? 0 : 1) - (b.d == null ? 0 : b.d <= 15 ? 0 : 1) ||
+      (b.p.srcCount || 0) - (a.p.srcCount || 0) ||
+      (b.p.hiddenScore || 0) - (a.p.hiddenScore || 0) ||
+      (a.p.name || '').localeCompare(b.p.name || '')
+  )
+  return withD.slice(0, max).map((x) => (x.d != null ? { ...x.p, _dist: x.d } : x.p))
 }

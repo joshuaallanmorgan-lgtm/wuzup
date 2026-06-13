@@ -376,6 +376,8 @@ const weekend = await import('../app/src/weekend.js')
 const taste = await import('../app/src/taste.js')
 const share = await import('../app/src/share.js')
 const placesMod = await import('../app/src/places.js')
+const searchMod = await import('../app/src/search.js')
+const dayfill = await import('../app/src/dayfill.js')
 
 // tiny synthetic-event factory (normalized shape, only the fields the logic reads)
 const ev = (over = {}) => ({
@@ -659,4 +661,147 @@ test('weekend window: Fri–Sun for 3 different start days', () => {
   // window math: a Saturday event is _weekend, a Monday event is not
   assert.equal(N(ev({ start: '2026-06-13' }), wed)._weekend, true, 'Saturday event must be _weekend')
   assert.equal(N(ev({ start: '2026-06-15' }), wed)._weekend, false, 'Monday event must not be _weekend')
+})
+
+// ============================================================
+// Sprint T — CROSS-LAYER integration: the new pure matchers/dealers. All three
+// modules are JSX/CSS-free by design, so they import straight into Node.
+// ============================================================
+
+// a synthetic normalized PLACE (only the fields the logic reads)
+const pl = (over = {}) =>
+  placesMod.normalizePlace({
+    key: 'p|' + (over.slug || 't'),
+    kind: 'place',
+    name: over.name || 'Test Park',
+    placeType: 'park',
+    classes: ['park'],
+    category: 'outdoors',
+    lat: 27.9,
+    lng: -82.5,
+    srcCount: 1,
+    hidden: false,
+    hiddenScore: 0,
+    ...over,
+  })
+
+test('search.js: searchPlaces matches name/type/amenity, never on a date, honors free', () => {
+  const places = [
+    pl({ slug: 'dunedin-dog-beach', name: 'Dunedin Dog Beach', placeType: 'beach', classes: ['beach'], amenities: ['dog-beach'], address: 'Dunedin', srcCount: 4 }),
+    pl({ slug: 'al-lopez-park', name: 'Al Lopez Park', amenities: ['tennis'], address: 'Tampa', isFree: true, srcCount: 2 }),
+    pl({ slug: 'lettuce-lake', name: 'Lettuce Lake Park', placeType: 'preserve', classes: ['preserve'], srcCount: 6 }),
+  ]
+  // text: "dog" word-prefixes the amenity + the name
+  const dog = searchMod.searchPlaces(places, AN, 'dog')
+  assert.ok(dog.some((p) => p.key === 'p|dunedin-dog-beach'), 'a "dog" query must find the dog beach')
+  // neighborhood via address substring
+  const tampa = searchMod.searchPlaces(places, AN, 'tampa')
+  assert.ok(tampa.some((p) => p.key === 'p|al-lopez-park'), 'an address token must match the neighborhood')
+  // a DATE-constrained query returns ZERO places (places have no date — honest)
+  assert.deepEqual(searchMod.searchPlaces(places, AN, 'park friday'), [], 'a date-constrained query yields no places')
+  assert.deepEqual(searchMod.searchPlaces(places, AN, 'tonight'), [], 'a date-only query yields no places')
+  // "free" filters
+  const free = searchMod.searchPlaces(places, AN, 'free park')
+  assert.ok(free.every((p) => p.isFree === true), 'free query must only return free places')
+  assert.ok(free.some((p) => p.key === 'p|al-lopez-park'), 'the free park is in the free results')
+  // taste-neutral ordering: relevance, then srcCount corroboration desc. "park"
+  // hits all three on name/type → tie on score, so srcCount breaks it (6 > 4 > 2)
+  const parks = searchMod.searchPlaces(places, AN, 'park')
+  assert.equal(parks[0].key, 'p|lettuce-lake', 'srcCount corroboration breaks a relevance tie (most-sourced first)')
+  // empty query → [] (the page owns the zero-state)
+  assert.deepEqual(searchMod.searchPlaces(places, AN, ''), [], 'empty query returns no places')
+  // input is never mutated
+  const before = JSON.stringify(places)
+  searchMod.searchPlaces(places, AN, 'park')
+  assert.equal(JSON.stringify(places), before, 'searchPlaces must not mutate its input')
+})
+
+test('places.js: placesForBrief matches affinity, no surprise park, never a date', () => {
+  const list = [
+    pl({ slug: 'a', name: 'A Park', category: 'outdoors', srcCount: 5 }),
+    pl({ slug: 'b', name: 'B Garden', category: 'outdoors', srcCount: 2, hiddenScore: 9 }),
+    pl({ slug: 'c', name: 'C Hall', category: 'art', srcCount: 9 }),
+  ]
+  const outdoors = new Set(['outdoors', 'market'])
+  const got = placesMod.placesForBrief(list, outdoors, null, 5)
+  assert.equal(got.length, 2, 'only the two outdoors places fit an outdoors affinity')
+  assert.ok(!got.some((p) => p.category === 'art'), 'an off-affinity place never fits')
+  // ordering taste-neutral: srcCount desc (5 > 2) leads despite B's hiddenScore
+  assert.equal(got[0].key, 'p|a', 'corroboration (srcCount) leads the place fallback order')
+  // no affinity (the "surprise" vibe → null/empty) returns nothing — a surprise
+  // brief is served by real events, never a generic park
+  assert.deepEqual(placesMod.placesForBrief(list, null, null, 5), [], 'null affinity → no place fallback')
+  assert.deepEqual(placesMod.placesForBrief(list, new Set(), null, 5), [], 'empty affinity → no place fallback')
+  // a place fallback NEVER carries a fabricated date/time field
+  for (const p of got) {
+    assert.equal(p._day, undefined, 'a place fallback must have no _day (never a fake date)')
+    assert.equal(p.start, undefined, 'a place fallback must have no start time (never a fake time)')
+  }
+  // honors max
+  assert.equal(placesMod.placesForBrief(list, outdoors, null, 1).length, 1, 'max caps the fallback count')
+})
+
+test('dayfill.js: dealDayFill = fits-day events + places tail, count-preserving, deduped', () => {
+  const ts = new Date(2026, 5, 13).getTime() // Sat Jun 13
+  const events = [
+    N(ev({ title: 'Sat show', start: '2026-06-13T20:00:00', category: 'music', hotScore: 80 }), AN),
+    N(ev({ title: 'Exhibit', start: '2026-06-10', end: '2026-06-30', category: 'art', hotScore: 60 }), AN), // span covers Sat
+    N(ev({ title: 'Mon thing', start: '2026-06-15', category: 'food', hotScore: 90 }), AN), // does NOT cover Sat
+    N(ev({ title: 'Ended', start: '2026-06-01', category: 'music', hotScore: 99 }), AN), // already over
+  ]
+  const places = [pl({ slug: 'beach', name: 'Beach', srcCount: 3 }), pl({ slug: 'park', name: 'Park', srcCount: 1 })]
+  const deck = dayfill.dealDayFill(events, places, ts, AN, null)
+  const titles = deck.map((c) => c.title)
+  // only the two fits-Saturday events make it, then the two places tail
+  assert.ok(titles.includes('Sat show') && titles.includes('Exhibit'), 'fits-day events are in the deck')
+  assert.ok(!titles.includes('Mon thing'), 'an event whose span misses the day is excluded')
+  assert.ok(!titles.includes('Ended'), 'an already-ended run is excluded')
+  // events come BEFORE places (a dated thing for the day outranks an evergreen):
+  // once a place appears, every later card is a place too (a clean tail).
+  const firstPlaceIdx = deck.findIndex((c) => c.kind === 'place')
+  if (firstPlaceIdx !== -1) {
+    assert.ok(
+      deck.slice(firstPlaceIdx).every((c) => c.kind === 'place'),
+      'events lead and places form an unbroken tail'
+    )
+    assert.ok(
+      deck.slice(0, firstPlaceIdx).every((c) => c.kind !== 'place'),
+      'no place appears before the tail'
+    )
+  }
+  // the places tail is corroboration-ordered (srcCount 3 > 1)
+  const placeCards = deck.filter((c) => c.kind === 'place')
+  assert.equal(placeCards.length, 2, 'both places ride the tail')
+  assert.equal(placeCards[0].key, 'p|beach', 'places tail is srcCount-desc')
+  // events-only path (no places) works and is finite
+  const evOnly = dayfill.dealDayFill(events, null, ts, AN, null)
+  assert.equal(evOnly.length, 2, 'events-only deck = the 2 fits-day events')
+  // dedup: a duplicate event key never doubles
+  const dup = dayfill.dealDayFill(events.concat(events[0]), [], ts, AN, null)
+  assert.equal(new Set(dup.map(lib.keyOf)).size, dup.length, 'dealDayFill output is key-unique')
+  // the lens id keys on the day ts (session fatigue guard + back nav)
+  assert.equal(dayfill.dayFillIdOf({ dayTs: ts }), 'fill|' + ts, 'dayFillIdOf keys on the day ts')
+})
+
+// Sprint T review must-fix: the day-fill deck is a CURATED SHORTLIST, not the
+// whole catalog. dealDayFill caps at DECK_TARGET, places only fill the room
+// events leave (a rich day gets no place tail), and the cap holds against a
+// huge place list (the prod bug: the entire ~1,830-place DB bolted onto every
+// deck). The old test used 2 places and never exercised this.
+test('dayfill.js: deck is capped at DECK_TARGET, places only round out a thin day', () => {
+  const ts = new Date(2026, 5, 13).getTime() // Sat Jun 13
+  const TARGET = dayfill.DECK_TARGET
+  assert.ok(typeof TARGET === 'number' && TARGET >= 8 && TARGET <= 30, 'DECK_TARGET is a sane shortlist size')
+  // 30 always-there places, ZERO events for the day → deck = exactly TARGET places (the catalog never floods in)
+  const manyPlaces = Array.from({ length: 30 }, (_, i) => pl({ slug: 'p' + i, name: 'Place ' + String(i).padStart(2, '0'), srcCount: (i % 3) + 1 }))
+  const thinDeck = dayfill.dealDayFill([], manyPlaces, ts, AN, null)
+  assert.equal(thinDeck.length, TARGET, `a zero-event day caps the place tail at DECK_TARGET (${TARGET}), got ${thinDeck.length}`)
+  assert.ok(thinDeck.every((c) => c.kind === 'place'), 'a zero-event day deck is all places')
+  // a RICH event day (>= TARGET fits-day events) gets NO place tail
+  const manyEvents = Array.from({ length: TARGET + 5 }, (_, i) =>
+    N(ev({ title: 'Ev ' + i, url: 'u' + i, start: '2026-06-13T19:00:00', category: 'music', hotScore: 50 + i }), AN)
+  )
+  const richDeck = dayfill.dealDayFill(manyEvents, manyPlaces, ts, AN, null)
+  assert.equal(richDeck.length, TARGET, `a rich day is capped at DECK_TARGET, got ${richDeck.length}`)
+  assert.ok(richDeck.every((c) => c.kind !== 'place'), 'a rich event day gets NO place tail — the catalog never bolts on')
 })

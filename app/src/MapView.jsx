@@ -18,12 +18,32 @@
 //      straight to detail; "Full details →" hands off to onSelect(e, null).
 //   J4 the map note carries a live "N in view" count of events inside the
 //      current bounds (moveend, debounced 150ms).
+//
+// SPRINT T1 — MAP v2 (cross-layer): the map now shows BOTH supply layers.
+//   · LAYER TOGGLE (Events / Spots / Both): a segmented control gates which
+//     stores render. Places load lazily via usePlaces() — the /places.json
+//     fetch fires only when the Spots/Both segment is first selected (events-
+//     only viewers never pay it).
+//   · PLACE PINS read DISTINCTLY from event pins: events stay round
+//     circleMarkers (J1); places are SQUARE divIcon pins in the category hue.
+//     One glance separates "what's happening" from "what's always here".
+//   · FILTERS (Josh's ask): a date strip (Any · Today · Tomorrow · Weekend)
+//     that gates EVENTS ONLY — a place has no date, so the strip is honestly
+//     disabled-looking for the Spots layer (places ignore it); category chips
+//     and a Free toggle apply to WHICHEVER layer(s) are shown.
+//   · CLUSTERING handles the UNION: the bucket grid buckets the combined
+//     visible set; a bucket-of-one renders the right pin type, a multi-bucket
+//     is the teal navigation bubble (count of both kinds — it's "more here").
+//   · NEVER-HIDE holds: filters reorder/scope what the MAP draws the way the
+//     list bubbles already scope a list; the note states the honest counts.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { getLeaflet } from './leaflet-lazy.js'
 import { useNav, viewIndex } from './nav.jsx'
 import { CATEGORY_HUES, CardImg, HeatBadge, PriceChip, SponsoredTag } from './cards.jsx'
 import { SaveHeart } from './saves.js'
 import { dayLabelLoose, keyOf, startLabel } from './lib.js'
+import { CATEGORIES } from './categories.js'
+import { usePlaces, isPlaceKey } from './places.js'
 import './map.css'
 
 // Leaflet arrives via the shared lazy loader (leaflet-lazy.js, audit prep #3):
@@ -40,7 +60,28 @@ const CELL = 64
 // canvas strokes can't resolve CSS variables — literal mirror of --hot
 // (index.css). Fills use the comma HSL form for maximum canvas parser safety.
 const HOT = '#ff5a3c'
-const pinFill = (e) => `hsl(${CATEGORY_HUES[e.category] ?? CATEGORY_HUES.other}, 70%, 45%)`
+const hueOf = (e) => CATEGORY_HUES[e.category] ?? CATEGORY_HUES.other
+const pinFill = (e) => `hsl(${hueOf(e)}, 70%, 45%)`
+
+// T1 date strip: each option scopes the EVENTS layer to a day window (places
+// ignore it — they have no date). 'any' = all upcoming.
+const DATE_FILTERS = [
+  { id: 'any', label: 'Any day' },
+  { id: 'today', label: 'Today' },
+  { id: 'tomorrow', label: 'Tomorrow' },
+  { id: 'weekend', label: 'Weekend' },
+]
+// does an event's [_day.._endDay] span cover the chosen window? (places skip this)
+function eventInDateFilter(e, id, anchors) {
+  if (id === 'any') return true
+  const s = e._day
+  const en = e._endDay ?? e._day
+  if (s == null) return false // a date filter excludes undated events honestly
+  if (id === 'today') return s <= anchors.todayTs && en >= anchors.todayTs
+  if (id === 'tomorrow') return s <= anchors.tomorrowTs && en >= anchors.tomorrowTs
+  if (id === 'weekend') return s <= anchors.wkEndTs && en >= anchors.wkStartTs
+  return true
+}
 
 // O(n) screen-space bucketing (J2): project each event ONCE at the current
 // zoom into world-pixel space, floor into CELL-px cells. floor() is a pure
@@ -74,8 +115,25 @@ export default function MapView({ events, anchors }) {
   const didFitRef = useRef(false)
   const timersRef = useRef({}) // zoomend/moveend debounce handles
   const [ready, setReady] = useState(false) // map exists (set on first activation)
-  const [sheet, setSheet] = useState(null) // J3: event previewed in the bottom sheet
+  const [sheet, setSheet] = useState(null) // J3: event/place previewed in the bottom sheet
   const [inView, setInView] = useState(null) // J4: count in bounds (null until the map exists)
+  // ===== T1 filter state =====
+  // layer: null = AUTO (follow context — Events normally, but Both while a
+  // place focus is pending so "Open in Map" from a PlaceDetail lands on the
+  // place's pin instead of a pinless events-only map). A manual segment tap
+  // sets it and wins thereafter. Deriving (not setState-in-effect) keeps the
+  // focus→layer sync out of the effect, which the lint rule rightly forbids
+  // (a layer set there feeds the effect's own deps → cascade).
+  const [layer, setLayer] = useState(null)
+  const [dateF, setDateF] = useState('any') // DATE_FILTERS id — gates EVENTS only
+  const [cat, setCat] = useState('all') // a single category id, or 'all'
+  const [freeOnly, setFreeOnly] = useState(false)
+  const placeFocusing = !!(focusTarget && (focusTarget.kind === 'place' || isPlaceKey(focusTarget.key)))
+  const effLayer = layer ?? (placeFocusing ? 'both' : 'events')
+  const showEvents = effLayer === 'events' || effLayer === 'both'
+  const showPlaces = effLayer === 'places' || effLayer === 'both'
+  // lazy places: the fetch fires only once the Spots/Both segment is selected
+  const { places } = usePlaces(showPlaces)
   // Escape closes the preview sheet before App's listener can act (capture
   // phase + stopPropagation — the same pattern as WeekendBuilder's picker).
   // BUT when a detail page is stacked on top (pin sheet → "Full details"),
@@ -101,12 +159,40 @@ export default function MapView({ events, anchors }) {
     () => events.filter((e) => e._day == null || (e._endDay ?? e._day) >= anchors.todayTs),
     [events, anchors]
   )
-  const withCoords = useMemo(() => upcoming.filter((e) => e.lat != null && e.lng != null), [upcoming])
+  // T1: per-layer filtered pins, then the UNION. Events honor the date strip +
+  // category + free; places honor category + free (they have no date). Every
+  // shown item carries .lat/.lng (the pins/buckets read those identically for
+  // both kinds); .kind tells redraw which marker to draw. The category/free
+  // chips apply to WHICHEVER layers are on — never-hide: this scopes the map
+  // the way a list bubble scopes a list, it doesn't lie about what's out there.
+  const eventPins = useMemo(() => {
+    if (!showEvents) return []
+    const okCat = (e) => cat === 'all' || e.category === cat
+    const okFree = (e) => !freeOnly || e._free === true || e.isFree === true
+    return upcoming.filter(
+      (e) => e.lat != null && e.lng != null && eventInDateFilter(e, dateF, anchors) && okCat(e) && okFree(e)
+    )
+  }, [showEvents, upcoming, dateF, anchors, cat, freeOnly])
+  const placePins = useMemo(() => {
+    if (!showPlaces || !Array.isArray(places)) return []
+    const okCat = (p) => cat === 'all' || p.category === cat
+    const okFree = (p) => !freeOnly || p._free === true || p.isFree === true
+    return places.filter((p) => p.lat != null && p.lng != null && okCat(p) && okFree(p))
+  }, [showPlaces, places, cat, freeOnly])
+  const withCoords = useMemo(() => eventPins.concat(placePins), [eventPins, placePins])
+  // the honest denominators for the note: total mappable supply per active layer
+  const totalShown = useMemo(() => {
+    let n = 0
+    if (showEvents) n += upcoming.filter((e) => e.lat != null && e.lng != null).length
+    if (showPlaces && Array.isArray(places)) n += places.filter((p) => p.lat != null && p.lng != null).length
+    return n
+  }, [showEvents, showPlaces, upcoming, places])
+  const placesLoading = showPlaces && !Array.isArray(places)
 
-  // J1: category-hue pin, heat-scaled. Tap → preview sheet (J3), never a page jump.
-  // bubblingMouseEvents:false so a pin tap doesn't ALSO fire the map click that
-  // closes the sheet (canvas + svg renderers both bubble path clicks by default).
-  const pinFor = (e) => {
+  // J1: category-hue ROUND pin, heat-scaled. Tap → preview sheet (J3), never a
+  // page jump. bubblingMouseEvents:false so a pin tap doesn't ALSO fire the map
+  // click that closes the sheet (canvas + svg renderers both bubble by default).
+  const eventPinFor = (e) => {
     const buzz = typeof e.buzz === 'number' ? e.buzz : 0
     const hot = buzz >= 3
     const m = L.circleMarker([e.lat, e.lng], {
@@ -121,6 +207,24 @@ export default function MapView({ events, anchors }) {
     m.bindTooltip(e.title + (e.sponsored === true ? ' · Sponsored' : ''), { direction: 'top', offset: [0, -8] })
     return m
   }
+  // T1: a PLACE pin is a SQUARE divIcon in the category hue — square vs round
+  // is the at-a-glance "always here" vs "happening" distinction. No heat ring
+  // (places never wear the flame, places.js contract). divIcon (not
+  // circleMarker) because canvas can't render a rounded square cheaply; the
+  // count is small enough (places.json mappable set) that DOM markers are fine.
+  const placePinFor = (p) => {
+    const icon = L.divIcon({
+      className: 'pl-ico',
+      html: `<span class="pl-pin" style="background:hsl(${hueOf(p)},62%,42%)"></span>`,
+      iconSize: [16, 16],
+    })
+    const m = L.marker([p.lat, p.lng], { icon, bubblingMouseEvents: false })
+    m.on('click', () => setSheet(p))
+    m.bindTooltip(p.title + ' · Spot', { direction: 'top', offset: [0, -8] })
+    return m
+  }
+  // dispatch by kind — a bucket-of-one and the pin-zoom path both route here
+  const pinFor = (e) => (e.kind === 'place' ? placePinFor(e) : eventPinFor(e))
 
   // full marker rebuild: pins at zoom >= PIN_ZOOM, grid clusters below.
   // Defined fresh each render (closes over withCoords), executed only from the
@@ -144,7 +248,7 @@ export default function MapView({ events, anchors }) {
       const s = Math.round(Math.min(56, 24 + 8 * Math.log2(b.count + 1))) // 2→37px … 50+→56px cap
       const icon = L.divIcon({
         className: 'cl-ico',
-        html: `<div class="cl-bubble" role="button" aria-label="${b.count} events — tap to zoom" style="width:${s}px;height:${s}px;font-size:${Math.max(11, Math.round(s * 0.32))}px">${b.count}</div>`,
+        html: `<div class="cl-bubble" role="button" aria-label="${b.count} here — tap to zoom" style="width:${s}px;height:${s}px;font-size:${Math.max(11, Math.round(s * 0.32))}px">${b.count}</div>`,
         iconSize: [s, s], // anchor defaults to the center
       })
       const m = L.marker(center, { icon, bubblingMouseEvents: false })
@@ -250,21 +354,89 @@ export default function MapView({ events, anchors }) {
   // event also opens its preview sheet (J3) so the target pin is identified.
   useEffect(() => {
     if (!focusTarget || focusTarget.lat == null || focusTarget.lng == null) return
+    // T1: a place focus (from PlaceDetail's "Open in Map") shows the Spots
+    // layer automatically — `effLayer` flips to Both while the focus is pending
+    // (derived above, not set here), so usePlaces loads + the pin draws; this
+    // effect re-runs on the showPlaces/places deps and then opens its sheet.
     const map = mapRef.current
     if (!map) return
     didFitRef.current = true // the focused view IS the view — never fit-to-all over it
     map.setView([focusTarget.lat, focusTarget.lng], 15, { animate: false })
     setSheet(focusTarget.key ? (coordsRef.current.find((e) => keyOf(e) === focusTarget.key) ?? null) : null)
-  }, [focusTarget, ready])
+  }, [focusTarget, ready, showPlaces, places])
+
+  const num = (n) => n.toLocaleString('en-US')
+  const noun = effLayer === 'events' ? 'events' : effLayer === 'places' ? 'spots' : 'pins'
 
   return (
     <div className="map-wrap">
       <div ref={elRef} className="map" />
+
+      {/* ===== T1 toolbar: layer toggle + filters (overlays the map top) ===== */}
+      <div className="map-tools">
+        <div className="map-seg" role="group" aria-label="Map layer">
+          {[
+            ['events', 'Events'],
+            ['places', 'Spots'],
+            ['both', 'Both'],
+          ].map(([id, lbl]) => (
+            <button
+              key={id}
+              className={'map-seg-btn' + (effLayer === id ? ' on' : '')}
+              aria-pressed={effLayer === id}
+              onClick={() => setLayer(id)}
+            >
+              {lbl}
+            </button>
+          ))}
+        </div>
+        <div className="map-chips">
+          {/* date strip — gates EVENTS only (places have no date). When the
+              Spots-only layer is active it's honestly dimmed + inert. */}
+          <div className={'map-dates' + (showEvents ? '' : ' map-dates-off')} aria-disabled={!showEvents}>
+            {DATE_FILTERS.map((d) => (
+              <button
+                key={d.id}
+                className={'map-chip' + (dateF === d.id ? ' on' : '')}
+                disabled={!showEvents}
+                onClick={() => setDateF(d.id)}
+                title={!showEvents ? 'Dates apply to events' : undefined}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
+          <button
+            className={'map-chip map-chip-free' + (freeOnly ? ' on' : '')}
+            aria-pressed={freeOnly}
+            onClick={() => setFreeOnly((v) => !v)}
+          >
+            🆓 Free
+          </button>
+          {/* category chips: applies to whichever layer(s) show */}
+          <button className={'map-chip' + (cat === 'all' ? ' on' : '')} onClick={() => setCat('all')}>
+            All
+          </button>
+          {CATEGORIES.filter((c) => c.id !== 'other').map((c) => (
+            <button
+              key={c.id}
+              className={'map-chip' + (cat === c.id ? ' on' : '')}
+              aria-pressed={cat === c.id}
+              onClick={() => setCat((v) => (v === c.id ? 'all' : c.id))}
+            >
+              <span aria-hidden>{c.emoji}</span> {c.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {!sheet && (
         <div className="map-note">
-          {inView == null
-            ? `${withCoords.length.toLocaleString('en-US')} of ${upcoming.length.toLocaleString('en-US')} upcoming events on the map`
-            : `${inView.toLocaleString('en-US')} in view · ${withCoords.length.toLocaleString('en-US')}/${upcoming.length.toLocaleString('en-US')} upcoming on the map`}
+          {placesLoading && layer === 'places'
+            ? 'Loading spots…'
+            : inView == null
+              ? `${num(withCoords.length)} of ${num(totalShown)} ${noun} on the map`
+              : `${num(inView)} in view · ${num(withCoords.length)}/${num(totalShown)} ${noun} on the map`}
         </div>
       )}
       {sheet && (
@@ -288,7 +460,17 @@ export default function MapView({ events, anchors }) {
 function PinSheet({ e, onClose, onDetail }) {
   const ref = useRef(null)
   const drag = useRef(null)
-  const meta = (e._ongoing ? ['Ongoing', e.venue] : [dayLabelLoose(e), startLabel(e), e.venue])
+  // T1: a PLACE has no date — its meta is the honest "always here" line, never
+  // a fabricated time; events keep their day/time/ongoing meta. The chips row
+  // also branches: a place wears no heat/sponsored (places.js contract).
+  const isPlace = e.kind === 'place'
+  const meta = (
+    isPlace
+      ? ['Always here · no schedule', e.venue]
+      : e._ongoing
+        ? ['Ongoing', e.venue]
+        : [dayLabelLoose(e), startLabel(e), e.venue]
+  )
     .filter(Boolean)
     .join(' · ')
   const down = (ev) => {
@@ -336,9 +518,18 @@ function PinSheet({ e, onClose, onDetail }) {
             <div className="msheet-title">{e.title}</div>
             <div className="msheet-meta">{meta || 'Tap for details'}</div>
             <div className="msheet-chips">
-              <HeatBadge e={e} />
-              <PriceChip e={e} />
-              <SponsoredTag e={e} />
+              {isPlace ? (
+                <>
+                  <span className="msheet-spot-tag">📍 Spot</span>
+                  {e.isFree === true && <PriceChip e={e} />}
+                </>
+              ) : (
+                <>
+                  <HeatBadge e={e} />
+                  <PriceChip e={e} />
+                  <SponsoredTag e={e} />
+                </>
+              )}
             </div>
           </div>
         </div>
