@@ -211,3 +211,68 @@
   opacity: 0.85;
   pointer-events: none;
 }
+
+/* ===== U-d — the morning-after conversion card (the two-beat RETURN beat).
+   A quiet white card, NOT a shout: one warm question, two calm buttons. It
+   asks once about one past planned day; answered, it goes away. Nothing red,
+   nothing guilt-toned (ban §7). The ONE violet beat (#7) is a brief border
+   glow on a 'went' conversion — the same scarce --reward token, used once. */
+.cal-recap {
+  margin: 14px 16px 0;
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.cal-recap-q {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  line-height: 1.4;
+  color: var(--ink);
+}
+.cal-recap-what { color: var(--accent); }
+.cal-recap-btns { display: flex; gap: 10px; margin-top: 12px; }
+.cal-recap-yes,
+.cal-recap-no {
+  flex: 1;
+  height: 38px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform var(--dur-micro) var(--ease-out);
+}
+.cal-recap-yes {
+  border: none;
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+}
+.cal-recap-no {
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--muted);
+}
+.cal-recap-yes:active,
+.cal-recap-no:active { transform: scale(0.97); }
+
+/* the violet beat (#7): a single brief glow at the moment of conversion —
+   never a badge, never a counter. Scarcity is the meaning (index.css ledger). */
+@keyframes calRecapLit {
+  0% { box-shadow: 0 0 0 0 rgba(var(--reward-rgb), 0); }
+  35% { box-shadow: 0 0 0 4px rgba(var(--reward-rgb), 0.35); border-color: var(--reward); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--reward-rgb), 0); }
+}
+.cal-recap.lit {
+  animation: calRecapLit 900ms var(--ease-out);
+  border-color: var(--reward);
+}
+@media (prefers-reduced-motion: reduce) {
+  /* no pulse under reduced motion — a single static violet border still marks
+     the moment without movement (the beat survives, the animation doesn't) */
+  .cal-recap.lit { animation: none; border-color: var(--reward); }
+  .cal-recap-yes:active,
+  .cal-recap-no:active { transform: none; }
+}

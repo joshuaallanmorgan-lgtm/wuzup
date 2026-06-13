@@ -32,6 +32,7 @@ import { DAY_IDS, PLAN_KEY, planFor, weekendDays } from './weekend.js'
 export const DAYPLANS_KEY = 'day-plans-v1' // stored as twh:day-plans-v1
 const DAYHISTORY_KEY = 'day-history-v1'
 const WEEKEND_DONE_KEY = 'weekend-done-v1' // the WB completion beat's one-shot memory (see below)
+const CONVERTED_KEY = 'day-converted-v1' // U-d's morning-after answer ledger (see §U-d block)
 export const HISTORY_CAP = 120
 export const PARTS = ['day', 'night']
 
@@ -272,4 +273,159 @@ export function loadWeekendDone(wkStartTs) {
 }
 export function markWeekendDone(wkStartTs) {
   lsSet(WEEKEND_DONE_KEY, JSON.stringify({ weekendStartTs: wkStartTs, done: true, v: 1 }))
+}
+
+// ===== ⚑U-V7 / U-d — the two-beat loop's RETURN beat: the morning-after
+// conversion store + derivations (CALENDAR_BRIEF §5 violet moment #7). =====
+//
+// THE ANSWER LEDGER ('day-converted-v1' = { [String(dayTs)]: 'went'|'missed', v:1 }):
+// when a PAST planned day's morning-after card is answered, the answer is
+// recorded here so the card NEVER re-fires and is NEVER re-asked (the Finch
+// silence-on-absence rule, ban §7 #9: no daily cadence, no nags). This is a
+// SIBLING one-shot store, deliberately NOT the history entry's `done` flag:
+// 'day-history-v1' is append-only and dedup-by-dayTs (an archived day is never
+// overwritten), so a per-day answer can't live there without breaking that
+// contract. The ledger is the single source of "already answered".
+// · 'went'  also rides markBeen('went') at the call site (saves.js) — the +2
+//           taste signal stays UNFARMABLE (markBeen is idempotent per key); the
+//           been-there 'went' entry is what makes the day a DID-DAY (didDays()).
+// · 'missed' records ONLY the answer here. Nothing else changes — no taste, no
+//           been-there 'went', no branding: the day simply stops being a
+//           candidate and goes quietly blank (ban §7 #8: never "you missed").
+//
+// VIOLET MOMENT #7 is ONE-SHOT PER DAY, persisted: markDayConverted returns
+// { firstWrite, violet }. violet === true ONLY on the FIRST 'went' write for a
+// day — a re-answer (idempotent: a recorded day never re-writes) returns
+// violet:false, so the beat can never re-fire on reopen, and 'missed' NEVER
+// lights it. The caller fires the single quiet --reward beat iff violet.
+function readConverted() {
+  try {
+    const v = JSON.parse(lsGet(CONVERTED_KEY))
+    if (v && typeof v === 'object' && !Array.isArray(v) && v.v === 1) return v
+  } catch {
+    /* absent, corrupt, or private mode — nothing answered yet */
+  }
+  return { v: 1 }
+}
+
+// the answered-day map { [String(dayTs)]: 'went'|'missed' } — read-only view
+// (the `v` marker filtered out) for the candidate derivation + the journal.
+export function loadConverted() {
+  const raw = readConverted()
+  const out = {}
+  for (const k of Object.keys(raw)) {
+    if (k === 'v') continue
+    if (raw[k] === 'went' || raw[k] === 'missed') out[k] = raw[k]
+  }
+  return out
+}
+
+// record the morning-after answer for a past day. Idempotent: a day already
+// answered (went OR missed) is never re-written, so a re-tap can't re-fire the
+// violet beat or re-run any side effect. Returns:
+//   firstWrite — true only when this call actually recorded the answer
+//   violet     — true only on the first-ever 'went' for this day (#7's one-shot)
+export function markDayConverted(dayTs, answer) {
+  if (answer !== 'went' && answer !== 'missed') return { firstWrite: false, violet: false }
+  const k = String(dayTs)
+  const raw = readConverted()
+  if (raw[k] === 'went' || raw[k] === 'missed') return { firstWrite: false, violet: false }
+  raw[k] = answer
+  lsSet(CONVERTED_KEY, JSON.stringify(raw))
+  return { firstWrite: true, violet: answer === 'went' }
+}
+
+// local-midnight ms for a snapshot.start (ISO 'YYYY-MM-DD' or a full datetime),
+// matching lib.dayTs's local-not-UTC rule. A bare date is parsed component-wise
+// so it never drifts a day across timezones; anything unparseable → null.
+// (Kept local so this module stays import-light — see the file header rule.)
+function dayTsOf(iso) {
+  if (typeof iso !== 'string' || !iso) return null
+  let d
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (m) d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+  else {
+    const t = new Date(iso)
+    if (Number.isNaN(t.getTime())) return null
+    d = new Date(t.getFullYear(), t.getMonth(), t.getDate())
+  }
+  return Number.isNaN(d.getTime()) ? null : d.getTime()
+}
+
+// DID-DAYS — derived from the been-there store (NOT day-history): a day you
+// actually went out is a day with a been-there entry whose status==='went',
+// keyed by snapshot.start's local-midnight (CALENDAR_BRIEF §5 / the scout's
+// "snapshot.start, never statusAt" rule — statusAt is WHEN you answered, not
+// the day you went). Returns a Set<dayTs>. `beenList` is useBeenThere()'s
+// array; entries without a went status or a parseable start are skipped.
+export function didDays(beenList) {
+  const s = new Set()
+  if (!Array.isArray(beenList)) return s
+  for (const b of beenList) {
+    if (!b || b.status !== 'went') continue
+    const ts = dayTsOf(b.snapshot?.start)
+    if (ts != null) s.add(ts)
+  }
+  return s
+}
+
+// THE MORNING-AFTER CANDIDATES — the past PLANNED days the two-beat card may
+// ask about, most-recent-first. A candidate is a day-history entry that is:
+//   · genuinely PAST (dayTs < anchors.todayTs — the sweep already guarantees
+//     this for archived rows, but we re-check defensively),
+//   · a real PLAN (a filled slot — NOT a rest day: a past rest day is a RECORD,
+//     honored and never asked "did you make it", ban §7 #10 / ⚑U-REST), and
+//   · NOT already answered (absent from the converted ledger).
+// The CARD shows ONE candidate at a time (the caller takes [0]) — never a feed
+// of nags, never a per-day cadence (ban §7 #9). `history` is loadDayHistory()'s
+// array; `converted` is loadConverted()'s answer map.
+export function morningAfterCandidates(history, converted, anchors) {
+  if (!Array.isArray(history)) return []
+  const answered = converted || {}
+  return history
+    .filter((h) => {
+      if (!h || typeof h.dayTs !== 'number') return false
+      if (h.dayTs >= anchors.todayTs) return false // not past yet
+      if (h.state === 'rest') return false // a rested day is a record, never asked
+      if (!h.slots || (!h.slots.day && !h.slots.night)) return false // no plan to convert
+      if (answered[String(h.dayTs)]) return false // already went/missed
+      return true
+    })
+    .sort((a, b) => b.dayTs - a.dayTs) // most recent past planned day first
+}
+
+// "N days out in {month}" — ZERO IS SILENCE (ban §7 #8: a quiet month renders
+// as nothing, never "0 📉", never shame). Counts DISTINCT did-days (didDays)
+// that fall in the given month window [monthStartTs, nextMonthStartTs). Pure;
+// the caller renders the line ONLY when n > 0. Breadth-framed by the COPY at
+// the call site — this returns the bare count.
+export function daysOutInMonth(didDaySet, monthStartTs, nextMonthStartTs) {
+  let n = 0
+  for (const ts of didDaySet) if (ts >= monthStartTs && ts < nextMonthStartTs) n++
+  return n
+}
+
+// VARIETY FIRSTS — breadth, never volume (ban §7 #5: no "10 events!"). A small
+// FIXED set of first-time-category stamps: the first time a did-day carried a
+// given category, that stamp is earned ONCE and never grows. Returns the EARNED
+// stamps (id/label/emoji) for the categories present in the went-list, capped at
+// MAX_FIRSTS so the row stays a handful of badges, not a scoreboard. `wentSnaps`
+// is the been-there 'went' entries (their snapshots carry .category). Order:
+// by the canonical FIRSTS order (stable), so the row never reshuffles.
+export const FIRSTS = [
+  { id: 'outdoors', label: 'First day outdoors', emoji: '🌳' }, // matches the 'outdoors' id — no 'beach' category exists, so don't claim one
+  { id: 'music', label: 'First live music', emoji: '🎵' },
+  { id: 'food', label: 'First food outing', emoji: '🍔' },
+  { id: 'art', label: 'First arts day', emoji: '🎨' },
+  { id: 'market', label: 'First market', emoji: '🛍️' },
+]
+export const MAX_FIRSTS = FIRSTS.length // 5 — the hard ceiling (breadth, not a tracker)
+export function varietyFirsts(wentSnaps) {
+  if (!Array.isArray(wentSnaps)) return []
+  const have = new Set()
+  for (const b of wentSnaps) {
+    const c = b?.status === 'went' ? b?.snapshot?.category : null
+    if (typeof c === 'string' && c) have.add(c)
+  }
+  return FIRSTS.filter((f) => have.has(f.id)).slice(0, MAX_FIRSTS)
 }

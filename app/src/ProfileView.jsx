@@ -31,7 +31,16 @@ import { markBeen, shelfItems, useBeenThere, useSaves } from './saves.js'
 import { confidence, interviewAnswers, topCategories, useTaste } from './taste.js'
 import { useRecents } from './recents.js'
 import { DAY_IDS, SLOT_IDS, filledCount, loadHistory, visibleWeekend, weekendDays } from './weekend.js'
-import { PARTS, dayEntryFor, filledForDays, loadDayHistory, loadDayPlans } from './dayplan.js'
+import {
+  PARTS,
+  dayEntryFor,
+  daysOutInMonth,
+  didDays,
+  filledForDays,
+  loadDayHistory,
+  loadDayPlans,
+  varietyFirsts,
+} from './dayplan.js'
 import './profile.css'
 
 const fmtShort = (ts) =>
@@ -192,6 +201,27 @@ export default function ProfileView({ events, anchors, primer }) {
     [been, byKey, anchors]
   )
 
+  // ===== U-d: the gentle ledger (all derivations, never new stores) =====
+  // DID-DAYS — days you actually went out (been-there 'went', by snapshot.start).
+  // The journal uses this to distinguish a did-day from a merely-planned past
+  // day; a past day with no 'went' stays a quiet record, never a failure.
+  const dids = useMemo(() => didDays(been), [been])
+  // "N days out in {month}" — ZERO IS SILENCE. Counts distinct did-days in the
+  // current calendar month; the line renders ONLY when n > 0 (never "0 📉").
+  const monthStart = useMemo(() => {
+    const d = new Date(anchors.todayTs)
+    return new Date(d.getFullYear(), d.getMonth(), 1).getTime()
+  }, [anchors.todayTs])
+  const nextMonthStart = useMemo(() => {
+    const d = new Date(monthStart)
+    return new Date(d.getFullYear(), d.getMonth() + 1, 1).getTime()
+  }, [monthStart])
+  const daysOut = daysOutInMonth(dids, monthStart, nextMonthStart)
+  const monthName = new Date(anchors.todayTs).toLocaleDateString('en-US', { month: 'long' })
+  // VARIETY FIRSTS — breadth, not volume: a fixed handful of first-time-category
+  // stamps earned from the went-list (never "10 events!"). Capped in dayplan.js.
+  const firsts = useMemo(() => varietyFirsts(been), [been])
+
   // ===== Recently viewed: recents keys resolved against the live dataset =====
   const recents = useMemo(
     () => recentKeys.map((k) => byKey.get(k)).filter(Boolean).slice(0, 6),
@@ -299,27 +329,36 @@ export default function ProfileView({ events, anchors, primer }) {
               ))}
             </>
           )}
-          {/* U-a: past planned/rest DAYS from 'day-history-v1' — a simple
-              honest list (Sprint U-d turns this into the journal). Quiet days
-              render as exactly that: a record, never a gap. */}
+          {/* U-d: the past-days JOURNAL from 'day-history-v1'. Three honest
+              states, never a gap, never a failure:
+                · a did-day (you answered "I went" — derived from been-there) is
+                  marked "✓ Went" (DRAFT) — a plan that became a thing you did;
+                · a past REST day is "Rested 🌙" (DRAFT — a RECORD, the past
+                  tense of the future "Resting 🌙" intent), honored, never asked;
+                · a merely-planned past day stays a quiet record of the plan. */}
           {dayHist.length > 0 && (
             <>
               <div className="pf-hist-label">Past days</div>
-              {dayHist.map((h) => (
-                <div className="pf-dayh" key={h.dayTs}>
-                  <span className="pf-dayh-date">🗓️ {fmtShort(h.dayTs)}</span>
-                  <span className="pf-dayh-what">
-                    {h.state === 'rest'
-                      ? 'Quiet day 🌙'
-                      : PARTS.filter((p) => h.slots[p])
-                          .map(
-                            (p) =>
-                              (p === 'day' ? '☀️ ' : '🌙 ') + (titleByKey.get(h.slots[p]) ?? 'no longer listed')
-                          )
-                          .join(' · ')}
-                  </span>
-                </div>
-              ))}
+              {dayHist.map((h) => {
+                const went = dids.has(h.dayTs)
+                return (
+                  <div className={'pf-dayh' + (went ? ' pf-dayh-went' : '')} key={h.dayTs}>
+                    <span className="pf-dayh-date">🗓️ {fmtShort(h.dayTs)}</span>
+                    <span className="pf-dayh-what">
+                      {h.state === 'rest'
+                        ? 'Rested 🌙'
+                        : PARTS.filter((p) => h.slots[p])
+                            .map(
+                              (p) =>
+                                (p === 'day' ? '☀️ ' : '🌙 ') + (titleByKey.get(h.slots[p]) ?? 'no longer listed')
+                            )
+                            .join(' · ')}
+                    </span>
+                    {/* the did-day mark — a plan you made became a thing you did */}
+                    {went && h.state !== 'rest' && <span className="pf-dayh-went-tag">✓ Went</span>}
+                  </div>
+                )
+              })}
             </>
           )}
         </section>
@@ -335,6 +374,27 @@ export default function ProfileView({ events, anchors, primer }) {
               </>
             }
           />
+          {/* U-d — the gentle ledger. "N days out in {month}" is a calm RECORD,
+              not a score: ZERO IS SILENCE (it simply isn't rendered at 0 — never
+              "0 📉", never shame, ban §7 #8). Variety FIRSTS celebrate BREADTH:
+              a fixed handful of first-time-category stamps, never a volume count
+              (ban §7 #5). ALL COPY IS DRAFT for Charles. */}
+          {daysOut > 0 && (
+            <div className="pf-ledger-line">
+              {daysOut === 1
+                ? `1 day out in ${monthName} so far 🗓️`
+                : `${daysOut} days out in ${monthName} so far 🗓️`}
+            </div>
+          )}
+          {firsts.length > 0 && (
+            <div className="pf-firsts">
+              {firsts.map((f) => (
+                <span className="pf-first" key={f.id}>
+                  <span aria-hidden>{f.emoji}</span> {f.label}
+                </span>
+              ))}
+            </div>
+          )}
           {prompts.length > 0 && (
             <div className="pf-asks">
               {prompts.map(({ key, e, snapshot }) => (

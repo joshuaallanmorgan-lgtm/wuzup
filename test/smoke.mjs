@@ -379,6 +379,25 @@ const placesMod = await import('../app/src/places.js')
 const searchMod = await import('../app/src/search.js')
 const dayfill = await import('../app/src/dayfill.js')
 
+// dayplan.js is JSX/CSS-free (its only imports are storage.js + weekend.js,
+// both Node-safe). Its U-d conversion ledger (markDayConverted/loadConverted)
+// PERSISTS through storage.js, which is a no-op in Node without a localStorage —
+// so install a tiny in-memory shim BEFORE importing dayplan, letting the
+// one-shot persistence path actually run. The pure derivations
+// (morningAfterCandidates / didDays / daysOutInMonth / varietyFirsts) need no
+// storage at all. storage.js already module-evaluated (lib imported it) so the
+// migration won't re-run; lsGet/lsSet read globalThis.localStorage per call.
+globalThis.localStorage = (() => {
+  const m = new Map()
+  return {
+    getItem: (k) => (m.has(k) ? m.get(k) : null),
+    setItem: (k, v) => void m.set(k, String(v)),
+    removeItem: (k) => void m.delete(k),
+    clear: () => m.clear(),
+  }
+})()
+const dayplan = await import('../app/src/dayplan.js')
+
 // tiny synthetic-event factory (normalized shape, only the fields the logic reads)
 const ev = (over = {}) => ({
   title: 't',
@@ -804,4 +823,152 @@ test('dayfill.js: deck is capped at DECK_TARGET, places only round out a thin da
   const richDeck = dayfill.dealDayFill(manyEvents, manyPlaces, ts, AN, null)
   assert.equal(richDeck.length, TARGET, `a rich day is capped at DECK_TARGET, got ${richDeck.length}`)
   assert.ok(richDeck.every((c) => c.kind !== 'place'), 'a rich event day gets NO place tail — the catalog never bolts on')
+})
+
+// ============================================================
+// Sprint U-d — the TWO-BEAT LOOP + the GENTLE LEDGER (CALENDAR_BRIEF Model C,
+// §5 violet #7 + §7 the 12-item ban list). dayplan.js's conversion logic is
+// pure (derivations) + storage-backed (the one-shot ledger, via the shim).
+// ============================================================
+
+// a Wednesday anchor; "past planned day" tests reference days before it
+const UD_AN = lib.makeAnchors(new Date(2026, 5, 17, 12, 0)) // Wed Jun 17 2026
+const dts = (y, m, d) => new Date(y, m, d).getTime() // local-midnight ms helper
+
+test('U-d: the conversion one-shot never re-fires (violet #7 is once-per-day)', () => {
+  localStorage.clear()
+  const day = dts(2026, 5, 13) // a past Saturday
+  // first 'went' lights the violet beat AND records the answer
+  const first = dayplan.markDayConverted(day, 'went')
+  assert.equal(first.firstWrite, true, 'the first answer records')
+  assert.equal(first.violet, true, 'the first "went" lights violet moment #7')
+  // a SECOND tap (reopen / double-tap) must NOT re-fire — idempotent + silent
+  const again = dayplan.markDayConverted(day, 'went')
+  assert.equal(again.firstWrite, false, 'an already-answered day never re-writes')
+  assert.equal(again.violet, false, 'the violet beat never re-fires on reopen (one-shot, persisted)')
+  // a 'missed' answer for a DIFFERENT day records but NEVER lights violet
+  const miss = dayplan.markDayConverted(dts(2026, 5, 14), 'missed')
+  assert.equal(miss.firstWrite, true, 'a "missed" answer is still recorded (so it is never re-asked)')
+  assert.equal(miss.violet, false, 'a "missed" answer never lights the violet beat (ban §7: no guilt, no reward for absence)')
+  // the ledger persisted both answers
+  const ledger = dayplan.loadConverted()
+  assert.equal(ledger[String(day)], 'went', 'the went answer persisted')
+  assert.equal(ledger[String(dts(2026, 5, 14))], 'missed', 'the missed answer persisted')
+  // a bogus answer is a no-op (defensive)
+  assert.equal(dayplan.markDayConverted(day, 'maybe').firstWrite, false, 'an invalid answer records nothing')
+})
+
+test('U-d: did-days derive from been-there snapshot.start (never statusAt)', () => {
+  // statusAt (WHEN you answered) is deliberately a DIFFERENT day than start —
+  // the did-day must key on the event's day, not the answer's day.
+  const been = [
+    { key: 'a', status: 'went', statusAt: dts(2026, 5, 20), snapshot: { start: '2026-06-13T20:00:00' } },
+    { key: 'b', status: 'went', statusAt: dts(2026, 5, 20), snapshot: { start: '2026-06-14' } }, // date-only
+    { key: 'c', status: 'missed', snapshot: { start: '2026-06-15T20:00:00' } }, // missed ≠ a did-day
+    { key: 'd', status: 'went', snapshot: { start: null } }, // no start → not derivable, skipped
+    { key: 'e', snapshot: { start: '2026-06-16' } }, // no status → not a went
+  ]
+  const dids = dayplan.didDays(been)
+  assert.ok(dids.has(dts(2026, 5, 13)), 'a timed "went" derives its did-day from start, not statusAt')
+  assert.ok(dids.has(dts(2026, 5, 14)), 'a date-only "went" derives its did-day (local midnight)')
+  assert.ok(!dids.has(dts(2026, 5, 15)), 'a "missed" entry is NEVER a did-day')
+  assert.ok(!dids.has(dts(2026, 5, 20)), 'statusAt is never the did-day (the answer day is not the outing day)')
+  assert.equal(dids.size, 2, 'exactly the two parseable "went" days')
+  assert.deepEqual(dayplan.didDays(null), new Set(), 'a missing list derives no did-days')
+})
+
+test('U-d: the days-out counter is SILENT at zero (never shame)', () => {
+  const monthStart = dts(2026, 5, 1) // June 1
+  const nextMonth = dts(2026, 6, 1) // July 1
+  // zero did-days in the month → 0 (the caller renders NOTHING at 0, never "0 📉")
+  assert.equal(dayplan.daysOutInMonth(new Set(), monthStart, nextMonth), 0, 'no did-days → 0 (silence, not a score)')
+  // distinct did-days inside the window count; days in other months do NOT
+  const dids = new Set([dts(2026, 5, 13), dts(2026, 5, 14), dts(2026, 4, 30), dts(2026, 6, 2)])
+  assert.equal(dayplan.daysOutInMonth(dids, monthStart, nextMonth), 2, 'only June did-days count toward "days out in June"')
+  // breadth check: the count is days, not events (the Set is already distinct)
+  assert.equal(dayplan.daysOutInMonth(new Set([dts(2026, 5, 13)]), monthStart, nextMonth), 1, 'a single did-day reads as 1')
+})
+
+test('U-d: the morning-after card does NOT fire for a past REST day', () => {
+  const converted = {} // nothing answered yet
+  const history = [
+    { dayTs: dts(2026, 5, 13), state: 'rest', slots: { day: null, night: null } }, // a past REST day
+    { dayTs: dts(2026, 5, 14), state: null, slots: { day: 'k1', night: null } }, // a past PLANNED day
+    { dayTs: dts(2026, 5, 15), state: null, slots: { day: null, night: null } }, // empty (no plan)
+  ]
+  const cands = dayplan.morningAfterCandidates(history, converted, UD_AN)
+  const candDays = cands.map((c) => c.dayTs)
+  assert.ok(!candDays.includes(dts(2026, 5, 13)), 'a past REST day is a RECORD, never asked "did you make it" (ban §7 #10)')
+  assert.ok(candDays.includes(dts(2026, 5, 14)), 'a past planned day with a filled slot IS a candidate')
+  assert.ok(!candDays.includes(dts(2026, 5, 15)), 'an empty past day has no plan to convert')
+  // ONE quiet card at a time: most-recent-first ordering (the caller takes [0])
+  const two = dayplan.morningAfterCandidates(
+    [
+      { dayTs: dts(2026, 5, 10), state: null, slots: { day: 'a', night: null } },
+      { dayTs: dts(2026, 5, 16), state: null, slots: { day: 'b', night: null } },
+    ],
+    {},
+    UD_AN
+  )
+  assert.equal(two[0].dayTs, dts(2026, 5, 16), 'the most-recent past planned day surfaces first')
+  // an ANSWERED day (in the ledger) is never a candidate again — the card
+  // clears on answer and never re-fires (whether the answer was went OR missed)
+  const answered = dayplan.morningAfterCandidates(history, { [String(dts(2026, 5, 14))]: 'missed' }, UD_AN)
+  assert.deepEqual(answered, [], 'a missed (or went) day is removed from candidates — never re-asked')
+  // a FUTURE planned day is never a morning-after candidate (it has not happened)
+  const future = dayplan.morningAfterCandidates(
+    [{ dayTs: dts(2026, 5, 25), state: null, slots: { day: 'x', night: null } }],
+    {},
+    UD_AN
+  )
+  assert.deepEqual(future, [], 'a future planned day is never asked about (it has not happened yet)')
+})
+
+test('U-d: variety firsts are breadth stamps, fixed + capped (never a volume badge)', () => {
+  // many "went" entries in ONE category earn the ONE first, never a count
+  const manyMusic = Array.from({ length: 10 }, (_, i) => ({
+    key: 'm' + i,
+    status: 'went',
+    snapshot: { start: '2026-06-13', category: 'music' },
+  }))
+  const oneFirst = dayplan.varietyFirsts(manyMusic)
+  assert.equal(oneFirst.length, 1, '10 music outings earn exactly ONE "first live music" stamp (breadth, not volume)')
+  assert.equal(oneFirst[0].id, 'music', 'the earned stamp is the music first')
+  // distinct categories each earn their own first, capped at MAX_FIRSTS
+  const variety = [
+    { key: '1', status: 'went', snapshot: { category: 'outdoors' } },
+    { key: '2', status: 'went', snapshot: { category: 'music' } },
+    { key: '3', status: 'went', snapshot: { category: 'food' } },
+    { key: '4', status: 'missed', snapshot: { category: 'art' } }, // missed earns nothing
+  ]
+  const stamps = dayplan.varietyFirsts(variety)
+  const ids = stamps.map((s) => s.id)
+  assert.ok(ids.includes('outdoors') && ids.includes('music') && ids.includes('food'), 'each distinct went-category earns its first')
+  assert.ok(!ids.includes('art'), 'a MISSED outing earns no stamp')
+  assert.ok(stamps.length <= dayplan.MAX_FIRSTS, `firsts are capped at MAX_FIRSTS (${dayplan.MAX_FIRSTS}) — a handful, never a tracker`)
+  assert.deepEqual(dayplan.varietyFirsts(null), [], 'a missing list earns no firsts')
+})
+
+// Sprint U-d — the "went" side rides the EXISTING markBeen seam so the +2 taste
+// stays unfarmable, and slotting earns NO taste signal in v1 (the nudge ceiling
+// 18 is the wall — asserted above). saves.js can't import into Node (CSS), so
+// grep the wiring CalendarView leans on, like the places round-trip test.
+test('U-d: the conversion "went" rides markBeen + lights violet once (CalendarView wiring)', () => {
+  const calSrc = readFileSync(path.join(ROOT, 'app', 'src', 'CalendarView.jsx'), 'utf8')
+  assert.ok(/markBeen\(key, snap, 'went'\)/.test(calSrc), 'the card\'s "I went" must ride the idempotent markBeen seam (+2 unfarmable)')
+  assert.ok(/markDayConverted\(card\.dayTs, status\)/.test(calSrc), 'the answer must persist through the one-shot conversion ledger')
+  assert.ok(/morningAfterCandidates\(/.test(calSrc), 'the card must derive from morningAfterCandidates (past planned, rest excluded)')
+  // the violet beat is gated on the one-shot's return — never an unconditional pop
+  assert.ok(/if \(lit\)/.test(calSrc), 'the violet beat fires ONLY when markDayConverted returns violet (one-shot per day)')
+  // no taste signal is recorded for slotting anywhere in the day surfaces
+  const daySrc = readFileSync(path.join(ROOT, 'app', 'src', 'DayPage.jsx'), 'utf8')
+  assert.ok(!/recordSignal\(/.test(daySrc), 'DayPage must record NO taste signal for slotting (only "went" feeds taste, v1)')
+})
+
+// Sprint U-d — index.css ledger comment amended to record violet moment #7.
+test('U-d: index.css reward ledger records the 7th sanctioned moment', () => {
+  const idx = readFileSync(path.join(ROOT, 'app', 'src', 'index.css'), 'utf8')
+  assert.ok(/SEVEN micro-reward moments/.test(idx), 'the --reward ledger comment must now say SEVEN moments')
+  assert.ok(/did-day conversion/.test(idx), 'the ledger must name the planned-day → did-day conversion (#7)')
+  assert.ok(/U-V7/.test(idx), 'the ledger must cite the ⚑U-V7 flag for #7')
 })

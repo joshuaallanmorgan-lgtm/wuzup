@@ -292,7 +292,9 @@ export function NavProvider({ children }) {
       clearTimeout(pageTRef.current)
       setPage(null)
       setPageClosing(false)
-      setMapFocus({ lat: e.lat, lng: e.lng, key: keyOf(e) })
+      // carry kind so MapView can switch on the Spots layer when the focus is a
+      // place (its default Events-only layer would otherwise drop the pin)
+      setMapFocus({ lat: e.lat, lng: e.lng, key: keyOf(e), kind: e.kind ?? null })
       goTo(viewIndex('map'))
     },
     [goTo]

@@ -3,15 +3,25 @@
 // tapping a day (rail pill or today-or-later month cell) opens the DAY SCREEN
 // for it — the day screen carries the agenda, so browse stays whole; the
 // selected-day list below the grid still tracks the tap underneath.
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { keyOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { EventCard } from './cards.jsx'
-import { useSaves } from './saves.js'
+import { markBeen, snapshotFor, useBeenThere, useSaves } from './saves.js'
 import { dateKey, wxSummary } from './weather.js'
-import { hasContent, loadDayPlans } from './dayplan.js'
+import {
+  hasContent,
+  loadConverted,
+  loadDayHistory,
+  loadDayPlans,
+  markDayConverted,
+  morningAfterCandidates,
+  PARTS,
+} from './dayplan.js'
 import { visibleWeekend } from './weekend.js'
 import './calendar.css'
+
+const wdLong = (ts) => new Date(ts).toLocaleDateString('en-US', { weekday: 'long' })
 
 export default function CalendarView({ events, anchors, wx }) {
   const { openDetail: onSelect, openWeekend: onOpenWeekend, openDay, page } = useNav()
@@ -69,6 +79,96 @@ export default function CalendarView({ events, anchors, wx }) {
     for (const [k, e] of Object.entries(dayPlans)) if (e.state === 'rest') s.add(Number(k))
     return s
   }, [dayPlans])
+
+  // ===== U-d: the morning-after conversion card (the two-beat RETURN beat) =====
+  // A single quiet card for the most-recent PAST PLANNED day not yet answered
+  // (loadDayPlans already swept past plans into history; a past REST day is
+  // excluded by morningAfterCandidates — a rested day is a record, never
+  // asked). Re-derives on the same subpage edge as the grid marks (`page` flip)
+  // so answering on the day screen / dismissing here reflects without remount.
+  // subscribing to been-there keeps the card honest when a "went" is answered
+  // from ANOTHER surface (Profile's prompts) while Calendar is mounted.
+  const been = useBeenThere()
+  // a local bump re-derives the card after an answer HERE (both "went" and
+  // "missed" call setCardTick), so the answered card clears without remount.
+  const [cardTick, setCardTick] = useState(0)
+  const card = useMemo(() => {
+    // re-read triggers: been-there change (cross-surface answer), a day-screen
+    // close (`page` flip may have swept a new past day), and a local answer.
+    // The actual inputs (history + the converted ledger) are read from
+    // localStorage inside the body, which the deps linter can't see — these
+    // voids are the explicit, honest re-derive triggers.
+    void been
+    void page
+    void cardTick
+    const cands = morningAfterCandidates(loadDayHistory(), loadConverted(), anchors)
+    return cands[0] ?? null
+  }, [anchors, been, page, cardTick])
+  // resolve the card's slotted keys to live events for the title + the
+  // markBeen snapshot; a vanished event still gets asked (we synthesize a
+  // start-bearing snapshot so the day still derives as a did-day on "went").
+  const cardByKey = useMemo(() => {
+    const m = new Map()
+    for (const e of events) m.set(keyOf(e), e)
+    return m
+  }, [events])
+  // [violet beat] moment #7. The PERSISTED one-shot lives in the converted
+  // ledger (markDayConverted only lights violet on a first 'went'). The glow
+  // must survive the answer: markBeen + markDayConverted both re-derive `card`
+  // to null in the SAME batched commit (the answered day drops from the
+  // candidates), which would unmount the recap before .lit ever paints (review
+  // BLOCKING). So on a lit 'went' we FREEZE the answered card into litCard and
+  // render IT (with .lit) for the glow's duration, independent of the live
+  // candidate; the ref-cleared timer then clears it (toast pattern).
+  const [litCard, setLitCard] = useState(null)
+  const violetTRef = useRef(null)
+  useEffect(() => () => clearTimeout(violetTRef.current), [])
+  const VIOLET_MS = 900
+
+  const cardSlots = card
+    ? PARTS.map((part) => ({ part, key: card.slots[part] })).filter((x) => x.key)
+    : []
+  const cardPrimary = cardSlots.length ? cardByKey.get(cardSlots[0].key) : null
+  // the day as a local-midnight ISO date — the synthesized snapshot's start, so
+  // a vanished-event "went" still lands on the right did-day (didDays derives
+  // from snapshot.start). Title degrades honestly when the event is gone.
+  const cardDateISO = card
+    ? (() => {
+        const d = new Date(card.dayTs)
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+      })()
+    : null
+  const cardTitle = cardPrimary?.title || null
+
+  const answerCard = (status) => {
+    if (!card) return
+    if (status === 'went') {
+      // mark every slotted entry "went" (idempotent +2 via markBeen) so the
+      // day's plan converts to journal entries; a vanished event gets a
+      // synthesized start-bearing snapshot so the did-day still derives.
+      for (const { key } of cardSlots) {
+        const live = cardByKey.get(key)
+        const snap = live ? snapshotFor(live) : { title: null, start: cardDateISO, category: null }
+        markBeen(key, snap, 'went')
+      }
+    }
+    // record the answer (one-shot, persisted) — violet fires ONLY on a first
+    // 'went' for this day; 'missed' is silent and the day just goes blank.
+    const { violet: lit } = markDayConverted(card.dayTs, status)
+    if (lit) {
+      // freeze the answered card so the violet beat paints through its glow even
+      // as the live candidate re-derives to null underneath (the unmount race)
+      setLitCard({ dayTs: card.dayTs, title: cardTitle })
+      clearTimeout(violetTRef.current)
+      violetTRef.current = setTimeout(() => setLitCard(null), VIOLET_MS)
+    }
+    // re-derive so the answered candidate clears. The NEXT candidate (if any)
+    // surfaces — but only as the same single quiet card, never a stacked feed of
+    // nags (ban §7 #9: no cadence). During a lit glow litCard wins the render,
+    // so a queued next candidate waits behind the celebration.
+    setCardTick((t) => t + 1)
+  }
+
   const sel = selKey ?? days.find((d) => d >= anchors.todayTs) ?? days[0] ?? anchors.todayTs
   const selEvents = dayMap.get(sel) || []
 
@@ -161,6 +261,46 @@ export default function CalendarView({ events, anchors, wx }) {
           </div>
         )}
       </div>
+
+      {/* U-d — the two-beat RETURN beat: a single quiet morning-after card for
+          the most-recent past PLANNED day, not yet answered. Went → records the
+          attendance (idempotent +2) + the ONE sanctioned violet beat #7; Missed
+          → silent, the day just goes blank. A past REST day is never asked.
+          ALL COPY IS DRAFT for Charles. */}
+      {/* the violet glow (litCard) WINS the render while it plays — the frozen
+          answered card, briefly lit, no buttons (it's done); then it clears and
+          the next live candidate (if any) shows. Otherwise the live question
+          card with Went/Missed. */}
+      {litCard ? (
+        <div className="cal-recap lit">
+          <div className="cal-recap-q">
+            {wdLong(litCard.dayTs)} — logged ✓{/* DRAFT for Charles */}
+          </div>
+        </div>
+      ) : (
+        card && (
+          <div className="cal-recap">
+            <div className="cal-recap-q">
+              {wdLong(card.dayTs)} — did you make it
+              {cardTitle ? (
+                <>
+                  {' '}to <span className="cal-recap-what">{cardTitle}</span>?
+                </>
+              ) : (
+                ' out?'
+              )}
+            </div>
+            <div className="cal-recap-btns">
+              <button className="cal-recap-yes" onClick={() => answerCard('went')}>
+                I went 🎉
+              </button>
+              <button className="cal-recap-no" onClick={() => answerCard('missed')}>
+                Missed it
+              </button>
+            </div>
+          </div>
+        )
+      )}
 
       {mode === 'month' ? (
         <div className="cal-fade" key="month">
