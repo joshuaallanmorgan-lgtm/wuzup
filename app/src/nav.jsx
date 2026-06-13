@@ -43,8 +43,14 @@ import { recordView } from './recents.js'
 // pager CSS, dice/🎨 gates, Escape, focusMap) derives. Icon.locations is
 // already drawn (lib.js) and waiting. DRIVER'S-SEAT CALL: it enters when it
 // has content, not as a dead tab (MASTER_PLAN2 §O1).
+// Sprint S: the fifth tab landed. Locations ('Spots' — ⚑O1 placeholder, Charles
+// names it) sits between Events and Map (CONFIRMED DECISIONS #1 order: Events ·
+// Locations · Map · Calendar · Profile). Adding it was exactly the promised
+// two-line diff — this entry + one lazy <section> in App.jsx; indices stay
+// derived so nothing else moved.
 export const VIEWS = [
   { id: 'hot', label: 'Events' },
+  { id: 'locations', label: 'Spots' },
   { id: 'map', label: 'Map' },
   { id: 'calendar', label: 'Calendar' },
   { id: 'profile', label: 'Profile' },
@@ -105,7 +111,8 @@ export function NavProvider({ children }) {
     visit(i)
   }, [visit])
 
-  // ===== subpage overlay: null | {type:'bubble',bubble} | {type:'search'} |
+  // ===== subpage overlay: null | {type:'bubble',bubble} |
+  // {type:'placebubble',bubble} (Sprint S) | {type:'search'} |
   // {type:'night'} | {type:'add',ts} | {type:'weekend'} | {type:'day',ts} |
   // {type:'settings'} |
   // {type:'interests',from} | {type:'deck',from} | {type:'lensdeck',lens} —
@@ -137,6 +144,15 @@ export function NavProvider({ children }) {
     clearTimeout(pageTRef.current)
     setPageClosing(false)
     setPage({ type: 'search' })
+  }, [])
+  // Sprint S: a tapped Locations bubble → a full PlaceBubblePage (the place-side
+  // twin of openBubble). No taste signal here — a place's interest signal is
+  // recorded on detail OPEN (the shared openDetail seam), same as events; the
+  // bubble tap is just navigation. `bubble` is a PLACE_BUBBLES entry.
+  const openPlaceBubble = useCallback((bubble) => {
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    setPage({ type: 'placebubble', bubble })
   }, [])
   const openNight = useCallback(() => {
     clearTimeout(pageTRef.current)
@@ -306,6 +322,7 @@ export function NavProvider({ children }) {
       page,
       pageClosing,
       openBubble,
+      openPlaceBubble,
       openSearch,
       openNight,
       openAdd,
@@ -335,6 +352,7 @@ export function NavProvider({ children }) {
       page,
       pageClosing,
       openBubble,
+      openPlaceBubble,
       openSearch,
       openNight,
       openAdd,

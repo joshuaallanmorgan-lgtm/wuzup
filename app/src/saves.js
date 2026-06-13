@@ -136,6 +136,54 @@ export function markBeen(key, snapshot, status) {
   }
 }
 
+// the persisted snapshot — just enough to render a shelf card (and, for a
+// place, to fully round-trip back to PlaceDetail) after a dataset refresh
+// drops the live record. Extracted so the smoke harness can assert the
+// place round-trip without a DOM (saves.js can't import into Node — it pulls
+// in CSS — so the test greps this, but keeping it one function documents the
+// contract in one place).
+export function snapshotFor(e) {
+  const snap = {
+    title: e.title ?? null,
+    start: e.start ?? null,
+    // end + tags must survive: without them a still-running multi-day save
+    // would normalize to a one-day event and be falsely marked "Happened"
+    end: e.end ?? null,
+    tags: Array.isArray(e.tags) ? e.tags : [],
+    venue: e.venue ?? null,
+    image: e.image ?? null,
+    url: e.url ?? null,
+    category: e.category ?? null,
+    isFree: e.isFree ?? null,
+    price: e.price ?? null,
+    // the labeling invariant survives a dataset refresh: a vanished
+    // sponsored save must still wear its disclosure everywhere
+    sponsored: e.sponsored === true,
+  }
+  // Sprint S: a saved PLACE must reopen as PlaceDetail with a correct ♥.
+  // Places are NEVER in the events norm, so shelfItems can't re-resolve a
+  // 'p|' key from the live dataset — the snapshot is the ONLY source. Carry
+  // kind+key (so keyOf returns 'p|slug' again → App routes to PlaceDetail)
+  // plus the fields PlaceDetail renders, so the reopened detail is full.
+  if (e.kind === 'place') {
+    snap.kind = 'place'
+    snap.key = e.key
+    snap.name = e.name ?? null
+    snap.lat = e.lat ?? null
+    snap.lng = e.lng ?? null
+    snap.placeType = e.placeType ?? null
+    snap.classes = Array.isArray(e.classes) ? e.classes : []
+    snap.amenities = Array.isArray(e.amenities) ? e.amenities : []
+    snap.hours = e.hours ?? null
+    snap.fee = e.fee ?? null
+    snap.description = e.description ?? null
+    snap.sources = Array.isArray(e.sources) ? e.sources : []
+    snap.srcCount = e.srcCount ?? null
+    snap.hidden = e.hidden ?? null
+  }
+  return snap
+}
+
 export function toggleSave(e) {
   const k = keyOf(e)
   const map = { ...store.map }
@@ -143,26 +191,7 @@ export function toggleSave(e) {
     delete map[k]
   } else {
     recordSignal('save', e) // taste seam: toggle-ON only (un-saving says nothing)
-    map[k] = {
-      savedAt: Date.now(),
-      snapshot: {
-        title: e.title ?? null,
-        start: e.start ?? null,
-        // end + tags must survive: without them a still-running multi-day save
-        // would normalize to a one-day event and be falsely marked "Happened"
-        end: e.end ?? null,
-        tags: Array.isArray(e.tags) ? e.tags : [],
-        venue: e.venue ?? null,
-        image: e.image ?? null,
-        url: e.url ?? null,
-        category: e.category ?? null,
-        isFree: e.isFree ?? null,
-        price: e.price ?? null,
-        // the labeling invariant survives a dataset refresh: a vanished
-        // sponsored save must still wear its disclosure everywhere
-        sponsored: e.sponsored === true,
-      },
-    }
+    map[k] = { savedAt: Date.now(), snapshot: snapshotFor(e) }
   }
   commit(map)
 }

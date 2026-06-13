@@ -9,11 +9,14 @@ import Primer, { loadPrimerState } from './Primer.jsx'
 import { WxContext } from './cards.jsx'
 import { getForecast } from './weather.js'
 import HotView from './HotView.jsx'
+import LocationsView from './LocationsView.jsx'
 import MapView from './MapView.jsx'
 import CalendarView from './CalendarView.jsx'
 import ProfileView from './ProfileView.jsx'
 import DetailPage from './DetailPage.jsx'
+import PlaceDetail from './PlaceDetail.jsx'
 import BubblePage from './BubblePage.jsx'
+import PlaceBubblePage from './PlaceBubblePage.jsx'
 import SearchPage from './SearchPage.jsx'
 import FindMyNight from './FindMyNight.jsx'
 import AddEvent from './AddEvent.jsx'
@@ -248,6 +251,14 @@ function Shell() {
           <section className="page page-hot">
             <HotView events={norm} anchors={anchors} loading={loading} whenPref={primer?.when ?? null} />
           </section>
+          <section className="page">
+            {/* Sprint S: the Locations tab — lazy-mounted like the rest; its own
+                /places.json fetch (places.js) fires on first visit, never at
+                boot, never merged into the events norm */}
+            {visited.has('locations') && (
+              <LocationsView coords={coords} requestCoords={requestCoords} />
+            )}
+          </section>
           <section className="page page-map">
             {visited.has('map') && <MapView events={norm} anchors={anchors} />}
           </section>
@@ -285,6 +296,8 @@ function Shell() {
                 requestCoords={requestCoords}
               />
             )}
+            {/* Sprint S: a tapped Locations bubble → its filtered place list */}
+            {page.type === 'placebubble' && <PlaceBubblePage bubble={page.bubble} />}
             {page.type === 'search' && <SearchPage events={norm} anchors={anchors} coords={coords} />}
             {page.type === 'night' && <FindMyNight events={norm} anchors={anchors} coords={coords} />}
             {page.type === 'add' && (
@@ -341,9 +354,15 @@ function Shell() {
             }}
           />
         )}
-        {/* keyed by event: a More-like-this swap REMOUNTS the detail (scroll resets
-            to top, mini-map is destroyed + rebuilt for the new coords) */}
-        {detail && (
+        {/* keyed by key: a More-like-this swap REMOUNTS the detail (scroll resets
+            to top, mini-map is destroyed + rebuilt for the new coords). Sprint S:
+            the shared detail layer serves BOTH kinds — a place (kind:'place')
+            opens PlaceDetail, an event opens DetailPage; openDetail's taste +
+            recents seams are generic (keyOf/category) so both record correctly. */}
+        {detail && detail.kind === 'place' && (
+          <PlaceDetail key={keyOf(detail)} e={detail} anchors={anchors} wx={wx} />
+        )}
+        {detail && detail.kind !== 'place' && (
           <DetailPage
             key={keyOf(detail)}
             e={detail}

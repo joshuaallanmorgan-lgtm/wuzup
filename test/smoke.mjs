@@ -375,6 +375,7 @@ const lib = await import('../app/src/lib.js')
 const weekend = await import('../app/src/weekend.js')
 const taste = await import('../app/src/taste.js')
 const share = await import('../app/src/share.js')
+const placesMod = await import('../app/src/places.js')
 
 // tiny synthetic-event factory (normalized shape, only the fields the logic reads)
 const ev = (over = {}) => ({
@@ -556,7 +557,7 @@ test('tasteNudge: bounded 0..18, exact ceiling, neutral profile = 0', () => {
 // one tab's tree — strictly less than the old eager three-tab boot.
 test('O1 lazy mounting: non-Events tabs gate on visited, boot seeds one tab', () => {
   const appSrc = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
-  for (const id of ['map', 'calendar', 'profile']) {
+  for (const id of ['locations', 'map', 'calendar', 'profile']) {
     assert.ok(
       appSrc.includes(`visited.has('${id}') &&`),
       `App.jsx must gate the '${id}' tab's children on visited.has('${id}') — lazy mounting (O1) regressed`
@@ -567,6 +568,77 @@ test('O1 lazy mounting: non-Events tabs gate on visited, boot seeds one tab', ()
     navSrc.includes('new Set([VIEWS[0].id])'),
     'nav.jsx must seed the visited set with the boot tab only — eager mounting crept back in'
   )
+})
+
+// ============================================================
+// Sprint S — the LOCATIONS layer: places.js pure logic + the generated
+// places.json the tab consumes. Places are a SEPARATE store from events.
+// ============================================================
+test('places.js: normalizePlace aliases name→title, defaults category, rejects junk', () => {
+  const raw = { key: 'p|fort-de-soto-park', kind: 'place', name: 'Fort De Soto Park', placeType: 'park', classes: ['park', 'beach'], category: 'outdoors', lat: 27.63, lng: -82.72, address: '3500 Pinellas Bayway', isFree: true, sources: ['Pinellas Park Points', 'OSM'], srcCount: 2, hiddenScore: 0, hidden: false }
+  const p = placesMod.normalizePlace(raw)
+  assert.equal(p.title, 'Fort De Soto Park', 'title must alias name (cards.jsx reads e.title)')
+  assert.equal(p.venue, '3500 Pinellas Bayway', 'venue must alias address')
+  assert.equal(p.kind, 'place')
+  assert.equal(p._free, true, 'isFree:true → _free:true (FREE badge + free filter)')
+  assert.equal(p.category, 'outdoors')
+  // keyOf must honor the place key (the shared save/taste/recents seam)
+  assert.equal(lib.keyOf(p), 'p|fort-de-soto-park', 'keyOf must return the p| key for a place')
+  // defaults + rejection
+  assert.equal(placesMod.normalizePlace({ key: 'p|x', name: 'X', lat: 28, lng: -82 }).category, 'outdoors', 'missing category defaults to outdoors')
+  assert.equal(placesMod.normalizePlace({ key: 'p|x', name: '', lat: 28, lng: -82 }), null, 'nameless place → null')
+  assert.equal(placesMod.normalizePlace({ name: 'no key', lat: 28, lng: -82 }), null, 'keyless place → null')
+  assert.equal(placesMod.normalizePlace({ key: 'p|x', name: 'X', lat: 'nope', lng: -82 }), null, 'non-numeric coords → null')
+})
+
+test('places.js: the eight bubbles partition sensibly + classics filter', () => {
+  const ids = placesMod.PLACE_BUBBLES.map((b) => b.id)
+  assert.equal(ids.length, 8, 'exactly the eight Locations bubbles')
+  const mk = (over) => placesMod.normalizePlace({ key: 'p|t', name: 'T', lat: 28, lng: -82, placeType: 'park', classes: [], amenities: [], srcCount: 1, ...over })
+  const find = (id) => placesMod.PLACE_BUBBLES.find((b) => b.id === id)
+  assert.ok(find('beaches').match(mk({ placeType: 'beach' })), 'a beach matches Beaches')
+  assert.ok(find('dog').match(mk({ classes: ['dog_park'] })), 'a dog_park matches Dog-friendly')
+  assert.ok(find('free').match(mk({ isFree: true })), 'a free place matches Free')
+  assert.ok(find('hidden').match(mk({ hidden: true })), 'a hidden place matches Hidden')
+  assert.ok(!find('hidden').match(mk({ hidden: false })), 'a non-hidden place does NOT match Hidden')
+  assert.ok(find('courts').match(mk({ amenities: ['pickleball'] })), 'a pickleball court matches Courts & rec')
+  // classics = corroborated across 3+ sources
+  const list = [mk({ srcCount: 3 }), mk({ srcCount: 1 }), mk({ srcCount: 5 })]
+  assert.equal(placesMod.classics(list).length, 2, 'classics keeps only srcCount>=3')
+})
+
+test('places data: app/public/places.json normalizes whole + every bubble has members', () => {
+  const APP_PLACES = path.join(ROOT, 'app', 'public', 'places.json')
+  const doc = JSON.parse(readFileSync(APP_PLACES, 'utf8'))
+  const norm = doc.places.map(placesMod.normalizePlace)
+  assert.ok(norm.every(Boolean), 'every place in places.json normalizes (no nulls)')
+  assert.ok(norm.every((p) => typeof p.title === 'string' && p.title), 'every normalized place has a title')
+  // no empty bubble — an empty Locations bubble is a demo wince (review UX guard)
+  for (const b of placesMod.PLACE_BUBBLES) {
+    const n = norm.filter(b.match).length
+    assert.ok(n >= 1, `Locations bubble "${b.id}" has ${n} members — an empty bubble ships a dead end`)
+  }
+  // a benchmark place is present + renders (title aliased)
+  const honeymoon = norm.find((p) => p.key === 'p|honeymoon-island-state-park')
+  assert.ok(honeymoon && honeymoon.title.includes('Honeymoon'), 'Honeymoon Island present + titled')
+})
+
+// Sprint S review must-fix: a saved PLACE must round-trip back to PlaceDetail
+// with a correct ♥. The save snapshot has to carry kind+key, else the
+// reconstructed object loses kind:'place', keyOf returns the wrong key, and the
+// shelf reopens the EVENT detail with an unsaved heart. (saves.js can't import
+// into Node — it pulls in CSS — so we grep the snapshot builder + prove the
+// normalize→keyOf contract the shelf relies on.)
+test('places: a saved place round-trips (snapshot carries kind+key → PlaceDetail + right heart)', () => {
+  const savesSrc = readFileSync(path.join(ROOT, 'app', 'src', 'saves.js'), 'utf8')
+  assert.ok(/snap\.kind = 'place'/.test(savesSrc), 'toggleSave snapshot must persist kind:place for a saved place')
+  assert.ok(/snap\.key = e\.key/.test(savesSrc), 'toggleSave snapshot must persist the place key')
+  // the contract shelfItems leans on: normalize keeps kind via {...raw}, so a
+  // place snapshot reconstructs to a place whose keyOf is the 'p|' key again
+  const snapshot = { kind: 'place', key: 'p|test-park', name: 'Test Park', title: 'Test Park', lat: 27.9, lng: -82.5, placeType: 'park', category: 'outdoors' }
+  const recon = lib.normalize({ ...snapshot }, AN)
+  assert.equal(recon.kind, 'place', 'normalize must preserve kind:place (the App detail-layer routes on it)')
+  assert.equal(lib.keyOf(recon), 'p|test-park', 'keyOf of a reconstructed place must be the p| key (SaveHeart + routing depend on it)')
 })
 
 test('weekend window: Fri–Sun for 3 different start days', () => {

@@ -1,0 +1,245 @@
+/* locations.css — Sprint S. Only the place-specific surfaces; everything else
+   (hot-scroll, bubbles, sec, carousel, detail-*, row) is reused from App.css /
+   cards.css / detail.css so the Locations tab IS Hot's structural twin. */
+
+/* ===== the Locations hero — ⚑S1 CSS placeholder (water/park energy) until
+   Charles supplies the real image. A teal→green wash, no external asset. ===== */
+.loc-hero {
+  position: relative;
+  min-height: 200px;
+  padding: 0 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  color: #fff;
+}
+.loc-hero-wash,
+.loc-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.loc-hero::before {
+  background: linear-gradient(155deg, #0d9488 0%, #0e7490 45%, #166534 100%);
+  z-index: 0;
+}
+.loc-hero-wash {
+  background:
+    radial-gradient(120% 80% at 80% 0%, rgba(255, 255, 255, 0.22), transparent 60%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.32), transparent 55%);
+  z-index: 1;
+}
+.loc-hero .hero-text {
+  position: relative;
+  z-index: 2;
+}
+.loc-hero .hero-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  opacity: 0.9;
+  margin-bottom: 4px;
+}
+.loc-hero .hero-city {
+  font-size: 34px;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.05;
+}
+.loc-hero .hero-sub {
+  font-size: 14px;
+  opacity: 0.92;
+  margin-top: 4px;
+}
+/* flat variant for the loading / empty states (no wash needed) */
+.loc-hero-flat {
+  min-height: 140px;
+}
+
+/* ===== Near-you locate prompt (mirrors the bubble-page locate card) ===== */
+.loc-locate {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+.loc-locate-txt {
+  font-size: 14px;
+  color: var(--muted);
+}
+.loc-locate-btn {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 999px;
+  padding: 9px 16px;
+  cursor: pointer;
+}
+
+/* ===== PlaceDetail: the headline "Make this my plan" action ===== */
+.loc-plan-cta {
+  width: 100%;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  padding: 13px 16px;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: filter var(--dur-micro) var(--ease-out);
+}
+.loc-plan-cta:active {
+  filter: brightness(0.94);
+}
+
+/* ===== amenities chips ===== */
+.loc-amen {
+  margin: 4px 0 18px;
+}
+.loc-amen .d-k {
+  margin-bottom: 8px;
+}
+.loc-amen-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.loc-amen-chip {
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 11px;
+  white-space: nowrap;
+}
+
+/* ===== Make-this-my-plan sheet (self-contained; no weekend.css coupling) ===== */
+.loc-plan-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 2200; /* above the detail layer (2000) */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.loc-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  border: none;
+  cursor: pointer;
+}
+.loc-plan-sheet {
+  position: relative;
+  background: var(--card);
+  border-radius: 18px 18px 0 0;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  max-height: 78vh;
+  overflow-y: auto;
+  animation: loc-sheet-up var(--dur-page) var(--ease-emphasis);
+}
+@keyframes loc-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.loc-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.loc-sheet-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.loc-sheet-close {
+  font-size: 18px;
+  line-height: 1;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+.loc-note {
+  font-size: 13px;
+  color: var(--muted);
+  padding: 8px 2px;
+}
+.loc-plan-days {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+.loc-plan-day {
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.loc-plan-day.on {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.loc-plan-slots {
+  display: flex;
+  gap: 12px;
+}
+.loc-plan-slot {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 10px;
+  background: var(--bg);
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color var(--dur-micro) var(--ease-out);
+}
+.loc-plan-slot:not(:disabled):active {
+  border-color: var(--accent);
+}
+.loc-plan-slot:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.loc-plan-slot-ic {
+  font-size: 24px;
+}
+.loc-plan-slot-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.loc-plan-slot-taken {
+  font-size: 11px;
+  color: var(--muted);
+}

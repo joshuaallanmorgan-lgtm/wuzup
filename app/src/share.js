@@ -47,6 +47,12 @@ function dtStamp() {
 }
 
 export function vevent(e) {
+  // a calendar VEVENT needs a date. A place (Sprint S: kind:'place' slotted via
+  // Make-this-my-plan) has none — it's "always there", not a timed event — so
+  // it produces NO VEVENT and is simply absent from the .ics (it still appears
+  // in the human shareDayText). Guard the dateless/unparseable case: without
+  // this, parseDate(undefined).getFullYear() would throw mid-export.
+  if (!e || !e.start || !parseDate(e.start)) return null
   // deterministic UID from url|title+start (same event → same UID → no dupes)
   const idKey = (e.url || e.title || 'event') + '|' + (e.start || '')
   let h = 0
@@ -91,9 +97,14 @@ export function wrapIcs(bodies) {
 }
 
 // one-event calendar (DetailPage's .ics download — the old icsText, unchanged
-// output) and a multi-event calendar (the day plan's ICS, one VEVENT per slot)
-export const eventIcs = (e) => wrapIcs([vevent(e)])
-export const eventsIcs = (list) => wrapIcs(list.map(vevent))
+// output for any dated event) and a multi-event calendar (the day plan's ICS,
+// one VEVENT per slot). vevent returns null for a dateless entry (a place), so
+// both filter those out — a place is never a calendar line.
+export const eventIcs = (e) => {
+  const b = vevent(e)
+  return wrapIcs(b ? [b] : [])
+}
+export const eventsIcs = (list) => wrapIcs(list.map(vevent).filter(Boolean))
 
 // ===== human share text for ONE day =====
 // generalizes weekend.js shareText's per-day block. entries = the day's filled

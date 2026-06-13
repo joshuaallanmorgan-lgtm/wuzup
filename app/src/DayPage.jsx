@@ -33,6 +33,7 @@ import { useNav } from './nav.jsx'
 import { CardImg, EventCard, SponsoredTag } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
 import { tasteNudge } from './taste.js'
+import { usePlaces, isPlaceKey } from './places.js'
 import { daypartOf, fitsDay, pickerModel } from './weekend.js'
 import { eventsIcs, shareDayText } from './share.js'
 import {
@@ -95,16 +96,27 @@ export default function DayPage({ ts, events, anchors, wx }) {
     () => shelfItems(savedList, events, anchors).filter((x) => !x.past).map((x) => x.e),
     [savedList, events, anchors]
   )
+  // Sprint S: a slot can hold a PLACE (Make-this-my-plan writes a 'p|' key),
+  // not just an event. Fold the lazy-loaded places into the resolver map so a
+  // slotted place renders instead of silently vanishing. The places fetch
+  // (~1.2MB) is triggered ONLY when this day actually holds a place key — an
+  // event-only or empty day pays nothing (review HARDENING).
+  const hasPlaceSlot = isPlaceKey(entry.slots.day) || isPlaceKey(entry.slots.night)
+  const { places: placeList } = usePlaces(hasPlaceSlot)
   const byKey = useMemo(() => {
     const m = new Map()
     for (const e of savedEvents) m.set(keyOf(e), e) // snapshots first…
     for (const e of upcoming) m.set(keyOf(e), e) // …live events win
+    if (Array.isArray(placeList)) for (const p of placeList) m.set(p.key, p) // …places too
     return m
-  }, [upcoming, savedEvents])
+  }, [upcoming, savedEvents, placeList])
   const resolveSlot = useCallback(
     (k) => {
       const e = k ? byKey.get(k) : null
-      return e && fitsDay(e, ts) ? e : null
+      if (!e) return null
+      // a place is "always there" — it fits ANY day; only events are date-gated
+      if (e.kind === 'place') return e
+      return fitsDay(e, ts) ? e : null
     },
     [byKey, ts]
   )
@@ -193,14 +205,20 @@ export default function DayPage({ ts, events, anchors, wx }) {
     if (!canShare) return
     const text = shareDayText(ts, shareEntries)
     if (!text) return
-    // the .ics: one VEVENT per slotted entry. navigator.share can carry the
-    // file where supported; the human text is the universal payload + the
-    // clipboard/file fallback path (matches the rest of the app's sharing).
+    // the .ics: one VEVENT per slotted entry. A PLACE has no date, so it
+    // produces no VEVENT (share.js vevent guards it) — a place-only day would
+    // otherwise build an EVENTLESS calendar and still flash "calendar saved",
+    // which is a small lie. Only build the file when at least one slotted entry
+    // is actually dated (an event). navigator.share carries it where supported;
+    // the human text (which DOES include the place) is the universal payload.
+    const datedEntries = shareEntries.filter((x) => x.e && x.e.start)
     let file = null
-    try {
-      file = new File([eventsIcs(shareEntries.map((x) => x.e))], 'my-plan.ics', { type: 'text/calendar' })
-    } catch {
-      /* File constructor unavailable (older browsers) — text-only share */
+    if (datedEntries.length) {
+      try {
+        file = new File([eventsIcs(datedEntries.map((x) => x.e))], 'my-plan.ics', { type: 'text/calendar' })
+      } catch {
+        /* File constructor unavailable (older browsers) — text-only share */
+      }
     }
     if (navigator.share) {
       const payload = { title: 'My plan', text }

@@ -176,6 +176,12 @@ export function priceLabel(e) {
   return null
 }
 export function keyOf(e) {
+  // Sprint S: places carry their own canonical 'p|'-prefixed key (places.json
+  // schema v1). Honoring it here is what lets the SAME save/taste/recents seams
+  // serve both layers without forking — a place save lands under 'p|slug', an
+  // event under its url/title, so the two namespaces can never collide in the
+  // shared 'saved-events-v1' store. Inert for events (they never carry kind).
+  if (e.kind === 'place' && typeof e.key === 'string' && e.key) return e.key
   return (e.url || e.title || '') + '|' + (e.start || '')
 }
 export function milesBetween(a, b) {
