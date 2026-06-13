@@ -10,6 +10,7 @@ import { EventCard } from './cards.jsx'
 import { useSaves } from './saves.js'
 import { dateKey, wxSummary } from './weather.js'
 import { hasContent, loadDayPlans } from './dayplan.js'
+import { visibleWeekend } from './weekend.js'
 import './calendar.css'
 
 export default function CalendarView({ events, anchors, wx }) {
@@ -102,9 +103,21 @@ export default function CalendarView({ events, anchors, wx }) {
       <div className="cal-top">
         <div className="cal-top-row">
           <h2 className="cal-title">Calendar</h2>
-          {/* K2 seam: second Weekend Builder entry (covers the no-saves path) */}
+          {/* U-WKND re-point (flag default applied — see report): the pill now
+              speaks the day-plan world. WB stays the richer surface for a real
+              multi-day weekend (2–3 columns), but when only ONE weekend day is
+              still live (it's Sunday) a 1-column Weekend Builder is no richer
+              than the day screen — so the pill takes the MORE DIRECT path and
+              opens that day's screen. The entry keeps working either way. */}
           {onOpenWeekend && (
-            <button className="cal-wkb" onClick={onOpenWeekend}>
+            <button
+              className="cal-wkb"
+              onClick={() => {
+                const wk = visibleWeekend(anchors)
+                if (wk.length === 1) openDay(wk[0].ts)
+                else onOpenWeekend()
+              }}
+            >
               Weekend 🗓️
             </button>
           )}

@@ -374,6 +374,7 @@ test('app lint: eslint exits 0', { timeout: 300_000 }, async (t) => {
 const lib = await import('../app/src/lib.js')
 const weekend = await import('../app/src/weekend.js')
 const taste = await import('../app/src/taste.js')
+const share = await import('../app/src/share.js')
 
 // tiny synthetic-event factory (normalized shape, only the fields the logic reads)
 const ev = (over = {}) => ({
@@ -480,6 +481,52 @@ test('daypartOf: boundary hours', () => {
   assert.equal(at('16:59'), 'day', '16:59 is still day')
   assert.equal(at('17:00'), 'night', '17:00 opens the night window')
   assert.equal(at('00:30'), 'night', '00:30 is night (small hours)')
+})
+
+// Sprint U-c: the generalized share/ICS builders (share.js). The single-event
+// path must stay byte-for-byte the old DetailPage output; the day path must
+// emit one VEVENT per slotted entry inside ONE VCALENDAR.
+test('share.js: eventIcs is a single well-formed VEVENT, eventsIcs is multi', () => {
+  const timed = N(ev({ title: 'Vinyl Night', start: '2026-06-13T19:00:00', venue: 'The Attic' }), AN)
+  const dated = N(ev({ title: 'Art Walk', start: '2026-06-14', venue: 'Riverwalk' }), AN)
+  const one = share.eventIcs(timed)
+  assert.ok(one.startsWith('BEGIN:VCALENDAR\r\n') && one.endsWith('END:VCALENDAR\r\n'), 'single ICS must be a full VCALENDAR')
+  assert.equal((one.match(/BEGIN:VEVENT/g) || []).length, 1, 'eventIcs must contain exactly one VEVENT')
+  assert.ok(one.includes('DTSTART:20260613T190000'), 'timed event must emit local floating DTSTART')
+  assert.ok(one.includes('SUMMARY:Vinyl Night'), 'SUMMARY must carry the title')
+  // multi: two slotted entries → two VEVENTs, one envelope
+  const many = share.eventsIcs([timed, dated])
+  assert.equal((many.match(/BEGIN:VCALENDAR/g) || []).length, 1, 'eventsIcs must wrap ONE VCALENDAR')
+  assert.equal((many.match(/BEGIN:VEVENT/g) || []).length, 2, 'eventsIcs must emit one VEVENT per entry')
+  assert.equal((many.match(/END:VEVENT/g) || []).length, 2, 'every VEVENT must be closed')
+  assert.ok(many.includes('DTSTART;VALUE=DATE:20260614'), 'date-only entry must be all-day')
+  // empty list is still a valid (empty) calendar — never throws
+  const none = share.eventsIcs([])
+  assert.equal((none.match(/BEGIN:VEVENT/g) || []).length, 0, 'empty plan ICS has no VEVENTs')
+})
+
+test('share.js: shareDayText composes ☀️/🌙 lines, null on nothing to share', () => {
+  const dayTs = new Date(2026, 5, 13).getTime()
+  const day = N(ev({ title: 'Beach', start: '2026-06-13T10:00:00', venue: 'Fort De Soto' }), AN)
+  const night = N(ev({ title: 'Show', start: '2026-06-13T20:00:00', venue: 'Orpheum' }), AN)
+  const txt = share.shareDayText(dayTs, [{ part: 'day', e: day }, { part: 'night', e: night }])
+  const lines = txt.split('\n')
+  assert.ok(lines[0].startsWith('My plan for'), 'first line is the day header')
+  assert.ok(lines.some((l) => l.startsWith('☀️ ') && l.includes('Beach')), 'day slot rendered with sun')
+  assert.ok(lines.some((l) => l.startsWith('🌙 ') && l.includes('Show')), 'night slot rendered with moon')
+  // nothing to share → null (empty/rest day gets no share affordance at all)
+  assert.equal(share.shareDayText(dayTs, []), null, 'empty day shares nothing')
+  assert.equal(share.shareDayText(dayTs, [{ part: 'day', e: null }]), null, 'unresolved slots drop to nothing')
+})
+
+// Sprint U-c: weekend.js's live plan store is retired — loadPlan/savePlan gone,
+// but the migration's support cast (PLAN_KEY/planFor/loadHistory) stays.
+test('U-c retirement: weekend.loadPlan/savePlan removed, support cast intact', () => {
+  assert.equal(weekend.loadPlan, undefined, 'weekend.loadPlan must be retired (day-plans-v1 is the store)')
+  assert.equal(weekend.savePlan, undefined, 'weekend.savePlan must be retired')
+  assert.equal(typeof weekend.planFor, 'function', 'planFor stays — the migration archive validator')
+  assert.equal(typeof weekend.loadHistory, 'function', 'loadHistory stays — Profile past-weekend cards')
+  assert.equal(weekend.PLAN_KEY, 'weekend-plan-v1', 'PLAN_KEY stays — migrateWeekendPlan reads it once')
 })
 
 test('tasteNudge: bounded 0..18, exact ceiling, neutral profile = 0', () => {

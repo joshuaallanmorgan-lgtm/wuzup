@@ -287,7 +287,9 @@ function Shell() {
             )}
             {page.type === 'search' && <SearchPage events={norm} anchors={anchors} coords={coords} />}
             {page.type === 'night' && <FindMyNight events={norm} anchors={anchors} coords={coords} />}
-            {page.type === 'add' && <AddEvent anchors={anchors} myEvents={myEvents} onAdd={addMine} />}
+            {page.type === 'add' && (
+              <AddEvent anchors={anchors} myEvents={myEvents} onAdd={addMine} presetTs={page.ts} />
+            )}
             {page.type === 'weekend' && (
               /* keyed by weekend: a midnight rollover into a new weekend remounts with that weekend's plan */
               <WeekendBuilder key={anchors.wkStartTs} events={norm} anchors={anchors} />

@@ -106,7 +106,7 @@ export function NavProvider({ children }) {
   }, [visit])
 
   // ===== subpage overlay: null | {type:'bubble',bubble} | {type:'search'} |
-  // {type:'night'} | {type:'add'} | {type:'weekend'} | {type:'day',ts} |
+  // {type:'night'} | {type:'add',ts} | {type:'weekend'} | {type:'day',ts} |
   // {type:'settings'} |
   // {type:'interests',from} | {type:'deck',from} | {type:'lensdeck',lens} —
   // slides in over the active tab (z 1500, below detail 2000). Sprint P added
@@ -143,10 +143,16 @@ export function NavProvider({ children }) {
     setPageClosing(false)
     setPage({ type: 'night' })
   }, [])
-  const openAdd = useCallback(() => {
+  // Sprint U-c: openAdd takes an optional day timestamp. From the day screen's
+  // "+ add your own" path it carries `ts` (a number) so AddEvent pre-fills that
+  // date AND auto-slots the new event into that day on submit (daypartOf
+  // routes day vs night; never clobbers a filled slot). Every other caller
+  // (Hot FAB, etc.) passes nothing — and a stray click-event arg reads as not
+  // a number, so the guard keeps the plain Add flow date-free.
+  const openAdd = useCallback((ts) => {
     clearTimeout(pageTRef.current)
     setPageClosing(false)
-    setPage({ type: 'add' })
+    setPage({ type: 'add', ts: typeof ts === 'number' && Number.isFinite(ts) ? ts : null })
   }, [])
   const openWeekend = useCallback(() => {
     clearTimeout(pageTRef.current)

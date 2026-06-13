@@ -8,9 +8,11 @@
 // confusable with sourced data. Footer exports my-events as JSON — the seed of
 // the future submission pipeline (PLAN.md Sprint C).
 import { useEffect, useRef, useState } from 'react'
-import { BUBBLES, dayTs, Icon, MY_SOURCE } from './lib.js'
+import { BUBBLES, dayTs, Icon, keyOf, MY_SOURCE } from './lib.js'
 import { useNav } from './nav.jsx'
 import { recordSignal } from './taste.js'
+import { daypartOf } from './weekend.js'
+import { dayEntryFor, loadDayPlans, saveDayPlans, withSlot } from './dayplan.js'
 import './addevent.css'
 
 // 12 category chips: the 11 real categories (canonical emoji/label/hue from
@@ -39,11 +41,16 @@ function checkUrl(v) {
   }
 }
 
-export default function AddEvent({ anchors, myEvents, onAdd }) {
+export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) {
   const { closePage: onClose } = useNav() // slide back out (O6)
+  // Sprint U-c: when opened from the day screen, presetTs is that day's
+  // local-midnight ms — pre-fill the date field and remember the day so a
+  // submit auto-slots the new event into it. A presetTs in the past is ignored
+  // defensively (the date field's own min guard + validation already block it).
+  const fromDay = typeof presetTs === 'number' && presetTs >= anchors.todayTs
   const [f, setF] = useState({
     title: '',
-    date: '',
+    date: fromDay ? isoDay(presetTs) : '',
     time: '',
     venue: '',
     address: '',
@@ -70,6 +77,25 @@ export default function AddEvent({ anchors, myEvents, onAdd }) {
     })
   }
 
+  // Sprint U-c auto-slot: write the just-created event into presetTs's day
+  // entry, routed by daypart. NEVER clobbers — if the routed slot is taken, it
+  // falls back to the other slot; if BOTH are full, it slots nothing (the
+  // event still lives in my-events + the agenda, it just isn't auto-placed).
+  // 'any' (date-only) prefers the day slot. Writes straight to the store
+  // because AddEvent REPLACED the day screen in the subpage union (single slot)
+  // — DayPage re-reads the store on its next mount and shows the slot. The
+  // event itself never goes through a second store; this only records a key.
+  const autoSlot = (raw) => {
+    const k = keyOf(raw)
+    const map = loadDayPlans(anchors)
+    const cur = dayEntryFor(map[String(presetTs)])
+    const part = daypartOf(raw) // 'day' | 'night' | 'any'
+    const order = part === 'night' ? ['night', 'day'] : ['day', 'night'] // 'any' → day first
+    const target = order.find((p) => !(cur && cur.slots[p])) // first free slot in preference order
+    if (!target) return // both slots filled — never overwrite silently
+    saveDayPlans(withSlot(map, presetTs, target, k)) // withSlot clears any rest mark
+  }
+
   const submit = (ev) => {
     ev.preventDefault()
     const errs = {}
@@ -87,7 +113,7 @@ export default function AddEvent({ anchors, myEvents, onAdd }) {
     // HERE, not in App.addMine — an undo-restore must not double-count.
     recordSignal('add', { category: f.cat || 'other' })
     // full schema-v2 shape — identical fields to a fetched event, honest values
-    onAdd({
+    const raw = {
       title,
       start: f.time ? f.date + 'T' + f.time + ':00' : f.date, // local floating, like the finder's output
       end: null,
@@ -108,7 +134,9 @@ export default function AddEvent({ anchors, myEvents, onAdd }) {
       tags: f.free ? ['added-by-you', 'free'] : ['added-by-you'],
       category: f.cat || 'other',
       sponsored: false,
-    })
+    }
+    onAdd(raw) // the ONE event seam — my-events; no second event store (U-c contract)
+    if (fromDay) autoSlot(raw)
     setDone(true)
     doneTRef.current = setTimeout(onClose, 1400) // success beat, then back to Hot
   }

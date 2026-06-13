@@ -87,6 +87,38 @@
 .dpg-clear { top: 50%; transform: translateY(-50%); }
 .dpg-clear:active { transform: translateY(-50%) scale(0.88); }
 
+/* ===== plan actions row (U-c): "+ add your own" + "Share this day" =====
+   quiet, side-by-side affordances under the slots — never a CTA shout, in the
+   day screen's text-weight voice (the share/own pair sits below the slots and
+   above the rest control). On a narrow frame they wrap gracefully. */
+.dpg-plan-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 16px 0;
+}
+.dpg-own-btn,
+.dpg-share-btn {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: none;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+/* share is the slightly louder of the two once a plan exists — teal ink,
+   still a hairline button, no fill */
+.dpg-share-btn {
+  border-color: rgba(var(--accent-rgb), 0.35);
+  color: var(--accent);
+  font-weight: 700;
+}
+
 /* the quiet rest control — a text-weight affordance, never a CTA shout */
 .dpg-rest-btn {
   display: block;

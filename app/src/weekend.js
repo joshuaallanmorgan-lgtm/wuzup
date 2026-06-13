@@ -1,8 +1,17 @@
 // weekend.js — Weekend Builder core (Sprint K2, ⚑FLAG-4 prototype).
 // Pure logic only: weekend-window math, daypart classification, slot fitting,
-// the 'weekend-plan-v1' persistence, the picker model and the share text.
-// Plain .js with NO JSX and no React so the Node verification sim can import
-// it directly (same rule as lib.js / taste.js); WeekendBuilder.jsx is the UI.
+// the picker model and the weekend share text. Plain .js with NO JSX and no
+// React so the Node verification sim can import it directly (same rule as
+// lib.js / taste.js); WeekendBuilder.jsx is the UI.
+//
+// Sprint U-c: the LIVE plan store ('weekend-plan-v1' loadPlan/savePlan) was
+// retired — dayplan.js's 'day-plans-v1' is the single plan store now. What
+// remains here of the old store is only the migration's support cast: PLAN_KEY
+// (read once by dayplan.migrateWeekendPlan), planFor (its validator), and the
+// 'weekend-history-v1' archive (loadHistory/archivePlan — Profile still shows
+// past weekends). The single-event ICS + share builders generalized into
+// share.js (vevent/wrapIcs/shareDayText); weekend.js's whole-weekend shareText
+// below is unchanged and still used by the Weekend Builder.
 import { keyOf, timeOf } from './lib.js'
 import { lsGet, lsSet } from './storage.js'
 
@@ -131,18 +140,12 @@ export function planFor(stored, weekendStartTs) {
   return emptyPlan(weekendStartTs)
 }
 
-export function loadPlan(weekendStartTs) {
-  let stored = null
-  try {
-    stored = JSON.parse(lsGet(PLAN_KEY))
-  } catch {
-    /* absent, corrupt, or private mode — start empty */
-  }
-  return planFor(stored, weekendStartTs)
-}
-export function savePlan(plan) {
-  lsSet(PLAN_KEY, JSON.stringify(plan)) // guarded in storage.js — the plan still works for the session
-}
+// loadPlan/savePlan RETIRED in Sprint U-c: the live 'weekend-plan-v1' store is
+// gone — dayplan.js's 'day-plans-v1' is the single plan store now, and
+// migrateWeekendPlan() (dayplan.js) is the ONLY remaining reader of PLAN_KEY
+// (a one-shot conversion via lsGet, then lsRemove). planFor stays — it's the
+// validator the migration's past-weekend archive path calls; loadHistory +
+// archivePlan keep 'weekend-history-v1' alive for Profile's past-weekend cards.
 
 export const filledCount = (plan, slotIds = SLOT_IDS) =>
   slotIds.reduce((n, id) => n + (plan.slots[id] ? 1 : 0), 0)

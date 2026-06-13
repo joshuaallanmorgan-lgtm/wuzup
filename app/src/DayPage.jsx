@@ -34,6 +34,7 @@ import { CardImg, EventCard, SponsoredTag } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
 import { tasteNudge } from './taste.js'
 import { daypartOf, fitsDay, pickerModel } from './weekend.js'
+import { eventsIcs, shareDayText } from './share.js'
 import {
   dayEntryFor,
   emptyDay,
@@ -50,7 +51,7 @@ import './day.css'
 const wdLong = (ts) => new Date(ts).toLocaleDateString('en-US', { weekday: 'long' })
 
 export default function DayPage({ ts, events, anchors, wx }) {
-  const { openDetail: onSelect, closePage: onClose } = useNav()
+  const { openDetail: onSelect, closePage: onClose, openAdd } = useNav()
 
   // the day-plan map: loaded once on mount (loadDayPlans runs the one-shot
   // WB migration + the past-day archive sweep), persisted on every change —
@@ -151,6 +152,82 @@ export default function DayPage({ ts, events, anchors, wx }) {
     closeSheet()
   }
 
+  // ===== share this day (U-c): the entirety of invites v1 — a human text + a
+  // multi-VEVENT .ics, through navigator.share with the app's copy/download
+  // fallback (the DetailPage / WeekendBuilder pattern). Only offered when a
+  // slot is filled: an empty or rest day has nothing to share (sharing rest
+  // would need copy the ban list forbids), so the affordance simply isn't
+  // shown there. shareEntries resolves both slots to live events in ☀️→🌙
+  // order, dropping any that no longer fit (a refresh moved them). =====
+  const dayKeySlot = entry.slots.day
+  const nightKeySlot = entry.slots.night
+  const shareEntries = useMemo(
+    () =>
+      [
+        { part: 'day', e: resolveSlot(dayKeySlot) },
+        { part: 'night', e: resolveSlot(nightKeySlot) },
+      ].filter((x) => x.e),
+    [resolveSlot, dayKeySlot, nightKeySlot]
+  )
+  const canShare = shareEntries.length > 0
+
+  const [toast, setToast] = useState(null)
+  const toastTRef = useRef(null)
+  useEffect(() => () => clearTimeout(toastTRef.current), [])
+  const flash = (msg) => {
+    setToast(msg)
+    clearTimeout(toastTRef.current)
+    toastTRef.current = setTimeout(() => setToast(null), 1600)
+  }
+  const downloadIcs = (file) => {
+    const url = URL.createObjectURL(file)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = file.name
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
+  const shareDay = async () => {
+    if (!canShare) return
+    const text = shareDayText(ts, shareEntries)
+    if (!text) return
+    // the .ics: one VEVENT per slotted entry. navigator.share can carry the
+    // file where supported; the human text is the universal payload + the
+    // clipboard/file fallback path (matches the rest of the app's sharing).
+    let file = null
+    try {
+      file = new File([eventsIcs(shareEntries.map((x) => x.e))], 'my-plan.ics', { type: 'text/calendar' })
+    } catch {
+      /* File constructor unavailable (older browsers) — text-only share */
+    }
+    if (navigator.share) {
+      const payload = { title: 'My plan', text }
+      // only attach the file when this device's share sheet accepts files
+      if (file && navigator.canShare?.({ files: [file] })) payload.files = [file]
+      try {
+        await navigator.share(payload)
+        return
+      } catch {
+        /* user dismissed the share sheet — not an error, and not a fallback */
+        return
+      }
+    }
+    // no Web Share: copy the text, and also drop the .ics so the plan reaches a calendar
+    if (file) downloadIcs(file)
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(text)
+        flash(file ? 'Plan copied + calendar saved ✓' : 'Plan copied ✓')
+      } catch {
+        flash(file ? 'Calendar saved ✓' : "Couldn't copy the plan")
+      }
+    } else {
+      flash(file ? 'Calendar saved ✓' : "Sharing isn't available here")
+    }
+  }
+
   const renderSlot = (part) => {
     const e = resolveSlot(entry.slots[part])
     return (
@@ -229,6 +306,19 @@ export default function DayPage({ ts, events, anchors, wx }) {
               {renderSlot('day')}
               {renderSlot('night')}
             </div>
+            <div className="dpg-plan-actions">
+              {/* create-from-day (U-c): opens the existing Add flow with this
+                  day pre-filled; submitting auto-slots it back here. DRAFT */}
+              <button className="dpg-own-btn" onClick={() => openAdd(ts)}>
+                + Add your own
+              </button>
+              {/* share this day (U-c) — only when a slot is filled */}
+              {canShare && (
+                <button className="dpg-share-btn" onClick={shareDay}>
+                  📤 Share this day
+                </button>
+              )}
+            </div>
             {/* the quiet rest control: ONLY offered while both slots are
                 empty (the mutual-exclusivity rule), only ever user-initiated */}
             {slotsEmpty && (
@@ -264,6 +354,7 @@ export default function DayPage({ ts, events, anchors, wx }) {
           onClose={closeSheet}
         />
       )}
+      {toast && <div className="detail-toast wkb-toast">{toast}</div>}
     </div>
   )
 }

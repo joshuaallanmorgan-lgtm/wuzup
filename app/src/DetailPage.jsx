@@ -11,6 +11,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { getLeaflet } from './leaflet-lazy.js'
 import { useNav } from './nav.jsx'
 import { DAY, dayKey, hotDesc, keyOf, parseDate, priceLabel, timeOf } from './lib.js'
+import { eventIcs } from './share.js'
 import { CATEGORY_EMOJI, HeatBadge, SecHead, TonightCard, hueFor } from './cards.jsx'
 import { SaveHeart } from './saves.js'
 import { whyReasons } from './taste.js'
@@ -34,70 +35,9 @@ function timeRange(start, end) {
 const fmtShort = (ts) =>
   new Date(ts).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
 
-// RFC 5545 VCALENDAR/VEVENT. Date-only events → all-day (VALUE=DATE, exclusive
-// DTEND); timed events → local floating wall-clock. Text escaped per RFC
-// (backslash, semicolon, comma, newline) and folded at 74 chars.
-function icsText(e) {
-  const esc = (s) =>
-    String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n')
-  const fold = (line) => {
-    let s = line
-    let out = ''
-    // fold at 60 UTF-16 chars: keeps every line under RFC 5545's 75 octets even
-    // with multi-byte text, and never lands mid-surrogate-pair in practice
-    while (s.length > 60) {
-      out += s.slice(0, 60) + '\r\n '
-      s = s.slice(60)
-    }
-    return out + s
-  }
-  const p = (n) => String(n).padStart(2, '0')
-  const dOf = (d) => '' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate())
-  const tOf = (d) => dOf(d) + 'T' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds())
-  // deterministic UID from url|title+start (same event → same UID → no calendar dupes)
-  const idKey = (e.url || e.title || 'event') + '|' + (e.start || '')
-  let h = 0
-  for (let i = 0; i < idKey.length; i++) h = (h * 31 + idKey.charCodeAt(i)) >>> 0
-  const now = new Date()
-  const stamp =
-    '' + now.getUTCFullYear() + p(now.getUTCMonth() + 1) + p(now.getUTCDate()) +
-    'T' + p(now.getUTCHours()) + p(now.getUTCMinutes()) + p(now.getUTCSeconds()) + 'Z'
-  const lines = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//Whats Hot Tampa Bay//EN',
-    'CALSCALE:GREGORIAN',
-    'BEGIN:VEVENT',
-    'UID:' + h.toString(36) + '@whats-hot-tampa-bay',
-    'DTSTAMP:' + stamp,
-  ]
-  if (/^\d{4}-\d{2}-\d{2}$/.test(e.start)) {
-    const s = parseDate(e.start)
-    const last = new Date(e._endDay ?? e._day) // last day the event runs
-    const dtend = new Date(last.getFullYear(), last.getMonth(), last.getDate() + 1) // exclusive
-    lines.push('DTSTART;VALUE=DATE:' + dOf(s), 'DTEND;VALUE=DATE:' + dOf(dtend))
-  } else {
-    const s = parseDate(e.start)
-    lines.push('DTSTART:' + tOf(s))
-    // timed end → literal; date-only end (timed-start festivals) → midnight
-    // after the last day, matching DTSTART's DATE-TIME value type
-    const en = e.end
-      ? /T\d/.test(e.end)
-        ? parseDate(e.end)
-        : e._endDay != null && e._endDay > e._day
-          ? new Date(new Date(e._endDay).getFullYear(), new Date(e._endDay).getMonth(), new Date(e._endDay).getDate() + 1)
-          : null
-      : null
-    if (en && en.getTime() > s.getTime()) lines.push('DTEND:' + tOf(en))
-  }
-  lines.push(fold('SUMMARY:' + esc(e.title || 'Event')))
-  const loc = [e.venue, e.address].filter(Boolean).join(', ')
-  if (loc) lines.push(fold('LOCATION:' + esc(loc)))
-  if (e.description) lines.push(fold('DESCRIPTION:' + esc(e.description)))
-  if (e.url) lines.push(fold('URL:' + esc(e.url)))
-  lines.push('END:VEVENT', 'END:VCALENDAR')
-  return lines.join('\r\n') + '\r\n'
-}
+// The RFC 5545 ICS builder now lives in share.js (vevent + wrapIcs), shared
+// with the day-plan multi-VEVENT export (Sprint U-c). eventIcs(e) is the
+// one-event calendar — byte-identical to the old inline icsText.
 
 // tags that say *when* or *where it came from*, not what the event feels like —
 // excluded from vibe matching ('added-by-you' is provenance, not a vibe)
@@ -266,7 +206,7 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
   }
   const downloadIcs = () => {
     if (!e.start) return
-    const blob = new Blob([icsText(e)], { type: 'text/calendar;charset=utf-8' })
+    const blob = new Blob([eventIcs(e)], { type: 'text/calendar;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
