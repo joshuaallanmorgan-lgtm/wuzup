@@ -1,0 +1,114 @@
+/* tastepanel.css — Sprint V2 + V3: "Why your feed looks like this" + per-
+   category mute/boost. Editorial-calm like settings/interests: white cards,
+   hairlines, teal accents. The relative-weight bars are the one bit of color
+   energy — each tinted with its category hue. NO --hot, NO --reward (this is
+   transparency + control, not a reward beat). Scoped under .tp. */
+
+.tp { background: var(--bg); }
+.tp-body { padding: 4px 0 120px; }
+
+.tp-sec { margin-top: 26px; padding: 0 20px; }
+.tp-sec:first-child { margin-top: 8px; }
+.tp-over {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+/* ===== V2: the read-out ===== */
+.tp-headline { font-size: 18px; font-weight: 800; letter-spacing: -0.2px; line-height: 1.25; }
+.tp-trust { margin-top: 6px; font-size: 13px; font-weight: 500; color: var(--muted); line-height: 1.5; }
+
+/* the standing promise — the whole reason this page exists */
+.tp-promise {
+  margin-top: 14px;
+  padding: 12px 13px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(var(--accent-rgb), 0.06);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+/* relative-weight bars */
+.tp-leans { margin-top: 18px; }
+.tp-lean { display: flex; align-items: center; gap: 10px; margin-top: 9px; }
+.tp-lean-name {
+  flex: 0 0 38%;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tp-bar {
+  flex: 1;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+.tp-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: hsl(var(--ph, 200), 70%, 48%);
+  transition: width var(--dur-page, 0.3s) ease;
+}
+
+.tp-facts { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.tp-fact { font-size: 13px; font-weight: 600; line-height: 1.4; }
+.tp-fact-dim { color: var(--muted); font-weight: 500; }
+
+/* ===== V3: explicit control ===== */
+.tp-ctl-note { font-size: 12.5px; font-weight: 500; color: var(--muted); line-height: 1.5; margin: 0 0 12px; }
+.tp-ctl-grid { display: flex; flex-direction: column; gap: 8px; }
+.tp-ctl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--card);
+  font-family: inherit;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--dur-micro), border-color var(--dur-micro);
+}
+.tp-ctl:active { transform: scale(0.985); }
+.tp-ctl-cat { font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 7px; }
+
+/* the state pill on the right — the only place color signals more/less */
+.tp-ctl-state {
+  flex: 0 0 auto;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+.tp-ctl-state-neutral { color: var(--muted); background: var(--line); }
+.tp-ctl-state-boost { color: #fff; background: hsl(var(--ph, 200), 65%, 44%); }
+.tp-ctl-state-mute { color: var(--muted); background: var(--bg); border: 1px solid var(--line); text-decoration: line-through; }
+
+/* a boosted row glows faintly in its hue; a muted row sits back */
+.tp-ctl-boost { border-color: hsla(var(--ph, 200), 65%, 44%, 0.5); background: hsla(var(--ph, 200), 70%, 50%, 0.06); }
+.tp-ctl-mute { opacity: 0.62; }
+
+.tp-ctl-foot { margin-top: 14px; font-size: 12px; font-weight: 500; color: var(--muted); line-height: 1.5; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tp-ctl { transition: none; }
+  .tp-ctl:active { transform: none; }
+  .tp-bar-fill { transition: none; }
+}

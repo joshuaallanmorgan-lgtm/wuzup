@@ -1,23 +1,61 @@
-// taste.js — the LOCAL taste engine (Sprint G2). No accounts, no network:
-// a tiny on-device profile of category affinities + free-preference, built
-// from the user's own taps and fully inspectable (inspectTaste / 'taste-v1'
-// in localStorage). Taste NEVER filters and NEVER hides — it only nudges
-// ordering, bounded hard at +15 (category) +3 (free) points: Charles's
+// taste.js — the LOCAL taste engine (Sprint G2, v2 in Sprint V). No accounts,
+// no network: a tiny on-device profile of category affinities + free-preference,
+// built from the user's own taps and fully inspectable (inspectTaste /
+// 'taste-v1' in localStorage). Taste NEVER filters and NEVER hides — it only
+// nudges ORDERING, bounded hard at +18 total (15 category + 3 free): Charles's
 // "slightly tailored, not heavily algorithmic" is the contractual bound.
 //
+// ─────────────────────────────────────────────────────────────────────────
+// SPRINT V — TASTE ENGINE v2. The math was already documented per-function;
+// V unifies the SEED LAYER and adds EXPLICIT control without breaking a single
+// invariant. The five hard contracts, restated because V is the most
+// invariant-sensitive sprint:
+//   1. tasteNudge ∈ [0, 18] for ALL inputs (the fuzz test asserts the ceiling).
+//      The V3 mute/boost layer folds in WITHOUT breaching it — re-derived at
+//      tasteNudge below.
+//   2. Taste NEVER FILTERS, NEVER HIDES — only reorders. A MUTED category's
+//      events still appear, just lower; a BOOSTED category's appear higher,
+//      bounded. orderDay is count-preserving by construction (lib.js).
+//   3. catScores ∈ [0, 25]; freeAffinity ∈ [0, 25]; n is HONEST — an answer
+//      that moved no score does not inflate "tuned by N taps" (V1c).
+//   4. ONE store. No second taste store; mute/boost lives in this same
+//      'taste-v1' blob (the `prefs` field). No new deps.
+//   5. The existing tasteNudge fuzz test stays green; V ADDS coverage for
+//      mute/boost extremes + the V4 quality benchmark.
+// ─────────────────────────────────────────────────────────────────────────
+//
 // STORAGE: 'taste-v1' = { catScores: {category: number}, freeAffinity: number,
-// n: interactions, explore: number, _interview: object|null, v: 1 }. Every
-// localStorage access is guarded — private mode / Node keep an in-memory
-// profile for the session. The two Sprint-P fields (v stays 1 — additive;
-// load() defaults them for pre-P profiles):
+// n: interactions, organicN: interactions from REAL taps only (V1b),
+// explore: number, _interview: object|null, _primer: object|null (V1a),
+// prefs: {boost:[], mute:[], when: 'weeknights'|'weekends'|'whenever'|null}
+// (V1 when-unify + V3), v: 1 }. Every localStorage access is guarded —
+// private mode / Node keep an in-memory profile for the session. v stays 1
+// (every V field is additive; load() defaults them for pre-V profiles):
 //   explore    — 0..1 "how adventurous" scalar, DEFAULT 0.5. Written ONLY by
 //                recordInterview (screen 7) today; future consumers: the
 //                calibration deck's sampler spread + FMN's surprise weighting
 //                read it later (documented forward contract, MASTER_PLAN2 P2).
+//   organicN   — interactions from REAL signals only (saves/opens/fmn/bubble/
+//                add/went + calibration verdicts), NOT seed writes. The "Your
+//                kind of night" rail gates on THIS (V1b): seeds give ordering a
+//                head start, but the rail — a surface that claims to know your
+//                taste — waits for taps you actually made. confidence() still
+//                reads total n (seeds legitimately speed up ordering); only the
+//                rail's promise is held to the higher bar.
 //   _interview — the last stated-interests write's APPLIED contribution, kept
 //                so a re-write REPLACES it instead of stacking (see
 //                recordInterview). Q2c adds answers (the raw answer set) so
 //                the InterestEditor reopens showing what was picked.
+//   _primer    — V1a: the SAME replace-not-stack bookkeeping for recordPrimer.
+//                Before V, 5 primer retakes stacked to full confidence; now a
+//                retake subtracts the prior primer's applied deltas first.
+//   prefs.when — V1 when-preference UNIFICATION (the Q2 carry-in). ONE source
+//                of truth for "when do you head out", resolved by
+//                whenPreference() below; ProfileView/HotView stop duplicating
+//                the primer-vs-dayparts precedence patch.
+//   prefs.boost/mute — V3 per-category explicit ordering control: each of the
+//                12 categories may be boost / neutral / mute. Folded into
+//                tasteNudge as a BOUNDED ordering bump/cut — never a filter.
 //
 // SIGNALS (one cheap recordSignal(type, e) call at each seam):
 //   'save'   +3 to e.category, +1 freeAffinity when the event is free
@@ -51,12 +89,17 @@
 // nothing from lib.js so saves.js / lib.js can depend on this file cycle-free.
 import { useSyncExternalStore } from 'react'
 import { PREFIX, lsGet, lsRemove, lsSet } from './storage.js'
+import { categoryById } from './categories.js' // registry id set (plain .js, no cycle) — V3 pref validation
 
 const KEY = 'taste-v1' // stored as twh:taste-v1 via storage.js
 const CAT_CAP = 25
 const DECAY_AFTER = 50 // signals beyond this each decay all scores…
 const DECAY = 0.98 // …by this factor
 const CONF_FULL = 15 // confidence = min(n / 15, 1)
+const RAIL_CONF = 0.4 // "Your kind of night" rail gate (== HotView's bar)
+// the organic-tap count that lights the rail — exported so the TastePanel copy
+// ("N/{railTarget} so far") can never drift from the actual gate
+export const railTarget = Math.round(RAIL_CONF * CONF_FULL)
 
 // fmn is 1 (not 2): one brief touches up to 7-8 categories at once — at 2 a
 // single brief outweighed ~5 real saves and could open the rail gate with
@@ -66,15 +109,55 @@ const INC = { save: 3, open: 1, fmn: 1, bubble: 0.5, add: 2, went: 2 }
 // H1 primer seed weights (recordPrimer)
 const PRIMER_CAT = 4 // per chosen category (≈ 1.3 saves / 4 opens of head start)
 const PRIMER_FREE = 6 // freeAffinity when "free-leaning" (crosses the ≥5 gate)
-const PRIMER_N = 3 // interactions credited for the whole primer
+const PRIMER_N = 3 // interactions credited for the whole primer (when it moved a score)
+
+// V3 — PER-CATEGORY MUTE/BOOST (explicit ordering control). These are ORDERING
+// points added to / subtracted from tasteNudge, NOT affinity scores — they live
+// in prefs, never in catScores, and they NEVER filter (a muted category's
+// events still render via orderDay's count-preserving permutation, just lower).
+// THE RE-DERIVED BOUND (the invariant proof, kept honest at tasteNudge):
+//   · BOOST adds +BOOST_BUMP, but the SUM (learned nudge + boost) is clamped to
+//     NUDGE_CEIL (18) — a boost can never push a single event's nudge past the
+//     ceiling the fuzz test asserts. On a zero-affinity category a boost still
+//     lifts it toward (not past) the ceiling; on a maxed category it's already
+//     at 18 and the boost is absorbed by the clamp. Bounded by construction.
+//   · MUTE subtracts MUTE_CUT, FLOORED AT 0 — mute can only remove a category's
+//     own learned lift, never invert it into a negative (which could only ever
+//     reorder, but a floor keeps the contribution a clean [0,18] like every
+//     other). A muted category with no learned signal contributes 0 and stays
+//     0: still ordered (by hotScore alone in orderDay), never removed.
+// So with mute/boost folded, tasteNudge still returns a value in [0, 18] for
+// ALL inputs — the fuzz test's ceiling holds, and the V3 extreme cases (boost a
+// maxed cat, mute a maxed cat, boost+free) are added to it.
+const BOOST_BUMP = 6 // explicit "show me more of this" ordering lift (≈ 2 saves)
+const MUTE_CUT = 18 // explicit "show me less" ordering cut — enough to zero even
+//                     a maxed category's lift (15 cat + 3 free = 18), so mute
+//                     reliably sinks it to the floor WITHOUT ever filtering it.
+const NUDGE_CEIL = 18 // the hard ceiling the fuzz test asserts (15 cat + 3 free)
 
 const EXPLORE_DEFAULT = 0.5 // neutral until the interview's screen 7 says otherwise
 
+// the unified when-preference vocabulary (V1 Q2 carry-in). Primer's `when` and
+// the editor's `dayparts` both speak this after mapping; whenPreference()
+// resolves the single source of truth.
+const WHEN_VALUES = new Set(['weeknights', 'weekends', 'whenever'])
+
 // declared up here (not with its IV_* siblings below) because cleanInterview
 // runs inside load() at module-eval — a later `const` would still be in TDZ
-const IV_N = 5 // interactions credited for the whole interview
+const IV_N = 5 // interactions credited for the whole interview (when it moved a score)
 
-const empty = () => ({ catScores: {}, freeAffinity: 0, n: 0, explore: EXPLORE_DEFAULT, _interview: null, v: 1 })
+const emptyPrefs = () => ({ boost: [], mute: [], when: null })
+const empty = () => ({
+  catScores: {},
+  freeAffinity: 0,
+  n: 0,
+  organicN: 0,
+  explore: EXPLORE_DEFAULT,
+  _interview: null,
+  _primer: null,
+  prefs: emptyPrefs(),
+  v: 1,
+})
 
 const cleanNum = (v, cap) => (typeof v === 'number' && isFinite(v) && v > 0 ? Math.min(v, cap) : 0)
 
@@ -124,6 +207,51 @@ function cleanInterview(iv) {
   }
 }
 
+// V1a — stored-_primer validator (mirror of cleanInterview, same defensive
+// posture). The primer's APPLIED deltas, kept so a RETAKE replaces instead of
+// stacking. A corrupt blob → null → the next primer simply has nothing to
+// subtract (under-removes by at most one primer's size, floors keep it safe).
+function cleanPrimer(pr) {
+  if (!pr || typeof pr !== 'object' || Array.isArray(pr)) return null
+  const deltas = {}
+  if (pr.deltas && typeof pr.deltas === 'object' && !Array.isArray(pr.deltas)) {
+    for (const k in pr.deltas) {
+      const v = cleanNum(pr.deltas[k], CAT_CAP)
+      if (v > 0) deltas[k] = v
+    }
+  }
+  return {
+    deltas,
+    free: cleanNum(pr.free, CAT_CAP),
+    // capped at PRIMER_N for the same reason cleanInterview caps at IV_N
+    n: typeof pr.n === 'number' && isFinite(pr.n) && pr.n > 0 ? Math.min(Math.floor(pr.n), PRIMER_N) : 0,
+  }
+}
+
+// V3 + V1-when — prefs validator. boost/mute are deduped string-id arrays; a
+// category is in AT MOST ONE list (boost wins if a corrupt blob lists both, so
+// the two are always disjoint and setCategoryPref's invariant holds on load).
+// `when` degrades to null unless it's one of the three known values. Same
+// graceful-blank posture as everything else here.
+// only REAL registry category ids survive — a stale/renamed id in a persisted
+// blob would never filter or crash (a nonexistent category has no events) but
+// WOULD inflate the panel's "N boosted/dialed down" foot-count past the visible
+// chips; dropping it keeps the count honest.
+const isRealCat = (c) => typeof c === 'string' && c in categoryById
+function cleanPrefs(pf) {
+  if (!pf || typeof pf !== 'object' || Array.isArray(pf)) return emptyPrefs()
+  const boost = Array.isArray(pf.boost) ? [...new Set(pf.boost.filter(isRealCat))] : []
+  const bset = new Set(boost)
+  const mute = Array.isArray(pf.mute)
+    ? [...new Set(pf.mute.filter((c) => isRealCat(c) && !bset.has(c)))]
+    : []
+  return {
+    boost,
+    mute,
+    when: WHEN_VALUES.has(pf.when) ? pf.when : null,
+  }
+}
+
 function load() {
   try {
     const p = JSON.parse(lsGet(KEY))
@@ -135,15 +263,23 @@ function load() {
           if (v > 0) catScores[k] = v
         }
       }
+      const n = typeof p.n === 'number' && isFinite(p.n) && p.n > 0 ? Math.floor(p.n) : 0
       return {
         catScores,
         freeAffinity: cleanNum(p.freeAffinity, CAT_CAP),
-        n: typeof p.n === 'number' && isFinite(p.n) && p.n > 0 ? Math.floor(p.n) : 0,
+        n,
+        // V1b: organicN — real-tap interactions only. Pre-V profiles have no
+        // field; back-fill to 0 so a legacy seed-only profile does NOT light
+        // the rail retroactively (the honest read: it never earned organic
+        // signal). A real profile re-accrues organicN on its very next tap.
+        organicN: typeof p.organicN === 'number' && isFinite(p.organicN) && p.organicN > 0 ? Math.min(Math.floor(p.organicN), n) : 0,
         explore:
           typeof p.explore === 'number' && isFinite(p.explore) && p.explore >= 0 && p.explore <= 1
             ? p.explore
             : EXPLORE_DEFAULT,
         _interview: cleanInterview(p._interview),
+        _primer: cleanPrimer(p._primer),
+        prefs: cleanPrefs(p.prefs),
         v: 1,
       }
     }
@@ -160,8 +296,11 @@ const clone = (p) => ({
   catScores: { ...p.catScores },
   freeAffinity: p.freeAffinity,
   n: p.n,
+  organicN: p.organicN, // V1b
   explore: p.explore,
   _interview: p._interview, // replaced wholesale by recordInterview, inert elsewhere
+  _primer: p._primer, // V1a: replaced wholesale by recordPrimer, inert elsewhere
+  prefs: { boost: [...p.prefs.boost], mute: [...p.prefs.mute], when: p.prefs.when }, // V3 + V1-when
   v: 1,
 })
 
@@ -190,9 +329,51 @@ export function getProfile() {
   return profile
 }
 
-// how much the profile is trusted: 0 → 1 over the first 15 interactions
+// how much the profile is trusted: 0 → 1 over the first 15 interactions.
+// Reads TOTAL n (seeds legitimately speed up how fast ordering tightens — a
+// primer head-start IS real preference the user stated). The rail's stricter
+// promise uses railConfidence below, not this.
 export function confidence(p = profile) {
   return Math.min(p.n / CONF_FULL, 1)
+}
+
+// V1b — the "Your kind of night" RAIL's confidence: same 0→1 curve, but over
+// ORGANIC interactions only (real taps, never seed writes). DECISION (the
+// Sprint-P review carry-in (b), resolved): primer n=3 + interview n=5 lit the
+// rail (conf 0.53) with ZERO taps. That surface SAYS "your kind of night" —
+// a claim about behavior, not stated intent — so it must be earned by behavior.
+// Seeds still tilt ORDERING everywhere (confidence() over total n); only this
+// one rail waits for organic signal. railReady() is the boolean HotView gates
+// on; the threshold (0.4 == 6 organic taps) is unchanged from the old bar, just
+// measured honestly. A pure-seed profile orders better immediately but the rail
+// stays silent until the user has actually tapped around — no false "we know
+// you" before they've taught us anything.
+export function railConfidence(p = profile) {
+  return Math.min(p.organicN / CONF_FULL, 1)
+}
+export function railReady(p = profile) {
+  return railConfidence(p) >= RAIL_CONF
+}
+
+// V1 (Q2 carry-in) — WHEN-PREFERENCE: the SINGLE source of truth for "when do
+// you head out". Before V this precedence lived duplicated in ProfileView AND
+// HotView (the editor's dayparts patched over the primer's first-open answer).
+// Now ONE resolver, two callers. PRECEDENCE, documented:
+//   1. the editor's dayparts (newest, re-editable any time) wins — mapped:
+//      'weeknights'→weeknights, 'weekends'→weekends, 'both'→whenever (an
+//      explicit "both" overrides an old primer lean to neutral, not nothing).
+//   2. else the primer's first-open `when` (passed in — it lives in primer-v1,
+//      a separate store this module deliberately doesn't import; the caller
+//      hands it over so taste.js stays the single resolver without a new dep).
+//   3. else null — no claim. A skipped primer + untouched editor says nothing.
+// prefs.when caches the resolved value for inspectTaste/the why-panel, but the
+// LIVE resolution always recomputes from the two sources so it can never go
+// stale against an editor edit.
+const DAYPART_TO_WHEN = { weeknights: 'weeknights', weekends: 'weekends', both: 'whenever' }
+export function whenPreference(p = profile, primerWhen = null) {
+  const dp = p._interview?.dayparts
+  if (dp && DAYPART_TO_WHEN[dp]) return DAYPART_TO_WHEN[dp]
+  return WHEN_VALUES.has(primerWhen) ? primerWhen : null
 }
 
 export function recordSignal(type, e) {
@@ -216,35 +397,73 @@ export function recordSignal(type, e) {
     next.freeAffinity = Math.min(next.freeAffinity + 1, CAT_CAP)
   }
   next.n += 1
+  next.organicN += 1 // V1b: every recordSignal is a REAL tap (save/open/fmn/…)
   profile = next
   persist()
   emit()
 }
 
-// H1 — PRIMER SEED (the one taste.js seam for Sprint H). One-shot, called by
-// Primer.jsx ONLY on finish (skip calls nothing → zero profile mutation).
+// H1 — PRIMER SEED (the one taste.js seam for Sprint H). One-shot per finish,
+// called by Primer.jsx ONLY on finish (skip calls nothing → zero profile
+// mutation). V1a made it REPLACE-NOT-STACK (the Sprint-P carry-in (a)): before
+// V, five primer retakes stacked to full confidence; now a retake subtracts the
+// prior primer's APPLIED contribution (the _primer bookkeeping, exactly the
+// _interview pattern) before applying fresh — run twice with the same answers ≡
+// run once.
+//
 // THE MATH, documented:
 //   +4 per chosen category (max 3, UI-enforced + clamped here) ≈ 1.3 saves or
 //      4 detail opens of head start — never near the 25 cap.
 //   +6 freeAffinity when free-leaning — crosses tasteNudge's ≥5 free gate, but
 //      the free bonus stays ≤ 3 × (6/25) × conf ≈ 0.3 pts at n=6. Pennies.
-//   n += 3 → confidence 3/15 = 0.2. The rail gate (HotView) needs 0.4 = n ≥ 6,
-//      so a single primer run can't light the rail: it takes ~3 real taps more
-//      (caveat: if 'primer-v1' is lost while 'taste-v1' survives, a re-run
-//      stacks — acceptable edge; real taps still dominate either way)
-//      ("light the rail soon"). At n=6 a primer-only category nudges
-//      15 × (4/25) × 0.4 ≈ 0.96 pts — flavor. An organic 20-signal profile
-//      (any saved-up category ≥ 15 → nudge ≥ 9 at full confidence) rolls
-//      straight over it ("real taps overtake").
-// No-op when nothing was actually chosen — done-with-zero-picks must not
-// inflate confidence with fake signal.
+//   n += 3 (ONLY when a score actually moved — V1c). The seed credits CONF
+//      (total n, so ordering tightens) but NOT organicN, so a primer alone
+//      NEVER lights the rail (railReady reads organicN — the (b) decision).
+//      At total-n 3 a primer category nudges 15 × (4/25) × 0.2 ≈ 0.48 pts —
+//      flavor. An organic 20-signal profile (any saved-up category ≥ 15 →
+//      nudge ≥ 9 at full confidence) rolls straight over it.
+// V1c HONESTY: if NOTHING landed (e.g. a retake with the same picks already at
+// cap, so every applied delta is 0, and free didn't move), credit NO n — a
+// primer that moved no score must not inflate "tuned by N". No-op when nothing
+// was chosen at all (done-with-zero-picks): same contract as before.
 export function recordPrimer({ cats = [], freeLeaning = false } = {}) {
   const list = (Array.isArray(cats) ? cats : []).filter((c) => typeof c === 'string' && c).slice(0, 3)
   if (!list.length && freeLeaning !== true) return
   const next = clone(profile)
-  for (const c of list) next.catScores[c] = Math.min((next.catScores[c] || 0) + PRIMER_CAT, CAT_CAP)
-  if (freeLeaning === true) next.freeAffinity = Math.min(next.freeAffinity + PRIMER_FREE, CAT_CAP)
-  next.n += PRIMER_N
+
+  // 1) subtract the previous primer's APPLIED contribution (replace, not stack)
+  const prev = next._primer
+  if (prev) {
+    for (const c in prev.deltas) {
+      const left = (next.catScores[c] || 0) - prev.deltas[c]
+      if (left > 0) next.catScores[c] = left
+      else delete next.catScores[c] // load() drops ≤0 anyway — keep shapes identical
+    }
+    next.freeAffinity = Math.max(next.freeAffinity - prev.free, 0)
+    next.n = Math.max(next.n - prev.n, 0)
+  }
+
+  // 2) apply with caps, recording what ACTUALLY landed (post-cap deltas)
+  const deltas = {}
+  for (const c of list) {
+    const before = next.catScores[c] || 0
+    const after = Math.min(before + PRIMER_CAT, CAT_CAP)
+    if (after > before) {
+      next.catScores[c] = after
+      deltas[c] = after - before
+    }
+  }
+  let freeDelta = 0
+  if (freeLeaning === true) {
+    const before = next.freeAffinity
+    next.freeAffinity = Math.min(before + PRIMER_FREE, CAT_CAP)
+    freeDelta = next.freeAffinity - before
+  }
+  // V1c: credit n only if a score actually moved; else this primer is signal-free
+  const landed = Object.keys(deltas).length > 0 || freeDelta > 0
+  const nCredit = landed ? PRIMER_N : 0
+  next.n += nCredit
+  next._primer = { deltas, free: freeDelta, n: nCredit }
   profile = next
   persist()
   emit()
@@ -286,6 +505,7 @@ export function recordCalibration(verdict, e) {
     else delete next.catScores[e.category]
   }
   next.n += 1
+  next.organicN += 1 // V1b: a deck verdict is a real deliberate rating, not a seed
   profile = next
   persist()
   emit()
@@ -313,9 +533,19 @@ export function recordCalibration(verdict, e) {
 //   · paid/free (screen 3): free-leaning → freeAffinity +8 (crosses the ≥5
 //     gate alone; the free bonus is still ≤3 pts by tasteNudge's own clamp).
 //   · chill/wild (screen 4): chill → art +2, food +2; wild → nightlife +2,
-//     music +2, comedy +2. NEAR-mirror of FMN's VIBE_SETS: FMN's chill also
-//     has outdoors+market, dropped here because screen 2 owns outdoors and
-//     market earned no honest seed (Sprint V1 unification: mind this delta).
+//     music +2, comedy +2. NEAR-mirror of FMN's VIBE_SETS.chill, which is
+//     {art, outdoors, market, food}. THE DELTA, V1d DECISION — BLESSED, not
+//     unified: the interview chill set deliberately DROPS outdoors+market.
+//     Rationale: (1) the editor's category grid + indoor/outdoor lean already
+//     own outdoors as an EXPLICIT pick, so folding it into "chill" too would
+//     double-count it — a chill-leaning user who didn't pick outdoors would
+//     get an unrequested outdoors seed; (2) "market" has no honest path from
+//     "chill" (a chill night isn't a farmers-market signal — that's a who/what
+//     pick). FMN keeps the broader set because it's an IN-THE-MOMENT brief
+//     (one-shot, lower stakes, +1 each, decays), whereas the interview writes
+//     a PERSISTENT seed — so the interview is the more conservative of the two
+//     ON PURPOSE. The two seams serve different jobs; the delta is correct,
+//     and this comment is the documented call (Sprint V closes the carry-in).
 //   · solo/social (screen 5): +2 to the matching who-set — solo →
 //     {art, community, outdoors, music}; social → {nightlife, music, sports,
 //     comedy, market} (mirrors FindMyNight's WHO_SETS solo/friends; declared
@@ -326,8 +556,16 @@ export function recordCalibration(verdict, e) {
 //   · adventurous (screen 7): writes profile.explore (0..1, clamped) — a
 //     stored preference, NOT additive signal. recordInterview is its only
 //     writer today.
-//   · n += 5 → interview alone = confidence 5/15 ≈ 0.33, UNDER the rail gate
-//     (0.4): a full interview can't light "Your kind of night" by itself.
+//   · n += 5 → interview alone = confidence 5/15 ≈ 0.33 (ordering head-start).
+//     But organicN is UNTOUCHED, so the interview NEVER lights "Your kind of
+//     night" (railReady reads organicN — V1b). V1c HONESTY: the +5 is credited
+//     ONLY when at least one affinity score actually moved (a cat/free delta
+//     landed). An affinity-free walk-through — dayparts/indoor/paid-no/explore
+//     only, which write preferences but no score — credits ZERO n, so "Tuned by
+//     N taps" can never count an answer that moved nothing (the carry-in (c)).
+//     indoor maps to nothing and free===false moves nothing, so those alone
+//     also credit no n. The stored answers (dayparts/explore) still persist for
+//     read-back + the when-resolver; they're preferences, not affinities.
 //
 // BOUNDED, the proof sketch: the single-category ceiling is a pick (+5) +
 // wild (+2) + social (+2) = +9 ≈ 3 saves; at n=5 that nudges
@@ -451,11 +689,17 @@ export function recordInterview(
     next.explore = Math.min(Math.max(explore, 0), 1)
     exploreSet = true
   }
-  next.n += IV_N
+  // V1c — credit n ONLY when an affinity score actually moved. An affinity-free
+  // interview (dayparts/indoor/paid-no/explore only) writes preferences but no
+  // score, so it credits ZERO n — "Tuned by N taps" stays honest. The stored
+  // _interview.n MUST match what was credited, or a retake would over-subtract.
+  const landed = Object.keys(deltas).length > 0 || freeDelta > 0
+  const nCredit = landed ? IV_N : 0
+  next.n += nCredit
   next._interview = {
     deltas,
     free: freeDelta,
-    n: IV_N,
+    n: nCredit,
     exploreSet,
     dayparts: typeof dayparts === 'string' ? dayparts : null,
     // the raw answer set, stored canonically (validated values only) so a
@@ -498,6 +742,49 @@ export function interviewAnswers(p = profile) {
   }
 }
 
+// V3 — PER-CATEGORY MUTE/BOOST (the explicit-control seam). One category at a
+// time: pref ∈ {'boost','mute','neutral'}. Stored in prefs.boost/prefs.mute
+// (disjoint by construction — setting one removes the category from the other).
+// 'neutral' removes it from both. This COMPOSES with the learned nudge but is a
+// SEPARATE, user-owned layer (it survives a taste reset only if the caller
+// chooses — resetTaste wipes everything, the documented "start from zero").
+// NEVER a filter: tasteNudge folds these in as bounded ordering points, and
+// orderDay stays count-preserving, so a muted category's events still render.
+export function setCategoryPref(category, pref) {
+  if (typeof category !== 'string' || !category) return
+  if (pref !== 'boost' && pref !== 'mute' && pref !== 'neutral') return
+  const next = clone(profile)
+  next.prefs.boost = next.prefs.boost.filter((c) => c !== category)
+  next.prefs.mute = next.prefs.mute.filter((c) => c !== category)
+  if (pref === 'boost') next.prefs.boost.push(category)
+  else if (pref === 'mute') next.prefs.mute.push(category)
+  profile = next
+  persist()
+  emit()
+}
+
+// the current pref for a category: 'boost' | 'mute' | 'neutral'
+export function categoryPref(category, p = profile) {
+  const prefs = p.prefs || emptyPrefs() // prefs-less profile guard (parity with tasteNudge)
+  if (prefs.boost.includes(category)) return 'boost'
+  if (prefs.mute.includes(category)) return 'mute'
+  return 'neutral'
+}
+
+// V1 (Q2 carry-in) — persist the unified when-preference into prefs. Today the
+// LIVE resolver (whenPreference) recomputes from the editor + primer, so this
+// cache is read only by inspectTaste/the why-panel for a stable snapshot; it's
+// written here so a future "set my when directly" control has a home that the
+// resolver already honors (precedence 1.5: an explicit prefs.when would slot
+// between dayparts and primer — left for a later sprint, the field exists now).
+export function setWhenPref(when) {
+  const next = clone(profile)
+  next.prefs.when = WHEN_VALUES.has(when) ? when : null
+  profile = next
+  persist()
+  emit()
+}
+
 // P1 — settings' "Reset my taste": wipe the stored profile AND the module
 // store in one move (an lsRemove alone would leave the in-memory profile
 // serving stale nudges until reload). Also the documented reason this exists
@@ -511,17 +798,48 @@ export function resetTaste() {
 }
 
 // RANK NUDGE — BOUNDED. In [0, 18] total: 15 × (catScore/25) × confidence,
-// plus ≤3 for free events once freeAffinity is high (≥5 free saves). Pure
-// given (e, p); the default p reads the live module profile.
+// plus ≤3 for free events once freeAffinity is high (≥5 free saves), plus the
+// V3 explicit boost/mute fold. Pure given (e, p); the default p reads the live
+// module profile.
+//
+// V3 BOUND PROOF (the invariant the fuzz test guards, re-derived):
+//   learned = 15·(cat/25)·conf + freeBonus ∈ [0, 18]  (unchanged — the old law)
+//   boosted = learned + BOOST_BUMP, then CLAMPED to NUDGE_CEIL (18)
+//   muted   = learned − MUTE_CUT, then FLOORED at 0
+//   ⇒ for ALL inputs and ALL prefs, the return is in [0, 18]. A boost can lift
+//     a low-affinity category toward the ceiling but never past it; a mute can
+//     sink even a maxed (18) category to 0 but never below — so a muted
+//     category contributes 0 to ordering (sorted by hotScore alone), STILL
+//     present (orderDay is a permutation), never removed. The fuzz test now
+//     also throws random boost/mute prefs at it; the ceiling holds.
+// A category is in at most one of boost/mute (setCategoryPref keeps them
+// disjoint; cleanPrefs enforces it on load), so the two branches never both fire.
 export function tasteNudge(e, p = profile) {
-  if (!p || p.n <= 0) return 0
-  const conf = confidence(p)
-  const cat = Math.min(p.catScores[e.category] || 0, CAT_CAP)
-  let nudge = 15 * (cat / CAT_CAP) * conf
-  if ((e._free === true || e.isFree === true) && p.freeAffinity >= 5) {
-    nudge += Math.min(3 * (p.freeAffinity / CAT_CAP) * conf, 3)
+  if (!p) return 0
+  // clamp BOTH ends: load()/recordCalibration/retake-subtraction never persist a
+  // negative score, but a hand-built profile with a negative catScore would
+  // otherwise return a negative nudge and invert ordering below neutral — the
+  // low half of the [0,18] contract, made defense-in-depth here too.
+  const cat = Math.max(0, Math.min(p.catScores[e.category] || 0, CAT_CAP))
+  // the explicit pref can act even on a neutral (n=0) profile — it's USER
+  // intent, not learned signal — so it must be read before the n<=0 short-out.
+  const prefs = p.prefs || emptyPrefs()
+  const boosted = e.category && prefs.boost.includes(e.category)
+  const muted = e.category && prefs.mute.includes(e.category)
+
+  let learned = 0
+  if (p.n > 0) {
+    const conf = confidence(p)
+    learned = 15 * (cat / CAT_CAP) * conf
+    if ((e._free === true || e.isFree === true) && p.freeAffinity >= 5) {
+      learned += Math.min(3 * (p.freeAffinity / CAT_CAP) * conf, 3)
+    }
   }
-  return nudge
+
+  let nudge = learned
+  if (boosted) nudge = Math.min(learned + BOOST_BUMP, NUDGE_CEIL)
+  else if (muted) nudge = Math.max(learned - MUTE_CUT, 0)
+  return Math.max(0, Math.min(nudge, NUDGE_CEIL)) // the [0,18] contract, symmetric + final
 }
 
 // top-k real categories by affinity ('other' is a fallback bucket, not a taste)
@@ -558,6 +876,47 @@ export function whyReasons(e, p = profile) {
   return r
 }
 
+// V2 — "WHY YOUR FEED LOOKS LIKE THIS": the read-only data the transparency
+// panel renders, in plain numbers. Pure given p. Returns the leaning categories
+// with their RELATIVE weight (each catScore as a fraction of the strongest, so
+// the panel can draw honest proportional bars without exposing raw 0–25), the
+// free lean, the unified when-pref, confidence ("tuned by N taps"), and the
+// explicit boost/mute lists. NO score math here that the engine doesn't already
+// do — this is a view over the same stored numbers, never a second opinion.
+//   · `leans` — up to `k` real categories (never 'other'), score-desc, each
+//     with { id, score, weight∈(0,1] } where weight = score / topScore. The
+//     why-panel shows the bar; the honest claim is "relative to your strongest".
+//   · `freeLeaning` — the same ≥5 gate tasteNudge's free bonus uses.
+//   · `when` — whenPreference (caller passes primerWhen so the one resolver
+//     decides; the panel never re-implements precedence).
+//   · `n` / `confidence` / `organicN` / `railReady` — the trust numbers.
+//   · `boost` / `mute` — the explicit ordering controls, for the panel to echo.
+// EVERYTHING here is ordering-only flavor; the panel's copy says so (taste only
+// nudges order, never hides) — that line is a UI constant, not derived.
+export function tasteSummary(p = profile, { k = 4, primerWhen = null } = {}) {
+  const prefs = p.prefs || emptyPrefs() // prefs-less profile guard (parity with tasteNudge)
+  const ranked = Object.entries(p.catScores)
+    .filter(([c, v]) => v > 0 && c !== 'other')
+    .sort((a, b) => b[1] - a[1])
+  const topScore = ranked.length ? ranked[0][1] : 0
+  const leans = ranked.slice(0, k).map(([id, score]) => ({
+    id,
+    score,
+    weight: topScore > 0 ? score / topScore : 0,
+  }))
+  return {
+    n: p.n,
+    organicN: p.organicN,
+    confidence: confidence(p),
+    railReady: railReady(p),
+    leans,
+    freeLeaning: p.freeAffinity >= 5,
+    when: whenPreference(p, primerWhen),
+    boost: [...prefs.boost],
+    mute: [...prefs.mute],
+  }
+}
+
 // the inspect hatch: a copy of the stored profile + the derived values.
 // Exposed as window.__taste in the browser so "inspectable" is real, not a claim.
 export function inspectTaste() {
@@ -567,8 +926,12 @@ export function inspectTaste() {
     _interview: profile._interview
       ? { ...profile._interview, deltas: { ...profile._interview.deltas } }
       : null,
+    _primer: profile._primer ? { ...profile._primer, deltas: { ...profile._primer.deltas } } : null,
+    prefs: { boost: [...profile.prefs.boost], mute: [...profile.prefs.mute], when: profile.prefs.when },
     confidence: confidence(profile),
+    railConfidence: railConfidence(profile),
     topCategories: topCategories(profile),
+    summary: tasteSummary(profile),
   }
 }
 

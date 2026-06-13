@@ -6,7 +6,7 @@ import { BUBBLES, CITY, DAY, dayLabel, hotDesc, keyOf, orderDay, tonightModel } 
 import { useNav, viewIndex } from './nav.jsx'
 import { BigOne, EndCap, FreeCard, GemRow, RowFeed, SecHead, TonightCard } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
-import { confidence, interviewAnswers, tasteNudge, topCategories, useTaste } from './taste.js'
+import { railReady, tasteNudge, topCategories, useTaste, whenPreference } from './taste.js'
 import { useRecents } from './recents.js'
 import { DeckThisButton } from './LensDeck.jsx'
 
@@ -136,13 +136,16 @@ export default function HotView({ events, anchors, loading, whenPref }) {
   const shelf = useMemo(() => shelfItems(savedList, events, anchors), [savedList, events, anchors])
   const shelfOn = shelf.length > 0 // any saved item keeps the shelf — past saves grey out, they don't vanish it
   // "Your kind of night" rail (G4): renders ONLY once the local taste profile
-  // has real signal (confidence ≥ 0.4 = 6+ interactions) AND a top category
-  // exists — absent silently before that. Up to 8 upcoming events from the
-  // top-2 categories by adjustedScore; items may also appear in other
-  // sections (normal magazine behavior). useTaste = live, no remount needed.
+  // has real ORGANIC signal (railReady = 6+ REAL taps, V1b) AND a top category
+  // exists — absent silently before that. SEED-ONLY profiles (primer+interview)
+  // tilt ordering everywhere but do NOT light this rail: it claims to know your
+  // taste, a claim only your own taps can earn (Sprint-P carry-in (b) decision,
+  // documented in taste.js railConfidence). Up to 8 upcoming events from the
+  // top-2 categories by adjustedScore; items may also appear in other sections
+  // (normal magazine behavior). useTaste = live, no remount needed.
   const taste = useTaste()
   const rail = useMemo(() => {
-    if (confidence(taste) < 0.4) return null
+    if (!railReady(taste)) return null
     const top = topCategories(taste, 2)
     if (!top.length) return null
     const set = new Set(top)
@@ -235,17 +238,11 @@ export default function HotView({ events, anchors, loading, whenPref }) {
         <div className="hero-text">
           {/* H2: time-aware greeting (tracks nowMs — re-seeded on visibility + every 10 min) */}
           <div className="hero-kicker">
-            {/* the editor's dayparts (re-editable) outrank the primer's
-                first-open answer — same precedence as Profile's when-line
-                (Q2 review LOW-1). An explicit 'both' OVERRIDES the old primer
-                lean to neutral; only an unset editor falls back to the primer. */}
-            {heroKicker(
-              new Date(nowMs),
-              tonight.futureN,
-              interviewAnswers(taste)?.dayparts != null
-                ? { weeknights: 'weeknights', weekends: 'weekends' }[interviewAnswers(taste).dayparts] ?? null
-                : whenPref
-            )}
+            {/* Sprint V1: when-preference is ONE resolver now (whenPreference in
+                taste.js) — the editor's dayparts outrank the primer's first-open
+                `when`, 'both'→whenever. Profile reads the same resolver, so the
+                two surfaces can never disagree (the Q2 carry-in, unified). */}
+            {heroKicker(new Date(nowMs), tonight.futureN, whenPreference(taste, whenPref))}
           </div>
           <h1 className="hero-city">{CITY.name}</h1>
           {/* "across Tampa Bay", not "near you" — the app never asks for location

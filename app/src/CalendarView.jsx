@@ -19,6 +19,7 @@ import {
   PARTS,
 } from './dayplan.js'
 import { visibleWeekend } from './weekend.js'
+import { usePlaces, isPlaceKey } from './places.js'
 import './calendar.css'
 
 const wdLong = (ts) => new Date(ts).toLocaleDateString('en-US', { weekday: 'long' })
@@ -107,11 +108,20 @@ export default function CalendarView({ events, anchors, wx }) {
   // resolve the card's slotted keys to live events for the title + the
   // markBeen snapshot; a vanished event still gets asked (we synthesize a
   // start-bearing snapshot so the day still derives as a did-day on "went").
+  // Sprint S: a slot can hold a PLACE ('p|') key, which is NEVER in `events`.
+  // Fold the lazily-loaded places into the resolver so a slotted place NAMES
+  // itself ("did you make it to …?") and the "went" snapshot carries its real
+  // title/category — instead of degrading to the generic "did you make it out?"
+  // The ~1.2MB places fetch fires ONLY when THIS card's slots hold a place key
+  // (the DayPage gate pattern); an event-only card pays nothing.
+  const hasPlaceKey = card ? PARTS.some((p) => isPlaceKey(card.slots[p])) : false
+  const { places: placeList } = usePlaces(hasPlaceKey)
   const cardByKey = useMemo(() => {
     const m = new Map()
     for (const e of events) m.set(keyOf(e), e)
+    if (Array.isArray(placeList)) for (const p of placeList) m.set(p.key, p)
     return m
-  }, [events])
+  }, [events, placeList])
   // [violet beat] moment #7. The PERSISTED one-shot lives in the converted
   // ledger (markDayConverted only lights violet on a first 'went'). The glow
   // must survive the answer: markBeen + markDayConverted both re-derive `card`
@@ -148,7 +158,20 @@ export default function CalendarView({ events, anchors, wx }) {
       // synthesized start-bearing snapshot so the did-day still derives.
       for (const { key } of cardSlots) {
         const live = cardByKey.get(key)
-        const snap = live ? snapshotFor(live) : { title: null, start: cardDateISO, category: null }
+        let snap
+        if (!live) {
+          // a vanished event: synthesize a start-bearing snapshot (title degrades
+          // honestly to null, but the did-day still derives from start)
+          snap = { title: null, start: cardDateISO, category: null }
+        } else if (live.kind === 'place') {
+          // a slotted PLACE has a real title/category but NO date of its own —
+          // stamp the planned day as start so the did-day still derives
+          // (didDays keys on snapshot.start), and the went-list/firsts get the
+          // real place title + category instead of the vanished-event fallback.
+          snap = { ...snapshotFor(live), start: cardDateISO }
+        } else {
+          snap = snapshotFor(live)
+        }
         markBeen(key, snap, 'went')
       }
     }

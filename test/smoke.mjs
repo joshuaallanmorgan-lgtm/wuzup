@@ -571,6 +571,210 @@ test('tasteNudge: bounded 0..18, exact ceiling, neutral profile = 0', () => {
   }
 })
 
+// ============================================================
+// Sprint V — TASTE ENGINE v2. The mute/boost layer must stay inside [0,18]
+// (the fuzz ceiling, extended), the V1 carry-ins must hold, and the V4
+// recommendation-quality metric must keep the feed diverse + on-lean without
+// starving it. taste.js + tastequality.js are pure .js — Node-importable.
+// ============================================================
+
+// a full V-shape profile factory (defaults match empty(); override as needed)
+const tp = (over = {}) => ({
+  catScores: {}, freeAffinity: 0, n: 0, organicN: 0, explore: 0.5,
+  _interview: null, _primer: null, prefs: { boost: [], mute: [], when: null }, v: 1,
+  ...over,
+  prefs: { boost: [], mute: [], when: null, ...(over.prefs || {}) },
+})
+
+test('V3: tasteNudge stays in [0,18] with mute/boost — extremes + fuzz', () => {
+  const cats = ['music', 'food', 'art', 'sports']
+  // EXTREME 1: boost a maxed, free-leaning on-category event → still exactly the ceiling
+  const maxedBoost = tp({ catScores: { music: 25 }, freeAffinity: 25, n: 100, prefs: { boost: ['music'] } })
+  const free = N(ev({ category: 'music', isFree: true, tags: ['free'] }), AN)
+  assert.equal(taste.tasteNudge(free, maxedBoost), 18, 'boost on a maxed free on-cat event cannot breach 18')
+  // EXTREME 2: mute a maxed category → floored at 0 (sunk, never removed/negative)
+  const maxedMute = tp({ catScores: { music: 25 }, freeAffinity: 25, n: 100, prefs: { mute: ['music'] } })
+  assert.equal(taste.tasteNudge(free, maxedMute), 0, 'mute on a maxed category floors the nudge at 0 (never negative)')
+  // EXTREME 3: boost on a NEUTRAL (n=0) profile still acts (explicit user intent), bounded
+  const neutralBoost = tp({ prefs: { boost: ['music'] } })
+  const nb = taste.tasteNudge(N(ev({ category: 'music' }), AN), neutralBoost)
+  assert.ok(nb > 0 && nb <= 18, `boost on a zero-signal profile lifts ordering within bounds (got ${nb})`)
+  // EXTREME 4: mute on a neutral profile = 0 (nothing to cut, never below floor)
+  assert.equal(taste.tasteNudge(N(ev({ category: 'music' }), AN), tp({ prefs: { mute: ['music'] } })), 0, 'mute on a zero-signal profile is 0')
+  // FUZZ: random scores + random disjoint boost/mute prefs never escape [0,18]
+  for (let i = 0; i < 400; i++) {
+    const boost = cats.filter(() => Math.random() < 0.4)
+    const bset = new Set(boost)
+    const mute = cats.filter((c) => !bset.has(c) && Math.random() < 0.4)
+    const p = tp({
+      catScores: { music: Math.random() * 40, food: Math.random() * 40, art: Math.random() * 40, sports: Math.random() * 40 },
+      freeAffinity: Math.random() * 40,
+      n: Math.floor(Math.random() * 80),
+      prefs: { boost, mute },
+    })
+    const e = N(ev({ category: cats[Math.floor(Math.random() * 4)], isFree: Math.random() < 0.5 }), AN)
+    const nud = taste.tasteNudge(e, p)
+    assert.ok(nud >= 0 && nud <= 18, `mute/boost tasteNudge ${nud} escaped [0,18] for prefs=${JSON.stringify({ boost, mute })}`)
+  }
+})
+
+test('V1a: recordPrimer is replace-not-stack (5 retakes ≠ full confidence)', () => {
+  taste.resetTaste()
+  for (let i = 0; i < 5; i++) taste.recordPrimer({ cats: ['music', 'food'], freeLeaning: true })
+  const p = taste.getProfile()
+  assert.equal(p.n, 3, `5 identical primer retakes must credit ONE primer's n (3), got ${p.n} (the pre-V stacking bug)`)
+  assert.equal(p.catScores.music, 4, 'a re-applied primer cat score does not stack (stays +4)')
+  assert.equal(p.freeAffinity, 6, 'a re-applied primer free does not stack (stays +6)')
+  // run-twice ≡ run-once (the byte-identical replace contract)
+  taste.resetTaste()
+  taste.recordPrimer({ cats: ['art'], freeLeaning: false })
+  const once = JSON.stringify(taste.getProfile())
+  taste.recordPrimer({ cats: ['art'], freeLeaning: false })
+  assert.equal(JSON.stringify(taste.getProfile()), once, 'primer run twice must equal run once')
+  // organic signal SURVIVES a primer retake (replace only touches primer deltas)
+  taste.resetTaste()
+  taste.recordSignal('save', { category: 'music' }) // organic +3
+  taste.recordPrimer({ cats: ['music'] }) // +4 → 7
+  taste.recordPrimer({ cats: ['music'] }) // retake: subtract 4, re-add 4 → still 7
+  assert.equal(taste.getProfile().catScores.music, 7, 'a primer retake must not eat organic signal (3 survives)')
+})
+
+test('V1b: the rail gates on ORGANIC signal — seeds alone never light it', () => {
+  taste.resetTaste()
+  // primer (n+=3) + a full interview (n+=5) = total-n 8 → confidence 0.53,
+  // OVER the 0.4 rail bar by total n — but organicN is still 0.
+  taste.recordPrimer({ cats: ['music', 'food'], freeLeaning: true })
+  taste.recordInterview({ cats: ['music'], company: 'social' })
+  const seeded = taste.getProfile()
+  assert.ok(taste.confidence(seeded) >= 0.4, 'seeds DO raise ordering confidence (head start is real)')
+  assert.equal(seeded.organicN, 0, 'seeds credit zero organic signal')
+  assert.equal(taste.railReady(seeded), false, 'a seed-only profile must NOT light "Your kind of night" (V1b decision)')
+  // 6 real taps light it (the honest bar — railConfidence over organicN)
+  for (let i = 0; i < 6; i++) taste.recordSignal('save', { category: 'music' })
+  assert.equal(taste.getProfile().organicN, 6, 'organic taps accrue organicN')
+  assert.equal(taste.railReady(), true, 'six real taps light the rail (railConfidence 0.4)')
+  // HotView must gate on railReady, not raw confidence (the wiring contract)
+  const hotSrc = readFileSync(path.join(ROOT, 'app', 'src', 'HotView.jsx'), 'utf8')
+  assert.ok(/railReady\(taste\)/.test(hotSrc), 'HotView must gate the rail on railReady (organicN), not confidence(taste)')
+})
+
+test('V1c: "Tuned by N" is honest — an answer that moved no score credits no n', () => {
+  // an affinity-free interview (dayparts/explore/indoor/paid-no only) writes
+  // preferences but no score, so n must not move.
+  taste.resetTaste()
+  const before = taste.getProfile().n
+  taste.recordInterview({ dayparts: 'both', explore: 0.8, indoorOutdoor: 'indoor', free: false }, { allowClear: true })
+  assert.equal(taste.getProfile().n, before, 'an affinity-free interview credits ZERO n (no score moved)')
+  // …but it DID persist the preference (the dayparts read back through the resolver)
+  assert.equal(taste.whenPreference(taste.getProfile()), 'whenever', 'dayparts "both" persists and resolves to whenever')
+  // a primer with picks already at cap (no delta lands) also credits no n
+  taste.resetTaste()
+  taste.recordInterview({ cats: ['music'] }) // music → 5, n → 5
+  // re-primer music — but interview already put it at 5; primer wants +4 → capped? no, 5+4=9 < 25, so it DOES land.
+  // instead drive music to cap, then a primer that can't move it credits no n.
+  for (let i = 0; i < 8; i++) taste.recordSignal('save', { category: 'music' }) // 5 + 24 capped at 25
+  const nAtCap = taste.getProfile().n
+  taste.recordPrimer({ cats: ['music'] }) // music already 25 → delta 0, free not chosen → nothing lands
+  assert.equal(taste.getProfile().n, nAtCap, 'a primer that moves no score (already capped) credits no n (V1c)')
+})
+
+test('V1 (Q2 carry-in): whenPreference is the ONE resolver — editor outranks primer', () => {
+  taste.resetTaste()
+  // primer-only: the passed primerWhen is the answer
+  assert.equal(taste.whenPreference(taste.getProfile(), 'weekends'), 'weekends', 'primer when is the fallback source')
+  // editor dayparts override the primer
+  taste.recordInterview({ cats: ['music'], dayparts: 'weeknights' })
+  assert.equal(taste.whenPreference(taste.getProfile(), 'weekends'), 'weeknights', 'editor dayparts outrank the primer when')
+  // 'both' → whenever (explicit neutral, not nothing)
+  taste.recordInterview({ cats: ['music'], dayparts: 'both' })
+  assert.equal(taste.whenPreference(taste.getProfile(), 'weekends'), 'whenever', "dayparts 'both' resolves to whenever")
+  // nothing set + skipped primer → null (no claim)
+  taste.resetTaste()
+  assert.equal(taste.whenPreference(taste.getProfile(), null), null, 'no editor + no primer → null (claims nothing)')
+  // both ProfileView AND HotView must call the ONE resolver (no duplicated patch)
+  const profSrc = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
+  const hotSrc = readFileSync(path.join(ROOT, 'app', 'src', 'HotView.jsx'), 'utf8')
+  assert.ok(/whenPreference\(/.test(profSrc), 'ProfileView must use the whenPreference resolver')
+  assert.ok(/whenPreference\(/.test(hotSrc), 'HotView must use the whenPreference resolver')
+})
+
+test('V3: setCategoryPref keeps boost/mute disjoint + is ordering-only (no catScores touch)', () => {
+  taste.resetTaste()
+  taste.recordSignal('save', { category: 'music' }) // give music a learned score
+  const scoreBefore = taste.getProfile().catScores.music
+  taste.setCategoryPref('music', 'boost')
+  assert.equal(taste.categoryPref('music'), 'boost', 'boost is set')
+  taste.setCategoryPref('music', 'mute') // switching removes it from boost
+  assert.equal(taste.categoryPref('music'), 'mute', 'mute replaces boost')
+  assert.ok(!taste.getProfile().prefs.boost.includes('music'), 'a category is in at most one list (disjoint)')
+  taste.setCategoryPref('music', 'neutral')
+  assert.equal(taste.categoryPref('music'), 'neutral', 'neutral clears both')
+  // the learned catScore is UNTOUCHED by any pref change (ordering-only layer)
+  assert.equal(taste.getProfile().catScores.music, scoreBefore, 'mute/boost never alters the learned catScore')
+})
+
+test('V4: feed-quality metric — diverse top-20, on-lean lift, no starvation', async () => {
+  const tq = await import('../app/src/tastequality.js')
+  // build the real upcoming feed the HotView way
+  const upcoming = fullEvents
+    .map((e) => N(e, AN))
+    .filter((e) => e._day != null && (e._endDay ?? e._day) >= AN.todayTs)
+    .map((e) => ({ ...e, _clamp: e._day < AN.todayTs ? AN.todayTs : e._day }))
+    .sort((x, y) => x._clamp - y._clamp || x._t - y._t)
+  assert.ok(upcoming.length >= tq.TOP_N, `need ≥ ${tq.TOP_N} upcoming events to measure the top-20 (got ${upcoming.length})`)
+
+  // NEUTRAL profile = the no-taste baseline. Its diversity is a property of the
+  // DATA (a date whose first day is standing gallery exhibitions is genuinely
+  // art-heavy — not a bug), so we only hold it to the ABSOLUTE monoculture
+  // backstop. The relative guard below is what catches taste-induced collapse.
+  const neutral = tp({})
+  const nq = tq.feedQuality(upcoming, neutral)
+  assert.ok(
+    nq.diversity >= tq.DIVERSITY_FLOOR,
+    `neutral top-20 diversity ${nq.diversity.toFixed(2)} below the absolute floor ${tq.DIVERSITY_FLOOR} — the raw feed is a monoculture (data, not taste)`
+  )
+
+  // CLEAR-LEAN profile: pick the most common non-'other' category as the lean
+  // so it has real supply to surface (a lean with no events can't lift — that's
+  // data, not a taste bug). Drive it to a strong, confident score.
+  const counts = {}
+  for (const e of upcoming) counts[e.category] = (counts[e.category] || 0) + 1
+  const leanCat = Object.entries(counts).filter(([c]) => c !== 'other').sort((a, b) => b[1] - a[1])[0][0]
+  const leaned = tp({ catScores: { [leanCat]: 25 }, n: 40, organicN: 40 })
+  const lq = tq.feedQuality(upcoming, leaned)
+
+  // 1a) ABSOLUTE — a sharp lean must not create a true monoculture
+  assert.ok(
+    lq.diversity >= tq.DIVERSITY_FLOOR,
+    `lean(${leanCat}) top-20 diversity ${lq.diversity.toFixed(2)} below the absolute floor ${tq.DIVERSITY_FLOOR} — taste made a monoculture`
+  )
+  // 1b) RELATIVE — taste must not COLLAPSE diversity below the raw baseline
+  //     (the regression the spec names). Count-preserving order + the >2-run
+  //     de-flood guarantee taste can REORDER but not concentrate worse than raw.
+  assert.ok(
+    lq.diversity >= nq.diversity - tq.DIVERSITY_DROP_TOL,
+    `lean(${leanCat}) dropped top-20 diversity to ${lq.diversity.toFixed(2)} from a neutral ${nq.diversity.toFixed(2)} (> ${tq.DIVERSITY_DROP_TOL} drop) — taste collapsed the feed`
+  )
+  // 2) ON-LEAN LIFT — taste must surface MORE of the lean than neutral does
+  assert.ok(
+    lq.matchLift >= tq.MATCH_MIN_LIFT,
+    `lean(${leanCat}) added only ${lq.matchLift} on-lean items vs neutral (need ≥ ${tq.MATCH_MIN_LIFT}) — taste isn't doing its job`
+  )
+  // 3) NO STARVATION — the lean must not own (nearly) the whole top-20
+  assert.ok(
+    lq.matchRate <= tq.MATCH_MAX,
+    `lean(${leanCat}) owns ${(lq.matchRate * 100).toFixed(0)}% of the top-20 (> ${tq.MATCH_MAX * 100}% cap) — the feed starved everything else`
+  )
+  // a synthetic MONOCULTURE feed (all one category, one family) must trip the
+  // absolute floor — proof the metric actually catches a collapse, not just
+  // passes on friendly data (a self-test of the guard itself).
+  const mono = Array.from({ length: 40 }, (_, i) =>
+    N(ev({ title: 'M' + i, source: 'OneSrc', sources: ['OneSrc'], category: 'music', start: '2026-06-11T20:00:00', hotScore: 90 - i }), AN)
+  ).map((e) => ({ ...e, _clamp: e._day }))
+  const monoQ = tq.feedQuality(mono, neutral)
+  assert.ok(monoQ.diversity < tq.DIVERSITY_FLOOR, `a one-category one-source feed MUST score below the floor (got ${monoQ.diversity}) — the guard is real`)
+})
+
 // O1 lazy tab mounting — the boot-perf guard. The app can't DOM-render in
 // this Node harness, so the assertion is structural: every non-boot tab's
 // children must be gated on the nav visited-set (mount on first visit), and
@@ -963,6 +1167,34 @@ test('U-d: the conversion "went" rides markBeen + lights violet once (CalendarVi
   // no taste signal is recorded for slotting anywhere in the day surfaces
   const daySrc = readFileSync(path.join(ROOT, 'app', 'src', 'DayPage.jsx'), 'utf8')
   assert.ok(!/recordSignal\(/.test(daySrc), 'DayPage must record NO taste signal for slotting (only "went" feeds taste, v1)')
+})
+
+// Sprint S follow-up — a SLOTTED PLACE ('p|' key) must resolve in the U-d
+// surfaces, not just on DayPage. CalendarView's morning-after card and
+// ProfileView's past-days journal both build their key→title maps from `events`
+// only; a place is NEVER in `events`, so each must fold the lazily-loaded
+// places in (gated on a place key, the DayPage pattern) or a slotted place
+// degrades to the generic "did you make it out?" / "no longer listed". These
+// are grep wiring asserts (the views can't import into Node — they pull in JSX
+// and CSS), same approach as the CalendarView wiring test above.
+test('Sprint S: Calendar + Profile fold lazy places into their slot resolvers (gated)', () => {
+  const calSrc = readFileSync(path.join(ROOT, 'app', 'src', 'CalendarView.jsx'), 'utf8')
+  // the fetch is GATED on a place key actually being in the card's slots — an
+  // event-only/empty card must never pay the ~1.2MB places fetch
+  assert.ok(/isPlaceKey\(card\.slots\[p\]\)/.test(calSrc), 'CalendarView must gate the places fetch on a place key in the card slots')
+  assert.ok(/usePlaces\(hasPlaceKey\)/.test(calSrc), 'CalendarView must lazily load places only when the card holds a place key')
+  // …and fold them into the card resolver so a slotted place NAMES itself
+  assert.ok(/for \(const p of placeList\) m\.set\(p\.key, p\)/.test(calSrc), 'CalendarView must fold places into cardByKey')
+  // the "went" snapshot for a place must carry its real title/category AND stamp
+  // the planned day as start — else the did-day (didDays keys on snapshot.start)
+  // would stop deriving (places have no date of their own): a silent regression
+  assert.ok(/live\.kind === 'place'/.test(calSrc), 'CalendarView must special-case a slotted place in the "went" snapshot')
+  assert.ok(/\.\.\.snapshotFor\(live\), start: cardDateISO/.test(calSrc), 'a slotted-place "went" must stamp the planned day as snapshot.start so the did-day still derives')
+
+  const pfSrc = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
+  assert.ok(/isPlaceKey\(/.test(pfSrc), 'ProfileView must gate the places fetch on a place key in a plan/journal/weekend slot')
+  assert.ok(/usePlaces\(hasPlaceKey\)/.test(pfSrc), 'ProfileView must lazily load places only when a slotted place is present')
+  assert.ok(/for \(const p of placeList\) m\.set\(p\.key, p\.title\)/.test(pfSrc), 'ProfileView must fold place titles into titleByKey (no "no longer listed" for a live place)')
 })
 
 // Sprint U-d — index.css ledger comment amended to record violet moment #7.

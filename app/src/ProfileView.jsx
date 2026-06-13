@@ -28,7 +28,7 @@ import { useNav } from './nav.jsx'
 import { categoryById } from './categories.js'
 import { GemRow, SecHead, SponsoredTag } from './cards.jsx'
 import { markBeen, shelfItems, useBeenThere, useSaves } from './saves.js'
-import { confidence, interviewAnswers, topCategories, useTaste } from './taste.js'
+import { confidence, topCategories, useTaste, whenPreference } from './taste.js'
 import { useRecents } from './recents.js'
 import { DAY_IDS, SLOT_IDS, filledCount, loadHistory, visibleWeekend, weekendDays } from './weekend.js'
 import {
@@ -41,6 +41,7 @@ import {
   loadDayPlans,
   varietyFirsts,
 } from './dayplan.js'
+import { usePlaces, isPlaceKey } from './places.js'
 import './profile.css'
 
 const fmtShort = (ts) =>
@@ -86,15 +87,6 @@ export default function ProfileView({ events, anchors, primer }) {
     return m
   }, [events])
   const savedByKey = useMemo(() => new Map(savedList.map((s) => [s.key, s])), [savedList])
-  // best-known title per key for plan summaries/history: live dataset wins,
-  // then saved snapshots, then been-there snapshots — never fabricated
-  const titleByKey = useMemo(() => {
-    const m = new Map()
-    for (const b of been) if (b.snapshot?.title) m.set(b.key, b.snapshot.title)
-    for (const s of savedList) if (s.snapshot?.title) m.set(s.key, s.snapshot.title)
-    for (const e of events) m.set(keyOf(e), e.title)
-    return m
-  }, [been, savedList, events])
 
   // ===== vibe header (live taste profile → identity, confidence-aware) =====
   const conf = confidence(taste)
@@ -102,13 +94,13 @@ export default function ProfileView({ events, anchors, primer }) {
     .map((c) => categoryById[c])
     .filter(Boolean)
   const freeLeaning = taste.freeAffinity >= 5 // the same gate tasteNudge's free bonus uses
-  // two surfaces answer "when do you head out": the editor's dayparts (newer,
-  // re-editable any time) WINS over the primer's first-open answer — otherwise
-  // setting Weeknights in the editor leaves Profile asserting an old "Weekends
-  // are your nights" and the app reads as not listening (Q2 review LOW-1;
-  // 'both' wears the whenever line). Full unification is Sprint V1's job.
-  const editedWhen = { weeknights: 'weeknights', weekends: 'weekends', both: 'whenever' }[interviewAnswers(taste)?.dayparts]
-  const whenLine = editedWhen ? WHEN_LINE[editedWhen] : primer?.done && primer.when ? WHEN_LINE[primer.when] : null
+  // Sprint V1: when-preference is ONE resolver now (whenPreference in taste.js).
+  // The editor's dayparts outrank the primer's first-open `when` ('both'→
+  // whenever); a skipped primer + untouched editor claims nothing. HotView's
+  // hero reads the SAME resolver, so the two surfaces can never disagree about
+  // the same fact (the Q2 carry-in, finally unified — was a duplicated patch).
+  const when = whenPreference(taste, primer?.done ? primer.when : null)
+  const whenLine = when ? WHEN_LINE[when] : null
   const learning = conf < 0.4 // the rail gate's own bar: under it, the profile is a sketch
   const vibeTitle =
     taste.n === 0
@@ -152,6 +144,37 @@ export default function ProfileView({ events, anchors, primer }) {
     void planPageUp
     return loadDayHistory().reverse().slice(0, 10) // most recent first
   }, [planPageUp])
+
+  // Sprint S: a slot can hold a PLACE ('p|') key — written by PlaceDetail's
+  // "Make this my plan" — which is NEVER in `events` (places are a separate
+  // store). A place key can ride a current day plan, a past-days journal row,
+  // or (in principle) a past weekend, so fold the lazily-loaded places into
+  // titleByKey below — else the journal renders "no longer listed" for a place
+  // that's still perfectly listed in places.json. The ~1.2MB places fetch fires
+  // ONLY when a place key is actually present here (the DayPage gate pattern);
+  // an event-only/empty profile pays nothing.
+  const hasPlaceKey = useMemo(() => {
+    for (const k of Object.keys(dayPlans)) {
+      const e = dayEntryFor(dayPlans[k])
+      if (e && PARTS.some((p) => isPlaceKey(e.slots[p]))) return true
+    }
+    for (const h of dayHist) if (PARTS.some((p) => isPlaceKey(h.slots[p]))) return true
+    for (const p of history) if (p.slots && Object.values(p.slots).some(isPlaceKey)) return true
+    return false
+  }, [dayPlans, dayHist, history])
+  const { places: placeList } = usePlaces(hasPlaceKey)
+  // best-known title per key for plan summaries/history: live dataset wins,
+  // then saved snapshots, then been-there snapshots, then the lazy places —
+  // never fabricated
+  const titleByKey = useMemo(() => {
+    const m = new Map()
+    for (const b of been) if (b.snapshot?.title) m.set(b.key, b.snapshot.title)
+    for (const s of savedList) if (s.snapshot?.title) m.set(s.key, s.snapshot.title)
+    for (const e of events) m.set(keyOf(e), e.title)
+    if (Array.isArray(placeList)) for (const p of placeList) m.set(p.key, p.title)
+    return m
+  }, [been, savedList, events, placeList])
+
   const days = useMemo(() => visibleWeekend(anchors), [anchors])
   const visibleSlotN = days.length * PARTS.length
   const filledVis = filledForDays(dayPlans, days.map((d) => d.ts))

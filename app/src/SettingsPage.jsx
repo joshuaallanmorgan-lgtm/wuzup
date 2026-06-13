@@ -36,7 +36,7 @@ const fmtUpdated = (ms) => {
 }
 
 export default function SettingsPage({ events, dataAt, primer, onPrimerDone }) {
-  const { closePage: onClose, openInterests, openDeck } = useNav()
+  const { closePage: onClose, openInterests, openTaste, openDeck } = useNav()
   const taste = useTaste()
   const [retaking, setRetaking] = useState(false)
   const [arming, setArming] = useState(false) // reset's two-step confirm
@@ -103,6 +103,15 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone }) {
           </div>
 
           <div className="st-rows">
+            {/* Sprint V2/V3: the transparency + control hatch — what the feed
+                learned, in plain numbers, plus per-category more/less */}
+            <button className="st-row" onClick={() => openTaste('settings')}>
+              <span className="st-row-main">
+                <span className="st-row-title">Why your feed looks like this</span>
+                <span className="st-row-sub">See what it learned + nudge categories up or down</span>
+              </span>
+              <span className="st-row-go" aria-hidden>→</span>
+            </button>
             {/* Q2c: the editor REPLACED the 7-screen interview row — stated
                 interests are a page you edit, not a wizard you re-run */}
             <button className="st-row" onClick={() => openInterests('settings')}>

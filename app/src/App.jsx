@@ -24,6 +24,7 @@ import WeekendBuilder from './WeekendBuilder.jsx'
 import DayPage from './DayPage.jsx'
 import SettingsPage from './SettingsPage.jsx'
 import InterestEditor from './InterestEditor.jsx'
+import TastePanel from './TastePanel.jsx'
 import CalibrationDeck from './CalibrationDeck.jsx'
 import LensDeck from './LensDeck.jsx'
 import DayFillDeck from './DayFillDeck.jsx'
@@ -324,6 +325,11 @@ function Shell() {
               <SettingsPage events={norm} dataAt={dataAt} primer={primer} onPrimerDone={setPrimer} />
             )}
             {page.type === 'interests' && <InterestEditor from={page.from} />}
+            {/* Sprint V2/V3: the "why your feed looks like this" + mute/boost
+                panel — opened from Settings, back returns there (the `from`
+                origin). primer is handed in so taste.js's one when-resolver
+                decides precedence (primer-v1 is a separate store). */}
+            {page.type === 'taste' && <TastePanel from={page.from} primer={primer} />}
             {page.type === 'deck' && (
               /* primer-origin (the onboarding offer) closes to the tab — a
                  fresh user has no Settings page to "go back" to */

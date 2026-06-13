@@ -115,7 +115,8 @@ export function NavProvider({ children }) {
   // {type:'placebubble',bubble} (Sprint S) | {type:'search'} |
   // {type:'night'} | {type:'add',ts} | {type:'weekend'} | {type:'day',ts} |
   // {type:'settings'} |
-  // {type:'interests',from} | {type:'deck',from} | {type:'lensdeck',lens} —
+  // {type:'interests',from} | {type:'taste',from} (Sprint V — why-feed +
+  // mute/boost) | {type:'deck',from} | {type:'lensdeck',lens} —
   // slides in over the active tab (z 1500, below detail 2000). Sprint P added
   // settings (Profile's gear) and the calibration deck (launched FROM
   // settings — they stack by replacing the page, and their back/finish
@@ -203,6 +204,14 @@ export function NavProvider({ children }) {
     clearTimeout(pageTRef.current)
     setPageClosing(false)
     setPage({ type: 'interests', from: from === 'settings' ? 'settings' : null })
+  }, [])
+  // Sprint V2/V3: the taste transparency + mute/boost panel (TastePanel).
+  // Same single-slot replace pattern + `from` origin as openInterests, so its
+  // back affordance returns to Settings when launched there.
+  const openTaste = useCallback((from) => {
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    setPage({ type: 'taste', from: from === 'settings' ? 'settings' : null })
   }, [])
   // Q2d: the deck gained a second door (the primer's finish-screen offer).
   // Same literal-string guard as openInterests: anything but 'primer' —
@@ -332,6 +341,7 @@ export function NavProvider({ children }) {
       openDay,
       openSettings,
       openInterests,
+      openTaste,
       openDeck,
       openLensDeck,
       closePage,
@@ -362,6 +372,7 @@ export function NavProvider({ children }) {
       openDay,
       openSettings,
       openInterests,
+      openTaste,
       openDeck,
       openLensDeck,
       closePage,
