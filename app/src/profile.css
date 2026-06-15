@@ -89,6 +89,29 @@
 .pf-sec { margin-top: 34px; }
 .pf-rows { display: flex; flex-direction: column; gap: 10px; padding: 0 20px; }
 
+/* W6: the Your-taste hub — surfaced rows (transparency panel + calibration
+   deck), the same hairline-card voice as the plan card, each closing to Profile */
+.pf-taste { display: flex; flex-direction: column; gap: 10px; padding: 0 20px; }
+.pf-taste-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  text-align: left;
+  font-family: inherit;
+  color: var(--ink);
+  cursor: pointer;
+}
+.pf-taste-ic { flex: 0 0 auto; font-size: 20px; line-height: 1; }
+.pf-taste-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.pf-taste-t { font-size: 14px; font-weight: 700; letter-spacing: -0.2px; }
+.pf-taste-s { font-size: 12px; font-weight: 500; color: var(--muted); }
+.pf-taste-go { flex: 0 0 auto; font-size: 16px; font-weight: 800; color: var(--accent); }
+
 /* saved-list rows: past items grey out + wear a "Happened" tag over the thumb */
 .pf-item { position: relative; }
 .pf-item.pf-past { opacity: 0.55; }

@@ -22,7 +22,8 @@
 //     shape (planned / rest / went / nothing-yet) — a logbook line, NOT an
 //     event list. The day screen is where the agenda lives.
 //
-// The Weekend Builder entry (openWeekend) stays. ALL NEW COPY IS DRAFT for
+// W6 (⚑U-WKND): the Weekend pill is RETIRED — planning is per-day (tap a day →
+// the day screen); WB stays reachable from Profile. ALL NEW COPY IS DRAFT for
 // Charles (inventory in the sprint report).
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { keyOf } from './lib.js'
@@ -40,14 +41,13 @@ import {
   morningAfterCandidates,
   PARTS,
 } from './dayplan.js'
-import { visibleWeekend } from './weekend.js'
 import { usePlaces, isPlaceKey } from './places.js'
 import './calendar.css'
 
 const wdLong = (ts) => new Date(ts).toLocaleDateString('en-US', { weekday: 'long' })
 
 export default function CalendarView({ events, anchors, wx }) {
-  const { openWeekend: onOpenWeekend, openDay, page } = useNav()
+  const { openDay, page } = useNav()
   const [selKey, setSelKey] = useState(null) // selected day timestamp (the grid caption tracks it)
   const [monthOff, setMonthOff] = useState(0)
 
@@ -224,21 +224,11 @@ export default function CalendarView({ events, anchors, wx }) {
       <div className="cal-top">
         <div className="cal-top-row">
           <h2 className="cal-title">Your days{/* DRAFT for Charles */}</h2>
-          {/* the Weekend Builder entry stays. When only ONE weekend day is still
-              live (it's Sunday) a 1-column WB is no richer than the day screen,
-              so the pill takes the more direct path and opens that day. */}
-          {onOpenWeekend && (
-            <button
-              className="cal-wkb"
-              onClick={() => {
-                const wk = visibleWeekend(anchors)
-                if (wk.length === 1) openDay(wk[0].ts)
-                else onOpenWeekend()
-              }}
-            >
-              Weekend 🗓️
-            </button>
-          )}
+          {/* W6 (⚑U-WKND): the Weekend pill is RETIRED. Planning happens by
+              tapping a day (the month grid / day-rail open the richer day
+              screen); a redundant calendar entry to the legacy multi-day
+              Weekend Builder was the "stale connection" Josh flagged. WB stays
+              reachable from Profile → Your plans. */}
         </div>
         {/* the light gentle-ledger line — a calm record of the displayed month.
             ZERO IS SILENCE: rendered only when n > 0. DRAFT for Charles. */}

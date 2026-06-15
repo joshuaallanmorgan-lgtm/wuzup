@@ -75,7 +75,7 @@ const GearIc = () => (
 )
 
 export default function ProfileView({ events, anchors, primer }) {
-  const { openDetail: onSelect, openWeekend: onOpenWeekend, openSettings, openInterests, page } = useNav()
+  const { openDetail: onSelect, openWeekend: onOpenWeekend, openSettings, openInterests, openTaste, openDeck, page } = useNav()
   const taste = useTaste()
   const { list: savedList } = useSaves()
   const been = useBeenThere()
@@ -293,6 +293,36 @@ export default function ProfileView({ events, anchors, primer }) {
       </header>
 
       <div className="pf-body">
+        {/* ===== Your taste (W6 connectivity) — the transparency panel and the
+            calibration deck were buried in Settings (4 taps); surfaced here so
+            taste is a first-class Profile hub. Interests stay editable via the
+            header chips above. Both rows close back to Profile. DRAFT copy.
+            ⚑W5/Charles: these two rows are now an INTENTIONAL second door to the
+            same surfaces Settings still lists verbatim — W5's Settings redesign
+            should make Profile the canonical home and demote/retitle the
+            Settings copies so the identical titles don't read as a bug. ===== */}
+        <section className="pf-sec">
+          <SecHead overline="Tune what you see" title="Your taste" />
+          <div className="pf-taste">
+            <button className="pf-taste-row pressable" onClick={() => openTaste()}>
+              <span className="pf-taste-ic" aria-hidden>🧭</span>
+              <span className="pf-taste-main">
+                <span className="pf-taste-t">Why your feed looks like this</span>
+                <span className="pf-taste-s">The honest read on what we've learned</span>
+              </span>
+              <span className="pf-taste-go" aria-hidden>→</span>
+            </button>
+            <button className="pf-taste-row pressable" onClick={() => openDeck('profile')}>
+              <span className="pf-taste-ic" aria-hidden>🃏</span>
+              <span className="pf-taste-main">
+                <span className="pf-taste-t">Rate a few to sharpen it</span>
+                <span className="pf-taste-s">A quick deck — swipe what you'd actually go to</span>
+              </span>
+              <span className="pf-taste-go" aria-hidden>→</span>
+            </button>
+          </div>
+        </section>
+
         {/* ===== Your list ===== */}
         <section className="pf-sec">
           <SecHead

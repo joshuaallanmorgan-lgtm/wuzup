@@ -1289,12 +1289,38 @@ test('W2: the Calendar tab is a logbook — NO event list / counts / heat on it'
   assert.ok(/plannedDays\.has\(ts\)/.test(calSrc), 'planned days wear the teal underline mark')
   assert.ok(/restDays\.has\(ts\)/.test(calSrc), 'rest days wear the muted crescent mark')
   assert.ok(/dids\.has\(ts\)/.test(calSrc) && /didDays\(been\)/.test(calSrc), 'did-days (been-there \'went\') wear the calm check stamp')
-  // tapping a day still opens the day screen (the bridge to fill it) + Weekend stays
+  // tapping a day still opens the day screen (the bridge to fill it)
   assert.ok(/openDay\(ts\)/.test(calSrc), 'tapping a day must still open the day screen (the supply bridge)')
-  assert.ok(/onOpenWeekend|openWeekend/.test(calSrc), 'the Weekend Builder entry must stay on the Calendar tab')
+  // W6 (⚑U-WKND): the Weekend pill is RETIRED — planning is per-day now, so the
+  // redundant calendar→WeekendBuilder entry is gone (WB stays reachable from Profile)
+  assert.ok(!/cal-wkb/.test(calSrc), 'the Weekend pill (.cal-wkb) must be removed from the Calendar tab (W6)')
+  assert.ok(!/openWeekend/.test(calSrc), 'the Calendar tab must not wire openWeekend anymore (W6 retired the pill)')
   // the gentle ledger is surfaced LIGHT here (days-out line), zero is silence
   assert.ok(/daysOutInMonth\(/.test(calSrc), 'the light gentle-ledger line derives from daysOutInMonth')
   assert.ok(/daysOut > 0/.test(calSrc), 'the days-out line is SILENT at zero (ban §7 #8 — never "0 📉")')
+})
+
+// Phase 3.5 W6 — CONNECTIVITY. The buried taste surfaces (TastePanel transparency
+// + the calibration deck, both 4 taps deep in Settings) get a first-class Profile
+// entry, and the deck's close affordance honors a 'profile' origin so it returns
+// to Profile (not Settings).
+test('W6 connectivity: Profile surfaces the taste hub (TastePanel + calibration deck)', () => {
+  const pfSrc = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
+  assert.ok(/openTaste/.test(pfSrc), 'ProfileView must surface TastePanel (openTaste) — it was buried in Settings')
+  assert.ok(/openDeck\('profile'\)/.test(pfSrc), "ProfileView must surface the calibration deck via openDeck('profile')")
+  assert.ok(/pf-taste/.test(pfSrc), 'ProfileView must render the Your-taste hub (.pf-taste)')
+  // openDeck must accept a 'profile' origin distinct from 'settings'/'primer'
+  const navSrc = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
+  assert.ok(/origin === 'profile'/.test(navSrc), "openDeck must accept a 'profile' origin (close to Profile, not Settings)")
+  // the deck closes to Settings ONLY for the settings origin; profile/primer close to the tab
+  const appSrc = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
+  assert.ok(/page\.from === 'settings' \? openSettings : closePage/.test(appSrc), "the deck's onClose returns to Settings only for the settings origin")
+  // the retired Weekend pill class is gone CODEBASE-WIDE (it had a duplicate
+  // rule in weekend.css — a stale connection W6 must not leave behind)
+  for (const f of ['calendar.css', 'weekend.css']) {
+    const css = readFileSync(path.join(ROOT, 'app', 'src', f), 'utf8')
+    assert.ok(!/\.cal-wkb/.test(css), `the retired .cal-wkb pill rule must be gone from ${f} (no orphan CSS)`)
+  }
 })
 
 // ============================================================

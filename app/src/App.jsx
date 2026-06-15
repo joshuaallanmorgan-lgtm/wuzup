@@ -331,8 +331,10 @@ function Shell() {
               <CalibrationDeck
                 events={norm}
                 anchors={anchors}
-                onClose={page.from === 'primer' ? closePage : openSettings}
-                closeLabel={page.from === 'primer' ? 'Take me to the events' : undefined}
+                onClose={page.from === 'settings' ? openSettings : closePage}
+                closeLabel={
+                  page.from === 'settings' ? undefined : page.from === 'primer' ? 'Take me to the events' : 'Done'
+                }
               />
             )}
             {/* Sprint Q2: the finite "Deck this" mode — opened ONLY by the

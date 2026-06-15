@@ -3,39 +3,10 @@
    appearance is the one-shot complete beat (.wkb-done-card.beat), which settles
    back to teal and never plays under reduced motion. */
 
-/* ===== entry points ===== */
-/* HotView Saved-shelf header button */
-.wkb-entry {
-  display: block;
-  width: calc(100% - 40px);
-  margin: 0 20px 14px;
-  padding: 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(var(--accent-rgb), 0.35);
-  background: rgba(var(--accent-rgb), 0.07);
-  color: var(--accent);
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 800;
-  text-align: center;
-  cursor: pointer;
-}
-/* Calendar header Weekend pill (the .seg List|Month toggle it once matched was
-   removed in Phase 3.5 W2 — the logbook is one canvas now) */
-.cal-wkb {
-  height: 32px;
-  padding: 0 12px;
-  border: none;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.22);
-  color: #fff;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: transform var(--dur-micro);
-}
-.cal-wkb:active { transform: scale(0.94); }
+/* (W6 cleanup: the old entry-point styles were swept — the retired HotView
+   Saved-shelf button and the Calendar header Weekend pill (retired in W6,
+   ⚑U-WKND). Neither had a JSX consumer left. The Weekend Builder is now
+   reached only from Profile → Your plans.) */
 
 /* ===== the page ===== */
 .wkb-body { padding-top: 0; }

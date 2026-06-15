@@ -218,7 +218,10 @@ export function NavProvider({ children }) {
   const openDeck = useCallback((origin) => {
     clearTimeout(pageTRef.current)
     setPageClosing(false)
-    setPage({ type: 'deck', from: origin === 'primer' ? 'primer' : 'settings' })
+    // origin routes the deck's close affordance: 'primer' (onboarding offer) and
+    // 'profile' (W6 taste hub) close to the tab; anything else — including the
+    // click event Settings' row hands over — is the historical settings origin.
+    setPage({ type: 'deck', from: origin === 'primer' ? 'primer' : origin === 'profile' ? 'profile' : 'settings' })
   }, [])
   // Sprint Q2: the finite lens deck ("Deck this" on day-headers + bubble
   // pages). lens = {kind:'day',dayTs} | {kind:'bubble',bubble} — LensDeck
