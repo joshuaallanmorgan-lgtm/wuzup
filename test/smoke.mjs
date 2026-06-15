@@ -457,6 +457,19 @@ test('N1 wiring: HotView + LocationsView render LensNav, the loud strip is gone'
   assert.ok(/moreRef\.current\?\.focus\(\)/.test(ln), 'focus must return to the trigger on close (WCAG 2.4.3)')
 })
 
+// Phase 3.6 N5 — ambitious onboarding. First-open teaches the 5-tab IA (skippable)
+// and finishes with a taste SNAPSHOT whose copy is honest (taste reorders, never
+// hides — the old "head start" line wrongly implied filtering).
+test('N5 onboarding: first-open IA tour (skippable) + honest taste snapshot', () => {
+  const p = readFileSync(path.join(ROOT, 'app', 'src', 'Primer.jsx'), 'utf8')
+  assert.ok(/const TOUR =/.test(p) && /step === 'tour'/.test(p), 'Primer must show the first-open IA tour')
+  assert.ok(/reentry \? 0 : 'tour'/.test(p), 'first-open opens on the tour; a Settings retake skips it')
+  assert.ok(/step !== 3 &&/.test(p), 'the one-tap Skip must be available on the tour (skippable)')
+  assert.ok(/primer-snapshot/.test(p), 'the finish must reflect the picks back as a taste snapshot')
+  assert.ok(/never hide the rest/.test(p), 'finish copy must be honest — taste reorders, never hides')
+  assert.ok(!/give the feed a head start/.test(p), 'the misleading filter-implying "head start" copy must be gone')
+})
+
 // ============================================================
 // 3+4) APP BUILD + LINT (started together, asserted separately)
 // ============================================================

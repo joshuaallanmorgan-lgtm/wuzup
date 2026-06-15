@@ -174,6 +174,37 @@
   cursor: pointer;
 }
 
+/* N5: the first-open IA tour — glassy rows, one per tab */
+.primer-tour { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+.primer-tour-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+}
+.primer-tour-emoji { flex: 0 0 auto; font-size: 24px; line-height: 1; }
+.primer-tour-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.primer-tour-label { font-size: 15px; font-weight: 800; letter-spacing: -0.2px; }
+.primer-tour-line { font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.6); line-height: 1.4; }
+
+/* N5: the finish snapshot — the picks reflected back as teal "applied" chips */
+.primer-snapshot { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.primer-snap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 13px;
+  border-radius: 999px;
+  border: 1.5px solid var(--accent-2);
+  background: rgba(6, 182, 212, 0.18);
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
 /* Q2d finish screen: the QUIET optional deck offer under the primary exit —
    ghost-pill quiet on purpose (the default path into the app stays loud).
    Teal text, not --reward: the sanctioned beat already happened on tap 3. */

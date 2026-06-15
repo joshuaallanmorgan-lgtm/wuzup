@@ -95,12 +95,25 @@ const WHEN = [
   { v: 'weekends', emoji: '🎉', label: 'Weekends' },
   { v: 'whenever', emoji: '🤷', label: 'Whenever' },
 ]
+// Phase 3.6 N5: the first-open IA tour — teach the five tabs before asking for
+// anything, so the app the user lands in isn't a cold mystery (Josh: "what does
+// the user think the first time they open it"). Skippable (Continue advances to
+// the taste questions; the global Skip exits entirely). Emoji-as-icon, one calm
+// line each. DRAFT copy for Charles.
+const TOUR = [
+  { emoji: '🎉', label: 'Events', line: "What's on — tonight, this weekend, by vibe" },
+  { emoji: '📍', label: 'Spots', line: 'Places always here — beaches, parks, courts' },
+  { emoji: '🗺️', label: 'Map', line: 'Everything around you, on one map' },
+  { emoji: '🗓️', label: 'Calendar', line: 'Build a day; look back on your nights' },
+  { emoji: '👤', label: 'Profile', line: 'Your taste, your saves, your plans' },
+]
 
 const prefersReduced = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 export default function Primer({ onDone, onDeck, reentry = false }) {
-  const [step, setStep] = useState(0)
+  // first-open opens on the IA tour; a Settings retake jumps straight to the questions
+  const [step, setStep] = useState(reentry ? 0 : 'tour')
   const [cats, setCats] = useState([]) // array → preserves pick order, max 3
   const [free, setFree] = useState(null) // null | true | false
   const [when, setWhen] = useState(null)
@@ -180,6 +193,12 @@ export default function Primer({ onDone, onDeck, reentry = false }) {
   }
 
   const full = cats.length >= 3
+  const onQ = typeof step === 'number' && step < 3 // a taste question (dots + note + skip)
+  // N5 finish snapshot: reflect the picks back as proof they're APPLIED, not
+  // stored — and the honest line (taste reorders, never hides)
+  const mixCats = cats.map((v) => categoryById[v]).filter(Boolean).slice(0, 3)
+  const whenChip = WHEN.find((w) => w.v === when)
+  const hasMix = mixCats.length > 0 || free === true || !!whenChip
 
   return (
     <div className={'primer' + (leaving ? ' primer-leaving' : '')} role="dialog" aria-modal="true" aria-label="Quick taste setup">
@@ -191,14 +210,20 @@ export default function Primer({ onDone, onDeck, reentry = false }) {
               account" + progress dots describe a flow that's already over
               (Q2 review INFO-4; DRAFT for Charles like all primer copy) */}
           <div className="primer-kicker">
-            {step === 3 ? 'ALL SET' : reentry ? 'TUNE YOUR TASTE' : 'NEW HERE? MAKE IT YOURS'}
+            {step === 'tour'
+              ? 'WELCOME TO TAMPA BAY'
+              : step === 3
+                ? 'ALL SET'
+                : reentry
+                  ? 'TUNE YOUR TASTE'
+                  : 'NEW HERE? MAKE IT YOURS'}
           </div>
-          {step < 3 && (
+          {onQ && (
             <div className="primer-note">
               {reentry ? '3 taps — a fresh read on you.' : '3 taps, no account, all on your phone.'}
             </div>
           )}
-          {step < 3 && (
+          {onQ && (
             <div className="primer-dots" aria-hidden>
               {[0, 1, 2].map((i) => (
                 <span key={i} className={'primer-dot' + (i === step ? ' on' : i < step ? ' done' : '')} />
@@ -206,6 +231,27 @@ export default function Primer({ onDone, onDeck, reentry = false }) {
             </div>
           )}
         </header>
+
+        {step === 'tour' && (
+          <div className="primer-step" key="tour">
+            <h1 className="primer-q">Five tabs, one bay</h1>
+            <div className="primer-sub">Here&rsquo;s what you&rsquo;ll explore — then we&rsquo;ll tune it to you.</div>
+            <div className="primer-tour">
+              {TOUR.map((t) => (
+                <div key={t.label} className="primer-tour-row">
+                  <span className="primer-tour-emoji" aria-hidden>{t.emoji}</span>
+                  <span className="primer-tour-main">
+                    <span className="primer-tour-label">{t.label}</span>
+                    <span className="primer-tour-line">{t.line}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+            <button className="primer-next" onClick={() => setStep(0)}>
+              Continue
+            </button>
+          </div>
+        )}
 
         {step === 0 && (
           <div className="primer-step" key={0}>
@@ -281,28 +327,49 @@ export default function Primer({ onDone, onDeck, reentry = false }) {
              default path into the app stays primary. No --reward here: the
              sanctioned beat was the third tap's highlight, not this screen. */
           <div className="primer-step" key={3}>
-            <h1 className="primer-q">You’re in.</h1>
-            <div className="primer-sub">
-              {cats.length
-                ? 'Your picks give the feed a head start — every tap from here sharpens it.'
-                : 'Every tap from here shapes your feed — all on your phone.'}
-            </div>
+            <h1 className="primer-q">You’re set.</h1>
+            {hasMix ? (
+              <>
+                <div className="primer-snapshot">
+                  {mixCats.map((c) => (
+                    <span key={c.id} className="primer-snap" style={{ '--ph': c.hue }}>
+                      <span aria-hidden>{c.emoji}</span> {c.label}
+                    </span>
+                  ))}
+                  {free === true && (
+                    <span className="primer-snap">
+                      <span aria-hidden>🆓</span> Free-leaning
+                    </span>
+                  )}
+                  {whenChip && (
+                    <span className="primer-snap">
+                      <span aria-hidden>{whenChip.emoji}</span> {whenChip.label}
+                    </span>
+                  )}
+                </div>
+                {/* honest: taste reorders, it never filters/hides (taste.js contract) */}
+                <div className="primer-sub">We’ll lead your feed with these — and never hide the rest.</div>
+              </>
+            ) : (
+              <div className="primer-sub">Your feed’s wide open — every tap from here shapes it. All on your phone.</div>
+            )}
             <button className="primer-next" onClick={() => close(doneRef.current)}>
               Show me what’s on
             </button>
             {typeof onDeck === 'function' && (
               <button className="primer-deckbtn" onClick={() => close(doneRef.current, onDeck)}>
-                <span className="primer-deckbtn-main">🃏 Dial it in — rate 15 events</span>
-                <span className="primer-deckbtn-sub">Optional — swipe a quick deck, skippable anytime</span>
+                <span className="primer-deckbtn-main">🃏 See how your taste sharpens</span>
+                <span className="primer-deckbtn-sub">Rate a quick set — skippable anytime</span>
               </button>
             )}
           </div>
         )}
       </div>
 
-      {/* ONE-TAP SKIP — visible on every asking step (the finish screen has
-          its own two explicit exits; Escape still dismisses safely there) */}
-      {step < 3 && (
+      {/* ONE-TAP SKIP — visible on the tour + every asking step (the finish
+          screen has its own two explicit exits; Escape still dismisses there).
+          The tour is skippable per Josh: Continue advances, Skip exits. */}
+      {step !== 3 && (
         <button className="primer-skip" onClick={skip}>
           {reentry ? 'Never mind — back to settings' : 'Skip — just show me everything'}
         </button>
