@@ -53,7 +53,7 @@ const hasAmenity = (p, a) => p.amenities.includes(a)
 export const PLACE_BUBBLES = [
   { id: 'beaches', emoji: '🏖️', label: 'Beaches', hue: 200, match: (p) => p.placeType === 'beach' || hasClass(p, 'beach') },
   { id: 'parks', emoji: '🌳', label: 'Parks & trails', hue: 140, match: (p) => p.placeType === 'park' || hasClass(p, 'park') || p.placeType === 'trail' || hasClass(p, 'trail') },
-  { id: 'courts', emoji: '🎾', label: 'Courts & rec', hue: 35, match: (p) => p.placeType === 'courts' || ['tennis', 'basketball', 'pickleball', 'volleyball', 'racquetball', 'disc-golf', 'shuffleboard'].some((a) => hasAmenity(p, a)) },
+  { id: 'courts', emoji: '🎾', label: 'Courts & rec', hue: 35, match: (p) => p.placeType === 'courts' || ['tennis', 'basketball', 'pickleball', 'volleyball', 'racquetball', 'disc-golf', 'shuffleboard', 'skate-park'].some((a) => hasAmenity(p, a)) },
   { id: 'nature', emoji: '🥾', label: 'Nature paths', hue: 110, match: (p) => p.placeType === 'preserve' || p.placeType === 'trail' || hasClass(p, 'preserve') || hasClass(p, 'trail') || hasAmenity(p, 'nature-trails') || hasAmenity(p, 'trails') },
   { id: 'views', emoji: '🌅', label: 'Views', hue: 25, match: (p) => p.placeType === 'viewpoint' || p.placeType === 'pier' || hasClass(p, 'pier') },
   { id: 'dog', emoji: '🐕', label: 'Dog-friendly', hue: 50, match: (p) => p.placeType === 'dog_park' || hasClass(p, 'dog_park') || ['dog-park', 'dog-beach', 'dogs-allowed'].some((a) => hasAmenity(p, a)) },

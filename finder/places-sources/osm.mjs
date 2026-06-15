@@ -29,6 +29,14 @@ const BACKOFF_MS = [20000, 40000, 60000]; // 429/504 retry ladder — binding
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// W7 review: a court element whose `name` is just the facility noun ("Skate
+// Park", "Shuffleboard", "Volleyball Courts", the verbatim-OSM typo "Vollyball
+// Court") is geometry, not a destination — route it to the anonymous→chip path
+// so it enriches a nearby park instead of shipping as a bare-named standalone
+// card. Genuinely named ones ("Bro Bowl", "Skatepark of Tampa") don't match.
+const GENERIC_COURT_NAME =
+  /^(tennis|basketball|volleyball|vollyball|pickleball|racquetball|racketball|shuffleboard|disc[ -]?golf|skate[ -]?board|skate[ -]?park|beach ?volleyball)( ?(court|courts|complex|area))?$/i;
+
 // The 12 classes, filters verbatim from the spec table. `court` classes are
 // geometry, not places — they join to parks as amenity chips downstream.
 // `namedOnly` classes drop anonymous elements outright (anonymous piers/
@@ -45,10 +53,24 @@ const CLASSES = [
   { id: 'boat-ramps',      filter: 'nwr["leisure"="slipway"]',                       cls: 'boat_ramp' },
   { id: 'viewpoints',      filter: 'nwr["tourism"="viewpoint"]',                     cls: 'viewpoint' },
   { id: 'playgrounds',     filter: 'nwr["leisure"="playground"]',                    cls: 'playground', namedOnly: true, chipAnonymous: 'playground' },
-  // class 12: sport courts — three queries, all amenity-chip material
+  // class 12: sport courts — amenity-chip material (anonymous → join to parks;
+  // named facilities → standalone 'courts' places)
   { id: 'tennis',          filter: 'nwr["sport"~"tennis"]["sport"!~"table_tennis"]', cls: 'courts', court: 'tennis' },
   { id: 'basketball',      filter: 'nwr["sport"~"basketball"]',                      cls: 'courts', court: 'basketball' },
   { id: 'pickleball',      filter: 'nwr["sport"~"pickleball"]',                      cls: 'courts', court: 'pickleball' },
+  // W7 (Phase 3.5): deepen rec coverage — disc golf + skate parks (real
+  // destinations, via the leisure=* facility tag) and three more court sports
+  // (density). `amenityOnNamed` stamps the specific amenity onto the named
+  // place too (so a disc-golf course/skate park carries its own chip + emoji),
+  // which the original three deliberately don't — this avoids churning the
+  // existing tennis/basketball/pickleball records. Region-wide bbox → multi-county.
+  { id: 'disc-golf',       filter: 'nwr["leisure"="disc_golf_course"]',              cls: 'courts', court: 'disc-golf',   amenityOnNamed: true },
+  // skate parks here are tagged sport=skateboard (leisure=skatepark is empty in
+  // this region); dropShops filters the odd skate SHOP that shares the tag.
+  { id: 'skate-parks',     filter: 'nwr["sport"~"skateboard"]',                      cls: 'courts', court: 'skate-park',  amenityOnNamed: true, dropShops: true },
+  { id: 'shuffleboard',    filter: 'nwr["sport"~"shuffleboard"]',                    cls: 'courts', court: 'shuffleboard', amenityOnNamed: true },
+  { id: 'volleyball',      filter: 'nwr["sport"~"volleyball"]',                      cls: 'courts', court: 'volleyball',  amenityOnNamed: true },
+  { id: 'racquetball',     filter: 'nwr["sport"~"racquetball"]',                     cls: 'courts', court: 'racquetball', amenityOnNamed: true },
 ];
 
 function buildQuery(filter) {
@@ -183,8 +205,19 @@ export async function fetchPlaces() {
       // destinations — this branch runs before the general filter below, so
       // it needs its own copy (IMG Academy slipped through here).
       if (cls.court) {
-        if (nm) {
-          if (!/\bschool\b|\bacademy\b|\bhoa\b/i.test(nm)) addPlace(byId, el, tags, pt, nm, 'courts');
+        // a real name → standalone 'courts' place; anonymous OR a bare facility
+        // noun ("Skate Park", "Vollyball Court") → amenity chip that joins a park
+        const generic = nm && GENERIC_COURT_NAME.test(nm.replace(/[.,]/g, ' ').replace(/\s+/g, ' ').trim());
+        if (nm && !generic) {
+          if (!/\bschool\b|\bacademy\b|\bhoa\b/i.test(nm) && !(cls.dropShops && tags.shop)) {
+            addPlace(byId, el, tags, pt, nm, 'courts');
+            // W7: stamp the specific amenity onto the named place (new classes
+            // only — keeps the original tennis/basketball/pickleball untouched)
+            if (cls.amenityOnNamed) {
+              const rec = byId.get(`${el.type}/${el.id}`);
+              if (rec && !rec.amenities.includes(cls.court)) rec.amenities.push(cls.court);
+            }
+          }
         } else {
           chips.push({ amenityOnly: true, amenity: cls.court, lat: pt.lat, lng: pt.lng, source: name });
         }

@@ -24,6 +24,7 @@ import { writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync } from 
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { enrichPlacesWithImages } from './places-images.mjs';
+import { enrichPlacesWithDescriptions } from './places-descriptions.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(HERE, 'output');
@@ -460,7 +461,15 @@ const TOURIST_CENTROIDS = [
   { name: 'downtown Tampa', lat: 27.9477, lng: -82.4584 },
 ];
 const FAR_FROM_TOURISTS_M = 12875; // 8 miles
-const NICHE_AMENITIES = ['disc-golf', 'shuffleboard', 'canoe-launch', 'dog-beach', 'skate-park'];
+// W7 review: shuffleboard is DENSE in retiree-heavy Pinellas/Manatee neighborhood
+// parks — it's common, not a "hidden" signal, and was flooding the capped shelf.
+// The niche boost stays for genuinely-rare finds only.
+const NICHE_AMENITIES = ['disc-golf', 'canoe-launch', 'dog-beach', 'skate-park'];
+// a place whose name is just a facility noun ("Tennis Court", "Skate Park",
+// "Shuffleboard") is never a curated "hidden gem" no matter its score — exclude
+// it from the shelf (catches gov-sourced generic names the OSM guard can't).
+const GENERIC_PLACE_NAME =
+  /^(tennis|basketball|volleyball|vollyball|pickleball|racquetball|racketball|shuffleboard|disc[ -]?golf|skate[ -]?park|skatepark|playground|dog park|boat ramp|pier|picnic (shelter|area))s?( court| courts| area| complex)?$/i;
 const HIDDEN_CAP = 24;       // capped shelf — events GEM_CAP pattern
 const HIDDEN_MIN_SCORE = 3;
 
@@ -468,6 +477,7 @@ function hiddenScoreOf(p) {
   const minTouristM = Math.min(...TOURIST_CENTROIDS.map((c) => metersApart(p, c)));
   p._touristM = minTouristM; // kept for the shelf tie-break
   if (p._hasWiki) return 0; // inverse-fame hard exclusion
+  if (GENERIC_PLACE_NAME.test((p.name || '').trim())) return 0; // a bare "Tennis Court" is never a gem (W7)
   // maintained-destination floor: well-mapped OSM (≥6 tags) OR any gov
   // hours/amenity record — otherwise it's not a recommendable destination.
   if (!(p._osmTags >= 6 || p._govBacked)) return 0;
@@ -496,6 +506,10 @@ async function main() {
     if (r.amenityOnly) { chips.push(r); continue; }
     const nm = typeof r.name === 'string' ? r.name.replace(/\s+/g, ' ').trim() : null;
     if (!nm) continue; // zero nameless places — benchmark-enforced
+    // W7 review: a bare facility noun ("Tennis Court", "Skate Park") is geometry,
+    // not a destination — drop it from EVERY source (the OSM court path already
+    // routes its generics to chips; this catches gov-sourced bare names too).
+    if (GENERIC_PLACE_NAME.test(nm)) continue;
     candidates.push({ ...r, name: nm, amenities: r.amenities || [], classes: r.classes || [] });
   }
   if (outOfBoxDropped) console.log(`  🧭 dropped ${outOfBoxDropped} records outside the Tampa Bay box (statewide layers trim here)`);
@@ -612,6 +626,11 @@ async function main() {
   // PLACES_LIVE forces a refresh in lockstep with the source caches above.
   const imgStats = await enrichPlacesWithImages(places, { live: FORCE_LIVE, log: console.log });
   console.log(`  🖼️  images: ${imgStats.set}/${imgStats.withQid} wikidata places photographed (${imgStats.noImage} no P18 → category-art)`);
+
+  // W7: give wikidata places a real Wikipedia description where they lack one
+  // (gov/OSM descriptions win; no Wikipedia article → no blurb, never faked).
+  const descStats = await enrichPlacesWithDescriptions(places, { live: FORCE_LIVE, log: console.log });
+  console.log(`  📝 descriptions: +${descStats.set} from Wikipedia (${descStats.noArticle}/${descStats.candidates} wikidata places have no article)`);
 
   // ---- write outputs --------------------------------------------------------
   mkdirSync(OUT, { recursive: true });

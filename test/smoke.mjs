@@ -392,6 +392,38 @@ test('W4 wiring: real heroes + place-detail photo + degrade-to-art + passthrough
   assert.equal(place.image, 'https://upload.wikimedia.org/wikipedia/commons/x.jpg', 'normalizePlace must pass the image field through to the card/detail seams')
 })
 
+// Phase 3.5 W7 — DEEPEN REC COVERAGE. New OSM classes (disc golf, skate parks,
+// + court density) and real Wikipedia descriptions for wikidata places.
+test('W7 deepen: disc golf + skate parks + court density + Wikipedia descriptions', () => {
+  const doc = JSON.parse(readFileSync(APP_PLACES, 'utf8'))
+  const P = doc.places
+  const hasAmen = (a) => P.filter((p) => p.amenities && p.amenities.includes(a)).length
+  // the headline rec additions are present (disc golf + skate parks)
+  assert.ok(hasAmen('disc-golf') >= 3, `expected disc-golf coverage, got ${hasAmen('disc-golf')}`)
+  assert.ok(hasAmen('skate-park') >= 8, `expected skate-park coverage, got ${hasAmen('skate-park')}`)
+  // court density: the new court sports enrich parks broadly
+  assert.ok(hasAmen('shuffleboard') + hasAmen('volleyball') + hasAmen('racquetball') >= 30, 'new court sports must enrich parks (density)')
+  // real Wikipedia descriptions enriched the wikidata set (was 92 pre-W7)
+  const withDesc = P.filter((p) => p.description).length
+  assert.ok(withDesc >= 115, `descriptions ${withDesc} below the W7 floor (~123 expected)`)
+  // honest: a description is only ever a real blurb — never a fabricated stub
+  for (const p of P) {
+    if (p.description) assert.ok(p.description.length > 12, `${p.name}: suspiciously short description`)
+  }
+})
+
+// W7 wiring: the finder pipeline carries the new OSM sources + the descriptions
+// enrichment (Node scripts can't be exercised in the smoke run — grep the contract).
+test('W7 wiring: osm rec classes + Wikipedia-descriptions enrichment in the pipeline', () => {
+  const osm = readFileSync(path.join(ROOT, 'finder', 'places-sources', 'osm.mjs'), 'utf8')
+  assert.ok(/disc_golf_course/.test(osm), 'osm.mjs must query disc golf courses')
+  assert.ok(/skateboard/.test(osm), 'osm.mjs must query skate parks (sport=skateboard)')
+  assert.ok(/amenityOnNamed/.test(osm), 'osm.mjs must stamp the specific amenity on named new-class places')
+  assert.ok(existsSync(path.join(ROOT, 'finder', 'places-descriptions.mjs')), 'the Wikipedia descriptions module must exist')
+  const places = readFileSync(path.join(ROOT, 'finder', 'places.mjs'), 'utf8')
+  assert.ok(/enrichPlacesWithDescriptions/.test(places), 'places.mjs must wire the descriptions enrichment')
+})
+
 // ============================================================
 // 3+4) APP BUILD + LINT (started together, asserted separately)
 // ============================================================

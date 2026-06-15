@@ -648,7 +648,8 @@
       "lng": -82.4678147,
       "amenities": [
         "tennis",
-        "basketball"
+        "basketball",
+        "volleyball"
       ],
       "sources": [
         "OSM"
@@ -924,7 +925,8 @@
       },
       "wikidata": "Q4705554",
       "hiddenScore": 0,
-      "hidden": false
+      "hidden": false,
+      "description": "The Alafia River Reserve is a recreation area and water conservation area managed by the Southwest Florida Water Management District in Mulberry, Florida, Polk County, Florida. It covers 334 acres (1.35 km2) and is located at 4872 Indian Oak Drive in Mulberry, Florida."
     },
     {
       "key": "p|alafia-river-state-park",
@@ -955,7 +957,8 @@
       "wikidata": "Q3363999",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Hurrah_Lake_-_Alafia_River_State_Park.jpg/1280px-Hurrah_Lake_-_Alafia_River_State_Park.jpg"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Hurrah_Lake_-_Alafia_River_State_Park.jpg/1280px-Hurrah_Lake_-_Alafia_River_State_Park.jpg",
+      "description": "Alafia River State Park is a Florida State Park, located near Picnic in Hillsborough County in central Florida, 17 miles or 27 kilometers southeast of Tampa on County Road 39. Even before it became a park, the area, and particularly Hurrah Lake, was the center of leisure activities since the early 1880s."
     },
     {
       "key": "p|alafia-river-state-park-north-lakes-kayak-access",
@@ -1155,7 +1158,8 @@
       "amenities": [
         "playground",
         "tennis",
-        "basketball"
+        "basketball",
+        "volleyball"
       ],
       "designation": "County",
       "sources": [
@@ -1558,7 +1562,8 @@
       },
       "wikidata": "Q4753086",
       "hiddenScore": 0,
-      "hidden": false
+      "hidden": false,
+      "description": "Anclote Key Preserve State Park is a Florida State Park and historic site, located on Anclote Key three miles (5 km) off Tarpon Springs along the Atlantic coastal plain. Anclote Key Preserve State Park is only accessible by boat."
     },
     {
       "key": "p|anclote-river-park",
@@ -1807,6 +1812,9 @@
       "lat": 27.764375300561817,
       "lng": -82.40898575510424,
       "address": "664 Golf and Sea Blvd., Apollo Beach FL 33572",
+      "amenities": [
+        "skate-park"
+      ],
       "hours": "sunrise-21:00",
       "url": "https://www.hillsboroughcounty.org/en/locations/apollo-beach-dog-park",
       "designation": "County",
@@ -1827,8 +1835,8 @@
         "type": "way",
         "id": 469278946
       },
-      "hiddenScore": 3,
-      "hidden": false
+      "hiddenScore": 5,
+      "hidden": true
     },
     {
       "key": "p|apollo-beach-nature-preserve",
@@ -1957,7 +1965,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 4,
-      "hidden": false
+      "hidden": true
     },
     {
       "key": "p|area-1-tent-van-pop-up-only-no-pets",
@@ -2891,29 +2899,7 @@
         "type": "way",
         "id": 161486869
       },
-      "hiddenScore": 3,
-      "hidden": false
-    },
-    {
-      "key": "p|basketball-court",
-      "kind": "place",
-      "name": "Basketball Court",
-      "placeType": "courts",
-      "classes": [
-        "courts"
-      ],
-      "category": "sports",
-      "lat": 27.9241608,
-      "lng": -82.4905648,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "osm": {
-        "type": "way",
-        "id": 469623439
-      },
-      "hiddenScore": 0,
+      "hiddenScore": 1,
       "hidden": false
     },
     {
@@ -3274,7 +3260,8 @@
       "lng": -82.7889168,
       "address": "375 Seminole Boulevard, Largo",
       "amenities": [
-        "basketball"
+        "basketball",
+        "skate-park"
       ],
       "operator": "City of Largo",
       "sources": [
@@ -3285,7 +3272,7 @@
         "type": "way",
         "id": 956967036
       },
-      "hiddenScore": 1,
+      "hiddenScore": 3,
       "hidden": false
     },
     {
@@ -3421,19 +3408,10 @@
       "hours": "24 Hours",
       "operator": "Hernando County",
       "sources": [
-        "FWC Boat Ramps",
-        "OSM"
+        "FWC Boat Ramps"
       ],
-      "srcCount": 2,
-      "aliases": [
-        "Bayport Park Boat Ramp",
-        "Boat Ramp"
-      ],
-      "osm": {
-        "type": "node",
-        "id": 1871751923
-      },
-      "hiddenScore": 2,
+      "srcCount": 1,
+      "hiddenScore": 3,
       "hidden": false
     },
     {
@@ -3755,7 +3733,8 @@
       "amenities": [
         "playground",
         "tennis",
-        "basketball"
+        "basketball",
+        "shuffleboard"
       ],
       "sources": [
         "OSM"
@@ -3782,7 +3761,8 @@
       "amenities": [
         "playground",
         "tennis",
-        "basketball"
+        "basketball",
+        "shuffleboard"
       ],
       "sources": [
         "OSM"
@@ -4305,8 +4285,8 @@
         "type": "way",
         "id": 305284351
       },
-      "hiddenScore": 5,
-      "hidden": true
+      "hiddenScore": 3,
+      "hidden": false
     },
     {
       "key": "p|big-dog-park",
@@ -4448,7 +4428,8 @@
       "lng": -82.5784788,
       "amenities": [
         "playground",
-        "tennis"
+        "tennis",
+        "skate-park"
       ],
       "sources": [
         "OSM"
@@ -4883,72 +4864,6 @@
       "hidden": false
     },
     {
-      "key": "p|boat-ramp",
-      "kind": "place",
-      "name": "Boat Ramp",
-      "placeType": "boat_ramp",
-      "classes": [
-        "boat_ramp"
-      ],
-      "category": "outdoors",
-      "lat": 27.4957667,
-      "lng": -82.6598281,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "osm": {
-        "type": "node",
-        "id": 3608237613
-      },
-      "hiddenScore": 0,
-      "hidden": false
-    },
-    {
-      "key": "p|boat-ramp-2",
-      "kind": "place",
-      "name": "Boat Ramp",
-      "placeType": "boat_ramp",
-      "classes": [
-        "boat_ramp"
-      ],
-      "category": "outdoors",
-      "lat": 28.3614233,
-      "lng": -82.7085722,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "osm": {
-        "type": "node",
-        "id": 9671326615
-      },
-      "hiddenScore": 0,
-      "hidden": false
-    },
-    {
-      "key": "p|boat-ramp-3",
-      "kind": "place",
-      "name": "Boat Ramp",
-      "placeType": "boat_ramp",
-      "classes": [
-        "boat_ramp"
-      ],
-      "category": "outdoors",
-      "lat": 28.4349702,
-      "lng": -82.6675049,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "osm": {
-        "type": "node",
-        "id": 8504679025
-      },
-      "hiddenScore": 0,
-      "hidden": false
-    },
-    {
       "key": "p|bob-gardner-community-park",
       "kind": "place",
       "name": "Bob Gardner Community Park",
@@ -4960,7 +4875,8 @@
       "lat": 27.4717897,
       "lng": -82.4228907,
       "amenities": [
-        "tennis"
+        "tennis",
+        "disc-golf"
       ],
       "sources": [
         "OSM"
@@ -5210,7 +5126,8 @@
       "lat": 28.0417407,
       "lng": -82.3873667,
       "amenities": [
-        "playground"
+        "playground",
+        "volleyball"
       ],
       "sources": [
         "OSM"
@@ -5409,7 +5326,8 @@
       "wikidata": "Q16953285",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Boyd_Hill_Nature_Preserve.jpg/1280px-Boyd_Hill_Nature_Preserve.jpg"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Boyd_Hill_Nature_Preserve.jpg/1280px-Boyd_Hill_Nature_Preserve.jpg",
+      "description": "Boyd Hill Nature Preserve is a 245-acre (99 ha) protected area in Pinellas County, Florida. It is located on the shores of Lake Maggiore in south St. Petersburg and is operated by the city's Parks and Recreation department."
     },
     {
       "key": "p|boyette-farms-park",
@@ -5583,7 +5501,8 @@
       "wikidata": "Q54322440",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Bradenton_Riverwalk_Tower_Plaza.jpg/1280px-Bradenton_Riverwalk_Tower_Plaza.jpg"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Bradenton_Riverwalk_Tower_Plaza.jpg/1280px-Bradenton_Riverwalk_Tower_Plaza.jpg",
+      "description": "Bradenton Riverwalk is a 1.5-mile-long (2.4 km) public green space located along the Manatee River in Bradenton, Florida, between Business US 41 and South Tamiami Trail. The five-acre (2.0 ha) park opened to the public on October 18, 2012 and features a skatepark, 400-seat amphitheater, playgrounds, and a splash pad."
     },
     {
       "key": "p|branchton",
@@ -5849,6 +5768,31 @@
       "osm": {
         "type": "way",
         "id": 745992956
+      },
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|bro-bowl",
+      "kind": "place",
+      "name": "Bro Bowl",
+      "placeType": "courts",
+      "classes": [
+        "courts"
+      ],
+      "category": "sports",
+      "lat": 27.9578771,
+      "lng": -82.4548434,
+      "amenities": [
+        "skate-park"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "osm": {
+        "type": "way",
+        "id": 616656331
       },
       "hiddenScore": 0,
       "hidden": false
@@ -6638,7 +6582,8 @@
         "tennis",
         "racquetball",
         "fitness",
-        "recreation-center"
+        "recreation-center",
+        "volleyball"
       ],
       "url": "https://www.stpeteparksrec.org/parks___facilities/campbell_park2.php",
       "designation": "City",
@@ -7197,7 +7142,8 @@
       "address": "4680 West Village Drive, Tampa",
       "amenities": [
         "playground",
-        "tennis"
+        "tennis",
+        "skate-park"
       ],
       "sources": [
         "OSM"
@@ -7211,8 +7157,8 @@
         "type": "way",
         "id": 656617732
       },
-      "hiddenScore": 3,
-      "hidden": false
+      "hiddenScore": 5,
+      "hidden": true
     },
     {
       "key": "p|carter-road-park",
@@ -7220,15 +7166,23 @@
       "name": "Carter Road Park",
       "placeType": "park",
       "classes": [
-        "park"
+        "park",
+        "courts"
       ],
       "category": "outdoors",
       "lat": 27.929261,
       "lng": -81.9610333,
+      "amenities": [
+        "skate-park"
+      ],
       "sources": [
         "OSM"
       ],
       "srcCount": 1,
+      "aliases": [
+        "Carter Road Park",
+        "Carter Road Skatepark"
+      ],
       "osm": {
         "type": "node",
         "id": 1291785321
@@ -7293,7 +7247,8 @@
       "lat": 28.0632327,
       "lng": -82.411091,
       "amenities": [
-        "basketball"
+        "basketball",
+        "volleyball"
       ],
       "sources": [
         "OSM"
@@ -7469,7 +7424,8 @@
       "lng": -81.9679349,
       "amenities": [
         "tennis",
-        "basketball"
+        "basketball",
+        "skate-park"
       ],
       "sources": [
         "OSM"
@@ -8177,7 +8133,8 @@
       },
       "wikidata": "Q5102256",
       "hiddenScore": 0,
-      "hidden": false
+      "hidden": false,
+      "description": "The Chito Branch Reserve is located in southeastern Hillsborough County, Florida, and is part of the Southwest Florida Water Management District landholdings. It was acquired by the District in 2001, and is 5,515 acres (22.32 km2). It is located at 11254 Browning Road in Lithia, Florida."
     },
     {
       "key": "p|christina-park",
@@ -8617,7 +8574,8 @@
       "placeType": "park",
       "classes": [
         "park",
-        "preserve"
+        "preserve",
+        "courts"
       ],
       "category": "outdoors",
       "lat": 27.97479818473415,
@@ -8640,6 +8598,7 @@
         "pier",
         "playground"
       ],
+      "isFree": true,
       "url": "https://www.myclearwater.com/Neighborhood-Map-Locations/Parks-Trails-and-Recreation-Centers/Cliff-Stephens-Park",
       "designation": "City",
       "operator": "Clearwater",
@@ -8649,6 +8608,10 @@
         "OSM"
       ],
       "srcCount": 3,
+      "aliases": [
+        "Cliff Stephens Park",
+        "Cliff Stephens Disc Golf"
+      ],
       "osm": {
         "type": "way",
         "id": 251020487
@@ -9172,7 +9135,8 @@
       "wikidata": "Q5149398",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Colt_Creek_SP_road01.jpg/1280px-Colt_Creek_SP_road01.jpg"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Colt_Creek_SP_road01.jpg/1280px-Colt_Creek_SP_road01.jpg",
+      "description": "Colt Creek State Park is a Florida State Park in Central Florida, 16 miles (26 km) north of Lakeland off of State Road 471. This 5,067-acre park nestled within the Green Swamp Wilderness Area and named after one of the tributaries that flows through the property was opened to the public on January 20, 2007."
     },
     {
       "key": "p|colt-creek-state-park-middle-lake-no-gas-motors",
@@ -9340,7 +9304,8 @@
       },
       "wikidata": "Q5161774",
       "hiddenScore": 0,
-      "hidden": false
+      "hidden": false,
+      "description": "Conner Preserve is a natural area in central Pasco County, Florida, preserved for water management since 2003."
     },
     {
       "key": "p|connerton-club-house-basketball-court",
@@ -9433,7 +9398,8 @@
         "basketball",
         "racquetball",
         "volleyball",
-        "shuffleboard"
+        "shuffleboard",
+        "tennis"
       ],
       "url": "http://townofredingtonshores.com/recreation.html",
       "designation": "City",
@@ -9447,8 +9413,8 @@
         "type": "way",
         "id": 218887857
       },
-      "hiddenScore": 5,
-      "hidden": true
+      "hiddenScore": 3,
+      "hidden": false
     },
     {
       "key": "p|cook-park",
@@ -10357,8 +10323,8 @@
         "type": "way",
         "id": 388606467
       },
-      "hiddenScore": 5,
-      "hidden": true
+      "hiddenScore": 3,
+      "hidden": false
     },
     {
       "key": "p|craig-park-permit-required-from-city-of-tarpon-spring",
@@ -10479,7 +10445,8 @@
         "fitness",
         "dog-park",
         "pier",
-        "basketball"
+        "basketball",
+        "volleyball"
       ],
       "hours": "Mo-Su 06:00-21:00",
       "url": "https://www.myclearwater.com/Neighborhood-Map-Locations/Parks-Trails-and-Recreation-Centers/Crest-Lake-Park",
@@ -10533,7 +10500,8 @@
       },
       "wikidata": "Q5184858",
       "hiddenScore": 0,
-      "hidden": false
+      "hidden": false,
+      "description": "Crews Lake Wilderness Park is located off Shady Hills Road in Pasco County, Florida. The park includes hiking trails, a short paved bike trail, playground, wooden tower, athletic fields, and the 7+1⁄2 in gauge Central Pasco & Gulf Railroad."
     },
     {
       "key": "p|crisp-park",
@@ -11413,7 +11381,8 @@
       "amenities": [
         "restrooms",
         "community-center",
-        "tennis"
+        "tennis",
+        "shuffleboard"
       ],
       "hours": "Monday - Friday M - Th 8:00 am - 6:00 pm. F - 8:00 am - 4:00 pm",
       "url": "https://www.tampagov.net/parks-and-recreation/activities-recreation/recreation-centers",
@@ -11944,7 +11913,9 @@
       "amenities": [
         "playground",
         "tennis",
-        "basketball"
+        "basketball",
+        "shuffleboard",
+        "volleyball"
       ],
       "sources": [
         "OSM"
@@ -12041,7 +12012,8 @@
         "baseball",
         "basketball",
         "tennis",
-        "pickleball"
+        "pickleball",
+        "volleyball"
       ],
       "url": "https://www.stpeteparksrec.org/parks___facilities/denver_park.php",
       "designation": "City",
@@ -12152,7 +12124,8 @@
       "wikidata": "Q926011",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Bradenton_FL_DeSoto_Natl_Mem07.jpg/1280px-Bradenton_FL_DeSoto_Natl_Mem07.jpg"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Bradenton_FL_DeSoto_Natl_Mem07.jpg/1280px-Bradenton_FL_DeSoto_Natl_Mem07.jpg",
+      "description": "De Soto National Memorial is a national memorial located in Manatee County, approximately five miles west of Bradenton, Florida. The national memorial commemorates the 1539 landing of Hernando de Soto and the first extensive organized exploration by Europeans of what is now the southern United States."
     },
     {
       "key": "p|desoto-park",
@@ -12792,7 +12765,7 @@
         "type": "way",
         "id": 27428655
       },
-      "hiddenScore": 3,
+      "hiddenScore": 1,
       "hidden": false
     },
     {
@@ -13700,7 +13673,8 @@
         "picnic",
         "boating",
         "tennis",
-        "fitness"
+        "fitness",
+        "shuffleboard"
       ],
       "url": "https://www.myclearwater.com/Neighborhood-Map-Locations/Parks-Trails-and-Recreation-Centers/Ed-Wright-Park",
       "designation": "City",
@@ -14184,7 +14158,8 @@
       "wikidata": "Q5348121",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Egmont_Key_lighthouse01.jpg/1280px-Egmont_Key_lighthouse01.jpg"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Egmont_Key_lighthouse01.jpg/1280px-Egmont_Key_lighthouse01.jpg",
+      "description": "Egmont Key National Wildlife Refuge and State Park is a National Wildlife Refuge and State Park located on the island of Egmont Key, at the mouth of Tampa Bay. Egmont Key lies southwest of Fort De Soto Park and can only be reached by boat or ferry."
     },
     {
       "key": "p|egmont-key-state-park",
@@ -14408,7 +14383,8 @@
       "address": "15840 Greenglen Lane, Spring Hill",
       "amenities": [
         "playground",
-        "basketball"
+        "basketball",
+        "volleyball"
       ],
       "hours": "08:00-22:00",
       "url": "http://www.pascocountyfl.net/index.aspx?NID=670",
@@ -14438,7 +14414,8 @@
       "amenities": [
         "hiking",
         "pier",
-        "tennis"
+        "tennis",
+        "volleyball"
       ],
       "url": "https://www.stpeteparksrec.org/parks___facilities/elva_rouse_park.php",
       "designation": "City",
@@ -15074,21 +15051,28 @@
       "name": "Fishhawk Skate Park",
       "placeType": "park",
       "classes": [
-        "park"
+        "park",
+        "courts"
       ],
       "category": "outdoors",
       "lat": 27.847867092153464,
       "lng": -82.23118568310025,
       "address": "5802 Osprey Ridge Dr",
       "amenities": [
+        "skate-park",
         "playground"
       ],
       "designation": "County",
       "operator": "Hillsborough County",
       "sources": [
-        "Hillsborough County Parks"
+        "Hillsborough County Parks",
+        "OSM"
       ],
-      "srcCount": 1,
+      "srcCount": 2,
+      "osm": {
+        "type": "way",
+        "id": 481668097
+      },
       "hiddenScore": 0,
       "hidden": false
     },
@@ -15237,7 +15221,8 @@
       },
       "wikidata": "Q7734512",
       "hiddenScore": 0,
-      "hidden": false
+      "hidden": false,
+      "description": "The Florida Botanical Gardens (FBG) is a 182-acre (74 ha) botanical garden located in Largo, Florida within Pinewood Cultural Park. The gardens showcase a diverse array of flora, fauna, and natural resources."
     },
     {
       "key": "p|florida-maritime-museum-park",
@@ -15546,7 +15531,8 @@
       "wikidata": "Q5471030",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Sunset_on_North_Beach_at_Fort_De_Soto_Park.jpg/1280px-Sunset_on_North_Beach_at_Fort_De_Soto_Park.jpg"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Sunset_on_North_Beach_at_Fort_De_Soto_Park.jpg/1280px-Sunset_on_North_Beach_at_Fort_De_Soto_Park.jpg",
+      "description": "Fort De Soto Park is a county park located south-southwest of St. Petersburg, Florida, operated by Pinellas County. The park consists of five offshore keys, or islands: Madelaine Key, St. Jean Key, St. Christopher Key, Bonne Fortune Key and the main island, Mullet Key."
     },
     {
       "key": "p|fort-desoto-park-boat-ramp",
@@ -15843,7 +15829,7 @@
         "type": "way",
         "id": 469619485
       },
-      "hiddenScore": 3,
+      "hiddenScore": 1,
       "hidden": false
     },
     {
@@ -16233,7 +16219,8 @@
         "fitness",
         "pier",
         "tennis",
-        "pickleball"
+        "pickleball",
+        "shuffleboard"
       ],
       "url": "https://www.mysouthpasadena.com/government/departments/public_works/parks.php",
       "designation": "City",
@@ -16620,12 +16607,14 @@
       "name": "G.T. Bray Park",
       "placeType": "park",
       "classes": [
-        "park"
+        "park",
+        "courts"
       ],
       "category": "outdoors",
       "lat": 27.4737463,
       "lng": -82.6162978,
       "amenities": [
+        "skate-park",
         "playground",
         "tennis",
         "basketball",
@@ -16635,6 +16624,10 @@
         "OSM"
       ],
       "srcCount": 1,
+      "aliases": [
+        "G.T. Bray Park",
+        "G.T. Bray Skatepark"
+      ],
       "osm": {
         "type": "way",
         "id": 386520683
@@ -17443,7 +17436,7 @@
         "type": "way",
         "id": 227877595
       },
-      "hiddenScore": 3,
+      "hiddenScore": 1,
       "hidden": false
     },
     {
@@ -18031,7 +18024,8 @@
       "lat": 28.0672527,
       "lng": -82.4063833,
       "amenities": [
-        "tennis"
+        "tennis",
+        "volleyball"
       ],
       "sources": [
         "OSM"
@@ -18318,7 +18312,8 @@
       "lng": -82.4125365,
       "amenities": [
         "playground",
-        "basketball"
+        "basketball",
+        "volleyball"
       ],
       "sources": [
         "OSM"
@@ -18491,6 +18486,9 @@
       "category": "outdoors",
       "lat": 27.7368217,
       "lng": -82.7093186,
+      "amenities": [
+        "volleyball"
+      ],
       "sources": [
         "OSM"
       ],
@@ -18577,7 +18575,8 @@
         "recreation-center",
         "pier",
         "tennis",
-        "basketball"
+        "basketball",
+        "shuffleboard"
       ],
       "url": "http://mygulfport.us/recreation/parks/beach-waterfront-complex/",
       "designation": "City",
@@ -19540,7 +19539,8 @@
       "lat": 28.2289993,
       "lng": -82.6634003,
       "amenities": [
-        "tennis"
+        "tennis",
+        "shuffleboard"
       ],
       "sources": [
         "OSM"
@@ -19565,7 +19565,8 @@
       "lat": 28.1781923,
       "lng": -82.6272348,
       "amenities": [
-        "tennis"
+        "tennis",
+        "shuffleboard"
       ],
       "sources": [
         "OSM"
@@ -19909,7 +19910,8 @@
         "tennis",
         "fitness",
         "recreation-center",
-        "pier"
+        "pier",
+        "volleyball"
       ],
       "url": "https://cms7.revize.com/revize/largoflorida/facility_detail_T64_R20.php",
       "designation": "City",
@@ -20164,7 +20166,8 @@
       "wikidata": "Q166221",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Paddling_on_the_Hillsborough_River.jpg/1280px-Paddling_on_the_Hillsborough_River.jpg"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Paddling_on_the_Hillsborough_River.jpg/1280px-Paddling_on_the_Hillsborough_River.jpg",
+      "description": "Hillsborough River State Park is located in the northeast corner of Hillsborough County, Florida near Zephyrhills. It is a popular park due to its proximity to the city of Tampa. It closed in October 2024 due to damage from Hurricane Milton, and re-opened on February 24, 2025."
     },
     {
       "key": "p|hillsborough-river-state-park-cedar-landing-canoe-launch-registered-campers-only",
@@ -20450,7 +20453,8 @@
       "wikidata": "Q1626871",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Honeymoon_Island_State_Park_%28Image_2%29.jpg/1280px-Honeymoon_Island_State_Park_%28Image_2%29.jpg"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Honeymoon_Island_State_Park_%28Image_2%29.jpg/1280px-Honeymoon_Island_State_Park_%28Image_2%29.jpg",
+      "description": "Honeymoon Island State Park is a Florida State Park located on Honeymoon Island, a barrier island across St. Joseph Sound from Dunedin, Palm Harbor, Ozona, and Crystal Beach. The park is 385 acres (1.6 km2) in land area with 2,400 acres (10 km2) submerged and 4 miles (6 km) of beach."
     },
     {
       "key": "p|horan-park-community-center",
@@ -20852,6 +20856,31 @@
         "id": 469631195
       },
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|ian-tillman-skate-park",
+      "kind": "place",
+      "name": "Ian Tillman Skate Park",
+      "placeType": "courts",
+      "classes": [
+        "courts"
+      ],
+      "category": "sports",
+      "lat": 27.9859331,
+      "lng": -82.6981852,
+      "amenities": [
+        "skate-park"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "osm": {
+        "type": "way",
+        "id": 480564956
+      },
+      "hiddenScore": 3,
       "hidden": false
     },
     {
@@ -21549,7 +21578,7 @@
         "Pinellas Park Points"
       ],
       "srcCount": 1,
-      "hiddenScore": 4,
+      "hiddenScore": 2,
       "hidden": false
     },
     {
@@ -21631,6 +21660,9 @@
       "category": "outdoors",
       "lat": 28.3084009,
       "lng": -82.6735367,
+      "amenities": [
+        "shuffleboard"
+      ],
       "sources": [
         "OSM"
       ],
@@ -23273,7 +23305,8 @@
       "address": "Kingfish Dr at John's Pass, Sunshine Beach",
       "amenities": [
         "pier",
-        "tennis"
+        "tennis",
+        "shuffleboard"
       ],
       "url": "https://www.mytreasureisland.org/residents/departments/recreation/parks_and_trails.php",
       "designation": "City",
@@ -23355,7 +23388,8 @@
       "lng": -82.3596303,
       "amenities": [
         "tennis",
-        "pickleball"
+        "pickleball",
+        "shuffleboard"
       ],
       "sources": [
         "OSM"
@@ -24186,7 +24220,8 @@
       "amenities": [
         "playground",
         "tennis",
-        "basketball"
+        "basketball",
+        "shuffleboard"
       ],
       "sources": [
         "OSM"
@@ -24212,7 +24247,8 @@
       "lng": -82.4582638,
       "amenities": [
         "tennis",
-        "basketball"
+        "basketball",
+        "volleyball"
       ],
       "sources": [
         "OSM"
@@ -24693,7 +24729,8 @@
       "classes": [
         "park",
         "dog_park",
-        "playground"
+        "playground",
+        "courts"
       ],
       "category": "outdoors",
       "lat": 27.71393906796746,
@@ -24721,6 +24758,10 @@
         "OSM"
       ],
       "srcCount": 2,
+      "aliases": [
+        "Lake Vista Park",
+        "Lake Vista Skate Park"
+      ],
       "osm": {
         "type": "way",
         "id": 228094788
@@ -24998,6 +25039,9 @@
       "lat": 27.3901016,
       "lng": -82.418722,
       "address": "8256 Legacy Boulevard, Lakewood Ranch",
+      "amenities": [
+        "volleyball"
+      ],
       "sources": [
         "OSM"
       ],
@@ -25148,7 +25192,8 @@
       "amenities": [
         "playground",
         "tennis",
-        "basketball"
+        "basketball",
+        "skate-park"
       ],
       "hours": "08:00-22:00",
       "url": "http://www.pascocountyfl.net/index.aspx?nid=307",
@@ -25161,8 +25206,8 @@
         "type": "way",
         "id": 279408167
       },
-      "hiddenScore": 3,
-      "hidden": false
+      "hiddenScore": 5,
+      "hidden": true
     },
     {
       "key": "p|langstaff-field",
@@ -25338,7 +25383,8 @@
         "restrooms",
         "soccer",
         "tennis",
-        "basketball"
+        "basketball",
+        "volleyball"
       ],
       "url": "https://www.playlargo.com/parks/",
       "designation": "City",
@@ -25705,7 +25751,8 @@
       "address": "26304 Lexington Oaks Boulevard, Wesley Chapel",
       "amenities": [
         "playground",
-        "basketball"
+        "basketball",
+        "volleyball"
       ],
       "sources": [
         "OSM"
@@ -26183,7 +26230,8 @@
       "wikidata": "Q6650817",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Little_Manatee_River_SP_river01.jpg/1280px-Little_Manatee_River_SP_river01.jpg"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Little_Manatee_River_SP_river01.jpg/1280px-Little_Manatee_River_SP_river01.jpg",
+      "description": "Little Manatee River State Park is a 2,433-acre (985 ha) Florida State Park located 5 miles (8.0 km) south of Sun City, off U.S. Route 301 on Lightfoot Road and along the Little Manatee River. The park was established in 1974 as Little Manatee River State Recreation Area with 663 hectares."
     },
     {
       "key": "p|little-manatee-river-state-park-pavillion-1-alternative-canoe-launch-call-office",
@@ -26329,7 +26377,7 @@
         "type": "way",
         "id": 1189281212
       },
-      "hiddenScore": 4,
+      "hiddenScore": 2,
       "hidden": false
     },
     {
@@ -26589,7 +26637,8 @@
         "pier",
         "tennis",
         "basketball",
-        "pickleball"
+        "pickleball",
+        "shuffleboard"
       ],
       "isFree": true,
       "hours": "Dawn to Dusk",
@@ -27772,7 +27821,7 @@
         "type": "way",
         "id": 923434434
       },
-      "hiddenScore": 3,
+      "hiddenScore": 1,
       "hidden": false
     },
     {
@@ -27910,7 +27959,8 @@
       "lng": -82.7130581,
       "address": "4000 State Road 64 and Gulf Drive, Holmes Beach",
       "amenities": [
-        "tennis"
+        "tennis",
+        "volleyball"
       ],
       "url": "https://www.mymanatee.org/home/government/departments/parks-and-recreation/beaches/manatee-beach-park.html",
       "sources": [
@@ -27954,7 +28004,8 @@
       "wikidata": "Q54322449",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Bradenton_FL_Manatee_Mineral_Springs_marker01.jpg/1280px-Bradenton_FL_Manatee_Mineral_Springs_marker01.jpg"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Bradenton_FL_Manatee_Mineral_Springs_marker01.jpg/1280px-Bradenton_FL_Manatee_Mineral_Springs_marker01.jpg",
+      "description": "Manatee Mineral Springs Park is a neighborhood park located in Bradenton, Florida. The park is named after a natural spring at the location. In 2006, the park's natural spring was designated a \"Florida Natural Spring\" by the Florida Geological Survey of Natural Springs."
     },
     {
       "key": "p|mandalay-park",
@@ -28165,7 +28216,8 @@
       "amenities": [
         "playground",
         "tennis",
-        "basketball"
+        "basketball",
+        "volleyball"
       ],
       "sources": [
         "OSM"
@@ -28909,7 +28961,9 @@
       "amenities": [
         "playground",
         "tennis",
-        "basketball"
+        "basketball",
+        "shuffleboard",
+        "volleyball"
       ],
       "sources": [
         "OSM"
@@ -28936,7 +28990,8 @@
       "amenities": [
         "playground",
         "tennis",
-        "basketball"
+        "basketball",
+        "shuffleboard"
       ],
       "sources": [
         "OSM"
@@ -28963,7 +29018,9 @@
       "amenities": [
         "playground",
         "tennis",
-        "basketball"
+        "basketball",
+        "shuffleboard",
+        "volleyball"
       ],
       "sources": [
         "OSM"
@@ -28990,7 +29047,8 @@
       "amenities": [
         "playground",
         "tennis",
-        "basketball"
+        "basketball",
+        "volleyball"
       ],
       "sources": [
         "OSM"
@@ -29333,7 +29391,8 @@
       "lng": -82.64239112499301,
       "address": "Mirror Lake Dr / 3rd Ave N",
       "amenities": [
-        "hiking"
+        "hiking",
+        "shuffleboard"
       ],
       "url": "https://www.stpeteparksrec.org/parks___facilities/mirror_lake_park.php",
       "designation": "City",
@@ -29734,7 +29793,8 @@
       "lng": -82.6992173,
       "address": "110 Gulf Drive South, Anna Maria",
       "amenities": [
-        "pier"
+        "pier",
+        "shuffleboard"
       ],
       "operator": "Moose Club",
       "sources": [
@@ -30244,7 +30304,8 @@
       },
       "wikidata": "Q41411344",
       "hiddenScore": 0,
-      "hidden": false
+      "hidden": false,
+      "description": "Nathan Benderson Park, previously known as North Metro Park and Cooper Creek Park, is a 600-acre (240 ha) park in the U.S. state of Florida, owned by Sarasota County."
     },
     {
       "key": "p|nathan-benderson-park-non-motorized-boat-ramp-main-watersport-lake",
@@ -30431,7 +30492,8 @@
       },
       "wikidata": "Q54322415",
       "hiddenScore": 0,
-      "hidden": false
+      "hidden": false,
+      "description": "Neal Preserve is a 120-acre (49 ha) preserve in Manatee County, Florida abutting the southern portion of State Road 64 near the western approach of Anna Maria Island Bridge. The preserve contains one-half-mile (0.80 km) of shell and boardwalk trails and a 20-foot (6.1 m) tall observation tower."
     },
     {
       "key": "p|neighborhood-dog-bar",
@@ -30560,6 +30622,9 @@
       "category": "sports",
       "lat": 28.2557506,
       "lng": -82.7100863,
+      "amenities": [
+        "volleyball"
+      ],
       "sources": [
         "OSM"
       ],
@@ -31512,6 +31577,33 @@
       "hidden": false
     },
     {
+      "key": "p|northeast-coachman-park-disc-golf-course",
+      "kind": "place",
+      "name": "Northeast Coachman Park Disc Golf Course",
+      "placeType": "courts",
+      "classes": [
+        "courts"
+      ],
+      "category": "sports",
+      "lat": 27.9763767,
+      "lng": -82.7372096,
+      "amenities": [
+        "disc-golf"
+      ],
+      "isFree": true,
+      "operator": "City of Clearwater",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "osm": {
+        "type": "node",
+        "id": 6820721620
+      },
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
       "key": "p|northeast-exchange-club-coffee-pot-park",
       "kind": "place",
       "name": "Northeast Exchange Club Coffee Pot Park",
@@ -32225,7 +32317,8 @@
       "lat": 28.0521107,
       "lng": -82.778639,
       "amenities": [
-        "pier"
+        "pier",
+        "shuffleboard"
       ],
       "sources": [
         "OSM"
@@ -32963,7 +33056,8 @@
       "lat": 27.9243991,
       "lng": -82.4905551,
       "amenities": [
-        "playground"
+        "playground",
+        "basketball"
       ],
       "sources": [
         "OSM"
@@ -33055,7 +33149,8 @@
       "wikidata": "Q7128121",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/CassiaFistula02_PalmaSola_Asit.jpg/1280px-CassiaFistula02_PalmaSola_Asit.jpg"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/CassiaFistula02_PalmaSola_Asit.jpg/1280px-CassiaFistula02_PalmaSola_Asit.jpg",
+      "description": "Palma Sola Botanical Park is a botanical garden located at 9800 17th Avenue N.W. Bradenton, Florida, United States. The park showcases collections of rare palms, fruits, and flowering trees, as well as three lakes, a butterfly garden, gazebo, and pavilion. It is open daily without charge."
     },
     {
       "key": "p|palma-sola-causeway-perico-bayou-kayak-access",
@@ -33713,8 +33808,8 @@
         "type": "way",
         "id": 421127643
       },
-      "hiddenScore": 5,
-      "hidden": true
+      "hiddenScore": 3,
+      "hidden": false
     },
     {
       "key": "p|passage-key-national-wildlife-refuge",
@@ -33912,7 +34007,8 @@
       "lat": 27.3323733,
       "lng": -82.528182,
       "amenities": [
-        "tennis"
+        "tennis",
+        "skate-park"
       ],
       "sources": [
         "OSM"
@@ -34297,7 +34393,8 @@
       "wikidata": "Q7184869",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/d/df/Philippe_park01.jpg"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/d/df/Philippe_park01.jpg",
+      "description": "Philippe Park is a Pinellas County park located in Safety Harbor, Florida. The park is named after Odet Philippe, who is credited with introducing grapefruit to Florida. It is situated on 122 acres (0.49 km2) that was once part of Philippe's plantation."
     },
     {
       "key": "p|philippe-park-boat-ramp",
@@ -34586,28 +34683,6 @@
       "hidden": false
     },
     {
-      "key": "p|pier",
-      "kind": "place",
-      "name": "Pier",
-      "placeType": "pier",
-      "classes": [
-        "pier"
-      ],
-      "category": "outdoors",
-      "lat": 27.5223278,
-      "lng": -82.6505329,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "osm": {
-        "type": "way",
-        "id": 497483730
-      },
-      "hiddenScore": 0,
-      "hidden": false
-    },
-    {
       "key": "p|pier-4",
       "kind": "place",
       "name": "Pier #4",
@@ -34689,7 +34764,8 @@
       "address": "10800 Pine Island Drive, Weeki Wachee",
       "amenities": [
         "pier",
-        "playground"
+        "playground",
+        "volleyball"
       ],
       "hours": "Mo-Su 08:30-sunset",
       "url": "https://www.hernandocounty.us/Home/Components/FacilityDirectory/FacilityDirectory/2/103",
@@ -34785,7 +34861,9 @@
       "lng": -82.5043786,
       "address": "1420 Gilbert Avenue",
       "amenities": [
-        "basketball"
+        "basketball",
+        "shuffleboard",
+        "volleyball"
       ],
       "hours": "6:00-22:00",
       "url": "https://www.sarasotacountyparks.com/Home/Components/FacilityDirectory/FacilityDirectory/535/6610",
@@ -34928,6 +35006,9 @@
       "lat": 28.2722961,
       "lng": -82.7116279,
       "address": "6220 Pinehill Road, Port Richey",
+      "amenities": [
+        "shuffleboard"
+      ],
       "hours": "08:00-22:00",
       "url": "http://www.pascocountyfl.net/index.aspx?NID=1192",
       "sources": [
@@ -35309,7 +35390,8 @@
       "amenities": [
         "pier",
         "playground",
-        "tennis"
+        "tennis",
+        "shuffleboard"
       ],
       "sources": [
         "OSM"
@@ -35362,7 +35444,8 @@
       "address": "201 W Kennedy Blvd, Tampa",
       "description": "Beautiful Plant Park is adjacent to the picturesque University of Tampa, with its minuets, and the Hillsborough River.",
       "amenities": [
-        "trails"
+        "trails",
+        "volleyball"
       ],
       "hours": "Everyday Sunrise to Sunset",
       "url": "http://www.tampagov.net/parks-and-recreation",
@@ -35860,7 +35943,8 @@
       "address": "1000 3rd St S.",
       "amenities": [
         "pier",
-        "basketball"
+        "basketball",
+        "volleyball"
       ],
       "url": "https://www.stpeteparksrec.org/parks___facilities/poynter_park.php",
       "designation": "City",
@@ -36125,7 +36209,8 @@
       "lng": -82.31723911316388,
       "address": "5720 Providence Rd., Riverview FL 33534",
       "amenities": [
-        "playground"
+        "playground",
+        "skate-park"
       ],
       "designation": "County",
       "operator": "Hillsborough County",
@@ -36461,28 +36546,6 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": false
-    },
-    {
-      "key": "p|racketball-court",
-      "kind": "place",
-      "name": "Racketball Court",
-      "placeType": "courts",
-      "classes": [
-        "courts"
-      ],
-      "category": "sports",
-      "lat": 28.2743403,
-      "lng": -82.6488964,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "osm": {
-        "type": "way",
-        "id": 775068628
-      },
-      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -37023,7 +37086,8 @@
       "amenities": [
         "playground",
         "tennis",
-        "basketball"
+        "basketball",
+        "volleyball"
       ],
       "operator": "Plantation Homeowners, Inc.",
       "sources": [
@@ -37464,6 +37528,9 @@
       "lat": 28.019629055904662,
       "lng": -82.43827634227843,
       "address": "1901 E Mulberry Dr, Tampa",
+      "amenities": [
+        "disc-golf"
+      ],
       "hours": "Everyday Sunrise to Sunset",
       "url": "http://www.tampagov.net/parks-and-recreation",
       "phone": "813-274-8615",
@@ -37473,7 +37540,7 @@
         "Tampa Parks"
       ],
       "srcCount": 1,
-      "hiddenScore": 2,
+      "hiddenScore": 4,
       "hidden": false
     },
     {
@@ -38202,7 +38269,8 @@
       "address": "16698 Vallely Drive, Tampa",
       "amenities": [
         "playground",
-        "basketball"
+        "basketball",
+        "volleyball"
       ],
       "sources": [
         "OSM"
@@ -38749,6 +38817,9 @@
       "category": "outdoors",
       "lat": 28.5316617,
       "lng": -82.6274643,
+      "amenities": [
+        "volleyball"
+      ],
       "sources": [
         "OSM"
       ],
@@ -38827,7 +38898,8 @@
       "lat": 28.2302749,
       "lng": -82.4376256,
       "amenities": [
-        "basketball"
+        "basketball",
+        "volleyball"
       ],
       "sources": [
         "OSM"
@@ -38893,8 +38965,8 @@
         "Pinellas Park Points"
       ],
       "srcCount": 1,
-      "hiddenScore": 6,
-      "hidden": true
+      "hiddenScore": 4,
+      "hidden": false
     },
     {
       "key": "p|roser-park",
@@ -38946,6 +39018,31 @@
         "id": 42335136
       },
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|ross-norton-skate-park",
+      "kind": "place",
+      "name": "Ross Norton Skate Park",
+      "placeType": "courts",
+      "classes": [
+        "courts"
+      ],
+      "category": "sports",
+      "lat": 27.9453938,
+      "lng": -82.7938872,
+      "amenities": [
+        "skate-park"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "osm": {
+        "type": "way",
+        "id": 238971743
+      },
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -39701,6 +39798,9 @@
       "category": "outdoors",
       "lat": 27.7212475,
       "lng": -82.7412259,
+      "amenities": [
+        "shuffleboard"
+      ],
       "sources": [
         "OSM"
       ],
@@ -39710,6 +39810,61 @@
         "id": 358738439
       },
       "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|saint-petersburg-regional-skatepark",
+      "kind": "place",
+      "name": "Saint Petersburg Regional Skatepark",
+      "placeType": "courts",
+      "classes": [
+        "courts"
+      ],
+      "category": "sports",
+      "lat": 27.7648758,
+      "lng": -82.6496239,
+      "amenities": [
+        "skate-park"
+      ],
+      "hours": "24/7",
+      "url": "https://stpeteskateparkalliance.org/",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "osm": {
+        "type": "way",
+        "id": 899254367
+      },
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|saint-petersburg-shuffleboard-courts",
+      "kind": "place",
+      "name": "Saint Petersburg Shuffleboard Courts",
+      "placeType": "courts",
+      "classes": [
+        "courts"
+      ],
+      "category": "sports",
+      "lat": 27.775867,
+      "lng": -82.641501,
+      "address": "559 Mirror Lake Drive North, Saint Petersburg",
+      "amenities": [
+        "ada",
+        "shuffleboard"
+      ],
+      "url": "https://stpeteshuffle.com/",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "osm": {
+        "type": "way",
+        "id": 114315059
+      },
+      "hiddenScore": 1,
       "hidden": false
     },
     {
@@ -41481,7 +41636,8 @@
       "lat": 28.06185,
       "lng": -82.4179341,
       "amenities": [
-        "playground"
+        "playground",
+        "volleyball"
       ],
       "sources": [
         "OSM"
@@ -41721,6 +41877,33 @@
       "hidden": false
     },
     {
+      "key": "p|skatepark-of-tampa",
+      "kind": "place",
+      "name": "Skatepark of Tampa",
+      "placeType": "courts",
+      "classes": [
+        "courts"
+      ],
+      "category": "sports",
+      "lat": 27.9664019,
+      "lng": -82.4103092,
+      "amenities": [
+        "skate-park"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "osm": {
+        "type": "way",
+        "id": 524230739
+      },
+      "wikidata": "Q2662041",
+      "hiddenScore": 0,
+      "hidden": false,
+      "description": "The Skatepark of Tampa is a skatepark in Tampa, Florida, United States. It is considered one of the top skateboarding venues on the East Coast of the United States. The name is often abbreviated as SPoT, and it is well known for its annual Tampa Am and Tampa Pro competitions."
+    },
+    {
       "key": "p|skycrest-park",
       "kind": "place",
       "name": "Skycrest Park",
@@ -41926,7 +42109,9 @@
       "lng": -82.6862492,
       "amenities": [
         "pier",
-        "tennis"
+        "tennis",
+        "skate-park",
+        "volleyball"
       ],
       "sources": [
         "OSM"
@@ -42172,7 +42357,8 @@
       "lng": -82.2277931,
       "amenities": [
         "tennis",
-        "basketball"
+        "basketball",
+        "volleyball"
       ],
       "sources": [
         "OSM"
@@ -43446,7 +43632,8 @@
       "amenities": [
         "playground",
         "tennis",
-        "basketball"
+        "basketball",
+        "volleyball"
       ],
       "sources": [
         "OSM"
@@ -43524,7 +43711,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 4,
-      "hidden": false
+      "hidden": true
     },
     {
       "key": "p|sun-city-heritage-park-canoe-launch",
@@ -43672,7 +43859,8 @@
       "wikidata": "Q7640428",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/St._Petersburg_FL_Sunken_Gardens_gate01.jpg/1280px-St._Petersburg_FL_Sunken_Gardens_gate01.jpg"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/St._Petersburg_FL_Sunken_Gardens_gate01.jpg/1280px-St._Petersburg_FL_Sunken_Gardens_gate01.jpg",
+      "description": "The Sunken Gardens are 4 acres of well-established botanical gardens, located in the Historic Old Northeast neighborhood of St. Petersburg, Florida, at 1825 4th Street North. The Gardens have existed for more than a century, and are one of the oldest roadside tourist attractions in the United States."
     },
     {
       "key": "p|sunlit-cove-park",
@@ -43837,7 +44025,8 @@
         "swimming",
         "picnic",
         "playground",
-        "pier"
+        "pier",
+        "shuffleboard"
       ],
       "url": "https://www.mytreasureisland.org/residents/departments/recreation/parks_and_trails.php",
       "designation": "City",
@@ -43862,7 +44051,8 @@
       "lng": -82.7533279,
       "amenities": [
         "tennis",
-        "pickleball"
+        "pickleball",
+        "shuffleboard"
       ],
       "sources": [
         "OSM"
@@ -43994,7 +44184,8 @@
       "address": "West Gulf Boulevard & Gulf Boulevard",
       "amenities": [
         "swimming",
-        "pier"
+        "pier",
+        "volleyball"
       ],
       "url": "https://www.mytreasureisland.org/residents/departments/recreation/parks_and_trails.php",
       "designation": "City",
@@ -44023,7 +44214,8 @@
         "restrooms",
         "picnic",
         "playground",
-        "fitness"
+        "fitness",
+        "shuffleboard"
       ],
       "url": "https://www.myclearwater.com/Neighborhood-Map-Locations/Parks-Trails-and-Recreation-Centers/Sunshine-Limitless-Playground",
       "designation": "City",
@@ -44227,7 +44419,8 @@
       "address": "4606 Bray Rd, Tampa FL 33615",
       "amenities": [
         "tennis",
-        "basketball"
+        "basketball",
+        "volleyball"
       ],
       "url": "https://www.hillsboroughcounty.org/en/locations/sweetwater-park",
       "designation": "County",
@@ -45079,6 +45272,9 @@
       "category": "sports",
       "lat": 28.0481319,
       "lng": -82.3753109,
+      "amenities": [
+        "volleyball"
+      ],
       "sources": [
         "OSM"
       ],
@@ -45088,32 +45284,6 @@
         "id": 33973161
       },
       "hiddenScore": 0,
-      "hidden": false
-    },
-    {
-      "key": "p|tennis-court",
-      "kind": "place",
-      "name": "Tennis Court",
-      "placeType": "park",
-      "classes": [
-        "park"
-      ],
-      "category": "outdoors",
-      "lat": 27.835633690875262,
-      "lng": -82.83482360122771,
-      "address": "18325 Gulf Blvd",
-      "amenities": [
-        "fishing",
-        "tennis"
-      ],
-      "url": "http://townofredingtonshores.com/recreation.html",
-      "designation": "City",
-      "operator": "Redington Shores",
-      "sources": [
-        "Pinellas Park Points"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 4,
       "hidden": false
     },
     {
@@ -45539,6 +45709,9 @@
       "category": "outdoors",
       "lat": 28.0668304,
       "lng": -82.4032144,
+      "amenities": [
+        "volleyball"
+      ],
       "sources": [
         "OSM"
       ],
@@ -45722,7 +45895,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 4,
-      "hidden": false
+      "hidden": true
     },
     {
       "key": "p|thomas-b-mack-park",
@@ -45911,7 +46084,8 @@
       "lng": -82.6753823,
       "amenities": [
         "pier",
-        "tennis"
+        "tennis",
+        "shuffleboard"
       ],
       "sources": [
         "OSM"
@@ -46052,7 +46226,8 @@
       "lng": -82.4864969,
       "amenities": [
         "pier",
-        "playground"
+        "playground",
+        "volleyball"
       ],
       "sources": [
         "OSM"
@@ -46369,7 +46544,8 @@
         "picnic",
         "playground",
         "basketball",
-        "volleyball"
+        "volleyball",
+        "shuffleboard"
       ],
       "url": "http://www.townofredingtonbeach.com/town-facilities-services/",
       "designation": "City",
@@ -46421,7 +46597,8 @@
         "fishing",
         "picnic",
         "pier",
-        "tennis"
+        "tennis",
+        "shuffleboard"
       ],
       "url": "https://www.myindianshores.com/Facilities/Facility/Details/Town-Square-Nature-Park-2",
       "designation": "City",
@@ -46624,8 +46801,8 @@
         "Pinellas Park Points"
       ],
       "srcCount": 1,
-      "hiddenScore": 6,
-      "hidden": true
+      "hiddenScore": 4,
+      "hidden": false
     },
     {
       "key": "p|trinity-communities-master-association-park",
@@ -46839,7 +47016,8 @@
       "lng": -82.71909361389324,
       "address": "Oxford St N / 17th Ave N",
       "amenities": [
-        "playground"
+        "playground",
+        "volleyball"
       ],
       "url": "https://www.stpeteparksrec.org/parks___facilities/tyrone_park.php",
       "designation": "City",
@@ -46966,6 +47144,9 @@
       "category": "outdoors",
       "lat": 28.0706051,
       "lng": -82.3789805,
+      "amenities": [
+        "volleyball"
+      ],
       "sources": [
         "OSM"
       ],
@@ -47065,7 +47246,9 @@
         "restrooms",
         "swimming",
         "picnic",
-        "tennis"
+        "tennis",
+        "shuffleboard",
+        "volleyball"
       ],
       "url": "https://www.stpetebeach.org/facilities/facility/details/uphambeach-27",
       "designation": "City",
@@ -47198,7 +47381,8 @@
       "lng": -82.63397199150877,
       "address": "8001 Double Branch Road, Tampa FL 33615",
       "amenities": [
-        "pier"
+        "pier",
+        "volleyball"
       ],
       "hours": "Mo-Su 08:00-18:00",
       "url": "https://www.hillsboroughcounty.org/en/locations/upper-tampa-bay-park",
@@ -47429,6 +47613,9 @@
       "category": "outdoors",
       "lat": 28.0658131,
       "lng": -82.4137962,
+      "amenities": [
+        "volleyball"
+      ],
       "sources": [
         "OSM"
       ],
@@ -47537,7 +47724,8 @@
       "lng": -82.24245460716214,
       "address": "707 S. Miller Rd., Valrico FL 33594",
       "amenities": [
-        "basketball"
+        "basketball",
+        "volleyball"
       ],
       "designation": "County",
       "operator": "Hillsborough County",
@@ -47611,6 +47799,9 @@
       "category": "outdoors",
       "lat": 27.9457704,
       "lng": -82.4660742,
+      "amenities": [
+        "volleyball"
+      ],
       "sources": [
         "OSM"
       ],
@@ -47986,7 +48177,8 @@
       "wikidata": "Q22058836",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Vinoy_Park.jpg/1280px-Vinoy_Park.jpg"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Vinoy_Park.jpg/1280px-Vinoy_Park.jpg",
+      "description": "Vinoy Park is an 11.6-acre (4.7 ha) park located on the downtown waterfront of St. Petersburg, Florida. Vinoy Park was named after the Vinoy Park Hotel, which was originally called the Vinoy Park when constructed in 1925 and sits adjacent to the park. Vinoy Park is operated by St."
     },
     {
       "key": "p|violet-cury-nature-preserve",
@@ -48052,7 +48244,8 @@
         "picnic",
         "biking",
         "playground",
-        "pier"
+        "pier",
+        "shuffleboard"
       ],
       "url": "http://www.pinellascounty.org/park/21_Wall_Springs.htm",
       "designation": "County",
@@ -48069,7 +48262,8 @@
       "wikidata": "Q28209774",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Spring%2C_Wall_Springs_Park.jpg/1280px-Spring%2C_Wall_Springs_Park.jpg"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Spring%2C_Wall_Springs_Park.jpg/1280px-Spring%2C_Wall_Springs_Park.jpg",
+      "description": "Wall Springs Park is a 210-acre (0.85 km2) park located in Palm Harbor, Florida. The park includes a historical natural spring which was used as a bathing area from the turn of the 20th century until the 1960s. The park is located in Pinellas County, on the Florida Gulf Coast."
     },
     {
       "key": "p|wall-springs-park-coastal-addition",
@@ -48116,7 +48310,8 @@
         "biking",
         "playground",
         "fitness",
-        "dog-park"
+        "dog-park",
+        "volleyball"
       ],
       "url": "http://www.pinellascounty.org/park/22_Walsingham.htm",
       "designation": "County",
@@ -48630,7 +48825,8 @@
       "lat": 27.3640335,
       "lng": -82.4192518,
       "amenities": [
-        "playground"
+        "playground",
+        "volleyball"
       ],
       "sources": [
         "OSM"
@@ -48827,7 +49023,8 @@
       "wikidata": "Q7979351",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/3/3b/Weeden_Island01.jpg"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/3/3b/Weeden_Island01.jpg",
+      "description": "The Weedon Island Preserve is a 3,190-acre natural area situated along the western shore of Tampa Bay and located at 1800 Weedon Drive NE, St. Petersburg, Florida, United States."
     },
     {
       "key": "p|weedon-island-preserve-paddlecraft-launch",
@@ -48973,7 +49170,9 @@
         "snorkeling",
         "canoe-launch",
         "pier",
-        "playground"
+        "playground",
+        "shuffleboard",
+        "volleyball"
       ],
       "isFree": false,
       "hours": "09:00-17:30",
@@ -49169,7 +49368,8 @@
       },
       "wikidata": "Q7983329",
       "hiddenScore": 0,
-      "hidden": false
+      "hidden": false,
+      "description": "Werner-Boyce Salt Springs State Park is a Florida state park located in Pasco County, Florida near Port Richey, Florida, along the Gulf of Mexico on the Atlantic coastal plain."
     },
     {
       "key": "p|werner-boyce-salt-springs-state-park-kayak-launch",
@@ -49978,6 +50178,9 @@
       "lat": 27.959074013446152,
       "lng": -82.21179019506027,
       "address": "1350 Sydney Dover Rd., Dover FL 33527",
+      "amenities": [
+        "volleyball"
+      ],
       "designation": "County",
       "operator": "Hillsborough County",
       "sources": [
@@ -50780,7 +50983,8 @@
         "baseball",
         "tennis",
         "racquetball",
-        "basketball"
+        "basketball",
+        "volleyball"
       ],
       "url": "https://www.stpeteparksrec.org/parks___facilities/woodlawn_park.php",
       "designation": "City",
@@ -51160,6 +51364,60 @@
         "id": 517883570
       },
       "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|zephyrhills-shuffleboard-club",
+      "kind": "place",
+      "name": "Zephyrhills Shuffleboard Club",
+      "placeType": "courts",
+      "classes": [
+        "courts"
+      ],
+      "category": "sports",
+      "lat": 28.2330704,
+      "lng": -82.1795963,
+      "address": "5209 8th Street, Zephyrhills",
+      "amenities": [
+        "shuffleboard"
+      ],
+      "hours": "24/7",
+      "url": "http://www.zephyrhillsshuffle.com/",
+      "phone": "+1-813-469-7045",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "osm": {
+        "type": "way",
+        "id": 1026505761
+      },
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|zephyrhills-skatepark",
+      "kind": "place",
+      "name": "Zephyrhills Skatepark",
+      "placeType": "courts",
+      "classes": [
+        "courts"
+      ],
+      "category": "sports",
+      "lat": 28.2234488,
+      "lng": -82.171216,
+      "amenities": [
+        "skate-park"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "osm": {
+        "type": "way",
+        "id": 665240589
+      },
+      "hiddenScore": 0,
       "hidden": false
     },
     {
