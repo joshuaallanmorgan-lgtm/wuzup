@@ -9,6 +9,7 @@
 // always-honest core.
 //
 // Plain .js (no JSX, Node-importable for the smoke harness). DRAFT copy — ⚑ Charles.
+import { useEffect, useSyncExternalStore } from 'react'
 import { daypartOf } from './weekend.js'
 import { keyOf } from './lib.js'
 
@@ -92,6 +93,86 @@ export function resolveGuide(guide, ctx) {
   return items.filter((it) => {
     if (!it) return false
     const k = keyOf(it) // the app's canonical key (handles events + places)
+    if (seen.has(k)) return false
+    seen.add(k)
+    return true
+  })
+}
+
+// ===== the TIMELY layer: hand-authored "Watch Guides" from a static guides.json
+// (Phase 3.7 §10). The only flavor that needs data the pipeline lacks (there's no
+// parent world-event entity). Honest by construction: a watch guide carries
+// KEYWORDS, not fabricated picks — resolveWatchGuide matches them against the LIVE
+// events store (real listings only), and a guide is "active" only inside its
+// window. One static file + this lazy loader, mirroring the places.js singleton. =====
+let _guides = null
+let _gstatus = 'idle'
+let _ginflight = null
+const _glisteners = new Set()
+let _gsnap = { watchGuides: [], status: 'idle' }
+const _gemit = () => {
+  _gsnap = { watchGuides: _guides || [], status: _gstatus }
+  _glisteners.forEach((l) => l())
+}
+
+export function loadGuides() {
+  if (_gstatus === 'ready') return Promise.resolve(_guides)
+  if (_ginflight) return _ginflight
+  _gstatus = 'loading'
+  _gemit()
+  _ginflight = fetch('/guides.json')
+    .then((r) => (r.ok ? r.json() : Promise.reject(new Error('guides http ' + r.status))))
+    .then((doc) => {
+      _guides = Array.isArray(doc?.guides) ? doc.guides : []
+      _gstatus = 'ready'
+      _gemit()
+      return _guides
+    })
+    .catch(() => {
+      _guides = [] // graceful: no guides.json = no watch guides, never a crash
+      _gstatus = 'error'
+      _gemit()
+      return _guides
+    })
+    .finally(() => {
+      _ginflight = null
+    })
+  return _ginflight
+}
+
+const _gsubscribe = (l) => {
+  _glisteners.add(l)
+  return () => _glisteners.delete(l)
+}
+export function useGuides(enabled = true) {
+  const s = useSyncExternalStore(_gsubscribe, () => _gsnap)
+  useEffect(() => {
+    if (enabled && _gsnap.status === 'idle') loadGuides()
+  }, [enabled])
+  return s
+}
+
+// a watch guide is "active" only inside its window (honest — never advertise a
+// World Cup guide in October).
+export function watchGuideActive(guide, nowTs) {
+  if (!guide || guide.kind !== 'watch' || !guide.window) return false
+  const start = Date.parse(guide.window.start)
+  const end = Date.parse(guide.window.end)
+  return Number.isFinite(start) && Number.isFinite(end) && nowTs >= start && nowTs <= end
+}
+
+// resolve a watch guide against the LIVE events — matches a keyword in the event's
+// title / description / venue (case-insensitive). Real listings only; no curated
+// picks to fabricate. De-dups on the canonical key.
+export function resolveWatchGuide(guide, events) {
+  if (!guide || !Array.isArray(guide.keywords) || guide.keywords.length === 0) return []
+  const kws = guide.keywords.map((k) => String(k).toLowerCase())
+  const seen = new Set()
+  return (events || []).filter((e) => {
+    if (!e) return false
+    const hay = ((e.title || '') + ' ' + (e.desc || e.description || '') + ' ' + (e.venue || '')).toLowerCase()
+    if (!kws.some((k) => hay.includes(k))) return false
+    const k = keyOf(e)
     if (seen.has(k)) return false
     seen.add(k)
     return true

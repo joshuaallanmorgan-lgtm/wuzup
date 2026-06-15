@@ -44,6 +44,9 @@
   box-shadow: 0 4px 14px rgba(var(--accent-rgb), 0.28);
 }
 .guide-plan-cta:active { filter: brightness(0.96); }
+/* 3.75b: quiet provenance line on a GuidePage (a Watch Guide discloses it's
+   keyword-matched to live listings — trust present, not academic). */
+.guide-sources { margin-top: 8px; font-size: 11px; font-weight: 500; color: var(--muted); }
 
 /* ===== Near Me: friendly inline location ask (shown until coords arrive) ===== */
 .bub-locate {

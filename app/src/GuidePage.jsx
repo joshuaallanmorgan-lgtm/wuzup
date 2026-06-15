@@ -14,7 +14,7 @@ import { Icon } from './lib.js'
 import { useNav } from './nav.jsx'
 import { RowFeed } from './cards.jsx'
 import { usePlaces } from './places.js'
-import { resolveGuide } from './guides.js'
+import { resolveGuide, resolveWatchGuide } from './guides.js'
 import { loadDayPlans, saveDayPlans, withSlot } from './dayplan.js'
 import './bubble.css'
 
@@ -28,10 +28,12 @@ export default function GuidePage({ guide, events, anchors }) {
     () => events.filter((e) => e._day != null && (e._endDay ?? e._day) >= anchors.todayTs),
     [events, anchors]
   )
-  const items = useMemo(
-    () => resolveGuide(guide, { events: upcoming, places: Array.isArray(places) ? places : [], anchors }),
-    [guide, upcoming, places, anchors]
-  )
+  const items = useMemo(() => {
+    // 3.75b: timely Watch Guides resolve by keyword against live events; evergreen
+    // intention guides resolve via their pure selector.
+    if (guide?.kind === 'watch') return resolveWatchGuide(guide, upcoming)
+    return resolveGuide(guide, { events: upcoming, places: Array.isArray(places) ? places : [], anchors })
+  }, [guide, upcoming, places, anchors])
   const sections = useMemo(() => [{ label: null, items }], [items])
 
   // "Plan a day around this": seed the top always-there PLACE into the upcoming
@@ -62,6 +64,11 @@ export default function GuidePage({ guide, events, anchors }) {
             <button className="guide-plan-cta" onClick={planDay}>
               ＋ Plan a day around this
             </button>
+          )}
+          {/* 3.75b: show the provenance — for a Watch Guide this discloses that the
+              list is keyword-matched against live listings, not hand-curated. */}
+          {Array.isArray(guide.sources) && guide.sources.length > 0 && (
+            <div className="guide-sources">{guide.sources.join(' · ')}</div>
           )}
         </div>
       </header>

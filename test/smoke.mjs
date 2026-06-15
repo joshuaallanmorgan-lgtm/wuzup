@@ -452,6 +452,37 @@ test('3.75: guide selectors are pure, honest, and resolve to real matches', asyn
   assert.deepEqual(resolveGuide(guideById['rainy-day'], { events: [], places: [], anchors: {} }), [], 'empty ctx → empty guide')
 })
 
+// 3.75b — Watch Guides (the timely layer): guides.json is valid, the World Cup
+// guide resolves to REAL keyword-matched events (no fabricated picks), and the
+// window gate is honest (active in-window, inactive outside).
+test('3.75b: watch guides resolve to real keyword matches + honor the window', async () => {
+  const { resolveWatchGuide, watchGuideActive } = await import('../app/src/guides.js')
+  const guidesDoc = JSON.parse(readFileSync(path.join(ROOT, 'app', 'public', 'guides.json'), 'utf8'))
+  assert.equal(guidesDoc.schemaVersion, 1, 'guides.json schemaVersion must be 1')
+  const wc = (guidesDoc.guides || []).find((g) => g.id === 'world-cup-2026')
+  assert.ok(wc && wc.kind === 'watch' && Array.isArray(wc.keywords) && wc.keywords.length, 'world-cup watch guide malformed')
+  // every authored watch guide must be well-formed, or it silently no-shows
+  for (const g of (guidesDoc.guides || []).filter((x) => x.kind === 'watch')) {
+    assert.ok(g.window && Number.isFinite(Date.parse(g.window.start)) && Number.isFinite(Date.parse(g.window.end)), `watch guide ${g.id}: unparseable window`)
+    assert.ok(Array.isArray(g.keywords) && g.keywords.length > 0, `watch guide ${g.id}: empty keywords`)
+  }
+  // resolves against the REAL events store by keyword — honest, real listings only
+  const evDoc = JSON.parse(readFileSync(path.join(ROOT, 'app', 'public', 'events.json'), 'utf8'))
+  const events = Array.isArray(evDoc) ? evDoc : evDoc.events || []
+  const hits = resolveWatchGuide(wc, events)
+  assert.ok(hits.length > 0, 'world-cup watch guide matched 0 live events — keyword resolver or the data regressed')
+  assert.ok(
+    hits.every((e) => {
+      const hay = ((e.title || '') + ' ' + (e.description || '') + ' ' + (e.venue || '')).toLowerCase()
+      return wc.keywords.some((k) => hay.includes(k.toLowerCase()))
+    }),
+    'a matched event contains none of the keywords (resolver is fabricating)'
+  )
+  // window gate
+  assert.equal(watchGuideActive(wc, Date.parse('2026-06-20')), true, 'should be active mid-window')
+  assert.equal(watchGuideActive(wc, Date.parse('2027-01-01')), false, 'should be inactive outside its window')
+})
+
 // Phase 3.5 W7 — DEEPEN REC COVERAGE. New OSM classes (disc golf, skate parks,
 // + court density) and real Wikipedia descriptions for wikidata places.
 test('W7 deepen: disc golf + skate parks + court density + Wikipedia descriptions', () => {

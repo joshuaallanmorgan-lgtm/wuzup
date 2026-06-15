@@ -7,7 +7,7 @@ import LensNav from './LensNav.jsx'
 import { curateFeed } from './curate.js'
 import { useNav } from './nav.jsx'
 import { BigOne, EndCap, FreeCard, GemRow, GuideCard, RowFeed, SecHead, TonightCard } from './cards.jsx'
-import { GUIDES } from './guides.js'
+import { GUIDES, useGuides, watchGuideActive, resolveWatchGuide } from './guides.js'
 import { shelfItems, useSaves } from './saves.js'
 import { railReady, tasteNudge, topCategories, useTaste, whenPreference } from './taste.js'
 import { useRecents } from './recents.js'
@@ -124,6 +124,13 @@ export default function HotView({ events, anchors, loading, whenPref }) {
   // { items:[{e,withDate}], late, futureN, tomorrowN } — future first, started
   // sunk (never hidden); late nights fold in tomorrow's early evening (lib.js)
   const tonight = useMemo(() => tonightModel(upcoming, anchors, new Date(nowMs)), [upcoming, anchors, nowMs])
+  // 3.75b: timely Watch Guides — only the ones in-window AND with real matches
+  // (never advertise an empty one). The guides.json fetch is tiny + lazy.
+  const { watchGuides } = useGuides()
+  const activeWatch = useMemo(
+    () => (watchGuides || []).filter((g) => watchGuideActive(g, anchors.todayTs) && resolveWatchGuide(g, upcoming).length > 0),
+    [watchGuides, upcoming, anchors]
+  )
   const bigOne = useMemo(() => {
     if (!hasHot) return null // hotScore data absent → skip section gracefully
     const oneOffs = upcoming.filter((e) => e.tags.includes('one-off') && e.hotScore != null)
@@ -351,6 +358,9 @@ export default function HotView({ events, anchors, loading, whenPref }) {
         <section className="sec">
           <SecHead overline="Plans by mood" title="Guides" sub="Collections for whatever you're up for" />
           <div className="carousel">
+            {activeWatch.map((g) => (
+              <GuideCard key={g.id} guide={g} onOpen={openGuide} />
+            ))}
             {GUIDES.map((g) => (
               <GuideCard key={g.id} guide={g} onOpen={openGuide} />
             ))}
