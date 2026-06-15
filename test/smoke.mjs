@@ -1206,3 +1206,42 @@ test('U-d/3.5: index.css reward ledger names the did-day conversion + count is c
   assert.ok(/did-day conversion/.test(idx), 'the ledger must still name the planned-day → did-day conversion')
   assert.ok(/U-V7/.test(idx), 'the ledger must cite the ⚑U-V7 flag')
 })
+
+// ============================================================
+// Phase 3.5 W2 — the Calendar tab is now a FULL personal LOGBOOK (Model C
+// finally honored: Calendar = DEMAND, cleanly). The SUPPLY half Josh disliked
+// is GONE from this tab: no per-day event list, no month-grid event counts, no
+// busyness heat tint, no p90 "hot day" coral ring, no "N events" text. The
+// agenda still lives on the DAY SCREEN (DayPage) — that bridge is untouched.
+// CalendarView can't import into Node (JSX + CSS), so this is a source/CSS grep
+// guard, same pattern as the other CalendarView wiring tests.
+// ============================================================
+test('W2: the Calendar tab is a logbook — NO event list / counts / heat on it', () => {
+  const calSrc = readFileSync(path.join(ROOT, 'app', 'src', 'CalendarView.jsx'), 'utf8')
+  // the supply half is removed: no per-day event list rendered on the tab…
+  assert.ok(!/<EventCard/.test(calSrc), 'the Calendar tab must NOT render EventCard — the agenda lives on the day screen, not here')
+  assert.ok(!/selEvents/.test(calSrc), 'the per-day event list (selEvents) must be gone from the Calendar tab')
+  // …no month-grid event counts / "N events" text…
+  assert.ok(!/\bdayMap\b/.test(calSrc), 'the events->day plumbing (dayMap) used only for counts/heat must be gone')
+  assert.ok(!/event\$\{|events?'/.test(calSrc), 'no "N event(s)" count text on the Calendar tab')
+  // …no busyness heat tint + no p90 hot-day coral ring (code, not prose — the
+  // header comment legitimately documents what was removed) …
+  assert.ok(!/--heat/.test(calSrc), 'the busyness heat tint (--heat) must be gone from the Calendar tab')
+  assert.ok(!/hotDays\.has\(|const hotDays/.test(calSrc), 'the p90 "hot day" coral-ring plumbing (hotDays) must be gone')
+  assert.ok(!/const p90 =/.test(calSrc), 'the p90 percentile heat scale must be gone')
+  // coral (--hot-rgb) is supply-only and there is no supply here anymore
+  const calCss = readFileSync(path.join(ROOT, 'app', 'src', 'calendar.css'), 'utf8')
+  assert.ok(!/--hot-rgb/.test(calCss), 'no coral heat/hot-ring (--hot-rgb) anywhere in the logbook calendar.css')
+  assert.ok(!/\.date-rail|\.date-pill|\.dp-count/.test(calCss), 'the supply date-rail + per-day count pill styles must be removed')
+
+  // the PERSONAL layer is the whole tab: the three quiet marks derive correctly
+  assert.ok(/plannedDays\.has\(ts\)/.test(calSrc), 'planned days wear the teal underline mark')
+  assert.ok(/restDays\.has\(ts\)/.test(calSrc), 'rest days wear the muted crescent mark')
+  assert.ok(/dids\.has\(ts\)/.test(calSrc) && /didDays\(been\)/.test(calSrc), 'did-days (been-there \'went\') wear the calm check stamp')
+  // tapping a day still opens the day screen (the bridge to fill it) + Weekend stays
+  assert.ok(/openDay\(ts\)/.test(calSrc), 'tapping a day must still open the day screen (the supply bridge)')
+  assert.ok(/onOpenWeekend|openWeekend/.test(calSrc), 'the Weekend Builder entry must stay on the Calendar tab')
+  // the gentle ledger is surfaced LIGHT here (days-out line), zero is silence
+  assert.ok(/daysOutInMonth\(/.test(calSrc), 'the light gentle-ledger line derives from daysOutInMonth')
+  assert.ok(/daysOut > 0/.test(calSrc), 'the days-out line is SILENT at zero (ban §7 #8 — never "0 📉")')
+})

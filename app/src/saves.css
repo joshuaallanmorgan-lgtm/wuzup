@@ -106,35 +106,11 @@
   pointer-events: none;
 }
 
-/* ===== calendar: the reserved 4px saved-event dot (UI_SPEC §4) ===== */
-/* month cell: centered in the free 3–12px band above the numeral circle,
-   clear of the heat tint edge (inset 3px) and the bottom weather emoji */
-.mcell .save-dot {
-  position: absolute;
-  top: 7px;
-  left: 50%;
-  margin-left: -2px;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--accent);
-  z-index: 1;
-  pointer-events: none;
-}
-/* agenda day-rail pill: same dot, top-right; white ring so it reads on both
-   the teal header pills and the active white pill */
-.date-rail .date-pill { position: relative; } /* positioning context only */
-.date-pill .save-dot {
-  position: absolute;
-  top: 6px;
-  right: 8px;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.9);
-  pointer-events: none;
-}
+/* (W2: the Calendar's saved-event dots — both the month-cell .mcell .save-dot
+   and the date-rail .date-pill .save-dot — were a SUPPLY signal (which days
+   hold a saved event). They were removed when the Calendar became the personal
+   logbook: it now shows only YOUR shape per day (plans / rest / did-days), not
+   what supply is saved. Those orphaned rules are gone with the plumbing.) */
 
 /* agenda day-list rows (compact .card): filled ♥ marker for saved events */
 .card-heart {

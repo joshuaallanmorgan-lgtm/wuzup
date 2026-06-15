@@ -20,7 +20,8 @@
   text-align: center;
   cursor: pointer;
 }
-/* Calendar header pill (lives on the teal gradient band, matches .seg) */
+/* Calendar header Weekend pill (the .seg List|Month toggle it once matched was
+   removed in Phase 3.5 W2 — the logbook is one canvas now) */
 .cal-wkb {
   height: 32px;
   padding: 0 12px;

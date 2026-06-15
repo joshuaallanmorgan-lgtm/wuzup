@@ -1,83 +1,46 @@
-/* calendar.css — styles owned by CalendarView.jsx:
-   cal header + segmented control, date rail, list/month crossfade, month grid. */
+/* calendar.css — styles owned by CalendarView.jsx, the personal LOGBOOK
+   (Phase 3.5 W2). NO supply UI: the date rail, per-day event counts, the
+   busyness heat tint and the p90 hot-day coral ring are all GONE — Calendar =
+   DEMAND, cleanly. What's here: the header + light gentle-ledger line, the
+   morning-after recap card, the month grid's quiet personal marks (planned /
+   rest / did-day), and the selected-day logbook caption. */
 
 .cal-wrap { min-height: 100svh; background: var(--bg); padding-bottom: 100px; }
 .cal-top { background: linear-gradient(135deg, var(--accent), var(--accent-2)); padding: 20px 0 15px; color: #fff; }
-/* title left, Weekend pill + segmented control right (wraps on very narrow frames) */
-.cal-top-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 0 20px; margin-bottom: 14px; }
+/* title left, Weekend pill right (wraps on very narrow frames) */
+.cal-top-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 0 20px; }
 .cal-title { margin: 0 auto 0 0; font-size: 27px; font-weight: 900; letter-spacing: -0.7px; }
 
-/* segmented control: 32px pill, sliding thumb */
-.seg {
-  position: relative;
-  display: flex;
-  width: 148px;
+/* the Weekend Builder entry pill (kept) */
+.cal-wkb {
+  flex: 0 0 auto;
   height: 32px;
-  padding: 3px;
+  padding: 0 14px;
+  border: none;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.22);
-}
-.seg-thumb {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: calc(50% - 3px);
-  height: 26px;
-  border-radius: 999px;
-  background: #fff;
-  transition: transform var(--dur-fast) var(--ease-inout);
-}
-.seg-thumb.right { transform: translateX(100%); }
-.seg-btn {
-  position: relative;
-  z-index: 1;
-  flex: 1;
-  border: none;
-  background: none;
+  color: #fff;
   font-family: inherit;
   font-size: 13px;
   font-weight: 700;
-  color: #fff;
-  border-radius: 999px;
   cursor: pointer;
-  transition: color var(--dur-fast);
+  transition: transform var(--dur-micro), background var(--dur-fast);
 }
-.seg-btn.on { color: var(--accent); }
+.cal-wkb:active { transform: scale(0.95); }
+.cal-wkb:hover { background: rgba(255, 255, 255, 0.3); }
 
-.date-rail { display: flex; gap: 9px; overflow-x: auto; padding: 2px 16px 4px; scrollbar-width: none; overscroll-behavior-x: contain; }
-.date-rail::-webkit-scrollbar { display: none; }
-.date-pill {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  width: 56px;
-  padding: 9px 0;
-  border: none;
-  border-radius: 15px;
-  background: rgba(255, 255, 255, 0.18);
-  cursor: pointer;
-  font: inherit;
-  color: #fff;
-  transition: transform 0.1s;
+/* the light gentle-ledger line — a calm record of the displayed month
+   ("N days out in June ✓"). ZERO IS SILENCE (rendered only when n > 0).
+   Sits in the header, quiet white-on-gradient — a record, never a score. */
+.cal-ledger {
+  margin: 12px 20px 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.1px;
+  color: rgba(255, 255, 255, 0.92);
 }
-.date-pill:active { transform: scale(0.94); }
-.date-pill.active { background: #fff; color: var(--accent); }
-/* K1 hot-day affordance: count >= p90 wears a subtle coral ring (heat
-   semantics — coral in the calendar is ONLY this ring + the grid heat tint).
-   Inset shadows: zero geometry change, nothing clips, dots/emoji untouched. */
-.date-pill.hot { box-shadow: inset 0 0 0 2px rgba(var(--hot-rgb), 0.6); }
-.dp-dow { font-size: 11px; font-weight: 800; text-transform: uppercase; opacity: 0.9; }
-.dp-num { font-size: 18px; font-weight: 900; line-height: 1; }
-.dp-count { font-size: 10px; font-weight: 800; background: rgba(0, 0, 0, 0.14); border-radius: 999px; padding: 1px 7px; }
-.date-pill.active .dp-count { background: rgba(var(--accent-rgb), 0.16); }
 
-/* weather in the day rail: emoji under the date number, rain % only when ≥30 */
-.dp-wx { display: flex; align-items: baseline; gap: 2px; font-size: 12px; line-height: 1; }
-.dp-rain { font-size: 9px; font-weight: 800; opacity: 0.9; }
-
-/* day header above the agenda list */
+/* day header above the selected-day caption */
 .day-header {
   margin: 0;
   padding: 16px 20px 8px;
@@ -89,19 +52,11 @@
 }
 .cal-day { padding-top: 16px; }
 
-/* selected-day weather summary, e.g. "🌧️ Showers likely · high 93° · 47% rain" */
-.cal-wx {
-  padding: 0 20px 4px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted);
-}
-
-/* list↔month crossfade (kept under reduced motion — crossfades survive) */
+/* the month crossfade on month-nav (kept under reduced motion — it survives) */
 @keyframes calFade { from { opacity: 0; } to { opacity: 1; } }
 .cal-fade { animation: calFade 250ms ease both; }
 
-/* month grid: 56px heat-shaded cells */
+/* month grid: 56px cells — personal marks only (no heat, no hot ring) */
 .mon-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 6px; }
 .mon-title { margin: 0; font-size: 17px; font-weight: 800; letter-spacing: -0.2px; }
 .mon-navs { display: flex; gap: 8px; }
@@ -136,15 +91,17 @@
   align-items: center;
   justify-content: center;
 }
-.mcell-bg {
+/* a did-day gets a calm teal-tint rect behind the numeral — a record of a day
+   you went out (NOT busyness heat: this is your own attendance, teal not coral,
+   and it appears ONLY on days you self-reported "I went"). */
+.mcell.went::before {
+  content: '';
   position: absolute;
   inset: 3px;
   border-radius: 10px;
-  background: rgba(var(--hot-rgb), var(--heat, 0)); /* heat = hotness: stays warm, 4 quantized buckets */
+  background: rgba(var(--accent-rgb), 0.1);
+  pointer-events: none;
 }
-/* K1 hot-day ring, month grid: same coral semantics as .date-pill.hot;
-   selected/today numeral states stay teal and sit above, unchanged */
-.mcell.hot .mcell-bg { box-shadow: inset 0 0 0 1.5px rgba(var(--hot-rgb), 0.5); }
 .mnum {
   position: relative;
   z-index: 1;
@@ -161,14 +118,28 @@
 .mcell.today .mnum { box-shadow: inset 0 0 0 2px var(--accent); color: var(--accent); font-weight: 800; }
 .mcell.sel .mnum { background: var(--accent); color: #fff; box-shadow: none; font-weight: 800; }
 .mcell:active .mnum { transform: scale(0.92); }
-/* ===== U-a ⚑U-GRID: the ONE quiet personal mark =====
-   The 56px cell's channels are spoken for: heat tint + hot ring own the bg
-   rect (coral = supply only), today/selected own the numeral circle, the
-   saved dot owns top-center (UI_SPEC §4), the weather emoji owns the 44–54px
-   bottom band. The only clean free pixels are INSIDE the numeral circle below
-   the digit — so a planned day wears a 10×2.5px teal underline there, and a
-   rest day wears a tiny muted crescent in the same spot. One channel, two
-   quiet variants; nothing on unplanned days, nothing red, nothing dimmed. */
+/* ===== W2 — the quiet personal marks (the logbook's whole language) =====
+   With the supply channels GONE (no heat tint, no hot ring, no event count,
+   no saved-dot here), the cell is free for the personal layer. Mutually
+   exclusive by the component's own rule:
+     · a DID-DAY wears a calm teal check stamp (top-right of the numeral) over
+       its teal-tint rect — a plan that became a thing you did;
+     · else a PLANNED day wears a 10×2.5px teal underline under the digit;
+     · else a REST day wears a tiny muted crescent in the same spot.
+   Nothing on a blank day — a quiet page, never shamed, nothing red, nothing
+   dimmed. */
+.mday-went {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--accent);
+  z-index: 2;
+  pointer-events: none;
+}
+.mcell.sel .mday-went { color: #fff; } /* the selected fill is teal — stay visible */
 .mday-plan {
   position: absolute;
   left: 50%;
@@ -198,7 +169,8 @@
 }
 .mcell.sel .mday-rest { box-shadow: inset 2.5px -1.5px 0 0 rgba(255, 255, 255, 0.9); }
 
-/* month-cell weather emoji: bottom-center, subtle — must not fight heat tint or numeral */
+/* month-cell weather emoji: bottom-center, subtle — about YOUR day (plan
+   outdoors?), not supply; must not fight the marks or the numeral */
 .mwx {
   position: absolute;
   bottom: 2px; /* 10px emoji sits exactly below the 32px numeral circle (12–44px band) */
@@ -210,6 +182,38 @@
   line-height: 1;
   opacity: 0.85;
   pointer-events: none;
+}
+
+/* ===== the selected-day caption — a logbook LINE about your shape for the day
+   (planned / rest / went / nothing-yet), never an event list. The agenda lives
+   on the day screen; this is the quiet record + the tap-through to fill it. */
+.cal-sel { padding: 0 16px; }
+.cal-sel-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 2px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--dur-micro), border-color var(--dur-fast);
+}
+.cal-sel-line:active { transform: scale(0.99); }
+.cal-sel-line:hover { border-color: rgba(var(--accent-rgb), 0.4); }
+.cal-sel-line:disabled { cursor: default; opacity: 1; } /* a past day is a record, not faded */
+.cal-sel-txt { flex: 1; font-size: 15px; font-weight: 700; letter-spacing: -0.2px; color: var(--ink); }
+.cal-sel-line.cal-sel-past .cal-sel-txt { color: var(--muted); font-weight: 600; }
+.cal-sel-go { font-size: 17px; font-weight: 800; color: var(--accent); }
+.cal-sel-hint {
+  margin: 10px 4px 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--muted);
 }
 
 /* ===== U-d — the morning-after conversion card (the two-beat RETURN beat).
@@ -274,5 +278,8 @@
      the moment without movement (the beat survives, the animation doesn't) */
   .cal-recap.lit { animation: none; border-color: var(--reward); }
   .cal-recap-yes:active,
-  .cal-recap-no:active { transform: none; }
+  .cal-recap-no:active,
+  .cal-wkb:active,
+  .cal-sel-line:active,
+  .mcell:active .mnum { transform: none; }
 }
