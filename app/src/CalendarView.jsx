@@ -96,6 +96,21 @@ export default function CalendarView({ events, anchors, wx }) {
   const daysOut = daysOutInMonth(dids, monthStartTs, nextMonthStartTs)
   const monthName = month.toLocaleDateString('en-US', { month: 'long' })
 
+  // N5b re-entry pull: a gentle, forward-framed "plan your weekend" — shown ONLY
+  // when nothing's planned ahead (never a nag, never "you have nothing 📉"; just
+  // an open door). Routes per-day (W6: planning is per-day), landing on the
+  // upcoming Saturday's screen where saved events surface first.
+  const hasUpcomingPlan = useMemo(
+    () => [...plannedDays].some((ts) => ts >= anchors.todayTs),
+    [plannedDays, anchors.todayTs]
+  )
+  const upcomingSat = useMemo(() => {
+    const d = new Date(anchors.todayTs)
+    const dow = d.getDay() // 0=Sun … 6=Sat
+    const add = dow === 6 ? 0 : dow === 0 ? 6 : 6 - dow
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate() + add).getTime()
+  }, [anchors.todayTs])
+
   // ===== U-d: the morning-after conversion card (the two-beat RETURN beat) =====
   // A single quiet card for the most-recent PAST PLANNED day not yet answered
   // (loadDayPlans already swept past plans into history; a past REST day is
@@ -274,6 +289,19 @@ export default function CalendarView({ events, anchors, wx }) {
             </div>
           </div>
         )
+      )}
+
+      {/* N5b — the re-entry pull: only when nothing's planned ahead. A calm,
+          forward invitation (never a guilt nudge), opening the upcoming weekend
+          day where saved events show up first. */}
+      {!hasUpcomingPlan && (
+        <button className="cal-plan-pull pressable" onClick={() => openDay(upcomingSat)}>
+          <span className="cal-plan-pull-main">
+            <span className="cal-plan-pull-title">Plan your weekend</span>
+            <span className="cal-plan-pull-sub">Pick a day to start — your saves show up first</span>
+          </span>
+          <span className="cal-plan-pull-go" aria-hidden>→</span>
+        </button>
       )}
 
       {/* the month canvas — ONLY the personal layer. No event counts, no heat

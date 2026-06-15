@@ -37,6 +37,30 @@
 }
 .cal-day { padding-top: 16px; }
 
+/* N5b — the re-entry "plan your weekend" pull (quiet accent card; shown only
+   when nothing's planned ahead). Forward invitation, never a guilt nudge. */
+.cal-plan-pull {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: calc(100% - 32px);
+  margin: 14px 16px 0;
+  padding: var(--sp-md);
+  border: 1px solid rgba(var(--accent-rgb), 0.3);
+  border-radius: 16px;
+  background:
+    radial-gradient(120% 100% at 100% 0%, rgba(var(--accent-rgb), 0.07), transparent 60%),
+    var(--card);
+  text-align: left;
+  font-family: inherit;
+  color: var(--ink);
+  cursor: pointer;
+}
+.cal-plan-pull-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cal-plan-pull-title { font-size: 15px; font-weight: 800; letter-spacing: -0.2px; color: var(--accent); }
+.cal-plan-pull-sub { font-size: 12.5px; font-weight: 500; color: var(--muted); }
+.cal-plan-pull-go { flex: 0 0 auto; font-size: 18px; font-weight: 800; color: var(--accent); }
+
 /* the month crossfade on month-nav (kept under reduced motion — it survives) */
 @keyframes calFade { from { opacity: 0; } to { opacity: 1; } }
 .cal-fade { animation: calFade 250ms ease both; }

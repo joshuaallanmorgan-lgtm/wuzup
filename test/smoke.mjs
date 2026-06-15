@@ -470,6 +470,18 @@ test('N5 onboarding: first-open IA tour (skippable) + honest taste snapshot', ()
   assert.ok(!/give the feed a head start/.test(p), 'the misleading filter-implying "head start" copy must be gone')
 })
 
+// N5b — re-entry pull cards (pull-based, ban-list-clean): a forward "next step"
+// only when one exists; Calendar invites planning ahead, Profile turns a save
+// into a plan. Both route per-day (openDay) and never nag.
+test('N5b re-entry: Calendar + Profile pull cards, shown only when useful', () => {
+  const cal = readFileSync(path.join(ROOT, 'app', 'src', 'CalendarView.jsx'), 'utf8')
+  assert.ok(/cal-plan-pull/.test(cal) && /!hasUpcomingPlan/.test(cal), 'Calendar shows the plan pull only when nothing is planned ahead')
+  assert.ok(/openDay\(upcomingSat\)/.test(cal), 'the Calendar pull routes to the upcoming weekend day (per-day, W6)')
+  const pf = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
+  assert.ok(/pf-pull/.test(pf) && /showPlanPull/.test(pf), 'Profile shows the save→plan pull')
+  assert.ok(/upcomingSaves > 0 && !hasUpcomingPlan/.test(pf), 'the Profile pull is gated on saves-waiting + nothing-planned (never a nag)')
+})
+
 // ============================================================
 // 3+4) APP BUILD + LINT (started together, asserted separately)
 // ============================================================

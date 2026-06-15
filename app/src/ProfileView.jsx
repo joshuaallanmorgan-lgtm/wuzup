@@ -75,7 +75,7 @@ const GearIc = () => (
 )
 
 export default function ProfileView({ events, anchors, primer }) {
-  const { openDetail: onSelect, openWeekend: onOpenWeekend, openSettings, openInterests, openTaste, openDeck, page } = useNav()
+  const { openDetail: onSelect, openWeekend: onOpenWeekend, openSettings, openInterests, openTaste, openDeck, openDay, page } = useNav()
   const taste = useTaste()
   const { list: savedList } = useSaves()
   const been = useBeenThere()
@@ -190,6 +190,27 @@ export default function ProfileView({ events, anchors, primer }) {
   const range =
     days.length > 1 ? fmtRange(days[0].ts, days[days.length - 1].ts) : fmtShort(days[0].ts)
 
+  // N5b re-entry pull (Discover → Save → PLAN): saves are waiting but nothing's
+  // planned ahead → invite turning one into a plan. Forward-framed, shown only
+  // when both conditions hold (never a nag), routes to the upcoming weekend day
+  // where saved events surface first in the picker.
+  const upcomingSaves = useMemo(() => shelf.filter((x) => !x.past).length, [shelf])
+  const hasUpcomingPlan = useMemo(
+    () =>
+      Object.entries(dayPlans).some(([k, e]) => {
+        const en = dayEntryFor(e)
+        return Number(k) >= anchors.todayTs && en && en.state !== 'rest' && PARTS.some((p) => en.slots[p])
+      }),
+    [dayPlans, anchors.todayTs]
+  )
+  const upcomingSat = useMemo(() => {
+    const d = new Date(anchors.todayTs)
+    const dow = d.getDay() // 0=Sun … 6=Sat
+    const add = dow === 6 ? 0 : dow === 0 ? 6 : 6 - dow
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate() + add).getTime()
+  }, [anchors.todayTs])
+  const showPlanPull = upcomingSaves > 0 && !hasUpcomingPlan
+
   // ===== Been there (O4): unanswered prompts + the self-reported went-list =====
   const answered = useMemo(
     () => new Set(been.filter((b) => b.status).map((b) => b.key)),
@@ -293,6 +314,20 @@ export default function ProfileView({ events, anchors, primer }) {
       </header>
 
       <div className="pf-body">
+        {/* N5b re-entry pull: saves waiting + nothing planned → the next loop
+            step (Discover → Save → PLAN). Quiet, forward-framed, never a nag. */}
+        {showPlanPull && (
+          <button className="pf-pull pressable" onClick={() => openDay(upcomingSat)}>
+            <span className="pf-pull-main">
+              <span className="pf-pull-title">Turn a save into a plan</span>
+              <span className="pf-pull-sub">
+                You&rsquo;ve saved {upcomingSaves} — slot one into a day
+              </span>
+            </span>
+            <span className="pf-pull-go" aria-hidden>→</span>
+          </button>
+        )}
+
         {/* ===== Your taste (W6 connectivity) — the transparency panel and the
             calibration deck were buried in Settings (4 taps); surfaced here so
             taste is a first-class Profile hub. Interests stay editable via the

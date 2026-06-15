@@ -112,6 +112,31 @@
 .pf-taste-s { font-size: 12px; font-weight: 500; color: var(--muted); }
 .pf-taste-go { flex: 0 0 auto; font-size: 16px; font-weight: 800; color: var(--accent); }
 
+/* N5b — the re-entry "turn a save into a plan" pull (Discover→Save→Plan). Quiet
+   accent card at the top of the body; shown only when saves wait + nothing's
+   planned. Forward invitation, never a guilt nudge. */
+.pf-pull {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: calc(100% - 40px);
+  margin: var(--sp-md) 20px 0;
+  padding: var(--sp-md);
+  border: 1px solid rgba(var(--accent-rgb), 0.3);
+  border-radius: 16px;
+  background:
+    radial-gradient(120% 100% at 100% 0%, rgba(var(--accent-rgb), 0.07), transparent 60%),
+    var(--card);
+  text-align: left;
+  font-family: inherit;
+  color: var(--ink);
+  cursor: pointer;
+}
+.pf-pull-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.pf-pull-title { font-size: 15px; font-weight: 800; letter-spacing: -0.2px; color: var(--accent); }
+.pf-pull-sub { font-size: 12.5px; font-weight: 500; color: var(--muted); }
+.pf-pull-go { flex: 0 0 auto; font-size: 18px; font-weight: 800; color: var(--accent); }
+
 /* saved-list rows: past items grey out + wear a "Happened" tag over the thumb */
 .pf-item { position: relative; }
 .pf-item.pf-past { opacity: 0.55; }
