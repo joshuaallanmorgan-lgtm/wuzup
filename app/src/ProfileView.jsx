@@ -265,6 +265,40 @@ export default function ProfileView({ events, anchors, primer }) {
   // VARIETY FIRSTS — breadth, not volume: a fixed handful of first-time-category
   // stamps earned from the went-list (never "10 events!"). Capped in dayplan.js.
   const firsts = useMemo(() => varietyFirsts(been), [been])
+  // 3.76b: Plans → Reality (D-PS2) — this month's PAST planned days vs the ones you
+  // made it to. A calm record, ZERO IS SILENCE, positive framing — you can only
+  // have "gone" to a past day, so this is purely a fact, never a score or guilt.
+  const monthReality = useMemo(() => {
+    void planPageUp // re-read on plan-subpage edges (same trigger as dayHist)
+    let planned = 0
+    let went = 0
+    for (const h of loadDayHistory()) {
+      if (h.dayTs < monthStart || h.dayTs >= nextMonthStart) continue
+      if (h.slots?.day || h.slots?.night) planned++
+      if (dids.has(h.dayTs)) went++
+    }
+    return { planned, went }
+  }, [planPageUp, monthStart, nextMonthStart, dids])
+  // 3.76b: your ACTUAL rhythm (D-PS2) — when you've really gone out, from the
+  // went-list's real event times. Gated at 3+ outings so we never claim a pattern
+  // from noise. Shown beside the STATED preference; an honest mirror, never a score.
+  const actualWhen = useMemo(() => {
+    const went = (been || []).filter((b) => b.status === 'went' && b.snapshot?.start)
+    if (went.length < 3) return null
+    let weekend = 0
+    let night = 0
+    for (const b of went) {
+      const d = new Date(b.snapshot.start)
+      const dow = d.getDay()
+      if (dow === 5 || dow === 6 || dow === 0) weekend++
+      const h = d.getHours()
+      if (h >= 17 || h < 5) night++
+    }
+    const n = went.length
+    const wpart = weekend / n >= 0.6 ? 'weekend ' : weekend / n <= 0.4 ? 'weekday ' : ''
+    const tpart = night / n >= 0.6 ? 'nights' : 'afternoons'
+    return wpart + tpart
+  }, [been])
 
   // ===== Recently viewed: recents keys resolved against the live dataset =====
   const recents = useMemo(
@@ -309,7 +343,12 @@ export default function ProfileView({ events, anchors, primer }) {
             <span aria-hidden>✎</span> {chips.length > 0 || freeLeaning ? 'Edit' : 'Pick your interests'}
           </button>
         </div>
-        {whenLine && <div className="pf-when">{whenLine}</div>}
+        {whenLine && (
+          <div className="pf-when">
+            {whenLine}
+            {actualWhen && <span className="pf-when-actual"> · lately, mostly {actualWhen}</span>}
+          </div>
+        )}
         <div className="pf-note">{vibeNote}</div>
       </header>
 
@@ -424,6 +463,14 @@ export default function ProfileView({ events, anchors, primer }) {
                 · a past REST day is "Rested 🌙" (DRAFT — a RECORD, the past
                   tense of the future "Resting 🌙" intent), honored, never asked;
                 · a merely-planned past day stays a quiet record of the plan. */}
+          {/* 3.76b: Plans → Reality (D-PS2) — this month's plans vs follow-through.
+              Zero-is-silence (only with plans), no guilt, positive framing. DRAFT. */}
+          {monthReality.planned > 0 && (
+            <div className="pf-reality">
+              <span className="pf-reality-n">{monthReality.planned}</span> planned in {monthName} ·{' '}
+              <span className="pf-reality-n pf-reality-went">{monthReality.went}</span> you made it to
+            </div>
+          )}
           {dayHist.length > 0 && (
             <>
               <div className="pf-hist-label">Past days</div>
