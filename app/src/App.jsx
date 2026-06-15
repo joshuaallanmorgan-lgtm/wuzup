@@ -17,6 +17,7 @@ import DetailPage from './DetailPage.jsx'
 import PlaceDetail from './PlaceDetail.jsx'
 import BubblePage from './BubblePage.jsx'
 import PlaceBubblePage from './PlaceBubblePage.jsx'
+import GuidePage from './GuidePage.jsx'
 import SearchPage from './SearchPage.jsx'
 import AddEvent from './AddEvent.jsx'
 import WeekendBuilder from './WeekendBuilder.jsx'
@@ -296,6 +297,8 @@ function Shell() {
             )}
             {/* Sprint S: a tapped Locations bubble → its filtered place list */}
             {page.type === 'placebubble' && <PlaceBubblePage bubble={page.bubble} />}
+            {/* 3.75: a tapped Guide → its GuidePage (derivable intention collection) */}
+            {page.type === 'guide' && <GuidePage guide={page.guide} events={norm} anchors={anchors} />}
             {page.type === 'search' && <SearchPage events={norm} anchors={anchors} coords={coords} />}
             {page.type === 'add' && (
               <AddEvent anchors={anchors} myEvents={myEvents} onAdd={addMine} presetTs={page.ts} />

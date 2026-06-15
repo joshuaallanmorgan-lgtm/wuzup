@@ -266,6 +266,18 @@ export function SpotCard({ p, onSelect }) {
   )
 }
 
+// GuideCard (3.75) — the editorial tile for a Smart-Group "Guide": a hue art
+// header carrying the guide's emoji + its title + point-of-view. Tap → GuidePage.
+export function GuideCard({ guide, onOpen }) {
+  return (
+    <button className="guidecard pressable" onClick={() => onOpen(guide)} style={{ '--gh': guide.hue ?? 30 }}>
+      <span className="guidecard-art" aria-hidden>{guide.emoji}</span>
+      <span className="guidecard-title">{guide.title}</span>
+      <span className="guidecard-pov">{guide.pov}</span>
+    </button>
+  )
+}
+
 // dashed "See all →" end-cap for carousels (square variant for the 160px free cards)
 export function EndCap({ square, onClick, children = 'See all →' }) {
   return (

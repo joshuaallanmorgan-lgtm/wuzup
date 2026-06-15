@@ -6,7 +6,8 @@ import { BUBBLES, CAT_BUBBLES, CITY, DAY, LENS_BUBBLES, dayLabel, hotDesc, keyOf
 import LensNav from './LensNav.jsx'
 import { curateFeed } from './curate.js'
 import { useNav } from './nav.jsx'
-import { BigOne, EndCap, FreeCard, GemRow, RowFeed, SecHead, TonightCard } from './cards.jsx'
+import { BigOne, EndCap, FreeCard, GemRow, GuideCard, RowFeed, SecHead, TonightCard } from './cards.jsx'
+import { GUIDES } from './guides.js'
 import { shelfItems, useSaves } from './saves.js'
 import { railReady, tasteNudge, topCategories, useTaste, whenPreference } from './taste.js'
 import { useRecents } from './recents.js'
@@ -51,7 +52,7 @@ function heroLine(now, tonightLeft) {
 export default function HotView({ events, anchors, loading, whenPref }) {
   // onSelect identity note: openDetail is useCallback-stable in nav.js, so the
   // memo'd Rows (M1) keep their referential-stability contract intact.
-  const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd } = useNav()
+  const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, openGuide } = useNav()
   const scrollRef = useRef(null)
   const evRef = useRef(null)
   const [entered, setEntered] = useState(false) // entrance animations already played?
@@ -345,6 +346,16 @@ export default function HotView({ events, anchors, loading, whenPref }) {
             </div>
           </section>
         )}
+        {/* 3.75: Guides — derivable intention collections (a moment + a POV), each
+            a plannable destination. Evergreen intentions, so always shown. DRAFT. */}
+        <section className="sec">
+          <SecHead overline="Plans by mood" title="Guides" sub="Collections for whatever you're up for" />
+          <div className="carousel">
+            {GUIDES.map((g) => (
+              <GuideCard key={g.id} guide={g} onOpen={openGuide} />
+            ))}
+          </div>
+        </section>
         {bigOne && (
           <section className={'sec' + ent(1).className} style={ent(1).style}>
             <BigOne e={bigOne} onSelect={onSelect} animate={animate} />

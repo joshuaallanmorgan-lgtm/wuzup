@@ -155,6 +155,14 @@ export function NavProvider({ children }) {
     setPageClosing(false)
     setPage({ type: 'placebubble', bubble })
   }, [])
+  // 3.75: a tapped Guide → its full GuidePage (the Smart-Group destination,
+  // {type:'guide',guide}). Pure navigation — a guide's items record their own
+  // taste signal on detail open, same as bubbles.
+  const openGuide = useCallback((guide) => {
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    setPage({ type: 'guide', guide })
+  }, [])
   // Phase 3.5: openNight + the {type:'night'} Find-My-Night subpage retired
   // (Josh: remove the dice). fmnseen.js stays — the Deck + day-fill decks still
   // use it; recordSignal('fmn') in taste.js is now caller-less (left as a seam).
@@ -335,6 +343,7 @@ export function NavProvider({ children }) {
       pageClosing,
       openBubble,
       openPlaceBubble,
+      openGuide,
       openSearch,
       openAdd,
       openWeekend,
@@ -365,6 +374,7 @@ export function NavProvider({ children }) {
       pageClosing,
       openBubble,
       openPlaceBubble,
+      openGuide,
       openSearch,
       openAdd,
       openWeekend,

@@ -433,6 +433,25 @@ test('3.74: whyFits composes honest reasons (weather > free > taste > none)', as
   assert.equal(whyFits({ category: 'music', isFree: false }, { w: null, nudge: () => 0 }), null, 'nothing notable → no chip')
 })
 
+// 3.75 — Guides (Smart Groups): the derivable intention selectors are PURE +
+// honest (real fields only), and resolveGuide is a curated VIEW that shows ALL
+// its matches (never-hide) with no fabrication. Node-importable.
+test('3.75: guide selectors are pure, honest, and resolve to real matches', async () => {
+  const { GUIDES, resolveGuide, guideById } = await import('../app/src/guides.js')
+  assert.ok(Array.isArray(GUIDES) && GUIDES.length >= 3, 'GUIDES must be a non-empty roster')
+  for (const g of GUIDES) {
+    assert.ok(g.id && g.title && g.pov && typeof g.select === 'function', `guide ${g.id} missing required fields`)
+  }
+  // beach-day resolves to EXACTLY the beaches in the real data — no fabrication
+  const doc = JSON.parse(readFileSync(APP_PLACES, 'utf8'))
+  const beaches = doc.places.filter((p) => p.placeType === 'beach')
+  const got = resolveGuide(guideById['beach-day'], { events: [], places: doc.places, anchors: {} })
+  assert.equal(got.length, beaches.length, `beach-day resolved ${got.length}, expected ${beaches.length} real beaches`)
+  assert.ok(got.every((p) => p.placeType === 'beach'), 'beach-day returned a non-beach')
+  // graceful: a guide with no data resolves to an empty (honest) list, not a throw
+  assert.deepEqual(resolveGuide(guideById['rainy-day'], { events: [], places: [], anchors: {} }), [], 'empty ctx → empty guide')
+})
+
 // Phase 3.5 W7 — DEEPEN REC COVERAGE. New OSM classes (disc golf, skate parks,
 // + court density) and real Wikipedia descriptions for wikidata places.
 test('W7 deepen: disc golf + skate parks + court density + Wikipedia descriptions', () => {
