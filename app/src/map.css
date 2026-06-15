@@ -123,11 +123,11 @@
 .map-chip.on {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--ink); /* dark ink on Sunset Gold/Sage chips — white fails AA (3.71 review) */
 }
 .map-chip-free.on {
-  background: var(--ok, #0a9d6e);
-  border-color: var(--ok, #0a9d6e);
+  background: var(--free);
+  border-color: var(--free);
 }
 .map-chip:disabled {
   cursor: default;
@@ -141,9 +141,9 @@
   text-transform: uppercase;
   padding: 2px 9px;
   border-radius: 999px;
-  border: 1px solid rgba(10, 157, 110, 0.4);
-  background: rgba(10, 157, 110, 0.12);
-  color: var(--ok, #0a9d6e);
+  border: 1px solid rgba(15, 168, 109, 0.4);
+  background: rgba(15, 168, 109, 0.12);
+  color: var(--free);
 }
 
 /* ===== J3 pin-preview bottom sheet =====

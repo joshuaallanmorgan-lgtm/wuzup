@@ -59,7 +59,7 @@ const PIN_ZOOM = 13
 const CELL = 64
 // canvas strokes can't resolve CSS variables — literal mirror of --hot
 // (index.css). Fills use the comma HSL form for maximum canvas parser safety.
-const HOT = '#ff5a3c'
+const HOT = '#ff3b5f'
 const hueOf = (e) => CATEGORY_HUES[e.category] ?? CATEGORY_HUES.other
 const pinFill = (e) => `hsl(${hueOf(e)}, 70%, 45%)`
 

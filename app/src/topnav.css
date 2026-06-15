@@ -82,7 +82,7 @@
   max-height: 72svh;
   background: var(--bg);
   border-radius: 22px 22px 0 0;
-  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.22); /* elevation — matches the app's PickerSheet */
+  box-shadow: 0 -10px 40px rgba(26, 20, 16, 0.24); /* elevation — matches the app's PickerSheet */
   animation: tnUp 280ms var(--ease-emphasis);
 }
 .tn-sheet-head {
@@ -129,7 +129,7 @@
 .tn-item-emoji { flex: 0 0 auto; font-size: 20px; line-height: 1; }
 .tn-item-label { min-width: 0; line-height: 1.2; }
 /* "Add event" reads as the quiet accent action at the end of the grid */
-.tn-item-add { color: var(--accent); border-color: rgba(var(--accent-rgb), 0.3); }
+.tn-item-add { color: var(--accent-ink); border-color: rgba(var(--accent-rgb), 0.3); }
 
 @keyframes tnFadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes tnUp { from { transform: translateY(100%); } to { transform: none; } }

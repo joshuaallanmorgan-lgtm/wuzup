@@ -11,7 +11,7 @@
   display: block;
   position: relative;
   overflow: hidden;
-  background: #1d212a;
+  background: #241c15;
 }
 .imgbox-img {
   position: absolute;
@@ -50,6 +50,9 @@
 .imgbox-art {
   container-type: size;
   background:
+    /* Sunlit Coastal Pop (3.71): a faint light grain over the art floor — craft up
+       close, behind the watermark + foreground (children outrank background). */
+    radial-gradient(circle, rgba(255, 255, 255, 0.03) 0.5px, transparent 0.6px) 0 0 / 3px 3px,
     linear-gradient(180deg, hsl(var(--ch, 220) 85% 80% / 0.16), transparent 30%),
     radial-gradient(120% 95% at 88% -12%, hsl(var(--ch, 220) 82% 62% / 0.55), transparent 56%),
     radial-gradient(150% 125% at 50% 132%, rgba(0, 0, 0, 0.34), transparent 60%),
@@ -99,7 +102,7 @@
 .sp-label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.02em; }
 .tcard .sp-label, .gem .sp-label, .fcard .sp-label { display: block; margin-top: 2px; }
 .bigone .sp-label { display: block; margin-top: 5px; color: rgba(255, 255, 255, 0.78); }
-.bigone .sp-label.my-label { color: #5eead4; } /* teal accent unreadable on the dark scrim */
+.bigone .sp-label.my-label { color: #ffb066; } /* Sunset Gold (light) — readable on the dark scrim (3.71, was teal) */
 .card .sp-label { display: block; margin-top: 2px; }
 
 /* "Started 7:00 PM …" metas (event already underway) read quieter — class is a
@@ -148,13 +151,13 @@
   flex: 0 0 120px;
   height: 157px;
   scroll-snap-align: start;
-  border: 1.5px dashed #d3d7de;
+  border: 1.5px dashed #d8cfc4;
   border-radius: 14px;
   background: none;
   font-family: inherit;
   font-size: 14px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-ink);
   cursor: pointer;
 }
 .endcap-sq { height: 160px; }
@@ -174,8 +177,8 @@
   color: #fff;
   text-align: left;
   cursor: pointer;
-  background: #1d212a;
-  box-shadow: 0 10px 30px rgba(20, 23, 28, 0.16);
+  background: #241c15;
+  box-shadow: 0 10px 30px rgba(26, 20, 16, 0.18);
 }
 .bigone-img { position: absolute; inset: 0; border-radius: 0; }
 @keyframes bigScale { from { transform: scale(1.04); } to { transform: none; } }
@@ -185,7 +188,7 @@
 .bigone-grad {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(6, 8, 13, 0.1) 30%, rgba(6, 8, 13, 0.82) 100%);
+  background: linear-gradient(180deg, rgba(26, 20, 16, 0.1) 30%, rgba(26, 20, 16, 0.82) 100%);
 }
 .bigone-text { position: absolute; left: 20px; right: 20px; bottom: 20px; }
 .bigone-over {
@@ -233,7 +236,7 @@
   font-family: inherit;
   font-size: 14px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-ink);
   cursor: pointer;
   transition: transform var(--dur-fast) var(--ease-out); /* ≤120ms press answer */
 }
@@ -306,7 +309,7 @@
   padding: 5px 10px;
   border-radius: 999px;
   background: rgba(var(--accent-rgb), 0.12);
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 .feed-sentinel { height: 1px; }
 .feed-end { padding: 26px 20px 10px; text-align: center; font-size: 13px; font-weight: 600; color: var(--muted); }
@@ -319,7 +322,7 @@
 .feed-stagger .row { animation: rowIn var(--dur-fast) var(--ease-out) both; }
 
 /* ===== price chip (kept from v1) ===== */
-.chip { flex: 0 0 auto; align-self: center; font-size: 11.5px; font-weight: 800; padding: 5px 10px; border-radius: 999px; background: #f0f1f4; color: #4b5563; letter-spacing: 0.2px; }
+.chip { flex: 0 0 auto; align-self: center; font-size: 11.5px; font-weight: 800; padding: 5px 10px; border-radius: 999px; background: #f1ece5; color: #5c5349; letter-spacing: 0.2px; }
 .chip-free { background: rgba(10, 157, 110, 0.13); color: var(--free); }
 
 /* ===== compact event card (calendar agenda) ===== */
@@ -332,9 +335,12 @@
   padding: 9px;
   border: none;
   text-align: left;
-  background: var(--card);
+  background-color: var(--card);
+  /* Sunlit Coastal Pop (3.71): subliminal paper grain on the card surface */
+  background-image: radial-gradient(circle, rgba(26, 20, 16, 0.022) 1px, transparent 1px);
+  background-size: 3px 3px;
   border-radius: 18px;
-  box-shadow: 0 2px 10px rgba(20, 23, 28, 0.05);
+  box-shadow: 0 2px 10px rgba(26, 20, 16, 0.06);
   cursor: pointer;
   font: inherit;
   color: inherit;
@@ -342,7 +348,7 @@
   animation: cardIn 0.42s both var(--ease-out);
 }
 @keyframes cardIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-.card:hover { box-shadow: 0 7px 22px rgba(20, 23, 28, 0.1); }
+.card:hover { box-shadow: 0 7px 22px rgba(26, 20, 16, 0.12); }
 .card:active { transform: scale(0.97); transition-duration: var(--dur-micro); }
 .card-thumb { flex: 0 0 58px; width: 58px; height: 58px; border-radius: 13px; }
 .card-main { flex: 1; min-width: 0; }

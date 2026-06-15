@@ -6,7 +6,7 @@
    styled .tn-item-add in topnav.css.) */
 
 /* ===== provenance: user-added twin of the Sponsored label (accent, never hidden) ===== */
-.sp-label.my-label { color: var(--accent); }
+.sp-label.my-label { color: var(--accent-ink); }
 
 /* ===== form page ===== */
 .ae-form { padding: 4px 20px 28px; }
@@ -114,7 +114,7 @@ textarea.ae-input { height: auto; min-height: 96px; padding: 11px 14px; resize: 
   border: none;
   border-radius: 14px;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #fff;
+  color: var(--ink); /* dark ink on Sunset Gold — white fails AA (3.71 review) */
   font-family: inherit;
   font-size: 16px;
   font-weight: 800;
@@ -138,7 +138,7 @@ textarea.ae-input { height: auto; min-height: 96px; padding: 11px 14px; resize: 
   text-decoration: underline;
   cursor: pointer;
 }
-.ae-export:hover { color: var(--accent); }
+.ae-export:hover { color: var(--accent-ink); }
 
 /* success beat */
 .ae-done { padding: 90px 28px; text-align: center; animation: aeDone var(--dur-base) var(--ease-out) both; }
@@ -173,7 +173,7 @@ textarea.ae-input { height: auto; min-height: 96px; padding: 11px 14px; resize: 
   font-family: inherit;
   font-size: 13px;
   font-weight: 800;
-  color: #5eead4;
+  color: var(--accent-ink);
   cursor: pointer;
 }
 

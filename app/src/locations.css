@@ -21,7 +21,7 @@
   inset: 0;
 }
 .loc-hero::before {
-  background: linear-gradient(155deg, #0d9488 0%, #0e7490 45%, #166534 100%);
+  background: linear-gradient(155deg, #ff8c42 0%, #e0703a 45%, #6b6b4a 100%);
   z-index: 0;
 }
 /* legibility scrim over the real photo: a bottom-up darkening for the white

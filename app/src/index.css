@@ -1,16 +1,22 @@
 :root {
-  /* light teal/aqua identity (Tampa = water) — interactive elements, links,
-     overlines, selected states, calendar selection */
-  --accent: #0d9488;
-  --accent-2: #06b6d4; /* gradients with accent */
-  --accent-rgb: 13, 148, 136;
+  /* Sunset Gold brand signature (Sunlit Coastal Pop) — interactive elements,
+     links, overlines, selected states, calendar selection. FILLS/borders/marks
+     use --accent; accent TEXT on light surfaces uses --accent-ink (AA). */
+  --accent: #ff8c42; /* Sunset Gold — brand signature (Sunlit Coastal Pop 3.71, was #0d9488 teal) */
+  --accent-2: #ffa754; /* Sunset Pale — gradients/overlays (was #06b6d4) */
+  --accent-rgb: 255, 140, 66;
+  /* Sunset Gold reads great as a FILL but fails AA as small text on cream
+     (~2.2:1). --accent-ink is the AA-safe deep-sunset companion for accent TEXT
+     on light surfaces (#b35418 ≈ 4.7:1 on --bg). ⚑ Charles: both hexes tunable;
+     keep the AA gap (3.71 review fix — was the systemic teal-as-text issue). */
+  --accent-ink: #b35418;
   /* hot palette: RESERVED for hot-ness semantics only (Hot tab active, flame/heat
      badges, The Big One overline, Surprise-me dice, calendar heat shading) —
      plus ONE sanctioned exception: filled save-hearts. A red heart is a
      universal affordance; a teal one reads broken (deliberate I2 call). */
-  --hot: #ff5a3c;
+  --hot: #ff3b5f; /* Warm Magenta — save-hearts + heat (Sunlit Coastal Pop 3.71, was #ff5a3c) */
   --hot-2: #ff2d78;
-  --hot-rgb: 255, 90, 60;
+  --hot-rgb: 255, 59, 95;
   --hot2-rgb: 255, 45, 120;
   /* reward accent (Sprint I1): violet, RESERVED for SIX micro-reward moments
      only — the running ledger (amend here when a moment is sanctioned):
@@ -27,14 +33,14 @@
      (Phase 3.5: the old "FMN reveal beat" was retired with the dice — fmn.css
       deleted — so the ledger dropped from seven moments to six.)
      Its scarcity is its meaning: nowhere else, ever. */
-  --reward: #a855f7;
-  --reward-rgb: 168, 85, 247;
-  --free: #0a9d6e;
-  --ink: #15171c;
-  --muted: #6b7280;
-  --line: #eceef1;
-  --card: #ffffff;
-  --bg: #f7f8fa;
+  --reward: #d966f5; /* Muted Violet — the 6 sanctioned moments only (Sunlit Coastal Pop, was #a855f7) */
+  --reward-rgb: 217, 102, 245;
+  --free: #0fa86d; /* Tropical Sage — free badges (was #0a9d6e) */
+  --ink: #1a1410; /* Sun-baked Clay — warm charcoal (was #15171c) */
+  --muted: #756b61; /* Warm Taupe — secondary text (was #6b7280) */
+  --line: #ede8e2; /* Sandy Whisper — warm divider (was #eceef1) */
+  --card: #fefdfb; /* Parchment — creamy premium surface (was #ffffff) */
+  --bg: #faf8f5; /* Aged Linen — warmth anchor (was #f7f8fa) */
 
   /* motion tokens (UI_SPEC §3) */
   --dur-micro: 120ms; /* press, chip fill */
@@ -60,12 +66,12 @@
 html, body { margin: 0; padding: 0; }
 
 body {
-  background: #16181d;
+  background: #1b1712; /* warm dark — the desktop frame surround (Sunlit Coastal Pop 3.71, was #16181d) */
   color: var(--ink);
   /* Phase 3.6 N2: a calm default line-height so prose/meta breathe (was the
      browser-tight ~1.2). Components with their own line-height still win;
-     single-line controls are unaffected. */
-  line-height: 1.5;
+     single-line controls are unaffected. Sunlit Coastal Pop nudged to 1.6. */
+  line-height: 1.6;
 }
 
 /* phone-sized frame centered on desktop */
@@ -74,10 +80,24 @@ body {
   max-width: 460px;
   margin: 0 auto;
   min-height: 100svh;
-  background: var(--bg);
+  /* Sunlit Coastal Pop (3.71): the cream canvas wears a subliminal paper grain —
+     invisible at arm's length, "craft" up close, zero asset cost. */
+  background-color: var(--bg);
+  background-image: radial-gradient(circle, rgba(26, 20, 16, 0.014) 1px, transparent 1px);
+  background-size: 3px 3px;
   position: relative;
-  box-shadow: 0 0 60px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 60px rgba(26, 20, 16, 0.42);
   overflow: hidden;
 }
 
 a { color: inherit; }
+
+/* Sunlit Coastal Pop (3.71): Kumbh Sans is the editorial title face — large
+   headings only; body, meta, and small card titles stay Inter for the legibility
+   spine. Per-selector letter-spacing (tuned for the old face) is left intact;
+   revisit if Kumbh's metrics read loose. */
+h1, h2,
+.hero-city, .sec-title, .bigone-title, .pg-head-title,
+.deck-kicker-title, .ldk-kicker-title, .tn-sheet-title {
+  font-family: 'Kumbh Sans', 'Inter', system-ui, -apple-system, sans-serif;
+}

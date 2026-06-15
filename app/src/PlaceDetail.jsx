@@ -155,7 +155,7 @@ export default function PlaceDetail({ e, anchors, wx }) {
         touchZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false,
       }).setView([e.lat, e.lng], 14)
       L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(m)
-      L.circleMarker([e.lat, e.lng], { radius: 8, color: '#fff', weight: 2.5, fillColor: '#0d9488', fillOpacity: 1, interactive: false }).addTo(m)
+      L.circleMarker([e.lat, e.lng], { radius: 8, color: '#fff', weight: 2.5, fillColor: '#ff8c42', fillOpacity: 1, interactive: false }).addTo(m)
       t = setTimeout(() => m.invalidateSize(), 280)
     })
     return () => {
@@ -241,7 +241,7 @@ export default function PlaceDetail({ e, anchors, wx }) {
         style={
           heroArt
             ? { viewTransitionName: 'evt-hero', '--ch': hueFor(e) }
-            : { viewTransitionName: 'evt-hero', background: '#1d212a' }
+            : { viewTransitionName: 'evt-hero', background: '#241c15' }
         }
       >
         {!heroArt ? (

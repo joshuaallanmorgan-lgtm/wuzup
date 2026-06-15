@@ -3,7 +3,7 @@
 // NAVIGATION state (active tab, subpage union, detail open/close + VT morph,
 // map focus) lives in nav.js (Sprint O6) — components reach it via useNav().
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { CITY, DAY, Icon, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, saveMyEvents } from './lib.js'
+import { DAY, Icon, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, saveMyEvents } from './lib.js'
 import { NavProvider, VIEWS, useNav } from './nav.jsx'
 import Primer, { loadPrimerState } from './Primer.jsx'
 import { WxContext } from './cards.jsx'
@@ -385,7 +385,7 @@ function Shell() {
             onRestoreMine={addMine}
           />
         )}
-        {loading && bootVis && <div className="boot">Loading {CITY.name}…</div>}
+        {loading && bootVis && <div className="boot">Loading Wuzup…</div>}
       </div>
     </WxContext.Provider>
   )

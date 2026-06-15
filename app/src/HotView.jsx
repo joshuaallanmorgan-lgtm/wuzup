@@ -246,6 +246,11 @@ export default function HotView({ events, anchors, loading, whenPref }) {
           🔎
         </button>
         <div className="hero-text">
+          {/* Sunlit Coastal Pop (3.71): the Wuzup brand lockup on the masthead */}
+          <div className="hero-brand">
+            <span className="hero-brand-dot" aria-hidden />
+            Wuzup
+          </div>
           {/* H2: time-aware greeting (tracks nowMs — re-seeded on visibility + every 10 min) */}
           <div className="hero-kicker">
             {/* Sprint V1: when-preference is ONE resolver now (whenPreference in

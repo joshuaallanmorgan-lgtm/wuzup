@@ -13,8 +13,8 @@
 .deck {
   background:
     radial-gradient(120% 55% at 10% -8%, rgba(var(--accent-rgb), 0.30), transparent 62%),
-    radial-gradient(110% 60% at 110% 106%, rgba(6, 182, 212, 0.18), transparent 60%),
-    linear-gradient(168deg, #0f1b1c 0%, #16181d 55%, #121a1d 100%);
+    radial-gradient(110% 60% at 110% 106%, rgba(255, 167, 84, 0.16), transparent 60%),
+    linear-gradient(168deg, #1c160f 0%, #1b1712 55%, #181109 100%);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -56,9 +56,9 @@
 .deck-card {
   border-radius: 22px;
   border: 1px solid rgba(255, 255, 255, 0.10);
-  background: #1b2027;
+  background: #211b14;
 }
-.deck-top { box-shadow: 0 14px 38px rgba(0, 0, 0, 0.45); }
+.deck-top { box-shadow: 0 14px 38px rgba(15, 10, 5, 0.5); }
 
 /* card face: image on top (CardImg fallback art included), info panel below */
 .deck-img { display: block; width: 100%; flex: 1; min-height: 0; }
@@ -98,7 +98,7 @@
 .deck-extra .chip { background: rgba(255, 255, 255, 0.12); color: rgba(255, 255, 255, 0.85); }
 .deck-extra .chip-free { background: rgba(10, 157, 110, 0.28); color: #6fe3b6; }
 .deck-extra .sp-label { color: rgba(255, 255, 255, 0.55); }
-.deck-extra .sp-label.my-label { color: #5eead4; } /* teal --accent fails AA on dark */
+.deck-extra .sp-label.my-label { color: #ffb066; } /* Sunset Gold (light) — AA on dark (3.71, was teal) */
 
 /* ===== verdict stamps (opacity driven by --like/--nope/--keep from JS) ===== */
 .deck-stamp {
@@ -116,13 +116,13 @@
   opacity: 0;
   background: rgba(0, 0, 0, 0.35);
 }
-.deck-stamp-yes { left: 14px; transform: rotate(-10deg); color: #2dd4bf; border-color: #2dd4bf; opacity: var(--like, 0); }
+.deck-stamp-yes { left: 14px; transform: rotate(-10deg); color: #ffb066; border-color: #ffb066; opacity: var(--like, 0); }
 .deck-stamp-no { right: 14px; transform: rotate(10deg); color: rgba(255, 255, 255, 0.85); border-color: rgba(255, 255, 255, 0.7); opacity: var(--nope, 0); }
 /* the save stamp wears the heart's sanctioned --hot (I2 save-heart exception) */
 .deck-stamp-save { left: 50%; top: auto; bottom: 18px; transform: translateX(-50%) rotate(-3deg); color: var(--hot); border-color: var(--hot); opacity: var(--keep, 0); }
 
 /* ===== flying exit clone — flight animations live in swipedeck.css ===== */
-.deck-exit { box-shadow: 0 14px 38px rgba(0, 0, 0, 0.45); }
+.deck-exit { box-shadow: 0 14px 38px rgba(15, 10, 5, 0.5); }
 
 /* ===== always-visible button fallbacks ===== */
 .deck-actions { display: flex; justify-content: center; gap: 20px; padding: 18px 0 4px; }
@@ -144,7 +144,7 @@
 /* the heart button is the save affordance — the sanctioned --hot heart */
 .deck-btn-save { color: var(--hot); border-color: rgba(var(--hot-rgb), 0.45); }
 .deck-btn-save.is-saved { background: rgba(var(--hot-rgb), 0.18); }
-.deck-btn-yes { color: #2dd4bf; border-color: rgba(45, 212, 191, 0.45); }
+.deck-btn-yes { color: #ffb066; border-color: rgba(255, 176, 102, 0.45); }
 
 /* ===== progress dots + early exit ===== */
 .deck-progress {
@@ -162,7 +162,7 @@
   background: rgba(255, 255, 255, 0.18);
   transition: background var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
 }
-.deck-dot.done { background: rgba(45, 212, 191, 0.85); }
+.deck-dot.done { background: rgba(var(--accent-rgb), 0.85); }
 .deck-dot.on { background: #fff; transform: scale(1.35); }
 .deck-early {
   margin: 14px auto 0;

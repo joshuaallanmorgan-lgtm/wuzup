@@ -196,7 +196,7 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone }) {
         <section className="st-sec">
           <div className="st-over">About</div>
           <div className="st-card">
-            <div className="st-line">Tampa Bay — What&rsquo;s On · early build (v0)</div>
+            <div className="st-line">Wuzup · Tampa Bay · early build (v0)</div>
             <div className="st-line st-dim">Credits &amp; source attribution page coming with the public release.</div>
           </div>
         </section>

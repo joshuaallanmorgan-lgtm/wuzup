@@ -154,7 +154,7 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         radius: 8,
         color: '#fff',
         weight: 2.5,
-        fillColor: '#0d9488',
+        fillColor: '#ff8c42',
         fillOpacity: 1,
         interactive: false,
       }).addTo(m)
@@ -274,7 +274,7 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         style={
           heroArt
             ? { viewTransitionName: 'evt-hero', '--ch': hueFor(e) }
-            : { viewTransitionName: 'evt-hero', background: '#1d212a' }
+            : { viewTransitionName: 'evt-hero', background: '#241c15' }
         }
       >
         {!heroArt ? (

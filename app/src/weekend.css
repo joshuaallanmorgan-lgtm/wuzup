@@ -126,7 +126,7 @@
   border: 1px solid rgba(var(--accent-rgb), 0.35);
   border-radius: 999px;
   background: none;
-  color: var(--accent);
+  color: var(--accent-ink);
   font-family: inherit;
   font-size: 10.5px;
   font-weight: 700;
@@ -149,7 +149,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 .wkb-done-title { margin-top: 4px; font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
 .wkb-done-sub { margin-top: 3px; font-size: 13px; font-weight: 500; color: var(--muted); }
@@ -170,7 +170,7 @@
 }
 @keyframes wkbBeatInk {
   0%, 45% { color: var(--reward); }
-  100% { color: var(--accent); }
+  100% { color: var(--accent-ink); }
 }
 .wkb-done-card.beat { animation: wkbBeat 1100ms var(--ease-emphasis) both; }
 .wkb-done-card.beat .wkb-done-over { animation: wkbBeatInk 1100ms var(--ease-emphasis) both; }
@@ -225,7 +225,7 @@
   max-height: 72svh;
   background: var(--bg);
   border-radius: 22px 22px 0 0;
-  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 -10px 40px rgba(26, 20, 16, 0.24);
   animation: wkbUp var(--dur-page) var(--ease-emphasis) both;
 }
 @keyframes wkbFadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -260,7 +260,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 .wkb-pick {
   display: flex;
@@ -301,7 +301,7 @@
   height: 26px;
   border-radius: 50%;
   border: 1.5px solid rgba(var(--accent-rgb), 0.5);
-  color: var(--accent);
+  color: var(--accent-ink);
   font-size: 16px;
   font-weight: 700;
   line-height: 1;

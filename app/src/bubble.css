@@ -113,7 +113,7 @@
   font-family: inherit;
   font-size: 13px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-ink);
   cursor: pointer;
   transition: transform var(--dur-micro);
 }

@@ -57,9 +57,9 @@
   cursor: pointer;
 }
 .cal-plan-pull-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.cal-plan-pull-title { font-size: 15px; font-weight: 800; letter-spacing: -0.2px; color: var(--accent); }
+.cal-plan-pull-title { font-size: 15px; font-weight: 800; letter-spacing: -0.2px; color: var(--accent-ink); }
 .cal-plan-pull-sub { font-size: 12.5px; font-weight: 500; color: var(--muted); }
-.cal-plan-pull-go { flex: 0 0 auto; font-size: 18px; font-weight: 800; color: var(--accent); }
+.cal-plan-pull-go { flex: 0 0 auto; font-size: 18px; font-weight: 800; color: var(--accent-ink); }
 
 /* the month crossfade on month-nav (kept under reduced motion — it survives) */
 @keyframes calFade { from { opacity: 0; } to { opacity: 1; } }
@@ -124,7 +124,7 @@
   font-weight: 600;
   transition: background var(--dur-fast), color var(--dur-fast);
 }
-.mcell.today .mnum { box-shadow: inset 0 0 0 2px var(--accent); color: var(--accent); font-weight: 800; }
+.mcell.today .mnum { box-shadow: inset 0 0 0 2px var(--accent); color: var(--accent-ink); font-weight: 800; }
 .mcell.sel .mnum { background: var(--accent); color: #fff; box-shadow: none; font-weight: 800; }
 .mcell:active .mnum { transform: scale(0.92); }
 /* ===== W2 — the quiet personal marks (the logbook's whole language) =====
@@ -144,7 +144,7 @@
   font-size: 11px;
   font-weight: 900;
   line-height: 1;
-  color: var(--accent);
+  color: var(--accent-ink);
   z-index: 2;
   pointer-events: none;
 }
@@ -217,7 +217,7 @@
 .cal-sel-line:disabled { cursor: default; opacity: 1; } /* a past day is a record, not faded */
 .cal-sel-txt { flex: 1; font-size: 15px; font-weight: 700; letter-spacing: -0.2px; color: var(--ink); }
 .cal-sel-line.cal-sel-past .cal-sel-txt { color: var(--muted); font-weight: 600; }
-.cal-sel-go { font-size: 17px; font-weight: 800; color: var(--accent); }
+.cal-sel-go { font-size: 17px; font-weight: 800; color: var(--accent-ink); }
 .cal-sel-hint {
   margin: 10px 4px 0;
   font-size: 12.5px;
@@ -245,7 +245,7 @@
   line-height: 1.4;
   color: var(--ink);
 }
-.cal-recap-what { color: var(--accent); }
+.cal-recap-what { color: var(--accent-ink); }
 .cal-recap-btns { display: flex; gap: 10px; margin-top: 12px; }
 .cal-recap-yes,
 .cal-recap-no {

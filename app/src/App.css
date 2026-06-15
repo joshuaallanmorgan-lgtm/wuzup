@@ -42,7 +42,7 @@
 .hot-scroll::-webkit-scrollbar { display: none; }
 
 /* ===== hero (220px, parallax + scrim ramp via CSS vars, 300ms preload fade) ===== */
-.hero { position: relative; height: 220px; overflow: hidden; background: #1d212a; }
+.hero { position: relative; height: 220px; overflow: hidden; background: #241c15; }
 .hero-img {
   position: absolute;
   inset: 0;
@@ -70,6 +70,26 @@
 .hero-kicker { font-size: 11px; font-weight: 800; letter-spacing: 1.6px; opacity: 0.92; margin-bottom: 5px; }
 .hero-city { margin: 0; font-size: 34px; font-weight: 900; letter-spacing: -1.1px; line-height: 1; text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45); }
 .hero-sub { margin-top: 6px; font-size: 13px; font-weight: 600; opacity: 0.92; }
+/* Sunlit Coastal Pop (3.71): the Wuzup brand lockup — a small wordmark on the
+   masthead (the highest-value branded moment). A Sunset Gold mark + the name. */
+.hero-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: 'Kumbh Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  margin-bottom: 11px;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45);
+}
+.hero-brand-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.75);
+}
 
 /* 🔎 search button: glassy circle, top-right of the hero */
 .hero-search {
@@ -120,7 +140,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--accent);
+  color: var(--accent-ink);
   margin-bottom: 4px;
 }
 .sec-title { margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -0.01em; }
@@ -132,7 +152,7 @@
   font-family: inherit;
   font-size: 14px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-ink);
   background: none;
   border: none;
   padding: 0 0 2px;
@@ -148,7 +168,7 @@
   font-family: inherit;
   font-size: 13.5px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-ink);
   background: color-mix(in srgb, var(--accent) 8%, transparent);
   border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
   border-radius: 12px;
@@ -206,7 +226,7 @@
 .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; cursor: pointer; font: inherit; color: #aab0ba; padding: 2px 0; transition: color var(--dur-fast); }
 .tab-ic { transition: transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.5); }
 .tab-label { font-size: 11px; font-weight: 700; letter-spacing: 0.2px; }
-.tab.active { color: var(--accent); }
+.tab.active { color: var(--accent-ink); }
 .tab.active.tab-hot { color: var(--hot); } /* the Hot tab burns warm when active */
 .tab.active .tab-ic { transform: translateY(-2px) scale(1.1); }
 
@@ -344,7 +364,7 @@
 .d-ic { font-size: 18px; width: 24px; text-align: center; flex: 0 0 24px; margin-top: 1px; }
 .d-k { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); }
 .d-v { font-size: 15px; font-weight: 600; margin-top: 2px; line-height: 1.35; }
-.detail-desc { margin: 18px 0 0; font-size: 15px; line-height: 1.6; color: #374151; }
+.detail-desc { margin: 18px 0 0; font-size: 15px; line-height: 1.6; color: #4a423a; }
 .detail-cta {
   position: fixed;
   bottom: 0;
@@ -357,7 +377,7 @@
   justify-content: center;
   gap: 10px;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #fff;
+  color: var(--ink); /* dark ink on Sunset Gold — white fails AA (3.71 review) */
   text-decoration: none;
   font-weight: 800;
   font-size: 16px;
@@ -365,7 +385,7 @@
   padding: 17px;
   padding-bottom: calc(17px + env(safe-area-inset-bottom));
   z-index: 2010;
-  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 -6px 24px rgba(26, 20, 16, 0.16);
 }
 .detail-cta:active { filter: brightness(0.95); }
 .cta-arr { transition: transform var(--dur-fast); }

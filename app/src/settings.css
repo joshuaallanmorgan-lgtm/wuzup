@@ -16,7 +16,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--accent);
+  color: var(--accent-ink);
   margin-bottom: 10px;
 }
 
@@ -68,7 +68,7 @@
 .st-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .st-row-title { font-size: 14px; font-weight: 700; }
 .st-row-sub { font-size: 12px; font-weight: 500; color: var(--muted); }
-.st-row-go { font-size: 16px; font-weight: 800; color: var(--accent); }
+.st-row-go { font-size: 16px; font-weight: 800; color: var(--accent-ink); }
 
 /* reset: muted by default — danger reads in the words, not the chrome */
 .st-row-danger .st-row-title { color: var(--muted); }

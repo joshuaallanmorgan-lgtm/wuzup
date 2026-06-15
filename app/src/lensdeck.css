@@ -9,11 +9,11 @@
 
 /* ===== dark ambiance, lens-hue tinted ===== */
 .ldk {
-  --lh: 187; /* default tint ≈ the app's teal; bubble lenses override inline */
+  --lh: 28; /* default tint ≈ Sunset Gold (3.71, was 187 teal); bubble lenses override inline */
   background:
     radial-gradient(120% 55% at 10% -8%, hsla(var(--lh), 70%, 45%, 0.30), transparent 62%),
     radial-gradient(110% 60% at 110% 106%, hsla(var(--lh), 60%, 50%, 0.14), transparent 60%),
-    linear-gradient(168deg, #10181c 0%, #16181d 55%, #131a1d 100%);
+    linear-gradient(168deg, #1c160f 0%, #1b1712 55%, #181109 100%);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -59,10 +59,10 @@
 .ldk-card {
   border-radius: 22px;
   border: 1px solid rgba(255, 255, 255, 0.10);
-  background: #1b2027;
+  background: #211b14;
 }
 .ldk-top,
-.ldk-exit { box-shadow: 0 14px 38px rgba(0, 0, 0, 0.45); }
+.ldk-exit { box-shadow: 0 14px 38px rgba(15, 10, 5, 0.5); }
 
 /* ===== verdict stamps (opacity driven by --like/--nope/--keep from SwipeDeck) ===== */
 .ldk-stamp {
@@ -83,7 +83,7 @@
 /* the keep stamp wears the heart's sanctioned --hot (I2 save-heart exception) */
 .ldk-stamp-keep { left: 14px; transform: rotate(-10deg); color: var(--hot); border-color: var(--hot); opacity: var(--like, 0); }
 .ldk-stamp-pass { right: 14px; transform: rotate(10deg); color: rgba(255, 255, 255, 0.85); border-color: rgba(255, 255, 255, 0.7); opacity: var(--nope, 0); }
-.ldk-stamp-open { left: 50%; top: auto; bottom: 18px; transform: translateX(-50%) rotate(-3deg); color: #2dd4bf; border-color: #2dd4bf; opacity: var(--keep, 0); }
+.ldk-stamp-open { left: 50%; top: auto; bottom: 18px; transform: translateX(-50%) rotate(-3deg); color: #ffb066; border-color: #ffb066; opacity: var(--keep, 0); }
 
 /* ===== always-visible button fallbacks (✕ pass · ↗ open · ♥ keep) ===== */
 .ldk-actions { display: flex; justify-content: center; gap: 20px; padding: 18px 0 4px; }
@@ -102,7 +102,7 @@
   justify-content: center;
 }
 .ldk-btn-pass { color: rgba(255, 255, 255, 0.75); }
-.ldk-btn-open { color: #2dd4bf; border-color: rgba(45, 212, 191, 0.45); }
+.ldk-btn-open { color: #ffb066; border-color: rgba(255, 176, 102, 0.45); }
 /* the heart button is the save affordance — the sanctioned --hot heart */
 .ldk-btn-keep { color: var(--hot); border-color: rgba(var(--hot-rgb), 0.45); }
 .ldk-btn-keep.is-saved { background: rgba(var(--hot-rgb), 0.18); }

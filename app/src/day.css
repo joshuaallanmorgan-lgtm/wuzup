@@ -116,7 +116,7 @@
    still a hairline button, no fill */
 .dpg-share-btn {
   border-color: rgba(var(--accent-rgb), 0.35);
-  color: var(--accent);
+  color: var(--accent-ink);
   font-weight: 700;
 }
 
@@ -153,7 +153,7 @@
   border: 1px solid rgba(var(--accent-rgb), 0.35);
   border-radius: 999px;
   background: none;
-  color: var(--accent);
+  color: var(--accent-ink);
   font-family: inherit;
   font-size: 12px;
   font-weight: 700;

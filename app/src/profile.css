@@ -44,7 +44,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 .pf-title {
   margin: 6px 0 0;
@@ -110,7 +110,7 @@
 .pf-taste-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .pf-taste-t { font-size: 14px; font-weight: 700; letter-spacing: -0.2px; }
 .pf-taste-s { font-size: 12px; font-weight: 500; color: var(--muted); }
-.pf-taste-go { flex: 0 0 auto; font-size: 16px; font-weight: 800; color: var(--accent); }
+.pf-taste-go { flex: 0 0 auto; font-size: 16px; font-weight: 800; color: var(--accent-ink); }
 
 /* N5b — the re-entry "turn a save into a plan" pull (Discover→Save→Plan). Quiet
    accent card at the top of the body; shown only when saves wait + nothing's
@@ -133,9 +133,9 @@
   cursor: pointer;
 }
 .pf-pull-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.pf-pull-title { font-size: 15px; font-weight: 800; letter-spacing: -0.2px; color: var(--accent); }
+.pf-pull-title { font-size: 15px; font-weight: 800; letter-spacing: -0.2px; color: var(--accent-ink); }
 .pf-pull-sub { font-size: 12.5px; font-weight: 500; color: var(--muted); }
-.pf-pull-go { flex: 0 0 auto; font-size: 18px; font-weight: 800; color: var(--accent); }
+.pf-pull-go { flex: 0 0 auto; font-size: 18px; font-weight: 800; color: var(--accent-ink); }
 
 /* saved-list rows: past items grey out + wear a "Happened" tag over the thumb */
 .pf-item { position: relative; }
@@ -193,7 +193,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 .pf-plan-range { display: block; margin-top: 4px; font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
 .pf-plan-fill { display: block; margin-top: 3px; font-size: 13px; font-weight: 600; color: var(--muted); }
@@ -206,7 +206,7 @@
   transform: translateY(-50%);
   font-size: 18px;
   font-weight: 800;
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 /* ===== plan history: compact read-only cards ===== */
@@ -252,7 +252,7 @@
 .pf-hist-live:active { background: rgba(var(--accent-rgb), 0.06); }
 .pf-hist-slot { flex: 0 0 64px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--muted); }
 .pf-hist-title { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pf-hist-live .pf-hist-title { color: var(--accent); }
+.pf-hist-live .pf-hist-title { color: var(--accent-ink); }
 .pf-hist-gone { color: var(--muted); font-style: italic; font-weight: 500; }
 
 /* ===== U-a: past DAYS from day-history-v1 — one quiet row per day
@@ -284,7 +284,7 @@
   flex: 0 0 auto;
   font-size: 11px;
   font-weight: 800;
-  color: var(--accent);
+  color: var(--accent-ink);
   letter-spacing: -0.1px;
 }
 
@@ -306,7 +306,7 @@
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--accent-ink);
   background: rgba(var(--accent-rgb), 0.08);
   border: 1px solid rgba(var(--accent-rgb), 0.2);
 }
@@ -324,7 +324,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 .pf-ask-title { margin-top: 4px; font-size: 14.5px; font-weight: 700; line-height: 1.3; }
 .pf-ask-meta { margin-top: 2px; font-size: 12px; font-weight: 500; color: var(--muted); }
