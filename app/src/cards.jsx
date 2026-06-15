@@ -250,6 +250,19 @@ export const Row = memo(function Row({ e, dist, style, onSelect }) {
   const mi = dist != null ? dist.toFixed(1) + ' mi' : null
   const free = e._free === true || e.isFree === true
 
+  // W3 collapsed recurring series: a card representing N dates wears an honest
+  // "+ N more …" stamp so it never poses as a single occurrence. The noun is
+  // honest about WHAT varies — a single-venue repeat is "+N more dates", but a
+  // series running across venues (same title, different places) says "dates &
+  // venues" so the card never implies one location. Tap → detail's full "All
+  // dates & venues" list (the openable instances). DRAFT copy — ⚑ Charles.
+  const more = (() => {
+    if (typeof e._moreDates !== 'number' || e._moreDates <= 0) return null
+    const n = e._moreDates
+    const venues = Array.isArray(e._series) ? new Set(e._series.map((x) => x.venue || '').filter(Boolean)) : null
+    if (venues && venues.size > 1) return `+${n} more dates & venues`
+    return n === 1 ? '+1 more date' : `+${n} more dates`
+  })()
   const meta = (e._ongoing ? ['Ongoing', e.venue, rain] : [dayLabelLoose(e), timeOf(e.start), e.venue, rain])
     .filter(Boolean)
     .join(' · ')
@@ -265,6 +278,7 @@ export const Row = memo(function Row({ e, dist, style, onSelect }) {
         {e.category !== 'other' && <div className="row-cat">{e.category}</div>}
         <div className="row-title">{e.title}</div>
         <div className="row-meta">{meta || 'Tap for details'}</div>
+        {more && <div className="row-series">{more}</div>}
         <SponsoredTag e={e} />
       </div>
       <div className="row-side">

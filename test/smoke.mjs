@@ -378,6 +378,7 @@ const share = await import('../app/src/share.js')
 const placesMod = await import('../app/src/places.js')
 const searchMod = await import('../app/src/search.js')
 const dayfill = await import('../app/src/dayfill.js')
+const curate = await import('../app/src/curate.js')
 
 // dayplan.js is JSX/CSS-free (its only imports are storage.js + weekend.js,
 // both Node-safe). Its U-d conversion ledger (markDayConverted/loadConverted)
@@ -1244,4 +1245,157 @@ test('W2: the Calendar tab is a logbook — NO event list / counts / heat on it'
   // the gentle ledger is surfaced LIGHT here (days-out line), zero is silence
   assert.ok(/daysOutInMonth\(/.test(calSrc), 'the light gentle-ledger line derives from daysOutInMonth')
   assert.ok(/daysOut > 0/.test(calSrc), 'the days-out line is SILENT at zero (ban §7 #8 — never "0 📉")')
+})
+
+// ============================================================
+// Phase 3.5 W3 — EVENT CURATION (front page + see-all). curate.js is pure .js
+// (imports only lib.js) → Node-importable. The HARD contract is NEVER-HIDE:
+// collapse must group every instance (count-preserving, "+N more dates" honest),
+// the front-page filter only chooses what LEADS, and curated ⊆ full where full
+// reaches every event. Asserted on synthetic shapes AND the real dataset.
+// ============================================================
+test('W3 curate: collapseSeries is count-preserving + groups recurring by title+family', () => {
+  // a recurring program across 5 days/branches (one family) + 2 lone events
+  const series = Array.from({ length: 5 }, (_, i) =>
+    N(ev({ title: 'Baby Time', start: `2026-06-1${i}T10:00:00`, source: 'Library (Br ' + i + ')', sources: ['Library (Br ' + i + ')'], category: 'family', hotScore: 30 }), AN)
+  )
+  const lone = [
+    N(ev({ title: 'Solo Show', start: '2026-06-12T20:00:00', source: 'Venue', sources: ['Venue'], hotScore: 70 }), AN),
+    N(ev({ title: 'Another Thing', start: '2026-06-13T19:00:00', source: 'Venue', sources: ['Venue'], hotScore: 65 }), AN),
+  ]
+  const groups = curate.collapseSeries([...series, ...lone])
+  assert.equal(groups.length, 3, '5-instance series + 2 lone → exactly 3 collapsed cards')
+  const baby = groups.find((g) => g.title === 'Baby Time')
+  assert.equal(baby._seriesCount, 5, 'the series card carries all 5 instances')
+  assert.equal(baby._moreDates, 4, '"+4 more dates" — the count shown is instances-1')
+  assert.equal(baby._series.length, 5, '_series holds every instance (nothing dropped)')
+  // soonest instance leads (the rep is the next occurrence, not a random one)
+  assert.equal(baby.start, '2026-06-10T10:00:00', 'the collapsed rep is the SOONEST instance')
+  // lone events are groups of one (never falsely stamped as a series)
+  for (const g of groups.filter((g) => g.title !== 'Baby Time')) {
+    assert.equal(g._seriesCount, 1, 'a lone event is a group of one')
+    assert.equal(g._moreDates, 0, 'a lone event shows no "+N more"')
+  }
+  // COUNT-PRESERVING: every input instance appears in exactly one group's _series
+  const seen = new Set()
+  for (const g of groups) for (const inst of g._series) { assert.ok(!seen.has(inst), 'no instance is double-counted'); seen.add(inst) }
+  assert.equal(seen.size, series.length + lone.length, 'collapse preserves every event (never hides)')
+  // SAME title, DIFFERENT family stays separate (honest — different voice)
+  const diffFam = curate.collapseSeries([
+    N(ev({ title: 'Open Mic', source: 'A', sources: ['A'] }), AN),
+    N(ev({ title: 'Open Mic', source: 'B', sources: ['B'] }), AN),
+  ])
+  assert.equal(diffFam.length, 2, 'same title across two families does NOT merge')
+  // input is never mutated (reps are clones)
+  assert.equal(series[0]._series, undefined, 'collapseSeries must not mutate its input events')
+})
+
+test('W3 curate: frontPagePredicate bar is buzz/hotScore/staff/gem, tunable', () => {
+  assert.equal(curate.frontPagePredicate(N(ev({ buzz: curate.FRONT_BUZZ, hotScore: 10 }), AN)), true, 'cross-source buzz earns the front page outright')
+  assert.equal(curate.frontPagePredicate(N(ev({ buzz: 1, hotScore: curate.FRONT_HOT }), AN)), true, 'hotScore at the bar earns the front page')
+  assert.equal(curate.frontPagePredicate(N(ev({ buzz: 1, hotScore: curate.FRONT_HOT - 1 }), AN)), false, 'just below the hot bar with no other signal is NOT front page')
+  assert.equal(curate.frontPagePredicate(N(ev({ buzz: 1, hotScore: 10, tags: ['hidden-gem'] }), AN)), true, 'a hand-curated hidden-gem is front page by fiat')
+  assert.equal(curate.frontPagePredicate(N(ev({ buzz: 1, hotScore: 10, tags: ['staff-pick'] }), AN)), true, 'an editorial staff-pick is front page by fiat')
+  assert.equal(curate.frontPagePredicate(null), false, 'a null event is never front page (defensive)')
+})
+
+test('W3 curate: curateFeed — curated ⊆ full, See-all reaches EVERY event (never-hide)', () => {
+  // a feed with a low-quality recurring flood + a few high-quality lone events
+  const flood = Array.from({ length: 8 }, (_, i) =>
+    N(ev({ title: 'Story Time', start: `2026-06-1${i}T10:00:00`, source: 'Lib (b' + i + ')', sources: ['Lib (b' + i + ')'], category: 'family', hotScore: 30, buzz: 1 }), AN)
+  )
+  const picks = [
+    N(ev({ title: 'Big Concert', start: '2026-06-12T20:00:00', source: 'V', sources: ['V'], category: 'music', hotScore: 90, buzz: 1 }), AN),
+    N(ev({ title: 'Corroborated Fest', start: '2026-06-13T18:00:00', source: 'A', sources: ['A', 'B'], category: 'food', hotScore: 20, buzz: 2 }), AN),
+  ]
+  const upcoming = [...flood, ...picks]
+    .map((e) => ({ ...e, _clamp: Math.max(e._day, AN.todayTs) }))
+    .sort((x, y) => x._clamp - y._clamp || x._t - y._t)
+  const feed = curate.curateFeed(upcoming, {
+    dayOf: (e) => e._clamp,
+    labelOf: (ts) => ({ label: lib.dayLabel(ts, AN), dayTs: ts }),
+    order: (items) => lib.orderDay(items, null),
+  })
+  // fullEventCount = the REAL raw total (what the See-all button quotes)
+  assert.equal(feed.fullEventCount, upcoming.length, 'fullEventCount must equal the raw event count (honest "See all {N}")')
+  // collapse de-spammed: 8 story-times → 1 card, + 2 picks = 3 full cards
+  assert.equal(feed.fullCount, 3, '8-instance series + 2 picks → 3 collapsed cards in full')
+  // the recurring flood (hotScore 30, buzz 1) is NOT on the front page; both
+  // picks ARE (one by hotScore, one by buzz) → curated has only the 2 picks
+  assert.equal(feed.curatedCount, 2, 'the low-quality recurring series is de-prioritized; the 2 picks lead')
+  // NEVER-HIDE 1 — curated ⊆ full (every curated group is a full group)
+  const fullIds = new Set()
+  for (const s of feed.full) for (const g of s.items) fullIds.add(g.title + '|' + g._clamp)
+  for (const s of feed.curated) for (const g of s.items)
+    assert.ok(fullIds.has(g.title + '|' + g._clamp), `curated group "${g.title}" must exist in full (curated ⊆ full)`)
+  // NEVER-HIDE 2 — full's _series enumerate EVERY input event, exactly once
+  const reached = new Set()
+  for (const s of feed.full) for (const g of s.items) for (const inst of g._series) reached.add(inst)
+  assert.equal(reached.size, upcoming.length, 'See-all (full) must reach every single event — nothing hidden')
+  for (const e of upcoming) assert.ok(reached.has(e), `event "${e.title}" @ ${e.start} is reachable via See-all`)
+  // the de-spammed Story Time card honestly carries all 8 dates
+  const story = feed.full.flatMap((s) => s.items).find((g) => g.title === 'Story Time')
+  assert.equal(story._seriesCount, 8, 'the collapsed Story Time card represents all 8 instances')
+})
+
+test('W3 curate: real dataset — feed is shorter, collapse de-spams, See-all complete', () => {
+  const upcoming = fullEvents
+    .map((e) => N(e, AN))
+    .filter((e) => e._day != null && (e._endDay ?? e._day) >= AN.todayTs)
+    .map((e) => ({ ...e, _clamp: e._day < AN.todayTs ? AN.todayTs : e._day }))
+    .sort((x, y) => x._clamp - y._clamp || x._t - y._t)
+  const feed = curate.curateFeed(upcoming, {
+    dayOf: (e) => e._clamp,
+    labelOf: (ts) => ({ label: lib.dayLabel(ts, AN), dayTs: ts }),
+    order: (items) => lib.orderDay(items, null),
+  })
+  // 1) See-all quotes the REAL total and reaches every event
+  assert.equal(feed.fullEventCount, upcoming.length, 'fullEventCount must equal the live upcoming count')
+  const reached = new Set()
+  for (const s of feed.full) for (const g of s.items) for (const inst of g._series) reached.add(inst)
+  assert.equal(reached.size, upcoming.length, 'See-all must reach every live event (never-hide on real data)')
+  // 2) collapse materially de-spams (recurring library programs are ~half the
+  //    feed): far fewer CARDS than raw events
+  assert.ok(feed.fullCount < upcoming.length * 0.75, `collapse must cut the feed meaningfully (cards ${feed.fullCount} vs events ${upcoming.length})`)
+  // 3) the front page is SHORTER than the full collapsed feed (curation happened)
+  //    but not gutted (a real magazine still has plenty)
+  assert.ok(feed.curatedCount < feed.fullCount, `front page (${feed.curatedCount}) must be shorter than full (${feed.fullCount})`)
+  assert.ok(feed.curatedCount >= 100, `front page (${feed.curatedCount}) must not be gutted — a magazine still has plenty`)
+  // 4) curated ⊆ full on real data
+  const fullIds = new Set()
+  for (const s of feed.full) for (const g of s.items) fullIds.add(lib.keyOf(g) + '|' + g._clamp)
+  for (const s of feed.curated) for (const g of s.items)
+    assert.ok(fullIds.has(lib.keyOf(g) + '|' + g._clamp), 'every curated group exists in full (curated ⊆ full)')
+})
+
+// W3 wiring — HotView must read curateFeed and ship the See-all escape (the
+// view can't import into Node: JSX + CSS), so grep the contract.
+test('W3 wiring: HotView curates Everything + keeps a See-all escape to all events', () => {
+  const hotSrc = readFileSync(path.join(ROOT, 'app', 'src', 'HotView.jsx'), 'utf8')
+  assert.ok(/curateFeed\(/.test(hotSrc), 'HotView must build the Everything feed via curateFeed')
+  assert.ok(/feed\.curated/.test(hotSrc) && /feed\.full/.test(hotSrc), 'HotView must hold both the curated default and the full See-all feed')
+  assert.ok(/setSeeAllEv/.test(hotSrc), 'HotView must have a See-all toggle state (the never-hide escape)')
+  assert.ok(/feed\.fullEventCount/.test(hotSrc), 'the See-all label must quote the real event total (fullEventCount), not the collapsed card count')
+  // the collapsed-card "+N more dates" must render somewhere (cards.jsx Row)
+  const cardsSrc = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
+  assert.ok(/_moreDates/.test(cardsSrc), 'the row must surface _moreDates ("+N more dates") so a collapsed card is honest')
+})
+
+// W3 NEVER-HIDE — the rendered open path for collapsed instances. The data
+// proof above (full's _series enumerate every event) is necessary but NOT
+// sufficient: a non-rep instance is only truly reachable if some surface
+// RENDERS it as openable. The collapsed card opens only its rep, so the
+// disclosure must live in DetailPage — it maps rep._series to per-instance
+// open controls. Without this, 555/1198 events would exist in data but be
+// openable nowhere (the bug this fix closes). Source-grep, since DetailPage is
+// JSX+CSS and can't import into Node.
+test('W3 never-hide: DetailPage renders rep._series as openable per-instance rows', () => {
+  const detailSrc = readFileSync(path.join(ROOT, 'app', 'src', 'DetailPage.jsx'), 'utf8')
+  // it must read the series and gate on a real multi-instance group (>1)
+  assert.ok(/e\._series/.test(detailSrc), 'DetailPage must read e._series (the collapsed instances)')
+  assert.ok(/_series\.length\s*>\s*1/.test(detailSrc), 'DetailPage must only show the list for a genuine series (length > 1)')
+  // it must MAP the series to rows, each calling onSelect on that instance —
+  // the actual open path (every instance, not just the rep, becomes tappable)
+  assert.ok(/_series\.map\(/.test(detailSrc), 'DetailPage must map over _series (one row per instance)')
+  assert.ok(/onClick=\{\(\)\s*=>\s*onSelect\(inst/.test(detailSrc), 'each instance row must open THAT instance via onSelect(inst, …)')
 })

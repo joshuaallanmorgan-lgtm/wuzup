@@ -176,6 +176,24 @@
   padding: 0 0 2px;
   cursor: pointer;
 }
+/* W3 (Phase 3.5) — the Everything "See all {N} events" / "Show the picks"
+   escape. Full-width pill under the section head: the never-hide affordance is
+   unmissable and one tap from every event. */
+.ev-seeall {
+  display: block;
+  width: calc(100% - 40px);
+  margin: 0 20px 14px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  text-align: center;
+}
 
 /* ===== entrances: first paint only, max 6, staggered (routed through --dur-base) ===== */
 @keyframes rise {

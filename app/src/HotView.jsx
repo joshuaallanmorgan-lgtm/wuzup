@@ -3,6 +3,7 @@
 // (detail/bubble/search/add/weekend openers) comes from useNav() — O6.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { BUBBLES, CITY, DAY, dayLabel, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
+import { curateFeed } from './curate.js'
 import { useNav } from './nav.jsx'
 import { BigOne, EndCap, FreeCard, GemRow, RowFeed, SecHead, TonightCard } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
@@ -173,22 +174,30 @@ export default function HotView({ events, anchors, loading, whenPref }) {
     const out = recentKeys.map((k) => byKey.get(k)).filter(Boolean).slice(0, 6)
     return out.length >= 2 ? out : []
   }, [recentKeys, byKey])
-  // Everything: grouped by day, WITHIN each day diversity-interleaved on
-  // adjustedScore (G1 orderDay: no >2-run of one source family or category;
-  // count-preserving — never hides). Taste is read at compute time; the order
-  // intentionally does NOT reshuffle mid-session as signals accrue.
-  const evSections = useMemo(() => {
-    const m = new Map()
-    for (const e of upcoming) {
-      if (!m.has(e._clamp)) m.set(e._clamp, [])
-      m.get(e._clamp).push(e)
-    }
-    return [...m.entries()].map(([ts, items]) => ({
-      label: dayLabel(ts, anchors),
-      dayTs: ts, // Q2: the lens identity for this day's "Deck this" entry
-      items: orderDay(items, tasteNudge),
-    }))
-  }, [upcoming, anchors])
+  // Everything: W3 CURATION (Phase 3.5). curateFeed runs TWO count-preserving
+  // passes over the date-asc `upcoming` list: (1) GLOBAL collapse of recurring
+  // series — "Baby Time" on 88 days becomes ONE card stamped "+87 more dates"
+  // (the library de-spam, ≈half the feed); (2) a front-page quality filter
+  // (frontPagePredicate) over the collapsed groups. Both come back day-grouped
+  // and diversity-ordered (orderDay — no >2-run of one family/category;
+  // count-preserving). `curated` is the DEFAULT feed; `full` is the unfiltered,
+  // still-collapsed See-all destination. NEVER-HIDE: curated ⊆ full, and full's
+  // groups' _series enumerate every event — "See all" reaches all of them.
+  // Taste is read at compute time; the order does NOT reshuffle mid-session.
+  const feed = useMemo(
+    () =>
+      curateFeed(upcoming, {
+        dayOf: (e) => e._clamp,
+        labelOf: (ts) => ({ label: dayLabel(ts, anchors), dayTs: ts }), // Q2: lens identity for "Deck this"
+        order: (items) => orderDay(items, tasteNudge),
+      }),
+    [upcoming, anchors]
+  )
+  // See-all toggle: default shows the curated front page; one tap reveals every
+  // event (the full, still-collapsed feed). State, not navigation — the escape
+  // is right here at the Everything header, never more than one tap from all N.
+  const [seeAllEv, setSeeAllEv] = useState(false)
+  const evSections = seeAllEv ? feed.full : feed.curated
   // H4 — the gentle stopping cue, feed END only (GPT report). 3+ distinct
   // details opened this session upgrades RowFeed's "that's everything" line to
   // a recap card: count + the last 3 viewed (live-resolved; vanished ones just
@@ -365,15 +374,34 @@ export default function HotView({ events, anchors, loading, whenPref }) {
         {upcoming.length > 0 && (
           <section className="sec sec-ev" ref={evRef}>
             <div className={ent(4).className.trim()} style={ent(4).style}>
+              {/* DRAFT COPY (Charles): honest framing — curated default vs the
+                  full collapsed feed. The count is CARDS (recurring already one);
+                  the See-all button below quotes the raw EVENT total. */}
               <SecHead
                 title={
                   <>
-                    Everything <span className="sec-count">· {upcoming.length.toLocaleString('en-US')}</span>
+                    Everything{' '}
+                    <span className="sec-count">
+                      · {(seeAllEv ? feed.fullCount : feed.curatedCount).toLocaleString('en-US')}
+                    </span>
                   </>
                 }
-                sub="All upcoming, by date"
+                sub={seeAllEv ? 'Every event, recurring series grouped' : 'The picks — quality first'}
               />
             </div>
+            {/* See-all / show-less: the never-hide escape, right at the header.
+                Default → "See all {N} events" (the REAL event count, fullEventCount,
+                not the collapsed card count — honest about how much is one tap away). */}
+            <button
+              type="button"
+              className="ev-seeall pressable"
+              onClick={() => setSeeAllEv((v) => !v)}
+              aria-expanded={seeAllEv}
+            >
+              {seeAllEv
+                ? '← Show the picks'
+                : `See all ${feed.fullEventCount.toLocaleString('en-US')} events →`}
+            </button>
             {/* rows themselves never entrance-animate; endSlot = the H4 recap.
                 headerExtra (Q2): every day-header carries its 🃏 "Deck this"
                 entry — a finite deck of exactly that day's list */}

@@ -333,6 +333,41 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
             </div>
           )}
         </div>
+        {/* W3 never-hide: a collapsed recurring card carries every instance in
+            _series. THIS is the rendered open path for them — without it the
+            non-rep instances (the same program on other days/at other venues)
+            would live only in data, openable nowhere. Each row opens that exact
+            instance (onSelect with null cardEl = swap in place, no VT morph).
+            Per-instance venue is shown, so a cross-venue series reads honestly
+            (same title, different places) instead of posing as one location. */}
+        {Array.isArray(e._series) && e._series.length > 1 && (
+          <div className="detail-dates">
+            <div className="d-k">
+              All dates &amp; venues <span className="dd-count">{e._series.length}</span>
+            </div>
+            <div className="dd-list">
+              {e._series.map((inst, i) => {
+                const cur = keyOf(inst) === keyOf(e)
+                const t = timeOf(inst.start)
+                return (
+                  <button
+                    key={keyOf(inst) + '|' + i}
+                    type="button"
+                    className={'dd-row pressable' + (cur ? ' dd-row-cur' : '')}
+                    onClick={() => onSelect(inst, null)}
+                  >
+                    <span className="dd-when">
+                      {inst._day != null ? fmtShort(inst._day) : 'Date TBD'}
+                      {t ? ' · ' + t : ''}
+                    </span>
+                    {inst.venue && <span className="dd-where">{inst.venue}</span>}
+                    {cur && <span className="dd-now">Showing</span>}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
         {hasCoords && (
           <div className="mini-map">
             <div className="mini-map-canvas" ref={mapElRef} />
