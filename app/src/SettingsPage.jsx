@@ -83,11 +83,15 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone }) {
       </header>
 
       <div className="st-body">
-        {/* Display section RETIRED with the display modes (Q2a) — editorial
-            is the app, there's nothing honest left to toggle here */}
-        {/* ===== YOUR TASTE ===== */}
+        {/* Phase 3.6 N4: Settings regrouped by INTENT (was a "bunch of weird
+            sections", Josh). Five clean groups: identity → tune → reset → data
+            → about. Taste transparency + the deck are CANONICAL on Profile now
+            (W6 hub); the rows here are demoted/retitled so they don't read as
+            verbatim duplicates (⚑W5). ALL COPY DRAFT for Charles. */}
+
+        {/* ===== 1 · YOUR TASTE PROFILE (read-only identity) ===== */}
         <section className="st-sec">
-          <div className="st-over">Your taste</div>
+          <div className="st-over">Your taste profile</div>
           <div className="st-card">
             <div className="st-taste-line">{tasteLine}</div>
             {tops.length > 0 && (
@@ -99,25 +103,37 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone }) {
                 ))}
               </div>
             )}
-            {wiped && <div className="st-wiped">Wiped. The next tap starts the new you. 🌱</div>}
           </div>
-
           <div className="st-rows">
-            {/* Sprint V2/V3: the transparency + control hatch — what the feed
-                learned, in plain numbers, plus per-category more/less */}
+            {/* demoted from Profile's headline "Why your feed looks like this" —
+                Settings is the secondary door to the same panel (⚑W5 dedup) */}
             <button className="st-row" onClick={() => openTaste('settings')}>
               <span className="st-row-main">
-                <span className="st-row-title">Why your feed looks like this</span>
-                <span className="st-row-sub">See what it learned + nudge categories up or down</span>
+                <span className="st-row-title">See your taste details</span>
+                <span className="st-row-sub">What it learned + nudge categories up or down</span>
               </span>
               <span className="st-row-go" aria-hidden>→</span>
             </button>
-            {/* Q2c: the editor REPLACED the 7-screen interview row — stated
-                interests are a page you edit, not a wizard you re-run */}
+          </div>
+        </section>
+
+        {/* ===== 2 · TUNE YOUR FEED (the active controls) ===== */}
+        <section className="st-sec">
+          <div className="st-over">Tune your feed</div>
+          <div className="st-rows">
             <button className="st-row" onClick={() => openInterests('settings')}>
               <span className="st-row-main">
                 <span className="st-row-title">Customize interests</span>
                 <span className="st-row-sub">Pick categories + the quick ones — live, any time</span>
+              </span>
+              <span className="st-row-go" aria-hidden>→</span>
+            </button>
+            {/* retitled from "Calibration deck" so it isn't a verbatim twin of
+                Profile's "Rate a few to sharpen it" (⚑W5) */}
+            <button className="st-row" onClick={openDeck}>
+              <span className="st-row-main">
+                <span className="st-row-title">Rate &amp; refine</span>
+                <span className="st-row-sub">Rate 15 and we dial you in</span>
               </span>
               <span className="st-row-go" aria-hidden>→</span>
             </button>
@@ -129,18 +145,18 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone }) {
               </span>
               <span className="st-row-go" aria-hidden>→</span>
             </button>
-            <button className="st-row" onClick={openDeck}>
-              <span className="st-row-main">
-                <span className="st-row-title">Calibration deck</span>
-                <span className="st-row-sub">Rate 15 — we dial you in</span>
-              </span>
-              <span className="st-row-go" aria-hidden>→</span>
-            </button>
+          </div>
+        </section>
+
+        {/* ===== 3 · RESET (the one destructive action, alone) ===== */}
+        <section className="st-sec">
+          <div className="st-over">Reset</div>
+          <div className="st-rows">
             {!arming ? (
               <button className="st-row st-row-danger" onClick={() => { setWiped(false); setArming(true) }}>
                 <span className="st-row-main">
-                  <span className="st-row-title">Reset my taste</span>
-                  <span className="st-row-sub">Start from zero — clears the local profile</span>
+                  <span className="st-row-title">Start fresh</span>
+                  <span className="st-row-sub">Wipe what this phone learned — saves &amp; plans stay</span>
                 </span>
               </button>
             ) : (
@@ -158,23 +174,25 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone }) {
                 </div>
               </div>
             )}
+            {wiped && <div className="st-wiped">Wiped. The next tap starts the new you. 🌱</div>}
           </div>
         </section>
 
-        {/* ===== DATA ===== */}
+        {/* ===== 4 · YOUR DATA & PRIVACY ===== */}
         <section className="st-sec">
-          <div className="st-over">Data</div>
+          <div className="st-over">Your data &amp; privacy</div>
           <div className="st-card">
-            {/* Last-Modified is host-dependent; absent header = no claim made */}
-            {dataAt != null && <div className="st-line">Events updated {fmtUpdated(dataAt)}</div>}
             <div className="st-line">
               {evCount} events from {srcCount} local source{srcCount === 1 ? '' : 's'}
             </div>
+            {/* Last-Modified is host-dependent; absent header = no claim made.
+                Demoted to a quiet line (it's provenance, not a headline). */}
+            {dataAt != null && <div className="st-line st-dim">Updated {fmtUpdated(dataAt)}</div>}
             <div className="st-line st-dim">Everything lives on this phone — no account, nothing leaves it.</div>
           </div>
         </section>
 
-        {/* ===== ABOUT (stub — Phase 4 fills credits + attribution) ===== */}
+        {/* ===== 5 · ABOUT (stub — Phase 4 fills credits + attribution) ===== */}
         <section className="st-sec">
           <div className="st-over">About</div>
           <div className="st-card">

@@ -9,8 +9,8 @@
 .st { background: var(--bg); }
 .st-body { padding: 4px 0 120px; }
 
-.st-sec { margin-top: 26px; padding: 0 20px; }
-.st-sec:first-child { margin-top: 8px; }
+.st-sec { margin-top: var(--sp-lg); padding: 0 20px; }
+.st-sec:first-child { margin-top: var(--sp-xs); }
 .st-over {
   font-size: 11px;
   font-weight: 800;
@@ -22,17 +22,17 @@
 
 /* ===== card: the section's quiet plate ===== */
 .st-card {
-  padding: 14px;
+  padding: var(--sp-md);
   border: 1px solid var(--line);
   border-radius: 16px;
   background: var(--card);
 }
-.st-line { font-size: 13.5px; font-weight: 600; line-height: 1.6; }
+.st-line { font-size: 14px; font-weight: 600; line-height: 1.6; }
 .st-line + .st-line { margin-top: 4px; }
 .st-dim { color: var(--muted); font-weight: 500; }
 
 /* ===== taste summary (read-only mini vibe) ===== */
-.st-taste-line { font-size: 13.5px; font-weight: 600; }
+.st-taste-line { font-size: 14px; font-weight: 600; line-height: 1.5; }
 .st-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .st-chip {
   display: inline-flex;
