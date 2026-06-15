@@ -332,11 +332,27 @@ export default function DayFillDeck({ lens, events, anchors, coords }) {
 // depends on the lazily-loaded places, so the honest place to gate is after the
 // deal, not before). Exposed so DayPage imports ONE thing and the fatigue
 // state stays module-local (mirrors LensDeck's DeckThisButton).
-export function FillDayButton({ ts }) {
+// `prominent` (N5c): on an EMPTY day the deck is the LEAD way to build it, so it
+// renders as a hero card (icon + title + sub) instead of the small chip used as
+// a secondary action once a slot is filled. Same destination either way.
+export function FillDayButton({ ts, prominent = false }) {
   const { openLensDeck } = useNav()
   const again = dealtThisSession.has(dayFillIdOf({ dayTs: ts }))
+  const open = () => openLensDeck({ kind: 'dayfill', dayTs: ts })
+  if (prominent) {
+    return (
+      <button className="dfk-entry-hero pressable" onClick={open}>
+        <span className="dfk-hero-ic" aria-hidden>🃏</span>
+        <span className="dfk-hero-main">
+          <span className="dfk-hero-title">{again ? 'Deal again' : 'Build this day'}</span>
+          <span className="dfk-hero-sub">Swipe a quick deck of what fits — keep what you like</span>
+        </span>
+        <span className="dfk-hero-go" aria-hidden>→</span>
+      </button>
+    )
+  }
   return (
-    <button className="dfk-entry pressable" onClick={() => openLensDeck({ kind: 'dayfill', dayTs: ts })}>
+    <button className="dfk-entry pressable" onClick={open}>
       <span aria-hidden>🃏</span> {again ? 'Deal again' : 'Fill this day'}
     </button>
   )

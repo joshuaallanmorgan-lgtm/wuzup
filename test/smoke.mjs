@@ -482,6 +482,18 @@ test('N5b re-entry: Calendar + Profile pull cards, shown only when useful', () =
   assert.ok(/upcomingSaves > 0 && !hasUpcomingPlan/.test(pf), 'the Profile pull is gated on saves-waiting + nothing-planned (never a nag)')
 })
 
+// N5c — the day-fill deck is a first-class way to BUILD a day: a prominent hero
+// on an empty day (the deck woven into Finch day-building, Josh), dropping to the
+// quiet chip once a slot is filled.
+test('N5c deck-in-Finch: prominent build-this-day hero on an empty day', () => {
+  const dfk = readFileSync(path.join(ROOT, 'app', 'src', 'DayFillDeck.jsx'), 'utf8')
+  assert.ok(/prominent/.test(dfk) && /dfk-entry-hero/.test(dfk), 'FillDayButton must have a prominent hero variant')
+  const dp = readFileSync(path.join(ROOT, 'app', 'src', 'DayPage.jsx'), 'utf8')
+  assert.ok(/slotsEmpty && <FillDayButton ts=\{ts\} prominent/.test(dp), 'an empty day must lead with the prominent deck hero')
+  // the small chip is for the partially-filled case only (empty uses the hero)
+  assert.ok(/entry\.slots\.day \|\| entry\.slots\.night\) && !\(entry\.slots\.day && entry\.slots\.night\)/.test(dp), 'the small fill chip shows only when partially filled')
+})
+
 // ============================================================
 // 3+4) APP BUILD + LINT (started together, asserted separately)
 // ============================================================

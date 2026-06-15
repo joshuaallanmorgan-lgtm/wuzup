@@ -328,13 +328,18 @@ export default function DayPage({ ts, events, anchors, wx }) {
               {renderSlot('day')}
               {renderSlot('night')}
             </div>
+            {/* N5c — on an EMPTY day the deck is the LEAD "build this day"
+                affordance: a hero card right under the open slots. Finch-style
+                day-building made prominent (Josh). The deck falls back to the
+                picker on ≤3 candidates. DRAFT */}
+            {slotsEmpty && <FillDayButton ts={ts} prominent />}
             <div className="dpg-plan-actions">
-              {/* day-fill deck (U-b): the THIRD decide-for-me lens — deal the
-                  events + always-there spots that could fill this day. Offered
-                  while at least one slot is open (a fully-planned day has
-                  nothing to fill); the deck itself falls back to the picker on
-                  ≤3 candidates. DRAFT */}
-              {!(entry.slots.day && entry.slots.night) && <FillDayButton ts={ts} />}
+              {/* day-fill deck (U-b), small chip: once ONE slot is filled the
+                  deck drops to a quiet action (the empty day uses the hero
+                  above; a fully-planned day has nothing left to fill). DRAFT */}
+              {(entry.slots.day || entry.slots.night) && !(entry.slots.day && entry.slots.night) && (
+                <FillDayButton ts={ts} />
+              )}
               {/* create-from-day (U-c): opens the existing Add flow with this
                   day pre-filled; submitting auto-slots it back here. DRAFT */}
               <button className="dpg-own-btn" onClick={() => openAdd(ts)}>
