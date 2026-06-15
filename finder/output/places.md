@@ -1,27 +1,24 @@
-# Tampa Bay Places — 1830 real places
+# Tampa Bay Places — 1832 real places
 
-_Generated 6/11/2026, 3:23:00 PM · sources: FDEP State Parks, FWC Boat Ramps, Hillsborough County Parks, OSM, Pinellas Park Points, SWFWMD Recreation, Tampa Parks_
+_Generated 6/15/2026, 1:39:15 PM · sources: FDEP State Parks, FWC Boat Ramps, Hillsborough County Parks, OSM, Pinellas Park Points, SWFWMD Recreation, Tampa Parks_
 
 ## Summary
 
-- Total places: 1830
-- By type: park 1323 · boat_ramp 207 · preserve 74 · trail 40 · pier 38 · playground 34 · garden 31 · dog_park 29 · courts 24 · beach 22 · viewpoint 8
-- By designation: (none) 1008 · City 537 · County 224 · Water-Mgmt 37 · State 20 · Other 4
-- With hours: 433 · with amenities: 1103 · with description: 92
+- Total places: 1832
+- By type: park 1322 · boat_ramp 204 · preserve 74 · trail 40 · pier 37 · playground 34 · courts 31 · garden 31 · dog_park 29 · beach 22 · viewpoint 8
+- By designation: (none) 1011 · City 536 · County 224 · Water-Mgmt 37 · State 20 · Other 4
+- With hours: 435 · with amenities: 1127 · with description: 119
 - Cross-sourced (srcCount ≥ 2): 496
 - Hidden shelf: 24 (cap 24)
 
 ## 💎 Hidden shelf (eyeball pass requested — Josh/Charles review before the tag ships)
 
 - **New Tampa Community Park** (score 6) — new-tampa-community-park · park · City · restrooms, baseball, community-center, concessions, dog-park · hours: Everyday Sunrise to Sunset
-- **Roselli Park** (score 6) — roselli-park · park · City · restrooms, picnic, playground, baseball, basketball
-- **Triangle Park** (score 6) — triangle-park · park · City · picnic, playground, fitness, shuffleboard, pier
-- **Craig Park** (score 5) — craig-park · park · City · restrooms, hiking, picnic, boating, playground
+- **Land O' Lakes Recreation Complex** (score 5) — land-o-lakes-recreation-complex · park · playground, tennis, basketball, skate-park · hours: 08:00-22:00
+- **Apollo Beach and Skate Park** (score 5) — apollo-beach-and-skate-park · park · County · skate-park · hours: sunrise-21:00
 - **Lower Hillsborough Wilderness Preserve - Trout Creek Park** (score 5) — lower-hillsborough-wilderness-preserve-trout-creek-park · preserve · Water-Mgmt · birding, dogs-allowed, hiking, biking, boating
-- **Bicentennial Park** (score 5) — bicentennial-park-2 · park · City · restrooms, hiking, fishing, picnic, playground
-- **Constitution Park** (score 5) — constitution-park · park · City · restrooms, picnic, playground, basketball, racquetball
+- **Carrollwood Villiage Park** (score 5) — carrollwood-villiage-park · park · playground, tennis, skate-park
 - **Sheffield Park** (score 5) — sheffield-park · park · City · restrooms, hiking, picnic, playground, baseball
-- **Pass A Grille Park** (score 5) — pass-a-grille-park · park · City · picnic, shuffleboard, pier
 - **Benito Center** (score 4) — benito-center · park · City · restrooms, community-center · hours: Sunday - Thursday Sun 1-9 pm Mon-Wed 2 - 9 pm Th 2 - 6 pm
 - **Old Fort King** (score 4) — old-fort-king · park · County · trails
 - **Westwood Lakes** (score 4) — westwood-lakes · park · County · playground
@@ -31,12 +28,15 @@ _Generated 6/11/2026, 3:23:00 PM · sources: FDEP State Parks, FWC Boat Ramps, H
 - **New Tampa Nature Park** (score 4) — new-tampa-nature-park · park · City · fitness, playground, trails, nature-trails, autism-friendly · hours: Everyday Sunrise to Sunset
 - **Upper Tampa Bay Trail** (score 4) — upper-tampa-bay-trail-2 · park · County · trails
 - **Sisler Field** (score 4) — sisler-field · park · City · restrooms, picnic, playground, baseball, pier
-- **Town Park** (score 4) — town-park · park · City · picnic, playground, basketball, volleyball
+- **Town Park** (score 4) — town-park · park · City · picnic, playground, basketball, volleyball, shuffleboard
 - **Oak Leaf Village Playground** (score 4) — oak-leaf-village-playground · park · City · picnic, playground
 - **Redington Beach Beach Access** (score 4) — redington-beach-beach-access · park · City · swimming
 - **Redington Beach Causeway Park** (score 4) — redington-beach-causeway-park · park · City · fitness
 - **Moon Park** (score 4) — moon-park · park · City · swimming
 - **Trentwood Playground** (score 4) — trentwood-playground · park · City · playground
+- **Sun City Heritage Boat Ramp** (score 4) — sun-city-heritage-boat-ramp · park · County · boat-ramp
+- **Archibald Memorial Beach Park** (score 4) — archibald-memorial-beach-park · park · City · restrooms, swimming, picnic, volleyball
+- **Thelma Spitzer Park** (score 4) — thelma-spitzer-park · park · City · playground
 
 ## The classics (srcCount ≥ 3)
 
