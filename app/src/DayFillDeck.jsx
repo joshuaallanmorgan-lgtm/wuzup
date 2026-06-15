@@ -62,11 +62,18 @@ const prefersReduced = () =>
 // face with NO time (a place has no date — never fabricate one) + the honest
 // "always here · no schedule" line. Both share the deck-img/-info chrome.
 function FillFace({ e }) {
+  // W4: a place can now carry a real photo. A dead URL must fall back to the 📍
+  // placeholder, never the browser's broken-image glyph (the trust contract).
+  const [imgFailed, setImgFailed] = useState(false)
   if (e.kind !== 'place') return <DeckFace e={e} />
   return (
     <>
       <div className="deck-img dfk-place-img" data-vt="">
-        {e.image ? <img src={e.image} alt="" loading="lazy" /> : <span className="dfk-place-emoji" aria-hidden>📍</span>}
+        {e.image && !imgFailed ? (
+          <img src={e.image} alt="" loading="lazy" onError={() => setImgFailed(true)} />
+        ) : (
+          <span className="dfk-place-emoji" aria-hidden>📍</span>
+        )}
       </div>
       <div className="deck-info">
         <span className="deck-cat dfk-place-cat">📍 Always here · no schedule</span>

@@ -41,12 +41,20 @@
    foreground on top. container-type:size lets the watermark + foreground use
    cqmin units so ONE composition holds 58px → 420px. Every .imgbox is sized
    by its parent class, so size containment changes no layout. ===== */
+/* W4 polish (DRAFT — ⚑ Charles, W5 owns the deep taste pass): the same I3
+   composition, with more depth. Five layers now — a soft top sheen ("lit from
+   above"), the warm corner glow, a centered bottom vignette (premium feel AND
+   better foreground legibility), the deep anchor corner, and the base diagonal.
+   All BACKGROUND layers so they sit behind the watermark + foreground text —
+   nothing dims the time/emoji on top. */
 .imgbox-art {
   container-type: size;
   background:
-    radial-gradient(120% 95% at 88% -12%, hsl(var(--ch, 220) 78% 60% / 0.5), transparent 58%),
-    radial-gradient(135% 110% at -18% 112%, hsl(var(--ch, 220) 70% 20% / 0.85), transparent 62%),
-    linear-gradient(155deg, hsl(var(--ch, 220) 60% 42%), hsl(var(--ch, 220) 68% 25%));
+    linear-gradient(180deg, hsl(var(--ch, 220) 85% 80% / 0.16), transparent 30%),
+    radial-gradient(120% 95% at 88% -12%, hsl(var(--ch, 220) 82% 62% / 0.55), transparent 56%),
+    radial-gradient(150% 125% at 50% 132%, rgba(0, 0, 0, 0.34), transparent 60%),
+    radial-gradient(140% 120% at -18% 118%, hsl(var(--ch, 220) 72% 16% / 0.9), transparent 60%),
+    linear-gradient(155deg, hsl(var(--ch, 220) 62% 44%), hsl(var(--ch, 220) 70% 24%));
 }
 .imgbox-mark {
   position: absolute;
@@ -54,8 +62,9 @@
   bottom: -55cqmin;
   font-size: 230cqmin; /* ~2.3x the box's short side — deliberately clipped */
   line-height: 1;
-  opacity: 0.18;
+  opacity: 0.2;
   transform: rotate(-12deg);
+  filter: drop-shadow(0 1.5cqmin 2cqmin rgba(0, 0, 0, 0.22));
   pointer-events: none;
   user-select: none;
 }

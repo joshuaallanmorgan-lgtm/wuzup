@@ -85,6 +85,28 @@ export default function PlaceDetail({ e, anchors, wx }) {
   const { closing, vtOpen: vt, closeDetail: onClose, openDetail: onSelect, focusMap: onFocusMap } = useNav()
   const { places } = usePlaces()
 
+  // W4: a place with a REAL Wikidata photo gets an image hero (preload + 300ms
+  // fade over a dark placeholder, DetailPage's exact pattern); places without a
+  // photo keep the category-art hero. e.image is only ever a verified photo OF
+  // THIS place (Wikidata P18 → Commons), never a representative stand-in.
+  const [loadedSrc, setLoadedSrc] = useState(null)
+  const [heroFailed, setHeroFailed] = useState(false)
+  useEffect(() => {
+    if (!e.image) return
+    const src = e.image
+    const img = new Image()
+    img.onload = () => setLoadedSrc(src)
+    img.onerror = () => setHeroFailed(true) // dead URL → fall back to category-art
+    img.src = src
+    return () => {
+      img.onload = null
+      img.onerror = null
+    }
+  }, [e.image])
+  const imgOk = loadedSrc === e.image
+  // a real photo that loads → image hero; no photo OR a broken URL → art hero
+  const heroArt = !e.image || heroFailed
+
   const hasCoords = e.lat != null && e.lng != null
   const mapsUrl = hasCoords
     ? `https://www.google.com/maps/search/?api=1&query=${e.lat},${e.lng}`
@@ -214,10 +236,21 @@ export default function PlaceDetail({ e, anchors, wx }) {
 
   return (
     <div className={'detail' + (closing ? ' detail-closing' : '') + (vt ? ' detail-vt' : '')}>
-      <div className="detail-hero imgbox-art" style={{ viewTransitionName: 'evt-hero', '--ch': hueFor(e) }}>
-        <span className="imgbox-mark" aria-hidden>
-          {CATEGORY_EMOJI[e.category] ?? CATEGORY_EMOJI.other}
-        </span>
+      <div
+        className={'detail-hero' + (heroArt ? ' imgbox-art' : '')}
+        style={
+          heroArt
+            ? { viewTransitionName: 'evt-hero', '--ch': hueFor(e) }
+            : { viewTransitionName: 'evt-hero', background: '#1d212a' }
+        }
+      >
+        {!heroArt ? (
+          <div className={'detail-hero-img' + (imgOk ? ' on' : '')} style={{ backgroundImage: `url(${e.image})` }} />
+        ) : (
+          <span className="imgbox-mark" aria-hidden>
+            {CATEGORY_EMOJI[e.category] ?? CATEGORY_EMOJI.other}
+          </span>
+        )}
         <button className="detail-back" onClick={onClose} aria-label="Back">
           <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </button>

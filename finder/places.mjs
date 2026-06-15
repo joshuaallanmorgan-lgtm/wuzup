@@ -23,6 +23,7 @@
 import { writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
+import { enrichPlacesWithImages } from './places-images.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(HERE, 'output');
@@ -604,6 +605,13 @@ async function main() {
     return out;
   });
   places.sort((a, b) => (a.key < b.key ? -1 : 1));
+
+  // W4: give places that carry a wikidata Q-id a REAL photo of themselves
+  // (Wikidata P18 → Commons thumbnail), cached so this doesn't refetch weekly.
+  // Sets `image` on the ~24 with a curated photo; the rest keep category-art.
+  // PLACES_LIVE forces a refresh in lockstep with the source caches above.
+  const imgStats = await enrichPlacesWithImages(places, { live: FORCE_LIVE, log: console.log });
+  console.log(`  🖼️  images: ${imgStats.set}/${imgStats.withQid} wikidata places photographed (${imgStats.noImage} no P18 → category-art)`);
 
   // ---- write outputs --------------------------------------------------------
   mkdirSync(OUT, { recursive: true });

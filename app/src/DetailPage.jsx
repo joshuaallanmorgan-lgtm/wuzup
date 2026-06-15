@@ -106,17 +106,22 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
 
   // ===== detail hero image: preload + 300ms fade over the dark placeholder =====
   const [loadedSrc, setLoadedSrc] = useState(null)
+  const [heroFailed, setHeroFailed] = useState(false)
   useEffect(() => {
     if (!e.image) return
     const src = e.image
     const img = new Image()
     img.onload = () => setLoadedSrc(src)
+    img.onerror = () => setHeroFailed(true) // dead URL → fall back to category-art
     img.src = src
     return () => {
       img.onload = null
+      img.onerror = null
     }
   }, [e.image])
   const imgOk = loadedSrc === e.image
+  // a real photo that loads → image hero; no image OR a broken URL → art hero
+  const heroArt = !e.image || heroFailed
 
   // ===== mini-map: lazy non-interactive Leaflet, DESTROYED on unmount.
   // Leaflet itself arrives via the shared lazy loader (leaflet-lazy.js) — the
@@ -265,14 +270,14 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
       {/* no-image hero shares the I3 .imgbox-art composition (same hue + watermark
           the card showed), so the VT morph lands on matching artwork */}
       <div
-        className={'detail-hero' + (e.image ? '' : ' imgbox-art')}
+        className={'detail-hero' + (heroArt ? ' imgbox-art' : '')}
         style={
-          e.image
-            ? { viewTransitionName: 'evt-hero', background: '#1d212a' }
-            : { viewTransitionName: 'evt-hero', '--ch': hueFor(e) }
+          heroArt
+            ? { viewTransitionName: 'evt-hero', '--ch': hueFor(e) }
+            : { viewTransitionName: 'evt-hero', background: '#1d212a' }
         }
       >
-        {e.image ? (
+        {!heroArt ? (
           <div className={'detail-hero-img' + (imgOk ? ' on' : '')} style={{ backgroundImage: `url(${e.image})` }} />
         ) : (
           <span className="imgbox-mark" aria-hidden>

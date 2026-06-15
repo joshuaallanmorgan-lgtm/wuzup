@@ -10,8 +10,9 @@
 // Taste REORDERS only, never filters (the standing invariant): every list is a
 // count-preserving sort by category affinity, then a mild source-corroboration
 // tiebreak, then name. DRAFT copy for Charles (⚑S1 hero image: Charles picks).
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNav } from './nav.jsx'
+import { CITY } from './lib.js'
 import { SecHead, TonightCard, EndCap, RowFeed } from './cards.jsx'
 import { tasteNudge, useTaste } from './taste.js'
 import { usePlaces, PLACE_BUBBLES, classics, nearest } from './places.js'
@@ -32,6 +33,18 @@ export default function LocationsView({ coords, requestCoords }) {
   const { openDetail: onSelect, openPlaceBubble } = useNav()
   const { places, status } = usePlaces()
   const taste = useTaste()
+
+  // W4: real Spots hero (Bayshore Blvd — Tampa Bay's waterfront). Preload + fade
+  // over the teal placeholder, mirroring the Events hero. ⚑S1: Charles's final pick.
+  const [heroOk, setHeroOk] = useState(false)
+  useEffect(() => {
+    const img = new Image()
+    img.onload = () => setHeroOk(true)
+    img.src = CITY.spotsHero
+    return () => {
+      img.onload = null
+    }
+  }, [])
 
   const all = useMemo(() => (Array.isArray(places) ? placeOrder(places, taste) : []), [places, taste])
   const near = useMemo(() => nearest(all, coords, 12), [all, coords])
@@ -71,9 +84,11 @@ export default function LocationsView({ coords, requestCoords }) {
 
   return (
     <div className="hot-scroll">
-      {/* ⚑S1: hero art is a CSS placeholder (water/park energy) until Charles
-          picks the real image — DRAFT */}
+      {/* W4: real Spots hero — Bayshore Boulevard, Tampa Bay's waterfront (a
+          verified Wikimedia Commons photo). ⚑S1: Charles may swap the final pick;
+          the teal ::before stays as the pre-load placeholder. */}
       <header className="loc-hero">
+        <div className={'loc-hero-img' + (heroOk ? ' on' : '')} style={{ backgroundImage: `url(${CITY.spotsHero})` }} />
         <div className="loc-hero-wash" />
         <div className="hero-text">
           <div className="hero-kicker">ALWAYS HERE · NO SCHEDULE</div>

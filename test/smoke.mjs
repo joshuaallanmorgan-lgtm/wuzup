@@ -311,7 +311,7 @@ test('places data invariants: schema v1 places.json', () => {
       problems.push(`${id}: amenities, when present, must be a non-empty string array`)
     if ('aliases' in p && (!Array.isArray(p.aliases) || p.aliases.length < 2 || p.aliases.some((a) => typeof a !== 'string')))
       problems.push(`${id}: aliases, when present, must be a string array of 2+ variant spellings`)
-    for (const k of ['address', 'description', 'hours', 'url', 'phone', 'designation', 'operator', 'fee', 'wikidata']) {
+    for (const k of ['address', 'description', 'hours', 'url', 'phone', 'designation', 'operator', 'fee', 'wikidata', 'image']) {
       if (k in p && (typeof p[k] !== 'string' || !p[k])) problems.push(`${id}: ${k}, when present, must be a non-empty string`)
     }
     if ('isFree' in p && typeof p.isFree !== 'boolean') problems.push(`${id}: isFree, when present, must be boolean`)
@@ -340,6 +340,56 @@ test('places data invariants: schema v1 places.json', () => {
   assert.ok(existsSync(FINDER_PLACES), 'finder/output/places.json missing while the app copy exists')
   assert.equal(readFileSync(FINDER_PLACES, 'utf8'), readFileSync(APP_PLACES, 'utf8'),
     'finder/output/places.json and app/public/places.json drifted — re-run node finder/places.mjs')
+})
+
+// Phase 3.5 W4 — HONEST IMAGES. A place photo is ONLY ever a verified photo OF
+// THAT place (Wikidata P18 → Wikimedia Commons), never a representative
+// stand-in; places without a curated photo keep category-art. These invariants
+// lock that contract on the real artifact.
+test('W4 images: place photos are real, Wikidata-sourced, never fabricated', () => {
+  const doc = JSON.parse(readFileSync(APP_PLACES, 'utf8'))
+  const places = doc.places
+  const imaged = places.filter((p) => p.image)
+  // a meaningful number resolved (the ~24 wikidata places with a P18), but never
+  // more than the wikidata-bearing set — the floor guards a silent regression
+  assert.ok(imaged.length >= 20, `only ${imaged.length} places imaged — the Wikidata image step likely regressed`)
+  const withQid = places.filter((p) => p.wikidata).length
+  assert.ok(imaged.length <= withQid, `${imaged.length} images but only ${withQid} wikidata places — an image leaked onto a place with no Q-id`)
+  for (const p of imaged) {
+    // every image MUST come from Wikimedia Commons (the only honest "of this place" source)
+    assert.match(p.image, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, `${p.name}: image is not a Wikimedia Commons URL (${p.image})`)
+    // NEVER a stand-in: an image is only allowed on a place that carries the Q-id it was resolved from
+    assert.ok(typeof p.wikidata === 'string' && p.wikidata, `${p.name}: has an image but NO wikidata id — that's a representative stand-in, banned`)
+  }
+})
+
+// W4 wiring — the two heroes are real photos, the place detail renders its photo
+// with a category-art fallback, dead URLs never paint a broken glyph, and
+// normalizePlace carries `image` through (JSX/CSS can't import into Node).
+test('W4 wiring: real heroes + place-detail photo + degrade-to-art + passthrough', async () => {
+  // both city heroes are real https photos (Events skyline + Spots waterfront)
+  const lib = readFileSync(path.join(ROOT, 'app', 'src', 'lib.js'), 'utf8')
+  assert.match(lib, /hero:\s*'https:\/\/upload\.wikimedia\.org\//, 'CITY.hero must be a real Commons photo')
+  assert.match(lib, /spotsHero:\s*'https:\/\/upload\.wikimedia\.org\//, 'CITY.spotsHero must be a real Commons photo (not a CSS placeholder)')
+  // LocationsView renders the real Spots hero image, not just the teal wash
+  const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
+  assert.match(loc, /loc-hero-img/, 'LocationsView must render a real .loc-hero-img element')
+  assert.match(loc, /CITY\.spotsHero/, 'the Spots hero must use CITY.spotsHero')
+  // PlaceDetail shows the photo as a hero, gated on heroArt (real photo vs art)
+  const pd = readFileSync(path.join(ROOT, 'app', 'src', 'PlaceDetail.jsx'), 'utf8')
+  assert.match(pd, /detail-hero-img/, 'PlaceDetail must use the image hero treatment (detail-hero-img)')
+  assert.match(pd, /heroArt/, 'PlaceDetail must gate the hero on heroArt (real photo vs category-art fallback)')
+  // W4 trust contract: a dead image URL degrades to category-art / placeholder,
+  // never the browser broken-image glyph — CardImg + the deck place face wire onError
+  const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
+  assert.match(cards, /onError/, 'CardImg must handle onError so a dead image degrades to category-art, not a broken glyph')
+  const dfk = readFileSync(path.join(ROOT, 'app', 'src', 'DayFillDeck.jsx'), 'utf8')
+  assert.match(dfk, /onError/, 'the day-fill place face must handle onError (no broken-image glyph)')
+  // normalizePlace must carry image through (it spreads ...raw — this is a guard).
+  // Local import so this test also runs in isolation (--test-name-pattern).
+  const placesLocal = await import('../app/src/places.js')
+  const place = placesLocal.normalizePlace({ key: 'p|x', name: 'X', lat: 28, lng: -82, image: 'https://upload.wikimedia.org/wikipedia/commons/x.jpg' })
+  assert.equal(place.image, 'https://upload.wikimedia.org/wikipedia/commons/x.jpg', 'normalizePlace must pass the image field through to the card/detail seams')
 })
 
 // ============================================================

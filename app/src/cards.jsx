@@ -75,16 +75,21 @@ export function SponsoredTag({ e }) {
 // children render on top (heat badges, FREE badge, …).
 export function CardImg({ e, className = '', children }) {
   const [ok, setOk] = useState(false)
+  const [failed, setFailed] = useState(false)
   const emoji = CATEGORY_EMOJI[e.category] ?? CATEGORY_EMOJI.other
   // artwork is the TIME, not the status — strip startLabel's "Started " prefix here only
   const fall = startLabel(e).replace(/^Started /, '') || '★'
+  // W4 trust contract: a dead/broken image URL degrades to the category-art
+  // FLOOR (the designed hue + emoji), never the browser's broken-image glyph and
+  // never a flat dark box. onError flips to art; a real photo never regresses.
+  const showArt = !e.image || failed
   return (
     <span
-      className={'imgbox ' + className + (e.image ? '' : ' imgbox-art')}
+      className={'imgbox ' + className + (showArt ? ' imgbox-art' : '')}
       data-vt
-      style={e.image ? undefined : { '--ch': hueFor(e) }}
+      style={showArt ? { '--ch': hueFor(e) } : undefined}
     >
-      {e.image ? (
+      {!showArt ? (
         <img
           className={'imgbox-img' + (ok ? ' on' : '')}
           src={e.image}
@@ -92,6 +97,7 @@ export function CardImg({ e, className = '', children }) {
           loading="lazy"
           draggable={false}
           onLoad={() => setOk(true)}
+          onError={() => setFailed(true)}
         />
       ) : (
         <>

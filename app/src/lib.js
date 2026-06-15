@@ -8,6 +8,10 @@ import { lsGet, lsSet } from './storage.js'
 export const CITY = {
   name: 'Tampa Bay',
   hero: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Tampa_Skyline_-_Eric_Statzer.jpg/1920px-Tampa_Skyline_-_Eric_Statzer.jpg',
+  // W4: the Spots (Locations) tab hero — Bayshore Boulevard, Tampa Bay's
+  // waterfront (a verified Wikimedia Commons photo, same provenance as `hero`).
+  // ⚑S1: Charles's final pick; this is a real-photo default, not a placeholder.
+  spotsHero: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Tampa_Bayshore_Blvd_looking_south01.jpg/1920px-Tampa_Bayshore_Blvd_looking_south01.jpg',
 }
 export const DAY = 86400000
 
