@@ -160,7 +160,7 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
         <button className="pg-back" onClick={onClose} aria-label="Back">
           <Icon.chevron />
         </button>
-        <h1 className="pg-head-title">Add event</h1>
+        <h1 className="pg-head-title">Add your own</h1>
       </header>
       <div className="pg-body">
         {done ? (
@@ -171,6 +171,8 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
           </div>
         ) : (
           <form className="ae-form" noValidate onSubmit={submit}>
+            {/* 3.76c: grouped What / When / Where / Details for a calmer form (DRAFT) */}
+            <div className="ae-group">What’s the plan?</div>
             <div className="ae-field">
               <label className="ae-label" htmlFor="ae-title">
                 Title *
@@ -187,6 +189,7 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
               />
               {errors.title && <div className="ae-err">{errors.title}</div>}
             </div>
+            <div className="ae-group">When</div>
             <div className="ae-2col">
               <div className="ae-field">
                 <label className="ae-label" htmlFor="ae-date">
@@ -210,6 +213,7 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
                 <input id="ae-time" className="ae-input" type="time" value={f.time} onChange={set('time')} />
               </div>
             </div>
+            <div className="ae-group">Where</div>
             <div className="ae-field">
               <label className="ae-label" htmlFor="ae-venue">
                 Venue name
@@ -238,6 +242,7 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
                 onChange={set('address')}
               />
             </div>
+            <div className="ae-group">Details</div>
             <div className="ae-field">
               <div className="ae-label">Category</div>
               <div className="ae-cats" role="radiogroup" aria-label="Category">

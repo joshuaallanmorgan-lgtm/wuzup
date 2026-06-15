@@ -21,7 +21,7 @@
   height: 100%;
   border-radius: 50%;
   background: var(--accent);
-  color: #fff;
+  color: var(--ink); /* dark ink on Sunset Gold — white fails AA (3.76c, deferred from 3.73a) */
   font-weight: 800;
   letter-spacing: -0.2px;
   border: 2.5px solid rgba(255, 255, 255, 0.92);
@@ -85,7 +85,7 @@
 }
 .map-seg-btn.on {
   background: var(--accent);
-  color: #fff;
+  color: var(--ink); /* dark ink on Sunset Gold — white fails AA (3.76c) */
 }
 .map-chips {
   display: flex;
@@ -267,7 +267,7 @@
   border: none;
   border-radius: 12px;
   background: var(--accent);
-  color: #fff;
+  color: var(--ink); /* dark ink on Sunset Gold — white fails AA (3.76c) */
   font: inherit;
   font-size: 14px;
   font-weight: 800;

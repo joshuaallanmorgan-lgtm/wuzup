@@ -11,6 +11,9 @@
 /* ===== form page ===== */
 .ae-form { padding: 4px 20px 28px; }
 .ae-field { margin-top: 18px; }
+/* 3.76c: a calm What/When/Where/Details group header in the add-your-own form */
+.ae-group { margin: 22px 0 2px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-ink); }
+.ae-group:first-child { margin-top: 4px; }
 .ae-label {
   display: block;
   font-size: 12px;
