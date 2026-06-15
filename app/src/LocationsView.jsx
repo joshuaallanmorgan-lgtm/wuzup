@@ -13,7 +13,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNav } from './nav.jsx'
 import { CITY } from './lib.js'
-import { SecHead, TonightCard, EndCap, RowFeed } from './cards.jsx'
+import { SecHead, SpotCard, EndCap, RowFeed } from './cards.jsx'
 import { tasteNudge, useTaste } from './taste.js'
 import { usePlaces, PLACE_BUBBLES, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES, classics, nearest } from './places.js'
 import LensNav from './LensNav.jsx'
@@ -52,6 +52,14 @@ export default function LocationsView({ coords, requestCoords }) {
   const hidden = useMemo(() => all.filter((p) => p.hidden), [all])
   const classicsList = useMemo(() => classics(all), [all])
   const freeList = useMemo(() => all.filter((p) => p.isFree === true), [all])
+  // 3.73b: an honest beach-day BROWSE — NOT a merit ranking. Our beach records
+  // carry no differentiating signal (all srcCount 1, no amenities), so a "ranked
+  // by sources" claim would be fabricated (smoke reality-guard asserts this).
+  // Nearest first when we have a fix, taste-order otherwise; full set via the bubble.
+  const beaches = useMemo(() => {
+    const list = all.filter((p) => p.placeType === 'beach')
+    return coords ? nearest(list, coords, 6) : list.slice(0, 6)
+  }, [all, coords])
   const everything = useMemo(() => [{ label: null, items: all }], [all])
 
   if (status === 'loading' || places === null) {
@@ -76,8 +84,8 @@ export default function LocationsView({ coords, requestCoords }) {
         </div>
         <div className="empty">
           {status === 'error'
-            ? "Couldn't load places right now — check back in a moment 🌴"
-            : 'No places on the map yet — check back soon 🌴'}
+            ? "Couldn't load places right now — check back in a moment."
+            : 'No places on the map yet — check back soon.'}
         </div>
       </div>
     )
@@ -92,9 +100,14 @@ export default function LocationsView({ coords, requestCoords }) {
         <div className={'loc-hero-img' + (heroOk ? ' on' : '')} style={{ backgroundImage: `url(${CITY.spotsHero})` }} />
         <div className="loc-hero-wash" />
         <div className="hero-text">
-          <div className="hero-kicker">ALWAYS HERE · NO SCHEDULE</div>
+          <div className="hero-brand">
+            <span className="hero-brand-dot" aria-hidden />
+            Wuzup
+          </div>
+          <div className="hero-kicker">Always here, no schedule</div>
           <h1 className="hero-city">Spots</h1>
-          <div className="hero-sub">{all.length.toLocaleString('en-US')} places across Tampa Bay</div>
+          {/* 3.73b: de-counted to match Home — describe what's here, not "1,832". */}
+          <div className="hero-sub">Parks, beaches, trails and quiet corners.</div>
         </div>
       </header>
 
@@ -114,7 +127,7 @@ export default function LocationsView({ coords, requestCoords }) {
             <SecHead overline="Closest to you" title="Near you" sub={`${near.length} within reach`} />
             <div className="carousel">
               {near.map((p) => (
-                <TonightCard key={p.key} e={p} onSelect={onSelect} />
+                <SpotCard key={p.key} p={p} onSelect={onSelect} />
               ))}
             </div>
           </section>
@@ -130,12 +143,32 @@ export default function LocationsView({ coords, requestCoords }) {
           </section>
         )}
 
+        {/* 3.73b: an honest beach-day browse — NOT a "best/ranked" claim (the data
+            has no differentiating signal for beaches). Nearest first with a fix;
+            See-all opens the full beach set (never-hide). */}
+        {beaches.length >= 3 && (
+          <section className="sec">
+            <SecHead
+              overline="Beach day"
+              title="Beaches"
+              sub={coords ? 'Nearest first' : 'Pick your beach day'}
+              onSeeAll={() => openPlaceBubble(PLACE_BUBBLES.find((b) => b.id === 'beaches'))}
+            />
+            <div className="carousel">
+              {beaches.map((p) => (
+                <SpotCard key={p.key} p={p} onSelect={onSelect} />
+              ))}
+              <EndCap onClick={() => openPlaceBubble(PLACE_BUBBLES.find((b) => b.id === 'beaches'))} />
+            </div>
+          </section>
+        )}
+
         {hidden.length > 0 && (
           <section className="sec">
             <SecHead overline="Under the radar" title="Hidden spots" sub={`${hidden.length} quiet finds`} />
             <div className="carousel">
               {hidden.map((p) => (
-                <TonightCard key={p.key} e={p} onSelect={onSelect} />
+                <SpotCard key={p.key} p={p} onSelect={onSelect} />
               ))}
               <EndCap onClick={() => openPlaceBubble(PLACE_BUBBLES.find((b) => b.id === 'hidden'))} />
             </div>
@@ -147,7 +180,7 @@ export default function LocationsView({ coords, requestCoords }) {
             <SecHead overline="Everybody knows them" title="The classics" sub={`${classicsList.length} bay staples`} />
             <div className="carousel">
               {classicsList.slice(0, 12).map((p) => (
-                <TonightCard key={p.key} e={p} onSelect={onSelect} />
+                <SpotCard key={p.key} p={p} onSelect={onSelect} />
               ))}
             </div>
           </section>
@@ -163,7 +196,7 @@ export default function LocationsView({ coords, requestCoords }) {
             />
             <div className="carousel">
               {freeList.slice(0, 12).map((p) => (
-                <TonightCard key={p.key} e={p} onSelect={onSelect} />
+                <SpotCard key={p.key} p={p} onSelect={onSelect} />
               ))}
               <EndCap onClick={() => openPlaceBubble(PLACE_BUBBLES.find((b) => b.id === 'free'))} />
             </div>

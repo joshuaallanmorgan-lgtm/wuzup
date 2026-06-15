@@ -234,6 +234,38 @@ export function FreeCard({ e, onSelect }) {
   )
 }
 
+// SpotCard (3.73b) — the premium PLACE tile. Reuses the placeType-aware art floor
+// (3.73a) + SaveHeart, but speaks PLACE: a placeType label, one decision-useful
+// differentiator + distance (no vanity counts), and the 💎 hidden-gem badge. Used
+// by LocationsView's carousels + sourced guides instead of the event-shaped
+// TonightCard, so a spot reads as a discovery, not a database row. DRAFT — ⚑ Charles.
+const placeTypeLabel = (p) => {
+  const t = (p.placeType || 'spot').replace(/_/g, ' ')
+  return t.charAt(0).toUpperCase() + t.slice(1)
+}
+const spotMeta = (p) => {
+  const bits = []
+  if (p.isFree === true) bits.push('Free')
+  else if (p.fee) bits.push('Fee')
+  if (p.amenities?.includes('restrooms')) bits.push('Restrooms')
+  else if (['dog-park', 'dogs-allowed', 'dog-beach'].some((a) => p.amenities?.includes(a))) bits.push('Dog-friendly')
+  if (p._dist != null) bits.push(p._dist.toFixed(1) + ' mi')
+  return bits.slice(0, 2).join(' · ') || p.venue || 'Tap for details'
+}
+export function SpotCard({ p, onSelect }) {
+  return (
+    <button className="spotcard pressable" onClick={(ev) => onSelect(p, ev.currentTarget)}>
+      <CardImg e={p} className="spotcard-img">
+        <SaveHeart e={p} />
+        {p.hidden && <span className="spot-badge" aria-label="Hidden gem">💎</span>}
+      </CardImg>
+      <div className="spotcard-type">{placeTypeLabel(p)}</div>
+      <div className="spotcard-title">{p.title}</div>
+      <div className="spotcard-meta">{spotMeta(p)}</div>
+    </button>
+  )
+}
+
 // dashed "See all →" end-cap for carousels (square variant for the 160px free cards)
 export function EndCap({ square, onClick, children = 'See all →' }) {
   return (

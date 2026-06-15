@@ -405,6 +405,21 @@ test('3.73a: placeType art floor covers every placeType in the data', async () =
   assert.equal(missingEmoji.length, 0, `placeType(s) with no watermark emoji (→ 🌳 wall): ${missingEmoji.join(', ')}`)
 })
 
+// 3.73b — REALITY GUARD: beaches carry no differentiating signal today (every
+// beach has srcCount 1 + zero amenities), so the Spots tab ships an honest beach
+// BROWSE, not a "best beaches" merit ranking — a "ranked by sources & amenities"
+// claim on flat data would be fabricated authority (caught in the 3.73b review).
+// This tripwire fires the day beaches gain spread → then a real sourced ranking
+// (§6.2) becomes honest and the browse should be upgraded.
+test('3.73b reality guard: beaches lack ranking signal (browse, not fake-rank)', () => {
+  const doc = JSON.parse(readFileSync(APP_PLACES, 'utf8'))
+  const beaches = doc.places.filter((p) => p.placeType === 'beach')
+  assert.ok(beaches.length >= 3, 'need beaches to reason about')
+  const score = (p) => (p.srcCount || 0) * 3 + (Array.isArray(p.amenities) ? p.amenities.length : 0)
+  const spread = new Set(beaches.map(score)).size
+  assert.equal(spread, 1, `beaches now have ranking-signal spread (${spread} distinct scores) — a real sourced "Best beaches" ranking is now honest; upgrade the browse (§6.2)`)
+})
+
 // Phase 3.5 W7 — DEEPEN REC COVERAGE. New OSM classes (disc golf, skate parks,
 // + court density) and real Wikipedia descriptions for wikidata places.
 test('W7 deepen: disc golf + skate parks + court density + Wikipedia descriptions', () => {

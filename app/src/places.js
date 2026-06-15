@@ -185,3 +185,13 @@ export function placesForBrief(list, affinity, coords, max = 5) {
   )
   return withD.slice(0, max).map((x) => (x.d != null ? { ...x.p, _dist: x.d } : x.p))
 }
+
+// NOTE (3.73b): a sourced "best beaches" RANKING selector was prototyped here and
+// pulled before commit — the adversarial review found it degenerate on the real
+// data (all 22 beaches share srcCount 1 + zero amenities, so any score collapses
+// to distance/alphabetical). Calling that a "ranking by sources & amenities"
+// would be fabricated authority, and ranking parks by srcCount just duplicates
+// classics(). Honest sourced rankings (§6.2) wait until the data carries real
+// differentiating signal (amenity/designation coverage, or a curated best-of
+// layer in 3.75). LocationsView ships an honest beach-day BROWSE instead; the
+// smoke "beach ranking-signal reality guard" trips if the data ever gains spread.
