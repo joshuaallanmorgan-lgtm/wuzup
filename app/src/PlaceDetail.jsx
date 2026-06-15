@@ -14,7 +14,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { getLeaflet } from './leaflet-lazy.js'
 import { useNav } from './nav.jsx'
 import { keyOf } from './lib.js'
-import { CATEGORY_EMOJI, SecHead, TonightCard, hueFor } from './cards.jsx'
+import { SecHead, TonightCard, artEmoji, hueFor } from './cards.jsx'
 import { SaveHeart } from './saves.js'
 import { dateKey } from './weather.js'
 import { usePlaces } from './places.js'
@@ -248,7 +248,7 @@ export default function PlaceDetail({ e, anchors, wx }) {
           <div className={'detail-hero-img' + (imgOk ? ' on' : '')} style={{ backgroundImage: `url(${e.image})` }} />
         ) : (
           <span className="imgbox-mark" aria-hidden>
-            {CATEGORY_EMOJI[e.category] ?? CATEGORY_EMOJI.other}
+            {artEmoji(e)}
           </span>
         )}
         <button className="detail-back" onClick={onClose} aria-label="Back">
@@ -259,7 +259,7 @@ export default function PlaceDetail({ e, anchors, wx }) {
         <div className="detail-hero-text">
           {free && <span className="chip detail-chip chip-free">Free</span>}
           <span className="chip detail-chip detail-catchip" style={{ '--ch': hueFor(e) }}>
-            {CATEGORY_EMOJI[e.category] ?? '⭐'} {e.placeType?.replace(/_/g, ' ') || 'spot'}
+            {artEmoji(e)} {e.placeType?.replace(/_/g, ' ') || 'spot'}
           </span>
           <h1 className="detail-title">{e.name}</h1>
         </div>

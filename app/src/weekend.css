@@ -189,7 +189,7 @@
   transition: transform var(--dur-micro);
 }
 .wkb-btn:active { transform: scale(0.97); }
-.wkb-btn-done { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; }
+.wkb-btn-done { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: var(--ink); } /* dark ink on Sunset Gold — white fails AA (3.73a sweep) */
 .wkb-btn-share { background: var(--card); border: 1px solid var(--line); color: var(--ink); }
 
 /* ===== picker sheet =====

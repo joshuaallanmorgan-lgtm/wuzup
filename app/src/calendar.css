@@ -6,7 +6,7 @@
    rest / did-day), and the selected-day logbook caption. */
 
 .cal-wrap { min-height: 100svh; background: var(--bg); padding-bottom: 100px; }
-.cal-top { background: linear-gradient(135deg, var(--accent), var(--accent-2)); padding: 20px 0 15px; color: #fff; }
+.cal-top { background: linear-gradient(135deg, var(--accent), var(--accent-2)); padding: 20px 0 15px; color: var(--ink); } /* dark ink on Sunset Gold — white fails AA (3.73a sweep) */
 /* the title row — title-only since W6 retired the Weekend pill (kept as a flex
    row so a future header slot drops in without reflow) */
 .cal-top-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 0 20px; }
@@ -125,7 +125,7 @@
   transition: background var(--dur-fast), color var(--dur-fast);
 }
 .mcell.today .mnum { box-shadow: inset 0 0 0 2px var(--accent); color: var(--accent-ink); font-weight: 800; }
-.mcell.sel .mnum { background: var(--accent); color: #fff; box-shadow: none; font-weight: 800; }
+.mcell.sel .mnum { background: var(--accent); color: var(--ink); box-shadow: none; font-weight: 800; }
 .mcell:active .mnum { transform: scale(0.92); }
 /* ===== W2 — the quiet personal marks (the logbook's whole language) =====
    With the supply channels GONE (no heat tint, no hot ring, no event count,
@@ -148,7 +148,7 @@
   z-index: 2;
   pointer-events: none;
 }
-.mcell.sel .mday-went { color: #fff; } /* the selected fill is teal — stay visible */
+.mcell.sel .mday-went { color: var(--ink); } /* dark ink on the gold selected fill — stays visible (3.73a) */
 .mday-plan {
   position: absolute;
   left: 50%;
@@ -162,7 +162,7 @@
   z-index: 1;
   pointer-events: none;
 }
-.mcell.sel .mday-plan { background: #fff; } /* the selected fill is teal — stay visible */
+.mcell.sel .mday-plan { background: var(--ink); } /* dark ink on the gold selected fill — stays visible (3.73a) */
 .mday-rest {
   position: absolute;
   left: 50%;
@@ -260,7 +260,7 @@
 }
 .cal-recap-yes {
   border: none;
-  color: #fff;
+  color: var(--ink); /* dark ink on Sunset Gold — white fails AA (3.73a sweep) */
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
 }
 .cal-recap-no {

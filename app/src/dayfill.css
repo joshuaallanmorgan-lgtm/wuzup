@@ -37,7 +37,7 @@
   border: none;
   border-radius: 16px;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #fff;
+  color: var(--ink); /* dark ink on Sunset Gold — white fails AA (3.73a sweep) */
   font-family: inherit;
   text-align: left;
   cursor: pointer;

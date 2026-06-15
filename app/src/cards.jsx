@@ -11,7 +11,7 @@
 // only as bespoke styling on naturally dark surfaces (FMN, Big One) — their
 // own CSS, not a mode.
 import { createContext, memo, useContext, useEffect, useRef, useState } from 'react'
-import { CATEGORY_EMOJI, CATEGORY_HUES } from './categories.js'
+import { CATEGORY_EMOJI, CATEGORY_HUES, PLACETYPE_EMOJI, PLACETYPE_HUE } from './categories.js'
 import { dayLabelLoose, dayLoose, keyOf, priceLabel, startLabel, timeOf } from './lib.js'
 import { SaveHeart, useSaves } from './saves.js'
 import { dateKey } from './weather.js'
@@ -34,7 +34,18 @@ export const WxContext = createContext(null)
 // re-exported here as shims so MapView/DetailPage/etc. keep importing from
 // cards.jsx unchanged — values verified identical to the old literals.
 export { CATEGORY_EMOJI, CATEGORY_HUES } from './categories.js'
-export const hueFor = (e) => CATEGORY_HUES[e.category] ?? CATEGORY_HUES.other
+export const hueFor = (e) => {
+  // 3.73a: places are placeType-keyed (beach/trail/pier/dog-park each distinct)
+  // — kills the green-on-green wall; everything else stays category-keyed.
+  if (e?.kind === 'place' && PLACETYPE_HUE[e.placeType] != null) return PLACETYPE_HUE[e.placeType]
+  return CATEGORY_HUES[e.category] ?? CATEGORY_HUES.other
+}
+// the art-floor watermark emoji — placeType-specific for places (a beach reads
+// 🏖️, not the generic outdoors 🌳), category emoji otherwise.
+export const artEmoji = (e) => {
+  if (e?.kind === 'place' && PLACETYPE_EMOJI[e.placeType]) return PLACETYPE_EMOJI[e.placeType]
+  return CATEGORY_EMOJI[e.category] ?? CATEGORY_EMOJI.other
+}
 
 export function PriceChip({ e }) {
   const label = priceLabel(e)
@@ -76,7 +87,7 @@ export function SponsoredTag({ e }) {
 export function CardImg({ e, className = '', children }) {
   const [ok, setOk] = useState(false)
   const [failed, setFailed] = useState(false)
-  const emoji = CATEGORY_EMOJI[e.category] ?? CATEGORY_EMOJI.other
+  const emoji = artEmoji(e)
   // artwork is the TIME, not the status — strip startLabel's "Started " prefix here only
   const fall = startLabel(e).replace(/^Started /, '') || '★'
   // W4 trust contract: a dead/broken image URL degrades to the category-art

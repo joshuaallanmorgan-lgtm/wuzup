@@ -37,3 +37,38 @@ export const categoryById = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]))
 // these so MapView/DetailPage/etc. keep importing from cards.jsx unchanged)
 export const CATEGORY_HUES = Object.fromEntries(CATEGORIES.map((c) => [c.id, c.hue]))
 export const CATEGORY_EMOJI = Object.fromEntries(CATEGORIES.map((c) => [c.id, c.emoji]))
+
+// ===== placeType visual identity (3.73a) — places are 96% the 'outdoors'
+// category, so a card art floor keyed on CATEGORY alone was a green-on-green,
+// same-🌳-emoji wall. These keep the art floor placeType-aware so a beach, a
+// trail, a pier and a dog-park each read as a distinct discovery. Distinct hue +
+// watermark emoji per placeType; the fallback (140 / 🌳) matches the old
+// outdoors look, so any unmapped type degrades gracefully (smoke-tested for full
+// coverage). Hues lean on the brand's coastal world: water = blue, sunset
+// vantage = gold, nature = green. Plain data — Node-importable for the harness.
+export const PLACETYPE_HUE = {
+  beach: 200, // ocean blue
+  boat_ramp: 195, // water
+  pier: 28, // sunset over the water
+  viewpoint: 32, // sunset vantage
+  trail: 120, // forest
+  preserve: 132, // deep nature
+  garden: 92, // bloom
+  dog_park: 50, // warm amber
+  playground: 45, // warm
+  courts: 35, // clay court
+  park: 140, // the classic green — now one of many, not all
+}
+export const PLACETYPE_EMOJI = {
+  beach: '🏖️',
+  boat_ramp: '🚤',
+  pier: '🎣',
+  viewpoint: '🌅',
+  trail: '🥾',
+  preserve: '🌲',
+  garden: '🌷',
+  dog_park: '🐕',
+  playground: '🛝',
+  courts: '🎾',
+  park: '🌳',
+}

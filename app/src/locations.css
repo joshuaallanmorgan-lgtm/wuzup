@@ -96,7 +96,7 @@
 .loc-locate-btn {
   font-size: 14px;
   font-weight: 600;
-  color: #fff;
+  color: var(--ink); /* dark ink on Sunset Gold — white fails AA (3.73a sweep) */
   background: var(--accent);
   border: none;
   border-radius: 999px;
@@ -107,19 +107,25 @@
 /* ===== PlaceDetail: the headline "Make this my plan" action ===== */
 .loc-plan-cta {
   width: 100%;
-  font-size: 15px;
-  font-weight: 700;
-  color: #fff;
-  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ink); /* 3.73a: dark ink on Sunset Gold — white failed AA (the 3.71 review pattern, this CTA was missed) */
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
   border: none;
-  border-radius: 12px;
-  padding: 13px 16px;
+  border-radius: 14px;
+  padding: 15px 16px;
   margin-bottom: 16px;
+  box-shadow: 0 6px 20px rgba(var(--accent-rgb), 0.28); /* 3.73a: the place→plan bridge, elevated to the headline action */
   cursor: pointer;
-  transition: filter var(--dur-micro) var(--ease-out);
+  transition: filter var(--dur-micro) var(--ease-out), transform var(--dur-micro);
 }
 .loc-plan-cta:active {
-  filter: brightness(0.94);
+  filter: brightness(0.96);
+  transform: scale(0.99);
 }
 
 /* ===== amenities chips ===== */
@@ -224,7 +230,7 @@
   white-space: nowrap;
 }
 .loc-plan-day.on {
-  color: #fff;
+  color: var(--ink); /* dark ink on Sunset Gold — white fails AA (3.73a sweep) */
   background: var(--accent);
   border-color: var(--accent);
 }

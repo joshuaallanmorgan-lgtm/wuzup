@@ -392,6 +392,19 @@ test('W4 wiring: real heroes + place-detail photo + degrade-to-art + passthrough
   assert.equal(place.image, 'https://upload.wikimedia.org/wikipedia/commons/x.jpg', 'normalizePlace must pass the image field through to the card/detail seams')
 })
 
+// 3.73a — placeType-aware art floor (kills the green-on-green wall). Every
+// placeType present in the data must carry a distinct hue + watermark emoji, or a
+// place card silently falls back to the generic outdoors green/🌳 it replaces.
+test('3.73a: placeType art floor covers every placeType in the data', async () => {
+  const { PLACETYPE_HUE, PLACETYPE_EMOJI } = await import('../app/src/categories.js')
+  const doc = JSON.parse(readFileSync(APP_PLACES, 'utf8'))
+  const types = new Set(doc.places.map((p) => p.placeType))
+  const missingHue = [...types].filter((t) => PLACETYPE_HUE[t] == null)
+  const missingEmoji = [...types].filter((t) => !PLACETYPE_EMOJI[t])
+  assert.equal(missingHue.length, 0, `placeType(s) with no art-floor hue (→ green wall): ${missingHue.join(', ')}`)
+  assert.equal(missingEmoji.length, 0, `placeType(s) with no watermark emoji (→ 🌳 wall): ${missingEmoji.join(', ')}`)
+})
+
 // Phase 3.5 W7 — DEEPEN REC COVERAGE. New OSM classes (disc golf, skate parks,
 // + court density) and real Wikipedia descriptions for wikidata places.
 test('W7 deepen: disc golf + skate parks + court density + Wikipedia descriptions', () => {
