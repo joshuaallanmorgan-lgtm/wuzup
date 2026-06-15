@@ -413,7 +413,7 @@ export default function HotView({ events, anchors, loading, whenPref }) {
           </section>
         )}
         {!loading && upcoming.length === 0 && (
-          <div className="empty">Nothing on the radar right now — check back soon 🌴</div>
+          <div className="empty">Nothing here right now — check back soon.</div>
         )}
       </div>
     </div>

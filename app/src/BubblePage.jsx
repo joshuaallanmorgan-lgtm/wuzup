@@ -42,12 +42,13 @@ const TAGLINES = {
   clubs: 'Your people are out there.',
 }
 
-// charming empty states (rare with 700+ events, but never a dead end)
+// calm, honest empty states (rare with 700+ events, but never a dead end).
+// Premium voice (N3 DRAFT — Charles): plain + warm, no winking, no emoji-in-prose.
 const EMPTIES = {
-  tonight: '🦗 Crickets tonight. Even Tampa naps sometimes.',
-  weekend: '🎈 The weekend slate is empty — for now.',
-  free: '🪙 No freebies on the books. Capitalism wins this round.',
-  near: '🗺️ The map is quiet right now.',
+  tonight: 'Nothing listed for tonight yet — check back soon.',
+  weekend: 'Nothing on the weekend yet — check back soon.',
+  free: 'No free events listed right now.',
+  near: 'Nothing nearby right now.',
 }
 
 export default function BubblePage({ bubble, events, anchors, coords, requestCoords }) {
@@ -134,8 +135,8 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
               {locState === 'denied'
                 ? /* the denied list is diversity-ordered (orderDay), not hotScore-
                      desc — don't claim "hottest first" (DRAFT for Charles) */
-                  "Couldn't get a fix 🛰️ — showing the best of the bay instead."
-                : "Tampa Bay is big. Let's narrow it to your block."}
+                  "Couldn't find your location — showing the whole bay instead."
+                : "Tampa Bay is big — narrow it to what's near you."}
             </div>
             <button className="bub-locate-btn" onClick={locate} disabled={locState === 'asking'}>
               {locState === 'asking' ? 'Locating…' : '📍 Use my location'}
@@ -152,7 +153,7 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
           />
         ) : (
           <div className="empty">
-            {EMPTIES[bubble.id] || `${bubble.emoji} No ${bubble.label.toLowerCase()} on the radar right now.`}
+            {EMPTIES[bubble.id] || `No ${bubble.label.toLowerCase()} listed right now.`}
             <br />
             New events land every time the finder runs — check back soon.
           </div>

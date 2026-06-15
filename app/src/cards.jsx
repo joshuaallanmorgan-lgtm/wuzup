@@ -361,7 +361,7 @@ export function RowFeed({ sections, showDist, stagger, scrollRootRef, endSlot, h
     <div className={cls}>
       {out}
       {limit < total && <div className="feed-sentinel" ref={sentRef} />}
-      {total > 0 && limit >= total && (endSlot ?? <div className="feed-end">That's everything. Go touch grass 🌴</div>)}
+      {total > 0 && limit >= total && (endSlot ?? <div className="feed-end">You've reached the end of the list.</div>)}
     </div>
   )
 }

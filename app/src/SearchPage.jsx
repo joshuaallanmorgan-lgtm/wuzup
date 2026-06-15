@@ -196,7 +196,7 @@ export default function SearchPage({ events, anchors, coords }) {
         )}
         {hasQ && total === 0 && (
           <div className="empty">
-            Nothing for that… yet. 🦗
+            No matches.
             <br />
             Try “trivia” or “free this weekend”.
           </div>

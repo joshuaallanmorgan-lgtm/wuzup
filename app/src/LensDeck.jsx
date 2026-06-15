@@ -193,7 +193,7 @@ export default function LensDeck({ lens, events, anchors }) {
                     Pass
                   </span>
                   <span className="ldk-stamp ldk-stamp-open" aria-hidden>
-                    Opening 👀
+                    Opening
                   </span>
                 </>
               }

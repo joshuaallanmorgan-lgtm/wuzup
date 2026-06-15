@@ -86,8 +86,8 @@ const CATS = ['music', 'food', 'outdoors', 'sports', 'art', 'nightlife', 'comedy
 )
 // Step 2 — money mood (v = freeLeaning)
 const MONEY = [
-  { v: true, emoji: '🆓', label: 'Free-leaning', sub: '$0 is the best price' },
-  { v: false, emoji: '💳', label: 'Whatever’s good', sub: 'Worth it is worth it' },
+  { v: true, emoji: '🆓', label: 'Free-leaning', sub: 'Show free events first' },
+  { v: false, emoji: '💳', label: 'Whatever’s good', sub: 'Price isn’t the deciding factor' },
 ]
 // Step 3 — when do you go out (stored in primer-v1, H2 greeting flavor only)
 const WHEN = [
@@ -216,7 +216,7 @@ export default function Primer({ onDone, onDeck, reentry = false }) {
                 ? 'ALL SET'
                 : reentry
                   ? 'TUNE YOUR TASTE'
-                  : 'NEW HERE? MAKE IT YOURS'}
+                  : 'SET UP YOUR FEED'}
           </div>
           {onQ && (
             <div className="primer-note">
@@ -280,8 +280,8 @@ export default function Primer({ onDone, onDeck, reentry = false }) {
 
         {step === 1 && (
           <div className="primer-step" key={1}>
-            <h1 className="primer-q">Money mood?</h1>
-            <div className="primer-sub">No judgment either way.</div>
+            <h1 className="primer-q">Free, or worth paying for?</h1>
+            <div className="primer-sub">Either way’s fine — it only tips the order.</div>
             <div className="primer-opts">
               {MONEY.map((o) => (
                 <button

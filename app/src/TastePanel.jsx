@@ -62,7 +62,7 @@ export default function TastePanel({ from, primer }) {
     sum.n === 0
       ? 'Nothing learned yet — every ♥, open and bubble teaches this, all on your phone.'
       : learning
-        ? `${sum.n} tap${sum.n === 1 ? '' : 's'} in so far. The more you poke around, the sharper this gets.`
+        ? `${sum.n} tap${sum.n === 1 ? '' : 's'} in so far. It sharpens the more you use the app.`
         : `Tuned by ${sum.n} taps on this phone. No account, no cloud — and here's exactly what it learned.`
 
   return (

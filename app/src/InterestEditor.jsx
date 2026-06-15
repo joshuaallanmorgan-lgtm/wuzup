@@ -49,8 +49,8 @@ const EMPTY = {
 const QUESTIONS = [
   {
     key: 'free',
-    title: 'Money mood',
-    sub: 'No judgment either way.',
+    title: 'Spending',
+    sub: 'Free-first, or worth paying for — it only tips the order.',
     opts: [
       { v: true, emoji: '🆓', label: 'Free-leaning' },
       { v: false, emoji: '💳', label: 'Whatever’s good' },

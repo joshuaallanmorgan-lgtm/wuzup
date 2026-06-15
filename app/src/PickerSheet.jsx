@@ -72,7 +72,7 @@ export default function PickerSheet({ title, model, noSaves, closing, onPick, on
             </>
           )}
           {model.saved.length === 0 && model.suggestions.length === 0 && (
-            <div className="wkb-note">Nothing on the books for this one yet 🦗</div>
+            <div className="wkb-note">Nothing fits this slot yet.</div>
           )}
         </div>
       </div>

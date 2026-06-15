@@ -379,7 +379,7 @@ export default function ProfileView({ events, anchors, primer }) {
               ))}
             </div>
           ) : (
-            <div className="pf-empty">Nothing saved yet. Tap the ♡ on anything that looks fun — it lands here.</div>
+            <div className="pf-empty">Nothing saved yet. Tap ♡ on anything to keep it here.</div>
           )}
         </section>
 
@@ -391,10 +391,10 @@ export default function ProfileView({ events, anchors, primer }) {
             <span className="pf-plan-range">{range}</span>
             <span className="pf-plan-fill">
               {filledVis > 0
-                ? `${filledVis}/${visibleSlotN} slots planned` + (restN > 0 ? ' · quiet day 🌙' : '')
+                ? `${filledVis}/${visibleSlotN} slots planned` + (restN > 0 ? ' · a quiet day' : '')
                 : restN > 0
-                  ? 'A quiet weekend on the books 🌙'
-                  : 'Nothing planned yet — tap to build it 🗓️'}
+                  ? 'A quiet weekend planned'
+                  : 'Nothing planned yet — tap to start'}
             </span>
             {planTitles.length > 0 && (
               <span className="pf-plan-picks">
@@ -516,8 +516,8 @@ export default function ProfileView({ events, anchors, primer }) {
           ) : (
             prompts.length === 0 && (
               <div className="pf-empty">
-                After a saved event passes, we'll ask if you made it — your went-list builds here. No tracking,
-                just your word. 🤙
+                After a saved event passes, we'll ask if you made it — your been-there list builds here.
+                No tracking, just your word.
               </div>
             )
           )}
@@ -533,7 +533,7 @@ export default function ProfileView({ events, anchors, primer }) {
               ))}
             </div>
           ) : (
-            <div className="pf-empty">Everything you peek at lands here. Go poke around 👀</div>
+            <div className="pf-empty">Anything you open shows up here.</div>
           )}
         </section>
 
