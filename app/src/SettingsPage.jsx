@@ -16,10 +16,9 @@
 // ALL COPY IS DRAFT for Charles (inventory in the sprint report).
 import { useMemo, useState } from 'react'
 import { Icon, sourceFamily } from './lib.js'
-import { useNav } from './nav.jsx'
-import { categoryById } from './categories.js'
+import { useNav, viewIndex } from './nav.jsx'
 import { lsRemove } from './storage.js'
-import { confidence, resetTaste, topCategories, useTaste } from './taste.js'
+import { resetTaste } from './taste.js'
 import Primer from './Primer.jsx'
 import './settings.css'
 
@@ -36,16 +35,10 @@ const fmtUpdated = (ms) => {
 }
 
 export default function SettingsPage({ events, dataAt, primer, onPrimerDone }) {
-  const { closePage: onClose, openInterests, openTaste, openDeck } = useNav()
-  const taste = useTaste()
+  const { closePage: onClose, openInterests, goTo } = useNav()
   const [retaking, setRetaking] = useState(false)
   const [arming, setArming] = useState(false) // reset's two-step confirm
   const [wiped, setWiped] = useState(false) // honest one-line receipt after a reset
-
-  const conf = confidence(taste)
-  const tops = topCategories(taste, 3)
-    .map((c) => categoryById[c])
-    .filter(Boolean)
 
   // distinct source FAMILIES in the fetched dataset ("Eventbrite (p2)" and
   // "Eventbrite (Free)" are one voice); added-by-you entries aren't sources
@@ -55,15 +48,6 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone }) {
     return fams.size
   }, [events])
   const evCount = useMemo(() => events.filter((e) => !e.tags?.includes('added-by-you')).length, [events])
-
-  // the taste summary, confidence-aware (same thresholds the Profile header
-  // uses — two surfaces must never disagree about the same number)
-  const tasteLine =
-    taste.n === 0
-      ? 'Blank slate — nothing learned yet.'
-      : conf < 0.4
-        ? `Still learning you — ${taste.n} tap${taste.n === 1 ? '' : 's'} in.`
-        : `Tuned by ${taste.n} taps on this phone.`
 
   const doReset = () => {
     resetTaste() // wipes taste-v1 + the in-memory profile (taste.js owns both)
@@ -89,28 +73,18 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone }) {
             (W6 hub); the rows here are demoted/retitled so they don't read as
             verbatim duplicates (⚑W5). ALL COPY DRAFT for Charles. */}
 
-        {/* ===== 1 · YOUR TASTE PROFILE (read-only identity) ===== */}
+        {/* ===== 1 · YOUR TASTE — lives in Profile now (3.76 clean split, D-PS1).
+            Settings no longer mirrors the taste tools: the static chip card +
+            the "See your taste details" (TastePanel) and "Rate & refine"
+            (CalibrationDeck) doors moved out to their canonical home, so the two
+            surfaces stop overlapping. One quiet deep-link points you there. =====*/}
         <section className="st-sec">
-          <div className="st-over">Your taste profile</div>
-          <div className="st-card">
-            <div className="st-taste-line">{tasteLine}</div>
-            {tops.length > 0 && (
-              <div className="st-chips">
-                {tops.map((c) => (
-                  <span key={c.id} className="st-chip" style={{ '--ph': c.hue }}>
-                    <span aria-hidden>{c.emoji}</span> {c.label}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
+          <div className="st-over">Your taste</div>
           <div className="st-rows">
-            {/* demoted from Profile's headline "Why your feed looks like this" —
-                Settings is the secondary door to the same panel (⚑W5 dedup) */}
-            <button className="st-row" onClick={() => openTaste('settings')}>
+            <button className="st-row" onClick={() => { onClose(); goTo(viewIndex('profile')) }}>
               <span className="st-row-main">
-                <span className="st-row-title">See your taste details</span>
-                <span className="st-row-sub">What it learned + nudge categories up or down</span>
+                <span className="st-row-title">Manage your taste in Profile</span>
+                <span className="st-row-sub">Your vibe, what your feed learned, and the calibration deck — all in one place</span>
               </span>
               <span className="st-row-go" aria-hidden>→</span>
             </button>
@@ -128,15 +102,7 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone }) {
               </span>
               <span className="st-row-go" aria-hidden>→</span>
             </button>
-            {/* retitled from "Calibration deck" so it isn't a verbatim twin of
-                Profile's "Rate a few to sharpen it" (⚑W5) */}
-            <button className="st-row" onClick={openDeck}>
-              <span className="st-row-main">
-                <span className="st-row-title">Rate &amp; refine</span>
-                <span className="st-row-sub">Rate 15 and we dial you in</span>
-              </span>
-              <span className="st-row-go" aria-hidden>→</span>
-            </button>
+            {/* "Rate & refine" (CalibrationDeck) moved to Profile (3.76 clean split) */}
             <button className="st-row" onClick={() => setRetaking(true)}>
               <span className="st-row-main">
                 {/* honest verb: a skipped first-open never "re"-takes */}
