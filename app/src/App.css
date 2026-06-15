@@ -51,7 +51,7 @@
   transform: translateY(var(--hs, 0px));
   will-change: transform;
   opacity: 0;
-  transition: opacity 300ms ease;
+  transition: opacity var(--dur-emphasis) var(--ease-out);
 }
 .hero-img.on { opacity: 1; }
 .hero-dim {
@@ -311,7 +311,7 @@
   background-size: cover;
   background-position: center;
   opacity: 0;
-  transition: opacity 300ms ease;
+  transition: opacity var(--dur-emphasis) var(--ease-out);
 }
 .detail-hero-img.on { opacity: 1; }
 .detail-hero-grad { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0) 34%, rgba(0, 0, 0, 0.72) 100%); }

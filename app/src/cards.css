@@ -4,7 +4,7 @@
 
 /* ===== shared press state: every tappable card ===== */
 .pressable { transition: transform var(--dur-fast) var(--ease-out); }
-.pressable:active { transform: scale(0.97); transition-duration: var(--dur-micro); }
+.pressable:active { transform: scale(0.98); transition-duration: var(--dur-micro); }
 
 /* ===== shared image box: dark placeholder + 300ms fade-in ===== */
 .imgbox {
