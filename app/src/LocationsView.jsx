@@ -2,8 +2,8 @@
 // the PLACES store. Hero → place-bubble strip → magazine sections (Near you /
 // Hidden spots / The classics / Free forever) → Everything browse. Reuses the
 // shared card/section components (SecHead, TonightCard, EndCap, RowFeed) and
-// the .hot-scroll / .hero / .bubbles / .sec / .carousel CSS — a place renders
-// through them unchanged because places.js aliases name→title + venue.
+// the .hot-scroll / .hero / .sec / .carousel CSS + LensNav (topnav.css) — a
+// place renders through them unchanged because places.js aliases name→title + venue.
 //
 // Places are a SECOND lazy store (usePlaces): the /places.json fetch fires on
 // first mount of this tab, never at boot, never merged into the events feed.
@@ -15,7 +15,8 @@ import { useNav } from './nav.jsx'
 import { CITY } from './lib.js'
 import { SecHead, TonightCard, EndCap, RowFeed } from './cards.jsx'
 import { tasteNudge, useTaste } from './taste.js'
-import { usePlaces, PLACE_BUBBLES, classics, nearest } from './places.js'
+import { usePlaces, PLACE_BUBBLES, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES, classics, nearest } from './places.js'
+import LensNav from './LensNav.jsx'
 import './locations.css'
 
 // count-preserving order: category affinity (S3) desc, then corroboration
@@ -97,14 +98,14 @@ export default function LocationsView({ coords, requestCoords }) {
         </div>
       </header>
 
-      <div className="bubbles">
-        {PLACE_BUBBLES.map((b) => (
-          <button key={b.id} className="bubble" style={{ '--bh': b.hue }} onClick={() => openPlaceBubble(b)}>
-            <span className="bubble-emoji">{b.emoji}</span>
-            <span className="bubble-label">{b.label}</span>
-          </button>
-        ))}
-      </div>
+      {/* Phase 3.6 N1: quiet top nav — quality lenses (Free/Hidden/Dog) as pills
+          + an All-spots menu of the place types (same destinations). */}
+      <LensNav
+        lenses={PLACE_LENS_BUBBLES}
+        categories={PLACE_CAT_BUBBLES}
+        menuLabel="All spots"
+        onOpen={openPlaceBubble}
+      />
 
       <div className="hot-body">
         {/* Near you — needs a location fix; honest prompt when we don't have one */}

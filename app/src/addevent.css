@@ -1,16 +1,9 @@
 /* addevent.css — Add Event MVP (Sprint C, add-event agent owns this file):
-   the ghost "+ Add event" bubble at the end of HotView's strip, the AddEvent
-   form page (.ae-*), the "Added by you" provenance label (accent twin of
-   .sp-label, rendered everywhere a Sponsored label would show), and the
-   detail-page Remove button + 6s undo toast. */
-
-/* ===== ghost bubble: quiet affordance at the end of the strip ===== */
-.bubble.bubble-add {
-  background: none;
-  border: 1.5px dashed #d3d7de;
-  color: var(--accent);
-  font-weight: 700;
-}
+   the AddEvent form page (.ae-*), the "Added by you" provenance label (accent
+   twin of .sp-label, rendered everywhere a Sponsored label would show), and the
+   detail-page Remove button + 6s undo toast. (Phase 3.6 N1: the ghost "+ Add
+   event" bubble was retired — Add event is now a menu item in LensNav,
+   styled .tn-item-add in topnav.css.) */
 
 /* ===== provenance: user-added twin of the Sponsored label (accent, never hidden) ===== */
 .sp-label.my-label { color: var(--accent); }

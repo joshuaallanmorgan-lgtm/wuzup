@@ -2,7 +2,8 @@
 // opens a full BubblePage), alternating sections, Everything feed. Navigation
 // (detail/bubble/search/add/weekend openers) comes from useNav() — O6.
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { BUBBLES, CITY, DAY, dayLabel, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
+import { BUBBLES, CAT_BUBBLES, CITY, DAY, LENS_BUBBLES, dayLabel, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
+import LensNav from './LensNav.jsx'
 import { curateFeed } from './curate.js'
 import { useNav } from './nav.jsx'
 import { BigOne, EndCap, FreeCard, GemRow, RowFeed, SecHead, TonightCard } from './cards.jsx'
@@ -260,19 +261,16 @@ export default function HotView({ events, anchors, loading, whenPref }) {
         </div>
       </header>
 
-      <div className="bubbles">
-        {BUBBLES.map((b) => (
-          <button key={b.id} className="bubble" style={{ '--bh': b.hue }} onClick={() => onOpenBubble(b)}>
-            <span className="bubble-emoji">{b.emoji}</span>
-            <span className="bubble-label">{b.label}</span>
-          </button>
-        ))}
-        {/* ghost bubble: the Add Event MVP entry (Sprint C) */}
-        <button className="bubble bubble-add" onClick={onOpenAdd} aria-label="Add your own event">
-          <span className="bubble-emoji">➕</span>
-          <span className="bubble-label">Add event</span>
-        </button>
-      </div>
+      {/* Phase 3.6 N1: the quiet top nav — lens pills + an All-categories menu —
+          replaces the loud 16-bubble strip (same destinations via onOpenBubble).
+          Add event lives in the menu now. */}
+      <LensNav
+        lenses={LENS_BUBBLES}
+        categories={CAT_BUBBLES}
+        menuLabel="All categories"
+        onOpen={onOpenBubble}
+        onAdd={onOpenAdd}
+      />
 
       <div className="hot-body">
         {shelfOn && (

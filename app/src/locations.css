@@ -1,6 +1,6 @@
 /* locations.css — Sprint S. Only the place-specific surfaces; everything else
-   (hot-scroll, bubbles, sec, carousel, detail-*, row) is reused from App.css /
-   cards.css / detail.css so the Locations tab IS Hot's structural twin. */
+   (hot-scroll, sec, carousel, detail-*, row) is reused from App.css / cards.css /
+   detail.css + LensNav (topnav.css) so the Locations tab IS Hot's structural twin. */
 
 /* ===== the Locations hero — ⚑S1 CSS placeholder (water/park energy) until
    Charles supplies the real image. A teal→green wash, no external asset. ===== */

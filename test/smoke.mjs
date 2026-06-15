@@ -424,6 +424,39 @@ test('W7 wiring: osm rec classes + Wikipedia-descriptions enrichment in the pipe
   assert.ok(/enrichPlacesWithDescriptions/.test(places), 'places.mjs must wire the descriptions enrichment')
 })
 
+// Phase 3.6 N1 — the quiet top-nav. The lens/category split MUST partition the
+// bubble lists exactly (never-hide: every destination still reachable, just
+// presented quieter), and the views must render LensNav, not the old strip.
+test('N1 top-nav: lens + category split partitions the bubbles (never-hide)', async () => {
+  const L = await import('../app/src/lib.js')
+  const P = await import('../app/src/places.js')
+  const ids = (arr) => arr.map((b) => b.id).sort()
+  // Events: LENS ∪ CAT === BUBBLES, no overlap, no drop
+  assert.deepEqual(ids([...L.LENS_BUBBLES, ...L.CAT_BUBBLES]), ids(L.BUBBLES),
+    'LENS_BUBBLES ∪ CAT_BUBBLES must equal BUBBLES exactly (nothing dropped or duplicated)')
+  assert.ok(L.LENS_BUBBLES.every((b) => b.kind !== 'cat'), 'lenses are the non-category bubbles')
+  assert.ok(L.CAT_BUBBLES.every((b) => b.kind === 'cat') && L.CAT_BUBBLES.length >= 8, 'categories are the cat bubbles')
+  // Spots: PLACE lens ∪ cat === PLACE_BUBBLES
+  assert.deepEqual(ids([...P.PLACE_LENS_BUBBLES, ...P.PLACE_CAT_BUBBLES]), ids(P.PLACE_BUBBLES),
+    'PLACE lens ∪ cat must equal PLACE_BUBBLES exactly')
+  assert.ok(P.PLACE_LENS_BUBBLES.length >= 1 && P.PLACE_CAT_BUBBLES.length >= 1, 'both Spots groups are non-empty')
+})
+
+test('N1 wiring: HotView + LocationsView render LensNav, the loud strip is gone', () => {
+  assert.ok(existsSync(path.join(ROOT, 'app', 'src', 'LensNav.jsx')), 'the LensNav component must exist')
+  for (const f of ['HotView.jsx', 'LocationsView.jsx']) {
+    const src = readFileSync(path.join(ROOT, 'app', 'src', f), 'utf8')
+    assert.ok(/<LensNav/.test(src), `${f} must render LensNav`)
+    assert.ok(!/className="bubbles"/.test(src), `the old .bubbles strip must be gone from ${f}`)
+  }
+  // a11y (N1 review): the menu is a real dialog — modal, state-exposing trigger,
+  // focus returns to the trigger on close
+  const ln = readFileSync(path.join(ROOT, 'app', 'src', 'LensNav.jsx'), 'utf8')
+  assert.ok(/aria-modal="true"/.test(ln), 'the category sheet must be a modal dialog (aria-modal)')
+  assert.ok(/aria-haspopup="dialog"/.test(ln) && /aria-expanded=\{open\}/.test(ln), 'the trigger must expose menu open-state')
+  assert.ok(/moreRef\.current\?\.focus\(\)/.test(ln), 'focus must return to the trigger on close (WCAG 2.4.3)')
+})
+
 // ============================================================
 // 3+4) APP BUILD + LINT (started together, asserted separately)
 // ============================================================

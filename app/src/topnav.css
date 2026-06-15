@@ -1,0 +1,144 @@
+/* topnav.css — Phase 3.6 N1: the quiet top nav (LensNav) that replaced the loud
+   bubble strip. Editorial + calm: hairline pills, one tidy menu bar, a premium
+   bottom-sheet for the full taxonomy. No per-tile pastel tints, no clipping. */
+
+/* ===== the lens bar (pills + the "All …" menu bar) ===== */
+.lensbar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 20px 6px;
+}
+.lens-row {
+  display: flex;
+  flex-wrap: wrap; /* wraps gracefully — never clips (the whole point) */
+  gap: 8px;
+}
+.lens-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px; /* comfortable tap target (a11y) */
+  padding: 0 15px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-fast), border-color var(--dur-fast), transform var(--dur-micro);
+}
+.lens-pill:hover { border-color: rgba(var(--accent-rgb), 0.4); }
+/* the full-width menu bar — calm, but its LABEL stays --ink so the one door to
+   the whole taxonomy reads as tappable, not skimmed past (N1 review). */
+.lens-more {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-fast), border-color var(--dur-fast), transform var(--dur-micro);
+}
+.lens-more:hover { border-color: rgba(var(--accent-rgb), 0.4); }
+.lens-chev { flex: 0 0 auto; color: var(--muted); transition: transform var(--dur-fast); }
+.lens-more.open .lens-chev { transform: rotate(180deg); }
+
+/* ===== the category sheet (mirrors the PickerSheet mechanics) ===== */
+.tn-sheet-wrap {
+  position: fixed;
+  inset: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 460px;
+  z-index: 1600;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.tn-scrim {
+  position: absolute;
+  inset: 0;
+  border: none;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  animation: tnFadeIn 200ms ease;
+}
+.tn-sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-height: 72svh;
+  background: var(--bg);
+  border-radius: 22px 22px 0 0;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.22); /* elevation — matches the app's PickerSheet */
+  animation: tnUp 280ms var(--ease-emphasis);
+}
+.tn-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 18px 8px;
+}
+.tn-sheet-title { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
+.tn-sheet-close {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(var(--accent-rgb), 0.08);
+  color: var(--muted);
+  font-size: 15px;
+  cursor: pointer;
+}
+.tn-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 6px 16px calc(20px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+}
+.tn-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--dur-fast), transform var(--dur-micro);
+}
+.tn-item:hover { border-color: rgba(var(--accent-rgb), 0.4); }
+.tn-item-emoji { flex: 0 0 auto; font-size: 20px; line-height: 1; }
+.tn-item-label { min-width: 0; line-height: 1.2; }
+/* "Add event" reads as the quiet accent action at the end of the grid */
+.tn-item-add { color: var(--accent); border-color: rgba(var(--accent-rgb), 0.3); }
+
+@keyframes tnFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tnUp { from { transform: translateY(100%); } to { transform: none; } }
+.tn-sheet-wrap.closing .tn-scrim { animation: tnFadeOut 240ms ease forwards; }
+.tn-sheet-wrap.closing .tn-sheet { animation: tnDown 240ms ease forwards; }
+@keyframes tnFadeOut { to { opacity: 0; } }
+@keyframes tnDown { to { transform: translateY(100%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .tn-scrim, .tn-sheet, .tn-sheet-wrap.closing .tn-scrim, .tn-sheet-wrap.closing .tn-sheet { animation: none; }
+  .lens-pill:active, .lens-more:active, .tn-item:active { transform: none; }
+}

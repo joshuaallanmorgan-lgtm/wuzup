@@ -60,6 +60,14 @@ export const PLACE_BUBBLES = [
   { id: 'hidden', emoji: '💎', label: 'Hidden spots', hue: 285, match: (p) => p.hidden === true },
   { id: 'free', emoji: '🆓', label: 'Free forever', hue: 145, match: (p) => p.isFree === true },
 ]
+// Phase 3.6 N1 — the quiet top-nav split for Spots (never-hide preserved:
+// LENS ∪ CAT === PLACE_BUBBLES). The place-TYPE bubbles (beaches/parks/courts/
+// nature/views) live in the "All spots" menu; the QUALITY bubbles (free/hidden/
+// dog) ride the calm pill row, since they're the contextual filters you reach for.
+// ordered so the row reads Free · Hidden · Dog (Free leads, mirroring Events)
+const PLACE_LENS_ORDER = ['free', 'hidden', 'dog']
+export const PLACE_LENS_BUBBLES = PLACE_LENS_ORDER.map((id) => PLACE_BUBBLES.find((b) => b.id === id)).filter(Boolean)
+export const PLACE_CAT_BUBBLES = PLACE_BUBBLES.filter((b) => !PLACE_LENS_ORDER.includes(b.id))
 
 // ===== module-level singleton store (same shape contract as saves.js) =====
 let places = null // null = not loaded yet; [] or [...] once a fetch resolves

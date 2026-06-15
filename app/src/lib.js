@@ -42,6 +42,12 @@ export const BUBBLES = [
   catBubble('markets', 'market', 80),
   catBubble('clubs', 'community', 175),
 ]
+// Phase 3.6 N1 — the quiet top-nav splits BUBBLES into two roles, never-hide
+// preserved (LENS_BUBBLES ∪ CAT_BUBBLES === BUBBLES): the context LENSES
+// (time/free/near — the things you reach for) ride a calm pill row; the 11
+// CATEGORIES tuck into the "All categories" menu. Same destinations, quieter.
+export const LENS_BUBBLES = BUBBLES.filter((b) => b.kind !== 'cat')
+export const CAT_BUBBLES = BUBBLES.filter((b) => b.kind === 'cat')
 
 // hotScore desc, nulls last, ties by start time
 export const hotDesc = (x, y) => (y.hotScore ?? -Infinity) - (x.hotScore ?? -Infinity) || x._t - y._t

@@ -94,46 +94,8 @@
 }
 .hero-search:active { transform: scale(0.9); }
 
-/* ===== bubble strip: 2 stacked rows in one horizontal scroller; each bubble opens a page ===== */
-.bubbles {
-  display: grid;
-  grid-auto-flow: column;
-  grid-template-rows: repeat(2, 58px);
-  /* 96px (was 112) so FOUR columns fit the 460px frame's 420px content width
-     (4×96 + 3×10 gap = 414) instead of three with the 4th clipped at the edge
-     (Phase 3.5 bubble cut-off fix). The right-edge mask fades the overflow so
-     the strip reads as SCROLLABLE, not cut off — all bubbles stay in the DOM. */
-  grid-auto-columns: 96px;
-  gap: 10px;
-  padding: 14px 20px 4px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  overscroll-behavior-x: contain; /* don't chain edge-swipes into the tab pager */
-  -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent);
-  mask-image: linear-gradient(90deg, #000 90%, transparent);
-}
-.bubbles::-webkit-scrollbar { display: none; }
-.bubble {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  width: 96px;
-  height: 58px;
-  padding: 0 10px;
-  border: none;
-  border-radius: 16px;
-  background: hsla(var(--bh, 200), 80%, 45%, 0.1); /* soft per-bubble pastel tint */
-  color: var(--ink);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  text-align: left;
-  cursor: pointer;
-  transition: background var(--dur-fast), color var(--dur-fast), transform var(--dur-micro);
-}
-.bubble:active { transform: scale(0.95); }
-.bubble-emoji { flex: 0 0 auto; font-size: 19px; line-height: 1; }
-.bubble-label { line-height: 1.15; }
+/* (Phase 3.6 N1: the loud bubble strip was retired — replaced by the quiet
+   LensNav (lens pills + an All-categories menu). Styles live in topnav.css.) */
 
 /* ===== hot-tab body ===== */
 .hot-body {
