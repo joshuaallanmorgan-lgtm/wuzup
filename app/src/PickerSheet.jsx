@@ -31,14 +31,22 @@ export default function PickerSheet({ title, model, noSaves, closing, onPick, on
     return () => window.removeEventListener('keydown', onKey, true)
   }, [onClose])
 
-  const pickRow = (e) => (
-    <button key={keyOf(e)} className="wkb-pick pressable" onClick={() => onPick(e)}>
+  const pickRow = (e, top = false) => (
+    <button key={keyOf(e)} className={'wkb-pick pressable' + (top ? ' wkb-pick-top' : '')} onClick={() => onPick(e)}>
       <CardImg e={e} className="wkb-pick-img" />
       <span className="wkb-pick-main">
         <span className="wkb-pick-title">{e.title}</span>
         <span className="wkb-pick-meta">
           {[daypartOf(e) === 'any' ? 'Anytime' : timeOf(e.start) || null, e.venue].filter(Boolean).join(' · ')}
         </span>
+        {/* 3.74: the honest "why it fits" reason (weather/free/taste) + the single
+            standout pick. Both DRAFT — ⚑ Charles. */}
+        {(e._why || top) && (
+          <span className="wkb-pick-why">
+            {top && <span className="wkb-pick-star">★ Top pick</span>}
+            {e._why && <span className="wkb-pick-fit">{e._why}</span>}
+          </span>
+        )}
         <SponsoredTag e={e} />
       </span>
       <span className="wkb-pick-add" aria-hidden>
@@ -61,14 +69,16 @@ export default function PickerSheet({ title, model, noSaves, closing, onPick, on
           {model.saved.length > 0 && (
             <>
               <div className="wkb-group">From your list ❤️</div>
-              {model.saved.map(pickRow)}
+              {model.saved.map((e) => pickRow(e))}
             </>
           )}
           {noSaves && <div className="wkb-note">♥ save things and they'll show up here first</div>}
           {model.suggestions.length > 0 && (
             <>
               <div className="wkb-group">Top picks 🔥</div>
-              {model.suggestions.map(pickRow)}
+              {/* ★ Top pick only when suggestions ARE the sheet — with a saved
+                  group above, "top of suggestions" reads misleading (review fix). */}
+              {model.suggestions.map((e, i) => pickRow(e, i === 0 && model.saved.length === 0))}
             </>
           )}
           {model.saved.length === 0 && model.suggestions.length === 0 && (

@@ -232,7 +232,7 @@ export default function CalendarView({ events, anchors, wx }) {
         ? '🗓️ You have a plan — tap to open it' // DRAFT
         : selPast
           ? 'A quiet page.' // DRAFT — a blank past day is calm, never a gap
-          : 'Open — tap to plan this day' // DRAFT
+          : 'An open day — tap to plan something' // DRAFT (3.74: warmer than "Open — tap to plan")
 
   return (
     <div className="cal-wrap">

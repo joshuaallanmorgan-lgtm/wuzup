@@ -420,6 +420,19 @@ test('3.73b reality guard: beaches lack ranking signal (browse, not fake-rank)',
   assert.equal(spread, 1, `beaches now have ranking-signal spread (${spread} distinct scores) — a real sourced "Best beaches" ranking is now honest; upgrade the browse (§6.2)`)
 })
 
+// 3.74 — whyFits: an honest plan-builder "why it fits" reason, composed only from
+// real signal (weather > free > taste), never fabricated. Pure — Node-importable.
+test('3.74: whyFits composes honest reasons (weather > free > taste > none)', async () => {
+  const { whyFits } = await import('../app/src/weekend.js')
+  const clear = { emoji: '☀️', rain: 10 }
+  const rain = { emoji: '🌧️', rain: 70 }
+  assert.match(whyFits({ category: 'outdoors' }, { w: clear }), /Clear/, 'outdoor + clear → clear cue')
+  assert.match(whyFits({ category: 'music' }, { w: rain }), /rainy-day/, 'indoor + rainy → rainy-day pick')
+  assert.equal(whyFits({ category: 'music', isFree: true }, { w: clear }), 'Free', 'free (no weather hit) → Free')
+  assert.equal(whyFits({ category: 'music', isFree: false }, { w: null, nudge: () => 12 }), 'Your kind of thing', 'strong taste → taste cue')
+  assert.equal(whyFits({ category: 'music', isFree: false }, { w: null, nudge: () => 0 }), null, 'nothing notable → no chip')
+})
+
 // Phase 3.5 W7 — DEEPEN REC COVERAGE. New OSM classes (disc golf, skate parks,
 // + court density) and real Wikipedia descriptions for wikidata places.
 test('W7 deepen: disc golf + skate parks + court density + Wikipedia descriptions', () => {

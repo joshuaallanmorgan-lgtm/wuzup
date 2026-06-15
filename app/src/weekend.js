@@ -169,6 +169,33 @@ export function pickerModel({ ts, part, upcoming, saved, plan, nudge }) {
   return { saved: savedFit, suggestions }
 }
 
+// 3.74 — an honest "why it fits" reason for a plan-builder pick, composed ONLY
+// from real signal (no fabrication, ban-list clean — no guilt/counts). Priority:
+// a real weather cue for the day > free > a strong taste match. Returns a short
+// chip label or null (no chip beats a weak one). `w` = the day's forecast entry
+// (wx[dateKey(ts)]); `nudge` = tasteNudge. DRAFT labels — ⚑ Charles.
+// the day's weather "mood" off the real forecast — shared by whyFits + the DayPage
+// cue so the two can never desync (3.74 review). Honest thresholds only; null when
+// the forecast is absent or ambiguous (cloudy/fog dead zone → silence, not a weak
+// claim). `w` = wx[dateKey(ts)] = { emoji, hi, rain } (rain may be null).
+export function wxMood(w) {
+  if (!w) return null
+  if ((w.emoji === '☀️' || w.emoji === '⛅') && (w.rain == null || w.rain < 40)) return 'clear'
+  if (w.rain != null && w.rain >= 50) return 'rainy'
+  return null
+}
+
+export function whyFits(e, { w, nudge } = {}) {
+  if (!e) return null
+  const outdoor = e.category === 'outdoors'
+  const mood = wxMood(w)
+  if (outdoor && mood === 'clear') return '☀️ Clear that day'
+  if (!outdoor && mood === 'rainy') return '☔ Good rainy-day pick'
+  if (e.isFree === true) return 'Free'
+  if (nudge && nudge(e) >= 8) return 'Your kind of thing'
+  return null
+}
+
 // --- "Share plan" text (no image generation — a composed, emoji-rich text) ---
 // days = visibleWeekend(anchors); resolve(key, dayTs) → normalized event | null
 // (the day ts lets the resolver drop events that no longer fit that day after

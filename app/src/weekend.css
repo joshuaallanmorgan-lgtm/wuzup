@@ -295,6 +295,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* 3.74: the honest "why it fits" reason row + the single Top-pick standout */
+.wkb-pick-why { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 3px; }
+.wkb-pick-fit { font-size: 11px; font-weight: 700; color: var(--accent-ink); background: rgba(var(--accent-rgb), 0.1); padding: 1px 7px; border-radius: 999px; }
+.wkb-pick-star { font-size: 11px; font-weight: 800; color: var(--ink); background: rgba(var(--accent-rgb), 0.22); padding: 1px 7px; border-radius: 999px; }
+.wkb-pick-top { background: rgba(var(--accent-rgb), 0.05); }
 .wkb-pick-add {
   flex: 0 0 26px;
   width: 26px;

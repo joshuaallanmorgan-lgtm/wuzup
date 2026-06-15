@@ -34,7 +34,7 @@ import { CardImg, EventCard, SponsoredTag } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
 import { tasteNudge } from './taste.js'
 import { usePlaces, isPlaceKey } from './places.js'
-import { daypartOf, fitsDay, pickerModel } from './weekend.js'
+import { daypartOf, fitsDay, pickerModel, whyFits, wxMood } from './weekend.js'
 import { eventsIcs, shareDayText } from './share.js'
 import { FillDayButton } from './DayFillDeck.jsx'
 import {
@@ -74,6 +74,15 @@ export default function DayPage({ ts, events, anchors, wx }) {
   // rendering silence that reads like a bug (⚑U-HZN default caveat).
   const w = wx ? wx[dateKey(ts)] : null
   const wxLine = wxSummary(w)
+  // 3.74: a gentle, honest decision cue off the real forecast (never pressure) —
+  // shares wxMood() with the picker chips so they can't desync (review fix).
+  const wxMoodToday = wxMood(w)
+  const wxCue =
+    wxMoodToday === 'clear'
+      ? 'A good day to get outside.'
+      : wxMoodToday === 'rainy'
+        ? 'Rain likely — indoor plans might be the move.'
+        : null
 
   // ===== agenda: dayMap's ONE-DAY semantics (see header comment) =====
   const agenda = useMemo(() => {
@@ -149,7 +158,7 @@ export default function DayPage({ ts, events, anchors, wx }) {
       day: entry.slots.day && byKey.has(entry.slots.day) ? entry.slots.day : null,
       night: entry.slots.night && byKey.has(entry.slots.night) ? entry.slots.night : null,
     }
-    return pickerModel({
+    const m = pickerModel({
       ts,
       part: picker,
       upcoming,
@@ -157,7 +166,11 @@ export default function DayPage({ ts, events, anchors, wx }) {
       plan: { slots: liveSlots },
       nudge: tasteNudge,
     })
-  }, [picker, ts, upcoming, savedEvents, entry.slots.day, entry.slots.night, byKey])
+    // 3.74: attach an honest "why it fits" reason per candidate (weather/free/taste)
+    const dw = wx ? wx[dateKey(ts)] : null
+    const tag = (e) => ({ ...e, _why: whyFits(e, { w: dw, nudge: tasteNudge }) })
+    return { saved: m.saved.map(tag), suggestions: m.suggestions.map(tag) }
+  }, [picker, ts, upcoming, savedEvents, entry.slots.day, entry.slots.night, byKey, wx])
 
   const assign = (e) => {
     if (!picker) return
@@ -283,7 +296,8 @@ export default function DayPage({ ts, events, anchors, wx }) {
             onClick={() => openSheet(part)}
             aria-label={`Plan the ${part === 'day' ? 'daytime' : 'night'}`}
           >
-            <span className="dpg-empty-txt">Open — tap to plan</span>
+            <span className="dpg-empty-plus" aria-hidden>+</span>
+            <span className="dpg-empty-txt">Add a plan</span>
           </button>
         )}
       </div>
@@ -305,7 +319,10 @@ export default function DayPage({ ts, events, anchors, wx }) {
       </header>
       <div className="pg-body dpg-body">
         {wxLine ? (
-          <div className="dpg-wx">{wxLine}</div>
+          <div className="dpg-wx">
+            {wxLine}
+            {wxCue && <span className="dpg-wx-cue"> · {wxCue}</span>}
+          </div>
         ) : (
           wx && ts > anchors.todayTs && (
             <div className="dpg-wx dpg-wx-far">Too far out for a forecast — it reaches ~16 days</div>
