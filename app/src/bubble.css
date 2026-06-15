@@ -148,6 +148,35 @@
 /* recents chips read as "yours" (ink), suggestions keep the accent voice */
 .srch-sug--recents { justify-content: flex-start; margin-top: 10px; }
 .srch-sug-btn--recent { color: var(--ink); }
+/* Phase 3.5: a recent chip is now a run-button + a ✕ (delete just this one).
+   The chip keeps the .srch-sug-btn pill border; padding moves to the inner
+   buttons so the ✕ has its own tap target. */
+.srch-recent-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  overflow: hidden;
+}
+.srch-recent-run {
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  padding: 9px 6px 9px 15px;
+  cursor: pointer;
+}
+.srch-recent-x {
+  border: none;
+  background: none;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--muted);
+  padding: 9px 13px 9px 7px;
+  cursor: pointer;
+}
+.srch-recent-x:active { opacity: 0.6; }
 
 /* ===== reduced motion: drop the press scales ===== */
 @media (prefers-reduced-motion: reduce) {

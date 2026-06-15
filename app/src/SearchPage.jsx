@@ -31,11 +31,13 @@ import { useNav } from './nav.jsx'
 import { RowFeed } from './cards.jsx'
 import { CATEGORIES } from './categories.js'
 import { usePlaces } from './places.js'
+import { tasteNudge } from './taste.js'
 import {
   clearSearchRecents,
   loadSearchRecents,
   parseQuery,
   recordSearchRecent,
+  removeSearchRecent,
   searchEvents,
   searchPlaces,
 } from './search.js'
@@ -87,7 +89,10 @@ export default function SearchPage({ events, anchors, coords }) {
 
   const parsed = useMemo(() => parseQuery(dq, anchors), [dq, anchors])
   const results = useMemo(
-    () => (parsed.empty ? [] : searchEvents(pool, anchors, dq)),
+    // Phase 3.5: a date-only browse ("tonight"/"friday") may tilt by taste; a
+    // TEXT query stays taste-neutral (searchEvents only applies nudge on the
+    // date-only path). taste read at compute time, like the feed.
+    () => (parsed.empty ? [] : searchEvents(pool, anchors, dq, tasteNudge)),
     [parsed, pool, anchors, dq]
   )
   const placeResults = useMemo(
@@ -212,9 +217,24 @@ export default function SearchPage({ events, anchors, coords }) {
                 </div>
                 <div className="srch-sug srch-sug--recents">
                   {recents.map((r) => (
-                    <button key={r} className="srch-sug-btn srch-sug-btn--recent" onClick={() => run(r)}>
-                      {r}
-                    </button>
+                    /* Phase 3.5: each recent is its own chip + a ✕ to drop just
+                       that one (no need to Clear all). The ✕ stops propagation
+                       so it never runs the query. */
+                    <span key={r} className="srch-sug-btn srch-sug-btn--recent srch-recent-chip">
+                      <button className="srch-recent-run" onClick={() => run(r)}>
+                        {r}
+                      </button>
+                      <button
+                        className="srch-recent-x"
+                        aria-label={'Remove ' + r + ' from recent searches'}
+                        onClick={(ev) => {
+                          ev.stopPropagation()
+                          setRecents(removeSearchRecent(r))
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </span>
                   ))}
                 </div>
               </div>

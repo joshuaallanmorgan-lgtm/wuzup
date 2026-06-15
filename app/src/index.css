@@ -12,19 +12,20 @@
   --hot-2: #ff2d78;
   --hot-rgb: 255, 90, 60;
   --hot2-rgb: 255, 45, 120;
-  /* reward accent (Sprint I1): violet, RESERVED for SEVEN micro-reward moments
+  /* reward accent (Sprint I1): violet, RESERVED for SIX micro-reward moments
      only — the running ledger (amend here when a moment is sanctioned):
        1. save-heart pop (saves.css)
-       2. FMN reveal beat (fmn.css)
-       3. session-recap accent
-       4. primer finish beat
-       5. weekend-plan completion beat (sanctioned Sprint K: completing a plan
+       2. session-recap accent
+       3. primer finish beat
+       4. weekend-plan completion beat (sanctioned Sprint K: completing a plan
           is precisely the achievement this token exists for)
-       6. calibration-deck finish beat (sanctioned Sprint P3 ⚑P1 — deck.css:3)
-       7. planned-day → did-day conversion (sanctioned Sprint U-d ⚑U-V7: the
+       5. calibration-deck finish beat (sanctioned Sprint P3 ⚑P1 — deck.css:3)
+       6. planned-day → did-day conversion (sanctioned Sprint U-d ⚑U-V7: the
           morning-after "I went" beat — calendar.css .cal-recap.lit. One-shot
           per day, PERSISTED in 'day-converted-v1' so it never re-fires on
           reopen; NEVER a badge or a growing counter — the beat, then gone).
+     (Phase 3.5: the old "FMN reveal beat" was retired with the dice — fmn.css
+      deleted — so the ledger dropped from seven moments to six.)
      Its scarcity is its meaning: nowhere else, ever. */
   --reward: #a855f7;
   --reward-rgb: 168, 85, 247;

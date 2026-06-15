@@ -3,7 +3,7 @@
 // (detail/bubble/search/add/weekend openers) comes from useNav() — O6.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { BUBBLES, CITY, DAY, dayLabel, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
-import { useNav, viewIndex } from './nav.jsx'
+import { useNav } from './nav.jsx'
 import { BigOne, EndCap, FreeCard, GemRow, RowFeed, SecHead, TonightCard } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
 import { railReady, tasteNudge, topCategories, useTaste, whenPreference } from './taste.js'
@@ -39,7 +39,7 @@ function heroKicker(now, tonightLeft, whenPref) {
 export default function HotView({ events, anchors, loading, whenPref }) {
   // onSelect identity note: openDetail is useCallback-stable in nav.js, so the
   // memo'd Rows (M1) keep their referential-stability contract intact.
-  const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, goTo } = useNav()
+  const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd } = useNav()
   const scrollRef = useRef(null)
   const evRef = useRef(null)
   const [entered, setEntered] = useState(false) // entrance animations already played?
@@ -276,11 +276,9 @@ export default function HotView({ events, anchors, loading, whenPref }) {
                 </>
               }
             />
-            {/* O5: the Weekend Builder's shelf entry followed the full list to
-                Profile — this is the slim pointer it left behind (DRAFT copy) */}
-            <button className="shelf-to-profile pressable" onClick={() => goTo(viewIndex('profile'))}>
-              Full list + weekend plans → Profile
-            </button>
+            {/* Phase 3.5: the "Full list + weekend plans → Profile" pointer was
+                removed (Josh — Profile owns Your-list + plans; the shelf
+                carousel here is reminder enough). */}
             <div className="carousel">
               {shelf.map(({ e, past }) => (
                 <div key={keyOf(e)} className={'shelf-item' + (past ? ' shelf-past' : '')}>

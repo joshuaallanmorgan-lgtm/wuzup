@@ -99,19 +99,25 @@
   display: grid;
   grid-auto-flow: column;
   grid-template-rows: repeat(2, 58px);
-  grid-auto-columns: 112px;
+  /* 96px (was 112) so FOUR columns fit the 460px frame's 420px content width
+     (4×96 + 3×10 gap = 414) instead of three with the 4th clipped at the edge
+     (Phase 3.5 bubble cut-off fix). The right-edge mask fades the overflow so
+     the strip reads as SCROLLABLE, not cut off — all bubbles stay in the DOM. */
+  grid-auto-columns: 96px;
   gap: 10px;
   padding: 14px 20px 4px;
   overflow-x: auto;
   scrollbar-width: none;
   overscroll-behavior-x: contain; /* don't chain edge-swipes into the tab pager */
+  -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent);
+  mask-image: linear-gradient(90deg, #000 90%, transparent);
 }
 .bubbles::-webkit-scrollbar { display: none; }
 .bubble {
   display: flex;
   align-items: center;
   gap: 7px;
-  width: 112px;
+  width: 96px;
   height: 58px;
   padding: 0 10px;
   border: none;

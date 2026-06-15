@@ -137,10 +137,16 @@ function tokenScore(ix, t) {
   return best
 }
 
-// searchEvents(events, anchors, query) → NEW ranked array (input untouched).
-// events: normalize()d pool (the page passes upcoming + undated). Empty/
-// connector-only/punctuation-only queries → [] (zero-state is the page's job).
-export function searchEvents(events, anchors, query) {
+// searchEvents(events, anchors, query, nudge?) → NEW ranked array (input
+// untouched). events: normalize()d pool (the page passes upcoming + undated).
+// Empty/connector-only/punctuation-only queries → [] (zero-state is the page's
+// job). `nudge` (optional, the page passes tasteNudge) applies ONLY to a
+// DATE-ONLY browse query ("tonight"/"friday" with no text) — that's a discovery
+// browse, so taste may tilt its order (Phase 3.5). A TEXT query stays pure
+// relevance + taste-neutral so an explicit search reads identically on every
+// phone (search.js itself imports no taste — the nudge is injected, like
+// orderDay everywhere else).
+export function searchEvents(events, anchors, query, nudge) {
   const q = parseQuery(query, anchors)
   if (q.empty) return []
   const hits = []
@@ -180,8 +186,9 @@ export function searchEvents(events, anchors, query) {
       fold(a.e.title).localeCompare(fold(b.e.title)) ||
       (a.e.url || '').localeCompare(b.e.url || '')
   )
-  // date-only browse → de-flood (count-preserving permutation, header note above)
-  if (q.days.length && !q.text.length) return orderDay(hits.map((h) => h.e))
+  // date-only browse → de-flood + optional taste tilt (count-preserving
+  // permutation; nudge is the injected tasteNudge when the page supplies it)
+  if (q.days.length && !q.text.length) return orderDay(hits.map((h) => h.e), nudge)
   return hits.map((h) => h.e)
 }
 
@@ -311,4 +318,13 @@ export function recordSearchRecent(query) {
 export function clearSearchRecents() {
   lsRemove(SEARCH_RECENTS_KEY)
   return []
+}
+
+// remove ONE recent (the per-chip ✕, Phase 3.5) — fold-compared so the ✕ on
+// the displayed form removes its stored entry; returns the new list.
+export function removeSearchRecent(query) {
+  const f = fold(query)
+  const next = loadSearchRecents().filter((s) => fold(s) !== f)
+  lsSet(SEARCH_RECENTS_KEY, JSON.stringify(next)) // guarded in storage.js
+  return next
 }

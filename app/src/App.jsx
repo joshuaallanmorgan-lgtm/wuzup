@@ -4,7 +4,7 @@
 // map focus) lives in nav.js (Sprint O6) — components reach it via useNav().
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CITY, DAY, Icon, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, saveMyEvents } from './lib.js'
-import { NavProvider, VIEWS, viewIndex, useNav } from './nav.jsx'
+import { NavProvider, VIEWS, useNav } from './nav.jsx'
 import Primer, { loadPrimerState } from './Primer.jsx'
 import { WxContext } from './cards.jsx'
 import { getForecast } from './weather.js'
@@ -18,7 +18,6 @@ import PlaceDetail from './PlaceDetail.jsx'
 import BubblePage from './BubblePage.jsx'
 import PlaceBubblePage from './PlaceBubblePage.jsx'
 import SearchPage from './SearchPage.jsx'
-import FindMyNight from './FindMyNight.jsx'
 import AddEvent from './AddEvent.jsx'
 import WeekendBuilder from './WeekendBuilder.jsx'
 import DayPage from './DayPage.jsx'
@@ -92,7 +91,6 @@ function Shell() {
     visited,
     page,
     pageClosing,
-    openNight,
     openSettings,
     openDeck,
     closePage,
@@ -282,11 +280,9 @@ function Shell() {
             </button>
           </div>
         )}
-        {active === viewIndex('hot') && norm.length > 0 && (
-          <button className="dice" onClick={openNight} aria-label="Find my night" inert={inertAll}>
-            🎲
-          </button>
-        )}
+        {/* Phase 3.5: the 🎲 Find-My-Night FAB is retired (Josh: remove the dice
+            entirely). The Deck + day-fill deck are the surviving decide-for-me
+            surfaces. */}
         {page && (
           <div className={'subpage' + (pageClosing ? ' subpage-closing' : '')}>
             {page.type === 'bubble' && (
@@ -301,7 +297,6 @@ function Shell() {
             {/* Sprint S: a tapped Locations bubble → its filtered place list */}
             {page.type === 'placebubble' && <PlaceBubblePage bubble={page.bubble} />}
             {page.type === 'search' && <SearchPage events={norm} anchors={anchors} coords={coords} />}
-            {page.type === 'night' && <FindMyNight events={norm} anchors={anchors} coords={coords} />}
             {page.type === 'add' && (
               <AddEvent anchors={anchors} myEvents={myEvents} onAdd={addMine} presetTs={page.ts} />
             )}

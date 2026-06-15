@@ -1198,9 +1198,11 @@ test('Sprint S: Calendar + Profile fold lazy places into their slot resolvers (g
 })
 
 // Sprint U-d — index.css ledger comment amended to record violet moment #7.
-test('U-d: index.css reward ledger records the 7th sanctioned moment', () => {
+test('U-d/3.5: index.css reward ledger names the did-day conversion + count is current', () => {
   const idx = readFileSync(path.join(ROOT, 'app', 'src', 'index.css'), 'utf8')
-  assert.ok(/SEVEN micro-reward moments/.test(idx), 'the --reward ledger comment must now say SEVEN moments')
-  assert.ok(/did-day conversion/.test(idx), 'the ledger must name the planned-day → did-day conversion (#7)')
-  assert.ok(/U-V7/.test(idx), 'the ledger must cite the ⚑U-V7 flag for #7')
+  // Phase 3.5 retired the FMN reveal beat with the dice → ledger dropped 7→6.
+  assert.ok(/SIX micro-reward moments/.test(idx), 'the --reward ledger comment must say SIX moments (FMN beat retired in 3.5)')
+  assert.ok(!/FMN reveal beat \(fmn\.css\)/.test(idx), 'the retired FMN reveal beat must no longer be a live ledger entry')
+  assert.ok(/did-day conversion/.test(idx), 'the ledger must still name the planned-day → did-day conversion')
+  assert.ok(/U-V7/.test(idx), 'the ledger must cite the ⚑U-V7 flag')
 })

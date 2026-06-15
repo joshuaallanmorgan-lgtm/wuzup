@@ -113,7 +113,7 @@ export function NavProvider({ children }) {
 
   // ===== subpage overlay: null | {type:'bubble',bubble} |
   // {type:'placebubble',bubble} (Sprint S) | {type:'search'} |
-  // {type:'night'} | {type:'add',ts} | {type:'weekend'} | {type:'day',ts} |
+  // {type:'add',ts} | {type:'weekend'} | {type:'day',ts} |
   // {type:'settings'} |
   // {type:'interests',from} | {type:'taste',from} (Sprint V — why-feed +
   // mute/boost) | {type:'deck',from} | {type:'lensdeck',lens} —
@@ -155,11 +155,9 @@ export function NavProvider({ children }) {
     setPageClosing(false)
     setPage({ type: 'placebubble', bubble })
   }, [])
-  const openNight = useCallback(() => {
-    clearTimeout(pageTRef.current)
-    setPageClosing(false)
-    setPage({ type: 'night' })
-  }, [])
+  // Phase 3.5: openNight + the {type:'night'} Find-My-Night subpage retired
+  // (Josh: remove the dice). fmnseen.js stays — the Deck + day-fill decks still
+  // use it; recordSignal('fmn') in taste.js is now caller-less (left as a seam).
   // Sprint U-c: openAdd takes an optional day timestamp. From the day screen's
   // "+ add your own" path it carries `ts` (a number) so AddEvent pre-fills that
   // date AND auto-slots the new event into that day on submit (daypartOf
@@ -335,7 +333,6 @@ export function NavProvider({ children }) {
       openBubble,
       openPlaceBubble,
       openSearch,
-      openNight,
       openAdd,
       openWeekend,
       openDay,
@@ -366,7 +363,6 @@ export function NavProvider({ children }) {
       openBubble,
       openPlaceBubble,
       openSearch,
-      openNight,
       openAdd,
       openWeekend,
       openDay,
