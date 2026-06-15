@@ -67,7 +67,7 @@
   background: linear-gradient(180deg, rgba(0, 0, 0, 0) 35%, rgba(0, 0, 0, 0.55) 100%);
 }
 .hero-text { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 20px 16px; color: #fff; }
-.hero-kicker { font-size: 11px; font-weight: 800; letter-spacing: 1.6px; opacity: 0.92; margin-bottom: 5px; }
+.hero-kicker { font-size: 13px; font-weight: 600; letter-spacing: 0.2px; opacity: 0.88; margin-bottom: 4px; } /* 3.72: softened from the tracked ALL-CAPS label to a calm title-case greeting */
 .hero-city { margin: 0; font-size: 34px; font-weight: 900; letter-spacing: -1.1px; line-height: 1; text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45); }
 .hero-sub { margin-top: 6px; font-size: 13px; font-weight: 600; opacity: 0.92; }
 /* Sunlit Coastal Pop (3.71): the Wuzup brand lockup — a small wordmark on the

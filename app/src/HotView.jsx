@@ -13,19 +13,19 @@ import { useRecents } from './recents.js'
 import { DeckThisButton } from './LensDeck.jsx'
 
 // H2 — time-aware hero kicker (replaces the static "WHAT'S HOT · THIS WEEK").
-// Pure (now, tonightLeft, whenPref) → string; plain text, zero animation.
-// tonightLeft = tonightModel's futureN: TIMED events still to come today —
-// at night that IS "still to come"; earlier in the day the claim is widened
-// to "TODAY" so a morning market never gets sold as a tonight count (no
-// fabricated claims). whenPref (from the H1 primer, its only use for now)
-// adds a one-word "YOUR" flavor when the clock matches the stated habit —
-// 'whenever' adds nothing (every night being "yours" is noise). DRAFT COPY.
-function heroKicker(now, tonightLeft, whenPref) {
-  const wd = now.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase()
+// Pure (now, whenPref) → a soft, title-case daypart greeting (e.g. "Friday
+// night"); plain text, zero animation. whenPref (from the H1 primer) adds a
+// one-word "Your" flavor when the clock matches the stated habit — 'whenever'
+// adds nothing (every night being "yours" is noise). 3.72: de-counted +
+// de-shouted (no ALL-CAPS, no raw count); the emotional lead moved to heroLine
+// below, and the real event total still lives in the "See all N events" button.
+// DRAFT copy — ⚑ Charles.
+function heroKicker(now, whenPref) {
+  const wd = now.toLocaleDateString('en-US', { weekday: 'long' })
   const h = now.getHours()
   const dow = now.getDay()
   const night = h >= 17 || h < 5
-  const part = h < 5 ? 'LATE NIGHT' : h < 12 ? 'MORNING' : h < 17 ? 'AFTERNOON' : 'NIGHT'
+  const part = h < 5 ? 'late night' : h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'night'
   const prefHit =
     night &&
     (whenPref === 'weekends'
@@ -33,9 +33,19 @@ function heroKicker(now, tonightLeft, whenPref) {
       : whenPref === 'weeknights'
         ? dow >= 1 && dow <= 4
         : false)
-  const head = (prefHit ? 'YOUR ' : '') + wd + ' ' + part
-  if (tonightLeft > 0) return `${head} — ${tonightLeft} STILL TO COME${night ? '' : ' TODAY'}`
-  return `${head} IN ${CITY.name.toUpperCase()}`
+  return (prefHit ? 'Your ' : '') + wd + ' ' + part
+}
+
+// the emotional lead under the city name — daypart-aware + honest, framed as
+// abundance/invitation (never a countdown or guilt; CALENDAR_BRIEF §7 ban-list
+// clean — softened from "still time to…" per the 3.72 review). DRAFT — ⚑ Charles.
+function heroLine(now, tonightLeft) {
+  const h = now.getHours()
+  const night = h >= 17 || h < 5
+  if (tonightLeft > 0) return night ? 'Lots happening tonight.' : 'Lots happening today.'
+  if (h < 5) return 'Tomorrow’s wide open.'
+  if (h < 17) return 'A good day to get out.'
+  return 'Tomorrow’s wide open.'
 }
 
 export default function HotView({ events, anchors, loading, whenPref }) {
@@ -257,12 +267,12 @@ export default function HotView({ events, anchors, loading, whenPref }) {
                 taste.js) — the editor's dayparts outrank the primer's first-open
                 `when`, 'both'→whenever. Profile reads the same resolver, so the
                 two surfaces can never disagree (the Q2 carry-in, unified). */}
-            {heroKicker(new Date(nowMs), tonight.futureN, whenPreference(taste, whenPref))}
+            {heroKicker(new Date(nowMs), whenPreference(taste, whenPref))}
           </div>
           <h1 className="hero-city">{CITY.name}</h1>
-          {/* "across Tampa Bay", not "near you" — the app never asks for location
-              here, so a proximity claim would be fabricated (DRAFT for Charles) */}
-          <div className="hero-sub">{upcoming.length.toLocaleString('en-US')} events across Tampa Bay</div>
+          {/* 3.72: de-counted — lead with emotion, not "1,198 events". The real
+              total still lives one tap away in the Everything "See all N" button. */}
+          <div className="hero-sub">{heroLine(new Date(nowMs), tonight.futureN)}</div>
         </div>
       </header>
 
@@ -326,7 +336,8 @@ export default function HotView({ events, anchors, loading, whenPref }) {
         )}
         {rail && (
           <section className="sec">
-            <SecHead overline="For you" title="Your kind of night" sub="from your taps — not an algorithm cloud" />
+            {/* DRAFT — ⚑ Charles */}
+            <SecHead overline="For you" title="Your kind of night" sub="Tuned to what you’ve tapped." />
             <div className="carousel">
               {rail.map((e, i) => (
                 <TonightCard key={keyOf(e) + i} e={e} onSelect={onSelect} withDate />
@@ -354,7 +365,10 @@ export default function HotView({ events, anchors, loading, whenPref }) {
         )}
         {freeWeek.length > 0 && (
           <section className={'sec' + ent(3).className} style={ent(3).style}>
-            <SecHead overline="$0 well spent" title="Free" sub={`${freeWeek.length} this week`} onSeeAll={() => seeAll('free')} />
+            {/* DRAFT — ⚑ Charles. "Costs nothing" (not "no ticket needed": a free
+                event can still require a free RSVP/ticket — _free is admission, not
+                ticketless). Sub is a real POV line, not a recount. */}
+            <SecHead overline="Costs nothing" title="Free this week" sub="Worth leaving the house for." onSeeAll={() => seeAll('free')} />
             <div className="carousel">
               {freeWeek.slice(0, 10).map((e, i) => (
                 <FreeCard key={keyOf(e) + i} e={e} onSelect={onSelect} />
