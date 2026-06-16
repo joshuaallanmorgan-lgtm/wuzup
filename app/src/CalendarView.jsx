@@ -196,7 +196,7 @@ export default function CalendarView({ events, anchors }) {
     if (Array.isArray(placeList)) for (const p of placeList) m.set(p.key, p)
     return m
   }, [events, placeList])
-  // [violet beat] moment #7. The PERSISTED one-shot lives in the converted
+  // [violet beat] moment #6. The PERSISTED one-shot lives in the converted
   // ledger (markDayConverted only lights violet on a first 'went'). The glow
   // must survive the answer: markBeen + markDayConverted both re-derive `card`
   // to null in the SAME batched commit, which would unmount the recap before
@@ -387,7 +387,7 @@ export default function CalendarView({ events, anchors }) {
 
       {/* U-d — the two-beat RETURN beat: a single quiet morning-after card for
           the most-recent past PLANNED day, not yet answered. Went → records the
-          attendance (idempotent +2) + the ONE sanctioned violet beat #7; Missed
+          attendance (idempotent +2) + the ONE sanctioned violet beat #6; Missed
           → silent, the day just goes blank. A past REST day is never asked.
           The violet glow (litCard) WINS the render while it plays. ALL COPY IS
           DRAFT for Charles. */}
@@ -400,7 +400,11 @@ export default function CalendarView({ events, anchors }) {
               new --reward minted. `rhythm` is live, so it reflects the just-logged
               'went'. Gated at 2+; a gap never shows here (the beat only fires on a
               logged day). DRAFT copy. */}
-          {rhythm.current >= 2 && <div className="cal-recap-rhythm">🔥 {rhythm.current}-day rhythm</div>}
+          {rhythm.current >= 2 && (
+            <div className="cal-recap-rhythm">
+              <span aria-hidden>🔥</span> {rhythm.current}-day rhythm
+            </div>
+          )}
         </div>
       ) : (
         card && (

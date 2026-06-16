@@ -218,7 +218,7 @@
 /* ===== U-d — the morning-after conversion card (the two-beat RETURN beat).
    A quiet white card, NOT a shout: one warm question, two calm buttons. It
    asks once about one past planned day; answered, it goes away. Nothing red,
-   nothing guilt-toned (ban §7). The ONE violet beat (#7) is a brief border
+   nothing guilt-toned (ban §7). The ONE violet beat (#6) is a brief border
    glow on a 'went' conversion — the same scarce --reward token, used once. */
 .cal-recap {
   margin: 14px 16px 0;
@@ -268,7 +268,7 @@
 .cal-recap-yes:active,
 .cal-recap-no:active { transform: scale(0.97); }
 
-/* the violet beat (#7): a single brief glow at the moment of conversion —
+/* the violet beat (#6): a single brief glow at the moment of conversion —
    never a badge, never a counter. Scarcity is the meaning (index.css ledger). */
 @keyframes calRecapLit {
   0% { box-shadow: 0 0 0 0 rgba(var(--reward-rgb), 0); }

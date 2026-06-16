@@ -555,6 +555,27 @@ test('3.7P-4 gamify: rhythm is graced, best is monotonic, rest counts, honest', 
     [{ dayTs: day(5, 1), state: 'rest' }, { dayTs: day(5, 2), state: null }]
   ).sort((a, b) => a - b)
   assert.deepEqual(rl, [day(5, 1), day(5, 20)], 'restDayList = only state===rest from plans + history (a plan/missed day is not rest)')
+
+  // DST-SAFE stepping — a run straddling spring-forward (Mar 8 2026) + fall-back
+  // (Nov 1 2026) must still chain; ts-86400000 stepping would break on the 23h/25h
+  // midnights (this is exactly what prevMidnight's date math protects, and the
+  // case the June fixtures above never exercised).
+  const springRun = new Set([day(2, 7), day(2, 8), day(2, 9)]) // Mar 7-8-9, across spring-forward
+  assert.equal(G.currentStreak(springRun, [], { todayTs: day(2, 9) }), 3, 'streak chains across spring-forward (DST-safe)')
+  assert.equal(G.bestStreak(springRun, []), 3, 'best chains across spring-forward')
+  assert.equal(G.bestStreak(new Set([day(9, 31), day(10, 1), day(10, 2)]), []), 3, 'best chains across fall-back (Oct 31–Nov 2, DST-safe)')
+
+  // defensive: null / non-array / no-anchors never throw
+  assert.equal(G.currentStreak(null, null, null), 0)
+  assert.equal(G.bestStreak(undefined, 'not-an-array'), 0)
+  assert.equal(G.streakStatus(new Set(), null, anchors), 'none')
+
+  // the bundle reflects its parts
+  const sum = G.rhythmSummary(new Set([day(5, 14), day(5, 15)]), [], anchors)
+  assert.equal(sum.current, 2, 'bundle current')
+  assert.equal(sum.best, 2, 'bundle best')
+  assert.equal(sum.total, 2, 'bundle total')
+  assert.equal(sum.status, 'active', 'bundle status (logged today)')
 })
 
 // Phase 3.6 N1 — the quiet top-nav. The lens/category split MUST partition the
