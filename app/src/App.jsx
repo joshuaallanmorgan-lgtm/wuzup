@@ -275,7 +275,7 @@ function Shell() {
             Adding a tab = one VIEWS entry (nav.jsx) + one section here. */}
         <div className="pager" ref={attachPager} onScroll={onPagerScroll} inert={inertAll}>
           <section className="page page-hot">
-            <HotView events={norm} anchors={anchors} loading={loading} whenPref={primer?.when ?? null} />
+            <HotView events={norm} anchors={anchors} loading={loading} wx={wx} whenPref={primer?.when ?? null} />
           </section>
           <section className="page">
             {/* Sprint S: the Locations tab — lazy-mounted like the rest; its own

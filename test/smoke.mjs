@@ -1043,11 +1043,12 @@ test('V1 (Q2 carry-in): whenPreference is the ONE resolver — editor outranks p
   // nothing set + skipped primer → null (no claim)
   taste.resetTaste()
   assert.equal(taste.whenPreference(taste.getProfile(), null), null, 'no editor + no primer → null (claims nothing)')
-  // both ProfileView AND HotView must call the ONE resolver (no duplicated patch)
+  // ProfileView is the surface that SHOWS when-preference, so it must use the ONE
+  // resolver (no duplicated patch). 3.7P-23b: HotView's hero greeting moved to a
+  // plain time-of-day greeting ("Good morning") per the §N benchmark — it no
+  // longer surfaces when-preference, so it correctly no longer calls the resolver.
   const profSrc = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
-  const hotSrc = readFileSync(path.join(ROOT, 'app', 'src', 'HotView.jsx'), 'utf8')
   assert.ok(/whenPreference\(/.test(profSrc), 'ProfileView must use the whenPreference resolver')
-  assert.ok(/whenPreference\(/.test(hotSrc), 'HotView must use the whenPreference resolver')
 })
 
 test('V3: setCategoryPref keeps boost/mute disjoint + is ordering-only (no catScores touch)', () => {
@@ -1265,6 +1266,19 @@ test('3.7P-23/25 wiring: Home compact sections + warm AA-safe guide tiles', () =
   assert.ok(/\.intent-tile-pov \{[^}]*#5f574e/s.test(cards), '.intent-tile-pov uses the AA-safe color (not --muted) over the gradient')
   const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
   assert.ok(/By activity"\s+sub=/.test(loc), 'the Spots "By activity" header has a POV sub')
+})
+
+test('3.7P-23b §N Home: "Your next days" stack + warm greeting + weather line', () => {
+  const hot = readFileSync(path.join(ROOT, 'app', 'src', 'HotView.jsx'), 'utf8')
+  assert.ok(/<NextDays /.test(hot), 'HotView renders the "Your next days" planning stack')
+  assert.ok(/heroKicker\(new Date\(nowMs\)\)/.test(hot), 'the hero greeting is time-of-day (no whenPref)')
+  assert.ok(/wxLine \|\| heroLine/.test(hot), 'the hero sub leads with the real weather line when loaded')
+  const nd = readFileSync(path.join(ROOT, 'app', 'src', 'NextDays.jsx'), 'utf8')
+  assert.ok(/loadDayPlans/.test(nd) && /dayEntryFor/.test(nd), 'NextDays reads the real day-plan store')
+  assert.ok(/wxMood|CONDITION/.test(nd), 'NextDays derives its weather line from the real forecast only')
+  assert.ok(/\?\? emptyDay\(\)/.test(nd), 'an unplanned day falls back to emptyDay (no null crash)')
+  assert.ok(/openDay\(/.test(nd), 'a day card opens its DayPage (the Discover→Plan bridge)')
+  assert.ok(/void page/.test(nd), 'plan-state re-reads on the subpage edge (stays fresh)')
 })
 
 test('3.7P-39 review: every hidden-gem reader honors NON_GEM_RE (no off-shelf "gem" claim)', () => {

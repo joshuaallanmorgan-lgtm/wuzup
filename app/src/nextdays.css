@@ -1,0 +1,73 @@
+/* nextdays.css — 3.7P-23b "Your next days" planning-card stack (§N screen 1). */
+.nextdays {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 20px 8px;
+}
+.nd-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  padding: 13px 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.nd-wx {
+  flex: 0 0 auto;
+  font-size: 26px;
+  line-height: 1;
+  width: 30px;
+  text-align: center;
+}
+.nd-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nd-day {
+  font-size: 15px;
+  font-weight: 750;
+  letter-spacing: -0.2px;
+  color: var(--ink);
+}
+.nd-sub {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* the planner CTA — dark ink on Sunset Gold (white fails AA, D.0 binding) */
+.nd-cta {
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.1px;
+  color: var(--ink);
+  background: var(--accent);
+  border-radius: 999px;
+  padding: 8px 13px;
+  box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.26);
+}
+.nd-chev {
+  flex: 0 0 auto;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+}
+.nd-chev svg {
+  width: 18px;
+  height: 18px;
+  transform: rotate(180deg); /* Icon.chevron points back/left; flip to a forward cue */
+}

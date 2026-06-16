@@ -4,37 +4,23 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { BUBBLES, CAT_BUBBLES, CITY, LENS_BUBBLES, NON_GEM_RE, dayLabel, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
 import LensNav from './LensNav.jsx'
+import NextDays from './NextDays.jsx'
 import { curateFeed } from './curate.js'
 import { useNav } from './nav.jsx'
 import { BigOne, CompactRow, EndCap, GemRow, IntentTile, RowFeed, SecHead, TonightCard } from './cards.jsx'
 import { GUIDES, useGuides, watchGuideActive, resolveWatchGuide } from './guides.js'
 import { shelfItems, useSaves } from './saves.js'
-import { railReady, tasteNudge, topCategories, useTaste, whenPreference } from './taste.js'
+import { railReady, tasteNudge, topCategories, useTaste } from './taste.js'
 import { useRecents } from './recents.js'
+import { CONDITION, dateKey } from './weather.js'
 import { DeckThisButton } from './LensDeck.jsx'
 
-// H2 — time-aware hero kicker (replaces the static "WHAT'S HOT · THIS WEEK").
-// Pure (now, whenPref) → a soft, title-case daypart greeting (e.g. "Friday
-// night"); plain text, zero animation. whenPref (from the H1 primer) adds a
-// one-word "Your" flavor when the clock matches the stated habit — 'whenever'
-// adds nothing (every night being "yours" is noise). 3.72: de-counted +
-// de-shouted (no ALL-CAPS, no raw count); the emotional lead moved to heroLine
-// below, and the real event total still lives in the "See all N events" button.
-// DRAFT copy — ⚑ Charles.
-function heroKicker(now, whenPref) {
-  const wd = now.toLocaleDateString('en-US', { weekday: 'long' })
+// 3.7P-23b (§N): a warm time-of-day greeting ("Good morning" / "Good evening")
+// replaces the old daypart kicker — the personal top of Home. Pure(now); the
+// weather line below carries the day's real forecast.
+function heroKicker(now) {
   const h = now.getHours()
-  const dow = now.getDay()
-  const night = h >= 17 || h < 5
-  const part = h < 5 ? 'late night' : h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'night'
-  const prefHit =
-    night &&
-    (whenPref === 'weekends'
-      ? dow === 5 || dow === 6 || dow === 0
-      : whenPref === 'weeknights'
-        ? dow >= 1 && dow <= 4
-        : false)
-  return (prefHit ? 'Your ' : '') + wd + ' ' + part
+  return h < 5 ? 'Still up' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
 }
 
 // the emotional lead under the city name — daypart-aware + honest, framed as
@@ -49,7 +35,7 @@ function heroLine(now, tonightLeft) {
   return 'Tomorrow’s wide open.'
 }
 
-export default function HotView({ events, anchors, loading, whenPref }) {
+export default function HotView({ events, anchors, loading, wx }) {
   // onSelect identity note: openDetail is useCallback-stable in nav.js, so the
   // memo'd Rows (M1) keep their referential-stability contract intact.
   const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, openGuide } = useNav()
@@ -246,6 +232,13 @@ export default function HotView({ events, anchors, loading, whenPref }) {
       </div>
     ) : undefined
 
+  // 3.7P-23b: the hero weather line — today's real forecast (emoji · condition ·
+  // high), null until the 16-day fetch resolves so the hero never shows a guess.
+  const todayWx = wx ? wx[dateKey(anchors.todayTs)] : null
+  const wxLine = todayWx
+    ? `${todayWx.emoji} ${CONDITION[todayWx.emoji] || 'Forecast'}${todayWx.hi != null ? ' · ' + todayWx.hi + '°' : ''}`
+    : null
+
   const scrollToList = (el) => {
     const sc = scrollRef.current
     if (sc && el) sc.scrollTo({ top: Math.max(el.offsetTop - 64, 0), behavior: 'smooth' })
@@ -273,18 +266,13 @@ export default function HotView({ events, anchors, loading, whenPref }) {
             <span className="hero-brand-dot" aria-hidden />
             Wuzup
           </div>
-          {/* H2: time-aware greeting (tracks nowMs — re-seeded on visibility + every 10 min) */}
-          <div className="hero-kicker">
-            {/* Sprint V1: when-preference is ONE resolver now (whenPreference in
-                taste.js) — the editor's dayparts outrank the primer's first-open
-                `when`, 'both'→whenever. Profile reads the same resolver, so the
-                two surfaces can never disagree (the Q2 carry-in, unified). */}
-            {heroKicker(new Date(nowMs), whenPreference(taste, whenPref))}
-          </div>
+          {/* 3.7P-23b (§N): a warm time-of-day greeting + the day's real weather line */}
+          <div className="hero-kicker">{heroKicker(new Date(nowMs))}</div>
           <h1 className="hero-city">{CITY.name}</h1>
-          {/* 3.72: de-counted — lead with emotion, not "1,198 events". The real
-              total still lives one tap away in the Everything "See all N" button. */}
-          <div className="hero-sub">{heroLine(new Date(nowMs), tonight.futureN)}</div>
+          {/* weather line when the forecast is loaded (the §N top), else the
+              de-counted abundance lead (3.72). The real event total still lives one
+              tap away in the Everything "See all N" button. */}
+          <div className="hero-sub">{wxLine || heroLine(new Date(nowMs), tonight.futureN)}</div>
         </div>
       </header>
 
@@ -301,6 +289,13 @@ export default function HotView({ events, anchors, loading, whenPref }) {
       />
 
       <div className="hot-body">
+        {/* 3.7P-23b (§N screen 1): the headline planning stack — your next three
+            days at a glance (real forecast + plan-state + a planner CTA). Leads
+            the Home feed: discover happens below, but "what about MY days" is first. */}
+        <section className="sec">
+          <SecHead overline="Plan ahead" title="Your next days" />
+          <NextDays anchors={anchors} wx={wx} />
+        </section>
         {/* 3.7P-10 → 3.7P-20: Guides as the INTENT FRAME under the hero, now an
             ALL-VISIBLE grid of the SHARED IntentTile (identical format to the
             Spots "What are you up for?" activities). activeWatch = in-window timely
