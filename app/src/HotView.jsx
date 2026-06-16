@@ -6,7 +6,7 @@ import { BUBBLES, CAT_BUBBLES, CITY, LENS_BUBBLES, dayLabel, hotDesc, keyOf, ord
 import LensNav from './LensNav.jsx'
 import { curateFeed } from './curate.js'
 import { useNav } from './nav.jsx'
-import { BigOne, EndCap, GemRow, IntentTile, RowFeed, SecHead, TonightCard } from './cards.jsx'
+import { BigOne, CompactRow, EndCap, GemRow, IntentTile, RowFeed, SecHead, TonightCard } from './cards.jsx'
 import { GUIDES, useGuides, watchGuideActive, resolveWatchGuide } from './guides.js'
 import { shelfItems, useSaves } from './saves.js'
 import { railReady, tasteNudge, topCategories, useTaste, whenPreference } from './taste.js'
@@ -365,9 +365,12 @@ export default function HotView({ events, anchors, loading, whenPref }) {
         {gems.length > 0 && (
           <section className={'sec' + ent(2).className} style={ent(2).style}>
             <SecHead overline="Under the radar" title="Hidden Gems" sub={`${gems.length} hand-scored finds`} />
-            <div className="gems">
+            {/* 3.7P-23: secondary Home sections go to the dense CompactRow (the §N
+                reference look); the Everything feed below keeps big Rows (discover
+                = visual; the O.1 "Row on Home" contract is the MAIN feed). */}
+            <div className="feed feed--compact">
               {gems.slice(0, 3).map((e, i) => (
-                <GemRow key={keyOf(e) + i} e={e} onSelect={onSelect} />
+                <CompactRow key={keyOf(e) + i} e={e} onSelect={onSelect} />
               ))}
             </div>
             <button className="gems-more" onClick={() => scrollToList(evRef.current)}>
@@ -393,9 +396,9 @@ export default function HotView({ events, anchors, loading, whenPref }) {
             {/* H3: placed LOW on purpose — after the taste rail, before Everything
                 (3.7P-10 cut the Free carousel that used to sit above it) */}
             <SecHead overline="Pick up where you left off" title="Recently viewed" />
-            <div className="gems">
+            <div className="feed feed--compact">
               {recents.map((e, i) => (
-                <GemRow key={keyOf(e) + i} e={e} onSelect={onSelect} />
+                <CompactRow key={keyOf(e) + i} e={e} onSelect={onSelect} />
               ))}
             </div>
           </section>
