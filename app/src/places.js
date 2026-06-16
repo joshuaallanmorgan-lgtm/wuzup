@@ -14,7 +14,7 @@
 // amenities[]?, isFree?, fee?, hours?, url?, phone?, designation?, operator?,
 // sources[], srcCount, osm?, wikidata?, aliases?, hiddenScore, hidden }.
 import { useEffect, useSyncExternalStore } from 'react'
-import { milesBetween } from './lib.js'
+import { milesBetween, normalizeTitle } from './lib.js'
 
 // normalize a raw place into the UI shape the shared card/save/taste/recents
 // seams expect — the ONLY adaptation is aliasing name→title and address→venue
@@ -32,7 +32,7 @@ export function normalizePlace(raw) {
   return {
     ...raw,
     kind: 'place',
-    title: name, // cards.jsx reads e.title — alias so a place renders as a card
+    title: normalizeTitle(name), // cards.jsx reads e.title — alias so a place renders as a card (3.7P-35: clean SHOUTING/parens; gov/OSM names are already proper-case so this is mostly a no-op here)
     venue: typeof raw.address === 'string' && raw.address ? raw.address : null,
     // the pipeline already maps placeType → the 12-category taxonomy; default
     // defensively to outdoors (the overwhelming majority) if ever absent

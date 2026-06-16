@@ -1148,6 +1148,34 @@ test('O1 lazy mounting: non-Events tabs gate on visited, boot seeds one tab', ()
 })
 
 // ============================================================
+// 3.7P-35 — title normalization (Decision Layer Phase A). Conservative cleanup:
+// SHOUTING titles → Title Case, empty parens removed, a trailing venue-dup
+// stripped — but a proper/mixed-case title is left EXACTLY as authored (so real
+// names like "MacFarlane Park" / intentional intercaps are never mangled).
+// ============================================================
+test('3.7P-35 normalizeTitle: SHOUTING → Title Case, parens/venue cleanup, mixed-case untouched', () => {
+  const nt = lib.normalizeTitle
+  // mixed/proper case is sacred — never touched
+  assert.equal(nt('MacFarlane Park Social'), 'MacFarlane Park Social', 'mixed-case proper names pass through verbatim')
+  assert.equal(nt('A Night at the Opera'), 'A Night at the Opera', 'already-titled text is untouched')
+  // fully-uppercase (shouting) gets smart Title Case
+  assert.equal(nt('LIVE MUSIC AT THE BAR'), 'Live Music at the Bar', 'ALL-CAPS → Title Case, small words lowercased mid-title')
+  assert.equal(nt('DJ NIGHT WITH FRIENDS'), 'DJ Night with Friends', 'known acronyms (DJ) keep caps; small word "with" lowercases mid-title')
+  assert.equal(nt('FIFA WORLD CUP 2026'), 'FIFA World Cup 2026', 'allowlisted acronym + numeric token preserved')
+  assert.equal(nt('SUNSET 5K RUN'), 'Sunset 5K Run', 'alphanumeric token (5K) preserved')
+  // whitespace + empty-paren cleanup (runs on any case)
+  assert.equal(nt('Jazz Night   ()'), 'Jazz Night', 'empty parens + extra whitespace collapsed')
+  // trailing venue duplicate stripped
+  assert.equal(nt('Trivia Night - The Bilmar', 'The Bilmar'), 'Trivia Night', 'a trailing " - venue" duplicate is removed')
+  assert.equal(nt('Trivia Night @ The Bilmar', 'The Bilmar'), 'Trivia Night', 'a trailing " @ venue" duplicate is removed')
+  // a title that IS only the venue must not be emptied
+  assert.equal(nt('The Bilmar', 'The Bilmar'), 'The Bilmar', 'venue-strip never empties the whole title')
+  // non-strings + blanks survive
+  assert.equal(nt(''), '', 'empty string stays empty')
+  assert.equal(nt(undefined), undefined, 'non-string passes through')
+})
+
+// ============================================================
 // Sprint S — the LOCATIONS layer: places.js pure logic + the generated
 // places.json the tab consumes. Places are a SEPARATE store from events.
 // ============================================================

@@ -240,6 +240,44 @@ export function makeAnchors(now = new Date()) {
 }
 
 // --- schema v2 normalization (defensive: fields may be absent in the file on disk) ---
+// 3.7P-35 — title normalization: raw scraped titles often SHOUT, carry empty
+// parens, or repeat the venue. normalizeTitle cleans them CONSERVATIVELY — it only
+// rewrites a title that is fully UPPERCASE (no lowercase letter at all), so a
+// proper-case name ("MacFarlane Park", "Ye") is never mangled. Pure + Node-safe.
+const TITLE_SMALL = new Set(['a', 'an', 'and', 'at', 'but', 'by', 'for', 'from', 'in', 'of', 'on', 'or', 'the', 'to', 'vs', 'with'])
+const TITLE_ACRONYM = new Set(['DJ', 'BBQ', 'NYE', 'EDM', 'VIP', 'FIFA', 'USA', 'US', 'UK', 'FC', 'EP', 'LP', 'BYOB', 'MLK', 'NYC', 'DIY', 'RSVP', 'AAPI', 'LGBTQ', 'HBCU', 'UFC', 'NBA', 'NFL', 'MLB', 'NASA', 'IPA'])
+function smartTitleCase(s) {
+  const words = s.split(/\s+/)
+  return words
+    .map((w, i) => {
+      const bare = w.replace(/[^A-Za-z0-9]/g, '')
+      if (!bare) return w
+      const up = bare.toUpperCase()
+      if (TITLE_ACRONYM.has(up)) return w // keep known acronyms (FIFA, DJ…) as-is
+      if (/\d/.test(w)) return w // numerics/alphanumerics (5K, U2, 90s)
+      const low = w.toLowerCase()
+      if (i > 0 && TITLE_SMALL.has(low)) return low // small connectors stay lowercase mid-title
+      return low.charAt(0).toUpperCase() + low.slice(1)
+    })
+    .join(' ')
+}
+export function normalizeTitle(raw, venue) {
+  if (typeof raw !== 'string') return raw
+  let t = raw.replace(/\s+/g, ' ').trim()
+  if (!t) return t
+  // strip a trailing " - venue" / " @ venue" / " | venue" duplicate of the venue
+  const v = typeof venue === 'string' ? venue.trim() : ''
+  if (v) {
+    const esc = v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    t = t.replace(new RegExp('\\s*[-|@·]\\s*' + esc + '\\s*$', 'i'), '').trim() || t
+  }
+  // empty parens + collapsed whitespace
+  t = t.replace(/\(\s*\)/g, '').replace(/\s{2,}/g, ' ').trim()
+  // ALL-CAPS (shouting) → smart Title Case; mixed/proper case is left untouched
+  if (/[A-Z]/.test(t) && !/[a-z]/.test(t)) t = smartTitleCase(t)
+  return t.trim()
+}
+
 export function normalize(raw, anchors) {
   const tags = Array.isArray(raw.tags) ? raw.tags : []
   const sources = Array.isArray(raw.sources) && raw.sources.length ? raw.sources : raw.source ? [raw.source] : []
@@ -256,7 +294,10 @@ export function normalize(raw, anchors) {
   // snapshot can be a day old and must never override the runtime range math
   const _tonight = _day != null && anchors.todayTs >= _day && anchors.todayTs <= (_endDay ?? _day)
   const _weekend = _day != null && _day <= anchors.wkEndTs && (_endDay ?? _day) >= anchors.wkStartTs
-  return { ...raw, tags, sources, hotScore, buzz, category, sponsored, _day, _endDay, _t, _free, _tonight, _weekend, _ongoing }
+  // 3.7P-35: clean the scraped title (override raw's pass-through). Conservative —
+  // only SHOUTING titles get Title-cased; mixed-case is left exactly as authored.
+  const title = normalizeTitle(raw.title, raw.venue)
+  return { ...raw, title, tags, sources, hotScore, buzz, category, sponsored, _day, _endDay, _t, _free, _tonight, _weekend, _ongoing }
 }
 // 'ongoing' events show "Ongoing" instead of a stale start date/time; a timed
 // start that already passed TODAY reads "Started 7:00 PM" — the card stays
