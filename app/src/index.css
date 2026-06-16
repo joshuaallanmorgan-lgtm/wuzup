@@ -101,3 +101,12 @@ h1, h2,
 .deck-kicker-title, .ldk-kicker-title, .tn-sheet-title {
   font-family: 'Kumbh Sans', 'Inter', system-ui, -apple-system, sans-serif;
 }
+
+/* 3.7P-1: honor reduced-transparency — drop the frosted-glass sheets to opaque cream */
+@media (prefers-reduced-transparency: reduce) {
+  .tn-sheet, .wkb-sheet {
+    background: var(--bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

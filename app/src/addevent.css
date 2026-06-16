@@ -123,7 +123,7 @@ textarea.ae-input { height: auto; min-height: 96px; padding: 11px 14px; resize: 
   font-weight: 800;
   letter-spacing: 0.2px;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(var(--accent-rgb), 0.3);
+  box-shadow: 0 6px 20px rgba(var(--accent-rgb), 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4); /* 3.7P-1: tactile top-highlight */
   transition: transform var(--dur-micro), filter var(--dur-fast);
 }
 .ae-submit:active { transform: scale(0.98); filter: brightness(0.95); }

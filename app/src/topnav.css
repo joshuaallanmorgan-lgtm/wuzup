@@ -80,7 +80,11 @@
   display: flex;
   flex-direction: column;
   max-height: 72svh;
-  background: var(--bg);
+  /* 3.7P-1: frosted glass — the sheet floats over a blurred backdrop (elite). The
+     rgba cream is the no-backdrop-filter fallback; reduced-transparency resets it. */
+  background: rgba(250, 248, 245, 0.82);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-radius: 22px 22px 0 0;
   box-shadow: 0 -10px 40px rgba(26, 20, 16, 0.24); /* elevation — matches the app's PickerSheet */
   animation: tnUp 280ms var(--ease-emphasis);

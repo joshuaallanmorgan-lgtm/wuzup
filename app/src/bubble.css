@@ -41,7 +41,7 @@
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(var(--accent-rgb), 0.28);
+  box-shadow: 0 4px 14px rgba(var(--accent-rgb), 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.4); /* 3.7P-1: tactile top-highlight */
 }
 .guide-plan-cta:active { filter: brightness(0.96); }
 /* 3.75b: quiet provenance line on a GuidePage (a Watch Guide discloses it's
