@@ -63,6 +63,16 @@
      ambient layers for depth. Controls + list rows keep their hairline. */
   --shadow-card: 0 1px 2px rgba(26, 20, 16, 0.05), 0 2px 10px rgba(26, 20, 16, 0.04),
     0 8px 24px rgba(26, 20, 16, 0.06);
+  /* 3.7P-1: the FramedImage aspect-ratio language (FB-04/05). The shared image
+     framing (art-floor fallback, hairline frame, fade-in, VT morph) already
+     lives in CardImg + .imgbox; these name the ratios so every card type — and
+     the coming multi-city cities — frame to one system. --card = the widescreen
+     carousel tile, --detail = the full-bleed feature card, --thumb = square
+     thumbs/gems. (Square fixed-px tiles already equal --thumb; SpotCard keeps a
+     slightly squarer place ratio on purpose.) */
+  --ar-card: 16 / 9;
+  --ar-detail: 4 / 5;
+  --ar-thumb: 1 / 1;
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;

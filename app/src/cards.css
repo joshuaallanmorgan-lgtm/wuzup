@@ -146,7 +146,7 @@
   text-align: left;
   cursor: pointer;
 }
-.tcard-img { width: 280px; height: 157px; border-radius: 14px; }
+.tcard-img { width: 280px; aspect-ratio: var(--ar-card); border-radius: 14px; } /* 3.7P-1: framing token (was 280×157, identical 16:9) */
 .tcard-title {
   margin-top: 8px;
   font-size: 15px;
@@ -203,7 +203,7 @@
   position: relative;
   width: calc(100% - 40px);
   margin: 0 20px;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: var(--ar-detail); /* 3.7P-1: framing token (was 4 / 5) */
   border: none;
   border-radius: 20px;
   overflow: hidden;
