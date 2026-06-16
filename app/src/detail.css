@@ -216,13 +216,15 @@ a.d-row { text-decoration: none; color: inherit; }
   line-height: 1.5;
 }
 
-/* ===== "Link copied ✓" toast (above the fixed CTA, never blocks taps) ===== */
+/* ===== "Link copied ✓" toast (own fixed overlay; sits above the bottom CTA bar,
+   never blocks taps) — 3.7P-22 made the CTA a static flex bottom bar, so the toast
+   clears it via its own fixed offset, not a z-index race ===== */
 .detail-toast {
   position: fixed;
   left: 50%;
   bottom: calc(98px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
-  z-index: 2030; /* above the CTA (2010) */
+  z-index: 2030;
   padding: 9px 16px;
   border-radius: 999px;
   background: rgba(21, 23, 28, 0.92);
