@@ -205,12 +205,13 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   gap: 10px;
-  align-items: start;
+  align-items: stretch; /* 3.7P-20 review: equal-height tiles across a row (flush bottoms) */
 }
 .intent-tile {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start; /* content pins to the top of the stretched tile */
   gap: 7px;
   padding: 13px 8px 12px;
   background: var(--card);
@@ -226,15 +227,30 @@
 .intent-tile-emoji {
   width: 42px;
   height: 42px;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 22px;
   border-radius: 50%;
-  background: hsl(var(--ih, 30) 62% 86%);
-  box-shadow: inset 0 0 0 1px hsl(var(--ih, 30) 45% 78%);
+  /* 3.7P-20 review: 86%→80% L (+ ring 78%→70%) so the per-hue tint actually
+     separates from the near-white Parchment card (pale hues were near-invisible) */
+  background: hsl(var(--ih, 30) 60% 80%);
+  box-shadow: inset 0 0 0 1px hsl(var(--ih, 30) 50% 70%);
 }
-.intent-tile-label { font-size: 12px; font-weight: 700; color: var(--ink); line-height: 1.2; letter-spacing: -0.1px; }
+/* 3.7P-20 review: clamp the label (2 lines) so a long one ("Parks & green space",
+   "Free outdoor reset") doesn't tower over a short one ("Beaches") in the grid */
+.intent-tile-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+  letter-spacing: -0.1px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 .intent-tile-pov {
   font-size: 11px;
   font-weight: 500;
