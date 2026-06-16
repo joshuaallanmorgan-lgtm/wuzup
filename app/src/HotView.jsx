@@ -391,7 +391,8 @@ export default function HotView({ events, anchors, loading, whenPref }) {
         )}
         {recents.length > 0 && (
           <section className="sec">
-            {/* H3: placed LOW on purpose — after Free, before Everything */}
+            {/* H3: placed LOW on purpose — after the taste rail, before Everything
+                (3.7P-10 cut the Free carousel that used to sit above it) */}
             <SecHead overline="Pick up where you left off" title="Recently viewed" />
             <div className="gems">
               {recents.map((e, i) => (
