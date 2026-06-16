@@ -34,7 +34,7 @@ const fmtUpdated = (ms) => {
   return `${day} · ${time}`
 }
 
-export default function SettingsPage({ events, dataAt, primer, onPrimerDone }) {
+export default function SettingsPage({ events, dataAt, primer, onPrimerDone, locationAllowed, onAllowLocation }) {
   const { closePage: onClose, openInterests, goTo } = useNav()
   const [retaking, setRetaking] = useState(false)
   const [arming, setArming] = useState(false) // reset's two-step confirm
@@ -147,6 +147,26 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone }) {
         {/* ===== 4 · YOUR DATA & PRIVACY ===== */}
         <section className="st-sec">
           <div className="st-over">Your data &amp; privacy</div>
+          {/* 3.7P-21: location is opt-in HERE (the inline "use my location" gate on
+              Spots was retired). Granting it surfaces "Near you" everywhere,
+              proximity-sorted; on-device only, the browser asks once. */}
+          <div className="st-rows">
+            <button
+              className="st-row st-row-toggle"
+              onClick={() => onAllowLocation(!locationAllowed)}
+              aria-pressed={!!locationAllowed}
+            >
+              <span className="st-row-main">
+                <span className="st-row-title">Allow location</span>
+                <span className="st-row-sub">
+                  Surfaces “Near you” spots, sorted by distance. On-device only — the browser asks once.
+                </span>
+              </span>
+              <span className={'st-switch' + (locationAllowed ? ' on' : '')} aria-hidden>
+                <span className="st-switch-knob" />
+              </span>
+            </button>
+          </div>
           <div className="st-card">
             <div className="st-line">
               {evCount} events from {srcCount} local source{srcCount === 1 ? '' : 's'}

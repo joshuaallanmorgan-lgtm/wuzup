@@ -35,7 +35,7 @@ function placeOrder(list, taste) {
   )
 }
 
-export default function LocationsView({ coords, requestCoords }) {
+export default function LocationsView({ coords }) {
   const { openDetail: onSelect, openPlaceBubble, openGuide } = useNav()
   // FB-03 (3.7P-7): the Spots page shows SPOTS + MIXED guides (Beach day, Free
   // outdoor reset) — the place-domain guides.
@@ -165,24 +165,17 @@ export default function LocationsView({ coords, requestCoords }) {
           </div>
         </section>
 
-        {/* Near you — persistent distance scope; honest prompt without a fix */}
-        {coords && near.length > 0 ? (
+        {/* 3.7P-21: "Near you" surfaces ONLY with a location fix. The inline
+            "use my location" gate is retired — location is opt-in once in
+            Settings → Data & privacy; denied/unset = this section is simply
+            absent (honest, no nag). */}
+        {coords && near.length > 0 && (
           <section className="sec">
             <SecHead overline="Closest to you" title="Near you" sub={`${near.length} within reach`} />
             <div className="carousel">
               {near.map((p) => (
                 <SpotCard key={p.key} p={p} onSelect={onSelect} />
               ))}
-            </div>
-          </section>
-        ) : (
-          <section className="sec">
-            <SecHead overline="Closest to you" title="Near you" />
-            <div className="loc-locate">
-              <div className="loc-locate-txt">Tampa Bay's big — find the spots nearest you.</div>
-              <button className="loc-locate-btn" onClick={() => requestCoords && requestCoords()}>
-                📍 Use my location
-              </button>
             </div>
           </section>
         )}

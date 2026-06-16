@@ -8,6 +8,7 @@ import { NavProvider, VIEWS, useNav } from './nav.jsx'
 import Primer, { loadPrimerState } from './Primer.jsx'
 import { WxContext } from './cards.jsx'
 import { getForecast } from './weather.js'
+import { lsGet, lsSet } from './storage.js'
 import HotView from './HotView.jsx'
 import LocationsView from './LocationsView.jsx'
 import MapView from './MapView.jsx'
@@ -75,6 +76,10 @@ function Shell() {
   const [loading, setLoading] = useState(true)
   const [bootVis, setBootVis] = useState(false) // boot overlay gated 300ms (no flash on fast loads)
   const [coords, setCoords] = useState(null)
+  // 3.7P-21: location is opt-in via Settings → Data & privacy (no inline gate).
+  // The pref persists; on a later boot we re-fetch silently (the browser already
+  // remembers the grant) so "Near you" surfaces without re-prompting each visit.
+  const [locAllowed, setLocAllowed] = useState(() => lsGet('location-allowed-v1') === '1')
   // H1 mood primer: mounts while no stored state exists (first open only).
   // Primer.jsx owns the primer store + the taste seeding; App only gates the
   // mount and passes the when-preference down for the H2 greeting flavor.
@@ -233,6 +238,26 @@ function Shell() {
     })
   }, [])
 
+  // 3.7P-21: on boot, if location was previously allowed, re-fetch silently (the
+  // browser remembers the grant → no prompt) so "Near you" is ready everywhere.
+  useEffect(() => {
+    if (lsGet('location-allowed-v1') === '1') requestCoords()
+  }, [requestCoords]) // requestCoords is stable (useCallback []) → runs once on mount
+  // the Settings toggle: enabling fetches once (the browser prompt fires here);
+  // disabling forgets the cached fix so "Near you" stops surfacing. On-device only.
+  const setLocationAllowed = useCallback(
+    (on) => {
+      setLocAllowed(on)
+      lsSet('location-allowed-v1', on ? '1' : '0')
+      if (on) requestCoords()
+      else {
+        coordsRef.current = null
+        setCoords(null)
+      }
+    },
+    [requestCoords]
+  )
+
   // inert while the primer overlay is up: Tab must not reach (and Enter must
   // not activate) the obscured app behind it — the pager AND the floating
   // chrome (tabbar, 🎲 FAB) gate on this (audit prep #6). The 🎨 pill used to
@@ -257,7 +282,7 @@ function Shell() {
                 /places.json fetch (places.js) fires on first visit, never at
                 boot, never merged into the events norm */}
             {visited.has('locations') && (
-              <LocationsView coords={coords} requestCoords={requestCoords} />
+              <LocationsView coords={coords} />
             )}
           </section>
           <section className="page page-map">
@@ -316,7 +341,7 @@ function Shell() {
                 their `from` origin, so the trio feels stacked without stack
                 state (the 7-screen Interview retired into the editor, Q2d) */}
             {page.type === 'settings' && (
-              <SettingsPage events={norm} dataAt={dataAt} primer={primer} onPrimerDone={setPrimer} />
+              <SettingsPage events={norm} dataAt={dataAt} primer={primer} onPrimerDone={setPrimer} locationAllowed={locAllowed} onAllowLocation={setLocationAllowed} />
             )}
             {page.type === 'interests' && <InterestEditor from={page.from} />}
             {/* Sprint V2/V3: the "why your feed looks like this" + mute/boost
