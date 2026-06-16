@@ -1763,6 +1763,9 @@ async function main() {
   const GEM_CAP = 24;
   const GEM_FAMILY_CAP = 2;
   const GEM_FLOOR = 5;
+  // 3.7P-39: a job/career/hiring fair is not a "hidden gem" (it slipped the
+  // category gate as 'market'). Keep in sync with app/src/lib.js NON_GEM_RE.
+  const NON_GEM_RE = /\b(job|career)\s+fair\b|\bhiring\b|\b(job|career)\s+expo\b|\brecruit(?:ing|ment)?\b/i;
   const gemCandidates = events
     .filter((e) =>
       e.buzz === 1 &&
@@ -1773,7 +1776,8 @@ async function main() {
       e.category !== 'community' &&
       e.category !== 'other' &&
       !SOMBER_TITLE_RE.test(e.title || '') &&
-      !BIG_TICKET_RE.test(e.title || ''))
+      !BIG_TICKET_RE.test(e.title || '') &&
+      !NON_GEM_RE.test(e.title || ''))
     .sort((a, b) => b.hotScore - a.hotScore || startMs(a.start) - startMs(b.start));
   const gemFams = new Map();
   const gemTitles = new Set();

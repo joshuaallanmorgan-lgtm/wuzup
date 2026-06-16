@@ -310,6 +310,13 @@ export function normalizeTitle(raw, venue) {
   return t.trim()
 }
 
+// 3.7P-39 — section-label honesty (D6 strict): a "Hidden Gems" shelf must not
+// carry a job/career/hiring fair (a transactional career event is not an
+// under-the-radar find). This predicate gates the gem SHELF only — the event
+// still lives in Everything/See-all (curation, never hiding). Kept in sync with
+// the finder's own copy (finder.mjs gemCandidates) so future runs tag clean too.
+export const NON_GEM_RE = /\b(job|career)\s+fair\b|\bhiring\b|\b(job|career)\s+expo\b|\brecruit(?:ing|ment)?\b/i
+
 export function normalize(raw, anchors) {
   const tags = Array.isArray(raw.tags) ? raw.tags : []
   const sources = Array.isArray(raw.sources) && raw.sources.length ? raw.sources : raw.source ? [raw.source] : []

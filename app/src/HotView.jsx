@@ -2,7 +2,7 @@
 // opens a full BubblePage), alternating sections, Everything feed. Navigation
 // (detail/bubble/search/add/weekend openers) comes from useNav() — O6.
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { BUBBLES, CAT_BUBBLES, CITY, LENS_BUBBLES, dayLabel, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
+import { BUBBLES, CAT_BUBBLES, CITY, LENS_BUBBLES, NON_GEM_RE, dayLabel, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
 import LensNav from './LensNav.jsx'
 import { curateFeed } from './curate.js'
 import { useNav } from './nav.jsx'
@@ -140,7 +140,13 @@ export default function HotView({ events, anchors, loading, whenPref }) {
   // unsliced — section subs report the real totals; renders slice to 3 / 10.
   // Gems sort by score so the homepage trio is the BEST of the shelf, not
   // whichever three happen soonest.
-  const gems = useMemo(() => upcoming.filter((e) => e.tags.includes('hidden-gem')).sort(hotDesc), [upcoming])
+  // 3.7P-39 (D6 strict label honesty): a job/career fair is not a "hand-scored
+  // find" — drop it from the Hidden Gems shelf (it stays in Everything). Guards
+  // the current data even before the finder's matching exclusion next re-runs.
+  const gems = useMemo(
+    () => upcoming.filter((e) => e.tags.includes('hidden-gem') && !NON_GEM_RE.test(e.title || '')).sort(hotDesc),
+    [upcoming]
+  )
   // 3.7P-10: the "Free this week" carousel was CUT — Free stays reachable via the
   // LensNav "Free" lens + the FREE badge in Everything (never-hide intact), so a
   // dedicated carousel was redundant. (freeWeek derivation removed with it.)

@@ -1238,6 +1238,23 @@ test('3.7P-34 event-detail: planner-first Add-to-day CTA + demoted event link', 
   assert.ok(/aria-modal="true"/.test(dp) && /planSheetRef/.test(dp) && /planBtnRef\.current\?\.focus\(\)/.test(dp), 'the add-to-day sheet is a focus-managed dialog (focus in + return to trigger)')
 })
 
+// 3.7P-39 — section-label honesty (D6 strict): the "Hidden Gems" shelf must not
+// carry a job/career/hiring fair. NON_GEM_RE gates the shelf (UI + finder); the
+// event still lives in Everything (curation, never hiding).
+test('3.7P-39 section-label honesty: job/career fairs are not Hidden Gems', () => {
+  const re = lib.NON_GEM_RE
+  assert.ok(re.test('Career Glow Up Job Fair'), 'a job fair is excluded from gems')
+  assert.ok(re.test('Job News Tampa Job Fair | Multi-Industry Hiring Event'), 'a hiring event is excluded')
+  assert.ok(re.test('Spring Career Fair') && re.test('Tech Recruiting Mixer'), 'career fair / recruiting excluded')
+  for (const t of ["Children's Theatre", 'Cigar City: Bringing Industry to Tampa', 'GET FIT: Tai Chi', 'Special Guest DJ Encore at Lower Deck']) {
+    assert.ok(!re.test(t), 'a real gem is NOT excluded: ' + t)
+  }
+  const hot = readFileSync(path.join(ROOT, 'app', 'src', 'HotView.jsx'), 'utf8')
+  assert.ok(/hidden-gem'\) && !NON_GEM_RE\.test/.test(hot), 'HotView gates the gem shelf with NON_GEM_RE')
+  const finder = readFileSync(path.join(ROOT, 'finder', 'finder.mjs'), 'utf8')
+  assert.ok(/NON_GEM_RE/.test(finder), 'finder.mjs carries the synced NON_GEM_RE exclusion (clean future runs)')
+})
+
 // ============================================================
 // Addendum O — SEAM LOCK (§O.4). Source-grep asserts that pin the load-bearing
 // nav wiring so the Decision-Layer surface rework cannot silently break one of
