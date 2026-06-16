@@ -1426,9 +1426,11 @@ test('Sprint S: Calendar + Profile fold lazy places into their slot resolvers (g
   // the fetch is GATED on a place key actually being in the card's slots — an
   // event-only/empty card must never pay the ~1.2MB places fetch
   assert.ok(/isPlaceKey\(card\.slots\[p\]\)/.test(calSrc), 'CalendarView must gate the places fetch on a place key in the card slots')
-  assert.ok(/usePlaces\(hasPlaceKey\)/.test(calSrc), 'CalendarView must lazily load places only when the card holds a place key')
-  // …and fold them into the card resolver so a slotted place NAMES itself
-  assert.ok(/for \(const p of placeList\) m\.set\(p\.key, p\)/.test(calSrc), 'CalendarView must fold places into cardByKey')
+  // 3.7P-3 FB-12: the gate now also covers the day-peek — places load lazily when
+  // EITHER the morning-after card OR a peeked day holds a place key (never unconditionally).
+  assert.ok(/usePlaces\(hasCardPlaceKey \|\| hasPeekPlaceKey\)/.test(calSrc), 'CalendarView must lazily load places only when the card or the day-peek holds a place key')
+  // …and fold them into the shared resolver so a slotted place NAMES itself
+  assert.ok(/for \(const p of placeList\) m\.set\(p\.key, p\)/.test(calSrc), 'CalendarView must fold places into the byKey resolver')
   // the "went" snapshot for a place must carry its real title/category AND stamp
   // the planned day as start — else the did-day (didDays keys on snapshot.start)
   // would stop deriving (places have no date of their own): a silent regression

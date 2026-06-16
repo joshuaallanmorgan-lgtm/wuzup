@@ -14,16 +14,15 @@
 
 /* (W6: the Weekend pill was retired — planning is per-day; its rule was removed.) */
 
-/* the light gentle-ledger line — a calm record of the displayed month
-   ("N days out in June ✓"). ZERO IS SILENCE (rendered only when n > 0).
-   Sits in the header, quiet white-on-gradient — a record, never a score. */
-.cal-ledger {
-  margin: 12px 20px 0;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: -0.1px;
-  color: rgba(255, 255, 255, 0.92);
-}
+/* FB-13 (3.7P-3): the calm this-month rhythm strip (replaces the single ledger
+   line). A few glanceable stat blocks on the gold header — DARK INK on Sunset
+   Gold (var(--ink) ≈ 7.4:1; the old .cal-ledger used white, which failed AA on
+   gold). ZERO IS SILENCE — the whole strip is absent until a stat is true. A calm
+   record, never a score; no streak, no counting-up juice (that's 3.7P-4). */
+.cal-rhythm { display: flex; flex-wrap: wrap; gap: 22px; margin: 12px 20px 0; }
+.cal-stat { display: flex; flex-direction: column; gap: 1px; }
+.cal-stat-num { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.05; color: var(--ink); }
+.cal-stat-lab { font-size: 11px; font-weight: 700; letter-spacing: 0.2px; color: rgba(26, 20, 16, 0.66); }
 
 /* day header above the selected-day caption */
 .day-header {

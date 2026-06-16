@@ -39,6 +39,7 @@ import {
   filledForDays,
   loadDayHistory,
   loadDayPlans,
+  monthReality as computeMonthReality,
   varietyFirsts,
 } from './dayplan.js'
 import { usePlaces, isPlaceKey } from './places.js'
@@ -270,14 +271,8 @@ export default function ProfileView({ events, anchors, primer }) {
   // have "gone" to a past day, so this is purely a fact, never a score or guilt.
   const monthReality = useMemo(() => {
     void planPageUp // re-read on plan-subpage edges (same trigger as dayHist)
-    let planned = 0
-    let went = 0
-    for (const h of loadDayHistory()) {
-      if (h.dayTs < monthStart || h.dayTs >= nextMonthStart) continue
-      if (h.slots?.day || h.slots?.night) planned++
-      if (dids.has(h.dayTs)) went++
-    }
-    return { planned, went }
+    // 3.7P-3 FB-13: shared with the Calendar this-month rhythm strip (dayplan.js)
+    return computeMonthReality(loadDayHistory(), dids, monthStart, nextMonthStart)
   }, [planPageUp, monthStart, nextMonthStart, dids])
   // 3.76b: your ACTUAL rhythm (D-PS2) — when you've really gone out, from the
   // went-list's real event times. Gated at 3+ outings so we never claim a pattern

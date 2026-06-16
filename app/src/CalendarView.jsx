@@ -40,6 +40,7 @@ import {
   loadDayHistory,
   loadDayPlans,
   markDayConverted,
+  monthReality,
   morningAfterCandidates,
   PARTS,
   saveDayPlans,
@@ -105,6 +106,26 @@ export default function CalendarView({ events, anchors }) {
   const nextMonthStartTs = new Date(month.getFullYear(), month.getMonth() + 1, 1).getTime()
   const daysOut = daysOutInMonth(dids, monthStartTs, nextMonthStartTs)
   const monthName = month.toLocaleDateString('en-US', { month: 'long' })
+
+  // FB-13 (3.7P-3): the calm this-month rhythm strip — a few glanceable FACTS
+  // from existing data only. NO streak, NO counting-up juice (that's 3.7P-4); each
+  // stat is ZERO-IS-SILENCE, so a new user sees nothing (never "0"). Shares the
+  // monthReality derivation with Profile (dayplan.js) so the surfaces can't drift
+  // — Calendar shows it as a glanceable stat, Profile as a narrative line.
+  const reality = useMemo(() => {
+    void page // history is non-reactive — re-read on subpage edges (like the card)
+    return monthReality(loadDayHistory(), dids, monthStartTs, nextMonthStartTs)
+  }, [page, dids, monthStartTs, nextMonthStartTs])
+  const plannedAhead = useMemo(
+    () => [...plannedDays].filter((ts) => ts >= anchors.todayTs).length,
+    [plannedDays, anchors.todayTs]
+  )
+  // up to three calm facts — what you did, your follow-through, what's coming.
+  // Each pushed ONLY when it's a real positive record. DRAFT copy (Charles).
+  const rhythmStats = []
+  if (daysOut > 0) rhythmStats.push({ k: 'out', num: String(daysOut), lab: `out in ${monthName}` })
+  if (reality.planned > 0) rhythmStats.push({ k: 'plans', num: `${reality.went}/${reality.planned}`, lab: 'plans you made' })
+  if (plannedAhead > 0) rhythmStats.push({ k: 'ahead', num: String(plannedAhead), lab: 'planned ahead' })
 
   // N5b re-entry pull: a gentle, forward-framed "plan your weekend" — shown ONLY
   // when nothing's planned ahead (never a nag, never "you have nothing 📉"; just
@@ -284,11 +305,17 @@ export default function CalendarView({ events, anchors }) {
               Weekend Builder was the "stale connection" Josh flagged. WB stays
               reachable from Profile → Your plans. */}
         </div>
-        {/* the light gentle-ledger line — a calm record of the displayed month.
-            ZERO IS SILENCE: rendered only when n > 0. DRAFT for Charles. */}
-        {daysOut > 0 && (
-          <div className="cal-ledger">
-            {daysOut === 1 ? `1 day out in ${monthName} ✓` : `${daysOut} days out in ${monthName} ✓`}
+        {/* FB-13: the calm this-month rhythm strip (was the single ledger line).
+            A few glanceable facts — ZERO IS SILENCE, so it's absent until there's
+            something true to show. No streak, no juice (3.7P-4). DRAFT for Charles. */}
+        {rhythmStats.length > 0 && (
+          <div className="cal-rhythm">
+            {rhythmStats.map((s) => (
+              <div className="cal-stat" key={s.k}>
+                <span className="cal-stat-num">{s.num}</span>
+                <span className="cal-stat-lab">{s.lab}</span>
+              </div>
+            ))}
           </div>
         )}
       </div>

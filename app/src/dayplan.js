@@ -405,6 +405,24 @@ export function daysOutInMonth(didDaySet, monthStartTs, nextMonthStartTs) {
   return n
 }
 
+// PLANS → REALITY for a month window (3.76b, extracted to share in 3.7P-3 FB-13):
+// of the PAST PLANNED days in [monthStartTs, nextMonthStartTs), how many you made
+// it to. A calm RECORD with positive framing — you can only have GONE to a past
+// day, so this is a fact, never a score or a guilt line; the caller keeps it
+// ZERO-IS-SILENCE (renders only when planned > 0). `history` = loadDayHistory();
+// `didDaySet` = didDays(been). Shared by Profile (narrative line) + the Calendar
+// this-month rhythm strip so the two surfaces can't drift.
+export function monthReality(history, didDaySet, monthStartTs, nextMonthStartTs) {
+  let planned = 0
+  let went = 0
+  for (const h of history) {
+    if (h.dayTs < monthStartTs || h.dayTs >= nextMonthStartTs) continue
+    if (h.slots?.day || h.slots?.night) planned++
+    if (didDaySet.has(h.dayTs)) went++
+  }
+  return { planned, went }
+}
+
 // VARIETY FIRSTS — breadth, never volume (ban §7 #5: no "10 events!"). A small
 // FIXED set of first-time-category stamps: the first time a did-day carried a
 // given category, that stamp is earned ONCE and never grows. Returns the EARNED
