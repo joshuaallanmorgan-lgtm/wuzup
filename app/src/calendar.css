@@ -233,9 +233,13 @@
   margin: 14px 16px 0;
   padding: 14px 16px;
   background: var(--card);
-  border: 1px solid var(--line);
+  /* 3.7P-1: float on the card shadow (was a hairline + 1px legacy shadow). Keep
+     a TRANSPARENT border so the sanctioned violet "I went" beat below — which
+     marks the moment via border-color (incl. the reduced-motion static path) —
+     still resolves without re-introducing a visible hairline. */
+  border: 1px solid transparent;
   border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-card);
 }
 .cal-recap-q {
   font-size: 15px;

@@ -215,7 +215,7 @@
   letter-spacing: 0.2px;
   color: var(--muted);
 }
-.pf-hist { margin: 0 20px 8px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); overflow: hidden; }
+.pf-hist { margin: 0 20px 8px; box-shadow: var(--shadow-card); border-radius: 14px; background: var(--card); overflow: hidden; } /* 3.7P-1: float */
 .pf-hist-head {
   display: flex;
   align-items: center;

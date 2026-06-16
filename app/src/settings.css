@@ -22,7 +22,7 @@
 /* ===== card: the section's quiet plate ===== */
 .st-card {
   padding: var(--sp-md);
-  border: 1px solid var(--line);
+  box-shadow: var(--shadow-card); /* 3.7P-1: float the section plate, drop the hairline */
   border-radius: 16px;
   background: var(--card);
 }

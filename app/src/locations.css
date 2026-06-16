@@ -81,7 +81,7 @@
 /* ===== Near-you locate prompt (mirrors the bubble-page locate card) ===== */
 .loc-locate {
   background: var(--card);
-  border: 1px solid var(--line);
+  box-shadow: var(--shadow-card); /* 3.7P-1: float the locate panel */
   border-radius: 14px;
   padding: 16px;
   display: flex;

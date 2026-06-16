@@ -160,7 +160,7 @@
 .dpg-rest {
   margin: 2px 16px 0;
   padding: 20px 16px;
-  border: 1px solid var(--line);
+  box-shadow: var(--shadow-card); /* 3.7P-1: float the rest-day card */
   border-radius: 16px;
   background: var(--card);
   text-align: center;
