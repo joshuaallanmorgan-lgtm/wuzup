@@ -78,31 +78,8 @@
   min-height: 140px;
 }
 
-/* ===== Near-you locate prompt (mirrors the bubble-page locate card) ===== */
-.loc-locate {
-  background: var(--card);
-  box-shadow: var(--shadow-card); /* 3.7P-1: float the locate panel */
-  border-radius: 14px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: flex-start;
-}
-.loc-locate-txt {
-  font-size: 14px;
-  color: var(--muted);
-}
-.loc-locate-btn {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ink); /* dark ink on Sunset Gold — white fails AA (3.73a sweep) */
-  background: var(--accent);
-  border: none;
-  border-radius: 999px;
-  padding: 9px 16px;
-  cursor: pointer;
-}
+/* (3.7P-21: the inline "Near-you locate prompt" (.loc-locate*) was retired —
+   location is opt-in in Settings now; these styles were removed with the gate.) */
 
 /* ===== 3.7P-12: the activity intent frame — the primary Spots nav. A horizontal
    rail of activity chips (emoji disc tinted by the activity hue + label); each

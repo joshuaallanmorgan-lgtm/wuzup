@@ -124,7 +124,9 @@
 @media (prefers-reduced-motion: reduce) {
   .st-row,
   .st-confirm-yes,
-  .st-confirm-no { transition: none; }
+  .st-confirm-no,
+  .st-switch,
+  .st-switch-knob { transition: none; }
   .st-row:active,
   .st-confirm-yes:active,
   .st-confirm-no:active { transform: none; }

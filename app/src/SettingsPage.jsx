@@ -155,6 +155,7 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone, loc
               className="st-row st-row-toggle"
               onClick={() => onAllowLocation(!locationAllowed)}
               aria-pressed={!!locationAllowed}
+              aria-label="Allow location"
             >
               <span className="st-row-main">
                 <span className="st-row-title">Allow location</span>
