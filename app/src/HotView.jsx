@@ -63,7 +63,7 @@ export default function HotView({ events, anchors, loading, whenPref }) {
   useEffect(() => {
     const img = new Image()
     img.onload = () => setHeroOk(true)
-    img.src = CITY.hero
+    img.src = CITY.heroes?.[0]?.url || CITY.hero // preload the SAME image the hero renders
     return () => {
       img.onload = null
     }
@@ -262,7 +262,7 @@ export default function HotView({ events, anchors, loading, whenPref }) {
             CITY.heroes[] array (swipe-ready: the multi-photo crossfade turns on when
             ≥3 hero-quality images are curated). FB-07: the 🔎 moved out of the hero,
             down beside "Near Me" in the lens row below. */}
-        <div className={'hero-img hero-kb' + (heroOk ? ' on' : '')} style={{ backgroundImage: `url(${CITY.heroes[0].url})` }} />
+        <div className={'hero-img hero-kb' + (heroOk ? ' on' : '')} style={{ backgroundImage: `url(${CITY.heroes?.[0]?.url || CITY.hero})` }} />
         <div className="hero-dim" />
         <div className="hero-grad" />
         <div className="hero-text">

@@ -41,7 +41,7 @@ export default function LocationsView({ coords, requestCoords }) {
   useEffect(() => {
     const img = new Image()
     img.onload = () => setHeroOk(true)
-    img.src = CITY.spotsHeroes[0].url
+    img.src = CITY.spotsHeroes?.[0]?.url || CITY.spotsHero
     return () => {
       img.onload = null
     }
@@ -99,7 +99,7 @@ export default function LocationsView({ coords, requestCoords }) {
       <header className="loc-hero">
         {/* 3.7P-6: cinematic Ken-Burns zoom on the real Spots hero (swipe-ready via
             CITY.spotsHeroes[]; reduced-motion holds it still). */}
-        <div className={'loc-hero-img hero-kb' + (heroOk ? ' on' : '')} style={{ backgroundImage: `url(${CITY.spotsHeroes[0].url})` }} />
+        <div className={'loc-hero-img hero-kb' + (heroOk ? ' on' : '')} style={{ backgroundImage: `url(${CITY.spotsHeroes?.[0]?.url || CITY.spotsHero})` }} />
         <div className="loc-hero-wash" />
         <div className="hero-text">
           <div className="hero-brand">
