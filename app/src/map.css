@@ -299,7 +299,7 @@
 .map-filter-chips .map-chip-free.on {
   background: var(--free);
   border-color: var(--free);
-  color: #fff;
+  color: var(--ink); /* dark ink on green — #fff failed AA (3.07:1); --ink = 5.94:1 */
 }
 .map-filter-done {
   margin-top: 14px;

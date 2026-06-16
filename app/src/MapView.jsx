@@ -113,6 +113,8 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
   const mapRef = useRef(null)
   const layerRef = useRef(null)
   const youRef = useRef(null) // 3.7P-14: the "you are here" marker (lazy-created)
+  const filterSheetRef = useRef(null) // 3.7P-18: filter dialog — focus moves in on open
+  const filterBtnRef = useRef(null) // the Filters trigger — focus returns here on close
   const onSelectRef = useRef(onSelect)
   const didFitRef = useRef(false)
   const timersRef = useRef({}) // zoomend/moveend debounce handles
@@ -127,7 +129,10 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
   // focus→layer sync out of the effect, which the lint rule rightly forbids
   // (a layer set there feeds the effect's own deps → cascade).
   const [layer, setLayer] = useState(null)
-  const [dateF, setDateF] = useState('any') // DATE_FILTERS id — gates EVENTS only
+  const [dateF, setDateF] = useState('any') // DATE_FILTERS id — gates EVENTS only.
+  // 3.7P-18: dateF persists across a Spots-layer detour BY DESIGN — a day you
+  // chose resumes when you return to Events/Both, and the re-mounted date button
+  // wears its .on highlight so the active scope is always visible (never hidden).
   const [cat, setCat] = useState('all') // a single category id, or 'all'
   const [freeOnly, setFreeOnly] = useState(false)
   const [filtersOpen, setFiltersOpen] = useState(false) // 3.7P-18: category/free filters live in a sheet now
@@ -153,17 +158,38 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
     window.addEventListener('keydown', onKey, true)
     return () => window.removeEventListener('keydown', onKey, true)
   }, [sheet])
-  // 3.7P-18: Escape closes the filter sheet first (capture phase), same pattern
+  // 3.7P-18: the filter sheet is a real dialog (mirrors LensNav) — focus moves IN
+  // on open, returns to the trigger on close, and Tab is trapped while open.
+  const closeFilters = () => {
+    setFiltersOpen(false)
+    filterBtnRef.current?.focus() // WCAG 2.4.3: focus returns to the Filters trigger
+  }
   useEffect(() => {
     if (!filtersOpen) return
+    filterSheetRef.current?.focus() // move focus into the sheet (a dialog you can reach)
     const onKey = (ev) => {
       if (ev.key !== 'Escape') return
       ev.stopPropagation()
-      setFiltersOpen(false)
+      closeFilters()
     }
-    window.addEventListener('keydown', onKey, true)
+    window.addEventListener('keydown', onKey, true) // capture: close the sheet first
     return () => window.removeEventListener('keydown', onKey, true)
   }, [filtersOpen])
+  // minimal Tab trap: keep focus within the sheet's controls while it's open
+  const filterTrap = (ev) => {
+    if (ev.key !== 'Tab') return
+    const f = filterSheetRef.current?.querySelectorAll('button')
+    if (!f || !f.length) return
+    const first = f[0]
+    const last = f[f.length - 1]
+    if (ev.shiftKey && document.activeElement === first) {
+      ev.preventDefault()
+      last.focus()
+    } else if (!ev.shiftKey && document.activeElement === last) {
+      ev.preventDefault()
+      first.focus()
+    }
+  }
   useEffect(() => {
     onSelectRef.current = onSelect // markers read the latest handler from a ref —
   }) // marker redraw must NOT depend on a per-render callback identity
@@ -463,6 +489,7 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
         </div>
         {/* 3.7P-18: category + Free collapse behind one compact Filters button */}
         <button
+          ref={filterBtnRef}
           className={'map-filter-btn pressable' + (activeFilterCount > 0 ? ' on' : '')}
           onClick={() => setFiltersOpen(true)}
           aria-haspopup="dialog"
@@ -474,14 +501,23 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
 
       {/* 3.7P-18: the filter sheet — category + Free, opened from the Filters
           button. Tapping a chip toggles it (the sheet stays open so you can set
-          several); scrim / ✕ / Done / Escape close it. */}
+          several); scrim / ✕ / Done / Escape close it. Real dialog: focus moves
+          in on open, traps on Tab, and returns to the trigger on close. */}
       {filtersOpen && (
         <div className="map-filter-wrap">
-          <button className="map-filter-scrim" aria-label="Close filters" onClick={() => setFiltersOpen(false)} />
-          <div className="map-filter-sheet" role="dialog" aria-modal="true" aria-label="Map filters">
+          <button className="map-filter-scrim" aria-label="Close filters" onClick={closeFilters} />
+          <div
+            className="map-filter-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Map filters"
+            ref={filterSheetRef}
+            tabIndex={-1}
+            onKeyDown={filterTrap}
+          >
             <div className="map-filter-head">
               <div className="map-filter-title">Filters</div>
-              <button className="map-filter-close pressable" onClick={() => setFiltersOpen(false)} aria-label="Close">
+              <button className="map-filter-close pressable" onClick={closeFilters} aria-label="Close">
                 ✕
               </button>
             </div>
@@ -507,7 +543,7 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
                 </button>
               ))}
             </div>
-            <button className="map-filter-done pressable" onClick={() => setFiltersOpen(false)}>
+            <button className="map-filter-done pressable" onClick={closeFilters}>
               Done
             </button>
           </div>
