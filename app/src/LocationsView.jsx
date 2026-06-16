@@ -13,7 +13,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNav } from './nav.jsx'
 import { CITY } from './lib.js'
-import { SecHead, SpotCard, EndCap, GuideCard, RowFeed } from './cards.jsx'
+import { SecHead, SpotCard, EndCap, IntentTile, RowFeed } from './cards.jsx'
 import { GUIDES } from './guides.js'
 import { tasteNudge, useTaste } from './taste.js'
 import { usePlaces, ACTIVITIES, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES, nearest, isPlaceKey, normalizePlace } from './places.js'
@@ -143,24 +143,15 @@ export default function LocationsView({ coords }) {
       />
 
       <div className="hot-body">
-        {/* 3.7P-12: ACTIVITY intent frame — the primary Spots nav. Tap an activity
-            to see everywhere you can do it (See all → never-hide). This is the
-            green-wall fix: you browse by what you can DO, not by placeType. */}
+        {/* 3.7P-12 → 3.7P-20: ACTIVITY intent frame — the primary Spots nav, now
+            an ALL-VISIBLE grid of the SHARED IntentTile (identical format to the
+            Events "Guides"). Tap an activity → everywhere you can do it (See all →
+            never-hide). The green-wall fix: browse by what you can DO. */}
         <section className="sec">
           <SecHead overline="What are you up for?" title="By activity" />
-          <div className="act-frame">
+          <div className="intent-grid">
             {ACTIVITIES.map((a) => (
-              <button
-                key={a.id}
-                className="act-chip pressable"
-                style={{ '--ah': a.hue }}
-                onClick={() => openPlaceBubble(a)}
-              >
-                <span className="act-chip-emoji" aria-hidden>
-                  {a.emoji}
-                </span>
-                <span className="act-chip-label">{a.label}</span>
-              </button>
+              <IntentTile key={a.id} emoji={a.emoji} label={a.label} hue={a.hue} onClick={() => openPlaceBubble(a)} />
             ))}
           </div>
         </section>
@@ -217,14 +208,16 @@ export default function LocationsView({ coords }) {
           </section>
         ))}
 
-        {/* FB-03 (3.7P-7): Guides on Spots — the spots + mixed intention guides
-            (Beach day, Free outdoor reset), each a POV + a "plan a day" action. */}
+        {/* FB-03 (3.7P-7) → 3.7P-20: Guides on Spots — the spots + mixed intention
+            guides (Beach day, Free outdoor reset), now the SHARED IntentTile grid
+            (same widget as the activities above + the Events Guides), each a POV +
+            a "plan a day" destination. */}
         {spotGuides.length > 0 && (
           <section className="sec">
             <SecHead overline="Plans by mood" title="Guides" sub="Collections for getting out there" />
-            <div className="carousel">
+            <div className="intent-grid">
               {spotGuides.map((g) => (
-                <GuideCard key={g.id} guide={g} onOpen={openGuide} />
+                <IntentTile key={g.id} emoji={g.emoji} label={g.title} pov={g.pov} hue={g.hue} onClick={() => openGuide(g)} />
               ))}
             </div>
           </section>

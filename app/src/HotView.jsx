@@ -6,7 +6,7 @@ import { BUBBLES, CAT_BUBBLES, CITY, LENS_BUBBLES, dayLabel, hotDesc, keyOf, ord
 import LensNav from './LensNav.jsx'
 import { curateFeed } from './curate.js'
 import { useNav } from './nav.jsx'
-import { BigOne, EndCap, GemRow, RowFeed, SecHead, TonightCard } from './cards.jsx'
+import { BigOne, EndCap, GemRow, IntentTile, RowFeed, SecHead, TonightCard } from './cards.jsx'
 import { GUIDES, useGuides, watchGuideActive, resolveWatchGuide } from './guides.js'
 import { shelfItems, useSaves } from './saves.js'
 import { railReady, tasteNudge, topCategories, useTaste, whenPreference } from './taste.js'
@@ -295,21 +295,20 @@ export default function HotView({ events, anchors, loading, whenPref }) {
       />
 
       <div className="hot-body">
-        {/* 3.7P-10: Guides as the INTENT FRAME — pills directly under the hero,
-            before the sections (was a mid-page carousel). activeWatch = in-window
-            timely guides; the evergreen GUIDES (events + mixed, never spots-only)
-            follow. Each pill opens its GuidePage. */}
+        {/* 3.7P-10 → 3.7P-20: Guides as the INTENT FRAME under the hero, now an
+            ALL-VISIBLE grid of the SHARED IntentTile (identical format to the
+            Spots "What are you up for?" activities). activeWatch = in-window timely
+            guides; the evergreen GUIDES (events + mixed, never spots-only) follow.
+            Each tile opens its GuidePage. */}
         {(activeWatch.length > 0 || GUIDES.some((g) => g.domain !== 'spots')) && (
-          <nav className="guide-pills" aria-label="Guides">
-            {[...activeWatch, ...GUIDES.filter((g) => g.domain !== 'spots')].map((g) => (
-              <button key={g.id} className="guide-pill pressable" onClick={() => openGuide(g)}>
-                <span className="guide-pill-emoji" aria-hidden>
-                  {g.emoji}
-                </span>
-                {g.title}
-              </button>
-            ))}
-          </nav>
+          <section className="sec">
+            <SecHead overline="Plans by mood" title="Guides" sub="Pick a vibe — we'll line up the night." />
+            <div className="intent-grid">
+              {[...activeWatch, ...GUIDES.filter((g) => g.domain !== 'spots')].map((g) => (
+                <IntentTile key={g.id} emoji={g.emoji} label={g.title} pov={g.pov} hue={g.hue} onClick={() => openGuide(g)} />
+              ))}
+            </div>
+          </section>
         )}
         {shelfOn && (
           <section className="sec shelf-sec">

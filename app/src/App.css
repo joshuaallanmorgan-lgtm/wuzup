@@ -115,42 +115,9 @@
   min-height: 70svh;
 }
 
-/* ===== 3.7P-10: Guides intent frame — pills under the hero, before the sections.
-   The quick "what kind of plan?" nav; each pill opens its GuidePage. ===== */
-.guide-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 14px 16px 0;
-}
-.guide-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 13px;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  box-shadow: var(--shadow-card);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: -0.1px;
-  color: var(--ink);
-  cursor: pointer;
-  transition: transform var(--dur-micro);
-}
-.guide-pill:active {
-  transform: scale(0.96);
-}
-.guide-pill-emoji {
-  font-size: 15px;
-  line-height: 1;
-}
-/* when the pills lead, the first section sits a touch closer below them */
-.guide-pills + .sec {
-  margin-top: 22px;
-}
+/* (3.7P-20: the Guides intent frame is now the shared .intent-grid of IntentTile
+   — same widget as the Spots activities; styles live in cards.css. The old
+   .guide-pills pill row was retired here.) */
 
 /* ===== section scaffolding ===== */
 .sec { margin-top: 36px; }

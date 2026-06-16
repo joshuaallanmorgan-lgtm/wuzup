@@ -304,14 +304,20 @@ export function SpotCard({ p, onSelect }) {
   )
 }
 
-// GuideCard (3.75) — the editorial tile for a Smart-Group "Guide": a hue art
-// header carrying the guide's emoji + its title + point-of-view. Tap → GuidePage.
-export function GuideCard({ guide, onOpen }) {
+// IntentTile (3.7P-20) — the ONE shared "intent" widget for BOTH pages: a hue-
+// tinted emoji disc + a label + an optional point-of-view line. Events Guides,
+// Spots Activities, and the Spots "Plans by mood" Guides all render through this
+// (different content + onClick, identical format), laid out as an ALL-VISIBLE
+// grid (.intent-grid), never a horizontal-scroll carousel — the magazine goal.
+// Replaces the old divergent guide-pills (Events) + act-chips (Spots) + GuideCard.
+export function IntentTile({ emoji, label, pov, hue, onClick }) {
   return (
-    <button className="guidecard pressable" onClick={() => onOpen(guide)} style={{ '--gh': guide.hue ?? 30 }}>
-      <span className="guidecard-art" aria-hidden>{guide.emoji}</span>
-      <span className="guidecard-title">{guide.title}</span>
-      <span className="guidecard-pov">{guide.pov}</span>
+    <button className="intent-tile pressable" style={{ '--ih': hue ?? 30 }} onClick={onClick}>
+      <span className="intent-tile-emoji" aria-hidden>
+        {emoji}
+      </span>
+      <span className="intent-tile-label">{label}</span>
+      {pov && <span className="intent-tile-pov">{pov}</span>}
     </button>
   )
 }
