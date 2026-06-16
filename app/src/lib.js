@@ -220,7 +220,12 @@ export function keyOf(e) {
   // event under its url/title, so the two namespaces can never collide in the
   // shared 'saved-events-v1' store. Inert for events (they never carry kind).
   if (e.kind === 'place' && typeof e.key === 'string' && e.key) return e.key
-  return (e.url || e.title || '') + '|' + (e.start || '')
+  // 3.7P-35: for a url-less event the title is the identity. normalize() now
+  // CLEANS the title, so key off the stashed ORIGINAL (_keyTitle) when present —
+  // this keeps keys byte-identical to before title-norm, so saves/recents/day-plan
+  // written earlier still resolve (no "same event, two titles" divergence). Raw
+  // objects (snapshots) lack _keyTitle and fall back to their own raw title.
+  return (e.url || e._keyTitle || e.title || '') + '|' + (e.start || '')
 }
 export function milesBetween(a, b) {
   const R = 3958.8
@@ -244,20 +249,46 @@ export function makeAnchors(now = new Date()) {
 // parens, or repeat the venue. normalizeTitle cleans them CONSERVATIVELY — it only
 // rewrites a title that is fully UPPERCASE (no lowercase letter at all), so a
 // proper-case name ("MacFarlane Park", "Ye") is never mangled. Pure + Node-safe.
+//
+// 3.7P-35 review (HONESTY): de-shouting must never turn a correct acronym into a
+// wrong word (USCG→"Uscg", FL→"Fl", RBS→"Rbs" alter meaning). The bias is "when
+// unsure, leave the token UPPERCASE" — only a token we're confident is a real
+// word gets Title-cased. Acronym signal: allowlisted, OR no vowel (USCG/RBS/FL),
+// OR the de-punctuated token has a 3+ run of distinct consonants with no internal
+// vowel (e.g. YMCA, NSYNC). A few real words may stay shouted (the SAFE failure —
+// no content altered); a real acronym is never flattened into a misnomer.
 const TITLE_SMALL = new Set(['a', 'an', 'and', 'at', 'but', 'by', 'for', 'from', 'in', 'of', 'on', 'or', 'the', 'to', 'vs', 'with'])
-const TITLE_ACRONYM = new Set(['DJ', 'BBQ', 'NYE', 'EDM', 'VIP', 'FIFA', 'USA', 'US', 'UK', 'FC', 'EP', 'LP', 'BYOB', 'MLK', 'NYC', 'DIY', 'RSVP', 'AAPI', 'LGBTQ', 'HBCU', 'UFC', 'NBA', 'NFL', 'MLB', 'NASA', 'IPA'])
+const TITLE_ACRONYM = new Set(['DJ', 'BBQ', 'NYE', 'EDM', 'VIP', 'FIFA', 'USA', 'US', 'UK', 'FC', 'EP', 'LP', 'BYOB', 'MLK', 'NYC', 'DIY', 'RSVP', 'AAPI', 'LGBTQ', 'HBCU', 'UFC', 'NBA', 'NFL', 'MLB', 'NASA', 'IPA', 'YMCA', 'YWCA', 'NCAA', 'AARP', 'USCG', 'NASCAR', 'EDC', 'BYO'])
+const ORDINAL = /(\d)(TH|ST|ND|RD|S)\b/g
+// looks like an acronym/initialism → keep its caps. `bare` is letters+digits only.
+function looksAcronym(bare) {
+  const up = bare.toUpperCase()
+  if (TITLE_ACRONYM.has(up)) return true
+  const letters = up.replace(/[^A-Z]/g, '')
+  if (!letters) return false
+  if (!/[AEIOU]/.test(letters)) return true // no vowel at all (USCG, RBS, FL, BBQ)
+  // a leading 3+ all-consonant run before the first vowel (YMCA, NSYNC, BTS)
+  return /^[BCDFGHJKLMNPQRSTVWXYZ]{3,}/.test(letters)
+}
+// Title-case ONE alphabetic word: cap the first letter of each sub-segment so
+// hyphen/slash/apostrophe/dotted forms survive (O'Connor, Rock-N-Roll, R.E.M.,
+// Jazz/Blues), with the rest lowered.
+function caseWord(w) {
+  return w.toLowerCase().replace(/(^|[^a-z])([a-z])/g, (_m, pre, c) => pre + c.toUpperCase())
+}
 function smartTitleCase(s) {
   const words = s.split(/\s+/)
   return words
     .map((w, i) => {
       const bare = w.replace(/[^A-Za-z0-9]/g, '')
       if (!bare) return w
-      const up = bare.toUpperCase()
-      if (TITLE_ACRONYM.has(up)) return w // keep known acronyms (FIFA, DJ…) as-is
-      if (/\d/.test(w)) return w // numerics/alphanumerics (5K, U2, 90s)
+      // digit tokens first (an ordinal like 5TH has no vowel and would otherwise
+      // read as an acronym): lowercase ordinal/decade suffixes, keep 5K / U2 / 3M.
+      if (/\d/.test(w)) return w.replace(ORDINAL, (_m, d, suf) => d + suf.toLowerCase())
+      if (looksAcronym(bare)) return w // keep acronyms/initialisms (FIFA, USCG, YMCA…) verbatim
       const low = w.toLowerCase()
       if (i > 0 && TITLE_SMALL.has(low)) return low // small connectors stay lowercase mid-title
-      return low.charAt(0).toUpperCase() + low.slice(1)
+      return caseWord(w)
     })
     .join(' ')
 }
@@ -266,13 +297,14 @@ export function normalizeTitle(raw, venue) {
   let t = raw.replace(/\s+/g, ' ').trim()
   if (!t) return t
   // strip a trailing " - venue" / " @ venue" / " | venue" duplicate of the venue
+  // (one-or-more separators, so "Show -- The Hall" leaves no dangling dash)
   const v = typeof venue === 'string' ? venue.trim() : ''
   if (v) {
     const esc = v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    t = t.replace(new RegExp('\\s*[-|@·]\\s*' + esc + '\\s*$', 'i'), '').trim() || t
+    t = t.replace(new RegExp('\\s*[-|@·]+\\s*' + esc + '\\s*$', 'i'), '').trim() || t
   }
-  // empty parens + collapsed whitespace
-  t = t.replace(/\(\s*\)/g, '').replace(/\s{2,}/g, ' ').trim()
+  // empty parens + collapsed whitespace — never let cleanup blank a real title
+  t = t.replace(/\(\s*\)/g, '').replace(/\s{2,}/g, ' ').trim() || t
   // ALL-CAPS (shouting) → smart Title Case; mixed/proper case is left untouched
   if (/[A-Z]/.test(t) && !/[a-z]/.test(t)) t = smartTitleCase(t)
   return t.trim()
@@ -296,8 +328,12 @@ export function normalize(raw, anchors) {
   const _weekend = _day != null && _day <= anchors.wkEndTs && (_endDay ?? _day) >= anchors.wkStartTs
   // 3.7P-35: clean the scraped title (override raw's pass-through). Conservative —
   // only SHOUTING titles get Title-cased; mixed-case is left exactly as authored.
+  // Stash the original ONLY for url-less events, where keyOf needs a stable
+  // identity. Preserve an existing _keyTitle so re-normalizing a stored snapshot
+  // (whose `title` is already cleaned) can't drift the key off the cleaned title.
   const title = normalizeTitle(raw.title, raw.venue)
-  return { ...raw, title, tags, sources, hotScore, buzz, category, sponsored, _day, _endDay, _t, _free, _tonight, _weekend, _ongoing }
+  const _keyTitle = raw.url ? undefined : (raw._keyTitle ?? raw.title)
+  return { ...raw, title, _keyTitle, tags, sources, hotScore, buzz, category, sponsored, _day, _endDay, _t, _free, _tonight, _weekend, _ongoing }
 }
 // 'ongoing' events show "Ongoing" instead of a stale start date/time; a timed
 // start that already passed TODAY reads "Started 7:00 PM" — the card stays

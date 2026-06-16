@@ -1163,8 +1163,19 @@ test('3.7P-35 normalizeTitle: SHOUTING → Title Case, parens/venue cleanup, mix
   assert.equal(nt('DJ NIGHT WITH FRIENDS'), 'DJ Night with Friends', 'known acronyms (DJ) keep caps; small word "with" lowercases mid-title')
   assert.equal(nt('FIFA WORLD CUP 2026'), 'FIFA World Cup 2026', 'allowlisted acronym + numeric token preserved')
   assert.equal(nt('SUNSET 5K RUN'), 'Sunset 5K Run', 'alphanumeric token (5K) preserved')
-  // whitespace + empty-paren cleanup (runs on any case)
+  // HONESTY (review major): an acronym is NEVER flattened into a wrong word
+  assert.equal(nt('USCG STATION'), 'USCG Station', 'allowlisted acronym (USCG) kept verbatim')
+  assert.equal(nt('29 RBS'), '29 RBS', 'a no-vowel token (RBS) is treated as an initialism, not Title-cased')
+  assert.equal(nt('FUN AT THE YMCA'), 'Fun at the YMCA', 'a vowel-bearing acronym on the allowlist (YMCA) survives de-shouting')
+  // ordinals/decades lowercase their suffix; 5K-style units stay
+  assert.equal(nt('5TH ANNUAL GALA'), '5th Annual Gala', 'ordinal suffix lowercases (5TH→5th)')
+  assert.equal(nt('90S DANCE PARTY'), '90s Dance Party', 'decade suffix lowercases (90S→90s)')
+  // inner sub-segments keep their caps (apostrophe / hyphen / dotted forms)
+  assert.equal(nt("O'CONNOR PUB"), "O'Connor Pub", "letters after an apostrophe are capitalized, not lowercased")
+  assert.equal(nt('ROCK-N-ROLL REVIVAL'), 'Rock-N-Roll Revival', 'each hyphen sub-segment is capitalized')
+  // whitespace + empty-paren cleanup (runs on any case) — never blanks a title
   assert.equal(nt('Jazz Night   ()'), 'Jazz Night', 'empty parens + extra whitespace collapsed')
+  assert.equal(nt('()'), '()', 'cleanup never blanks a title down to empty (anti-empty guard)')
   // trailing venue duplicate stripped
   assert.equal(nt('Trivia Night - The Bilmar', 'The Bilmar'), 'Trivia Night', 'a trailing " - venue" duplicate is removed')
   assert.equal(nt('Trivia Night @ The Bilmar', 'The Bilmar'), 'Trivia Night', 'a trailing " @ venue" duplicate is removed')
@@ -1173,6 +1184,21 @@ test('3.7P-35 normalizeTitle: SHOUTING → Title Case, parens/venue cleanup, mix
   // non-strings + blanks survive
   assert.equal(nt(''), '', 'empty string stays empty')
   assert.equal(nt(undefined), undefined, 'non-string passes through')
+})
+
+// 3.7P-35 review (integration): cleaning the display title must NOT shift an
+// event's identity. keyOf for a url-less event keys off the STASHED original, so
+// a save/recents/day-plan key written before title-norm still resolves.
+test('3.7P-35 keyOf stays stable for a url-less event after title cleanup', () => {
+  const AN = lib.makeAnchors(new Date('2026-06-16T12:00:00'))
+  const ev = lib.normalize({ title: 'LIVE JAZZ NIGHT', start: '2026-07-01T19:00' }, AN) // no url
+  assert.equal(ev.title, 'Live Jazz Night', 'the DISPLAY title is cleaned')
+  assert.equal(lib.keyOf(ev), 'LIVE JAZZ NIGHT|2026-07-01T19:00', 'keyOf keys off the ORIGINAL title, not the cleaned one')
+  // a raw snapshot (no _keyTitle) falls back to its own raw title → same key
+  assert.equal(lib.keyOf({ title: 'LIVE JAZZ NIGHT', start: '2026-07-01T19:00' }), 'LIVE JAZZ NIGHT|2026-07-01T19:00', 'a raw object resolves to the identical key')
+  // a url event is unaffected (keys off url)
+  const ue = lib.normalize({ title: 'LOUD SHOW', url: 'https://x/y', start: '2026-07-01T20:00' }, AN)
+  assert.equal(lib.keyOf(ue), 'https://x/y|2026-07-01T20:00', 'url events key off url regardless of title')
 })
 
 // ============================================================
