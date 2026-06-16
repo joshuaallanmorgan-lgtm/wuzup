@@ -105,13 +105,14 @@ function bucketEvents(list, project) {
   return buckets
 }
 
-export default function MapView({ events, anchors }) {
+export default function MapView({ events, anchors, coords, requestCoords }) {
   // navigation via useNav (O6): tab activation, detail opener, focus handoff
   const { active: activeIdx, openDetail: onSelect, mapFocus: focusTarget } = useNav()
   const active = activeIdx === viewIndex('map')
   const elRef = useRef(null)
   const mapRef = useRef(null)
   const layerRef = useRef(null)
+  const youRef = useRef(null) // 3.7P-14: the "you are here" marker (lazy-created)
   const onSelectRef = useRef(onSelect)
   const didFitRef = useRef(false)
   const timersRef = useRef({}) // zoomend/moveend debounce handles
@@ -371,12 +372,37 @@ export default function MapView({ events, anchors }) {
   const num = (n) => n.toLocaleString('en-US')
   const noun = effLayer === 'events' ? 'events' : effLayer === 'places' ? 'spots' : 'pins'
 
+  // 3.7P-14: recenter on the user. With a cached fix, jump straight there; else
+  // ask (App's requestCoords resolves to coords or null). A denial resolves null
+  // → no-op (the map stays put — graceful, never an error). Drops/moves a passive
+  // "you are here" dot so the recenter is legible.
+  const goNearMe = () => {
+    const map = mapRef.current
+    if (!map || !L) return
+    const apply = (c) => {
+      if (!c || c.lat == null || c.lng == null) return
+      map.setView([c.lat, c.lng], 14, { animate: false })
+      if (youRef.current) youRef.current.setLatLng([c.lat, c.lng])
+      else
+        youRef.current = L.marker([c.lat, c.lng], {
+          icon: L.divIcon({ className: 'map-you-ico', html: '<span class="map-you"></span>', iconSize: [18, 18] }),
+          interactive: false,
+          keyboard: false,
+        }).addTo(map)
+    }
+    if (coords) apply(coords)
+    else if (requestCoords) requestCoords().then(apply)
+  }
+
   return (
     <div className="map-wrap">
       <div ref={elRef} className="map" />
 
-      {/* ===== T1 toolbar: layer toggle + filters (overlays the map top) ===== */}
+      {/* ===== T1 toolbar: layer toggle + filters (overlays the map top).
+          3.7P-14: the layer toggle + "Near me" share the primary top row; the
+          date strip + scope chips sit below. ===== */}
       <div className="map-tools">
+        <div className="map-tools-top">
         <div className="map-seg" role="group" aria-label="Map layer">
           {[
             ['events', 'Events'],
@@ -392,6 +418,14 @@ export default function MapView({ events, anchors }) {
               {lbl}
             </button>
           ))}
+        </div>
+          <button
+            className="map-near pressable"
+            onClick={goNearMe}
+            aria-label="Center the map on your location"
+          >
+            <span aria-hidden>📍</span> Near me
+          </button>
         </div>
         <div className="map-chips">
           {/* date strip — gates EVENTS only (places have no date). When the

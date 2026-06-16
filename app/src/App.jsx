@@ -261,7 +261,7 @@ function Shell() {
             )}
           </section>
           <section className="page page-map">
-            {visited.has('map') && <MapView events={norm} anchors={anchors} />}
+            {visited.has('map') && <MapView events={norm} anchors={anchors} coords={coords} requestCoords={requestCoords} />}
           </section>
           <section className="page">
             {visited.has('calendar') && <CalendarView events={norm} anchors={anchors} />}
