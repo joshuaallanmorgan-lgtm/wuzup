@@ -433,7 +433,11 @@ export default function CalendarView({ events, anchors }) {
           <div className="cal-sel">
             <div className="cal-sel-head">
               <h3 className="day-header cal-day">{selTitle}</h3>
-              {selWent && <span className="cal-sel-went">✓ You made it out 🎉</span>}
+              {selWent && (
+                <span className="cal-sel-went">
+                  <span aria-hidden>✓ </span>You made it out<span aria-hidden> 🎉</span>
+                </span>
+              )}
             </div>
             {selRest ? (
               <div className="cal-sel-rest"><span aria-hidden>🌙 </span>A quiet day</div>
