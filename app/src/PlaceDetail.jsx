@@ -236,6 +236,10 @@ export default function PlaceDetail({ e, anchors, wx }) {
 
   return (
     <div className={'detail' + (closing ? ' detail-closing' : '') + (vt ? ' detail-vt' : '')}>
+      {/* 3.7P-22: shared .detail shell — hero + body scroll inside .detail-scroll
+          (PlaceDetail has no bottom CTA, but needs the wrapper since .detail is now
+          a flex column with the scroll on the inner element). */}
+      <div className="detail-scroll">
       <div
         className={'detail-hero' + (heroArt ? ' imgbox-art' : '')}
         style={
@@ -367,6 +371,7 @@ export default function PlaceDetail({ e, anchors, wx }) {
             <div className="detail-via-list">Sourced from {e.sources.join(' · ')}</div>
           </details>
         )}
+      </div>
       </div>
 
       {/* Make-this-my-plan sheet */}

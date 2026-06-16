@@ -343,11 +343,23 @@
   height: 100svh;
   background: var(--bg);
   z-index: 2000;
-  overflow-y: auto;
-  scrollbar-width: none;
+  /* 3.7P-22: app-shell — a scrolling area (.detail-scroll) + a real bottom CTA.
+     The CTA used to be position:fixed, but .detail is transformed (centering +
+     detailIn/Out), so a fixed descendant is anchored to .detail and SCROLLED with
+     the content, drifting over the mini-map/About (FB-14). Now the CTA is a flex
+     sibling of the scroll area — a true bottom bar that never overlaps content. */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   animation: detailIn var(--dur-page) var(--ease-emphasis);
 }
-.detail::-webkit-scrollbar { display: none; }
+.detail-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+.detail-scroll::-webkit-scrollbar { display: none; }
 .detail-closing { animation: detailOut 0.24s ease forwards; }
 .detail-vt { animation: none; } /* View Transition handles the morph */
 @keyframes detailIn { from { opacity: 0; transform: translate(-50%, 7%); } to { opacity: 1; transform: translate(-50%, 0); } }
@@ -402,11 +414,9 @@
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.75);
 }
 .hero-credit a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
-/* FB-14: the fixed .detail-cta grows by env(safe-area-inset-bottom), so a flat
-   120px bottom pad shrank the clearance on notched devices (CTA could ride over
-   the About / mini-map / sources footer). Make the body's bottom clearance
-   safe-area-aware so the gap above the CTA stays constant on every device. */
-.detail-body { padding: 16px 20px calc(120px + env(safe-area-inset-bottom)); }
+/* 3.7P-22: the CTA is now a flex sibling OUTSIDE .detail-scroll (a true bottom
+   bar), so the body no longer reserves CTA clearance — just normal breathing room. */
+.detail-body { padding: 16px 20px 24px; }
 .detail-sp { display: block; margin-bottom: 10px; }
 .detail-rows { display: flex; flex-direction: column; }
 .d-row { display: flex; gap: 13px; align-items: flex-start; padding: 13px 0; border-bottom: 1px solid var(--line); }
@@ -418,12 +428,11 @@
 .d-v { font-size: 15px; font-weight: 600; margin-top: 2px; line-height: 1.35; }
 .detail-desc { margin: 18px 0 0; font-size: 15px; line-height: 1.6; color: #4a423a; }
 .detail-cta {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  /* 3.7P-22: a true bottom bar — a flex sibling of .detail-scroll (NOT a fixed
+     overlay, which drifted because .detail is transformed). Always at the bottom,
+     never over content; the scroll area above it takes the remaining height. */
+  flex: 0 0 auto;
   width: 100%;
-  max-width: 460px;
   display: flex;
   align-items: center;
   justify-content: center;

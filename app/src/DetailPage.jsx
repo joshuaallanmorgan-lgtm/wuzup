@@ -267,6 +267,10 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
 
   return (
     <div className={'detail' + (closing ? ' detail-closing' : '') + (vt ? ' detail-vt' : '')}>
+      {/* 3.7P-22: hero + body scroll inside .detail-scroll; the CTA is a flex
+          sibling below it (a real bottom bar — never a fixed overlay drifting
+          over content, which broke because .detail is transformed). */}
+      <div className="detail-scroll">
       {/* no-image hero shares the I3 .imgbox-art composition (same hue + watermark
           the card showed), so the VT morph lands on matching artwork */}
       <div
@@ -424,6 +428,7 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
             <div className="detail-via-list">Found via {via}</div>
           </details>
         )}
+      </div>
       </div>
       {toast && <div className="detail-toast">{toast}</div>}
       {undoVis && (
