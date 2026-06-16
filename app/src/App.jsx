@@ -20,7 +20,6 @@ import PlaceBubblePage from './PlaceBubblePage.jsx'
 import GuidePage from './GuidePage.jsx'
 import SearchPage from './SearchPage.jsx'
 import AddEvent from './AddEvent.jsx'
-import WeekendBuilder from './WeekendBuilder.jsx'
 import DayPage from './DayPage.jsx'
 import SettingsPage from './SettingsPage.jsx'
 import InterestEditor from './InterestEditor.jsx'
@@ -303,10 +302,6 @@ function Shell() {
             {page.type === 'search' && <SearchPage events={norm} anchors={anchors} coords={coords} />}
             {page.type === 'add' && (
               <AddEvent anchors={anchors} myEvents={myEvents} onAdd={addMine} presetTs={page.ts} />
-            )}
-            {page.type === 'weekend' && (
-              /* keyed by weekend: a midnight rollover into a new weekend remounts with that weekend's plan */
-              <WeekendBuilder key={anchors.wkStartTs} events={norm} anchors={anchors} />
             )}
             {page.type === 'day' && (
               /* Sprint U-a day screen — keyed by day ts AND todayTs: opening

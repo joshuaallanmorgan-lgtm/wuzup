@@ -22,7 +22,7 @@
 //   · RECENTLY VIEWED — recents.js keys resolved against the live dataset.
 //
 // ALL COPY IS DRAFT for Charles (inventory in the sprint report).
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { dayLoose, keyOf, normalize, rawOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { categoryById } from './categories.js'
@@ -31,13 +31,11 @@ import { markBeen, shelfItems, useBeenThere, useSaves } from './saves.js'
 import { restDayList, rhythmSummary } from './gamify.js'
 import { confidence, topCategories, useTaste, whenPreference } from './taste.js'
 import { useRecents } from './recents.js'
-import { DAY_IDS, SLOT_IDS, filledCount, loadHistory, visibleWeekend, weekendDays } from './weekend.js'
 import {
   PARTS,
   dayEntryFor,
   daysOutInMonth,
   didDays,
-  filledForDays,
   loadDayHistory,
   loadDayPlans,
   monthReality as computeMonthReality,
@@ -48,7 +46,6 @@ import './profile.css'
 
 const fmtShort = (ts) =>
   new Date(ts).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-const fmtRange = (a, b) => fmtShort(a) + ' – ' + fmtShort(b)
 
 // the primer's when-preference, reflected back (only ever shown when the
 // primer was actually answered — a skipped primer claims nothing)
@@ -77,7 +74,7 @@ const GearIc = () => (
 )
 
 export default function ProfileView({ events, anchors, primer }) {
-  const { openDetail: onSelect, openWeekend: onOpenWeekend, openSettings, openInterests, openTaste, openDeck, openDay, page } = useNav()
+  const { openDetail: onSelect, openSettings, openInterests, openTaste, openDeck, openDay, page } = useNav()
   const taste = useTaste()
   const { list: savedList } = useSaves()
   const been = useBeenThere()
@@ -133,13 +130,6 @@ export default function ProfileView({ events, anchors, primer }) {
     void planPageUp // re-read trigger (see above)
     return loadDayPlans(anchors)
   }, [anchors, planPageUp])
-  // past weekends keep reading 'weekend-history-v1' — NOT migrated, by design
-  const history = useMemo(() => {
-    void planPageUp
-    return loadHistory()
-      .filter((p) => p.weekendStartTs !== anchors.wkStartTs) // current weekend renders live above
-      .reverse() // most recent past weekend first
-  }, [anchors.wkStartTs, planPageUp])
   // past DAYS accumulate in 'day-history-v1' going forward (U-d makes the
   // list rich; this is the honest simple version)
   const dayHist = useMemo(() => {
@@ -161,9 +151,8 @@ export default function ProfileView({ events, anchors, primer }) {
       if (e && PARTS.some((p) => isPlaceKey(e.slots[p]))) return true
     }
     for (const h of dayHist) if (PARTS.some((p) => isPlaceKey(h.slots[p]))) return true
-    for (const p of history) if (p.slots && Object.values(p.slots).some(isPlaceKey)) return true
     return false
-  }, [dayPlans, dayHist, history])
+  }, [dayPlans, dayHist])
   const { places: placeList } = usePlaces(hasPlaceKey)
   // best-known title per key for plan summaries/history: live dataset wins,
   // then saved snapshots, then been-there snapshots, then the lazy places —
@@ -176,21 +165,6 @@ export default function ProfileView({ events, anchors, primer }) {
     if (Array.isArray(placeList)) for (const p of placeList) m.set(p.key, p.title)
     return m
   }, [been, savedList, events, placeList])
-
-  const days = useMemo(() => visibleWeekend(anchors), [anchors])
-  const visibleSlotN = days.length * PARTS.length
-  const filledVis = filledForDays(dayPlans, days.map((d) => d.ts))
-  const restN = days.filter((d) => dayEntryFor(dayPlans[String(d.ts)])?.state === 'rest').length
-  const planTitles = days
-    .flatMap((d) => {
-      const e = dayEntryFor(dayPlans[String(d.ts)])
-      return e ? PARTS.map((p) => e.slots[p]) : []
-    })
-    .map((k) => (k ? titleByKey.get(k) : null))
-    .filter(Boolean)
-    .slice(0, 3)
-  const range =
-    days.length > 1 ? fmtRange(days[0].ts, days[days.length - 1].ts) : fmtShort(days[0].ts)
 
   // N5b re-entry pull (Discover → Save → PLAN): saves are waiting but nothing's
   // planned ahead → invite turning one into a plan. Forward-framed, shown only
@@ -425,40 +399,15 @@ export default function ProfileView({ events, anchors, primer }) {
           )}
         </section>
 
-        {/* ===== Your plans (the Weekend Builder's primary home) ===== */}
-        <section className="pf-sec">
-          <SecHead overline="Weekends live here" title="Your plans" />
-          <button className="pf-plan pressable" onClick={onOpenWeekend}>
-            <span className="pf-plan-over">This weekend</span>
-            <span className="pf-plan-range">{range}</span>
-            <span className="pf-plan-fill">
-              {filledVis > 0
-                ? `${filledVis}/${visibleSlotN} slots planned` + (restN > 0 ? ' · a quiet day' : '')
-                : restN > 0
-                  ? 'A quiet weekend planned'
-                  : 'Nothing planned yet — tap to start'}
-            </span>
-            {planTitles.length > 0 && (
-              <span className="pf-plan-picks">
-                {planTitles.map((t, i) => (
-                  <span key={i} className="pf-plan-pick">
-                    · {t}
-                  </span>
-                ))}
-              </span>
-            )}
-            <span className="pf-plan-go" aria-hidden>
-              →
-            </span>
-          </button>
-          {history.length > 0 && (
-            <>
-              <div className="pf-hist-label">Past weekends</div>
-              {history.map((p) => (
-                <HistoryCard key={p.weekendStartTs} p={p} byKey={byKey} titleByKey={titleByKey} onSelect={onSelect} />
-              ))}
-            </>
-          )}
+        {/* ===== Your days — a quiet record. 3.7P-8 retired the Weekend Builder;
+            planning now lives in the Calendar + day screens (the "Turn a save into
+            a plan" pull above still opens a day), and the weekend-history surface
+            was dropped with it. The Past-days journal (§14.3 passport) stays.
+            Zero-is-silence: the section only appears once there's something to
+            show. DRAFT copy — ⚑ Charles. ===== */}
+        {(monthReality.planned > 0 || dayHist.length > 0) && (
+          <section className="pf-sec">
+            <SecHead overline="Looking back" title="Your days" />
           {/* U-d: the past-days JOURNAL from 'day-history-v1'. Three honest
               states, never a gap, never a failure:
                 · a did-day (you answered "I went" — derived from been-there) is
@@ -499,7 +448,8 @@ export default function ProfileView({ events, anchors, primer }) {
               })}
             </>
           )}
-        </section>
+          </section>
+        )}
 
         {/* ===== Been there ===== */}
         <section className="pf-sec">
@@ -608,54 +558,3 @@ export default function ProfileView({ events, anchors, primer }) {
   )
 }
 
-// O5 — one archived weekend, read-only. Collapsed: range + filled count.
-// Expanded: the filled slots — events still in the dataset open their detail;
-// vanished ones show their archived title (or an honest "no longer listed").
-function HistoryCard({ p, byKey, titleByKey, onSelect }) {
-  const [open, setOpen] = useState(false)
-  const days = weekendDays({ wkStartTs: p.weekendStartTs }) // [fri, sat, sun] timestamps
-  const n = filledCount(p)
-  const rows = open
-    ? SLOT_IDS.filter((id) => p.slots[id]).map((id) => {
-        const [dayId, part] = id.split('_')
-        const ts = days[DAY_IDS.indexOf(dayId)]
-        const k = p.slots[id]
-        const live = byKey.get(k) ?? null
-        return { id, k, part, live, title: live?.title ?? titleByKey.get(k) ?? null, ts }
-      })
-    : []
-  return (
-    <div className={'pf-hist' + (open ? ' open' : '')}>
-      <button className="pf-hist-head" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
-        <span className="pf-hist-range">🗓️ {fmtRange(days[0], days[2])}</span>
-        <span className="pf-hist-n">
-          {n} planned <span className="pf-hist-chev" aria-hidden>{open ? '▴' : '▾'}</span>
-        </span>
-      </button>
-      {open && (
-        <div className="pf-hist-rows">
-          {rows.map((r) =>
-            r.live ? (
-              <button key={r.id} className="pf-hist-row pf-hist-live" onClick={(ev) => onSelect(r.live, ev.currentTarget)}>
-                <span className="pf-hist-slot">
-                  {new Date(r.ts).toLocaleDateString('en-US', { weekday: 'short' })} {r.part === 'day' ? '☀️' : '🌙'}
-                </span>
-                <span className="pf-hist-title">{r.title}</span>
-                <SponsoredTag e={r.live} />
-              </button>
-            ) : (
-              <div key={r.id} className="pf-hist-row">
-                <span className="pf-hist-slot">
-                  {new Date(r.ts).toLocaleDateString('en-US', { weekday: 'short' })} {r.part === 'day' ? '☀️' : '🌙'}
-                </span>
-                <span className={'pf-hist-title' + (r.title ? '' : ' pf-hist-gone')}>
-                  {r.title ?? 'no longer listed'}
-                </span>
-              </div>
-            )
-          )}
-        </div>
-      )}
-    </div>
-  )
-}

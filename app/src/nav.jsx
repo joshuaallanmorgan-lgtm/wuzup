@@ -21,8 +21,8 @@
 //     so only the detail hero owns the name in the NEW one; closeDetail
 //     reverses it. Reduced motion / no-VT browsers get the slide-up fallback.
 //   · Escape layering: this module's window listener is BUBBLE-phase, so the
-//     capture-phase handlers in MapView (pin sheet) and WeekendBuilder
-//     (picker) always win first; within here, detail closes before subpage.
+//     capture-phase handlers in MapView (pin sheet) and PickerSheet (the day
+//     planner's slot picker) always win first; within here, detail closes before subpage.
 //   · openDetail/closeDetail/open*/closePage are useCallback-stable so
 //     consumers (MapView's marker effect especially) never re-run on identity.
 // NOTE: .jsx, not .js — react-hooks/refs hard-errors the createElement form of
@@ -177,11 +177,6 @@ export function NavProvider({ children }) {
     setPageClosing(false)
     setPage({ type: 'add', ts: typeof ts === 'number' && Number.isFinite(ts) ? ts : null })
   }, [])
-  const openWeekend = useCallback(() => {
-    clearTimeout(pageTRef.current)
-    setPageClosing(false)
-    setPage({ type: 'weekend' })
-  }, [])
   // Sprint U-a: the day screen — `ts` is the day's local-midnight timestamp.
   // App keys the mount on ts + anchors.todayTs, so opening another day AND
   // crossing midnight both remount cleanly (ts alone wouldn't roll over).
@@ -319,7 +314,7 @@ export function NavProvider({ children }) {
   )
 
   // Escape closes the topmost layer: detail first, then any open subpage
-  // (bubble phase — MapView/WeekendBuilder capture-phase handlers run first)
+  // (bubble phase — MapView/PickerSheet capture-phase handlers run first)
   useEffect(() => {
     const onKey = (ev) => {
       if (ev.key !== 'Escape') return
@@ -346,7 +341,6 @@ export function NavProvider({ children }) {
       openGuide,
       openSearch,
       openAdd,
-      openWeekend,
       openDay,
       openSettings,
       openInterests,
@@ -377,7 +371,6 @@ export function NavProvider({ children }) {
       openGuide,
       openSearch,
       openAdd,
-      openWeekend,
       openDay,
       openSettings,
       openInterests,

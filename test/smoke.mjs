@@ -890,13 +890,17 @@ test('share.js: shareDayText composes ☀️/🌙 lines, null on nothing to shar
   assert.equal(share.shareDayText(dayTs, [{ part: 'day', e: null }]), null, 'unresolved slots drop to nothing')
 })
 
-// Sprint U-c: weekend.js's live plan store is retired — loadPlan/savePlan gone,
-// but the migration's support cast (PLAN_KEY/planFor/loadHistory) stays.
-test('U-c retirement: weekend.loadPlan/savePlan removed, support cast intact', () => {
+// Sprint U-c + 3.7P-8: weekend.js's live plan store retired in U-c (loadPlan/
+// savePlan gone); 3.7P-8 (FB-10) retired the Weekend Builder VIEW and dropped
+// weekend history — so loadHistory/shareText/filledCount are gone too. The pure
+// migration support cast (PLAN_KEY/planFor) + the window selector stay.
+test('U-c + 3.7P-8 retirement: builder/history removed, migration cast intact', () => {
   assert.equal(weekend.loadPlan, undefined, 'weekend.loadPlan must be retired (day-plans-v1 is the store)')
   assert.equal(weekend.savePlan, undefined, 'weekend.savePlan must be retired')
-  assert.equal(typeof weekend.planFor, 'function', 'planFor stays — the migration archive validator')
-  assert.equal(typeof weekend.loadHistory, 'function', 'loadHistory stays — Profile past-weekend cards')
+  assert.equal(weekend.loadHistory, undefined, '3.7P-8: loadHistory retired — weekend history dropped')
+  assert.equal(weekend.shareText, undefined, '3.7P-8: shareText retired with the Weekend Builder view')
+  assert.equal(typeof weekend.planFor, 'function', 'planFor stays — the migration plan validator')
+  assert.equal(typeof weekend.visibleWeekend, 'function', 'visibleWeekend stays — pure weekend-window selector')
   assert.equal(weekend.PLAN_KEY, 'weekend-plan-v1', 'PLAN_KEY stays — migrateWeekendPlan reads it once')
 })
 
@@ -1595,7 +1599,8 @@ test('W2: the Calendar tab is a logbook — NO event list / counts / heat on it'
   // tapping a day still opens the day screen (the bridge to fill it)
   assert.ok(/openDay\(ts\)/.test(calSrc), 'tapping a day must still open the day screen (the supply bridge)')
   // W6 (⚑U-WKND): the Weekend pill is RETIRED — planning is per-day now, so the
-  // redundant calendar→WeekendBuilder entry is gone (WB stays reachable from Profile)
+  // redundant calendar→WeekendBuilder entry is gone (and 3.7P-8/FB-10 later
+  // retired the Weekend Builder view entirely — planning lives in the day screens)
   assert.ok(!/cal-wkb/.test(calSrc), 'the Weekend pill (.cal-wkb) must be removed from the Calendar tab (W6)')
   assert.ok(!/openWeekend/.test(calSrc), 'the Calendar tab must not wire openWeekend anymore (W6 retired the pill)')
   // the gentle ledger is surfaced LIGHT here (days-out line), zero is silence

@@ -1,89 +1,14 @@
-/* weekend.css — Weekend Builder (Sprint K2) + its entry buttons.
-   Editorial and calm: teal identity, hairlines, white cards. The ONLY --reward
-   appearance is the one-shot complete beat (.wkb-done-card.beat), which settles
-   back to teal and never plays under reduced motion. */
+/* weekend.css — shared day-planner styles, slimmed by 3.7P-8.
+   This was the Weekend Builder's stylesheet; that VIEW retired in 3.7P-8 (FB-10),
+   so the builder PAGE rules (day grid, slot mini-cards, rest card, the complete
+   reward-beat banner, action buttons) were swept. What remains is the cast still
+   used by the KEPT day planner:
+     · the slot-clear x (.wkb-clear) — reused by DayPage's day cards;
+     · PickerSheet's slot-picker sheet (the .wkb-sheet, .wkb-pick, .wkb-group and
+       .wkb-note families + their rise/fade animations and reduced-motion guard).
+   The `wkb-` class prefix is kept so PickerSheet/DayPage markup is untouched. */
 
-/* (W6 cleanup: the old entry-point styles were swept — the retired HotView
-   Saved-shelf button and the Calendar header Weekend pill (retired in W6,
-   ⚑U-WKND). Neither had a JSX consumer left. The Weekend Builder is now
-   reached only from Profile → Your plans.) */
-
-/* ===== the page ===== */
-.wkb-body { padding-top: 0; }
-.wkb-days { display: grid; gap: 10px; padding: 8px 16px 0; }
-.wkb-n3 { grid-template-columns: repeat(3, 1fr); }
-.wkb-n2 { grid-template-columns: repeat(2, 1fr); }
-.wkb-n1 { grid-template-columns: 1fr; }
-
-.wkb-day-head { display: flex; align-items: baseline; gap: 6px; padding: 0 2px; }
-.wkb-dow { font-size: 14px; font-weight: 900; letter-spacing: 0.02em; }
-.wkb-date { font-size: 11px; font-weight: 700; color: var(--muted); }
-
-.wkb-slot { margin-top: 10px; }
-.wkb-part {
-  margin-bottom: 5px;
-  padding: 0 2px;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.2px;
-  color: var(--muted);
-}
-
-/* empty slot: a quiet dashed invitation */
-.wkb-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 64px;
-  padding: 8px;
-  border: 1.5px dashed rgba(var(--accent-rgb), 0.4);
-  border-radius: 14px;
-  background: rgba(var(--accent-rgb), 0.04);
-  color: var(--muted);
-  font-family: inherit;
-  cursor: pointer;
-}
-.wkb-empty-txt { font-size: 11px; font-weight: 600; line-height: 1.35; text-align: center; }
-
-/* filled slot: mini-card (CardImg thumb + clamped text), ✕ to clear */
-.wkb-filled { position: relative; }
-.wkb-card {
-  display: block;
-  width: 100%;
-  padding: 0 0 9px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--card);
-  overflow: hidden;
-  text-align: left;
-  font-family: inherit;
-  color: var(--ink);
-  cursor: pointer;
-}
-.wkb-thumb { display: block; width: 100%; aspect-ratio: 16 / 10; }
-.wkb-n1 .wkb-thumb { aspect-ratio: 21 / 9; } /* single-column Sunday: keep the card short */
-.wkb-card-title {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  margin: 8px 9px 0;
-  font-size: 12.5px;
-  font-weight: 700;
-  line-height: 1.25;
-}
-.wkb-card-meta {
-  display: block;
-  margin: 3px 9px 0;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.wkb-card .sp-label { display: block; margin: 5px 9px 0; } /* sponsored/added-by-you stay labeled in slots */
+/* ===== slot-clear ✕ (PickerSheet-filled slots + DayPage day cards) ===== */
 .wkb-clear {
   position: absolute;
   top: 6px;
@@ -105,90 +30,6 @@
   transition: transform var(--dur-micro);
 }
 .wkb-clear:active { transform: scale(0.88); }
-
-/* ===== U-a: a rest day in a weekend column — the calm filled state =====
-   replaces BOTH slots (rest and slots are mutually exclusive, dayplan.js);
-   muted ink on a soft wash, zero alarm — never reads as something to fix */
-.wkb-rest {
-  margin-top: 10px;
-  padding: 14px 10px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--card);
-  text-align: center;
-}
-.wkb-rest-title { font-size: 12.5px; font-weight: 800; }
-.wkb-rest-sub { margin-top: 3px; font-size: 11px; font-weight: 500; color: var(--muted); line-height: 1.35; }
-.wkb-rest-undo {
-  margin-top: 10px;
-  padding: 6px 10px;
-  border: 1px solid rgba(var(--accent-rgb), 0.35);
-  border-radius: 999px;
-  background: none;
-  color: var(--accent-ink);
-  font-family: inherit;
-  font-size: 10.5px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-/* ===== complete banner + the one-shot reward beat =====
-   Resting state is calm teal-on-white; .beat plays ONCE (the moment the plan
-   first completes): rises in wearing --reward, settles to the resting look.
-   color/border/shadow keyframes mirror the sanctioned savePop pattern. */
-.wkb-done-card {
-  margin: 18px 16px 0;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--card);
-}
-.wkb-done-over {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.2px;
-  color: var(--accent-ink);
-}
-.wkb-done-title { margin-top: 4px; font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
-.wkb-done-sub { margin-top: 3px; font-size: 13px; font-weight: 500; color: var(--muted); }
-@keyframes wkbBeat {
-  0% {
-    opacity: 0;
-    transform: translateY(8px);
-    border-color: rgba(var(--reward-rgb), 0.55);
-    box-shadow: 0 4px 22px rgba(var(--reward-rgb), 0.28);
-  }
-  45% {
-    opacity: 1;
-    transform: none;
-    border-color: rgba(var(--reward-rgb), 0.55);
-    box-shadow: 0 4px 22px rgba(var(--reward-rgb), 0.28);
-  }
-  100% { opacity: 1; transform: none; border-color: var(--line); box-shadow: none; }
-}
-@keyframes wkbBeatInk {
-  0%, 45% { color: var(--reward); }
-  100% { color: var(--accent-ink); }
-}
-.wkb-done-card.beat { animation: wkbBeat 1100ms var(--ease-emphasis) both; }
-.wkb-done-card.beat .wkb-done-over { animation: wkbBeatInk 1100ms var(--ease-emphasis) both; }
-
-/* ===== actions ===== */
-.wkb-actions { display: flex; gap: 10px; padding: 18px 16px 0; }
-.wkb-btn {
-  flex: 1;
-  padding: 13px;
-  border-radius: 14px;
-  border: none;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: transform var(--dur-micro);
-}
-.wkb-btn:active { transform: scale(0.97); }
-.wkb-btn-done { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: var(--ink); } /* dark ink on Sunset Gold — white fails AA (3.73a sweep) */
-.wkb-btn-share { background: var(--card); border: 1px solid var(--line); color: var(--ink); }
 
 /* ===== picker sheet =====
    Fixed within the phone frame (same left-50% centering trick as .tabbar so it
@@ -326,13 +167,10 @@
   line-height: 1.5;
 }
 
-/* ===== reduced motion: sheet/scrim appear in place, the reward beat never
-   plays (banner mounts straight in its calm resting state) ===== */
+/* ===== reduced motion: sheet/scrim appear in place ===== */
 @media (prefers-reduced-motion: reduce) {
   .wkb-scrim,
   .wkb-sheet,
   .wkb-sheet-wrap.closing .wkb-scrim,
-  .wkb-sheet-wrap.closing .wkb-sheet,
-  .wkb-done-card.beat,
-  .wkb-done-card.beat .wkb-done-over { animation: none !important; }
+  .wkb-sheet-wrap.closing .wkb-sheet { animation: none !important; }
 }
