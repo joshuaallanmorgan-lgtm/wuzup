@@ -146,7 +146,10 @@
   justify-content: center;
   font-size: 22px;
   border-radius: 50%;
-  background: hsl(var(--ah, 30) 65% 92%);
+  /* a visible-but-soft hue tint (was 92% L — nearly invisible on Parchment);
+     the inset ring defines the disc edge so the activity colour-coding reads */
+  background: hsl(var(--ah, 30) 62% 86%);
+  box-shadow: inset 0 0 0 1px hsl(var(--ah, 30) 45% 78%);
 }
 .act-chip-label {
   font-size: 11.5px;

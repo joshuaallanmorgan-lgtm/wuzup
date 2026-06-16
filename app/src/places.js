@@ -82,9 +82,15 @@ export const ACTIVITIES = [
   { id: 'act-trails', emoji: '🥾', label: 'Trails & nature', hue: 110, match: (p) => p.placeType === 'preserve' || p.placeType === 'trail' || hasClass(p, 'preserve') || hasClass(p, 'trail') || ['hiking', 'trails', 'nature-trails', 'birding', 'biking'].some((a) => hasAmenity(p, a)) },
   { id: 'act-water', emoji: '🚣', label: 'On the water', hue: 195, match: (p) => p.placeType === 'boat_ramp' || p.placeType === 'pier' || hasClass(p, 'boat_ramp') || hasClass(p, 'pier') || ['boat-ramp', 'boating', 'swimming', 'paddling', 'canoe-launch', 'snorkeling', 'marina', 'fishing'].some((a) => hasAmenity(p, a)) },
   { id: 'act-sports', emoji: '🎾', label: 'Sports & courts', hue: 35, match: (p) => p.placeType === 'courts' || hasClass(p, 'courts') || ['tennis', 'basketball', 'pickleball', 'volleyball', 'racquetball', 'disc-golf', 'shuffleboard', 'skate-park', 'soccer', 'baseball', 'golf'].some((a) => hasAmenity(p, a)) },
-  { id: 'act-family', emoji: '🛝', label: 'Family & play', hue: 50, match: (p) => p.placeType === 'playground' || hasClass(p, 'playground') || ['playground', 'splash-pad'].some((a) => hasAmenity(p, a)) },
-  { id: 'act-dog', emoji: '🐕', label: 'Dog-friendly', hue: 40, match: (p) => p.placeType === 'dog_park' || hasClass(p, 'dog_park') || ['dog-park', 'dog-beach', 'dogs-allowed'].some((a) => hasAmenity(p, a)) },
+  { id: 'act-family', emoji: '🛝', label: 'Family & play', hue: 80, match: (p) => p.placeType === 'playground' || hasClass(p, 'playground') || ['playground', 'splash-pad'].some((a) => hasAmenity(p, a)) },
+  { id: 'act-dog', emoji: '🐕', label: 'Dog-friendly', hue: 50, match: (p) => p.placeType === 'dog_park' || hasClass(p, 'dog_park') || ['dog-park', 'dog-beach', 'dogs-allowed'].some((a) => hasAmenity(p, a)) },
   { id: 'act-views', emoji: '🌅', label: 'Scenic views', hue: 25, match: (p) => p.placeType === 'viewpoint' || p.placeType === 'pier' || hasClass(p, 'pier') || ['viewpoint-deck', 'boardwalk'].some((a) => hasAmenity(p, a)) },
+  // catch-all green space (3.7P-12 review): ~530 plain parks/gardens carry no
+  // routing amenity, so without this they'd live ONLY in Everything. They
+  // genuinely ARE parks, so an honest "go to a park" intent gives them a home
+  // (and the activity frame stops implying false completeness). Placed last of
+  // the everyday intents so the specific activities lead.
+  { id: 'act-parks', emoji: '🌳', label: 'Parks & green space', hue: 140, match: (p) => p.placeType === 'park' || p.placeType === 'garden' || hasClass(p, 'park') || hasClass(p, 'garden') },
   { id: 'act-hidden', emoji: '💎', label: 'Hidden gems', hue: 285, match: (p) => p.hidden === true },
 ]
 

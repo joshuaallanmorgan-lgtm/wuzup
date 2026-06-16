@@ -206,8 +206,12 @@ export default function LocationsView({ coords, requestCoords }) {
         {activitySections.map(({ a, items, total }) => (
           <section className="sec" key={a.id}>
             <SecHead
-              overline={a.emoji + ' Activity'}
-              title={a.label}
+              title={
+                <>
+                  <span aria-hidden>{a.emoji} </span>
+                  {a.label}
+                </>
+              }
               sub={coords ? 'Nearest first' : `${total.toLocaleString('en-US')} to explore`}
               onSeeAll={() => openPlaceBubble(a)}
             />
