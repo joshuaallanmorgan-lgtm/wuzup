@@ -257,12 +257,14 @@ export default function HotView({ events, anchors, loading, whenPref }) {
   return (
     <div className="hot-scroll" ref={scrollRef}>
       <header className="hero">
-        <div className={'hero-img' + (heroOk ? ' on' : '')} style={{ backgroundImage: `url(${CITY.hero})` }} />
+        {/* 3.7P-6: cinematic hero — a slow Ken-Burns zoom on the real city photo
+            (FB-06's "slight zoom in/out"; reduced-motion holds it still). Reads the
+            CITY.heroes[] array (swipe-ready: the multi-photo crossfade turns on when
+            ≥3 hero-quality images are curated). FB-07: the 🔎 moved out of the hero,
+            down beside "Near Me" in the lens row below. */}
+        <div className={'hero-img hero-kb' + (heroOk ? ' on' : '')} style={{ backgroundImage: `url(${CITY.heroes[0].url})` }} />
         <div className="hero-dim" />
         <div className="hero-grad" />
-        <button className="hero-search" onClick={onOpenSearch} aria-label="Search events">
-          🔎
-        </button>
         <div className="hero-text">
           {/* Sunlit Coastal Pop (3.71): the Wuzup brand lockup on the masthead */}
           <div className="hero-brand">
@@ -293,6 +295,7 @@ export default function HotView({ events, anchors, loading, whenPref }) {
         menuLabel="All categories"
         onOpen={onOpenBubble}
         onAdd={onOpenAdd}
+        onSearch={onOpenSearch}
       />
 
       <div className="hot-body">

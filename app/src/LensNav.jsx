@@ -16,7 +16,7 @@
 import { useEffect, useRef, useState } from 'react'
 import './topnav.css'
 
-export default function LensNav({ lenses = [], categories = [], menuLabel = 'All categories', navLabel = 'Browse', onOpen, onAdd }) {
+export default function LensNav({ lenses = [], categories = [], menuLabel = 'All categories', navLabel = 'Browse', onOpen, onAdd, onSearch }) {
   const [open, setOpen] = useState(false)
   const [closing, setClosing] = useState(false)
   const tRef = useRef(null)
@@ -84,8 +84,15 @@ export default function LensNav({ lenses = [], categories = [], menuLabel = 'All
   return (
     <>
       <nav className="lensbar" aria-label={navLabel}>
-        {lenses.length > 0 && (
+        {(lenses.length > 0 || onSearch) && (
           <div className="lens-row">
+            {/* FB-07 (3.7P-6): search moved out of the hero corner to here, beside
+                the lenses (incl. "Near Me") — a peer pill, ≥44px, leads the row. */}
+            {onSearch && (
+              <button className="lens-pill lens-search pressable" onClick={onSearch} aria-label="Search events">
+                <span aria-hidden>🔎</span> Search
+              </button>
+            )}
             {lenses.map((b) => (
               <button key={b.id} className="lens-pill pressable" onClick={() => onOpen(b)}>
                 {b.label}

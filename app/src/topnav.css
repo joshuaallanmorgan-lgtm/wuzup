@@ -30,6 +30,10 @@
   transition: background var(--dur-fast), border-color var(--dur-fast), transform var(--dur-micro);
 }
 .lens-pill:hover { border-color: rgba(var(--accent-rgb), 0.4); }
+/* FB-07 (3.7P-6): the search pill — a peer of the lenses (≥44px via .lens-pill)
+   but subtly accent-tinted so it reads as the search entry point, not a filter. */
+.lens-search { border-color: rgba(var(--accent-rgb), 0.5); color: var(--accent-ink); font-weight: 700; }
+.lens-search > span { margin-right: 5px; }
 /* the full-width menu bar — calm, but its LABEL stays --ink so the one door to
    the whole taxonomy reads as tappable, not skimmed past (N1 review). */
 .lens-more {

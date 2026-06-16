@@ -371,6 +371,11 @@ test('W4 wiring: real heroes + place-detail photo + degrade-to-art + passthrough
   const lib = readFileSync(path.join(ROOT, 'app', 'src', 'lib.js'), 'utf8')
   assert.match(lib, /hero:\s*'https:\/\/upload\.wikimedia\.org\//, 'CITY.hero must be a real Commons photo')
   assert.match(lib, /spotsHero:\s*'https:\/\/upload\.wikimedia\.org\//, 'CITY.spotsHero must be a real Commons photo (not a CSS placeholder)')
+  // 3.7P-6: hero art is also an array (swipe-ready) — every entry a real Commons
+  // photo WITH a recorded license (for the ⚑X3 attribution page).
+  assert.match(lib, /heroes:\s*\[/, 'CITY.heroes[] must exist (3.7P-6 swipe-ready hero array)')
+  assert.match(lib, /url:\s*'https:\/\/upload\.wikimedia\.org\//, 'CITY.heroes entries must carry a real Commons url')
+  assert.match(lib, /license:\s*'(CC |Public domain)/, 'CITY.heroes entries must record a license for the attribution page')
   // LocationsView renders the real Spots hero image, not just the teal wash
   const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
   assert.match(loc, /loc-hero-img/, 'LocationsView must render a real .loc-hero-img element')

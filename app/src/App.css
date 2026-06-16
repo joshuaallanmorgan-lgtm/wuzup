@@ -54,6 +54,18 @@
   transition: opacity var(--dur-emphasis) var(--ease-out);
 }
 .hero-img.on { opacity: 1; }
+/* 3.7P-6: the cinematic Ken-Burns zoom (FB-06's "slight zoom in/out"). The
+   keyframe keeps translateY(var(--hs)) so the Home hero's scroll parallax still
+   rides on top of the slow scale; the Spots hero has no --hs so it just zooms.
+   Reduced-motion holds it still (the static .hero-img transform/parallax remains). */
+@keyframes heroKenBurns {
+  from { transform: translateY(var(--hs, 0px)) scale(1); }
+  to { transform: translateY(var(--hs, 0px)) scale(1.08); }
+}
+.hero-kb { animation: heroKenBurns 22s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) {
+  .hero-kb { animation: none; }
+}
 .hero-dim {
   position: absolute;
   inset: 0;
@@ -91,28 +103,8 @@
   box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.75);
 }
 
-/* 🔎 search button: glassy circle, top-right of the hero */
-.hero-search {
-  position: absolute;
-  top: calc(14px + env(safe-area-inset-top));
-  right: 14px;
-  z-index: 2;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(0, 0, 0, 0.38);
-  backdrop-filter: blur(6px);
-  color: #fff;
-  font-size: 16px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: transform 0.1s;
-}
-.hero-search:active { transform: scale(0.9); }
+/* (3.7P-6 FB-07: the hero 🔎 search button was retired — search moved into the
+   lens row beside "Near Me", styled .lens-search in topnav.css.) */
 
 /* (Phase 3.6 N1: the loud bubble strip was retired — replaced by the quiet
    LensNav (lens pills + an All-categories menu). Styles live in topnav.css.) */
