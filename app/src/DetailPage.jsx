@@ -10,7 +10,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { getLeaflet } from './leaflet-lazy.js'
 import { useNav } from './nav.jsx'
-import { DAY, dayKey, hotDesc, keyOf, parseDate, priceLabel, timeOf } from './lib.js'
+import { DAY, dayKey, hotDesc, Icon, keyOf, parseDate, priceLabel, timeOf } from './lib.js'
 import { eventIcs } from './share.js'
 import { CATEGORY_EMOJI, HeatBadge, SecHead, TonightCard, hueFor } from './cards.jsx'
 import { SaveHeart } from './saves.js'
@@ -305,10 +305,10 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         {e.sponsored === true && <div className="sp-label detail-sp">Sponsored</div>}
         {mine && <div className="sp-label my-label detail-sp">Added by you</div>}
         <div className="detail-rows">
-          <div className="d-row"><span className="d-ic">📅</span><div><div className="d-k">When</div><div className="d-v">{when}</div></div></div>
+          <div className="d-row"><span className="d-ic" aria-hidden><Icon.calendar /></span><div><div className="d-k">When</div><div className="d-v">{when}</div></div></div>
           {whereMain && (
             <a className="d-row" href={mapsUrl} target="_blank" rel="noreferrer">
-              <span className="d-ic">📍</span>
+              <span className="d-ic" aria-hidden><Icon.locations /></span>
               <div>
                 <div className="d-k">Where</div>
                 <div className="d-v">{whereMain}<span className="d-ext">↗</span></div>
@@ -316,7 +316,7 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
               </div>
             </a>
           )}
-          <div className="d-row"><span className="d-ic">🎟️</span><div><div className="d-k">Price</div><div className="d-v">{priceLabel(e) || 'See event for pricing'}</div></div></div>
+          <div className="d-row"><span className="d-ic" aria-hidden><Icon.tag /></span><div><div className="d-k">Price</div><div className="d-v">{priceLabel(e) || 'See event for pricing'}</div></div></div>
           {wxLine && (
             <div className="d-row"><span className="d-ic">{w.emoji}</span><div><div className="d-k">Weather</div><div className="d-v">{wxLine}</div></div></div>
           )}
@@ -389,12 +389,12 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         )}
         <div className="util-row">
           {e.start && (
-            <button className="util-btn" onClick={downloadIcs}>📅 Calendar</button>
+            <button className="util-btn" onClick={downloadIcs}><Icon.calendar />Calendar</button>
           )}
           {mapsUrl && (
-            <a className="util-btn" href={mapsUrl} target="_blank" rel="noreferrer">🧭 Directions</a>
+            <a className="util-btn" href={mapsUrl} target="_blank" rel="noreferrer"><Icon.compass />Directions</a>
           )}
-          <button className="util-btn" onClick={share}>🔗 Share</button>
+          <button className="util-btn" onClick={share}><Icon.share />Share</button>
         </div>
         {mine && onRemoveMine && (
           <button className="d-remove" onClick={removeMine} disabled={undoVis}>

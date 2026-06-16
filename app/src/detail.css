@@ -172,6 +172,8 @@ a.d-row { text-decoration: none; color: inherit; }
 }
 .util-btn:hover { box-shadow: 0 3px 12px rgba(26, 20, 16, 0.1); }
 .util-btn:active { transform: scale(0.96); }
+/* 3.7P-1: stroke-SVG action icons (calendar/compass/share), inherit ink */
+.util-btn svg { width: 16px; height: 16px; flex: 0 0 auto; }
 
 /* ===== More like this rail (reuses .carousel/.tcard from cards.css) ===== */
 .detail-rail { margin: 34px -20px 0; } /* full-bleed back out of .detail-body's 20px gutters */

@@ -13,7 +13,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { getLeaflet } from './leaflet-lazy.js'
 import { useNav } from './nav.jsx'
-import { keyOf } from './lib.js'
+import { Icon, keyOf } from './lib.js'
 import { SecHead, TonightCard, artEmoji, hueFor } from './cards.jsx'
 import { SaveHeart } from './saves.js'
 import { dateKey } from './weather.js'
@@ -274,7 +274,7 @@ export default function PlaceDetail({ e, anchors, wx }) {
         <div className="detail-rows">
           {e.venue && (
             <a className="d-row" href={mapsUrl} target="_blank" rel="noreferrer">
-              <span className="d-ic">📍</span>
+              <span className="d-ic" aria-hidden><Icon.locations /></span>
               <div>
                 <div className="d-k">Where</div>
                 <div className="d-v">{e.venue}<span className="d-ext">↗</span></div>
@@ -282,10 +282,10 @@ export default function PlaceDetail({ e, anchors, wx }) {
             </a>
           )}
           {e.hours && (
-            <div className="d-row"><span className="d-ic">🕑</span><div><div className="d-k">Hours</div><div className="d-v">{e.hours}</div></div></div>
+            <div className="d-row"><span className="d-ic" aria-hidden><Icon.clock /></span><div><div className="d-k">Hours</div><div className="d-v">{e.hours}</div></div></div>
           )}
           {feeLine && (
-            <div className="d-row"><span className="d-ic">🎟️</span><div><div className="d-k">Entry</div><div className="d-v">{feeLine}</div></div></div>
+            <div className="d-row"><span className="d-ic" aria-hidden><Icon.tag /></span><div><div className="d-k">Entry</div><div className="d-v">{feeLine}</div></div></div>
           )}
           {wxFit && (
             <div className="d-row"><span className="d-ic">{wxFit.slice(0, 2)}</span><div><div className="d-k">Weather</div><div className="d-v">{wxFit.slice(2).trim()}</div></div></div>
@@ -326,9 +326,9 @@ export default function PlaceDetail({ e, anchors, wx }) {
 
         <div className="util-row">
           {mapsUrl && (
-            <a className="util-btn" href={mapsUrl} target="_blank" rel="noreferrer">🧭 Directions</a>
+            <a className="util-btn" href={mapsUrl} target="_blank" rel="noreferrer"><Icon.compass />Directions</a>
           )}
-          <button className="util-btn" onClick={share}>🔗 Share</button>
+          <button className="util-btn" onClick={share}><Icon.share />Share</button>
         </div>
 
         {similar.length > 0 && (

@@ -379,6 +379,68 @@ export const Icon = {
         strokeLinejoin: 'round',
       })
     ),
+  // 3.7P-1 elite polish: utility glyphs (replace 🕑🎟️🧭🔗📤 emoji on the
+  // detail/place surfaces). Same stroke voice as the tab icons — 2.1 width,
+  // round caps, currentColor — so they read as one engineered icon family.
+  // (Identity emoji stay: category badges, weather, the 🔥 multi-source flame.)
+  clock: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('circle', { cx: 12, cy: 12, r: 8.4, fill: 'none', stroke: 'currentColor', strokeWidth: 2.1 }),
+      h('path', {
+        d: 'M12 7.6V12l3 1.9',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinecap: 'round',
+        strokeLinejoin: 'round',
+      })
+    ),
+  // a price/admission tag — robust stand-in for 🎟️ (Price / Entry rows)
+  tag: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('path', {
+        d: 'M11 3H4.5A1.5 1.5 0 0 0 3 4.5V11a2 2 0 0 0 .6 1.4l8 8a2 2 0 0 0 2.8 0l6-6a2 2 0 0 0 0-2.8l-8-8A2 2 0 0 0 11 3Z',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinejoin: 'round',
+      }),
+      h('circle', { cx: 7.6, cy: 7.6, r: 1.5, fill: 'currentColor' })
+    ),
+  // a navigation arrow for Directions (was 🧭)
+  compass: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('path', {
+        d: 'M3.4 10.9 20.5 3.5 13.1 20.6l-2-7.6-7.7-2.1Z',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinejoin: 'round',
+        strokeLinecap: 'round',
+      })
+    ),
+  // share nodes (was 🔗 / 📤)
+  share: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('circle', { cx: 18, cy: 5.5, r: 2.6, fill: 'none', stroke: 'currentColor', strokeWidth: 2.1 }),
+      h('circle', { cx: 6, cy: 12, r: 2.6, fill: 'none', stroke: 'currentColor', strokeWidth: 2.1 }),
+      h('circle', { cx: 18, cy: 18.5, r: 2.6, fill: 'none', stroke: 'currentColor', strokeWidth: 2.1 }),
+      h('path', {
+        d: 'M8.3 10.8 15.7 6.7M8.3 13.2l7.4 4.1',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinecap: 'round',
+      })
+    ),
 }
 
 // --- "Added by you" events (Add Event MVP, Sprint C) ---
