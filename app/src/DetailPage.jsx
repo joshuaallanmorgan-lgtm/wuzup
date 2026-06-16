@@ -15,8 +15,11 @@ import { eventIcs } from './share.js'
 import { CATEGORY_EMOJI, HeatBadge, SecHead, TonightCard, hueFor } from './cards.jsx'
 import { SaveHeart } from './saves.js'
 import { whyReasons } from './taste.js'
+import { daypartOf } from './weekend.js'
+import { loadDayPlans, saveDayPlans, withSlot, dayEntryFor } from './dayplan.js'
 import { CONDITION, dateKey } from './weather.js'
 import './detail.css'
+import './locations.css' // 3.7P-34: the shared "Add to day" sheet (.loc-plan-*) lives here
 
 // "7:00 PM" + "10:00 PM" → "7:00–10:00 PM" (collapse a shared meridiem)
 function timeRange(start, end) {
@@ -34,6 +37,24 @@ function timeRange(start, end) {
 // short "Fri, Jun 12" for ranges (long-form dayKey stays on single days)
 const fmtShort = (ts) =>
   new Date(ts).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+
+// 3.7P-34 — the days an event can be planned onto: each day of its run that is
+// today-or-later, capped at two weeks. A single-day event yields exactly its own
+// day (never an arbitrary one — that would misrepresent when it happens); a
+// multi-day / ongoing run offers each open day so the user picks which to plan.
+function eventPlanDays(e, anchors) {
+  if (e._day == null) return []
+  const start = Math.max(e._day, anchors.todayTs)
+  const end = e._endDay ?? e._day
+  const d0 = new Date(start)
+  const out = []
+  for (let i = 0; i < 14; i++) {
+    const ts = new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() + i).getTime()
+    if (ts > end) break
+    out.push({ ts, label: ts === anchors.todayTs ? 'Today' : ts === anchors.tomorrowTs ? 'Tomorrow' : new Date(ts).toLocaleDateString('en-US', { weekday: 'long' }) })
+  }
+  return out
+}
 
 // The RFC 5545 ICS builder now lives in share.js (vevent + wrapIcs), shared
 // with the day-plan multi-VEVENT export (Sprint U-c). eventIcs(e) is the
@@ -208,6 +229,68 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
     setToast(msg)
     clearTimeout(toastTRef.current)
     toastTRef.current = setTimeout(() => setToast(null), 1600)
+  }
+
+  // ===== 3.7P-34: Add to day — the event→day-plan bridge, the PLANNER-FIRST
+  // primary action (mirrors PlaceDetail's "Make this my plan"). A dated event is
+  // added to ITS OWN day; a multi-day / ongoing run offers each open day. Never
+  // clobbers a filled slot; the natural daypart (by start time) is suggested. =====
+  const planDays = useMemo(() => eventPlanDays(e, anchors), [e, anchors])
+  const canPlan = planDays.length > 0
+  const natural = daypartOf(e) // 'day' | 'night' | 'any'
+  const [planning, setPlanning] = useState(false)
+  const [planDayTs, setPlanDayTs] = useState(null)
+  const [plansVersion, setPlansVersion] = useState(0)
+  const curDay = planDayTs ?? planDays[0]?.ts ?? null
+  const planSheetRef = useRef(null)
+  const planBtnRef = useRef(null)
+  const filled = useMemo(() => {
+    void plansVersion
+    if (curDay == null) return {}
+    const entry = dayEntryFor(loadDayPlans(anchors)[String(curDay)])
+    return { day: entry?.slots.day || null, night: entry?.slots.night || null, rest: entry?.state === 'rest' }
+  }, [curDay, anchors, plansVersion])
+  const closePlan = () => {
+    setPlanning(false)
+    planBtnRef.current?.focus() // WCAG 2.4.3: focus returns to the trigger
+  }
+  const addToPlan = (part) => {
+    if (curDay == null) return
+    const map = loadDayPlans(anchors)
+    const entry = dayEntryFor(map[String(curDay)])
+    if (entry && entry.slots[part]) return // never clobber a filled slot
+    saveDayPlans(withSlot(map, curDay, part, keyOf(e)))
+    setPlansVersion((v) => v + 1)
+    const dl = planDays.find((d) => d.ts === curDay)?.label || ''
+    flash(`Added to ${dl} ${part === 'day' ? '☀️' : '🌙'} ✓`)
+    closePlan()
+  }
+  // dialog a11y (mirrors the map filter sheet): focus in on open, Escape closes,
+  // Tab is trapped, focus returns to the trigger on close.
+  useEffect(() => {
+    if (!planning) return
+    planSheetRef.current?.focus()
+    const onKey = (ev) => {
+      if (ev.key !== 'Escape') return
+      ev.stopPropagation()
+      closePlan()
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [planning])
+  const planTrap = (ev) => {
+    if (ev.key !== 'Tab') return
+    const f = planSheetRef.current?.querySelectorAll('button:not(:disabled)')
+    if (!f || !f.length) return
+    const first = f[0]
+    const last = f[f.length - 1]
+    if (ev.shiftKey && document.activeElement === first) {
+      ev.preventDefault()
+      last.focus()
+    } else if (!ev.shiftKey && document.activeElement === last) {
+      ev.preventDefault()
+      first.focus()
+    }
   }
   const downloadIcs = () => {
     if (!e.start) return
@@ -399,6 +482,13 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
             <a className="util-btn" href={mapsUrl} target="_blank" rel="noreferrer"><Icon.compass />Directions</a>
           )}
           <button className="util-btn" onClick={share}><Icon.share />Share</button>
+          {/* 3.7P-34: when "Add to day" is the primary CTA, the official event /
+              ticket link is demoted here as a secondary action (still one tap). */}
+          {canPlan && e.url && (
+            <a className="util-btn" href={e.url} target="_blank" rel="noreferrer">
+              <Icon.tag />{e.isFree === true || !(e.price > 0) ? 'Event page' : 'Tickets'}
+            </a>
+          )}
         </div>
         {mine && onRemoveMine && (
           <button className="d-remove" onClick={removeMine} disabled={undoVis}>
@@ -439,19 +529,74 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
           </button>
         </div>
       )}
-      {e.url && (
-        <a className="detail-cta" href={e.url} target="_blank" rel="noreferrer">
-          {/* "Get Tickets" only when there's actually something to buy */}
-          {e.isFree === true || !(e.price > 0) ? (
-            <>
-              View event <span className="cta-arr">↗</span>
-            </>
-          ) : (
-            <>
-              Get Tickets <span className="cta-arr">→</span>
-            </>
-          )}
-        </a>
+
+      {/* 3.7P-34: Add-to-day sheet — locked to the event's own day(s). Reuses the
+          shared .loc-plan-* sheet (PlaceDetail's bridge); a single-day event shows
+          its day as a label, a multi-day/ongoing run shows a day picker. */}
+      {planning && (
+        <div className="loc-plan-wrap">
+          <button className="loc-scrim" onClick={closePlan} aria-label="Close" />
+          <div className="loc-plan-sheet" role="dialog" aria-modal="true" aria-label="Add to a day" tabIndex={-1} ref={planSheetRef} onKeyDown={planTrap}>
+            <div className="loc-sheet-head">
+              <div className="loc-sheet-title">Add to your day</div>
+              <button className="loc-sheet-close" onClick={closePlan} aria-label="Close">✕</button>
+            </div>
+            {planDays.length > 1 ? (
+              <div className="loc-plan-days">
+                {planDays.map((d) => (
+                  <button key={d.ts} className={'loc-plan-day' + (d.ts === curDay ? ' on' : '')} onClick={() => setPlanDayTs(d.ts)}>
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="loc-note">
+                {planDays[0]?.label}
+                {timeOf(e.start) ? ' · ' + timeOf(e.start) : ''}
+              </div>
+            )}
+            {filled.rest ? (
+              <div className="loc-note">That's a quiet day 🌙 — clear the rest mark on the day screen to plan it.</div>
+            ) : (
+              <div className="loc-plan-slots">
+                {['day', 'night'].map((part) => (
+                  <button key={part} className="loc-plan-slot" disabled={!!filled[part]} onClick={() => addToPlan(part)}>
+                    <span className="loc-plan-slot-ic">{part === 'day' ? '☀️' : '🌙'}</span>
+                    <span className="loc-plan-slot-label">{part === 'day' ? 'Daytime' : 'Night'}</span>
+                    {filled[part] ? (
+                      <span className="loc-plan-slot-taken">taken</span>
+                    ) : (
+                      natural === part && <span className="loc-plan-slot-taken">suggested</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* PLANNER-FIRST primary CTA (3.7P-34): "Add to day" leads; the official
+          event / ticket link is demoted into the util-row above. A past or undated
+          event can't be planned, so it falls back to the event link as the CTA. */}
+      {canPlan ? (
+        <button className="detail-cta" ref={planBtnRef} onClick={() => setPlanning(true)}>
+          ＋ Add to day
+        </button>
+      ) : (
+        e.url && (
+          <a className="detail-cta" href={e.url} target="_blank" rel="noreferrer">
+            {e.isFree === true || !(e.price > 0) ? (
+              <>
+                View event <span className="cta-arr">↗</span>
+              </>
+            ) : (
+              <>
+                Get Tickets <span className="cta-arr">→</span>
+              </>
+            )}
+          </a>
+        )
       )}
     </div>
   )

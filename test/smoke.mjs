@@ -1224,6 +1224,20 @@ test('3.7P-42 CompactRow: kind-aware dense rows wired into the drill-in lists', 
   assert.ok(/\.crow\b/.test(modes) && /\.crow-thumb/.test(modes), 'modes.css carries the .crow compact-row styles')
 })
 
+// 3.7P-34 — event detail goes planner-first: the primary sticky CTA is "Add to
+// day" (mirrors PlaceDetail's plan bridge); the official event/ticket link is
+// demoted to a secondary util action. A dated event plans onto ITS OWN day.
+test('3.7P-34 event-detail: planner-first Add-to-day CTA + demoted event link', () => {
+  const dp = readFileSync(path.join(ROOT, 'app', 'src', 'DetailPage.jsx'), 'utf8')
+  assert.ok(/from '\.\/dayplan\.js'/.test(dp) && /withSlot/.test(dp) && /dayEntryFor/.test(dp), 'DetailPage imports the day-plan seams')
+  assert.ok(/daypartOf/.test(dp), 'uses daypartOf for the natural slot suggestion')
+  assert.ok(/＋ Add to day/.test(dp) && /canPlan \?/.test(dp), 'the primary .detail-cta is Add-to-day when the event can be planned')
+  assert.ok(/if \(entry && entry\.slots\[part\]\) return/.test(dp), 'addToPlan never clobbers a filled slot')
+  assert.ok(/canPlan && e\.url &&/.test(dp), 'the official event / ticket link is demoted to a secondary util action')
+  assert.ok(/function eventPlanDays/.test(dp) && /Math\.max\(e\._day, anchors\.todayTs\)/.test(dp), 'plan days are clamped to the event run (its own day), never arbitrary')
+  assert.ok(/aria-modal="true"/.test(dp) && /planSheetRef/.test(dp) && /planBtnRef\.current\?\.focus\(\)/.test(dp), 'the add-to-day sheet is a focus-managed dialog (focus in + return to trigger)')
+})
+
 // 3.7P-35 review (integration): cleaning the display title must NOT shift an
 // event's identity. keyOf for a url-less event keys off the STASHED original, so
 // a save/recents/day-plan key written before title-norm still resolves.

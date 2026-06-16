@@ -151,9 +151,10 @@ a.d-row { text-decoration: none; color: inherit; }
 }
 
 /* ===== utility row (quiet, bordered, 44px — Editorial) ===== */
-.util-row { display: flex; gap: 10px; margin-top: 26px; }
+/* 3.7P-34: wraps when a 4th (Tickets / Event page) secondary action is present */
+.util-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
 .util-btn {
-  flex: 1;
+  flex: 1 1 88px;
   height: 44px;
   display: inline-flex;
   align-items: center;
