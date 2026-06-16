@@ -1238,6 +1238,46 @@ test('3.7P-34 event-detail: planner-first Add-to-day CTA + demoted event link', 
   assert.ok(/aria-modal="true"/.test(dp) && /planSheetRef/.test(dp) && /planBtnRef\.current\?\.focus\(\)/.test(dp), 'the add-to-day sheet is a focus-managed dialog (focus in + return to trigger)')
 })
 
+// ============================================================
+// Addendum O — SEAM LOCK (§O.4). Source-grep asserts that pin the load-bearing
+// nav wiring so the Decision-Layer surface rework cannot silently break one of
+// the §O.1 do-not-break flows. These survive refactors of the surfaces above.
+// ============================================================
+test('Addendum O seam-lock: nav.jsx VT morph + Escape layering + focusMap + openDetail signal', () => {
+  const nav = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
+  assert.ok(/viewTransitionName = 'evt-hero'/.test(nav), 'card→detail VT morph name is evt-hero')
+  assert.ok(/recordSignal\('open', e\)/.test(nav) && /recordView\(e\)/.test(nav), 'openDetail records taste signal + recents view atomically')
+  // Escape closes detail BEFORE page (bubble phase; capture-phase sheets run first)
+  assert.ok(/if \(detail\) closeDetail\(\)/.test(nav) && /else if \(page && !pageClosing\) closePage\(\)/.test(nav), 'Escape closes detail-before-page')
+  assert.ok(nav.indexOf('if (detail) closeDetail') < nav.indexOf('closePage()'), 'detail is closed before page on Escape')
+  // focusMap: close detail + page, set a FRESH map focus carrying kind, jump to Map
+  assert.ok(/setDetail\(null\)/.test(nav) && /setPage\(null\)/.test(nav), 'focusMap clears the detail + subpage layers')
+  assert.ok(/setMapFocus\(\{ lat: e\.lat, lng: e\.lng, key: keyOf\(e\), kind: e\.kind/.test(nav), 'focusMap sets a fresh {lat,lng,key,kind} focus object')
+  assert.ok(/goTo\(viewIndex\('map'\)\)/.test(nav), 'focusMap jumps to the Map tab')
+})
+
+test('Addendum O seam-lock: App.jsx detail-after-subpage order + DayPage key + subpage union', () => {
+  const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
+  assert.ok(/key=\{page\.ts \+ '-' \+ anchors\.todayTs\}/.test(app), 'DayPage key includes anchors.todayTs (midnight remount)')
+  assert.ok(/detail && detail\.kind === 'place'/.test(app) && /detail && detail\.kind !== 'place'/.test(app), 'detail renders PlaceDetail for places, DetailPage for events')
+  assert.ok(app.lastIndexOf('page.type ===') < app.indexOf('detail && detail.kind'), 'the detail layer renders AFTER the subpage union (z-order + Escape layering)')
+  for (const t of ['bubble', 'placebubble', 'guide', 'search', 'add', 'day', 'settings', 'interests', 'taste', 'deck', 'lensdeck']) {
+    assert.ok(new RegExp("page\\.type === '" + t + "'").test(app), `subpage route '${t}' is wired`)
+  }
+})
+
+test('Addendum O seam-lock: PickerSheet Escape is capture-phase (closes the sheet, not the page)', () => {
+  const ps = readFileSync(path.join(ROOT, 'app', 'src', 'PickerSheet.jsx'), 'utf8')
+  assert.ok(/window\.addEventListener\('keydown', onKey, true\)/.test(ps) && /ev\.stopPropagation\(\)/.test(ps), 'PickerSheet Escape is capture-phase + stopPropagation')
+})
+
+test('Addendum O seam-lock: CompactRow drill-in / Row Home split stays intact', () => {
+  const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
+  assert.ok(/export const CompactRow = memo\(/.test(cards), 'CompactRow exists (memo)')
+  assert.ok(/const RowComp = compact \? CompactRow : Row/.test(cards), 'RowFeed switches Row↔CompactRow on the compact flag')
+  assert.ok(/const isPlace = e\.kind === 'place'/.test(cards) && /imageMode\(e\)/.test(cards), 'CompactRow is kind-aware and consults the imageMode gate')
+})
+
 // 3.7P-35 review (integration): cleaning the display title must NOT shift an
 // event's identity. keyOf for a url-less event keys off the STASHED original, so
 // a save/recents/day-plan key written before title-norm still resolves.
