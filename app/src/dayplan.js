@@ -27,7 +27,7 @@
 // MIGRATION (⚑U-WB, default ratified): migrateWeekendPlan() converts a stored
 // 'weekend-plan-v1' exactly once — see the function comment for semantics.
 import { lsGet, lsRemove, lsSet } from './storage.js'
-import { DAY_IDS, PLAN_KEY, planFor, weekendDays } from './weekend.js'
+import { DAY_IDS, PLAN_KEY, weekendDays } from './weekend.js'
 
 export const DAYPLANS_KEY = 'day-plans-v1' // stored as twh:day-plans-v1
 const DAYHISTORY_KEY = 'day-history-v1'
@@ -197,16 +197,15 @@ export function filledForDays(map, dayTsList) {
   return n
 }
 
-// ===== ⚑U-WB — the one-shot Weekend Builder migration =====
+// ===== ⚑U-WB — the one-shot weekend-plan-v1 migration =====
 // A stored 'weekend-plan-v1' whose weekendStartTs is current-or-future
 // converts into day entries (fri/sat/sun dayTs; fri_day → slots.day etc.,
 // 1:1) — existing day entries keep their already-filled slots (migration
 // never clobbers; in practice the day store is empty when this runs). A PAST
-// plan goes through weekend.js's existing archive path (planFor archives
-// internally) into 'weekend-history-v1'. weekend-history-v1 itself is NOT
-// migrated and NOT deleted — Profile keeps reading it for past weekends;
-// day-history-v1 accumulates going forward. weekend-plan-v1 is REMOVED after,
-// which is exactly what makes a second run a no-op (idempotent by absence).
+// plan is intentionally DISCARDED: 3.7P-8 retired the Weekend Builder and the
+// 'weekend-history-v1' archive, so there's no past-weekend record anymore (the
+// day-history-v1 journal accumulates going forward). weekend-plan-v1 is REMOVED
+// after, which is exactly what makes a second run a no-op (idempotent by absence).
 //
 // plan.done (the WB completion beat already fired) carries over into
 // 'weekend-done-v1' = { weekendStartTs, done: true, v: 1 } — a single-slot
@@ -251,11 +250,9 @@ export function migrateWeekendPlan(anchors) {
       // failed write keeps weekend-plan-v1 alive for a retry on the next load
       if (!saveDayPlans(map)) return
       if (stored.done === true) markWeekendDone(stored.weekendStartTs)
-    } else {
-      // a PAST weekend's plan — weekend.js's own archive path preserves it
-      // in weekend-history-v1 before we drop the live key
-      planFor(stored, anchors.wkStartTs)
     }
+    // a PAST weekend's plan falls straight through to the lsRemove below —
+    // 3.7P-8 discards it (weekend history retired; nothing to archive).
   }
   lsRemove(PLAN_KEY)
 }

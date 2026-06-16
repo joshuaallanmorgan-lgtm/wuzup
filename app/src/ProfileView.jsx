@@ -11,10 +11,11 @@
 //     copy. Honest by construction: every claim traces to a stored number.
 //   · YOUR LIST (O3) — the full saved list (shelfItems: upcoming first, past
 //     greyed), graduated here from the Hot shelf (which keeps a slim pointer).
-//   · YOUR PLANS (O5) — the Weekend Builder's PRIMARY entry: a live summary
-//     card for the current weekend (tap → WB subpage) + read-only history
-//     cards from 'weekend-history-v1'. localStorage isn't reactive, so the
-//     plan re-reads whenever a Weekend Builder subpage closes (planRev).
+//   · YOUR DAYS (O5, slimmed by 3.7P-8) — a quiet RECORD from the day store:
+//     this-month plans-vs-reality + the 'day-history-v1' Past-days journal. The
+//     Weekend Builder card + 'weekend-history-v1' cards were retired (FB-10);
+//     planning lives in the day screens. localStorage isn't reactive, so this
+//     re-reads whenever a DayPage subpage closes (planPageUp). Zero-is-silence.
 //   · BEEN THERE (O4 ⚑FLAG-O2) — passed saves surface as one-tap "Did you
 //     make it?" prompts: "I went 🎉" records +2 category taste and moves the
 //     event into the Been-there list; "missed it" only clears the prompt.
@@ -119,13 +120,12 @@ export default function ProfileView({ events, anchors, primer }) {
   // ===== Your list (O3): the full saved shelf, upcoming first, past greyed =====
   const shelf = useMemo(() => shelfItems(savedList, events, anchors), [savedList, events, anchors])
 
-  // ===== Your plans (O5, re-pointed in U-a): the current weekend summarized
-  // FROM THE DAY-PLAN STORE ('day-plans-v1' — the Fri–Sun window derived over
-  // day entries via anchors), plus the read-only weekend history. The stores
-  // aren't reactive; plans only ever change inside the weekend/day subpages,
-  // so re-reading on every such open/close edge keeps the cards honest — the
-  // close-edge recompute picks up whatever the subpage persisted. =====
-  const planPageUp = page?.type === 'weekend' || page?.type === 'day'
+  // ===== Your days (O5, re-pointed in U-a, slimmed in 3.7P-8): read from the
+  // day stores — 'day-plans-v1' (current plans) + 'day-history-v1' (past days).
+  // The stores aren't reactive and a plan only ever changes inside a DayPage
+  // subpage, so re-reading on its open/close edge keeps the record honest — the
+  // close-edge recompute picks up whatever the day screen persisted. =====
+  const planPageUp = page?.type === 'day'
   const dayPlans = useMemo(() => {
     void planPageUp // re-read trigger (see above)
     return loadDayPlans(anchors)

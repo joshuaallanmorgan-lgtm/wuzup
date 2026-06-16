@@ -113,8 +113,7 @@ export function NavProvider({ children }) {
 
   // ===== subpage overlay: null | {type:'bubble',bubble} |
   // {type:'placebubble',bubble} (Sprint S) | {type:'search'} |
-  // {type:'add',ts} | {type:'weekend'} | {type:'day',ts} |
-  // {type:'settings'} |
+  // {type:'add',ts} | {type:'day',ts} | {type:'settings'} |
   // {type:'interests',from} | {type:'taste',from} (Sprint V — why-feed +
   // mute/boost) | {type:'deck',from} | {type:'lensdeck',lens} —
   // slides in over the active tab (z 1500, below detail 2000). Sprint P added
