@@ -69,6 +69,25 @@ const PLACE_LENS_ORDER = ['free', 'hidden', 'dog']
 export const PLACE_LENS_BUBBLES = PLACE_LENS_ORDER.map((id) => PLACE_BUBBLES.find((b) => b.id === id)).filter(Boolean)
 export const PLACE_CAT_BUBBLES = PLACE_BUBBLES.filter((b) => !PLACE_LENS_ORDER.includes(b.id))
 
+// ===== 3.7P-12 — ACTIVITY intents: the Spots IA recast around "what you can DO"
+// rather than placeType. Each is a PURE predicate over EXISTING fields (placeType
+// / classes / amenities / hidden) — zero new data — so a single park surfaces
+// under its real affordances (a playground → Family, courts → Sports, boat ramp
+// → On the water) instead of vanishing into a 1,322-strong "Parks" green wall.
+// Activities are NOT mutually exclusive (a place can be Family AND Sports AND
+// Water) — they're intents, not types. Bubble-shaped {id,emoji,label,hue,match}
+// so each "See all" reuses PlaceBubblePage unchanged. DRAFT labels — ⚑ Charles.
+export const ACTIVITIES = [
+  { id: 'act-beach', emoji: '🏖️', label: 'Beach day', hue: 200, match: (p) => p.placeType === 'beach' || hasClass(p, 'beach') },
+  { id: 'act-trails', emoji: '🥾', label: 'Trails & nature', hue: 110, match: (p) => p.placeType === 'preserve' || p.placeType === 'trail' || hasClass(p, 'preserve') || hasClass(p, 'trail') || ['hiking', 'trails', 'nature-trails', 'birding', 'biking'].some((a) => hasAmenity(p, a)) },
+  { id: 'act-water', emoji: '🚣', label: 'On the water', hue: 195, match: (p) => p.placeType === 'boat_ramp' || p.placeType === 'pier' || hasClass(p, 'boat_ramp') || hasClass(p, 'pier') || ['boat-ramp', 'boating', 'swimming', 'paddling', 'canoe-launch', 'snorkeling', 'marina', 'fishing'].some((a) => hasAmenity(p, a)) },
+  { id: 'act-sports', emoji: '🎾', label: 'Sports & courts', hue: 35, match: (p) => p.placeType === 'courts' || hasClass(p, 'courts') || ['tennis', 'basketball', 'pickleball', 'volleyball', 'racquetball', 'disc-golf', 'shuffleboard', 'skate-park', 'soccer', 'baseball', 'golf'].some((a) => hasAmenity(p, a)) },
+  { id: 'act-family', emoji: '🛝', label: 'Family & play', hue: 50, match: (p) => p.placeType === 'playground' || hasClass(p, 'playground') || ['playground', 'splash-pad'].some((a) => hasAmenity(p, a)) },
+  { id: 'act-dog', emoji: '🐕', label: 'Dog-friendly', hue: 40, match: (p) => p.placeType === 'dog_park' || hasClass(p, 'dog_park') || ['dog-park', 'dog-beach', 'dogs-allowed'].some((a) => hasAmenity(p, a)) },
+  { id: 'act-views', emoji: '🌅', label: 'Scenic views', hue: 25, match: (p) => p.placeType === 'viewpoint' || p.placeType === 'pier' || hasClass(p, 'pier') || ['viewpoint-deck', 'boardwalk'].some((a) => hasAmenity(p, a)) },
+  { id: 'act-hidden', emoji: '💎', label: 'Hidden gems', hue: 285, match: (p) => p.hidden === true },
+]
+
 // ===== module-level singleton store (same shape contract as saves.js) =====
 let places = null // null = not loaded yet; [] or [...] once a fetch resolves
 let status = 'idle' // 'idle' | 'loading' | 'ready' | 'error'

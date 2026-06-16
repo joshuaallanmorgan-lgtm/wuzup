@@ -1,31 +1,35 @@
-// LocationsView — the Locations tab (Sprint S1): Hot's structural twin over
-// the PLACES store. Hero → place-bubble strip → magazine sections (Near you /
-// Hidden spots / The classics / Free forever) → Everything browse. Reuses the
-// shared card/section components (SecHead, TonightCard, EndCap, RowFeed) and
-// the .hot-scroll / .hero / .sec / .carousel CSS + LensNav (topnav.css) — a
-// place renders through them unchanged because places.js aliases name→title + venue.
+// LocationsView — the Spots tab. 3.7P-12 (ADDENDUM H) recast it ACTIVITY-FIRST:
+// the old placeType browse (a 1,322-park green wall) is replaced by "what you can
+// DO" — Beach day · Trails & nature · On the water · Sports & courts · Family &
+// play · Dog-friendly · Scenic views · Hidden gems. Each is a PURE predicate over
+// EXISTING fields (places.js ACTIVITIES; no new data), so a single park surfaces
+// under its real affordances instead of as "a park." Structure: hero → activity
+// intent frame (the quick nav) → Near you (persistent) → Saved places → per-
+// activity carousels (the body) → Guides (plans by mood) → Everything (never-hide
+// see-all). Taste REORDERS only (count-preserving), nearest-first with a fix.
 //
-// Places are a SECOND lazy store (usePlaces): the /places.json fetch fires on
-// first mount of this tab, never at boot, never merged into the events feed.
-// Taste REORDERS only, never filters (the standing invariant): every list is a
-// count-preserving sort by category affinity, then a mild source-corroboration
-// tiebreak, then name. DRAFT copy for Charles (⚑S1 hero image: Charles picks).
+// Places are a SECOND lazy store (usePlaces): /places.json fetches on first mount
+// of this tab, never at boot, never merged into the events feed. DRAFT copy ⚑ Charles.
 import { useEffect, useMemo, useState } from 'react'
 import { useNav } from './nav.jsx'
 import { CITY } from './lib.js'
 import { SecHead, SpotCard, EndCap, GuideCard, RowFeed } from './cards.jsx'
 import { GUIDES } from './guides.js'
 import { tasteNudge, useTaste } from './taste.js'
-import { usePlaces, PLACE_BUBBLES, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES, classics, nearest } from './places.js'
+import { usePlaces, ACTIVITIES, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES, nearest, isPlaceKey, normalizePlace } from './places.js'
+import { useSaves } from './saves.js'
 import LensNav from './LensNav.jsx'
 import './locations.css'
 
-// count-preserving order: category affinity (S3) desc, then corroboration
-// (srcCount) desc, then name — taste reorders, never hides.
+// count-preserving order: category affinity (S3) desc, then FREE, then
+// corroboration (srcCount) desc, then name — taste REORDERS, never hides. 3.7P-12
+// adds the free nudge (per spec "nearest → taste → free → srcCount"); still
+// count-preserving, so Everything keeps every place.
 function placeOrder(list, taste) {
   return [...list].sort(
     (a, b) =>
       tasteNudge(b, taste) - tasteNudge(a, taste) ||
+      (b.isFree === true) - (a.isFree === true) ||
       (b.srcCount || 0) - (a.srcCount || 0) ||
       a.name.localeCompare(b.name)
   )
@@ -34,13 +38,13 @@ function placeOrder(list, taste) {
 export default function LocationsView({ coords, requestCoords }) {
   const { openDetail: onSelect, openPlaceBubble, openGuide } = useNav()
   // FB-03 (3.7P-7): the Spots page shows SPOTS + MIXED guides (Beach day, Free
-  // outdoor reset) — the place-domain guides, which used to live only on Events.
+  // outdoor reset) — the place-domain guides.
   const spotGuides = GUIDES.filter((g) => g.domain === 'spots' || g.domain === 'mixed')
   const { places, status } = usePlaces()
+  const saves = useSaves()
   const taste = useTaste()
 
-  // W4: real Spots hero (Bayshore Blvd — Tampa Bay's waterfront). Preload + fade
-  // over the teal placeholder, mirroring the Events hero. ⚑S1: Charles's final pick.
+  // W4: real Spots hero (Bayshore Blvd). Preload + fade over the teal placeholder.
   const [heroOk, setHeroOk] = useState(false)
   useEffect(() => {
     const img = new Image()
@@ -53,17 +57,34 @@ export default function LocationsView({ coords, requestCoords }) {
 
   const all = useMemo(() => (Array.isArray(places) ? placeOrder(places, taste) : []), [places, taste])
   const near = useMemo(() => nearest(all, coords, 12), [all, coords])
-  const hidden = useMemo(() => all.filter((p) => p.hidden), [all])
-  const classicsList = useMemo(() => classics(all), [all])
-  const freeList = useMemo(() => all.filter((p) => p.isFree === true), [all])
-  // 3.73b: an honest beach-day BROWSE — NOT a merit ranking. Our beach records
-  // carry no differentiating signal (all srcCount 1, no amenities), so a "ranked
-  // by sources" claim would be fabricated (smoke reality-guard asserts this).
-  // Nearest first when we have a fix, taste-order otherwise; full set via the bubble.
-  const beaches = useMemo(() => {
-    const list = all.filter((p) => p.placeType === 'beach')
-    return coords ? nearest(list, coords, 6) : list.slice(0, 6)
-  }, [all, coords])
+
+  // 3.7P-12: per-activity taster lists. `all` is taste-ordered, so a plain
+  // slice keeps taste order; with a fix, nearest() re-sorts by distance. An
+  // activity carousel shows only when ≥3 places match (never a thin/fake row);
+  // the full set is always one tap away (See all → PlaceBubblePage, never-hide).
+  const activitySections = useMemo(
+    () =>
+      ACTIVITIES.map((a) => {
+        const matched = all.filter(a.match)
+        const items = coords ? nearest(matched, coords, 6) : matched.slice(0, 6)
+        return { a, items, total: matched.length }
+      }).filter((s) => s.total >= 3),
+    [all, coords]
+  )
+
+  // 3.7P-12: Saved-places shelf (mirrors the Events saved shelf). Resolve saved
+  // 'p|' keys against the live store; fall back to the stored snapshot for a
+  // place that's left the dataset (never-hide). Places carry no date → no
+  // past/expiry logic, just the kept set.
+  const savedPlaces = useMemo(() => {
+    if (!Array.isArray(places)) return []
+    const byKey = new Map(places.map((p) => [p.key, p]))
+    return saves.list
+      .filter((s) => isPlaceKey(s.key))
+      .map((s) => byKey.get(s.key) || (s.snapshot ? normalizePlace({ ...s.snapshot }) : null))
+      .filter(Boolean)
+  }, [saves.list, places])
+
   const everything = useMemo(() => [{ label: null, items: all }], [all])
 
   if (status === 'loading' || places === null) {
@@ -97,12 +118,8 @@ export default function LocationsView({ coords, requestCoords }) {
 
   return (
     <div className="hot-scroll">
-      {/* W4: real Spots hero — Bayshore Boulevard, Tampa Bay's waterfront (a
-          verified Wikimedia Commons photo). ⚑S1: Charles may swap the final pick;
-          the teal ::before stays as the pre-load placeholder. */}
+      {/* W4 + 3.7P-6: real Spots hero — Bayshore Boulevard, Ken-Burns zoom */}
       <header className="loc-hero">
-        {/* 3.7P-6: cinematic Ken-Burns zoom on the real Spots hero (swipe-ready via
-            CITY.spotsHeroes[]; reduced-motion holds it still). */}
         <div className={'loc-hero-img hero-kb' + (heroOk ? ' on' : '')} style={{ backgroundImage: `url(${CITY.spotsHeroes?.[0]?.url || CITY.spotsHero})` }} />
         <div className="loc-hero-wash" />
         <div className="hero-text">
@@ -112,13 +129,12 @@ export default function LocationsView({ coords, requestCoords }) {
           </div>
           <div className="hero-kicker">Always here, no schedule</div>
           <h1 className="hero-city">Spots</h1>
-          {/* 3.73b: de-counted to match Home — describe what's here, not "1,832". */}
           <div className="hero-sub">Parks, beaches, trails and quiet corners.</div>
         </div>
       </header>
 
-      {/* Phase 3.6 N1: quiet top nav — quality lenses (Free/Hidden/Dog) as pills
-          + an All-spots menu of the place types (same destinations). */}
+      {/* Phase 3.6 N1: quiet top nav — quality lenses (Free/Hidden/Dog) + an
+          All-spots menu of the place types (same destinations). */}
       <LensNav
         lenses={PLACE_LENS_BUBBLES}
         categories={PLACE_CAT_BUBBLES}
@@ -127,7 +143,29 @@ export default function LocationsView({ coords, requestCoords }) {
       />
 
       <div className="hot-body">
-        {/* Near you — needs a location fix; honest prompt when we don't have one */}
+        {/* 3.7P-12: ACTIVITY intent frame — the primary Spots nav. Tap an activity
+            to see everywhere you can do it (See all → never-hide). This is the
+            green-wall fix: you browse by what you can DO, not by placeType. */}
+        <section className="sec">
+          <SecHead overline="What are you up for?" title="By activity" />
+          <div className="act-frame">
+            {ACTIVITIES.map((a) => (
+              <button
+                key={a.id}
+                className="act-chip pressable"
+                style={{ '--ah': a.hue }}
+                onClick={() => openPlaceBubble(a)}
+              >
+                <span className="act-chip-emoji" aria-hidden>
+                  {a.emoji}
+                </span>
+                <span className="act-chip-label">{a.label}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Near you — persistent distance scope; honest prompt without a fix */}
         {coords && near.length > 0 ? (
           <section className="sec">
             <SecHead overline="Closest to you" title="Near you" sub={`${near.length} within reach`} />
@@ -149,6 +187,39 @@ export default function LocationsView({ coords, requestCoords }) {
           </section>
         )}
 
+        {/* 3.7P-12: Saved places — your own shelf, mirroring Events */}
+        {savedPlaces.length > 0 && (
+          <section className="sec">
+            <SecHead overline="Your places" title="Saved" sub={`${savedPlaces.length} kept`} />
+            <div className="carousel">
+              {savedPlaces.map((p) => (
+                <SpotCard key={p.key} p={p} onSelect={onSelect} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 3.7P-12: the activity-first body — a taster carousel per activity, each
+            with a See-all into the full filtered set (never-hide). Replaces the
+            old placeType sections (Beaches/Hidden/Classics/Free); "The classics"
+            is dropped (srcCount≥3 = weak signal) and Hidden is now an activity. */}
+        {activitySections.map(({ a, items, total }) => (
+          <section className="sec" key={a.id}>
+            <SecHead
+              overline={a.emoji + ' Activity'}
+              title={a.label}
+              sub={coords ? 'Nearest first' : `${total.toLocaleString('en-US')} to explore`}
+              onSeeAll={() => openPlaceBubble(a)}
+            />
+            <div className="carousel">
+              {items.map((p) => (
+                <SpotCard key={p.key} p={p} onSelect={onSelect} />
+              ))}
+              <EndCap onClick={() => openPlaceBubble(a)} />
+            </div>
+          </section>
+        ))}
+
         {/* FB-03 (3.7P-7): Guides on Spots — the spots + mixed intention guides
             (Beach day, Free outdoor reset), each a POV + a "plan a day" action. */}
         {spotGuides.length > 0 && (
@@ -158,66 +229,6 @@ export default function LocationsView({ coords, requestCoords }) {
               {spotGuides.map((g) => (
                 <GuideCard key={g.id} guide={g} onOpen={openGuide} />
               ))}
-            </div>
-          </section>
-        )}
-
-        {/* 3.73b: an honest beach-day browse — NOT a "best/ranked" claim (the data
-            has no differentiating signal for beaches). Nearest first with a fix;
-            See-all opens the full beach set (never-hide). */}
-        {beaches.length >= 3 && (
-          <section className="sec">
-            <SecHead
-              overline="Beach day"
-              title="Beaches"
-              sub={coords ? 'Nearest first' : 'Pick your beach day'}
-              onSeeAll={() => openPlaceBubble(PLACE_BUBBLES.find((b) => b.id === 'beaches'))}
-            />
-            <div className="carousel">
-              {beaches.map((p) => (
-                <SpotCard key={p.key} p={p} onSelect={onSelect} />
-              ))}
-              <EndCap onClick={() => openPlaceBubble(PLACE_BUBBLES.find((b) => b.id === 'beaches'))} />
-            </div>
-          </section>
-        )}
-
-        {hidden.length > 0 && (
-          <section className="sec">
-            <SecHead overline="Under the radar" title="Hidden spots" sub={`${hidden.length} quiet finds`} />
-            <div className="carousel">
-              {hidden.map((p) => (
-                <SpotCard key={p.key} p={p} onSelect={onSelect} />
-              ))}
-              <EndCap onClick={() => openPlaceBubble(PLACE_BUBBLES.find((b) => b.id === 'hidden'))} />
-            </div>
-          </section>
-        )}
-
-        {classicsList.length > 0 && (
-          <section className="sec">
-            <SecHead overline="Everybody knows them" title="The classics" sub={`${classicsList.length} bay staples`} />
-            <div className="carousel">
-              {classicsList.slice(0, 12).map((p) => (
-                <SpotCard key={p.key} p={p} onSelect={onSelect} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {freeList.length > 0 && (
-          <section className="sec">
-            <SecHead
-              overline="$0 forever"
-              title="Free"
-              sub={`${freeList.length} always free`}
-              onSeeAll={() => openPlaceBubble(PLACE_BUBBLES.find((b) => b.id === 'free'))}
-            />
-            <div className="carousel">
-              {freeList.slice(0, 12).map((p) => (
-                <SpotCard key={p.key} p={p} onSelect={onSelect} />
-              ))}
-              <EndCap onClick={() => openPlaceBubble(PLACE_BUBBLES.find((b) => b.id === 'free'))} />
             </div>
           </section>
         )}

@@ -25,6 +25,15 @@ const TAGLINES = {
   dog: 'Bring the good boy.',
   hidden: 'Off the tourist track.',
   free: 'Always open, never a cover.',
+  // 3.7P-12 activity intents (places.js ACTIVITIES) — DRAFT ⚑ Charles
+  'act-beach': 'Sand, surf, and sunset.',
+  'act-trails': 'Boots optional, wonder required.',
+  'act-water': 'Launch, paddle, cast, swim.',
+  'act-sports': 'Game on, anytime.',
+  'act-family': 'Room to run and play.',
+  'act-dog': 'Bring the good boy.',
+  'act-views': 'Worth the look.',
+  'act-hidden': 'Off the tourist track.',
 }
 
 export default function PlaceBubblePage({ bubble }) {
