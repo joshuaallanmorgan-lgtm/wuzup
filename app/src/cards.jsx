@@ -12,7 +12,7 @@
 // own CSS, not a mode.
 import { createContext, memo, useContext, useEffect, useRef, useState } from 'react'
 import { CATEGORY_EMOJI, CATEGORY_HUES, PLACETYPE_EMOJI, PLACETYPE_HUE } from './categories.js'
-import { dayLabelLoose, dayLoose, keyOf, priceLabel, startLabel, timeOf } from './lib.js'
+import { Icon, dayLabelLoose, dayLoose, keyOf, priceLabel, startLabel, timeOf } from './lib.js'
 import { SaveHeart, useSaves } from './saves.js'
 import { dateKey } from './weather.js'
 import './cards.css'
@@ -243,16 +243,34 @@ const placeTypeLabel = (p) => {
   const t = (p.placeType || 'spot').replace(/_/g, ' ')
   return t.charAt(0).toUpperCase() + t.slice(1)
 }
-const spotMeta = (p) => {
-  const bits = []
-  if (p.isFree === true) bits.push('Free')
-  else if (p.fee) bits.push('Fee')
-  if (p.amenities?.includes('restrooms')) bits.push('Restrooms')
-  else if (['dog-park', 'dogs-allowed', 'dog-beach'].some((a) => p.amenities?.includes(a))) bits.push('Dog-friendly')
-  if (p._dist != null) bits.push(p._dist.toFixed(1) + ' mi')
-  return bits.slice(0, 2).join(' · ') || p.venue || 'Tap for details'
+// 3.7P-13: decision-useful amenity chips (icon + label), up to 3, drawn from
+// fields the place already carries (no new data). Priority-ordered so the most
+// useful surface first; Free leads when it applies (the differentiator). Icons
+// are the P1 stroke-SVG family (Icon.*) — utility glyphs, not identity emoji.
+const has = (p, a) => p.amenities?.includes(a)
+const AMENITY_CHIPS = [
+  { test: (p) => p.isFree === true, icon: 'tag', label: 'Free' },
+  { test: (p) => has(p, 'restrooms'), icon: 'restroom', label: 'Restrooms' },
+  { test: (p) => has(p, 'playground') || has(p, 'splash-pad'), icon: 'playground', label: 'Playground' },
+  { test: (p) => ['hiking', 'trails', 'nature-trails'].some((a) => has(p, a)), icon: 'trail', label: 'Trails' },
+  { test: (p) => ['boat-ramp', 'boating', 'canoe-launch', 'paddling', 'marina'].some((a) => has(p, a)), icon: 'water', label: 'Boat launch' },
+  { test: (p) => ['swimming', 'pool'].some((a) => has(p, a)), icon: 'water', label: 'Swimming' },
+  { test: (p) => ['tennis', 'basketball', 'pickleball', 'volleyball', 'racquetball', 'baseball', 'soccer', 'disc-golf', 'skate-park'].some((a) => has(p, a)), icon: 'sports', label: 'Courts' },
+  { test: (p) => ['picnic', 'grills', 'shelters'].some((a) => has(p, a)), icon: 'picnic', label: 'Picnic' },
+  { test: (p) => ['dog-park', 'dogs-allowed', 'dog-beach'].some((a) => has(p, a)), icon: 'dog', label: 'Dog-friendly' },
+]
+const spotChips = (p) => {
+  const out = []
+  for (const c of AMENITY_CHIPS) {
+    if (c.test(p)) out.push(c)
+    if (out.length === 3) break
+  }
+  return out
 }
+const distLabel = (p) => (p._dist != null ? p._dist.toFixed(1) + ' mi' : null)
 export function SpotCard({ p, onSelect }) {
+  const chips = spotChips(p)
+  const dist = distLabel(p)
   return (
     <button className="spotcard pressable" onClick={(ev) => onSelect(p, ev.currentTarget)}>
       <CardImg e={p} className="spotcard-img">
@@ -261,7 +279,22 @@ export function SpotCard({ p, onSelect }) {
       </CardImg>
       <div className="spotcard-type">{placeTypeLabel(p)}</div>
       <div className="spotcard-title">{p.title}</div>
-      <div className="spotcard-meta">{spotMeta(p)}</div>
+      {chips.length > 0 ? (
+        <div className="spotcard-amen">
+          {chips.map((c, i) => {
+            const Glyph = Icon[c.icon]
+            return (
+              <span className="spot-amen" key={i}>
+                {Glyph && <Glyph className="spot-amen-ic" aria-hidden />}
+                {c.label}
+              </span>
+            )
+          })}
+          {dist && <span className="spot-amen-dist">{dist}</span>}
+        </div>
+      ) : (
+        <div className="spotcard-meta">{dist || p.venue || 'Tap for details'}</div>
+      )}
     </button>
   )
 }

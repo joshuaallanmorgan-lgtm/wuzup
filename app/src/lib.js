@@ -469,6 +469,101 @@ export const Icon = {
         strokeLinecap: 'round',
       })
     ),
+  // 3.7P-13 amenity glyphs for the SpotCard meta — same 2.1 stroke voice. Small,
+  // recognizable utility icons (NOT identity emoji); each pairs with a text label.
+  restroom: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('circle', { cx: 12, cy: 4.8, r: 2.2, fill: 'none', stroke: 'currentColor', strokeWidth: 2.1 }),
+      h('path', {
+        d: 'M12 7.2v6.3m0 0-2.6 5.3M12 13.5l2.6 5.3M8.4 10.2h7.2',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinecap: 'round',
+        strokeLinejoin: 'round',
+      })
+    ),
+  playground: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('path', {
+        d: 'M4 5h16M6.5 5 10 12M17.5 5 14 12M9.4 12a2.6 2.6 0 0 0 5.2 0M12 12v8',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinecap: 'round',
+        strokeLinejoin: 'round',
+      })
+    ),
+  trail: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('path', {
+        d: 'M6.5 21c0-4 3-4 3-7s-3-3-3-6 4-3 6-3',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinecap: 'round',
+        strokeLinejoin: 'round',
+      }),
+      h('circle', { cx: 16.5, cy: 15.5, r: 1.25, fill: 'currentColor' }),
+      h('circle', { cx: 19, cy: 11, r: 1.25, fill: 'currentColor' })
+    ),
+  water: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('path', {
+        d: 'M2.5 9c2-2 4-2 6 0s4 2 6 0 4-2 6 0M2.5 15c2-2 4-2 6 0s4 2 6 0 4-2 6 0',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinecap: 'round',
+        strokeLinejoin: 'round',
+      })
+    ),
+  sports: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('circle', { cx: 12, cy: 12, r: 8.4, fill: 'none', stroke: 'currentColor', strokeWidth: 2.1 }),
+      h('path', {
+        d: 'M3.7 12h16.6M12 3.6c3.1 2.5 3.1 14.3 0 16.8M12 3.6c-3.1 2.5-3.1 14.3 0 16.8',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinecap: 'round',
+      })
+    ),
+  picnic: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('path', {
+        d: 'M6 3v6a2 2 0 0 0 4 0V3M8 9v12M16.5 3c-1.6 0-2.5 3-2.5 6 0 1.6 1 2.6 2.5 2.6V21',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinecap: 'round',
+        strokeLinejoin: 'round',
+      })
+    ),
+  dog: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('circle', { cx: 7.2, cy: 9, r: 1.55, fill: 'currentColor' }),
+      h('circle', { cx: 11, cy: 6.6, r: 1.55, fill: 'currentColor' }),
+      h('circle', { cx: 15.4, cy: 7.6, r: 1.55, fill: 'currentColor' }),
+      h('path', {
+        d: 'M12 11.2c-2.5 0-4.6 2-4.6 4.2 0 1.9 1.7 2.9 4.6 2.9s4.6-1 4.6-2.9c0-2.2-2.1-4.2-4.6-4.2Z',
+        fill: 'currentColor',
+      })
+    ),
 }
 
 // --- "Added by you" events (Add Event MVP, Sprint C) ---
