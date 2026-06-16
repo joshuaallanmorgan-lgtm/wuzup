@@ -54,15 +54,12 @@ const wdLong = (ts) => new Date(ts).toLocaleDateString('en-US', { weekday: 'long
 
 export default function CalendarView({ events, anchors }) {
   const { openDay, page } = useNav()
-  const [selKey, setSelKey] = useState(null) // selected day timestamp (the grid caption tracks it)
+  const [selKey, setSelKey] = useState(null) // the TAPPED day (null = none); drives the inline bottom panel
   const [monthOff, setMonthOff] = useState(0)
-  // FB-12 (3.7P-3): the day-peek popover — a quick read-mostly glance at a
-  // today-or-later day before the full DayPage. peekTs = the open day (null =
-  // closed); planTick re-reads the (non-reactive) plan store after an inline remove.
-  const [peekTs, setPeekTs] = useState(null)
+  // 3.7P-17: the day detail is an INLINE bottom panel (replaces the FB-12 popover)
+  // — tapping a day swaps the bottom content in place, never blocking the next
+  // tap. planTick re-reads the (non-reactive) plan store after an inline remove.
   const [planTick, setPlanTick] = useState(0)
-  const peekSheetRef = useRef(null) // the dialog node — focus moves in on open
-  const peekTriggerRef = useRef(null) // the cell that opened it — focus returns on close
 
   // FB-11 (3.7P-3): the per-day grid weather emoji was retired — it didn't aid a
   // decision on this surface (the grid answers "what am I doing", not "what's the
@@ -144,21 +141,6 @@ export default function CalendarView({ events, anchors }) {
   if (reality.went > 0) rhythmStats.push({ k: 'plans', num: String(reality.went), lab: reality.went === 1 ? 'plan kept' : 'plans kept' })
   if (plannedAhead > 0) rhythmStats.push({ k: 'ahead', num: String(plannedAhead), lab: 'planned ahead' })
 
-  // N5b re-entry pull: a gentle, forward-framed "plan your weekend" — shown ONLY
-  // when nothing's planned ahead (never a nag, never "you have nothing 📉"; just
-  // an open door). Routes per-day (W6: planning is per-day), landing on the
-  // upcoming Saturday's screen where saved events surface first.
-  const hasUpcomingPlan = useMemo(
-    () => [...plannedDays].some((ts) => ts >= anchors.todayTs),
-    [plannedDays, anchors.todayTs]
-  )
-  const upcomingSat = useMemo(() => {
-    const d = new Date(anchors.todayTs)
-    const dow = d.getDay() // 0=Sun … 6=Sat
-    const add = dow === 6 ? 0 : dow === 0 ? 6 : 6 - dow
-    return new Date(d.getFullYear(), d.getMonth(), d.getDate() + add).getTime()
-  }, [anchors.todayTs])
-
   // ===== U-d: the morning-after conversion card (the two-beat RETURN beat) =====
   // A single quiet card for the most-recent PAST PLANNED day not yet answered
   // (loadDayPlans already swept past plans into history; a past REST day is
@@ -182,13 +164,13 @@ export default function CalendarView({ events, anchors }) {
   // PLACE ('p|') key, which is NEVER in `events` — fold the lazily-loaded places
   // into the resolver so a slotted place NAMES itself. The ~1.2MB places fetch
   // fires ONLY when THIS card's slots hold a place key (the DayPage gate).
-  // the peek's day (today-or-later) — read its entry so places are folded into
-  // the resolver only when a slot actually holds a place key (same lazy gate as
-  // the card + DayPage; an event-only/empty peek pays no ~1.2MB places fetch).
-  const peekEntry = peekTs != null ? (dayEntryFor(dayPlans[String(peekTs)]) ?? emptyDay()) : null
+  // the selected day's entry — read it so places are folded into the resolver
+  // only when a slot actually holds a place key (same lazy gate as the card +
+  // DayPage; an event-only/empty selection pays no ~1.2MB places fetch).
+  const selEntry = selKey != null ? (dayEntryFor(dayPlans[String(selKey)]) ?? emptyDay()) : null
   const hasCardPlaceKey = card ? PARTS.some((p) => isPlaceKey(card.slots[p])) : false
-  const hasPeekPlaceKey = peekEntry ? PARTS.some((p) => isPlaceKey(peekEntry.slots[p])) : false
-  const { places: placeList } = usePlaces(hasCardPlaceKey || hasPeekPlaceKey)
+  const hasSelPlaceKey = selEntry ? PARTS.some((p) => isPlaceKey(selEntry.slots[p])) : false
+  const { places: placeList } = usePlaces(hasCardPlaceKey || hasSelPlaceKey)
   // key → live event/place, shared by the morning-after card AND the day-peek.
   const byKey = useMemo(() => {
     const m = new Map()
@@ -270,87 +252,32 @@ export default function CalendarView({ events, anchors }) {
   // derivation, no setState-in-effect (review LOW).
   const selInView = selKey != null && selKey >= monthStartTs && selKey < nextMonthStartTs
   const sel = selInView ? selKey : monthOff === 0 ? anchors.todayTs : monthStartTs
-  const selPlanned = plannedDays.has(sel)
   const selRest = restDays.has(sel)
   const selWent = dids.has(sel)
   const selPast = sel < anchors.todayTs
-  const selToday = sel === anchors.todayTs
   const selTitle = new Date(sel).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
-  // the caption: the SELECTED day's personal shape — a logbook line, never an
-  // event list (the agenda lives on the day screen). DRAFT for Charles.
-  const selCaption = selWent
-    ? '✓ You made it out 🎉' // DRAFT
-    : selRest
-      ? '🌙 A quiet day' // DRAFT
-      : selPlanned
-        ? '🗓️ You have a plan — tap to open it' // DRAFT
-        : selPast
-          ? 'A quiet page.' // DRAFT — a blank past day is calm, never a gap
-          : 'An open day — tap to plan something' // DRAFT (3.74: warmer than "Open — tap to plan")
 
-  // ===== FB-12: the day-peek =====
-  // resolve a slot key → live event/place (the read-only half of DayPage's
-  // resolver). A place fits any day; an event is date-gated, so a slotted event
-  // that no longer falls on this day reads as "open" (never a stale key).
-  const resolvePeekSlot = (key, dayTs) => {
+  // ===== 3.7P-17: the inline day panel (selected day → bottom panel) =====
+  // resolve a slot key → live event/place (a place fits any day; a date-gated
+  // event that no longer falls on this day reads as "open", never a stale key).
+  const resolveSelSlot = (key, dayTs) => {
     const e = key ? byKey.get(key) : null
     if (!e) return null
     if (e.kind === 'place') return e
     return fitsDay(e, dayTs) ? e : null
   }
-  // the ONE mutating affordance of the read-mostly peek: clear a single filled
-  // slot. withClearedSlot drops it (and deletes the day if it empties), persists,
-  // and planTick re-reads so both the grid marks and the open peek reflect it.
-  const clearPeekSlot = (dayTs, part) => {
+  // clear a single filled slot from the inline panel. withClearedSlot drops it
+  // (deleting the day if it empties), persists, and planTick re-reads so the grid
+  // marks AND the panel reflect it.
+  const clearSlot = (dayTs, part) => {
     saveDayPlans(withClearedSlot(dayPlans, dayTs, part))
     setPlanTick((t) => t + 1)
   }
-  const closePeek = () => {
-    const t = peekTriggerRef.current // WCAG 2.4.3: return focus to the cell that opened it
-    setPeekTs(null)
-    // focus synchronously — the cell is always mounted (the grid renders every
-    // cell; peekTs only adds the overlay), so no rAF/timeout needed (and rAF is
-    // throttled in a backgrounded tab, which would drop the restore).
-    t?.focus?.()
-  }
-  // minimal Tab trap — keep focus within the peek's controls while it's open
-  const peekTrap = (ev) => {
-    if (ev.key !== 'Tab') return
-    const f = peekSheetRef.current?.querySelectorAll('button')
-    if (!f || !f.length) return
-    const first = f[0]
-    const last = f[f.length - 1]
-    if (ev.shiftKey && document.activeElement === first) {
-      ev.preventDefault()
-      last.focus()
-    } else if (!ev.shiftKey && document.activeElement === last) {
-      ev.preventDefault()
-      first.focus()
-    }
-  }
-  const peekRest = peekEntry?.state === 'rest'
-  // a11y (review P1): move focus INTO the sheet on open (a dialog you can't reach
-  // isn't one) so the controls are reachable AND Escape fires…
-  useEffect(() => {
-    if (peekTs == null) return
-    peekSheetRef.current?.focus()
-  }, [peekTs])
-  // …via a window capture-phase Escape (the same pattern as LensNav/MapView/Primer)
-  // — an onKeyDown on the dialog never fires while focus is still on the grid cell.
-  useEffect(() => {
-    if (peekTs == null) return
-    const onKey = (ev) => {
-      if (ev.key === 'Escape') {
-        ev.stopPropagation()
-        closePeek()
-      }
-    }
-    window.addEventListener('keydown', onKey, true)
-    return () => window.removeEventListener('keydown', onKey, true)
-  }, [peekTs])
-  const peekTitle =
-    peekTs != null ? new Date(peekTs).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : ''
-  const peekSlots = peekEntry ? PARTS.map((part) => ({ part, e: resolvePeekSlot(peekEntry.slots[part], peekTs) })) : []
+  // the inline panel appears ONLY once a day in the DISPLAYED month is tapped
+  // (default = nothing tapped = blank bottom, no "tap to plan" nag).
+  const panelOpen = selKey != null && selInView
+  const selSlots = selEntry && panelOpen ? PARTS.map((part) => ({ part, e: resolveSelSlot(selEntry.slots[part], sel) })) : []
+  const selFilled = selSlots.some((s) => s.e)
 
   return (
     <div className="cal-wrap">
@@ -431,19 +358,6 @@ export default function CalendarView({ events, anchors }) {
         )
       )}
 
-      {/* N5b — the re-entry pull: only when nothing's planned ahead. A calm,
-          forward invitation (never a guilt nudge), opening the upcoming weekend
-          day where saved events show up first. */}
-      {!hasUpcomingPlan && (
-        <button className="cal-plan-pull pressable" onClick={() => openDay(upcomingSat)}>
-          <span className="cal-plan-pull-main">
-            <span className="cal-plan-pull-title">Plan your weekend</span>
-            <span className="cal-plan-pull-sub">Pick a day to start — your saves show up first</span>
-          </span>
-          <span className="cal-plan-pull-go" aria-hidden>→</span>
-        </button>
-      )}
-
       {/* the month canvas — ONLY the personal layer. No event counts, no heat
           tint, no hot ring. Tapping a today-or-later cell opens the day screen
           (the bridge to fill it); past cells stay browse-only (their record is
@@ -457,10 +371,7 @@ export default function CalendarView({ events, anchors }) {
                 stays anchored at "now" forward as the planning surface */}
             <button
               className="mon-nav"
-              onClick={() => {
-                closePeek() // a peek belongs to a day in the month you're leaving
-                setMonthOff((o) => Math.max(o - 1, 0))
-              }}
+              onClick={() => setMonthOff((o) => Math.max(o - 1, 0))}
               disabled={monthOff === 0}
               aria-label="Previous month"
             >
@@ -468,10 +379,7 @@ export default function CalendarView({ events, anchors }) {
             </button>
             <button
               className="mon-nav"
-              onClick={() => {
-                closePeek()
-                setMonthOff((o) => o + 1)
-              }}
+              onClick={() => setMonthOff((o) => o + 1)}
               aria-label="Next month"
             >
               <svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -494,21 +402,13 @@ export default function CalendarView({ events, anchors }) {
                 key={ts}
                 className={
                   'mcell' +
-                  (ts === sel ? ' sel' : '') +
+                  (ts === selKey ? ' sel' : '') +
                   (ts === anchors.todayTs ? ' today' : '') +
                   (went ? ' went' : '')
                 }
-                onClick={(ev) => {
-                  setSelKey(ts) // the caption tracks the tap…
-                  // …and today-or-later cells open the day-PEEK (FB-12: a quick
-                  // glance at the day's shape, with "Open full day →" to go
-                  // deeper). Past cells stay browse-only: a personal past day is
-                  // the journal's record, not a planning surface.
-                  if (ts >= anchors.todayTs) {
-                    peekTriggerRef.current = ev.currentTarget // focus returns here on close
-                    setPeekTs(ts)
-                  }
-                }}
+                // 3.7P-17: tapping a day just selects it → the inline bottom panel
+                // swaps to that day (no popover, never blocks tapping the next day).
+                onClick={() => setSelKey(ts)}
               >
                 <span className="mnum">{new Date(ts).getDate()}</span>
                 {/* the ONE quiet personal mark, mutually exclusive by rule:
@@ -524,100 +424,49 @@ export default function CalendarView({ events, anchors }) {
           })}
         </div>
 
-        {/* the selected day's caption — a logbook line about YOUR shape for the
-            day, not an event list (the agenda lives on the day screen). */}
-        <div className="cal-sel">
-          <h3 className="day-header cal-day">{selTitle}</h3>
-          <button
-            className={'cal-sel-line' + (selPast ? ' cal-sel-past' : '')}
-            onClick={() => {
-              if (sel >= anchors.todayTs) openDay(sel)
-            }}
-            disabled={selPast}
-          >
-            <span className="cal-sel-txt">{selCaption}</span>
-            {!selPast && <span className="cal-sel-go" aria-hidden>→</span>}
-          </button>
-          {selToday && !selPlanned && !selRest && !selWent && (
-            <div className="cal-sel-hint">Tap any day to plan, rest, or fill it. Blank days are fine too 🌙{/* DRAFT */}</div>
-          )}
-        </div>
-      </div>
-
-      {/* FB-12: the day-peek — a quick read-mostly glance at a today-or-later
-          day (slots at a glance + inline remove + "Open full day →"). The picker
-          / add flow lives on the full DayPage; the peek never duplicates it. */}
-      {peekTs != null && peekEntry && (
-        <div className="cal-peek-wrap">
-          <button className="cal-peek-scrim" aria-label="Close" onClick={closePeek} />
-          <div
-            className="cal-peek"
-            role="dialog"
-            aria-modal="true"
-            aria-label={peekTitle}
-            ref={peekSheetRef}
-            tabIndex={-1}
-            onKeyDown={peekTrap}
-          >
-            <div className="cal-peek-head">
-              <div className="cal-peek-title">{peekTitle}</div>
-              <button className="cal-peek-close pressable" onClick={closePeek} aria-label="Close">
-                ✕
-              </button>
+        {/* 3.7P-17: the INLINE day panel — fills the blank space below the grid
+            with the tapped day's shape (slots / rest / a went record) + an open
+            action. Appears only once a day is tapped; a blank future day shows
+            just the title + "Plan this day" (no "tap to plan" nag), a blank PAST
+            day shows nothing. Tapping another day swaps this in place. DRAFT. */}
+        {panelOpen && (selFilled || selRest || selWent || !selPast) && (
+          <div className="cal-sel">
+            <div className="cal-sel-head">
+              <h3 className="day-header cal-day">{selTitle}</h3>
+              {selWent && <span className="cal-sel-went">✓ You made it out 🎉</span>}
             </div>
-            {peekRest ? (
-              <div className="cal-peek-rest">
-                <span aria-hidden>🌙 </span>A quiet day{/* DRAFT */}
-              </div>
+            {selRest ? (
+              <div className="cal-sel-rest"><span aria-hidden>🌙 </span>A quiet day</div>
             ) : (
-              <div className="cal-peek-slots">
-                {peekSlots.map(({ part, e }) => {
-                  const when = part === 'day' ? 'Day' : 'Night'
-                  return (
-                    <div
-                      className={'cal-peek-slot' + (e ? ' filled' : '')}
-                      key={part}
-                      aria-label={`${when}: ${e ? e.title || e.name : 'open'}`}
-                    >
-                      <span className="cal-peek-when" aria-hidden>
-                        {part === 'day' ? '☀️' : '🌙'} {when}
-                      </span>
-                      {e ? (
-                        <>
-                          <span className="cal-peek-what" aria-hidden>
-                            {e.title || e.name}
-                          </span>
-                          <button
-                            className="cal-peek-x pressable"
-                            onClick={() => clearPeekSlot(peekTs, part)}
-                            aria-label={`Clear ${e.title || e.name} from ${when.toLowerCase()}`}
-                          >
-                            ✕
-                          </button>
-                        </>
-                      ) : (
-                        <span className="cal-peek-open" aria-hidden>
-                          Open
-                        </span>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
+              selFilled && (
+                <div className="cal-sel-slots">
+                  {selSlots.map(({ part, e }) => {
+                    const when = part === 'day' ? 'Day' : 'Night'
+                    return (
+                      <div className={'cal-sel-slot' + (e ? ' filled' : '')} key={part} aria-label={`${when}: ${e ? e.title || e.name : 'open'}`}>
+                        <span className="cal-sel-when" aria-hidden>{part === 'day' ? '☀️' : '🌙'} {when}</span>
+                        {e ? (
+                          <>
+                            <span className="cal-sel-what" aria-hidden>{e.title || e.name}</span>
+                            <button className="cal-sel-x pressable" onClick={() => clearSlot(sel, part)} aria-label={`Clear ${e.title || e.name} from ${when.toLowerCase()}`}>✕</button>
+                          </>
+                        ) : (
+                          <span className="cal-sel-open" aria-hidden>Open</span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )
             )}
-            <button
-              className="cal-peek-full pressable"
-              onClick={() => {
-                const ts = peekTs
-                closePeek()
-                openDay(ts)
-              }}
-            >
-              Open full day <span aria-hidden>→</span>
-            </button>
+            {!selPast && (
+              <button className="cal-sel-full pressable" onClick={() => openDay(sel)}>
+                {selFilled || selRest ? 'Open full day' : 'Plan this day'} <span aria-hidden>→</span>
+              </button>
+            )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

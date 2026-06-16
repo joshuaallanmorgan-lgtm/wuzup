@@ -667,12 +667,11 @@ test('N5 onboarding: first-open IA tour (skippable) + honest taste snapshot', ()
 })
 
 // N5b — re-entry pull cards (pull-based, ban-list-clean): a forward "next step"
-// only when one exists; Calendar invites planning ahead, Profile turns a save
-// into a plan. Both route per-day (openDay) and never nag.
-test('N5b re-entry: Calendar + Profile pull cards, shown only when useful', () => {
+// only when one exists; never a nag. 3.7P-17 RETIRED the Calendar "Plan your
+// weekend" pull (a leftover after P8); the Profile save→plan pull remains.
+test('N5b re-entry: Profile save→plan pull (Calendar pull retired in 3.7P-17)', () => {
   const cal = readFileSync(path.join(ROOT, 'app', 'src', 'CalendarView.jsx'), 'utf8')
-  assert.ok(/cal-plan-pull/.test(cal) && /!hasUpcomingPlan/.test(cal), 'Calendar shows the plan pull only when nothing is planned ahead')
-  assert.ok(/openDay\(upcomingSat\)/.test(cal), 'the Calendar pull routes to the upcoming weekend day (per-day, W6)')
+  assert.ok(!/cal-plan-pull/.test(cal), '3.7P-17: the Calendar "Plan your weekend" pull is retired')
   const pf = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
   assert.ok(/pf-pull/.test(pf) && /showPlanPull/.test(pf), 'Profile shows the save→plan pull')
   assert.ok(/upcomingSaves > 0 && !hasUpcomingPlan/.test(pf), 'the Profile pull is gated on saves-waiting + nothing-planned (never a nag)')
@@ -1535,9 +1534,9 @@ test('Sprint S: Calendar + Profile fold lazy places into their slot resolvers (g
   // the fetch is GATED on a place key actually being in the card's slots — an
   // event-only/empty card must never pay the ~1.2MB places fetch
   assert.ok(/isPlaceKey\(card\.slots\[p\]\)/.test(calSrc), 'CalendarView must gate the places fetch on a place key in the card slots')
-  // 3.7P-3 FB-12: the gate now also covers the day-peek — places load lazily when
-  // EITHER the morning-after card OR a peeked day holds a place key (never unconditionally).
-  assert.ok(/usePlaces\(hasCardPlaceKey \|\| hasPeekPlaceKey\)/.test(calSrc), 'CalendarView must lazily load places only when the card or the day-peek holds a place key')
+  // 3.7P-17: the gate covers the inline day panel — places load lazily when
+  // EITHER the morning-after card OR the selected day holds a place key (never unconditionally).
+  assert.ok(/usePlaces\(hasCardPlaceKey \|\| hasSelPlaceKey\)/.test(calSrc), 'CalendarView must lazily load places only when the card or the selected day holds a place key')
   // …and fold them into the shared resolver so a slotted place NAMES itself
   assert.ok(/for \(const p of placeList\) m\.set\(p\.key, p\)/.test(calSrc), 'CalendarView must fold places into the byKey resolver')
   // the "went" snapshot for a place must carry its real title/category AND stamp
@@ -1596,8 +1595,9 @@ test('W2: the Calendar tab is a logbook — NO event list / counts / heat on it'
   assert.ok(/plannedDays\.has\(ts\)/.test(calSrc), 'planned days wear the teal underline mark')
   assert.ok(/restDays\.has\(ts\)/.test(calSrc), 'rest days wear the muted crescent mark')
   assert.ok(/dids\.has\(ts\)/.test(calSrc) && /didDays\(been\)/.test(calSrc), 'did-days (been-there \'went\') wear the calm check stamp')
-  // tapping a day still opens the day screen (the bridge to fill it)
-  assert.ok(/openDay\(ts\)/.test(calSrc), 'tapping a day must still open the day screen (the supply bridge)')
+  // 3.7P-17: tapping a day selects it (inline panel); the day screen is reached
+  // from the panel's "Open full day" / "Plan this day" action (openDay(sel))
+  assert.ok(/openDay\(sel\)/.test(calSrc), 'the inline day panel opens the day screen (openDay(sel)) — the bridge to fill it')
   // W6 (⚑U-WKND): the Weekend pill is RETIRED — planning is per-day now, so the
   // redundant calendar→WeekendBuilder entry is gone (and 3.7P-8/FB-10 later
   // retired the Weekend Builder view entirely — planning lives in the day screens)

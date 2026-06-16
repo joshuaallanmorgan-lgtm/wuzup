@@ -41,29 +41,9 @@
 }
 .cal-day { padding-top: 16px; }
 
-/* N5b — the re-entry "plan your weekend" pull (quiet accent card; shown only
-   when nothing's planned ahead). Forward invitation, never a guilt nudge. */
-.cal-plan-pull {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: calc(100% - 32px);
-  margin: 14px 16px 0;
-  padding: var(--sp-md);
-  border: 1px solid rgba(var(--accent-rgb), 0.3);
-  border-radius: 16px;
-  background:
-    radial-gradient(120% 100% at 100% 0%, rgba(var(--accent-rgb), 0.07), transparent 60%),
-    var(--card);
-  text-align: left;
-  font-family: inherit;
-  color: var(--ink);
-  cursor: pointer;
-}
-.cal-plan-pull-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.cal-plan-pull-title { font-size: 15px; font-weight: 800; letter-spacing: -0.2px; color: var(--accent-ink); }
-.cal-plan-pull-sub { font-size: 12.5px; font-weight: 500; color: var(--muted); }
-.cal-plan-pull-go { flex: 0 0 auto; font-size: 18px; font-weight: 800; color: var(--accent-ink); }
+/* 3.7P-17: the N5b "Plan your weekend" pull card was retired (a leftover after
+   P8 retired the Weekend Builder). Planning lives in the day screens, reached
+   from the grid → inline day panel below. */
 
 /* the month crossfade on month-nav (kept under reduced motion — it survives) */
 @keyframes calFade { from { opacity: 0; } to { opacity: 1; } }
@@ -183,37 +163,66 @@
 .mcell.sel .mday-rest { box-shadow: inset 2.5px -1.5px 0 0 rgba(255, 255, 255, 0.9); }
 /* (FB-11/3.7P-3: the per-day .mwx grid weather emoji was retired — see CalendarView.) */
 
-/* ===== the selected-day caption — a logbook LINE about your shape for the day
-   (planned / rest / went / nothing-yet), never an event list. The agenda lives
-   on the day screen; this is the quiet record + the tap-through to fill it. */
-.cal-sel { padding: 0 16px; }
-.cal-sel-line {
+/* ===== 3.7P-17: the INLINE day panel — fills the blank space below the grid
+   with the tapped day's shape (slots / rest / a went record) + an open action.
+   Replaces the FB-12 popover: it's content in the bottom, swapped in place as you
+   tap days, never a modal — so rapid day-tapping never blocks. Appears only once
+   a day is tapped; a blank past day shows nothing (no "tap to plan" nag). ===== */
+.cal-sel { padding: 14px 16px 0; }
+.cal-sel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.cal-sel .cal-day { margin: 0; }
+.cal-sel-went { flex: 0 0 auto; font-size: 12.5px; font-weight: 800; color: var(--accent-ink); }
+.cal-sel-rest { margin-top: 8px; font-size: 14px; font-weight: 600; color: var(--muted); }
+.cal-sel-slots { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.cal-sel-slot {
   display: flex;
   align-items: center;
   gap: 10px;
-  width: 100%;
-  margin-top: 2px;
-  padding: 14px 16px;
+  padding: 11px 13px;
   border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--card);
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: transform var(--dur-micro), border-color var(--dur-fast);
+  border-radius: 12px;
 }
-.cal-sel-line:active { transform: scale(0.99); }
-.cal-sel-line:hover { border-color: rgba(var(--accent-rgb), 0.4); }
-.cal-sel-line:disabled { cursor: default; opacity: 1; } /* a past day is a record, not faded */
-.cal-sel-txt { flex: 1; font-size: 15px; font-weight: 700; letter-spacing: -0.2px; color: var(--ink); }
-.cal-sel-line.cal-sel-past .cal-sel-txt { color: var(--muted); font-weight: 600; }
-.cal-sel-go { font-size: 17px; font-weight: 800; color: var(--accent-ink); }
-.cal-sel-hint {
-  margin: 10px 4px 0;
-  font-size: 12.5px;
-  line-height: 1.45;
+.cal-sel-slot.filled { background: var(--bg); }
+.cal-sel-when { flex: 0 0 auto; font-size: 12px; font-weight: 800; letter-spacing: 0.2px; color: var(--muted); }
+.cal-sel-what {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cal-sel-open { flex: 1; font-size: 13px; font-weight: 600; color: var(--muted); }
+.cal-sel-x {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: none;
   color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: color var(--dur-fast);
 }
+.cal-sel-x:hover { color: var(--hot); }
+.cal-sel-full {
+  margin-top: 12px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgba(var(--accent-rgb), 0.4);
+  border-radius: 12px;
+  background: rgba(var(--accent-rgb), 0.06);
+  color: var(--accent-ink);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform var(--dur-micro);
+}
+.cal-sel-full:active { transform: scale(0.98); }
 
 /* ===== U-d — the morning-after conversion card (the two-beat RETURN beat).
    A quiet white card, NOT a shout: one warm question, two calm buttons. It
@@ -285,127 +294,9 @@
   .cal-recap.lit { animation: none; border-color: var(--reward); }
   .cal-recap-yes:active,
   .cal-recap-no:active,
-  .cal-sel-line:active,
+  .cal-sel-full:active,
   .mcell:active .mnum { transform: none; }
 }
 
-/* ===== FB-12 (3.7P-3): the day-peek popover — a quick glance at a today-or-later
-   day before the full DayPage. A bottom sheet in the app's sheet language
-   (var(--card) + var(--shadow-card)), gated on ts >= todayTs in CalendarView. */
-.cal-peek-wrap {
-  position: fixed;
-  inset: 0;
-  z-index: 1600; /* above the tab content (1100/1500), below detail (2000)/primer (1900) */
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
-.cal-peek-scrim {
-  position: absolute;
-  inset: 0;
-  border: none;
-  background: rgba(26, 20, 16, 0.32);
-  -webkit-backdrop-filter: blur(2px);
-  backdrop-filter: blur(2px);
-  cursor: pointer;
-  animation: peekScrim var(--dur-fast) var(--ease-out);
-}
-@keyframes peekScrim {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-.cal-peek {
-  position: relative;
-  width: 100%;
-  max-width: 460px;
-  margin: 0 auto;
-  background: var(--card);
-  border-radius: 22px 22px 0 0;
-  box-shadow: var(--shadow-card);
-  padding: 14px 18px calc(18px + env(safe-area-inset-bottom));
-  animation: peekUp var(--dur-page) var(--ease-emphasis);
-}
-@keyframes peekUp {
-  from { transform: translateY(100%); }
-  to { transform: none; }
-}
-.cal-peek-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.cal-peek-title { font-size: 16px; font-weight: 800; letter-spacing: -0.2px; color: var(--ink); }
-.cal-peek-close {
-  flex: 0 0 auto;
-  width: 36px;
-  height: 36px;
-  border: none;
-  border-radius: 999px;
-  background: var(--bg);
-  color: var(--muted);
-  font-size: 14px;
-  cursor: pointer;
-}
-.cal-peek-slots { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
-.cal-peek-slot {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  background: var(--card);
-}
-.cal-peek-slot.filled { background: var(--bg); }
-.cal-peek-when { flex: 0 0 auto; font-size: 12px; font-weight: 800; letter-spacing: 0.2px; color: var(--muted); }
-.cal-peek-what {
-  flex: 1;
-  min-width: 0;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--ink);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.cal-peek-open { flex: 1; font-size: 13px; font-weight: 600; color: var(--muted); }
-.cal-peek-x {
-  flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 999px;
-  background: none;
-  color: var(--muted);
-  font-size: 13px;
-  cursor: pointer;
-  transition: color var(--dur-fast);
-}
-.cal-peek-x:hover { color: var(--hot); }
-.cal-peek-rest {
-  margin-top: 14px;
-  padding: 18px 14px;
-  border-radius: 14px;
-  background: var(--bg);
-  text-align: center;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--ink);
-}
-.cal-peek-full {
-  width: 100%;
-  margin-top: 14px;
-  height: 48px;
-  border: none;
-  border-radius: 14px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: var(--ink); /* dark ink on Sunset Gold — white fails AA */
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: 0 6px 20px rgba(var(--accent-rgb), 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  transition: transform var(--dur-micro);
-}
-.cal-peek-full:active { transform: scale(0.98); }
-@media (prefers-reduced-motion: reduce) {
-  .cal-peek-scrim,
-  .cal-peek { animation: none; }
-  .cal-peek-full:active { transform: none; }
-}
+/* (3.7P-17: the FB-12 day-peek POPOVER + its scrim/sheet/slot styles were
+   retired — the day detail is now the inline .cal-sel panel above.) */
