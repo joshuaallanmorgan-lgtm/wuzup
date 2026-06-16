@@ -385,7 +385,7 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
       if (youRef.current) youRef.current.setLatLng([c.lat, c.lng])
       else
         youRef.current = L.marker([c.lat, c.lng], {
-          icon: L.divIcon({ className: 'map-you-ico', html: '<span class="map-you"></span>', iconSize: [18, 18] }),
+          icon: L.divIcon({ className: 'map-you-ico', html: '<span class="map-you"></span>', iconSize: [18, 18], iconAnchor: [9, 9] }),
           interactive: false,
           keyboard: false,
         }).addTo(map)
@@ -398,11 +398,35 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
     <div className="map-wrap">
       <div ref={elRef} className="map" />
 
-      {/* ===== T1 toolbar: layer toggle + filters (overlays the map top).
-          3.7P-14: the layer toggle + "Near me" share the primary top row; the
-          date strip + scope chips sit below. ===== */}
+      {/* ===== T1 toolbar overlaying the map top. 3.7P-14 (review): the DATE
+          scope is the PRIMARY/top row (with Near me) per the spec; the layer
+          toggle sits just below; Free + categories wrap underneath. ===== */}
       <div className="map-tools">
         <div className="map-tools-top">
+          {/* the primary scope: date strip — gates EVENTS only (places have no
+              date), so it's honestly dimmed + inert on the Spots-only layer */}
+          <div className={'map-dates' + (showEvents ? '' : ' map-dates-off')} aria-disabled={!showEvents}>
+            {DATE_FILTERS.map((d) => (
+              <button
+                key={d.id}
+                className={'map-chip' + (dateF === d.id ? ' on' : '')}
+                disabled={!showEvents}
+                onClick={() => setDateF(d.id)}
+                title={!showEvents ? 'Dates apply to events' : undefined}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
+          <button
+            className="map-near pressable"
+            onClick={goNearMe}
+            aria-label="Center the map on your location"
+          >
+            <span aria-hidden>📍</span> Near me
+          </button>
+        </div>
+        {/* layer toggle — its own centered row, below the primary date scope */}
         <div className="map-seg" role="group" aria-label="Map layer">
           {[
             ['events', 'Events'],
@@ -419,30 +443,7 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
             </button>
           ))}
         </div>
-          <button
-            className="map-near pressable"
-            onClick={goNearMe}
-            aria-label="Center the map on your location"
-          >
-            <span aria-hidden>📍</span> Near me
-          </button>
-        </div>
         <div className="map-chips">
-          {/* date strip — gates EVENTS only (places have no date). When the
-              Spots-only layer is active it's honestly dimmed + inert. */}
-          <div className={'map-dates' + (showEvents ? '' : ' map-dates-off')} aria-disabled={!showEvents}>
-            {DATE_FILTERS.map((d) => (
-              <button
-                key={d.id}
-                className={'map-chip' + (dateF === d.id ? ' on' : '')}
-                disabled={!showEvents}
-                onClick={() => setDateF(d.id)}
-                title={!showEvents ? 'Dates apply to events' : undefined}
-              >
-                {d.label}
-              </button>
-            ))}
-          </div>
           <button
             className={'map-chip map-chip-free' + (freeOnly ? ' on' : '')}
             aria-pressed={freeOnly}

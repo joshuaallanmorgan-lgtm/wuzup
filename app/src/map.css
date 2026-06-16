@@ -99,6 +99,7 @@
    The wrapper passes map drags through its gaps; the controls re-enable pointers. */
 .map-tools-top {
   display: flex;
+  flex-wrap: wrap; /* narrow phones: dates + Near me wrap instead of overflowing */
   align-items: center;
   justify-content: center;
   gap: 8px;
