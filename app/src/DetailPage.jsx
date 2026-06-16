@@ -403,19 +403,27 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         )}
         {similar.length > 0 && (
           <div className="detail-rail">
-            <SecHead overline="Keep the night going" title="More like this" />
+            {/* FB-16: no "Keep the night going" overline — this rail spans the
+                whole upcoming window (not just tonight), so the line misled. */}
+            <SecHead title="More like this" />
             <div className="carousel">
               {similar.map((x) => (
                 /* swap in place: null cardEl skips the VT morph (the detail is already open).
                    withDate: picks span the whole upcoming window — a July event must
-                   never read as tonight under a "Keep the night going" overline. */
+                   never read as tonight (the rail carries no "tonight" framing). */
                 <TonightCard key={keyOf(x)} e={x} withDate onSelect={(e2) => onSelect(e2, null)} />
               ))}
             </div>
           </div>
         )}
-        {/* I4: demoted provenance footer — never hidden, just quiet */}
-        {via && <div className="detail-via">Found via {via}</div>}
+        {/* FB-15: provenance stays FULLY disclosed but quiet — collapsed by
+            default, one tap to reveal. Always present (never withheld). */}
+        {via && (
+          <details className="detail-via">
+            <summary className="detail-via-sum">Sources</summary>
+            <div className="detail-via-list">Found via {via}</div>
+          </details>
+        )}
       </div>
       {toast && <div className="detail-toast">{toast}</div>}
       {undoVis && (

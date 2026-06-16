@@ -179,8 +179,10 @@ a.d-row { text-decoration: none; color: inherit; }
 .detail-rail { margin: 34px -20px 0; } /* full-bleed back out of .detail-body's 20px gutters */
 .detail-rail .sec-head { margin-bottom: 12px; }
 
-/* ===== I4: demoted provenance footer ("Found via …") — internal info, not
-   decision info; smallest text on the page, centered, end of the body ===== */
+/* ===== I4 + FB-15: demoted provenance footer ("Found via …" / "Sourced from
+   …") — internal info, not decision info; smallest text on the page, centered.
+   FB-15 collapses it behind a tiny tappable "Sources" summary (a <details>):
+   still FULLY disclosed (one tap, always present), just quiet by default. ===== */
 .detail-via {
   margin-top: 30px;
   text-align: center;
@@ -188,6 +190,30 @@ a.d-row { text-decoration: none; color: inherit; }
   font-weight: 600;
   color: var(--muted);
   opacity: 0.85;
+}
+.detail-via-sum {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  user-select: none;
+  list-style: none; /* drop the native disclosure triangle (we add our own) */
+}
+.detail-via-sum::-webkit-details-marker {
+  display: none;
+}
+.detail-via-sum::after {
+  content: '▾';
+  font-size: 9px;
+  opacity: 0.7;
+}
+.detail-via[open] .detail-via-sum::after {
+  content: '▴';
+}
+.detail-via-list {
+  margin-top: 6px;
+  line-height: 1.5;
 }
 
 /* ===== "Link copied ✓" toast (above the fixed CTA, never blocks taps) ===== */

@@ -359,8 +359,14 @@ export default function PlaceDetail({ e, anchors, wx }) {
           </div>
         )}
 
-        {/* provenance footer — never hidden, just quiet (X3 attribution feeds off this) */}
-        {e.sources.length > 0 && <div className="detail-via">Sourced from {e.sources.join(' · ')}</div>}
+        {/* FB-15: provenance footer disclosed but quiet — collapsed by default,
+            one tap to reveal (X3 attribution feeds off this; never withheld) */}
+        {e.sources.length > 0 && (
+          <details className="detail-via">
+            <summary className="detail-via-sum">Sources</summary>
+            <div className="detail-via-list">Sourced from {e.sources.join(' · ')}</div>
+          </details>
+        )}
       </div>
 
       {/* Make-this-my-plan sheet */}

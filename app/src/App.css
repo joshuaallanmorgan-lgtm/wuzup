@@ -402,7 +402,11 @@
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.75);
 }
 .hero-credit a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
-.detail-body { padding: 16px 20px 120px; }
+/* FB-14: the fixed .detail-cta grows by env(safe-area-inset-bottom), so a flat
+   120px bottom pad shrank the clearance on notched devices (CTA could ride over
+   the About / mini-map / sources footer). Make the body's bottom clearance
+   safe-area-aware so the gap above the CTA stays constant on every device. */
+.detail-body { padding: 16px 20px calc(120px + env(safe-area-inset-bottom)); }
 .detail-sp { display: block; margin-bottom: 10px; }
 .detail-rows { display: flex; flex-direction: column; }
 .d-row { display: flex; gap: 13px; align-items: flex-start; padding: 13px 0; border-bottom: 1px solid var(--line); }
