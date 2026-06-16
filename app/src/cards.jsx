@@ -90,49 +90,34 @@ export function SponsoredTag({ e }) {
 export function CardImg({ e, className = '', children }) {
   const [ok, setOk] = useState(false)
   const [failed, setFailed] = useState(false)
-  // 3.7P-36: runtime quality verdict on the loaded pixels — a tall flyer is
-  // contained on a blurred backdrop (never a botched crop), a sub-120px
-  // thumbnail degrades to the art floor (a blown-up icon is "bad/missing").
-  const [poster, setPoster] = useState(false)
   const emoji = artEmoji(e)
   // artwork is the TIME, not the status — strip startLabel's "Started " prefix here only
   const fall = startLabel(e).replace(/^Started /, '') || '★'
   // W4 trust contract: a dead/broken image URL degrades to the category-art
   // FLOOR (the designed hue + emoji), never the browser's broken-image glyph and
   // never a flat dark box. onError flips to art; a real photo never regresses.
+  // (3.7P-36 review: a successfully-LOADED photo is real content and is NEVER
+  // swapped for the art floor — the floor is for no-image + onError only. The
+  // "poster → small thumb / no green placeholder" win is delivered by the cards
+  // that CONSUME imageMode() at layout time, P42's CompactRow, not a CardImg
+  // runtime crop that mismatched the cover detail-hero it View-Transitions into.)
   const showArt = !e.image || failed
-  const onLoad = (ev) => {
-    const img = ev.currentTarget
-    const w = img.naturalWidth
-    const h = img.naturalHeight
-    if (w && w < 120) {
-      setFailed(true) // too low-res to read as a photo → fall to the designed art floor
-      return
-    }
-    if (w && h && h / w >= 1.4) setPoster(true) // portrait flyer → contain, don't crop
-    setOk(true)
-  }
   return (
     <span
-      className={'imgbox ' + className + (showArt ? ' imgbox-art' : '') + (!showArt && poster ? ' imgbox-poster' : '')}
+      className={'imgbox ' + className + (showArt ? ' imgbox-art' : '')}
       data-vt
       style={showArt ? { '--ch': hueFor(e) } : undefined}
     >
       {!showArt ? (
-        <>
-          {poster && (
-            <span className="imgbox-blur" aria-hidden style={{ backgroundImage: 'url("' + e.image + '")' }} />
-          )}
-          <img
-            className={'imgbox-img' + (ok ? ' on' : '') + (poster ? ' is-poster' : '')}
-            src={e.image}
-            alt=""
-            loading="lazy"
-            draggable={false}
-            onLoad={onLoad}
-            onError={() => setFailed(true)}
-          />
-        </>
+        <img
+          className={'imgbox-img' + (ok ? ' on' : '')}
+          src={e.image}
+          alt=""
+          loading="lazy"
+          draggable={false}
+          onLoad={() => setOk(true)}
+          onError={() => setFailed(true)}
+        />
       ) : (
         <>
           <span className="imgbox-mark" aria-hidden>

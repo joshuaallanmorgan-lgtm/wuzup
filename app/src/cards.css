@@ -34,23 +34,6 @@
   transition: opacity 300ms ease;
 }
 .imgbox-img.on { opacity: 1; }
-/* 3.7P-36 poster safety: a portrait flyer (h/w >= 1.4) is CONTAINED, not
-   cover-cropped — so the date/headline at the flyer's edges survives — and sits
-   over a blurred, dimmed copy of itself so the letterbox bars read as premium
-   framing, not empty bands. A bad poster is tamed, never blown up to dominate. */
-.imgbox-blur {
-  position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-  filter: blur(16px) brightness(0.7) saturate(1.1);
-  transform: scale(1.18); /* hide the blur's translucent edge bleed */
-  z-index: 0;
-}
-.imgbox-img.is-poster {
-  object-fit: contain;
-  z-index: 1;
-}
 .imgbox-fall {
   position: absolute;
   inset: 0;
