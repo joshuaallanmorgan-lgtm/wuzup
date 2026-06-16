@@ -161,8 +161,19 @@
   justify-content: center;
   gap: 7px;
 }
-.map-dates-off {
-  opacity: 0.4;
+/* 3.7P-18: the Spots-only date reason — a clear one-line note instead of the old
+   dimmed-but-tappable date buttons (which read as mysteriously "blocked"). */
+.map-dates-note {
+  pointer-events: auto;
+  align-self: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(21, 23, 28, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 8px 14px;
+  backdrop-filter: blur(8px);
 }
 .map-chip {
   flex: 0 0 auto;
@@ -189,6 +200,127 @@
 }
 .map-chip:disabled {
   cursor: default;
+}
+
+/* ===== 3.7P-18: the compact "Filters" button + the filter sheet (category +
+   Free). Collapses the old 12-chip sprawl off the map; mirrors the LensNav
+   bottom-sheet pattern. ===== */
+.map-filter-btn {
+  align-self: center;
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(21, 23, 28, 0.86);
+  color: rgba(255, 255, 255, 0.92);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 8px 16px;
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: transform var(--dur-micro);
+}
+.map-filter-btn.on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.map-filter-btn:active {
+  transform: scale(0.96);
+}
+.map-filter-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 1700; /* above the map toolbar (1005) + pins, below detail (2000) */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.map-filter-scrim {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(26, 20, 16, 0.4);
+  cursor: pointer;
+  animation: mfFade var(--dur-fast) ease;
+}
+@keyframes mfFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.map-filter-sheet {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  background: var(--card);
+  border-radius: 22px 22px 0 0;
+  box-shadow: 0 -10px 40px rgba(26, 20, 16, 0.24);
+  padding: 14px 16px calc(18px + env(safe-area-inset-bottom));
+  animation: mfUp var(--dur-page) var(--ease-emphasis);
+}
+@keyframes mfUp {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+.map-filter-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.map-filter-title { font-size: 17px; font-weight: 800; letter-spacing: -0.2px; color: var(--ink); }
+.map-filter-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  font-size: 12px;
+  cursor: pointer;
+}
+/* the chips inside the LIGHT sheet read as light pills (not the dark map-overlay
+   chips); the .on accent/free states still resolve. */
+.map-filter-chips {
+  justify-content: flex-start;
+  max-height: 46vh;
+  overflow-y: auto;
+}
+.map-filter-chips .map-chip {
+  background: var(--bg);
+  border-color: var(--line);
+  color: var(--ink);
+  backdrop-filter: none;
+}
+.map-filter-chips .map-chip.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--ink);
+}
+.map-filter-chips .map-chip-free.on {
+  background: var(--free);
+  border-color: var(--free);
+  color: #fff;
+}
+.map-filter-done {
+  margin-top: 14px;
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: var(--ink); /* dark ink on Sunset Gold — white fails AA */
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform var(--dur-micro);
+}
+.map-filter-done:active { transform: scale(0.98); }
+@media (prefers-reduced-motion: reduce) {
+  .map-filter-scrim,
+  .map-filter-sheet { animation: none; }
+  .map-filter-btn:active,
+  .map-filter-done:active { transform: none; }
 }
 
 /* a place's "📍 Spot" tag in the pin sheet (replaces the heat badge for places) */

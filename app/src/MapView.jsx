@@ -130,6 +130,7 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
   const [dateF, setDateF] = useState('any') // DATE_FILTERS id — gates EVENTS only
   const [cat, setCat] = useState('all') // a single category id, or 'all'
   const [freeOnly, setFreeOnly] = useState(false)
+  const [filtersOpen, setFiltersOpen] = useState(false) // 3.7P-18: category/free filters live in a sheet now
   const placeFocusing = !!(focusTarget && (focusTarget.kind === 'place' || isPlaceKey(focusTarget.key)))
   const effLayer = layer ?? (placeFocusing ? 'both' : 'events')
   const showEvents = effLayer === 'events' || effLayer === 'both'
@@ -152,6 +153,17 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
     window.addEventListener('keydown', onKey, true)
     return () => window.removeEventListener('keydown', onKey, true)
   }, [sheet])
+  // 3.7P-18: Escape closes the filter sheet first (capture phase), same pattern
+  useEffect(() => {
+    if (!filtersOpen) return
+    const onKey = (ev) => {
+      if (ev.key !== 'Escape') return
+      ev.stopPropagation()
+      setFiltersOpen(false)
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [filtersOpen])
   useEffect(() => {
     onSelectRef.current = onSelect // markers read the latest handler from a ref —
   }) // marker redraw must NOT depend on a per-render callback identity
@@ -371,6 +383,8 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
 
   const num = (n) => n.toLocaleString('en-US')
   const noun = effLayer === 'events' ? 'events' : effLayer === 'places' ? 'spots' : 'pins'
+  // 3.7P-18: how many filters are active (category + free), for the Filters button badge
+  const activeFilterCount = (cat !== 'all' ? 1 : 0) + (freeOnly ? 1 : 0)
 
   // 3.7P-14: recenter on the user. With a cached fix, jump straight there; else
   // ask (App's requestCoords resolves to coords or null). A denial resolves null
@@ -398,26 +412,30 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
     <div className="map-wrap">
       <div ref={elRef} className="map" />
 
-      {/* ===== T1 toolbar overlaying the map top. 3.7P-14 (review): the DATE
-          scope is the PRIMARY/top row (with Near me) per the spec; the layer
-          toggle sits just below; Free + categories wrap underneath. ===== */}
+      {/* ===== map toolbar (overlays the top). 3.7P-18: compact — date scope +
+          Near me (row 1), layer toggle (row 2), and a "Filters" button that opens
+          the category/Free sheet, so the 12 category chips no longer sprawl across
+          the map. Hierarchy stays date → layer → filters (Josh). ===== */}
       <div className="map-tools">
         <div className="map-tools-top">
-          {/* the primary scope: date strip — gates EVENTS only (places have no
-              date), so it's honestly dimmed + inert on the Spots-only layer */}
-          <div className={'map-dates' + (showEvents ? '' : ' map-dates-off')} aria-disabled={!showEvents}>
-            {DATE_FILTERS.map((d) => (
-              <button
-                key={d.id}
-                className={'map-chip' + (dateF === d.id ? ' on' : '')}
-                disabled={!showEvents}
-                onClick={() => setDateF(d.id)}
-                title={!showEvents ? 'Dates apply to events' : undefined}
-              >
-                {d.label}
-              </button>
-            ))}
-          </div>
+          {/* the date scope gates EVENTS only. 3.7P-18: on the Spots-only layer a
+              date filter is meaningless, so instead of dimmed-but-tappable buttons
+              (which read as "blocked"), show a clear one-line reason. */}
+          {showEvents ? (
+            <div className="map-dates">
+              {DATE_FILTERS.map((d) => (
+                <button
+                  key={d.id}
+                  className={'map-chip' + (dateF === d.id ? ' on' : '')}
+                  onClick={() => setDateF(d.id)}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="map-dates-note">🗓️ Dates apply to events</div>
+          )}
           <button
             className="map-near pressable"
             onClick={goNearMe}
@@ -426,7 +444,7 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
             <span aria-hidden>📍</span> Near me
           </button>
         </div>
-        {/* layer toggle — its own centered row, below the primary date scope */}
+        {/* layer toggle — events / spots / both */}
         <div className="map-seg" role="group" aria-label="Map layer">
           {[
             ['events', 'Events'],
@@ -443,30 +461,58 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
             </button>
           ))}
         </div>
-        <div className="map-chips">
-          <button
-            className={'map-chip map-chip-free' + (freeOnly ? ' on' : '')}
-            aria-pressed={freeOnly}
-            onClick={() => setFreeOnly((v) => !v)}
-          >
-            🆓 Free
-          </button>
-          {/* category chips: applies to whichever layer(s) show */}
-          <button className={'map-chip' + (cat === 'all' ? ' on' : '')} onClick={() => setCat('all')}>
-            All
-          </button>
-          {CATEGORIES.filter((c) => c.id !== 'other').map((c) => (
-            <button
-              key={c.id}
-              className={'map-chip' + (cat === c.id ? ' on' : '')}
-              aria-pressed={cat === c.id}
-              onClick={() => setCat((v) => (v === c.id ? 'all' : c.id))}
-            >
-              <span aria-hidden>{c.emoji}</span> {c.label}
-            </button>
-          ))}
-        </div>
+        {/* 3.7P-18: category + Free collapse behind one compact Filters button */}
+        <button
+          className={'map-filter-btn pressable' + (activeFilterCount > 0 ? ' on' : '')}
+          onClick={() => setFiltersOpen(true)}
+          aria-haspopup="dialog"
+          aria-expanded={filtersOpen}
+        >
+          <span aria-hidden>⚙️</span> Filters{activeFilterCount > 0 ? ` · ${activeFilterCount}` : ''}
+        </button>
       </div>
+
+      {/* 3.7P-18: the filter sheet — category + Free, opened from the Filters
+          button. Tapping a chip toggles it (the sheet stays open so you can set
+          several); scrim / ✕ / Done / Escape close it. */}
+      {filtersOpen && (
+        <div className="map-filter-wrap">
+          <button className="map-filter-scrim" aria-label="Close filters" onClick={() => setFiltersOpen(false)} />
+          <div className="map-filter-sheet" role="dialog" aria-modal="true" aria-label="Map filters">
+            <div className="map-filter-head">
+              <div className="map-filter-title">Filters</div>
+              <button className="map-filter-close pressable" onClick={() => setFiltersOpen(false)} aria-label="Close">
+                ✕
+              </button>
+            </div>
+            <div className="map-chips map-filter-chips">
+              <button
+                className={'map-chip map-chip-free' + (freeOnly ? ' on' : '')}
+                aria-pressed={freeOnly}
+                onClick={() => setFreeOnly((v) => !v)}
+              >
+                🆓 Free
+              </button>
+              <button className={'map-chip' + (cat === 'all' ? ' on' : '')} onClick={() => setCat('all')}>
+                All
+              </button>
+              {CATEGORIES.filter((c) => c.id !== 'other').map((c) => (
+                <button
+                  key={c.id}
+                  className={'map-chip' + (cat === c.id ? ' on' : '')}
+                  aria-pressed={cat === c.id}
+                  onClick={() => setCat((v) => (v === c.id ? 'all' : c.id))}
+                >
+                  <span aria-hidden>{c.emoji}</span> {c.label}
+                </button>
+              ))}
+            </div>
+            <button className="map-filter-done pressable" onClick={() => setFiltersOpen(false)}>
+              Done
+            </button>
+          </div>
+        </div>
+      )}
 
       {!sheet && (
         <div className="map-note">
