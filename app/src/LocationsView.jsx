@@ -148,7 +148,7 @@ export default function LocationsView({ coords }) {
             Events "Guides"). Tap an activity → everywhere you can do it (See all →
             never-hide). The green-wall fix: browse by what you can DO. */}
         <section className="sec">
-          <SecHead overline="What are you up for?" title="By activity" />
+          <SecHead overline="What are you up for?" title="By activity" sub="Pick a move — we'll find the spot." />
           <div className="intent-grid">
             {ACTIVITIES.map((a) => (
               <IntentTile key={a.id} emoji={a.emoji} label={a.label} hue={a.hue} onClick={() => openPlaceBubble(a)} />
