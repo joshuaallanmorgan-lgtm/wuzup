@@ -2,11 +2,11 @@
 // opens a full BubblePage), alternating sections, Everything feed. Navigation
 // (detail/bubble/search/add/weekend openers) comes from useNav() — O6.
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { BUBBLES, CAT_BUBBLES, CITY, DAY, LENS_BUBBLES, dayLabel, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
+import { BUBBLES, CAT_BUBBLES, CITY, LENS_BUBBLES, dayLabel, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
 import LensNav from './LensNav.jsx'
 import { curateFeed } from './curate.js'
 import { useNav } from './nav.jsx'
-import { BigOne, EndCap, FreeCard, GemRow, GuideCard, RowFeed, SecHead, TonightCard } from './cards.jsx'
+import { BigOne, EndCap, GemRow, RowFeed, SecHead, TonightCard } from './cards.jsx'
 import { GUIDES, useGuides, watchGuideActive, resolveWatchGuide } from './guides.js'
 import { shelfItems, useSaves } from './saves.js'
 import { railReady, tasteNudge, topCategories, useTaste, whenPreference } from './taste.js'
@@ -141,13 +141,9 @@ export default function HotView({ events, anchors, loading, whenPref }) {
   // Gems sort by score so the homepage trio is the BEST of the shelf, not
   // whichever three happen soonest.
   const gems = useMemo(() => upcoming.filter((e) => e.tags.includes('hidden-gem')).sort(hotDesc), [upcoming])
-  // G1 orderDay here too: raw date-asc order opened the carousel with six
-  // identical same-program library cards — diversity-interleave like the
-  // Everything feed does (count-preserving; taste read at compute time).
-  const freeWeek = useMemo(
-    () => orderDay(upcoming.filter((e) => e._free && e._clamp <= anchors.todayTs + 6 * DAY), tasteNudge),
-    [upcoming, anchors]
-  )
+  // 3.7P-10: the "Free this week" carousel was CUT — Free stays reachable via the
+  // LensNav "Free" lens + the FREE badge in Everything (never-hide intact), so a
+  // dedicated carousel was redundant. (freeWeek derivation removed with it.)
   // ♥ Saved shelf (Sprint C): saved events, live-from-dataset when possible,
   // snapshot otherwise; past saves grey out + drop after 7 days (saves.js).
   // useSaves re-renders this view on any toggle — even one made from the
@@ -173,7 +169,7 @@ export default function HotView({ events, anchors, loading, whenPref }) {
       .filter((e) => set.has(e.category))
       .map((e) => ({ e, s: (e.hotScore ?? 30) + tasteNudge(e, taste) }))
       .sort((a, b) => b.s - a.s || a.e._t - b.e._t)
-      .slice(0, 8)
+      .slice(0, 6)
       .map((x) => x.e)
     return picks.length >= 3 ? picks : null // a 1-card "rail" reads broken, wait for data
   }, [upcoming, taste])
@@ -299,6 +295,22 @@ export default function HotView({ events, anchors, loading, whenPref }) {
       />
 
       <div className="hot-body">
+        {/* 3.7P-10: Guides as the INTENT FRAME — pills directly under the hero,
+            before the sections (was a mid-page carousel). activeWatch = in-window
+            timely guides; the evergreen GUIDES (events + mixed, never spots-only)
+            follow. Each pill opens its GuidePage. */}
+        {(activeWatch.length > 0 || GUIDES.some((g) => g.domain !== 'spots')) && (
+          <nav className="guide-pills" aria-label="Guides">
+            {[...activeWatch, ...GUIDES.filter((g) => g.domain !== 'spots')].map((g) => (
+              <button key={g.id} className="guide-pill pressable" onClick={() => openGuide(g)}>
+                <span className="guide-pill-emoji" aria-hidden>
+                  {g.emoji}
+                </span>
+                {g.title}
+              </button>
+            ))}
+          </nav>
+        )}
         {shelfOn && (
           <section className="sec shelf-sec">
             <SecHead
@@ -308,6 +320,7 @@ export default function HotView({ events, anchors, loading, whenPref }) {
                   Your list ❤️<span className="shelf-count">{shelf.length}</span>
                 </>
               }
+              sub="Your saves, ready when you are."
             />
             {/* Phase 3.5: the "Full list + weekend plans → Profile" pointer was
                 removed (Josh — Profile owns Your-list + plans; the shelf
@@ -345,32 +358,6 @@ export default function HotView({ events, anchors, loading, whenPref }) {
             </div>
           </section>
         )}
-        {rail && (
-          <section className="sec">
-            {/* DRAFT — ⚑ Charles */}
-            <SecHead overline="For you" title="Your kind of night" sub="Tuned to what you’ve tapped." />
-            <div className="carousel">
-              {rail.map((e, i) => (
-                <TonightCard key={keyOf(e) + i} e={e} onSelect={onSelect} withDate />
-              ))}
-            </div>
-          </section>
-        )}
-        {/* 3.75: Guides — derivable intention collections (a moment + a POV), each
-            a plannable destination. Evergreen intentions, so always shown. DRAFT. */}
-        <section className="sec">
-          <SecHead overline="Plans by mood" title="Guides" sub="Collections for whatever you're up for" />
-          <div className="carousel">
-            {activeWatch.map((g) => (
-              <GuideCard key={g.id} guide={g} onOpen={openGuide} />
-            ))}
-            {/* FB-03 (3.7P-7): the Events page shows EVENTS + MIXED guides only — a
-                pure-spots guide (beach-day) no longer leaks here; it lives on Spots. */}
-            {GUIDES.filter((g) => g.domain !== 'spots').map((g) => (
-              <GuideCard key={g.id} guide={g} onOpen={openGuide} />
-            ))}
-          </div>
-        </section>
         {bigOne && (
           <section className={'sec' + ent(1).className} style={ent(1).style}>
             <BigOne e={bigOne} onSelect={onSelect} animate={animate} />
@@ -389,17 +376,16 @@ export default function HotView({ events, anchors, loading, whenPref }) {
             </button>
           </section>
         )}
-        {freeWeek.length > 0 && (
-          <section className={'sec' + ent(3).className} style={ent(3).style}>
-            {/* DRAFT — ⚑ Charles. "Costs nothing" (not "no ticket needed": a free
-                event can still require a free RSVP/ticket — _free is admission, not
-                ticketless). Sub is a real POV line, not a recount. */}
-            <SecHead overline="Costs nothing" title="Free this week" sub="Worth leaving the house for." onSeeAll={() => seeAll('free')} />
+        {/* 3.7P-10: the slim taste rail — railReady-gated (6+ organic taps), ~6
+            cards, moved LOW (after the editorial picks, was right after Tonight)
+            so it doesn't pre-empt Everything's taste order. DRAFT — ⚑ Charles */}
+        {rail && (
+          <section className="sec">
+            <SecHead overline="For you" title="Your kind of night" sub="Tuned to what you’ve tapped." />
             <div className="carousel">
-              {freeWeek.slice(0, 10).map((e, i) => (
-                <FreeCard key={keyOf(e) + i} e={e} onSelect={onSelect} />
+              {rail.map((e, i) => (
+                <TonightCard key={keyOf(e) + i} e={e} onSelect={onSelect} withDate />
               ))}
-              <EndCap square onClick={() => seeAll('free')} />
             </div>
           </section>
         )}
