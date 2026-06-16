@@ -30,7 +30,10 @@
   font-weight: 800;
   letter-spacing: -0.2px;
   border: 2px solid var(--accent); /* the gold ring = brand, without a saturated gold fill */
-  box-shadow: 0 2px 8px rgba(26, 20, 16, 0.22);
+  /* a faint dark contact hairline + a footprint shadow so the near-white disc body
+     still resolves on PALE basemap tiles (review: cream-on-white was ~1:1 — the
+     edge can't rest on the gold ring alone, which is only ~2.3:1). Calm, not loud. */
+  box-shadow: 0 0 0 1px rgba(26, 20, 16, 0.1), 0 2px 9px rgba(26, 20, 16, 0.3);
   cursor: pointer;
 }
 
