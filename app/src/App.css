@@ -356,6 +356,23 @@
 .detail-hero-text { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 20px 18px; color: #fff; z-index: 1; }
 .detail-chip { display: inline-block; margin-bottom: 11px; }
 .detail-title { margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -0.7px; line-height: 1.06; text-shadow: 0 2px 22px rgba(0, 0, 0, 0.45); }
+/* 3.7P-2: photo credit (CC-BY/BY-SA attribution duty) — tiny, bottom-right of a
+   real-photo hero, above the title z-layer; sits below the title text in the
+   gradient. Art-floor heroes carry no credit. */
+.hero-credit {
+  position: absolute;
+  right: 12px;
+  bottom: 7px;
+  z-index: 2;
+  max-width: 58%;
+  text-align: right;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.78);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.75);
+}
+.hero-credit a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 .detail-body { padding: 16px 20px 120px; }
 .detail-sp { display: block; margin-bottom: 10px; }
 .detail-rows { display: flex; flex-direction: column; }

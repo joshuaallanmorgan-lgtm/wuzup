@@ -958,7 +958,13 @@
       "hiddenScore": 0,
       "hidden": false,
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Hurrah_Lake_-_Alafia_River_State_Park.jpg/1280px-Hurrah_Lake_-_Alafia_River_State_Park.jpg",
-      "description": "Alafia River State Park is a Florida State Park, located near Picnic in Hillsborough County in central Florida, 17 miles or 27 kilometers southeast of Tampa on County Road 39. Even before it became a park, the area, and particularly Hurrah Lake, was the center of leisure activities since the early 1880s."
+      "description": "Alafia River State Park is a Florida State Park, located near Picnic in Hillsborough County in central Florida, 17 miles or 27 kilometers southeast of Tampa on County Road 39. Even before it became a park, the area, and particularly Hurrah Lake, was the center of leisure activities since the early 1880s.",
+      "imageCredit": {
+        "author": "Mwanner at en.wikipedia",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "url": "https://commons.wikimedia.org/wiki/File%3AHurrah%20Lake%20-%20Alafia%20River%20State%20Park.jpg"
+      }
     },
     {
       "key": "p|alafia-river-state-park-north-lakes-kayak-access",
@@ -2635,7 +2641,13 @@
       "wikidata": "Q15196307",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Interactive_Water_Park_at_Ballast_Point_Park.JPG/1280px-Interactive_Water_Park_at_Ballast_Point_Park.JPG"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Interactive_Water_Park_at_Ballast_Point_Park.JPG/1280px-Interactive_Water_Park_at_Ballast_Point_Park.JPG",
+      "imageCredit": {
+        "author": "Heditor6",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "url": "https://commons.wikimedia.org/wiki/File%3AInteractive%20Water%20Park%20at%20Ballast%20Point%20Park.JPG"
+      }
     },
     {
       "key": "p|ballast-point-park-public-boat-ramp",
@@ -5327,7 +5339,13 @@
       "hiddenScore": 0,
       "hidden": false,
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Boyd_Hill_Nature_Preserve.jpg/1280px-Boyd_Hill_Nature_Preserve.jpg",
-      "description": "Boyd Hill Nature Preserve is a 245-acre (99 ha) protected area in Pinellas County, Florida. It is located on the shores of Lake Maggiore in south St. Petersburg and is operated by the city's Parks and Recreation department."
+      "description": "Boyd Hill Nature Preserve is a 245-acre (99 ha) protected area in Pinellas County, Florida. It is located on the shores of Lake Maggiore in south St. Petersburg and is operated by the city's Parks and Recreation department.",
+      "imageCredit": {
+        "author": "Calmuziclover",
+        "license": "CC BY 2.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+        "url": "https://commons.wikimedia.org/wiki/File%3ABoyd%20Hill%20Nature%20Preserve.jpg"
+      }
     },
     {
       "key": "p|boyette-farms-park",
@@ -5502,7 +5520,13 @@
       "hiddenScore": 0,
       "hidden": false,
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Bradenton_Riverwalk_Tower_Plaza.jpg/1280px-Bradenton_Riverwalk_Tower_Plaza.jpg",
-      "description": "Bradenton Riverwalk is a 1.5-mile-long (2.4 km) public green space located along the Manatee River in Bradenton, Florida, between Business US 41 and South Tamiami Trail. The five-acre (2.0 ha) park opened to the public on October 18, 2012 and features a skatepark, 400-seat amphitheater, playgrounds, and a splash pad."
+      "description": "Bradenton Riverwalk is a 1.5-mile-long (2.4 km) public green space located along the Manatee River in Bradenton, Florida, between Business US 41 and South Tamiami Trail. The five-acre (2.0 ha) park opened to the public on October 18, 2012 and features a skatepark, 400-seat amphitheater, playgrounds, and a splash pad.",
+      "imageCredit": {
+        "author": "The Grid",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "url": "https://commons.wikimedia.org/wiki/File%3ABradenton%20Riverwalk%20Tower%20Plaza.jpg"
+      }
     },
     {
       "key": "p|branchton",
@@ -9136,7 +9160,13 @@
       "hiddenScore": 0,
       "hidden": false,
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Colt_Creek_SP_road01.jpg/1280px-Colt_Creek_SP_road01.jpg",
-      "description": "Colt Creek State Park is a Florida State Park in Central Florida, 16 miles (26 km) north of Lakeland off of State Road 471. This 5,067-acre park nestled within the Green Swamp Wilderness Area and named after one of the tributaries that flows through the property was opened to the public on January 20, 2007."
+      "description": "Colt Creek State Park is a Florida State Park in Central Florida, 16 miles (26 km) north of Lakeland off of State Road 471. This 5,067-acre park nestled within the Green Swamp Wilderness Area and named after one of the tributaries that flows through the property was opened to the public on January 20, 2007.",
+      "imageCredit": {
+        "author": "Ebyabe",
+        "license": "CC BY-SA 2.5",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5",
+        "url": "https://commons.wikimedia.org/wiki/File%3AColt%20Creek%20SP%20road01.jpg"
+      }
     },
     {
       "key": "p|colt-creek-state-park-middle-lake-no-gas-motors",
@@ -10501,7 +10531,14 @@
       "wikidata": "Q5184858",
       "hiddenScore": 0,
       "hidden": false,
-      "description": "Crews Lake Wilderness Park is located off Shady Hills Road in Pasco County, Florida. The park includes hiking trails, a short paved bike trail, playground, wooden tower, athletic fields, and the 7+1⁄2 in gauge Central Pasco & Gulf Railroad."
+      "description": "Crews Lake Wilderness Park is located off Shady Hills Road in Pasco County, Florida. The park includes hiking trails, a short paved bike trail, playground, wooden tower, athletic fields, and the 7+1⁄2 in gauge Central Pasco & Gulf Railroad.",
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Crews_Lake_Dock_from_the_Tower.JPG/1280px-Crews_Lake_Dock_from_the_Tower.JPG",
+      "imageCredit": {
+        "author": "DanTD",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "url": "https://commons.wikimedia.org/wiki/File%3ACrews%20Lake%20Dock%20from%20the%20Tower.JPG"
+      }
     },
     {
       "key": "p|crisp-park",
@@ -10830,7 +10867,14 @@
       },
       "wikidata": "Q5195767",
       "hiddenScore": 0,
-      "hidden": false
+      "hidden": false,
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Curtis_Hixon_Park_Tampa_Florida_United_States_-_panoramio_%281%29.jpg/1280px-Curtis_Hixon_Park_Tampa_Florida_United_States_-_panoramio_%281%29.jpg",
+      "imageCredit": {
+        "author": "Michelle Maria",
+        "license": "CC BY 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+        "url": "https://commons.wikimedia.org/wiki/File%3ACurtis%20Hixon%20Park%20Tampa%20Florida%20United%20States%20-%20panoramio%20(1).jpg"
+      }
     },
     {
       "key": "p|cuscaden-park",
@@ -12125,7 +12169,13 @@
       "hiddenScore": 0,
       "hidden": false,
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Bradenton_FL_DeSoto_Natl_Mem07.jpg/1280px-Bradenton_FL_DeSoto_Natl_Mem07.jpg",
-      "description": "De Soto National Memorial is a national memorial located in Manatee County, approximately five miles west of Bradenton, Florida. The national memorial commemorates the 1539 landing of Hernando de Soto and the first extensive organized exploration by Europeans of what is now the southern United States."
+      "description": "De Soto National Memorial is a national memorial located in Manatee County, approximately five miles west of Bradenton, Florida. The national memorial commemorates the 1539 landing of Hernando de Soto and the first extensive organized exploration by Europeans of what is now the southern United States.",
+      "imageCredit": {
+        "author": "Ebyabe",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "url": "https://commons.wikimedia.org/wiki/File%3ABradenton%20FL%20DeSoto%20Natl%20Mem07.jpg"
+      }
     },
     {
       "key": "p|desoto-park",
@@ -14159,7 +14209,13 @@
       "hiddenScore": 0,
       "hidden": false,
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Egmont_Key_lighthouse01.jpg/1280px-Egmont_Key_lighthouse01.jpg",
-      "description": "Egmont Key National Wildlife Refuge and State Park is a National Wildlife Refuge and State Park located on the island of Egmont Key, at the mouth of Tampa Bay. Egmont Key lies southwest of Fort De Soto Park and can only be reached by boat or ferry."
+      "description": "Egmont Key National Wildlife Refuge and State Park is a National Wildlife Refuge and State Park located on the island of Egmont Key, at the mouth of Tampa Bay. Egmont Key lies southwest of Fort De Soto Park and can only be reached by boat or ferry.",
+      "imageCredit": {
+        "author": "Dlohcierekim's sock",
+        "license": "CC BY-SA 2.5",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5",
+        "url": "https://commons.wikimedia.org/wiki/File%3AEgmont%20Key%20lighthouse01.jpg"
+      }
     },
     {
       "key": "p|egmont-key-state-park",
@@ -15222,7 +15278,14 @@
       "wikidata": "Q7734512",
       "hiddenScore": 0,
       "hidden": false,
-      "description": "The Florida Botanical Gardens (FBG) is a 182-acre (74 ha) botanical garden located in Largo, Florida within Pinewood Cultural Park. The gardens showcase a diverse array of flora, fauna, and natural resources."
+      "description": "The Florida Botanical Gardens (FBG) is a 182-acre (74 ha) botanical garden located in Largo, Florida within Pinewood Cultural Park. The gardens showcase a diverse array of flora, fauna, and natural resources.",
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Florida_Botanical_Gardens_%E4%BD%9B%E7%BE%85%E9%87%8C%E9%81%94%E6%A4%8D%E7%89%A9%E5%9C%92_-_panoramio.jpg/1280px-Florida_Botanical_Gardens_%E4%BD%9B%E7%BE%85%E9%87%8C%E9%81%94%E6%A4%8D%E7%89%A9%E5%9C%92_-_panoramio.jpg",
+      "imageCredit": {
+        "author": "lienyuan lee",
+        "license": "CC BY 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+        "url": "https://commons.wikimedia.org/wiki/File%3AFlorida%20Botanical%20Gardens%20%E4%BD%9B%E7%BE%85%E9%87%8C%E9%81%94%E6%A4%8D%E7%89%A9%E5%9C%92%20-%20panoramio.jpg"
+      }
     },
     {
       "key": "p|florida-maritime-museum-park",
@@ -15532,7 +15595,13 @@
       "hiddenScore": 0,
       "hidden": false,
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Sunset_on_North_Beach_at_Fort_De_Soto_Park.jpg/1280px-Sunset_on_North_Beach_at_Fort_De_Soto_Park.jpg",
-      "description": "Fort De Soto Park is a county park located south-southwest of St. Petersburg, Florida, operated by Pinellas County. The park consists of five offshore keys, or islands: Madelaine Key, St. Jean Key, St. Christopher Key, Bonne Fortune Key and the main island, Mullet Key."
+      "description": "Fort De Soto Park is a county park located south-southwest of St. Petersburg, Florida, operated by Pinellas County. The park consists of five offshore keys, or islands: Madelaine Key, St. Jean Key, St. Christopher Key, Bonne Fortune Key and the main island, Mullet Key.",
+      "imageCredit": {
+        "author": "Christopher Hollis",
+        "license": "Public domain",
+        "licenseUrl": null,
+        "url": "https://commons.wikimedia.org/wiki/File%3ASunset%20on%20North%20Beach%20at%20Fort%20De%20Soto%20Park.jpg"
+      }
     },
     {
       "key": "p|fort-desoto-park-boat-ramp",
@@ -18635,7 +18704,13 @@
       "wikidata": "Q966471",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Iron_Gwazi_%2811%29.jpg/1280px-Iron_Gwazi_%2811%29.jpg"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Iron_Gwazi_%2811%29.jpg/1280px-Iron_Gwazi_%2811%29.jpg",
+      "imageCredit": {
+        "author": "Adog",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "url": "https://commons.wikimedia.org/wiki/File%3AIron%20Gwazi%20(11).jpg"
+      }
     },
     {
       "key": "p|gwendolyn-miller-center",
@@ -20167,7 +20242,13 @@
       "hiddenScore": 0,
       "hidden": false,
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Paddling_on_the_Hillsborough_River.jpg/1280px-Paddling_on_the_Hillsborough_River.jpg",
-      "description": "Hillsborough River State Park is located in the northeast corner of Hillsborough County, Florida near Zephyrhills. It is a popular park due to its proximity to the city of Tampa. It closed in October 2024 due to damage from Hurricane Milton, and re-opened on February 24, 2025."
+      "description": "Hillsborough River State Park is located in the northeast corner of Hillsborough County, Florida near Zephyrhills. It is a popular park due to its proximity to the city of Tampa. It closed in October 2024 due to damage from Hurricane Milton, and re-opened on February 24, 2025.",
+      "imageCredit": {
+        "author": "Mwanner at en.wikipedia",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "url": "https://commons.wikimedia.org/wiki/File%3APaddling%20on%20the%20Hillsborough%20River.jpg"
+      }
     },
     {
       "key": "p|hillsborough-river-state-park-cedar-landing-canoe-launch-registered-campers-only",
@@ -20454,7 +20535,13 @@
       "hiddenScore": 0,
       "hidden": false,
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Honeymoon_Island_State_Park_%28Image_2%29.jpg/1280px-Honeymoon_Island_State_Park_%28Image_2%29.jpg",
-      "description": "Honeymoon Island State Park is a Florida State Park located on Honeymoon Island, a barrier island across St. Joseph Sound from Dunedin, Palm Harbor, Ozona, and Crystal Beach. The park is 385 acres (1.6 km2) in land area with 2,400 acres (10 km2) submerged and 4 miles (6 km) of beach."
+      "description": "Honeymoon Island State Park is a Florida State Park located on Honeymoon Island, a barrier island across St. Joseph Sound from Dunedin, Palm Harbor, Ozona, and Crystal Beach. The park is 385 acres (1.6 km2) in land area with 2,400 acres (10 km2) submerged and 4 miles (6 km) of beach.",
+      "imageCredit": {
+        "author": "Christopher Hollis",
+        "license": "Public domain",
+        "licenseUrl": null,
+        "url": "https://commons.wikimedia.org/wiki/File%3AHoneymoon%20Island%20State%20Park%20(Image%202).jpg"
+      }
     },
     {
       "key": "p|horan-park-community-center",
@@ -26231,7 +26318,13 @@
       "hiddenScore": 0,
       "hidden": false,
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Little_Manatee_River_SP_river01.jpg/1280px-Little_Manatee_River_SP_river01.jpg",
-      "description": "Little Manatee River State Park is a 2,433-acre (985 ha) Florida State Park located 5 miles (8.0 km) south of Sun City, off U.S. Route 301 on Lightfoot Road and along the Little Manatee River. The park was established in 1974 as Little Manatee River State Recreation Area with 663 hectares."
+      "description": "Little Manatee River State Park is a 2,433-acre (985 ha) Florida State Park located 5 miles (8.0 km) south of Sun City, off U.S. Route 301 on Lightfoot Road and along the Little Manatee River. The park was established in 1974 as Little Manatee River State Recreation Area with 663 hectares.",
+      "imageCredit": {
+        "author": "Ebyabe",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "url": "https://commons.wikimedia.org/wiki/File%3ALittle%20Manatee%20River%20SP%20river01.jpg"
+      }
     },
     {
       "key": "p|little-manatee-river-state-park-pavillion-1-alternative-canoe-launch-call-office",
@@ -28005,7 +28098,13 @@
       "hiddenScore": 0,
       "hidden": false,
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Bradenton_FL_Manatee_Mineral_Springs_marker01.jpg/1280px-Bradenton_FL_Manatee_Mineral_Springs_marker01.jpg",
-      "description": "Manatee Mineral Springs Park is a neighborhood park located in Bradenton, Florida. The park is named after a natural spring at the location. In 2006, the park's natural spring was designated a \"Florida Natural Spring\" by the Florida Geological Survey of Natural Springs."
+      "description": "Manatee Mineral Springs Park is a neighborhood park located in Bradenton, Florida. The park is named after a natural spring at the location. In 2006, the park's natural spring was designated a \"Florida Natural Spring\" by the Florida Geological Survey of Natural Springs.",
+      "imageCredit": {
+        "author": "Ebyabe",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "url": "https://commons.wikimedia.org/wiki/File%3ABradenton%20FL%20Manatee%20Mineral%20Springs%20marker01.jpg"
+      }
     },
     {
       "key": "p|mandalay-park",
@@ -30305,7 +30404,14 @@
       "wikidata": "Q41411344",
       "hiddenScore": 0,
       "hidden": false,
-      "description": "Nathan Benderson Park, previously known as North Metro Park and Cooper Creek Park, is a 600-acre (240 ha) park in the U.S. state of Florida, owned by Sarasota County."
+      "description": "Nathan Benderson Park, previously known as North Metro Park and Cooper Creek Park, is a 600-acre (240 ha) park in the U.S. state of Florida, owned by Sarasota County.",
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Nathan_Benderson_Park_-_Finish_Tower.jpg/1280px-Nathan_Benderson_Park_-_Finish_Tower.jpg",
+      "imageCredit": {
+        "author": "Architecttype",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "url": "https://commons.wikimedia.org/wiki/File%3ANathan%20Benderson%20Park%20-%20Finish%20Tower.jpg"
+      }
     },
     {
       "key": "p|nathan-benderson-park-non-motorized-boat-ramp-main-watersport-lake",
@@ -33150,7 +33256,13 @@
       "hiddenScore": 0,
       "hidden": false,
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/CassiaFistula02_PalmaSola_Asit.jpg/1280px-CassiaFistula02_PalmaSola_Asit.jpg",
-      "description": "Palma Sola Botanical Park is a botanical garden located at 9800 17th Avenue N.W. Bradenton, Florida, United States. The park showcases collections of rare palms, fruits, and flowering trees, as well as three lakes, a butterfly garden, gazebo, and pavilion. It is open daily without charge."
+      "description": "Palma Sola Botanical Park is a botanical garden located at 9800 17th Avenue N.W. Bradenton, Florida, United States. The park showcases collections of rare palms, fruits, and flowering trees, as well as three lakes, a butterfly garden, gazebo, and pavilion. It is open daily without charge.",
+      "imageCredit": {
+        "author": "Asit K. Ghosh Thaumaturgist",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "url": "https://commons.wikimedia.org/wiki/File%3ACassiaFistula02%20PalmaSola%20Asit.jpg"
+      }
     },
     {
       "key": "p|palma-sola-causeway-perico-bayou-kayak-access",
@@ -34393,7 +34505,6 @@
       "wikidata": "Q7184869",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/d/df/Philippe_park01.jpg",
       "description": "Philippe Park is a Pinellas County park located in Safety Harbor, Florida. The park is named after Odet Philippe, who is credited with introducing grapefruit to Florida. It is situated on 122 acres (0.49 km2) that was once part of Philippe's plantation."
     },
     {
@@ -41202,7 +41313,13 @@
       "wikidata": "Q5471345",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Fort_Homer_W._Hesterly.jpg/1280px-Fort_Homer_W._Hesterly.jpg"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Fort_Homer_W._Hesterly.jpg/1280px-Fort_Homer_W._Hesterly.jpg",
+      "imageCredit": {
+        "author": "TampAGS",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "url": "https://commons.wikimedia.org/wiki/File%3AFort%20Homer%20W.%20Hesterly.jpg"
+      }
     },
     {
       "key": "p|sheffield-lake-park",
@@ -43860,7 +43977,13 @@
       "hiddenScore": 0,
       "hidden": false,
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/St._Petersburg_FL_Sunken_Gardens_gate01.jpg/1280px-St._Petersburg_FL_Sunken_Gardens_gate01.jpg",
-      "description": "The Sunken Gardens are 4 acres of well-established botanical gardens, located in the Historic Old Northeast neighborhood of St. Petersburg, Florida, at 1825 4th Street North. The Gardens have existed for more than a century, and are one of the oldest roadside tourist attractions in the United States."
+      "description": "The Sunken Gardens are 4 acres of well-established botanical gardens, located in the Historic Old Northeast neighborhood of St. Petersburg, Florida, at 1825 4th Street North. The Gardens have existed for more than a century, and are one of the oldest roadside tourist attractions in the United States.",
+      "imageCredit": {
+        "author": "Ebyabe",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "url": "https://commons.wikimedia.org/wiki/File%3ASt.%20Petersburg%20FL%20Sunken%20Gardens%20gate01.jpg"
+      }
     },
     {
       "key": "p|sunlit-cove-park",
@@ -44371,7 +44494,13 @@
       "wikidata": "Q61120868",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Sutton_Park_Palmetto_Florida_2019-12017.jpg/1280px-Sutton_Park_Palmetto_Florida_2019-12017.jpg"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Sutton_Park_Palmetto_Florida_2019-12017.jpg/1280px-Sutton_Park_Palmetto_Florida_2019-12017.jpg",
+      "imageCredit": {
+        "author": "Paul R. Burley",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "url": "https://commons.wikimedia.org/wiki/File%3ASutton%20Park%20Palmetto%20Florida%202019-12017.jpg"
+      }
     },
     {
       "key": "p|swann-circle-park",
@@ -48178,7 +48307,13 @@
       "hiddenScore": 0,
       "hidden": false,
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Vinoy_Park.jpg/1280px-Vinoy_Park.jpg",
-      "description": "Vinoy Park is an 11.6-acre (4.7 ha) park located on the downtown waterfront of St. Petersburg, Florida. Vinoy Park was named after the Vinoy Park Hotel, which was originally called the Vinoy Park when constructed in 1925 and sits adjacent to the park. Vinoy Park is operated by St."
+      "description": "Vinoy Park is an 11.6-acre (4.7 ha) park located on the downtown waterfront of St. Petersburg, Florida. Vinoy Park was named after the Vinoy Park Hotel, which was originally called the Vinoy Park when constructed in 1925 and sits adjacent to the park. Vinoy Park is operated by St.",
+      "imageCredit": {
+        "author": "Calmuziclover",
+        "license": "CC BY 2.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+        "url": "https://commons.wikimedia.org/wiki/File%3AVinoy%20Park.jpg"
+      }
     },
     {
       "key": "p|violet-cury-nature-preserve",
@@ -48263,7 +48398,13 @@
       "hiddenScore": 0,
       "hidden": false,
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Spring%2C_Wall_Springs_Park.jpg/1280px-Spring%2C_Wall_Springs_Park.jpg",
-      "description": "Wall Springs Park is a 210-acre (0.85 km2) park located in Palm Harbor, Florida. The park includes a historical natural spring which was used as a bathing area from the turn of the 20th century until the 1960s. The park is located in Pinellas County, on the Florida Gulf Coast."
+      "description": "Wall Springs Park is a 210-acre (0.85 km2) park located in Palm Harbor, Florida. The park includes a historical natural spring which was used as a bathing area from the turn of the 20th century until the 1960s. The park is located in Pinellas County, on the Florida Gulf Coast.",
+      "imageCredit": {
+        "author": "TlyleSheph3rd",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "url": "https://commons.wikimedia.org/wiki/File%3ASpring%2C%20Wall%20Springs%20Park.jpg"
+      }
     },
     {
       "key": "p|wall-springs-park-coastal-addition",
@@ -49024,7 +49165,13 @@
       "hiddenScore": 0,
       "hidden": false,
       "image": "https://upload.wikimedia.org/wikipedia/commons/3/3b/Weeden_Island01.jpg",
-      "description": "The Weedon Island Preserve is a 3,190-acre natural area situated along the western shore of Tampa Bay and located at 1800 Weedon Drive NE, St. Petersburg, Florida, United States."
+      "description": "The Weedon Island Preserve is a 3,190-acre natural area situated along the western shore of Tampa Bay and located at 1800 Weedon Drive NE, St. Petersburg, Florida, United States.",
+      "imageCredit": {
+        "author": "Ebyabe",
+        "license": "CC BY 2.5",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+        "url": "https://commons.wikimedia.org/wiki/File%3AWeeden%20Island01.jpg"
+      }
     },
     {
       "key": "p|weedon-island-preserve-paddlecraft-launch",
@@ -49193,7 +49340,13 @@
       "wikidata": "Q49578087",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Weeki_Wachee_Springs_in_the_1950s.jpg/1280px-Weeki_Wachee_Springs_in_the_1950s.jpg"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Weeki_Wachee_Springs_in_the_1950s.jpg/1280px-Weeki_Wachee_Springs_in_the_1950s.jpg",
+      "imageCredit": {
+        "author": "Tupelo the typo fixer",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "url": "https://commons.wikimedia.org/wiki/File%3AWeeki%20Wachee%20Springs%20in%20the%201950s.jpg"
+      }
     },
     {
       "key": "p|weeki-wachi-springs-state-park-kayak-put-in-reservations-required-one-way-only",
@@ -49369,7 +49522,14 @@
       "wikidata": "Q7983329",
       "hiddenScore": 0,
       "hidden": false,
-      "description": "Werner-Boyce Salt Springs State Park is a Florida state park located in Pasco County, Florida near Port Richey, Florida, along the Gulf of Mexico on the Atlantic coastal plain."
+      "description": "Werner-Boyce Salt Springs State Park is a Florida state park located in Pasco County, Florida near Port Richey, Florida, along the Gulf of Mexico on the Atlantic coastal plain.",
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Werner-Boyce_SP_bldg01.jpg/1280px-Werner-Boyce_SP_bldg01.jpg",
+      "imageCredit": {
+        "author": "Ebyabe",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "url": "https://commons.wikimedia.org/wiki/File%3AWerner-Boyce%20SP%20bldg01.jpg"
+      }
     },
     {
       "key": "p|werner-boyce-salt-springs-state-park-kayak-launch",

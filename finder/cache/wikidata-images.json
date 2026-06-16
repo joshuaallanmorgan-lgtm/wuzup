@@ -1,355 +1,668 @@
 {
-  "fetchedAt": "2026-06-15T17:16:29.584Z",
+  "fetchedAt": "2026-06-16T02:09:38.248Z",
   "byQid": {
     "Q34804916": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:47.868Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:17.387Z"
     },
     "Q34806076": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:48.069Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:17.580Z"
     },
     "Q34807583": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:48.288Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:17.791Z"
     },
     "Q34808080": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:48.493Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:18.001Z"
     },
     "Q4705554": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:48.697Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:18.383Z"
     },
     "Q3363999": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Hurrah_Lake_-_Alafia_River_State_Park.jpg/1280px-Hurrah_Lake_-_Alafia_River_State_Park.jpg",
       "file": "Hurrah Lake - Alafia River State Park.jpg",
-      "at": "2026-06-15T13:34:49.113Z",
-      "width": 2048
+      "fileTitle": "File:Hurrah Lake - Alafia River State Park.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AHurrah%20Lake%20-%20Alafia%20River%20State%20Park.jpg",
+      "width": 2048,
+      "source": "wikidata-p18",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+      "author": "Mwanner at en.wikipedia",
+      "at": "2026-06-16T02:09:18.805Z"
     },
     "Q34812116": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:49.323Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:19.030Z"
     },
     "Q4753086": {
-      "image": "https://upload.wikimedia.org/wikipedia/commons/3/3d/Ancloteislandlh.JPG",
-      "file": "Ancloteislandlh.JPG",
-      "at": "2026-06-15T13:34:49.620Z",
-      "width": 600
+      "image": null,
+      "file": null,
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:19.320Z"
     },
     "Q34813157": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:49.828Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:19.532Z"
     },
     "Q34814122": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:50.055Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:19.750Z"
     },
     "Q34892079": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:50.267Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:20.502Z"
     },
     "Q15196307": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Interactive_Water_Park_at_Ballast_Point_Park.JPG/1280px-Interactive_Water_Park_at_Ballast_Point_Park.JPG",
       "file": "Interactive Water Park at Ballast Point Park.JPG",
-      "at": "2026-06-15T13:34:50.549Z",
-      "width": 1600
+      "fileTitle": "File:Interactive Water Park at Ballast Point Park.JPG",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AInteractive%20Water%20Park%20at%20Ballast%20Point%20Park.JPG",
+      "width": 1600,
+      "source": "wikidata-p18",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "author": "Heditor6",
+      "at": "2026-06-16T02:09:20.798Z"
     },
     "Q34834444": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:50.757Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:21.029Z"
     },
     "Q34851734": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:50.980Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:21.243Z"
     },
     "Q34854377": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:51.207Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:21.482Z"
     },
     "Q16953285": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Boyd_Hill_Nature_Preserve.jpg/1280px-Boyd_Hill_Nature_Preserve.jpg",
       "file": "Boyd Hill Nature Preserve.jpg",
-      "at": "2026-06-15T13:34:51.542Z",
-      "width": 3387
+      "fileTitle": "File:Boyd Hill Nature Preserve.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ABoyd%20Hill%20Nature%20Preserve.jpg",
+      "width": 3387,
+      "source": "wikidata-p18",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "author": "Calmuziclover",
+      "at": "2026-06-16T02:09:21.788Z"
     },
     "Q54322440": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Bradenton_Riverwalk_Tower_Plaza.jpg/1280px-Bradenton_Riverwalk_Tower_Plaza.jpg",
       "file": "Bradenton Riverwalk Tower Plaza.jpg",
-      "at": "2026-06-15T13:34:51.849Z",
-      "width": 4048
+      "fileTitle": "File:Bradenton Riverwalk Tower Plaza.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ABradenton%20Riverwalk%20Tower%20Plaza.jpg",
+      "width": 4048,
+      "source": "wikidata-p18",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "author": "The Grid",
+      "at": "2026-06-16T02:09:22.138Z"
     },
     "Q6694496": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:52.055Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:22.366Z"
     },
     "Q34916187": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:52.274Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:22.584Z"
     },
     "Q34917157": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:52.477Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:22.778Z"
     },
     "Q34883715": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:52.713Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:22.993Z"
     },
     "Q34884150": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:52.937Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:23.203Z"
     },
     "Q34922704": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:53.166Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:23.422Z"
     },
     "Q5102256": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:53.384Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:23.663Z"
     },
     "Q34928292": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:53.600Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:24.170Z"
     },
     "Q34888728": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:53.815Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:24.402Z"
     },
     "Q34888743": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:54.010Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:24.607Z"
     },
     "Q5149398": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Colt_Creek_SP_road01.jpg/1280px-Colt_Creek_SP_road01.jpg",
       "file": "Colt Creek SP road01.jpg",
-      "at": "2026-06-15T13:34:54.374Z",
-      "width": 3264
+      "fileTitle": "File:Colt Creek SP road01.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AColt%20Creek%20SP%20road01.jpg",
+      "width": 3264,
+      "source": "wikidata-p18",
+      "license": "CC BY-SA 2.5",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5",
+      "author": "Ebyabe",
+      "at": "2026-06-16T02:09:24.887Z"
     },
     "Q5161774": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:54.610Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:25.115Z"
     },
     "Q5184858": {
-      "image": null,
-      "file": null,
-      "at": "2026-06-15T13:34:55.190Z"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Crews_Lake_Dock_from_the_Tower.JPG/1280px-Crews_Lake_Dock_from_the_Tower.JPG",
+      "file": "Crews Lake Dock from the Tower.JPG",
+      "fileTitle": "File:Crews Lake Dock from the Tower.JPG",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ACrews%20Lake%20Dock%20from%20the%20Tower.JPG",
+      "width": 4000,
+      "source": "wikidata-p373",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "author": "DanTD",
+      "at": "2026-06-16T02:09:25.577Z"
     },
     "Q49481250": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:55.384Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:25.810Z"
     },
     "Q5195767": {
-      "image": null,
-      "file": null,
-      "at": "2026-06-15T13:34:55.588Z"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Curtis_Hixon_Park_Tampa_Florida_United_States_-_panoramio_%281%29.jpg/1280px-Curtis_Hixon_Park_Tampa_Florida_United_States_-_panoramio_%281%29.jpg",
+      "file": "Curtis Hixon Park Tampa Florida United States - panoramio (1).jpg",
+      "fileTitle": "File:Curtis Hixon Park Tampa Florida United States - panoramio (1).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ACurtis%20Hixon%20Park%20Tampa%20Florida%20United%20States%20-%20panoramio%20(1).jpg",
+      "width": 2507,
+      "source": "wikidata-p373",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "author": "Michelle Maria",
+      "at": "2026-06-16T02:09:26.162Z"
     },
     "Q49481578": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:55.807Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:26.386Z"
     },
     "Q926011": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Bradenton_FL_DeSoto_Natl_Mem07.jpg/1280px-Bradenton_FL_DeSoto_Natl_Mem07.jpg",
       "file": "Bradenton FL DeSoto Natl Mem07.jpg",
-      "at": "2026-06-15T13:34:56.137Z",
-      "width": 4288
+      "fileTitle": "File:Bradenton FL DeSoto Natl Mem07.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ABradenton%20FL%20DeSoto%20Natl%20Mem07.jpg",
+      "width": 4288,
+      "source": "wikidata-p18",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "author": "Ebyabe",
+      "at": "2026-06-16T02:09:26.735Z"
     },
     "Q49484400": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:56.347Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:26.945Z"
     },
     "Q5348121": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Egmont_Key_lighthouse01.jpg/1280px-Egmont_Key_lighthouse01.jpg",
       "file": "Egmont Key lighthouse01.jpg",
-      "at": "2026-06-15T13:34:56.640Z",
-      "width": 1944
+      "fileTitle": "File:Egmont Key lighthouse01.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AEgmont%20Key%20lighthouse01.jpg",
+      "width": 1944,
+      "source": "wikidata-p18",
+      "license": "CC BY-SA 2.5",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5",
+      "author": "Dlohcierekim's sock",
+      "at": "2026-06-16T02:09:27.243Z"
     },
     "Q7734512": {
-      "image": null,
-      "file": null,
-      "at": "2026-06-15T13:34:56.893Z"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Florida_Botanical_Gardens_%E4%BD%9B%E7%BE%85%E9%87%8C%E9%81%94%E6%A4%8D%E7%89%A9%E5%9C%92_-_panoramio.jpg/1280px-Florida_Botanical_Gardens_%E4%BD%9B%E7%BE%85%E9%87%8C%E9%81%94%E6%A4%8D%E7%89%A9%E5%9C%92_-_panoramio.jpg",
+      "file": "Florida Botanical Gardens 佛羅里達植物園 - panoramio.jpg",
+      "fileTitle": "File:Florida Botanical Gardens 佛羅里達植物園 - panoramio.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AFlorida%20Botanical%20Gardens%20%E4%BD%9B%E7%BE%85%E9%87%8C%E9%81%94%E6%A4%8D%E7%89%A9%E5%9C%92%20-%20panoramio.jpg",
+      "width": 5180,
+      "source": "wikidata-p373",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "author": "lienyuan lee",
+      "at": "2026-06-16T02:09:27.593Z"
     },
     "Q5471030": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Sunset_on_North_Beach_at_Fort_De_Soto_Park.jpg/1280px-Sunset_on_North_Beach_at_Fort_De_Soto_Park.jpg",
       "file": "Sunset on North Beach at Fort De Soto Park.jpg",
-      "at": "2026-06-15T13:34:57.198Z",
-      "width": 2048
+      "fileTitle": "File:Sunset on North Beach at Fort De Soto Park.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ASunset%20on%20North%20Beach%20at%20Fort%20De%20Soto%20Park.jpg",
+      "width": 2048,
+      "source": "wikidata-p18",
+      "license": "Public domain",
+      "licenseUrl": null,
+      "author": "Christopher Hollis",
+      "at": "2026-06-16T02:09:27.934Z"
     },
     "Q966471": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Iron_Gwazi_%2811%29.jpg/1280px-Iron_Gwazi_%2811%29.jpg",
       "file": "Iron Gwazi (11).jpg",
-      "at": "2026-06-15T13:34:57.503Z",
-      "width": 4032
+      "fileTitle": "File:Iron Gwazi (11).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AIron%20Gwazi%20(11).jpg",
+      "width": 4032,
+      "source": "wikidata-p18",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "author": "Adog",
+      "at": "2026-06-16T02:09:28.454Z"
     },
     "Q49499652": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:57.715Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:28.674Z"
     },
     "Q166221": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Paddling_on_the_Hillsborough_River.jpg/1280px-Paddling_on_the_Hillsborough_River.jpg",
       "file": "Paddling on the Hillsborough River.jpg",
-      "at": "2026-06-15T13:34:58.069Z",
-      "width": 2048
+      "fileTitle": "File:Paddling on the Hillsborough River.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3APaddling%20on%20the%20Hillsborough%20River.jpg",
+      "width": 2048,
+      "source": "wikidata-p18",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+      "author": "Mwanner at en.wikipedia",
+      "at": "2026-06-16T02:09:29.124Z"
     },
     "Q1626871": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Honeymoon_Island_State_Park_%28Image_2%29.jpg/1280px-Honeymoon_Island_State_Park_%28Image_2%29.jpg",
       "file": "Honeymoon Island State Park (Image 2).jpg",
-      "at": "2026-06-15T13:34:58.386Z",
-      "width": 2048
+      "fileTitle": "File:Honeymoon Island State Park (Image 2).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AHoneymoon%20Island%20State%20Park%20(Image%202).jpg",
+      "width": 2048,
+      "source": "wikidata-p18",
+      "license": "Public domain",
+      "licenseUrl": null,
+      "author": "Christopher Hollis",
+      "at": "2026-06-16T02:09:29.575Z"
     },
     "Q6650817": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Little_Manatee_River_SP_river01.jpg/1280px-Little_Manatee_River_SP_river01.jpg",
       "file": "Little Manatee River SP river01.jpg",
-      "at": "2026-06-15T13:34:58.714Z",
-      "width": 3264
+      "fileTitle": "File:Little Manatee River SP river01.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ALittle%20Manatee%20River%20SP%20river01.jpg",
+      "width": 3264,
+      "source": "wikidata-p18",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "author": "Ebyabe",
+      "at": "2026-06-16T02:09:29.962Z"
     },
     "Q49520441": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:58.948Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:30.305Z"
     },
     "Q49321954": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:59.161Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:30.563Z"
     },
     "Q54322449": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Bradenton_FL_Manatee_Mineral_Springs_marker01.jpg/1280px-Bradenton_FL_Manatee_Mineral_Springs_marker01.jpg",
       "file": "Bradenton FL Manatee Mineral Springs marker01.jpg",
-      "at": "2026-06-15T13:34:59.500Z",
-      "width": 2448
+      "fileTitle": "File:Bradenton FL Manatee Mineral Springs marker01.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ABradenton%20FL%20Manatee%20Mineral%20Springs%20marker01.jpg",
+      "width": 2448,
+      "source": "wikidata-p18",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "author": "Ebyabe",
+      "at": "2026-06-16T02:09:30.919Z"
     },
     "Q17080683": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:59.714Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:31.143Z"
     },
     "Q49530032": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:34:59.938Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:31.385Z"
     },
     "Q41411344": {
-      "image": null,
-      "file": null,
-      "at": "2026-06-15T13:35:00.138Z"
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Nathan_Benderson_Park_-_Finish_Tower.jpg/1280px-Nathan_Benderson_Park_-_Finish_Tower.jpg",
+      "file": "Nathan Benderson Park - Finish Tower.jpg",
+      "fileTitle": "File:Nathan Benderson Park - Finish Tower.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ANathan%20Benderson%20Park%20-%20Finish%20Tower.jpg",
+      "width": 4032,
+      "source": "wikidata-p373",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "author": "Architecttype",
+      "at": "2026-06-16T02:09:32.033Z"
     },
     "Q54322415": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:35:00.378Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:32.446Z"
     },
     "Q7128121": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/CassiaFistula02_PalmaSola_Asit.jpg/1280px-CassiaFistula02_PalmaSola_Asit.jpg",
       "file": "CassiaFistula02 PalmaSola Asit.jpg",
-      "at": "2026-06-15T13:35:00.728Z",
-      "width": 2448
+      "fileTitle": "File:CassiaFistula02 PalmaSola Asit.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ACassiaFistula02%20PalmaSola%20Asit.jpg",
+      "width": 2448,
+      "source": "wikidata-p18",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "author": "Asit K. Ghosh Thaumaturgist",
+      "at": "2026-06-16T02:09:33.058Z"
     },
     "Q49541796": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:35:00.973Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:33.340Z"
     },
     "Q7184869": {
-      "image": "https://upload.wikimedia.org/wikipedia/commons/d/df/Philippe_park01.jpg",
-      "file": "Philippe park01.jpg",
-      "at": "2026-06-15T13:35:01.278Z",
-      "width": 1062
+      "image": null,
+      "file": null,
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:33.876Z"
     },
     "Q7353205": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:35:01.581Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:34.286Z"
     },
     "Q15274993": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:35:01.788Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:34.566Z"
     },
     "Q5471345": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Fort_Homer_W._Hesterly.jpg/1280px-Fort_Homer_W._Hesterly.jpg",
       "file": "Fort Homer W. Hesterly.jpg",
-      "at": "2026-06-15T13:35:02.099Z",
-      "width": 3264
+      "fileTitle": "File:Fort Homer W. Hesterly.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AFort%20Homer%20W.%20Hesterly.jpg",
+      "width": 3264,
+      "source": "wikidata-p18",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "author": "TampAGS",
+      "at": "2026-06-16T02:09:35.106Z"
     },
     "Q7640428": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/St._Petersburg_FL_Sunken_Gardens_gate01.jpg/1280px-St._Petersburg_FL_Sunken_Gardens_gate01.jpg",
       "file": "St. Petersburg FL Sunken Gardens gate01.jpg",
-      "at": "2026-06-15T13:35:02.391Z",
-      "width": 4288
+      "fileTitle": "File:St. Petersburg FL Sunken Gardens gate01.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ASt.%20Petersburg%20FL%20Sunken%20Gardens%20gate01.jpg",
+      "width": 4288,
+      "source": "wikidata-p18",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "author": "Ebyabe",
+      "at": "2026-06-16T02:09:35.685Z"
     },
     "Q61120868": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Sutton_Park_Palmetto_Florida_2019-12017.jpg/1280px-Sutton_Park_Palmetto_Florida_2019-12017.jpg",
       "file": "Sutton Park Palmetto Florida 2019-12017.jpg",
-      "at": "2026-06-15T13:35:02.680Z",
-      "width": 5098
+      "fileTitle": "File:Sutton Park Palmetto Florida 2019-12017.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ASutton%20Park%20Palmetto%20Florida%202019-12017.jpg",
+      "width": 5098,
+      "source": "wikidata-p18",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "author": "Paul R. Burley",
+      "at": "2026-06-16T02:09:36.039Z"
     },
     "Q22058836": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Vinoy_Park.jpg/1280px-Vinoy_Park.jpg",
       "file": "Vinoy Park.jpg",
-      "at": "2026-06-15T13:35:02.971Z",
-      "width": 3497
+      "fileTitle": "File:Vinoy Park.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AVinoy%20Park.jpg",
+      "width": 3497,
+      "source": "wikidata-p18",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "author": "Calmuziclover",
+      "at": "2026-06-16T02:09:36.403Z"
     },
     "Q28209774": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Spring%2C_Wall_Springs_Park.jpg/1280px-Spring%2C_Wall_Springs_Park.jpg",
       "file": "Spring, Wall Springs Park.jpg",
-      "at": "2026-06-15T13:35:03.259Z",
-      "width": 3264
+      "fileTitle": "File:Spring, Wall Springs Park.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ASpring%2C%20Wall%20Springs%20Park.jpg",
+      "width": 3264,
+      "source": "wikidata-p18",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "author": "TlyleSheph3rd",
+      "at": "2026-06-16T02:09:36.729Z"
     },
     "Q7979351": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/3/3b/Weeden_Island01.jpg",
       "file": "Weeden Island01.jpg",
-      "at": "2026-06-15T13:35:03.537Z",
-      "width": 978
+      "fileTitle": "File:Weeden Island01.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AWeeden%20Island01.jpg",
+      "width": 978,
+      "source": "wikidata-p18",
+      "license": "CC BY 2.5",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+      "author": "Ebyabe",
+      "at": "2026-06-16T02:09:37.057Z"
     },
     "Q49578087": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Weeki_Wachee_Springs_in_the_1950s.jpg/1280px-Weeki_Wachee_Springs_in_the_1950s.jpg",
       "file": "Weeki Wachee Springs in the 1950s.jpg",
-      "at": "2026-06-15T13:35:03.834Z",
-      "width": 5472
+      "fileTitle": "File:Weeki Wachee Springs in the 1950s.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AWeeki%20Wachee%20Springs%20in%20the%201950s.jpg",
+      "width": 5472,
+      "source": "wikidata-p18",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "author": "Tupelo the typo fixer",
+      "at": "2026-06-16T02:09:37.378Z"
     },
     "Q7983329": {
-      "image": "https://upload.wikimedia.org/wikipedia/commons/1/19/Werner-boyce01.jpg",
-      "file": "Werner-boyce01.jpg",
-      "at": "2026-06-15T13:35:04.139Z",
-      "width": 676
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Werner-Boyce_SP_bldg01.jpg/1280px-Werner-Boyce_SP_bldg01.jpg",
+      "file": "Werner-Boyce SP bldg01.jpg",
+      "fileTitle": "File:Werner-Boyce SP bldg01.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AWerner-Boyce%20SP%20bldg01.jpg",
+      "width": 4288,
+      "source": "wikidata-p373",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "author": "Ebyabe",
+      "at": "2026-06-16T02:09:37.867Z"
     },
     "Q139888078": {
       "image": null,
       "file": null,
-      "at": "2026-06-15T13:35:04.337Z"
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:38.127Z"
     },
     "Q2662041": {
       "image": null,
       "file": null,
+      "fileTitle": null,
       "width": null,
-      "at": "2026-06-15T17:16:29.462Z"
+      "source": null,
+      "license": null,
+      "at": "2026-06-16T02:09:35.367Z"
     }
   }
 }

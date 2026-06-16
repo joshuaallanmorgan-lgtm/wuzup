@@ -263,6 +263,23 @@ export default function PlaceDetail({ e, anchors, wx }) {
           </span>
           <h1 className="detail-title">{e.name}</h1>
         </div>
+        {/* 3.7P-2: the CC-BY/BY-SA attribution duty — a real photo of a place
+            carries its captured credit (author · license), linked to the Commons
+            file + the license deed. Shown only for real photos (art floor needs
+            no credit). The honest twin of "no image without a captured credit". */}
+        {!heroArt && e.imageCredit && (
+          <div className="hero-credit">
+            <a href={e.imageCredit.url} target="_blank" rel="noreferrer">
+              Photo: {e.imageCredit.author || 'Wikimedia Commons'}
+            </a>
+            {' · '}
+            {e.imageCredit.licenseUrl ? (
+              <a href={e.imageCredit.licenseUrl} target="_blank" rel="noreferrer">{e.imageCredit.license}</a>
+            ) : (
+              e.imageCredit.license
+            )}
+          </div>
+        )}
       </div>
 
       <div className="detail-body">
