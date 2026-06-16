@@ -45,7 +45,11 @@ const fmtShort = (ts) =>
 function eventPlanDays(e, anchors) {
   if (e._day == null) return []
   const start = Math.max(e._day, anchors.todayTs)
-  const end = e._endDay ?? e._day
+  // an OPEN-ENDED ongoing run (tagged ongoing, no real end date so _endDay === _day)
+  // is available through the planning horizon like a place; a dated/multi-day run
+  // clamps to its actual end so it can never be planned past when it runs.
+  const openEnded = e._ongoing && (e._endDay == null || e._endDay <= e._day)
+  const end = openEnded ? Infinity : (e._endDay ?? e._day)
   const d0 = new Date(start)
   const out = []
   for (let i = 0; i < 14; i++) {
@@ -552,7 +556,9 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
             ) : (
               <div className="loc-note">
                 {planDays[0]?.label}
-                {timeOf(e.start) ? ' · ' + timeOf(e.start) : ''}
+                {/* show the time only when the shown day IS the event's start day —
+                    a clamped multi-day run's last day must not wear day-1's time */}
+                {timeOf(e.start) && curDay === e._day ? ' · ' + timeOf(e.start) : ''}
               </div>
             )}
             {filled.rest ? (

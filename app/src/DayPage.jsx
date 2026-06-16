@@ -53,7 +53,7 @@ import './day.css'
 const wdLong = (ts) => new Date(ts).toLocaleDateString('en-US', { weekday: 'long' })
 
 export default function DayPage({ ts, events, anchors, wx }) {
-  const { openDetail: onSelect, closePage: onClose, openAdd } = useNav()
+  const { openDetail: onSelect, closePage: onClose, openAdd, detail } = useNav()
 
   // the day-plan map: loaded once on mount (loadDayPlans runs the one-shot
   // WB migration + the past-day archive sweep), persisted on every change —
@@ -62,6 +62,16 @@ export default function DayPage({ ts, events, anchors, wx }) {
   useEffect(() => {
     saveDayPlans(plans)
   }, [plans])
+  // 3.7P-34 review: an event detail can open OVER this (still-mounted) day screen
+  // (agenda card → detail → "Add to day"). Re-read the non-reactive localStorage
+  // store when the detail layer closes so a slot seeded from there shows without a
+  // remount (CalendarView re-derives on the same edge). Syncing an EXTERNAL store
+  // on a close edge is a legitimate effect; no loop (deps are [detail, anchors],
+  // not plans, and the read is idempotent).
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- external-store sync on layer-close edge
+    if (!detail) setPlans(loadDayPlans(anchors))
+  }, [detail, anchors])
   const entry = dayEntryFor(plans[String(ts)]) ?? emptyDay()
   const rest = entry.state === 'rest'
   // 3.7P-4b: a satisfying gold pop on the slot you just filled (Recipe A, the

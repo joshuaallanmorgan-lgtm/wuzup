@@ -214,6 +214,8 @@ export default function PlaceDetail({ e, anchors, wx }) {
   const [planning, setPlanning] = useState(false)
   const [planDay, setPlanDay] = useState(anchors.todayTs)
   const [plansVersion, setPlansVersion] = useState(0) // bump to re-read filled state after a write
+  const planSheetRef = useRef(null)
+  const planCtaRef = useRef(null)
   const days = useMemo(() => planDays(anchors), [anchors])
   const filled = useMemo(() => {
     // read the current entry for the selected day to disable taken slots
@@ -222,6 +224,10 @@ export default function PlaceDetail({ e, anchors, wx }) {
     const entry = dayEntryFor(map[String(planDay)])
     return { day: entry?.slots.day || null, night: entry?.slots.night || null, rest: entry?.state === 'rest' }
   }, [planDay, anchors, plansVersion])
+  const closePlanning = () => {
+    setPlanning(false)
+    planCtaRef.current?.focus() // WCAG 2.4.3: focus returns to the trigger
+  }
 
   const addToPlan = (part) => {
     const map = loadDayPlans(anchors)
@@ -231,7 +237,35 @@ export default function PlaceDetail({ e, anchors, wx }) {
     setPlansVersion((v) => v + 1)
     const dlabel = days.find((d) => d.ts === planDay)?.label || ''
     flash(`Added to ${dlabel} ${part === 'day' ? '☀️' : '🌙'} ✓`)
-    setPlanning(false)
+    closePlanning()
+  }
+  // 3.7P-34 review: the plan sheet is a focus-managed modal (was role=dialog only —
+  // Escape fell through to nav and closed the WHOLE page). Mirrors DetailPage's
+  // add-to-day sheet so the shared .loc-plan-* chrome behaves identically.
+  useEffect(() => {
+    if (!planning) return
+    planSheetRef.current?.focus()
+    const onKey = (ev) => {
+      if (ev.key !== 'Escape') return
+      ev.stopPropagation()
+      closePlanning()
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [planning])
+  const planTrap = (ev) => {
+    if (ev.key !== 'Tab') return
+    const f = planSheetRef.current?.querySelectorAll('button:not(:disabled)')
+    if (!f || !f.length) return
+    const first = f[0]
+    const last = f[f.length - 1]
+    if (ev.shiftKey && document.activeElement === first) {
+      ev.preventDefault()
+      last.focus()
+    } else if (!ev.shiftKey && document.activeElement === last) {
+      ev.preventDefault()
+      first.focus()
+    }
   }
 
   return (
@@ -288,7 +322,7 @@ export default function PlaceDetail({ e, anchors, wx }) {
 
       <div className="detail-body">
         {/* Make this my plan — the headline place action (the place→plan bridge) */}
-        <button className="loc-plan-cta" onClick={() => setPlanning(true)}>
+        <button className="loc-plan-cta" ref={planCtaRef} onClick={() => setPlanning(true)}>
           ＋ Make this my plan
         </button>
 
@@ -377,11 +411,11 @@ export default function PlaceDetail({ e, anchors, wx }) {
       {/* Make-this-my-plan sheet */}
       {planning && (
         <div className="loc-plan-wrap">
-          <button className="loc-scrim" onClick={() => setPlanning(false)} aria-label="Close" />
-          <div className="loc-plan-sheet" role="dialog" aria-label="Add to a day">
+          <button className="loc-scrim" onClick={closePlanning} aria-label="Close" />
+          <div className="loc-plan-sheet" role="dialog" aria-modal="true" aria-label="Add to a day" tabIndex={-1} ref={planSheetRef} onKeyDown={planTrap}>
             <div className="loc-sheet-head">
               <div className="loc-sheet-title">Add {e.name} to a day</div>
-              <button className="loc-sheet-close" onClick={() => setPlanning(false)} aria-label="Close">✕</button>
+              <button className="loc-sheet-close" onClick={closePlanning} aria-label="Close">✕</button>
             </div>
             <div className="loc-plan-days">
               {days.map((d) => (
