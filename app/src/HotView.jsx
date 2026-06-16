@@ -246,6 +246,7 @@ export default function HotView({ events, anchors, loading, wx }) {
   // its natural daypart via the shared withSlot seam; never clobbers a filled slot.
   const [toast, setToast] = useState(null)
   const toastTRef = useRef(null)
+  const [planRev, setPlanRev] = useState(0) // bump → NextDays re-reads the non-reactive day-plan store
   useEffect(() => () => clearTimeout(toastTRef.current), [])
   const flash = (m) => {
     setToast(m)
@@ -262,7 +263,10 @@ export default function HotView({ events, anchors, loading, wx }) {
       return
     }
     saveDayPlans(withSlot(map, dayTs, part, keyOf(e)))
-    flash(e._tonight ? 'Added to tonight ✓' : 'Added to your day ✓')
+    setPlanRev((v) => v + 1) // refresh the "Your next days" stack on this same screen
+    // 3.7P-23c review: the toast names the slot the write ACTUALLY filled (daypart),
+    // not _tonight (a day-span flag) — so a 2 PM today pick says "your day", not "tonight"
+    flash(part === 'night' ? 'Added to tonight ✓' : 'Added to your day ✓')
   }
 
   const scrollToList = (el) => {
@@ -320,7 +324,7 @@ export default function HotView({ events, anchors, loading, wx }) {
             the Home feed: discover happens below, but "what about MY days" is first. */}
         <section className="sec">
           <SecHead overline="Plan ahead" title="Your next days" />
-          <NextDays anchors={anchors} wx={wx} />
+          <NextDays anchors={anchors} wx={wx} rev={planRev} />
         </section>
         {/* 3.7P-10 → 3.7P-20: Guides as the INTENT FRAME under the hero, now an
             ALL-VISIBLE grid of the SHARED IntentTile (identical format to the
@@ -387,10 +391,18 @@ export default function HotView({ events, anchors, loading, wx }) {
         {bigOne && (
           <section className={'sec' + ent(1).className} style={ent(1).style}>
             {/* 3.7P-23c (§N screen 2): the featured DecisionCard — image + title +
-                venue + honest tag chips + inline [Save] [Add to tonight/day]. */}
+                venue + honest tag chips + inline [Save] [Add to tonight/day]. The
+                header names the real slot (review): "tonight" only for an evening
+                pick today, "today" for a daytime pick, else "worth planning around". */}
             <SecHead
-              overline={bigOne._tonight ? 'Handpicked for you' : 'Worth planning around'}
-              title={bigOne._tonight ? "Tonight's best bets" : 'The big one'}
+              overline="Handpicked for you"
+              title={
+                bigOne._tonight && daypartOf(bigOne) === 'night'
+                  ? "Tonight's best bet"
+                  : bigOne._tonight
+                    ? "Today's best bet"
+                    : 'Worth planning around'
+              }
             />
             <FeaturedCard e={bigOne} onSelect={onSelect} onAdd={addToPlan} />
           </section>

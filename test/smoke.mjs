@@ -1291,6 +1291,11 @@ test('3.7P-23c §N Home: featured DecisionCard with inline Save / Add actions', 
   assert.ok(/onAdd=\{addToPlan\}/.test(hot), 'HotView wires the planner add to the featured card')
   assert.ok(/saveDayPlans\(withSlot\(map, dayTs, part, keyOf\(e\)\)\)/.test(hot), 'addToPlan writes via the shared withSlot seam (never clobbers a filled slot)')
   assert.ok(!/<BigOne /.test(hot), 'the old overlay BigOne marquee is replaced by the featured DecisionCard')
+  // review: the "tonight" label/toast must track the ACTUAL daypart slot, not the
+  // day-span _tonight flag (a 2 PM today pick is "your day", never "tonight")
+  assert.ok(/daypartOf\(e\) === 'night' \? '＋ Add to tonight'/.test(cards), 'FeaturedCard add-label keys off daypartOf, not _tonight')
+  assert.ok(/part === 'night' \? 'Added to tonight/.test(hot), 'the add toast names the real slot (daypart), not _tonight')
+  assert.ok(/rev={planRev}/.test(hot), 'NextDays re-reads after an inline add (no stale plan-state on the same screen)')
 })
 
 test('3.7P-39 review: every hidden-gem reader honors NON_GEM_RE (no off-shelf "gem" claim)', () => {

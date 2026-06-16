@@ -14,7 +14,7 @@ import './nextdays.css'
 
 const weekday = (ts) => new Date(ts).toLocaleDateString('en-US', { weekday: 'long' })
 
-export default function NextDays({ anchors, wx }) {
+export default function NextDays({ anchors, wx, rev }) {
   const { openDay, page } = useNav()
   const days = useMemo(() => {
     const d0 = new Date(anchors.todayTs)
@@ -26,9 +26,10 @@ export default function NextDays({ anchors, wx }) {
   // localStorage isn't reactive; re-read on the subpage edge (page flips null↔obj)
   // so a slot planned on a DayPage shows here on return — CalendarView's pattern.
   const plans = useMemo(() => {
-    void page
+    void page // re-read on the subpage edge (CalendarView trick)
+    void rev // …and when the host bumps after an inline add (FeaturedCard)
     return loadDayPlans(anchors)
-  }, [anchors, page])
+  }, [anchors, page, rev])
 
   return (
     <div className="nextdays">

@@ -14,6 +14,7 @@ import { createContext, memo, useContext, useEffect, useRef, useState } from 're
 import { CATEGORY_EMOJI, CATEGORY_HUES, PLACETYPE_EMOJI, PLACETYPE_HUE } from './categories.js'
 import { Icon, dayLabelLoose, dayLoose, keyOf, priceLabel, startLabel, timeOf } from './lib.js'
 import { imageMode } from './imageMode.js'
+import { daypartOf } from './weekend.js'
 import { SaveHeart, useSaves } from './saves.js'
 import { dateKey } from './weather.js'
 import './cards.css'
@@ -230,7 +231,10 @@ export function FeaturedCard({ e, onSelect, onAdd }) {
   const free = e._free === true || e.isFree === true
   const meta = (e._ongoing ? ['Ongoing', e.venue] : [dayLabelLoose(e), timeOf(e.start), e.venue]).filter(Boolean).join(' · ')
   const chips = featuredChips(e)
-  const addLabel = e._tonight ? '＋ Add to tonight' : '＋ Add to day'
+  // 3.7P-23c review: the label must match the slot the add WRITES to (daypartOf,
+  // the clock-time signal) — not _tonight (a day-SPAN flag true for any daytime
+  // event today). "tonight" only for a genuinely-evening pick.
+  const addLabel = e._tonight && daypartOf(e) === 'night' ? '＋ Add to tonight' : '＋ Add to day'
   return (
     <div className="featc">
       <button className="featc-open pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
