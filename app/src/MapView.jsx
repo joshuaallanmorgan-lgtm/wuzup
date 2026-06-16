@@ -10,8 +10,9 @@
 //   J2 plugin-free clustering at zoom <= 12: events bucket into a 64px
 //      WORLD-pixel grid (map.project at the current zoom — viewport-
 //      independent, so panning never re-buckets; only zoomend rebuilds,
-//      debounced). One teal divIcon bubble per bucket — teal because clusters
-//      are NAVIGATION, never heat — sized by log2(count); tap → zoom in 2 on
+//      debounced). One cream-disc divIcon bubble per bucket (gold ring + gold-ink
+//      count — 3.7P-5 retune, was solid Sunset Gold; clusters are NAVIGATION,
+//      never heat) — sized by log2(count); tap → zoom in 2 on
 //      the bucket centroid. O(n) per rebuild: one projection + one Map insert
 //      per event, so every event lands in exactly one bucket.
 //   J3 pin tap opens the in-page PinSheet (bottom of file) instead of jumping
@@ -33,7 +34,7 @@
 //     and a Free toggle apply to WHICHEVER layer(s) are shown.
 //   · CLUSTERING handles the UNION: the bucket grid buckets the combined
 //     visible set; a bucket-of-one renders the right pin type, a multi-bucket
-//     is the teal navigation bubble (count of both kinds — it's "more here").
+//     is the cream/gold navigation bubble (count of both kinds — it's "more here").
 //   · NEVER-HIDE holds: filters reorder/scope what the MAP draws the way the
 //     list bubbles already scope a list; the note states the honest counts.
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -56,7 +57,7 @@ let L = null
 // J2 thresholds: zoom >= PIN_ZOOM → every event is its own pin; below it,
 // grid clusters. CELL is the bucket size in projected px (~a thumb's width).
 const PIN_ZOOM = 13
-const CELL = 64
+const CELL = 88 // 3.7P-5: widened from 64 → fewer, gutter'd buckets (declutter the dense metro)
 // canvas strokes can't resolve CSS variables — literal mirror of --hot
 // (index.css). Fills use the comma HSL form for maximum canvas parser safety.
 const HOT = '#ff3b5f'
@@ -245,10 +246,12 @@ export default function MapView({ events, anchors }) {
         continue
       }
       const center = [b.latSum / b.count, b.lngSum / b.count]
-      const s = Math.round(Math.min(56, 24 + 8 * Math.log2(b.count + 1))) // 2→37px … 50+→56px cap
+      // 3.7P-5: smaller + slower curve (was 24 + 8*log2, 37–56px) so a disc sits
+      // inside its 88px cell with real gutter — less saturated area per cluster.
+      const s = Math.round(Math.min(46, 18 + 6 * Math.log2(b.count + 1))) // 2→28px … big→46px cap
       const icon = L.divIcon({
         className: 'cl-ico',
-        html: `<div class="cl-bubble" role="button" aria-label="${b.count} here — tap to zoom" style="width:${s}px;height:${s}px;font-size:${Math.max(11, Math.round(s * 0.32))}px">${b.count}</div>`,
+        html: `<div class="cl-bubble" role="button" aria-label="${b.count} here — tap to zoom" style="width:${s}px;height:${s}px;font-size:${Math.max(11, Math.round(s * 0.42))}px">${b.count}</div>`,
         iconSize: [s, s], // anchor defaults to the center
       })
       const m = L.marker(center, { icon, bubblingMouseEvents: false })
