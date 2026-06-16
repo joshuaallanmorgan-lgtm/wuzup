@@ -515,6 +515,48 @@ test('W7 wiring: osm rec classes + Wikipedia-descriptions enrichment in the pipe
   assert.ok(/enrichPlacesWithDescriptions/.test(places), 'places.mjs must wire the descriptions enrichment')
 })
 
+// 3.7P-4 gamification — the Finch-kind rhythm engine (gamify.js, pure selectors).
+// Asserts the never-punishing contract: graced current, monotonic best (a gap
+// never decrements a number), rest counts, honest (only logged did/rest days),
+// zero-is-silence for a new user, and DST-safe day stepping.
+test('3.7P-4 gamify: rhythm is graced, best is monotonic, rest counts, honest', async () => {
+  const G = await import('../app/src/gamify.js')
+  const day = (m, d) => new Date(2026, m, d).getTime() // local midnight, DST-safe
+  const anchors = { todayTs: day(5, 15) } // June 15, 2026
+
+  // empty → zero-is-silence
+  assert.equal(G.streakStatus(new Set(), [], anchors), 'none', 'new user = none (render nothing)')
+  assert.equal(G.currentStreak(new Set(), [], anchors), 0)
+  assert.equal(G.bestStreak(new Set(), []), 0)
+
+  // did + REST mix ending today → rest counts in the run
+  assert.equal(G.currentStreak(new Set([day(5, 13), day(5, 14)]), [day(5, 15)], anchors), 3, 'rest day counts in the streak')
+  assert.equal(G.streakStatus(new Set([day(5, 15)]), [], anchors), 'active', 'logged today = active')
+
+  // GRACE: logged yesterday only, not today → still a live streak, status grace
+  assert.equal(G.currentStreak(new Set([day(5, 14)]), [], anchors), 1, 'grace: yesterday keeps the streak alive today')
+  assert.equal(G.streakStatus(new Set([day(5, 14)]), [], anchors), 'grace')
+
+  // DORMANT: a gap past the grace window → current 0, NEVER a shame state, best intact
+  const lapsed = new Set([day(5, 11), day(5, 12), day(5, 13)]) // a 3-run ending the 13th
+  assert.equal(G.currentStreak(lapsed, [], anchors), 0, 'past grace → current 0')
+  assert.equal(G.streakStatus(lapsed, [], anchors), 'dormant', 'a gap is dormant, never broken-flame')
+  assert.equal(G.bestStreak(lapsed, []), 3, 'best survives the gap (monotonic)')
+
+  // gap then act today → current restarts at 1, best is NEVER decremented
+  const gapThenToday = new Set([day(5, 1), day(5, 2), day(5, 3), day(5, 15)])
+  assert.equal(G.currentStreak(gapThenToday, [], anchors), 1, 'current restarts after a gap')
+  assert.equal(G.bestStreak(gapThenToday, []), 3, 'best = the old run, never decremented by the gap')
+
+  // honesty: rhythm days are ONLY did ∪ rest; restDayList takes only state===rest
+  assert.equal(G.totalRhythmDays(new Set([day(5, 1)]), [day(5, 2)]), 2, 'total = distinct logged days')
+  const rl = G.restDayList(
+    { [String(day(5, 20))]: { state: 'rest' }, [String(day(5, 21))]: { state: null, slots: { day: 'k' } } },
+    [{ dayTs: day(5, 1), state: 'rest' }, { dayTs: day(5, 2), state: null }]
+  ).sort((a, b) => a - b)
+  assert.deepEqual(rl, [day(5, 1), day(5, 20)], 'restDayList = only state===rest from plans + history (a plan/missed day is not rest)')
+})
+
 // Phase 3.6 N1 — the quiet top-nav. The lens/category split MUST partition the
 // bubble lists exactly (never-hide: every destination still reachable, just
 // presented quieter), and the views must render LensNav, not the old strip.

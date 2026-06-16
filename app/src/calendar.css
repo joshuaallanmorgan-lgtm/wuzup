@@ -18,13 +18,17 @@
    line). A few glanceable stat blocks on the gold header — DARK INK on Sunset
    Gold (var(--ink) ≈ 7.4:1; the old .cal-ledger used white, which failed AA on
    gold). ZERO IS SILENCE — the whole strip is absent until a stat is true. A calm
-   record, never a score; no streak, no counting-up juice (that's 3.7P-4). */
+   record, never a score. (3.7P-4 adds the rhythm/streak chip + its increment beat.) */
 .cal-rhythm { display: flex; flex-wrap: wrap; gap: 22px; margin: 12px 20px 0; }
 .cal-stat { display: flex; flex-direction: column; gap: 1px; }
 .cal-stat-num { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.05; color: var(--ink); }
 /* 0.82 alpha clears AA (≥4.5:1) for small text even on the lighter end of the
    gold gradient (review P2 — 0.66 dipped to ~4.0:1 over #ff8c42). */
 .cal-stat-lab { font-size: 11px; font-weight: 700; letter-spacing: 0.2px; color: rgba(26, 20, 16, 0.82); }
+/* 3.7P-4: the rhythm/streak chip — the gamification headline, a calm flame + the
+   count in ink (NOT violet — violet is reserved for the transient increment beat). */
+.cal-stat-streak .cal-stat-num { display: inline-flex; align-items: center; gap: 3px; }
+.cal-stat-flame { font-size: 16px; line-height: 1; }
 
 /* day header above the selected-day caption */
 .day-header {

@@ -28,6 +28,7 @@ import { useNav } from './nav.jsx'
 import { categoryById } from './categories.js'
 import { GemRow, SecHead, SponsoredTag } from './cards.jsx'
 import { markBeen, shelfItems, useBeenThere, useSaves } from './saves.js'
+import { restDayList, rhythmSummary } from './gamify.js'
 import { confidence, topCategories, useTaste, whenPreference } from './taste.js'
 import { useRecents } from './recents.js'
 import { DAY_IDS, SLOT_IDS, filledCount, loadHistory, visibleWeekend, weekendDays } from './weekend.js'
@@ -274,6 +275,13 @@ export default function ProfileView({ events, anchors, primer }) {
     // 3.7P-3 FB-13: shared with the Calendar this-month rhythm strip (dayplan.js)
     return computeMonthReality(loadDayHistory(), dids, monthStart, nextMonthStart)
   }, [planPageUp, monthStart, nextMonthStart, dids])
+  // 3.7P-4: the longer-arc rhythm/streak — shares gamify.js with the Calendar chip
+  // so the surfaces can't drift. Profile owns the lifetime arc (current + best);
+  // Calendar shows the live current. Finch-kind: dormant is never a shame state.
+  const rhythm = useMemo(() => {
+    void planPageUp
+    return rhythmSummary(dids, restDayList(loadDayPlans(anchors), loadDayHistory()), anchors)
+  }, [planPageUp, dids, anchors])
   // 3.76b: your ACTUAL rhythm (D-PS2) — when you've really gone out, from the
   // went-list's real event times. Gated at 3+ outings so we never claim a pattern
   // from noise. Shown beside the STATED preference; an honest mirror, never a score.
@@ -514,6 +522,21 @@ export default function ProfileView({ events, anchors, primer }) {
               {daysOut === 1
                 ? `1 day out in ${monthName} so far 🗓️`
                 : `${daysOut} days out in ${monthName} so far 🗓️`}
+            </div>
+          )}
+          {/* 3.7P-4: the longer-arc rhythm — a calm RECORD, never a "don't break
+              the chain" guilt. Dormant reads warm (best run), never a broken flame.
+              Shares gamify.js with the Calendar chip. DRAFT copy for Charles. */}
+          {(rhythm.current >= 1 || rhythm.best >= 2) && (
+            <div className="pf-rhythm">
+              {rhythm.current >= 1 ? (
+                <>
+                  <span aria-hidden>🔥</span> {rhythm.current}-day rhythm
+                  {rhythm.best > rhythm.current ? ` · best ${rhythm.best}` : ''}
+                </>
+              ) : (
+                `Best rhythm: ${rhythm.best} days`
+              )}
             </div>
           )}
           {firsts.length > 0 && (

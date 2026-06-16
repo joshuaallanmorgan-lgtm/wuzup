@@ -293,6 +293,9 @@
   font-weight: 600;
   color: var(--muted);
 }
+/* 3.7P-4: the longer-arc rhythm line — a calm record beside the ledger; the count
+   reads in ink (the flame is the only warmth), never a violet badge. */
+.pf-rhythm { margin: 0 20px 12px; font-size: 13px; font-weight: 700; color: var(--ink); }
 /* 3.76b: Plans → Reality — this month's plans vs follow-through (no score/guilt) */
 .pf-reality { margin: 2px 20px 12px; font-size: 13px; font-weight: 600; color: var(--muted); }
 .pf-reality-n { color: var(--ink); font-weight: 800; }

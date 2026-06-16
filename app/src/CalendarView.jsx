@@ -30,6 +30,7 @@ import { keyOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { markBeen, snapshotFor, useBeenThere } from './saves.js'
 import { fitsDay } from './weekend.js'
+import { restDayList, rhythmSummary } from './gamify.js'
 import {
   dayEntryFor,
   daysOutInMonth,
@@ -122,9 +123,19 @@ export default function CalendarView({ events, anchors }) {
     () => [...plannedDays].filter((ts) => ts >= anchors.todayTs).length,
     [plannedDays, anchors.todayTs]
   )
-  // up to three calm facts — what you did, your follow-through, what's coming.
+  // 3.7P-4: the Finch-kind rhythm — current streak of logged days (did OR rest;
+  // graced; never a broken flame). Shares gamify.js with Profile so the two can't
+  // drift. The streak is the gamification headline; the juice (the increment beat)
+  // lands in 3.7P-4b.
+  const rhythm = useMemo(() => {
+    void page // history is non-reactive — re-read on subpage edges (like the card/reality)
+    return rhythmSummary(dids, restDayList(dayPlans, loadDayHistory()), anchors)
+  }, [page, dids, dayPlans, anchors])
+  // up to four calm facts — your rhythm, what you did, follow-through, what's coming.
   // Each pushed ONLY when it's a real positive record. DRAFT copy (Charles).
   const rhythmStats = []
+  // the rhythm leads (a streak of 2+; a 1-day "streak" isn't one — stays silent)
+  if (rhythm.current >= 2) rhythmStats.push({ k: 'rhythm', num: String(rhythm.current), lab: 'day rhythm', streak: true })
   if (daysOut > 0) rhythmStats.push({ k: 'out', num: String(daysOut), lab: `out in ${monthName}` })
   // plans → reality as a POSITIVE COUNT, never a fraction (review P1): a "1/3" on
   // the most-glanced surface reads as a score/"you only made 1 of 3". Show only
@@ -358,8 +369,15 @@ export default function CalendarView({ events, anchors }) {
         {rhythmStats.length > 0 && (
           <div className="cal-rhythm">
             {rhythmStats.map((s) => (
-              <div className="cal-stat" key={s.k}>
-                <span className="cal-stat-num">{s.num}</span>
+              <div className={'cal-stat' + (s.streak ? ' cal-stat-streak' : '')} key={s.k}>
+                <span className="cal-stat-num">
+                  {s.streak && (
+                    <span className="cal-stat-flame" aria-hidden>
+                      🔥
+                    </span>
+                  )}
+                  {s.num}
+                </span>
                 <span className="cal-stat-lab">{s.lab}</span>
               </div>
             ))}
