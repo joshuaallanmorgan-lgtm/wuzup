@@ -29,9 +29,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { keyOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { markBeen, snapshotFor, useBeenThere } from './saves.js'
+import { fitsDay } from './weekend.js'
 import {
+  dayEntryFor,
   daysOutInMonth,
   didDays,
+  emptyDay,
   hasContent,
   loadConverted,
   loadDayHistory,
@@ -39,6 +42,8 @@ import {
   markDayConverted,
   morningAfterCandidates,
   PARTS,
+  saveDayPlans,
+  withClearedSlot,
 } from './dayplan.js'
 import { usePlaces, isPlaceKey } from './places.js'
 import './calendar.css'
@@ -49,6 +54,11 @@ export default function CalendarView({ events, anchors }) {
   const { openDay, page } = useNav()
   const [selKey, setSelKey] = useState(null) // selected day timestamp (the grid caption tracks it)
   const [monthOff, setMonthOff] = useState(0)
+  // FB-12 (3.7P-3): the day-peek popover — a quick read-mostly glance at a
+  // today-or-later day before the full DayPage. peekTs = the open day (null =
+  // closed); planTick re-reads the (non-reactive) plan store after an inline remove.
+  const [peekTs, setPeekTs] = useState(null)
+  const [planTick, setPlanTick] = useState(0)
 
   // FB-11 (3.7P-3): the per-day grid weather emoji was retired — it didn't aid a
   // decision on this surface (the grid answers "what am I doing", not "what's the
@@ -61,8 +71,9 @@ export default function CalendarView({ events, anchors }) {
   // keeps the marks honest; the read is one small JSON parse.
   const dayPlans = useMemo(() => {
     void page // re-read trigger (see above)
+    void planTick // …and after an inline remove from the peek
     return loadDayPlans(anchors)
-  }, [anchors, page])
+  }, [anchors, page, planTick])
   const plannedDays = useMemo(() => {
     const s = new Set()
     for (const [k, e] of Object.entries(dayPlans)) if (hasContent(e) && e.state !== 'rest') s.add(Number(k))
@@ -133,9 +144,15 @@ export default function CalendarView({ events, anchors }) {
   // PLACE ('p|') key, which is NEVER in `events` — fold the lazily-loaded places
   // into the resolver so a slotted place NAMES itself. The ~1.2MB places fetch
   // fires ONLY when THIS card's slots hold a place key (the DayPage gate).
-  const hasPlaceKey = card ? PARTS.some((p) => isPlaceKey(card.slots[p])) : false
-  const { places: placeList } = usePlaces(hasPlaceKey)
-  const cardByKey = useMemo(() => {
+  // the peek's day (today-or-later) — read its entry so places are folded into
+  // the resolver only when a slot actually holds a place key (same lazy gate as
+  // the card + DayPage; an event-only/empty peek pays no ~1.2MB places fetch).
+  const peekEntry = peekTs != null ? (dayEntryFor(dayPlans[String(peekTs)]) ?? emptyDay()) : null
+  const hasCardPlaceKey = card ? PARTS.some((p) => isPlaceKey(card.slots[p])) : false
+  const hasPeekPlaceKey = peekEntry ? PARTS.some((p) => isPlaceKey(peekEntry.slots[p])) : false
+  const { places: placeList } = usePlaces(hasCardPlaceKey || hasPeekPlaceKey)
+  // key → live event/place, shared by the morning-after card AND the day-peek.
+  const byKey = useMemo(() => {
     const m = new Map()
     for (const e of events) m.set(keyOf(e), e)
     if (Array.isArray(placeList)) for (const p of placeList) m.set(p.key, p)
@@ -156,7 +173,7 @@ export default function CalendarView({ events, anchors }) {
   const cardSlots = card
     ? PARTS.map((part) => ({ part, key: card.slots[part] })).filter((x) => x.key)
     : []
-  const cardPrimary = cardSlots.length ? cardByKey.get(cardSlots[0].key) : null
+  const cardPrimary = cardSlots.length ? byKey.get(cardSlots[0].key) : null
   // the day as a local-midnight ISO date — the synthesized snapshot's start, so
   // a vanished-event "went" still lands on the right did-day (didDays derives
   // from snapshot.start). Title degrades honestly when the event is gone.
@@ -175,7 +192,7 @@ export default function CalendarView({ events, anchors }) {
       // day's plan converts to journal entries; a vanished event gets a
       // synthesized start-bearing snapshot so the did-day still derives.
       for (const { key } of cardSlots) {
-        const live = cardByKey.get(key)
+        const live = byKey.get(key)
         let snap
         if (!live) {
           snap = { title: null, start: cardDateISO, category: null }
@@ -232,6 +249,29 @@ export default function CalendarView({ events, anchors }) {
         : selPast
           ? 'A quiet page.' // DRAFT — a blank past day is calm, never a gap
           : 'An open day — tap to plan something' // DRAFT (3.74: warmer than "Open — tap to plan")
+
+  // ===== FB-12: the day-peek =====
+  // resolve a slot key → live event/place (the read-only half of DayPage's
+  // resolver). A place fits any day; an event is date-gated, so a slotted event
+  // that no longer falls on this day reads as "open" (never a stale key).
+  const resolvePeekSlot = (key, dayTs) => {
+    const e = key ? byKey.get(key) : null
+    if (!e) return null
+    if (e.kind === 'place') return e
+    return fitsDay(e, dayTs) ? e : null
+  }
+  // the ONE mutating affordance of the read-mostly peek: clear a single filled
+  // slot. withClearedSlot drops it (and deletes the day if it empties), persists,
+  // and planTick re-reads so both the grid marks and the open peek reflect it.
+  const clearPeekSlot = (dayTs, part) => {
+    saveDayPlans(withClearedSlot(dayPlans, dayTs, part))
+    setPlanTick((t) => t + 1)
+  }
+  const closePeek = () => setPeekTs(null)
+  const peekRest = peekEntry?.state === 'rest'
+  const peekTitle =
+    peekTs != null ? new Date(peekTs).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : ''
+  const peekSlots = peekEntry ? PARTS.map((part) => ({ part, e: resolvePeekSlot(peekEntry.slots[part], peekTs) })) : []
 
   return (
     <div className="cal-wrap">
@@ -349,10 +389,11 @@ export default function CalendarView({ events, anchors }) {
                 }
                 onClick={() => {
                   setSelKey(ts) // the caption tracks the tap…
-                  // …and today-or-later cells open the day screen (the bridge).
-                  // Past cells stay browse-only: a personal past day is the
-                  // journal's record, not a planning surface.
-                  if (ts >= anchors.todayTs) openDay(ts)
+                  // …and today-or-later cells open the day-PEEK (FB-12: a quick
+                  // glance at the day's shape, with "Open full day →" to go
+                  // deeper). Past cells stay browse-only: a personal past day is
+                  // the journal's record, not a planning surface.
+                  if (ts >= anchors.todayTs) setPeekTs(ts)
                 }}
               >
                 <span className="mnum">{new Date(ts).getDate()}</span>
@@ -388,6 +429,66 @@ export default function CalendarView({ events, anchors }) {
           )}
         </div>
       </div>
+
+      {/* FB-12: the day-peek — a quick read-mostly glance at a today-or-later
+          day (slots at a glance + inline remove + "Open full day →"). The picker
+          / add flow lives on the full DayPage; the peek never duplicates it. */}
+      {peekTs != null && peekEntry && (
+        <div className="cal-peek-wrap">
+          <button className="cal-peek-scrim" aria-label="Close" onClick={closePeek} />
+          <div
+            className="cal-peek"
+            role="dialog"
+            aria-modal="true"
+            aria-label={peekTitle}
+            onKeyDown={(ev) => {
+              if (ev.key === 'Escape') closePeek()
+            }}
+          >
+            <div className="cal-peek-head">
+              <div className="cal-peek-title">{peekTitle}</div>
+              <button className="cal-peek-close pressable" onClick={closePeek} aria-label="Close">
+                ✕
+              </button>
+            </div>
+            {peekRest ? (
+              <div className="cal-peek-rest">🌙 A quiet day{/* DRAFT */}</div>
+            ) : (
+              <div className="cal-peek-slots">
+                {peekSlots.map(({ part, e }) => (
+                  <div className={'cal-peek-slot' + (e ? ' filled' : '')} key={part}>
+                    <span className="cal-peek-when">{part === 'day' ? '☀️ Day' : '🌙 Night'}</span>
+                    {e ? (
+                      <>
+                        <span className="cal-peek-what">{e.title || e.name}</span>
+                        <button
+                          className="cal-peek-x pressable"
+                          onClick={() => clearPeekSlot(peekTs, part)}
+                          aria-label={`Clear ${e.title || e.name} from ${part === 'day' ? 'day' : 'night'}`}
+                        >
+                          ✕
+                        </button>
+                      </>
+                    ) : (
+                      <span className="cal-peek-open">Open</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            <button
+              className="cal-peek-full pressable"
+              onClick={() => {
+                const ts = peekTs
+                closePeek()
+                openDay(ts)
+              }}
+            >
+              Open full day <span aria-hidden>→</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

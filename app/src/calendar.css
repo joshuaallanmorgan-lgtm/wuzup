@@ -280,3 +280,124 @@
   .cal-sel-line:active,
   .mcell:active .mnum { transform: none; }
 }
+
+/* ===== FB-12 (3.7P-3): the day-peek popover — a quick glance at a today-or-later
+   day before the full DayPage. A bottom sheet in the app's sheet language
+   (var(--card) + var(--shadow-card)), gated on ts >= todayTs in CalendarView. */
+.cal-peek-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 1600; /* above the tab content (1100/1500), below detail (2000)/primer (1900) */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.cal-peek-scrim {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(26, 20, 16, 0.32);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  cursor: pointer;
+  animation: peekScrim var(--dur-fast) var(--ease-out);
+}
+@keyframes peekScrim {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.cal-peek {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  background: var(--card);
+  border-radius: 22px 22px 0 0;
+  box-shadow: var(--shadow-card);
+  padding: 14px 18px calc(18px + env(safe-area-inset-bottom));
+  animation: peekUp var(--dur-page) var(--ease-emphasis);
+}
+@keyframes peekUp {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+.cal-peek-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.cal-peek-title { font-size: 16px; font-weight: 800; letter-spacing: -0.2px; color: var(--ink); }
+.cal-peek-close {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+.cal-peek-slots { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.cal-peek-slot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--card);
+}
+.cal-peek-slot.filled { background: var(--bg); }
+.cal-peek-when { flex: 0 0 auto; font-size: 12px; font-weight: 800; letter-spacing: 0.2px; color: var(--muted); }
+.cal-peek-what {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cal-peek-open { flex: 1; font-size: 13px; font-weight: 600; color: var(--muted); }
+.cal-peek-x {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: color var(--dur-fast);
+}
+.cal-peek-x:hover { color: var(--hot); }
+.cal-peek-rest {
+  margin-top: 14px;
+  padding: 18px 14px;
+  border-radius: 14px;
+  background: var(--bg);
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.cal-peek-full {
+  width: 100%;
+  margin-top: 14px;
+  height: 48px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: var(--ink); /* dark ink on Sunset Gold — white fails AA */
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(var(--accent-rgb), 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transition: transform var(--dur-micro);
+}
+.cal-peek-full:active { transform: scale(0.98); }
+@media (prefers-reduced-motion: reduce) {
+  .cal-peek-scrim,
+  .cal-peek { animation: none; }
+  .cal-peek-full:active { transform: none; }
+}
