@@ -34,7 +34,20 @@ export default function GuidePage({ guide, events, anchors }) {
     if (guide?.kind === 'watch') return resolveWatchGuide(guide, upcoming)
     return resolveGuide(guide, { events: upcoming, places: Array.isArray(places) ? places : [], anchors })
   }, [guide, upcoming, places, anchors])
-  const sections = useMemo(() => [{ label: null, items }], [items])
+  // FB-03 (3.7P-7): a MIXED guide LABELS each item's domain — split into "Events"
+  // + "Spots" sections (RowFeed renders section labels). Single-domain guides stay
+  // one unlabeled list. Each section still shows ALL its matches (never-hide).
+  const sections = useMemo(() => {
+    if (guide?.domain === 'mixed') {
+      const evs = items.filter((it) => it.kind !== 'place')
+      const sps = items.filter((it) => it.kind === 'place')
+      return [
+        evs.length ? { label: 'Events', items: evs } : null,
+        sps.length ? { label: 'Spots', items: sps } : null,
+      ].filter(Boolean)
+    }
+    return [{ label: null, items }]
+  }, [items, guide])
 
   // "Plan a day around this": seed the top always-there PLACE into the upcoming
   // weekend's day slot, then open it. If the guide has no place (event-only),

@@ -8,6 +8,7 @@
       "hue": 145,
       "title": "Where to watch the World Cup",
       "pov": "Catch the 2026 matches around the bay.",
+      "domain": "events",
       "window": { "start": "2026-06-11", "end": "2026-07-19" },
       "keywords": ["world cup", "fifa", "world-cup"],
       "sources": ["Matched to live listings by keyword"]

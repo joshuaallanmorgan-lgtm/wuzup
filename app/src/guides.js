@@ -20,7 +20,12 @@ const DATE_CATS = new Set(['food', 'music', 'theatre', 'arts', 'nightlife'])
 // outdoor placeTypes that read as "get outside"
 const OUTDOOR_PLACE = new Set(['park', 'trail', 'preserve', 'garden', 'beach', 'viewpoint', 'pier'])
 
-// Each guide: { id, emoji, hue, title, pov, plannable, needsPlaces, select(ctx) }.
+// Each guide: { id, emoji, hue, title, pov, domain, plannable, needsPlaces, select(ctx) }.
+// 3.7P-7 (FB-03): `domain` keeps a guide on the right side of the two-store
+// boundary — 'events' (resolves from the events store, shows on the Events page),
+// 'spots' (resolves from places, shows on Spots), or 'mixed' (both — shows on
+// BOTH pages and GuidePage labels each item's domain). This fixes the leak where a
+// spots guide (beach-day) surfaced on the Events page.
 // ctx = { events, places, anchors } (events should be the UPCOMING list; places
 // is [] until the lazy store loads). select() returns a flat array of normalized
 // items (events and/or places) — RowFeed renders either kind unchanged.
@@ -31,6 +36,7 @@ export const GUIDES = [
     hue: 200,
     title: 'Beach day',
     pov: 'Sand, sun, and salt water — pick your spot.',
+    domain: 'spots',
     plannable: true,
     needsPlaces: true,
     select: ({ places }) => (places || []).filter((p) => p.placeType === 'beach'),
@@ -41,6 +47,7 @@ export const GUIDES = [
     hue: 140,
     title: 'Free outdoor reset',
     pov: 'Fresh air, zero dollars.',
+    domain: 'mixed',
     plannable: true,
     needsPlaces: true,
     select: ({ events, places }) => [
@@ -54,6 +61,7 @@ export const GUIDES = [
     hue: 215,
     title: 'Rainy-day backup',
     pov: 'Somewhere good when the sky opens up.',
+    domain: 'events',
     plannable: false,
     needsPlaces: false,
     select: ({ events }) => (events || []).filter((e) => INDOOR.has(e.category)),
@@ -64,6 +72,7 @@ export const GUIDES = [
     hue: 330,
     title: 'Date night',
     pov: 'An easy night out, together.',
+    domain: 'events',
     plannable: false,
     needsPlaces: false,
     select: ({ events }) =>

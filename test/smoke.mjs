@@ -457,6 +457,43 @@ test('3.75: guide selectors are pure, honest, and resolve to real matches', asyn
   assert.deepEqual(resolveGuide(guideById['rainy-day'], { events: [], places: [], anchors: {} }), [], 'empty ctx → empty guide')
 })
 
+// 3.7P-7 (FB-03): each guide declares a `domain` and HONORS it — an events-domain
+// guide never resolves a place (and vice-versa), so a spots guide can't leak onto
+// the Events page. A 'mixed' guide genuinely blends BOTH (which is why GuidePage
+// must label each item's domain). Data-independent: synthetic events + places.
+test('3.7P-7: guides honor their declared domain (events↔spots separation)', async () => {
+  const { GUIDES, resolveGuide } = await import('../app/src/guides.js')
+  const DOMAINS = new Set(['events', 'spots', 'mixed'])
+  for (const g of GUIDES) {
+    assert.ok(DOMAINS.has(g.domain), `guide ${g.id} has invalid domain ${g.domain}`)
+  }
+  const ctx = {
+    anchors: {},
+    events: [
+      { title: 'Indoor Show', category: 'music', key: 'e:1' },
+      { title: 'Outdoor Free', category: 'outdoors', _free: true, key: 'e:2' },
+    ],
+    places: [
+      { kind: 'place', name: 'Test Beach', placeType: 'beach', key: 'pl:1' },
+      { kind: 'place', name: 'Free Park', placeType: 'park', isFree: true, key: 'pl:2' },
+    ],
+  }
+  for (const g of GUIDES) {
+    const got = resolveGuide(g, ctx)
+    const places = got.filter((it) => it.kind === 'place')
+    const evs = got.filter((it) => it.kind !== 'place')
+    if (g.domain === 'events') {
+      assert.equal(places.length, 0, `events-domain guide ${g.id} leaked ${places.length} place(s)`)
+    } else if (g.domain === 'spots') {
+      assert.equal(evs.length, 0, `spots-domain guide ${g.id} leaked ${evs.length} event(s)`)
+    }
+  }
+  // a 'mixed' guide really blends both kinds (free-outdoor): proves the label need
+  const mixed = resolveGuide(GUIDES.find((g) => g.domain === 'mixed'), ctx)
+  assert.ok(mixed.some((it) => it.kind === 'place') && mixed.some((it) => it.kind !== 'place'),
+    'a mixed guide must resolve BOTH an event and a place')
+})
+
 // 3.75b — Watch Guides (the timely layer): guides.json is valid, the World Cup
 // guide resolves to REAL keyword-matched events (no fabricated picks), and the
 // window gate is honest (active in-window, inactive outside).

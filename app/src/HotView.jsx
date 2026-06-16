@@ -364,7 +364,9 @@ export default function HotView({ events, anchors, loading, whenPref }) {
             {activeWatch.map((g) => (
               <GuideCard key={g.id} guide={g} onOpen={openGuide} />
             ))}
-            {GUIDES.map((g) => (
+            {/* FB-03 (3.7P-7): the Events page shows EVENTS + MIXED guides only — a
+                pure-spots guide (beach-day) no longer leaks here; it lives on Spots. */}
+            {GUIDES.filter((g) => g.domain !== 'spots').map((g) => (
               <GuideCard key={g.id} guide={g} onOpen={openGuide} />
             ))}
           </div>

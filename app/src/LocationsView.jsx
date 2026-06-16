@@ -13,7 +13,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNav } from './nav.jsx'
 import { CITY } from './lib.js'
-import { SecHead, SpotCard, EndCap, RowFeed } from './cards.jsx'
+import { SecHead, SpotCard, EndCap, GuideCard, RowFeed } from './cards.jsx'
+import { GUIDES } from './guides.js'
 import { tasteNudge, useTaste } from './taste.js'
 import { usePlaces, PLACE_BUBBLES, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES, classics, nearest } from './places.js'
 import LensNav from './LensNav.jsx'
@@ -31,7 +32,10 @@ function placeOrder(list, taste) {
 }
 
 export default function LocationsView({ coords, requestCoords }) {
-  const { openDetail: onSelect, openPlaceBubble } = useNav()
+  const { openDetail: onSelect, openPlaceBubble, openGuide } = useNav()
+  // FB-03 (3.7P-7): the Spots page shows SPOTS + MIXED guides (Beach day, Free
+  // outdoor reset) — the place-domain guides, which used to live only on Events.
+  const spotGuides = GUIDES.filter((g) => g.domain === 'spots' || g.domain === 'mixed')
   const { places, status } = usePlaces()
   const taste = useTaste()
 
@@ -141,6 +145,19 @@ export default function LocationsView({ coords, requestCoords }) {
               <button className="loc-locate-btn" onClick={() => requestCoords && requestCoords()}>
                 📍 Use my location
               </button>
+            </div>
+          </section>
+        )}
+
+        {/* FB-03 (3.7P-7): Guides on Spots — the spots + mixed intention guides
+            (Beach day, Free outdoor reset), each a POV + a "plan a day" action. */}
+        {spotGuides.length > 0 && (
+          <section className="sec">
+            <SecHead overline="Plans by mood" title="Guides" sub="Collections for getting out there" />
+            <div className="carousel">
+              {spotGuides.map((g) => (
+                <GuideCard key={g.id} guide={g} onOpen={openGuide} />
+              ))}
             </div>
           </section>
         )}
