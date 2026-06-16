@@ -1186,6 +1186,20 @@ test('3.7P-35 normalizeTitle: SHOUTING → Title Case, parens/venue cleanup, mix
   assert.equal(nt(undefined), undefined, 'non-string passes through')
 })
 
+// 3.7P-36 — imageMode quality gate (Decision Layer Phase A). The synchronous
+// verdict that lets cards avoid leading with a big green placeholder: a photo
+// renders, a photo-less PLACE gets an icon card, a photo-less EVENT goes text-led.
+test('3.7P-36 imageMode: photo / icon / text gate (no green placeholder as primary UI)', async () => {
+  const { imageMode: im } = await import('../app/src/imageMode.js')
+  assert.equal(im({ image: 'https://x/p.jpg' }), 'photo', 'a usable image URL → photo')
+  assert.equal(im({ kind: 'place', image: 'https://x/p.jpg' }), 'photo', 'a place WITH a photo still → photo')
+  assert.equal(im({ kind: 'place' }), 'icon', 'a place with no photo → icon card (never a big hue block)')
+  assert.equal(im({ kind: 'place', image: '' }), 'icon', 'an empty image string is not a photo')
+  assert.equal(im({}), 'text', 'an event with no photo → text-led')
+  assert.equal(im({ image: null }), 'text', 'a null image → text-led')
+  assert.equal(im(undefined), 'text', 'no event object → text-led (defensive)')
+})
+
 // 3.7P-35 review (integration): cleaning the display title must NOT shift an
 // event's identity. keyOf for a url-less event keys off the STASHED original, so
 // a save/recents/day-plan key written before title-norm still resolves.

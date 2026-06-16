@@ -34,6 +34,9 @@ export const WxContext = createContext(null)
 // re-exported here as shims so MapView/DetailPage/etc. keep importing from
 // cards.jsx unchanged — values verified identical to the old literals.
 export { CATEGORY_EMOJI, CATEGORY_HUES } from './categories.js'
+// 3.7P-36: re-export the imageMode gate so card consumers (DecisionCard/P42,
+// Spots rows/P24) import it from the cards module alongside the components.
+export { imageMode } from './imageMode.js'
 export const hueFor = (e) => {
   // 3.73a: places are placeType-keyed (beach/trail/pier/dog-park each distinct)
   // — kills the green-on-green wall; everything else stays category-keyed.
@@ -87,6 +90,10 @@ export function SponsoredTag({ e }) {
 export function CardImg({ e, className = '', children }) {
   const [ok, setOk] = useState(false)
   const [failed, setFailed] = useState(false)
+  // 3.7P-36: runtime quality verdict on the loaded pixels — a tall flyer is
+  // contained on a blurred backdrop (never a botched crop), a sub-120px
+  // thumbnail degrades to the art floor (a blown-up icon is "bad/missing").
+  const [poster, setPoster] = useState(false)
   const emoji = artEmoji(e)
   // artwork is the TIME, not the status — strip startLabel's "Started " prefix here only
   const fall = startLabel(e).replace(/^Started /, '') || '★'
@@ -94,22 +101,38 @@ export function CardImg({ e, className = '', children }) {
   // FLOOR (the designed hue + emoji), never the browser's broken-image glyph and
   // never a flat dark box. onError flips to art; a real photo never regresses.
   const showArt = !e.image || failed
+  const onLoad = (ev) => {
+    const img = ev.currentTarget
+    const w = img.naturalWidth
+    const h = img.naturalHeight
+    if (w && w < 120) {
+      setFailed(true) // too low-res to read as a photo → fall to the designed art floor
+      return
+    }
+    if (w && h && h / w >= 1.4) setPoster(true) // portrait flyer → contain, don't crop
+    setOk(true)
+  }
   return (
     <span
-      className={'imgbox ' + className + (showArt ? ' imgbox-art' : '')}
+      className={'imgbox ' + className + (showArt ? ' imgbox-art' : '') + (!showArt && poster ? ' imgbox-poster' : '')}
       data-vt
       style={showArt ? { '--ch': hueFor(e) } : undefined}
     >
       {!showArt ? (
-        <img
-          className={'imgbox-img' + (ok ? ' on' : '')}
-          src={e.image}
-          alt=""
-          loading="lazy"
-          draggable={false}
-          onLoad={() => setOk(true)}
-          onError={() => setFailed(true)}
-        />
+        <>
+          {poster && (
+            <span className="imgbox-blur" aria-hidden style={{ backgroundImage: 'url("' + e.image + '")' }} />
+          )}
+          <img
+            className={'imgbox-img' + (ok ? ' on' : '') + (poster ? ' is-poster' : '')}
+            src={e.image}
+            alt=""
+            loading="lazy"
+            draggable={false}
+            onLoad={onLoad}
+            onError={() => setFailed(true)}
+          />
+        </>
       ) : (
         <>
           <span className="imgbox-mark" aria-hidden>
