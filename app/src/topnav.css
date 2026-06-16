@@ -11,14 +11,14 @@
 }
 .lens-row {
   display: flex;
-  flex-wrap: wrap; /* wraps gracefully — never clips (the whole point) */
-  gap: 8px;
+  flex-wrap: wrap; /* still wraps gracefully if a longer set ever needs it */
+  gap: 6px; /* 3.7P-19: tighter so the Events lenses + 🔎 fit one row */
 }
 .lens-pill {
   display: inline-flex;
   align-items: center;
   min-height: 44px; /* comfortable tap target (a11y) */
-  padding: 0 15px;
+  padding: 0 12px; /* 3.7P-19: trimmed from 15px to fit the row on one line */
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--card);
@@ -30,17 +30,18 @@
   transition: background var(--dur-fast), border-color var(--dur-fast), transform var(--dur-micro);
 }
 .lens-pill:hover { border-color: rgba(var(--accent-rgb), 0.4); }
-/* FB-07 (3.7P-6): the search pill — a peer of the lenses (≥44px via .lens-pill)
-   but subtly accent-tinted so it reads as the search entry point, not a filter. */
-/* a faint accent FILL (not just a border) so it reads as the search ENTRY, not an
-   empty filter chip (review P2); contrast + 44px target unchanged. */
+/* 3.7P-19: the search pill is now ICON-ONLY (no "Search" text), sitting to the
+   RIGHT of the lenses so the whole lens row fits one line. A fixed 44px circle,
+   accent-tinted so it reads as the search ENTRY (not an empty filter chip). */
 .lens-search {
+  width: 44px;
+  padding: 0;
+  justify-content: center;
   background: rgba(var(--accent-rgb), 0.1);
   border-color: rgba(var(--accent-rgb), 0.5);
   color: var(--accent-ink);
-  font-weight: 700;
+  font-size: 16px;
 }
-.lens-search > span { margin-right: 5px; }
 /* the full-width menu bar — calm, but its LABEL stays --ink so the one door to
    the whole taxonomy reads as tappable, not skimmed past (N1 review). */
 .lens-more {

@@ -86,18 +86,18 @@ export default function LensNav({ lenses = [], categories = [], menuLabel = 'All
       <nav className="lensbar" aria-label={navLabel}>
         {(lenses.length > 0 || onSearch) && (
           <div className="lens-row">
-            {/* FB-07 (3.7P-6): search moved out of the hero corner to here, beside
-                the lenses (incl. "Near Me") — a peer pill, ≥44px, leads the row. */}
-            {onSearch && (
-              <button className="lens-pill lens-search pressable" onClick={onSearch} aria-label="Search events">
-                <span aria-hidden>🔎</span> Search
-              </button>
-            )}
             {lenses.map((b) => (
               <button key={b.id} className="lens-pill pressable" onClick={() => onOpen(b)}>
                 {b.label}
               </button>
             ))}
+            {/* FB-07 → 3.7P-19: search is an ICON-ONLY pill to the RIGHT of the
+                lenses (incl. "Near me"), so the whole lens row fits one line. */}
+            {onSearch && (
+              <button className="lens-pill lens-search pressable" onClick={onSearch} aria-label="Search events">
+                <span aria-hidden>🔎</span>
+              </button>
+            )}
           </div>
         )}
         <button
