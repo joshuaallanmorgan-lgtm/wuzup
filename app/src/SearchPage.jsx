@@ -189,6 +189,7 @@ export default function SearchPage({ events, anchors, coords }) {
               sections={[...eventSection, ...placeSection]}
               showDist={!!coords}
               stagger
+              compact
               scrollRootRef={pgRef}
               onSelect={select}
             />

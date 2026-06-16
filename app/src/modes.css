@@ -138,6 +138,17 @@
   background: rgba(15, 168, 109, 0.14);
   color: var(--free);
 }
+/* paid-event price marker — neutral (Free is green); flex:0 so the title ellipsizes first */
+.crow-price {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #f1ece5;
+  color: #5c5349;
+}
 .crow-hot { flex: 0 0 auto; font-size: 12px; font-weight: 800; color: var(--hot); }
 .crow-gem { flex: 0 0 auto; font-size: 13px; }
 .crow-meta {
@@ -149,7 +160,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.crow-meta.meta-started { opacity: 0.78; }
 /* high-contrast amenity chips (places) — one scannable line, capped at 3 by spotChips */
 .crow-chips { display: flex; gap: 6px; margin-top: 5px; overflow: hidden; }
 .crow-chip {

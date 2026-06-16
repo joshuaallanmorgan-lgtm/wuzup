@@ -1212,8 +1212,8 @@ test('3.7P-42 CompactRow: kind-aware dense rows wired into the drill-in lists', 
   assert.ok(/isPlace \? spotChips\(e\)/.test(cards), 'places lead with activity/amenity chips')
   // RowFeed switches Row→CompactRow on the compact flag; Home stays big
   assert.ok(/const RowComp = compact \? CompactRow : Row/.test(cards), 'RowFeed picks CompactRow when compact')
-  // the three drill-in lists opt in; HotView (Home discovery) must NOT
-  for (const f of ['GuidePage.jsx', 'BubblePage.jsx', 'PlaceBubblePage.jsx']) {
+  // the drill-in / compare lists opt in; HotView (Home discovery) must NOT
+  for (const f of ['GuidePage.jsx', 'BubblePage.jsx', 'PlaceBubblePage.jsx', 'SearchPage.jsx']) {
     const src = readFileSync(path.join(ROOT, 'app', 'src', f), 'utf8')
     assert.ok(/<RowFeed[^>]*\scompact/s.test(src) || /compact\b/.test(src), `${f} renders RowFeed in compact mode`)
   }

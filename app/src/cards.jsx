@@ -424,9 +424,11 @@ export const CompactRow = memo(function CompactRow({ e, dist, style, onSelect })
   const isPlace = e.kind === 'place'
   const mode = imageMode(e) // 'photo' → 48px thumb; 'icon'/'text' → text-led, no box
   const open = (ev) => onSelect(e, ev.currentTarget)
-  const d = dist ?? e._dist
-  const mi = d != null ? d.toFixed(1) + ' mi' : null
+  // same dist contract as Row (RowFeed's dist prop only; no silent e._dist fallback)
+  const mi = dist != null ? dist.toFixed(1) + ' mi' : null
   const free = e._free === true || e.isFree === true
+  // a PAID event must still show its cost on the compare surface (Row parity)
+  const priced = !isPlace && !free ? priceLabel(e) : null
   const hot = !isPlace && typeof e.buzz === 'number' && e.buzz >= 2
   // weather honesty hint (outdoor events on a rainy day) — the lightweight "fit" cue
   const wxDay = !isPlace && e.category === 'outdoors' && e._day != null && wx ? wx[dateKey(e._day)] : null
@@ -450,12 +452,13 @@ export const CompactRow = memo(function CompactRow({ e, dist, style, onSelect })
       <div className="crow-main">
         <div className="crow-head">
           <span className="crow-title">{e.title}</span>
-          {/* events wear an inline Free tag; places get Free as their first amenity chip */}
+          {/* events wear an inline Free tag or price; places get Free as their first amenity chip */}
           {!isPlace && free && <span className="crow-free">Free</span>}
+          {priced && <span className="crow-price">{priced}</span>}
           {hot && <span className="crow-hot" aria-hidden>🔥{e.buzz >= 3 ? e.buzz : ''}</span>}
           {isPlace && e.hidden && <span className="crow-gem" aria-label="Hidden gem">💎</span>}
         </div>
-        <div className={'crow-meta' + (meta.startsWith('Started') ? ' meta-started' : '')}>{meta || 'Tap for details'}</div>
+        <div className="crow-meta">{meta || 'Tap for details'}</div>
         {isPlace && chips && chips.length > 0 && (
           <div className="crow-chips">
             {chips.map((c, i) => {
