@@ -148,6 +148,7 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
             sections={sections}
             showDist={near && !!coords}
             stagger
+            compact
             scrollRootRef={pgRef}
             onSelect={onSelect}
           />

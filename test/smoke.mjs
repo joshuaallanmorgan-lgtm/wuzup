@@ -1200,6 +1200,30 @@ test('3.7P-36 imageMode: photo / icon / text gate (no green placeholder as prima
   assert.equal(im(undefined), 'text', 'no event object → text-led (defensive)')
 })
 
+// 3.7P-42 — the DecisionCard spine. A shared, kind-aware CompactRow renders the
+// dense COMPARE/DECIDE drill-in lists (guides/bubbles), where Home keeps big cards.
+test('3.7P-42 CompactRow: kind-aware dense rows wired into the drill-in lists', () => {
+  const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
+  assert.ok(/export const CompactRow = memo\(/.test(cards), 'cards.jsx exports a memo CompactRow (the CompactListRow)')
+  // kind-aware per the Decision-Layer thesis: events time-first, places activity-first
+  assert.ok(/const isPlace = e\.kind === 'place'/.test(cards), 'CompactRow branches on place vs event')
+  assert.ok(/imageMode\(e\)/.test(cards), 'CompactRow consults the imageMode gate for its thumb')
+  assert.ok(/mode === 'photo' && <CardImg/.test(cards), 'a thumb renders ONLY for a real photo (no green placeholder)')
+  assert.ok(/isPlace \? spotChips\(e\)/.test(cards), 'places lead with activity/amenity chips')
+  // RowFeed switches Row→CompactRow on the compact flag; Home stays big
+  assert.ok(/const RowComp = compact \? CompactRow : Row/.test(cards), 'RowFeed picks CompactRow when compact')
+  // the three drill-in lists opt in; HotView (Home discovery) must NOT
+  for (const f of ['GuidePage.jsx', 'BubblePage.jsx', 'PlaceBubblePage.jsx']) {
+    const src = readFileSync(path.join(ROOT, 'app', 'src', f), 'utf8')
+    assert.ok(/<RowFeed[^>]*\scompact/s.test(src) || /compact\b/.test(src), `${f} renders RowFeed in compact mode`)
+  }
+  const hot = readFileSync(path.join(ROOT, 'app', 'src', 'HotView.jsx'), 'utf8')
+  assert.ok(!/<RowFeed[^>]*\scompact/s.test(hot), 'Home discovery (HotView) keeps the big editorial Row (discover = visual)')
+  // the compact styles exist
+  const modes = readFileSync(path.join(ROOT, 'app', 'src', 'modes.css'), 'utf8')
+  assert.ok(/\.crow\b/.test(modes) && /\.crow-thumb/.test(modes), 'modes.css carries the .crow compact-row styles')
+})
+
 // 3.7P-35 review (integration): cleaning the display title must NOT shift an
 // event's identity. keyOf for a url-less event keys off the STASHED original, so
 // a save/recents/day-plan key written before title-norm still resolves.

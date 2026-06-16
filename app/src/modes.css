@@ -89,3 +89,87 @@
 .feed--editorial .feed-date { margin: 8px 20px 0; padding: 18px 0 12px; border-top: 1px solid var(--line); }
 .feed--editorial .feed-date:first-child { margin-top: 0; padding-top: 14px; border-top: none; }
 
+/* ============================================================
+   3.7P-42 COMPACT — the CompactRow (DecisionCard's compare/decide form).
+   Dense, text-forward, ~58px tall so 8+ fit per screen: title leads, one muted
+   meta line, optional amenity chips (places) / series stamp (events), and a small
+   48×48 photo thumb on the RIGHT only when a real image exists (no green
+   placeholder — the title carries a photo-less row). Used by guide/bubble/see-all
+   drill-ins (RowFeed compact); Home discovery keeps the big editorial Row.
+   ============================================================ */
+.crow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% - 32px);
+  margin: 0 16px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.crow-main { flex: 1; min-width: 0; }
+.crow-head { display: flex; align-items: baseline; gap: 7px; }
+.crow-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* inline status markers in the title row (flex:0 so the title ellipsizes first) */
+.crow-free {
+  flex: 0 0 auto;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(15, 168, 109, 0.14);
+  color: var(--free);
+}
+.crow-hot { flex: 0 0 auto; font-size: 12px; font-weight: 800; color: var(--hot); }
+.crow-gem { flex: 0 0 auto; font-size: 13px; }
+.crow-meta {
+  margin-top: 2px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.crow-meta.meta-started { opacity: 0.78; }
+/* high-contrast amenity chips (places) — one scannable line, capped at 3 by spotChips */
+.crow-chips { display: flex; gap: 6px; margin-top: 5px; overflow: hidden; }
+.crow-chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+.crow-chip-ic { width: 12px; height: 12px; flex: 0 0 12px; color: var(--accent-ink); }
+.crow-series { margin-top: 4px; font-size: 12px; font-weight: 700; color: var(--accent-ink); letter-spacing: 0.01em; }
+.crow .sp-label { display: block; margin-top: 3px; }
+.crow-thumb { flex: 0 0 48px; width: 48px; height: 48px; border-radius: 10px; }
+/* the staggered rise also covers compact rows when a page swaps its list in */
+.feed-stagger .crow { animation: rowIn var(--dur-fast) var(--ease-out) both; }
+

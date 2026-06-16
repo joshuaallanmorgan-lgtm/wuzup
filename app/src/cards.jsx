@@ -13,6 +13,7 @@
 import { createContext, memo, useContext, useEffect, useRef, useState } from 'react'
 import { CATEGORY_EMOJI, CATEGORY_HUES, PLACETYPE_EMOJI, PLACETYPE_HUE } from './categories.js'
 import { Icon, dayLabelLoose, dayLoose, keyOf, priceLabel, startLabel, timeOf } from './lib.js'
+import { imageMode } from './imageMode.js'
 import { SaveHeart, useSaves } from './saves.js'
 import { dateKey } from './weather.js'
 import './cards.css'
@@ -36,7 +37,7 @@ export const WxContext = createContext(null)
 export { CATEGORY_EMOJI, CATEGORY_HUES } from './categories.js'
 // 3.7P-36: re-export the imageMode gate so card consumers (DecisionCard/P42,
 // Spots rows/P24) import it from the cards module alongside the components.
-export { imageMode } from './imageMode.js'
+export { imageMode }
 export const hueFor = (e) => {
   // 3.73a: places are placeType-keyed (beach/trail/pier/dog-park each distinct)
   // — kills the green-on-green wall; everything else stays category-keyed.
@@ -409,6 +410,73 @@ export const Row = memo(function Row({ e, dist, style, onSelect }) {
 // and silently defeat it on the stagger pages (Bubble/Search)
 const STAGGER_STYLES = [0, 30, 60, 90, 120, 150].map((ms) => Object.freeze({ animationDelay: ms + 'ms' }))
 
+// 3.7P-42 — CompactRow: the CompactListRow of the DecisionCard system. The dense,
+// text-forward decision row for COMPARE/DECIDE surfaces (guide + bubble + see-all
+// lists), where Home's big cards are for DISCOVER. Text LEADS; a real photo is a
+// supporting 48×48 thumb on the right (imageMode gate) and a photo-less item shows
+// NO placeholder (the "green wall" fix) — the title carries the row, so ~8+ fit per
+// screen for fast compare. Kind-aware per the Decision-Layer thesis: an EVENT reads
+// TIME-first (day · time · venue · dist), a PLACE reads ACTIVITY/UTILITY-first
+// (type · dist · amenity chips). Tap → the shared detail (where Save / Add-to-day
+// live). memo'd like Row so a 1,000-item bubble list re-renders ~0 rows per open.
+export const CompactRow = memo(function CompactRow({ e, dist, style, onSelect }) {
+  const wx = useContext(WxContext)
+  const isPlace = e.kind === 'place'
+  const mode = imageMode(e) // 'photo' → 48px thumb; 'icon'/'text' → text-led, no box
+  const open = (ev) => onSelect(e, ev.currentTarget)
+  const d = dist ?? e._dist
+  const mi = d != null ? d.toFixed(1) + ' mi' : null
+  const free = e._free === true || e.isFree === true
+  const hot = !isPlace && typeof e.buzz === 'number' && e.buzz >= 2
+  // weather honesty hint (outdoor events on a rainy day) — the lightweight "fit" cue
+  const wxDay = !isPlace && e.category === 'outdoors' && e._day != null && wx ? wx[dateKey(e._day)] : null
+  const rain = wxDay && wxDay.rain != null && wxDay.rain >= 30 ? '🌧 ' + wxDay.rain + '%' : null
+  // collapsed-series stamp (events) — honest about WHAT varies (dates vs venues)
+  const more = (() => {
+    if (isPlace || typeof e._moreDates !== 'number' || e._moreDates <= 0) return null
+    const n = e._moreDates
+    const venues = Array.isArray(e._series) ? new Set(e._series.map((x) => x.venue || '').filter(Boolean)) : null
+    if (venues && venues.size > 1) return `+${n} more dates & venues`
+    return n === 1 ? '+1 more date' : `+${n} more dates`
+  })()
+  const meta = isPlace
+    ? [placeTypeLabel(e), mi].filter(Boolean).join(' · ')
+    : (e._ongoing ? ['Ongoing', e.venue, mi, rain] : [dayLabelLoose(e), timeOf(e.start), e.venue, mi, rain])
+        .filter(Boolean)
+        .join(' · ')
+  const chips = isPlace ? spotChips(e) : null
+  return (
+    <button className="crow pressable" style={style} onClick={open}>
+      <div className="crow-main">
+        <div className="crow-head">
+          <span className="crow-title">{e.title}</span>
+          {/* events wear an inline Free tag; places get Free as their first amenity chip */}
+          {!isPlace && free && <span className="crow-free">Free</span>}
+          {hot && <span className="crow-hot" aria-hidden>🔥{e.buzz >= 3 ? e.buzz : ''}</span>}
+          {isPlace && e.hidden && <span className="crow-gem" aria-label="Hidden gem">💎</span>}
+        </div>
+        <div className={'crow-meta' + (meta.startsWith('Started') ? ' meta-started' : '')}>{meta || 'Tap for details'}</div>
+        {isPlace && chips && chips.length > 0 && (
+          <div className="crow-chips">
+            {chips.map((c, i) => {
+              const Glyph = Icon[c.icon]
+              return (
+                <span className="crow-chip" key={i}>
+                  {Glyph && <Glyph className="crow-chip-ic" aria-hidden />}
+                  {c.label}
+                </span>
+              )
+            })}
+          </div>
+        )}
+        {more && <div className="crow-series">{more}</div>}
+        <SponsoredTag e={e} />
+      </div>
+      {mode === 'photo' && <CardImg e={e} className="crow-thumb" />}
+    </button>
+  )
+})
+
 // vertical feed with optional date headers + infinite paging (30 rows/page).
 // sections: [{ label: string|null, items: event[] }]. stagger=true plays a one-shot
 // staggered rise on the first 6 rows (use when a page swaps its list in).
@@ -417,7 +485,10 @@ const STAGGER_STYLES = [0, 30, 60, 90, 120, 150].map((ms) => Object.freeze({ ani
 // headerExtra (Q2): optional (section) => node rendered inside the day header
 // (HotView's 🃏 "Deck this" entry); when it returns something the header flexes
 // via .feed-date-deck — consumers that don't pass it render byte-identically.
-export function RowFeed({ sections, showDist, stagger, scrollRootRef, endSlot, headerExtra, onSelect }) {
+// compact (3.7P-42): COMPARE/DECIDE drill-in lists (guides, bubbles, see-all) pass
+// it to render the dense text-forward CompactRow instead of the big editorial Row —
+// Home discovery keeps the big cards (discover = visual; decide = dense).
+export function RowFeed({ sections, showDist, stagger, compact, scrollRootRef, endSlot, headerExtra, onSelect }) {
   const [limit, setLimit] = useState(PAGE_SIZE)
   const sentRef = useRef(null)
   const total = sections.reduce((n, s) => n + s.items.length, 0)
@@ -449,9 +520,10 @@ export function RowFeed({ sections, showDist, stagger, scrollRootRef, endSlot, h
         </div>
       )
     }
+    const RowComp = compact ? CompactRow : Row
     for (const it of items) {
       out.push(
-        <Row
+        <RowComp
           key={keyOf(it) + rowIdx}
           e={it}
           dist={showDist ? it._dist : null}
@@ -463,7 +535,7 @@ export function RowFeed({ sections, showDist, stagger, scrollRootRef, endSlot, h
     }
     count += items.length
   }
-  const cls = 'feed feed--editorial' + (stagger ? ' feed-stagger' : '')
+  const cls = 'feed feed--editorial' + (compact ? ' feed--compact' : '') + (stagger ? ' feed-stagger' : '')
   return (
     <div className={cls}>
       {out}

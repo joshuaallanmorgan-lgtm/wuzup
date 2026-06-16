@@ -77,7 +77,7 @@ export default function PlaceBubblePage({ bubble }) {
       </header>
       <div className="pg-body">
         {count > 0 ? (
-          <RowFeed sections={sections} stagger scrollRootRef={pgRef} onSelect={onSelect} />
+          <RowFeed sections={sections} stagger compact scrollRootRef={pgRef} onSelect={onSelect} />
         ) : (
           <div className="empty">
             {status === 'loading'

@@ -87,7 +87,7 @@ export default function GuidePage({ guide, events, anchors }) {
       </header>
       <div className="pg-body">
         {items.length > 0 ? (
-          <RowFeed sections={sections} scrollRootRef={pgRef} onSelect={onSelect} />
+          <RowFeed sections={sections} compact scrollRootRef={pgRef} onSelect={onSelect} />
         ) : (
           <div className="empty">
             Nothing fits this guide right now — check back soon.
