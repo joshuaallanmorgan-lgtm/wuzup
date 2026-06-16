@@ -1281,6 +1281,18 @@ test('3.7P-23b §N Home: "Your next days" stack + warm greeting + weather line',
   assert.ok(/void page/.test(nd), 'plan-state re-reads on the subpage edge (stays fresh)')
 })
 
+test('3.7P-23c §N Home: featured DecisionCard with inline Save / Add actions', () => {
+  const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
+  assert.ok(/export function FeaturedCard\(/.test(cards), 'FeaturedCard exists')
+  assert.ok(/featc-add/.test(cards) && /featc-save/.test(cards), 'FeaturedCard has inline Add + Save actions (cards ACT)')
+  assert.ok(/onAdd\(e\)/.test(cards), 'the Add action calls the onAdd planner callback')
+  const hot = readFileSync(path.join(ROOT, 'app', 'src', 'HotView.jsx'), 'utf8')
+  assert.ok(/<FeaturedCard /.test(hot), 'HotView renders the FeaturedCard for the marquee pick')
+  assert.ok(/onAdd=\{addToPlan\}/.test(hot), 'HotView wires the planner add to the featured card')
+  assert.ok(/saveDayPlans\(withSlot\(map, dayTs, part, keyOf\(e\)\)\)/.test(hot), 'addToPlan writes via the shared withSlot seam (never clobbers a filled slot)')
+  assert.ok(!/<BigOne /.test(hot), 'the old overlay BigOne marquee is replaced by the featured DecisionCard')
+})
+
 test('3.7P-39 review: every hidden-gem reader honors NON_GEM_RE (no off-shelf "gem" claim)', () => {
   const taste = readFileSync(path.join(ROOT, 'app', 'src', 'taste.js'), 'utf8')
   assert.ok(/hidden-gem'\) && !NON_GEM_RE\.test/.test(taste), 'whyReasons gates the "Hidden gem" reason chip with NON_GEM_RE')

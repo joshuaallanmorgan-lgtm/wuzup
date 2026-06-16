@@ -7,12 +7,14 @@ import LensNav from './LensNav.jsx'
 import NextDays from './NextDays.jsx'
 import { curateFeed } from './curate.js'
 import { useNav } from './nav.jsx'
-import { BigOne, CompactRow, EndCap, GemRow, IntentTile, RowFeed, SecHead, TonightCard } from './cards.jsx'
+import { CompactRow, EndCap, FeaturedCard, GemRow, IntentTile, RowFeed, SecHead, TonightCard } from './cards.jsx'
 import { GUIDES, useGuides, watchGuideActive, resolveWatchGuide } from './guides.js'
 import { shelfItems, useSaves } from './saves.js'
 import { railReady, tasteNudge, topCategories, useTaste } from './taste.js'
 import { useRecents } from './recents.js'
 import { CONDITION, dateKey } from './weather.js'
+import { daypartOf } from './weekend.js'
+import { loadDayPlans, saveDayPlans, withSlot, dayEntryFor } from './dayplan.js'
 import { DeckThisButton } from './LensDeck.jsx'
 
 // 3.7P-23b (§N): a warm time-of-day greeting ("Good morning" / "Good evening")
@@ -239,6 +241,30 @@ export default function HotView({ events, anchors, loading, wx }) {
     ? `${todayWx.emoji} ${CONDITION[todayWx.emoji] || 'Forecast'}${todayWx.hi != null ? ' · ' + todayWx.hi + '°' : ''}`
     : null
 
+  // 3.7P-23c: the FeaturedCard's inline "Add to {tonight|day}" — a one-tap planner
+  // write (the DecisionCard "cards act" pattern). Adds the event to its OWN day at
+  // its natural daypart via the shared withSlot seam; never clobbers a filled slot.
+  const [toast, setToast] = useState(null)
+  const toastTRef = useRef(null)
+  useEffect(() => () => clearTimeout(toastTRef.current), [])
+  const flash = (m) => {
+    setToast(m)
+    clearTimeout(toastTRef.current)
+    toastTRef.current = setTimeout(() => setToast(null), 1700)
+  }
+  const addToPlan = (e) => {
+    const dayTs = e._day ?? anchors.todayTs
+    const part = daypartOf(e) === 'night' ? 'night' : 'day'
+    const map = loadDayPlans(anchors)
+    const entry = dayEntryFor(map[String(dayTs)])
+    if (entry && entry.slots[part]) {
+      flash('That slot is taken — open the day to adjust')
+      return
+    }
+    saveDayPlans(withSlot(map, dayTs, part, keyOf(e)))
+    flash(e._tonight ? 'Added to tonight ✓' : 'Added to your day ✓')
+  }
+
   const scrollToList = (el) => {
     const sc = scrollRef.current
     if (sc && el) sc.scrollTo({ top: Math.max(el.offsetTop - 64, 0), behavior: 'smooth' })
@@ -360,7 +386,13 @@ export default function HotView({ events, anchors, loading, wx }) {
         )}
         {bigOne && (
           <section className={'sec' + ent(1).className} style={ent(1).style}>
-            <BigOne e={bigOne} onSelect={onSelect} animate={animate} />
+            {/* 3.7P-23c (§N screen 2): the featured DecisionCard — image + title +
+                venue + honest tag chips + inline [Save] [Add to tonight/day]. */}
+            <SecHead
+              overline={bigOne._tonight ? 'Handpicked for you' : 'Worth planning around'}
+              title={bigOne._tonight ? "Tonight's best bets" : 'The big one'}
+            />
+            <FeaturedCard e={bigOne} onSelect={onSelect} onAdd={addToPlan} />
           </section>
         )}
         {gems.length > 0 && (
@@ -451,6 +483,9 @@ export default function HotView({ events, anchors, loading, wx }) {
           <div className="empty">Nothing here right now — check back soon.</div>
         )}
       </div>
+      {/* 3.7P-23c: confirmation for the FeaturedCard inline "Add to …" (reuses the
+          shared fixed bottom-center toast style loaded at boot) */}
+      {toast && <div className="detail-toast">{toast}</div>}
     </div>
   )
 }

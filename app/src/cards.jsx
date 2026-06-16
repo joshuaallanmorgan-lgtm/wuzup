@@ -210,6 +210,57 @@ export function BigOne({ e, onSelect, animate }) {
   )
 }
 
+// 3.7P-23c — FeaturedCard: the §N "Tonight's best bets" featured DecisionCard.
+// Image on top, then meta · title · honest tag chips, and INLINE actions — the
+// card ACTS (Save toggle + Add-to-day), it doesn't just open detail. The image+
+// text are one tap target that opens the detail (the CardImg [data-vt] morph); the
+// action buttons are siblings (never nested in the open button). onAdd(e) is the
+// planner write, owned by the host (HotView) so the toast + day-plan live there.
+function featuredChips(e) {
+  const out = []
+  if (e.category && e.category !== 'other') out.push(e.category.charAt(0).toUpperCase() + e.category.slice(1))
+  if (e._free === true || e.isFree === true) out.push('Free')
+  else if (priceLabel(e)) out.push(priceLabel(e))
+  if (typeof e.buzz === 'number' && e.buzz >= 2) out.push('Buzzing')
+  return out.slice(0, 3)
+}
+export function FeaturedCard({ e, onSelect, onAdd }) {
+  const { has, toggle } = useSaves()
+  const saved = has(e)
+  const free = e._free === true || e.isFree === true
+  const meta = (e._ongoing ? ['Ongoing', e.venue] : [dayLabelLoose(e), timeOf(e.start), e.venue]).filter(Boolean).join(' · ')
+  const chips = featuredChips(e)
+  const addLabel = e._tonight ? '＋ Add to tonight' : '＋ Add to day'
+  return (
+    <div className="featc">
+      <button className="featc-open pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
+        <CardImg e={e} className="featc-img">
+          <HeatBadge e={e} />
+          {free && <span className="free-badge">FREE</span>}
+        </CardImg>
+        <span className="featc-body">
+          <span className="featc-meta">{meta || 'Coming up'}</span>
+          <span className="featc-title">{e.title}</span>
+          {chips.length > 0 && (
+            <span className="featc-chips">
+              {chips.map((c, i) => (
+                <span className="featc-chip" key={i}>{c}</span>
+              ))}
+            </span>
+          )}
+          <SponsoredTag e={e} />
+        </span>
+      </button>
+      <div className="featc-actions">
+        <button className={'featc-act featc-save' + (saved ? ' on' : '')} onClick={() => toggle(e)} aria-pressed={saved}>
+          {saved ? '♥ Saved' : '♡ Save'}
+        </button>
+        <button className="featc-act featc-add" onClick={() => onAdd(e)}>{addLabel}</button>
+      </div>
+    </div>
+  )
+}
+
 export function GemRow({ e, onSelect }) {
   return (
     <button className="gem pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
