@@ -255,7 +255,12 @@ const AMENITY_CHIPS = [
   { test: (p) => ['hiking', 'trails', 'nature-trails'].some((a) => has(p, a)), icon: 'trail', label: 'Trails' },
   { test: (p) => ['boat-ramp', 'boating', 'canoe-launch', 'paddling', 'marina'].some((a) => has(p, a)), icon: 'water', label: 'Boat launch' },
   { test: (p) => ['swimming', 'pool'].some((a) => has(p, a)), icon: 'water', label: 'Swimming' },
-  { test: (p) => ['tennis', 'basketball', 'pickleball', 'volleyball', 'racquetball', 'baseball', 'soccer', 'disc-golf', 'skate-park'].some((a) => has(p, a)), icon: 'sports', label: 'Courts' },
+  // "Sports" covers genuine courts + ball fields honestly; disc-golf and
+  // skate-park are NEITHER (3.7P-13 review: labeling them "Courts" asserted
+  // something false on 14 places) — they get their own correct chips.
+  { test: (p) => ['tennis', 'basketball', 'pickleball', 'volleyball', 'racquetball', 'baseball', 'soccer'].some((a) => has(p, a)), icon: 'sports', label: 'Sports' },
+  { test: (p) => has(p, 'disc-golf'), icon: 'sports', label: 'Disc golf' },
+  { test: (p) => has(p, 'skate-park'), icon: 'sports', label: 'Skate park' },
   { test: (p) => ['picnic', 'grills', 'shelters'].some((a) => has(p, a)), icon: 'picnic', label: 'Picnic' },
   { test: (p) => ['dog-park', 'dogs-allowed', 'dog-beach'].some((a) => has(p, a)), icon: 'dog', label: 'Dog-friendly' },
 ]
