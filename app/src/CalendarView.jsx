@@ -29,7 +29,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { keyOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { markBeen, snapshotFor, useBeenThere } from './saves.js'
-import { dateKey } from './weather.js'
 import {
   daysOutInMonth,
   didDays,
@@ -46,15 +45,15 @@ import './calendar.css'
 
 const wdLong = (ts) => new Date(ts).toLocaleDateString('en-US', { weekday: 'long' })
 
-export default function CalendarView({ events, anchors, wx }) {
+export default function CalendarView({ events, anchors }) {
   const { openDay, page } = useNav()
   const [selKey, setSelKey] = useState(null) // selected day timestamp (the grid caption tracks it)
   const [monthOff, setMonthOff] = useState(0)
 
-  // 16-day Tampa forecast: { 'YYYY-MM-DD': {emoji,hi,rain} } | null. The grid
-  // keeps a quiet weather emoji per day — it's about YOUR day (should I plan
-  // outdoors?), not supply. App owns the single getForecast() fetch.
-  const wxFor = (ts) => (wx ? wx[dateKey(ts)] : null)
+  // FB-11 (3.7P-3): the per-day grid weather emoji was retired — it didn't aid a
+  // decision on this surface (the grid answers "what am I doing", not "what's the
+  // weather"). Decision-useful weather stays where it helps: the DayPage forecast
+  // line, PlaceDetail beach-day fit, and event-day weather in DetailPage.
 
   // ===== the personal day-plan store — the grid's quiet marks =====
   // localStorage isn't reactive — plans only change inside the day/WB subpages,
@@ -336,7 +335,6 @@ export default function CalendarView({ events, anchors, wx }) {
           ))}
           {cells.map((ts, i) => {
             if (ts == null) return <div className="mcell-blank" key={'b' + i} />
-            const w = wxFor(ts)
             const went = dids.has(ts)
             const planned = !went && plannedDays.has(ts) // a did-day's check outranks its plan underline
             const restful = !went && restDays.has(ts) // …and outranks a stale rest mark (no ✓ + crescent on one cell)
@@ -366,7 +364,6 @@ export default function CalendarView({ events, anchors, wx }) {
                 {went && <span className="mday-went" aria-hidden>✓</span>}
                 {planned && <span className="mday-plan" />}
                 {restful && <span className="mday-rest" />}
-                {w && <span className="mwx">{w.emoji}</span>}
               </button>
             )
           })}

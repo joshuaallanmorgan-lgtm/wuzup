@@ -201,9 +201,10 @@ function Shell() {
   }, [])
   const norm = useMemo(() => [...events, ...myEvents].map((e) => normalize(e, anchors)), [events, myEvents, anchors])
 
-  // 16-day Tampa forecast, fetched ONCE at App level (was CalendarView-local):
-  // CalendarView (prop), DetailPage (prop) and outdoor feed rows (WxContext)
-  // all read the same map. null = no weather, every consumer degrades silently.
+  // 16-day Tampa forecast, fetched ONCE at App level: DayPage (prop), PlaceDetail
+  // (beach-day fit), DetailPage (event-day weather) and outdoor feed rows
+  // (WxContext) read the same map. null = no weather, every consumer degrades
+  // silently. (FB-11/3.7P-3: the Calendar grid no longer reads it.)
   const [wx, setWx] = useState(null)
   useEffect(() => {
     let on = true
@@ -264,7 +265,7 @@ function Shell() {
             {visited.has('map') && <MapView events={norm} anchors={anchors} />}
           </section>
           <section className="page">
-            {visited.has('calendar') && <CalendarView events={norm} anchors={anchors} wx={wx} />}
+            {visited.has('calendar') && <CalendarView events={norm} anchors={anchors} />}
           </section>
           <section className="page">
             {visited.has('profile') && <ProfileView events={norm} anchors={anchors} primer={primer} />}
