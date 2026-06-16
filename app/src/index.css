@@ -18,8 +18,12 @@
   --hot-2: #ff2d78;
   --hot-rgb: 255, 59, 95;
   --hot2-rgb: 255, 45, 120;
-  /* reward accent (Sprint I1): violet, RESERVED for SIX micro-reward moments
-     only — the running ledger (amend here when a moment is sanctioned):
+  /* reward accent (Sprint I1): violet, RESERVED for sanctioned micro-reward
+     moments — the running ledger (amend here when a moment is sanctioned). Was
+     capped at six; PHASE_3.7 Addendum E relaxed the COUNT cap for gamification,
+     but the GRAMMAR is unchanged: violet is a transient SPARK that resolves to a
+     calm resting color, one-shot, persisted so it never re-fires — NEVER a
+     standing color / badge / growing counter. An unlisted violet usage is a bug.
        1. save-heart pop (saves.css)
        2. session-recap accent
        3. primer finish beat
@@ -32,8 +36,13 @@
           reopen; NEVER a badge or a growing counter — the beat, then gone).
      (Phase 3.5: the old "FMN reveal beat" was retired with the dice — fmn.css
       deleted — so the ledger dropped from seven moments to six.)
-     Its scarcity is its meaning: nowhere else, ever. */
-  --reward: #d966f5; /* Muted Violet — the 6 sanctioned moments only (Sunlit Coastal Pop, was #a855f7) */
+     3.7P-4 (gamification, Addendum E): the rhythm/streak PAYOFF RIDES moment #6 —
+     the "🔥 N-day rhythm" line lives inside the existing .cal-recap.lit beat (INK
+     text, no NEW violet minted); the rhythm/streak NUMBER on Calendar/Profile is
+     INK (never violet); the slot-fill "planned it" pop is brand-GOLD, not violet
+     (planning earns no --reward, per the ban list). So 3.7P-4 spends NO new violet
+     — but the cap is formally relaxed above for when a future moment needs it. */
+  --reward: #d966f5; /* Muted Violet — the sanctioned reward moments (Sunlit Coastal Pop, was #a855f7) */
   --reward-rgb: 217, 102, 245;
   --free: #0fa86d; /* Tropical Sage — free badges (was #0a9d6e) */
   --ink: #1a1410; /* Sun-baked Clay — warm charcoal (was #15171c) */

@@ -240,6 +240,9 @@
   color: var(--ink);
 }
 .cal-recap-what { color: var(--accent-ink); }
+/* 3.7P-4b: the streak payoff inside the violet 'I went' beat — INK text (the 🔥 +
+   the beat's violet border carry the warmth; reward-violet as text fails AA). */
+.cal-recap-rhythm { margin-top: 6px; font-size: 13px; font-weight: 800; letter-spacing: -0.1px; color: var(--ink); }
 .cal-recap-btns { display: flex; gap: 10px; margin-top: 12px; }
 .cal-recap-yes,
 .cal-recap-no {

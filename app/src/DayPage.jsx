@@ -64,6 +64,13 @@ export default function DayPage({ ts, events, anchors, wx }) {
   }, [plans])
   const entry = dayEntryFor(plans[String(ts)]) ?? emptyDay()
   const rest = entry.state === 'rest'
+  // 3.7P-4b: a satisfying gold pop on the slot you just filled (Recipe A, the
+  // savePop curve in --accent — planning earns NO --reward violet per the ban
+  // list, so this is brand-gold + scale only). justFilled holds the popped part
+  // for one beat, then clears.
+  const [justFilled, setJustFilled] = useState(null)
+  const fillTRef = useRef(null)
+  useEffect(() => () => clearTimeout(fillTRef.current), [])
 
   // ===== header bits =====
   const title = ts === anchors.todayTs ? 'Today' : ts === anchors.tomorrowTs ? 'Tomorrow' : wdLong(ts)
@@ -174,7 +181,11 @@ export default function DayPage({ ts, events, anchors, wx }) {
 
   const assign = (e) => {
     if (!picker) return
-    setPlans(withSlot(plans, ts, picker, keyOf(e))) // withSlot clears any rest mark
+    const part = picker
+    setPlans(withSlot(plans, ts, part, keyOf(e))) // withSlot clears any rest mark
+    setJustFilled(part) // 3.7P-4b: pop the slot that just got a plan
+    clearTimeout(fillTRef.current)
+    fillTRef.current = setTimeout(() => setJustFilled(null), 460)
     closeSheet()
   }
 
@@ -266,7 +277,7 @@ export default function DayPage({ ts, events, anchors, wx }) {
       <div className="dpg-slot" key={part}>
         <div className="dpg-part">{part === 'day' ? '☀️ Day' : '🌙 Night'}</div>
         {e ? (
-          <div className="dpg-filled">
+          <div className={'dpg-filled' + (justFilled === part ? ' pop' : '')}>
             <button className="dpg-card pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
               <CardImg e={e} className="dpg-thumb" />
               <span className="dpg-card-main">

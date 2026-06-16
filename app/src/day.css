@@ -72,6 +72,18 @@
 
 /* filled slot: horizontal mini-card (thumb + text), ✕ to clear */
 .dpg-filled { position: relative; }
+/* 3.7P-4b: a satisfying gold pop when a slot just got a plan — the savePop
+   overshoot grammar in brand-gold (planning earns NO --reward violet per the ban
+   list), a single scale + a brief gold ring that settles. Reduced-motion kills it. */
+@keyframes slotPop {
+  0% { transform: scale(0.95); }
+  55% { transform: scale(1.04); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.25); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0); }
+}
+.dpg-filled.pop { animation: slotPop 460ms var(--ease-emphasis); }
+@media (prefers-reduced-motion: reduce) {
+  .dpg-filled.pop { animation: none; }
+}
 .dpg-card {
   display: flex;
   align-items: center;

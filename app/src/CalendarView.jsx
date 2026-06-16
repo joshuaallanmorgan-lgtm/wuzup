@@ -396,6 +396,11 @@ export default function CalendarView({ events, anchors }) {
           <div className="cal-recap-q">
             {wdLong(litCard.dayTs)} — logged ✓{/* DRAFT for Charles */}
           </div>
+          {/* 3.7P-4b: the streak PAYOFF rides the sanctioned violet beat (#6) — no
+              new --reward minted. `rhythm` is live, so it reflects the just-logged
+              'went'. Gated at 2+; a gap never shows here (the beat only fires on a
+              logged day). DRAFT copy. */}
+          {rhythm.current >= 2 && <div className="cal-recap-rhythm">🔥 {rhythm.current}-day rhythm</div>}
         </div>
       ) : (
         card && (

@@ -1485,12 +1485,15 @@ test('Sprint S: Calendar + Profile fold lazy places into their slot resolvers (g
   assert.ok(/for \(const p of placeList\) m\.set\(p\.key, p\.title\)/.test(pfSrc), 'ProfileView must fold place titles into titleByKey (no "no longer listed" for a live place)')
 })
 
-// Sprint U-d — index.css ledger comment amended to record violet moment #7.
-test('U-d/3.5: index.css reward ledger names the did-day conversion + count is current', () => {
+// Sprint U-d — the --reward ledger names the did-day conversion (moment #6).
+// 3.7P-4: Addendum E relaxed the six-moment COUNT cap for gamification, but the
+// ledger comment must still be the auditable source of truth (discipline holds;
+// the retired FMN beat stays gone; the did-day conversion + ⚑U-V7 stay named).
+test('U-d/3.7P-4: index.css reward ledger records the cap relaxation + keeps the discipline', () => {
   const idx = readFileSync(path.join(ROOT, 'app', 'src', 'index.css'), 'utf8')
-  // Phase 3.5 retired the FMN reveal beat with the dice → ledger dropped 7→6.
-  assert.ok(/SIX micro-reward moments/.test(idx), 'the --reward ledger comment must say SIX moments (FMN beat retired in 3.5)')
-  assert.ok(!/FMN reveal beat \(fmn\.css\)/.test(idx), 'the retired FMN reveal beat must no longer be a live ledger entry')
+  assert.ok(/Addendum E relaxed the COUNT cap/.test(idx), 'the --reward ledger must record Addendum E relaxing the six-moment cap')
+  assert.ok(/standing color \/ badge \/ growing counter/.test(idx), 'the ledger must keep the discipline (transient spark, never a standing badge/counter)')
+  assert.ok(!/FMN reveal beat \(fmn\.css\)/.test(idx), 'the retired FMN reveal beat must not be a live ledger entry')
   assert.ok(/did-day conversion/.test(idx), 'the ledger must still name the planned-day → did-day conversion')
   assert.ok(/U-V7/.test(idx), 'the ledger must cite the ⚑U-V7 flag')
 })
