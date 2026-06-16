@@ -177,7 +177,7 @@
    placeType-aware art (3.73a) + a type label + one differentiator + 💎 badge. ===== */
 .spotcard { flex: 0 0 200px; scroll-snap-align: start; border: none; background: none; text-align: left; cursor: pointer; padding: 0; font: inherit; color: inherit; }
 .spotcard-img { display: block; width: 200px; height: 130px; border-radius: 14px; }
-.spotcard-type { margin-top: 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-ink); }
+.spotcard-type { margin-top: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.2px; color: var(--accent-ink); }
 .spotcard-title { margin-top: 2px; font-size: 15px; font-weight: 700; line-height: 1.2; letter-spacing: -0.2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .spotcard-meta { margin-top: 3px; font-size: 13px; font-weight: 500; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .spot-badge { position: absolute; top: 8px; left: 8px; z-index: 1; width: 28px; height: 28px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 14px; background: rgba(26, 20, 16, 0.5); backdrop-filter: blur(4px); }
@@ -229,8 +229,7 @@
 .bigone-over {
   font-size: 11px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.2px;
   color: var(--hot); /* The Big One = hot-ness semantics, stays warm */
   margin-bottom: 8px;
 }
@@ -324,8 +323,7 @@
   padding: 20px 20px 10px;
   font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.2px;
   color: var(--muted);
 }
 .row {

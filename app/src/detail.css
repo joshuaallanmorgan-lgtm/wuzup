@@ -141,8 +141,7 @@ a.d-row { text-decoration: none; color: inherit; }
   flex: 0 0 auto;
   font-size: 10px;
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.2px;
   color: var(--accent-ink);
 }
 /* the instance you're currently viewing — quietly tinted, still tappable */

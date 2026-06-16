@@ -60,9 +60,9 @@
 .primer-body::-webkit-scrollbar { display: none; }
 
 .primer-kicker {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.2px; /* 3.7P-1: de-capped to size+weight (was uppercase strings + 0.14em) */
   color: #ffb066; /* Sunset Gold (light) — readable on the dark scrim (3.71, was teal) */
 }
 .primer-note { margin-top: 6px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.62); }

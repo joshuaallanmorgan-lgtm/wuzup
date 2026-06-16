@@ -150,8 +150,7 @@
 .srch-recents-title {
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
+  letter-spacing: 0.2px;
   color: var(--muted);
 }
 /* the quiet clear control: plain muted text, no chrome */

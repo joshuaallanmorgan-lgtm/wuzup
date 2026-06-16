@@ -211,12 +211,12 @@ export default function Primer({ onDone, onDeck, reentry = false }) {
               (Q2 review INFO-4; DRAFT for Charles like all primer copy) */}
           <div className="primer-kicker">
             {step === 'tour'
-              ? 'WELCOME TO WUZUP'
+              ? 'Welcome to Wuzup'
               : step === 3
-                ? 'ALL SET'
+                ? 'All set'
                 : reentry
-                  ? 'TUNE YOUR TASTE'
-                  : 'SET UP YOUR FEED'}
+                  ? 'Tune your taste'
+                  : 'Set up your feed'}
           </div>
           {onQ && (
             <div className="primer-note">

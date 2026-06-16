@@ -31,8 +31,7 @@
   padding: 16px 20px 8px;
   font-size: 12px;
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.2px;
   color: var(--muted);
 }
 .cal-day { padding-top: 16px; }

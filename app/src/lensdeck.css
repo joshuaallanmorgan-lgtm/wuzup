@@ -74,8 +74,7 @@
   border: 2.5px solid;
   font-size: 15px;
   font-weight: 900;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0.2px;
   pointer-events: none;
   opacity: 0;
   background: rgba(0, 0, 0, 0.35);

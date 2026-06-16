@@ -42,8 +42,7 @@
 .pf-over {
   font-size: 11px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.2px;
   color: var(--accent-ink);
 }
 .pf-title {
@@ -148,8 +147,7 @@
   z-index: 3;
   font-size: 9px;
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.2px;
   padding: 3px 6px;
   border-radius: 999px;
   background: rgba(21, 23, 28, 0.72);
@@ -192,8 +190,7 @@
   display: block;
   font-size: 11px;
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.2px;
   color: var(--accent-ink);
 }
 .pf-plan-range { display: block; margin-top: 4px; font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
@@ -215,8 +212,7 @@
   margin: 18px 20px 8px;
   font-size: 11px;
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.2px;
   color: var(--muted);
 }
 .pf-hist { margin: 0 20px 8px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); overflow: hidden; }
@@ -251,7 +247,7 @@
 }
 .pf-hist-live { cursor: pointer; }
 .pf-hist-live:active { background: rgba(var(--accent-rgb), 0.06); }
-.pf-hist-slot { flex: 0 0 64px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--muted); }
+.pf-hist-slot { flex: 0 0 64px; font-size: 11px; font-weight: 800; letter-spacing: 0.2px; color: var(--muted); }
 .pf-hist-title { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pf-hist-live .pf-hist-title { color: var(--accent-ink); }
 .pf-hist-gone { color: var(--muted); font-style: italic; font-weight: 500; }
@@ -327,8 +323,7 @@
 .pf-ask-q {
   font-size: 11px;
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.2px;
   color: var(--accent-ink);
 }
 .pf-ask-title { margin-top: 4px; font-size: 14.5px; font-weight: 700; line-height: 1.3; }
