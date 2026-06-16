@@ -1255,6 +1255,25 @@ test('3.7P-39 section-label honesty: job/career fairs are not Hidden Gems', () =
   assert.ok(/NON_GEM_RE/.test(finder), 'finder.mjs carries the synced NON_GEM_RE exclusion (clean future runs)')
 })
 
+// 3.7P-23/25/39 review — Phase B wiring + cross-surface honesty.
+test('3.7P-23/25 wiring: Home compact sections + warm AA-safe guide tiles', () => {
+  const hot = readFileSync(path.join(ROOT, 'app', 'src', 'HotView.jsx'), 'utf8')
+  assert.ok((hot.match(/feed feed--compact/g) || []).length >= 2, 'both Home secondary sections render as feed--compact')
+  assert.ok(/<CompactRow /.test(hot), 'HotView uses CompactRow for the secondary sections')
+  const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.css'), 'utf8')
+  assert.ok(/\.intent-tile \{[^}]*linear-gradient/s.test(cards), '.intent-tile carries the warm per-hue gradient')
+  assert.ok(/\.intent-tile-pov \{[^}]*#5f574e/s.test(cards), '.intent-tile-pov uses the AA-safe color (not --muted) over the gradient')
+  const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
+  assert.ok(/By activity"\s+sub=/.test(loc), 'the Spots "By activity" header has a POV sub')
+})
+
+test('3.7P-39 review: every hidden-gem reader honors NON_GEM_RE (no off-shelf "gem" claim)', () => {
+  const taste = readFileSync(path.join(ROOT, 'app', 'src', 'taste.js'), 'utf8')
+  assert.ok(/hidden-gem'\) && !NON_GEM_RE\.test/.test(taste), 'whyReasons gates the "Hidden gem" reason chip with NON_GEM_RE')
+  const curate = readFileSync(path.join(ROOT, 'app', 'src', 'curate.js'), 'utf8')
+  assert.ok(/hidden-gem'\) && !NON_GEM_RE\.test/.test(curate), 'frontPagePredicate gates the gem-by-fiat promotion with NON_GEM_RE')
+})
+
 // ============================================================
 // Addendum O — SEAM LOCK (§O.4). Source-grep asserts that pin the load-bearing
 // nav wiring so the Decision-Layer surface rework cannot silently break one of

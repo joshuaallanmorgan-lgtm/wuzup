@@ -27,7 +27,7 @@
 // PURE + tunable: no React, no CSS, no storage — Node-importable for the smoke
 // harness. The predicate + threshold are named constants so Josh/Charles can
 // ratify the bar against real data without code spelunking.
-import { sourceFamily } from './lib.js'
+import { NON_GEM_RE, sourceFamily } from './lib.js'
 
 // ─── tunables (Josh/Charles ratify against real data) ───────────────────────
 // FRONT_HOT: a single event earns the front page on quality alone at/above this
@@ -55,7 +55,9 @@ export const FRONT_BUZZ = 2
 export function frontPagePredicate(e) {
   if (!e) return false
   const tags = Array.isArray(e.tags) ? e.tags : []
-  if (tags.includes('staff-pick') || tags.includes('hidden-gem')) return true
+  // 3.7P-39 review: a stale hidden-gem tag on a job/career fair must not earn
+  // front-page-by-fiat (it can still qualify on its own buzz/hotScore below).
+  if (tags.includes('staff-pick') || (tags.includes('hidden-gem') && !NON_GEM_RE.test(e.title || ''))) return true
   if (typeof e.buzz === 'number' && e.buzz >= FRONT_BUZZ) return true
   if (typeof e.hotScore === 'number' && e.hotScore >= FRONT_HOT) return true
   return false

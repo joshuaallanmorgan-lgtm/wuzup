@@ -370,7 +370,7 @@ export default function HotView({ events, anchors, loading, whenPref }) {
         )}
         {gems.length > 0 && (
           <section className={'sec' + ent(2).className} style={ent(2).style}>
-            <SecHead overline="Under the radar" title="Hidden Gems" sub={`${gems.length} hand-scored finds`} />
+            <SecHead overline="Under the radar" title="Hidden Gems" sub={`${gems.length} hand-scored find${gems.length === 1 ? '' : 's'}`} />
             {/* 3.7P-23: secondary Home sections go to the dense CompactRow (the §N
                 reference look); the Everything feed below keeps big Rows (discover
                 = visual; the O.1 "Row on Home" contract is the MAIN feed). */}

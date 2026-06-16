@@ -90,6 +90,7 @@
 import { useSyncExternalStore } from 'react'
 import { PREFIX, lsGet, lsRemove, lsSet } from './storage.js'
 import { categoryById } from './categories.js' // registry id set (plain .js, no cycle) — V3 pref validation
+import { NON_GEM_RE } from './lib.js' // 3.7P-39: a job/career fair is never a "💎 Hidden gem"
 
 const KEY = 'taste-v1' // stored as twh:taste-v1 via storage.js
 const CAT_CAP = 25
@@ -860,7 +861,9 @@ export function whyReasons(e, p = profile) {
   if (e._free === true || e.isFree === true) r.push('Free')
   if (e._tonight) r.push('Tonight')
   else if (e._weekend) r.push('This weekend')
-  if (e.tags?.includes('hidden-gem')) r.push('💎 Hidden gem')
+  // 3.7P-39 review: the detail page must not call a job/career fair a "Hidden gem"
+  // (the shelf already excludes it; the underlying tag is an imperfect heuristic).
+  if (e.tags?.includes('hidden-gem') && !NON_GEM_RE.test(e.title || '')) r.push('💎 Hidden gem')
   if (e.tags?.includes('staff-pick')) r.push('⭐ Staff pick')
   if (e.sponsored === true) r.push('Sponsored placement') // disclosure doubles down
   // Gate on the CATEGORY component only (the free bonus must not smuggle an

@@ -182,4 +182,7 @@
 .crow-thumb { flex: 0 0 48px; width: 48px; height: 48px; border-radius: 10px; }
 /* the staggered rise also covers compact rows when a page swaps its list in */
 .feed-stagger .crow { animation: rowIn var(--dur-fast) var(--ease-out) both; }
+/* 3.7P-23 review: in a bare .feed--compact (Home gem/recents sections, no trailing
+   sentinel) the last row's hairline would dangle — drop it so the section closes clean */
+.feed--compact .crow:last-child { border-bottom: none; }
 
