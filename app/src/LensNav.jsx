@@ -94,7 +94,7 @@ export default function LensNav({ lenses = [], categories = [], menuLabel = 'All
             {/* FB-07 → 3.7P-19: search is an ICON-ONLY pill to the RIGHT of the
                 lenses (incl. "Near me"), so the whole lens row fits one line. */}
             {onSearch && (
-              <button className="lens-pill lens-search pressable" onClick={onSearch} aria-label="Search events">
+              <button className="lens-pill lens-search pressable" onClick={onSearch} aria-label="Search events" title="Search events">
                 <span aria-hidden>🔎</span>
               </button>
             )}
