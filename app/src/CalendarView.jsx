@@ -60,6 +60,8 @@ export default function CalendarView({ events, anchors }) {
   // closed); planTick re-reads the (non-reactive) plan store after an inline remove.
   const [peekTs, setPeekTs] = useState(null)
   const [planTick, setPlanTick] = useState(0)
+  const peekSheetRef = useRef(null) // the dialog node — focus moves in on open
+  const peekTriggerRef = useRef(null) // the cell that opened it — focus returns on close
 
   // FB-11 (3.7P-3): the per-day grid weather emoji was retired — it didn't aid a
   // decision on this surface (the grid answers "what am I doing", not "what's the
@@ -124,7 +126,11 @@ export default function CalendarView({ events, anchors }) {
   // Each pushed ONLY when it's a real positive record. DRAFT copy (Charles).
   const rhythmStats = []
   if (daysOut > 0) rhythmStats.push({ k: 'out', num: String(daysOut), lab: `out in ${monthName}` })
-  if (reality.planned > 0) rhythmStats.push({ k: 'plans', num: `${reality.went}/${reality.planned}`, lab: 'plans you made' })
+  // plans → reality as a POSITIVE COUNT, never a fraction (review P1): a "1/3" on
+  // the most-glanced surface reads as a score/"you only made 1 of 3". Show only
+  // the kept count, and SILENT on misses (gate on went, not planned) — the
+  // reflective plans-vs-reality lives in Profile's logbook line, not here.
+  if (reality.went > 0) rhythmStats.push({ k: 'plans', num: String(reality.went), lab: reality.went === 1 ? 'plan kept' : 'plans kept' })
   if (plannedAhead > 0) rhythmStats.push({ k: 'ahead', num: String(plannedAhead), lab: 'planned ahead' })
 
   // N5b re-entry pull: a gentle, forward-framed "plan your weekend" — shown ONLY
@@ -288,8 +294,49 @@ export default function CalendarView({ events, anchors }) {
     saveDayPlans(withClearedSlot(dayPlans, dayTs, part))
     setPlanTick((t) => t + 1)
   }
-  const closePeek = () => setPeekTs(null)
+  const closePeek = () => {
+    const t = peekTriggerRef.current // WCAG 2.4.3: return focus to the cell that opened it
+    setPeekTs(null)
+    // focus synchronously — the cell is always mounted (the grid renders every
+    // cell; peekTs only adds the overlay), so no rAF/timeout needed (and rAF is
+    // throttled in a backgrounded tab, which would drop the restore).
+    t?.focus?.()
+  }
+  // minimal Tab trap — keep focus within the peek's controls while it's open
+  const peekTrap = (ev) => {
+    if (ev.key !== 'Tab') return
+    const f = peekSheetRef.current?.querySelectorAll('button')
+    if (!f || !f.length) return
+    const first = f[0]
+    const last = f[f.length - 1]
+    if (ev.shiftKey && document.activeElement === first) {
+      ev.preventDefault()
+      last.focus()
+    } else if (!ev.shiftKey && document.activeElement === last) {
+      ev.preventDefault()
+      first.focus()
+    }
+  }
   const peekRest = peekEntry?.state === 'rest'
+  // a11y (review P1): move focus INTO the sheet on open (a dialog you can't reach
+  // isn't one) so the controls are reachable AND Escape fires…
+  useEffect(() => {
+    if (peekTs == null) return
+    peekSheetRef.current?.focus()
+  }, [peekTs])
+  // …via a window capture-phase Escape (the same pattern as LensNav/MapView/Primer)
+  // — an onKeyDown on the dialog never fires while focus is still on the grid cell.
+  useEffect(() => {
+    if (peekTs == null) return
+    const onKey = (ev) => {
+      if (ev.key === 'Escape') {
+        ev.stopPropagation()
+        closePeek()
+      }
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [peekTs])
   const peekTitle =
     peekTs != null ? new Date(peekTs).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : ''
   const peekSlots = peekEntry ? PARTS.map((part) => ({ part, e: resolvePeekSlot(peekEntry.slots[part], peekTs) })) : []
@@ -383,13 +430,23 @@ export default function CalendarView({ events, anchors }) {
                 stays anchored at "now" forward as the planning surface */}
             <button
               className="mon-nav"
-              onClick={() => setMonthOff((o) => Math.max(o - 1, 0))}
+              onClick={() => {
+                closePeek() // a peek belongs to a day in the month you're leaving
+                setMonthOff((o) => Math.max(o - 1, 0))
+              }}
               disabled={monthOff === 0}
               aria-label="Previous month"
             >
               <svg viewBox="0 0 24 24" width="16" height="16"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </button>
-            <button className="mon-nav" onClick={() => setMonthOff((o) => o + 1)} aria-label="Next month">
+            <button
+              className="mon-nav"
+              onClick={() => {
+                closePeek()
+                setMonthOff((o) => o + 1)
+              }}
+              aria-label="Next month"
+            >
               <svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </button>
           </div>
@@ -414,13 +471,16 @@ export default function CalendarView({ events, anchors }) {
                   (ts === anchors.todayTs ? ' today' : '') +
                   (went ? ' went' : '')
                 }
-                onClick={() => {
+                onClick={(ev) => {
                   setSelKey(ts) // the caption tracks the tap…
                   // …and today-or-later cells open the day-PEEK (FB-12: a quick
                   // glance at the day's shape, with "Open full day →" to go
                   // deeper). Past cells stay browse-only: a personal past day is
                   // the journal's record, not a planning surface.
-                  if (ts >= anchors.todayTs) setPeekTs(ts)
+                  if (ts >= anchors.todayTs) {
+                    peekTriggerRef.current = ev.currentTarget // focus returns here on close
+                    setPeekTs(ts)
+                  }
                 }}
               >
                 <span className="mnum">{new Date(ts).getDate()}</span>
@@ -468,9 +528,9 @@ export default function CalendarView({ events, anchors }) {
             role="dialog"
             aria-modal="true"
             aria-label={peekTitle}
-            onKeyDown={(ev) => {
-              if (ev.key === 'Escape') closePeek()
-            }}
+            ref={peekSheetRef}
+            tabIndex={-1}
+            onKeyDown={peekTrap}
           >
             <div className="cal-peek-head">
               <div className="cal-peek-title">{peekTitle}</div>
@@ -479,28 +539,43 @@ export default function CalendarView({ events, anchors }) {
               </button>
             </div>
             {peekRest ? (
-              <div className="cal-peek-rest">🌙 A quiet day{/* DRAFT */}</div>
+              <div className="cal-peek-rest">
+                <span aria-hidden>🌙 </span>A quiet day{/* DRAFT */}
+              </div>
             ) : (
               <div className="cal-peek-slots">
-                {peekSlots.map(({ part, e }) => (
-                  <div className={'cal-peek-slot' + (e ? ' filled' : '')} key={part}>
-                    <span className="cal-peek-when">{part === 'day' ? '☀️ Day' : '🌙 Night'}</span>
-                    {e ? (
-                      <>
-                        <span className="cal-peek-what">{e.title || e.name}</span>
-                        <button
-                          className="cal-peek-x pressable"
-                          onClick={() => clearPeekSlot(peekTs, part)}
-                          aria-label={`Clear ${e.title || e.name} from ${part === 'day' ? 'day' : 'night'}`}
-                        >
-                          ✕
-                        </button>
-                      </>
-                    ) : (
-                      <span className="cal-peek-open">Open</span>
-                    )}
-                  </div>
-                ))}
+                {peekSlots.map(({ part, e }) => {
+                  const when = part === 'day' ? 'Day' : 'Night'
+                  return (
+                    <div
+                      className={'cal-peek-slot' + (e ? ' filled' : '')}
+                      key={part}
+                      aria-label={`${when}: ${e ? e.title || e.name : 'open'}`}
+                    >
+                      <span className="cal-peek-when" aria-hidden>
+                        {part === 'day' ? '☀️' : '🌙'} {when}
+                      </span>
+                      {e ? (
+                        <>
+                          <span className="cal-peek-what" aria-hidden>
+                            {e.title || e.name}
+                          </span>
+                          <button
+                            className="cal-peek-x pressable"
+                            onClick={() => clearPeekSlot(peekTs, part)}
+                            aria-label={`Clear ${e.title || e.name} from ${when.toLowerCase()}`}
+                          >
+                            ✕
+                          </button>
+                        </>
+                      ) : (
+                        <span className="cal-peek-open" aria-hidden>
+                          Open
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             )}
             <button

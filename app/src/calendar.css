@@ -22,7 +22,9 @@
 .cal-rhythm { display: flex; flex-wrap: wrap; gap: 22px; margin: 12px 20px 0; }
 .cal-stat { display: flex; flex-direction: column; gap: 1px; }
 .cal-stat-num { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.05; color: var(--ink); }
-.cal-stat-lab { font-size: 11px; font-weight: 700; letter-spacing: 0.2px; color: rgba(26, 20, 16, 0.66); }
+/* 0.82 alpha clears AA (≥4.5:1) for small text even on the lighter end of the
+   gold gradient (review P2 — 0.66 dipped to ~4.0:1 over #ff8c42). */
+.cal-stat-lab { font-size: 11px; font-weight: 700; letter-spacing: 0.2px; color: rgba(26, 20, 16, 0.82); }
 
 /* day header above the selected-day caption */
 .day-header {
@@ -324,13 +326,13 @@
 .cal-peek-title { font-size: 16px; font-weight: 800; letter-spacing: -0.2px; color: var(--ink); }
 .cal-peek-close {
   flex: 0 0 auto;
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   border: none;
   border-radius: 999px;
   background: var(--bg);
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
   cursor: pointer;
 }
 .cal-peek-slots { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
@@ -358,13 +360,13 @@
 .cal-peek-open { flex: 1; font-size: 13px; font-weight: 600; color: var(--muted); }
 .cal-peek-x {
   flex: 0 0 auto;
-  width: 26px;
-  height: 26px;
+  width: 32px;
+  height: 32px;
   border: none;
   border-radius: 999px;
   background: none;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
   transition: color var(--dur-fast);
 }
