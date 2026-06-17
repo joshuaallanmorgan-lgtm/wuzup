@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { keyOf } from './lib.js'
 import NextDays from './NextDays.jsx'
-import { useNav } from './nav.jsx'
+import { useNav, viewIndex } from './nav.jsx'
 import { FeaturedCard, SecHead } from './cards.jsx'
 import { CONDITION, dateKey } from './weather.js'
 import { daypartOf } from './weekend.js'
@@ -24,7 +24,7 @@ function heroKicker(now) {
 export default function HomeView({ events, anchors, wx }) {
   // onSelect identity note: openDetail is useCallback-stable in nav.jsx, so the
   // FeaturedCard's tap target keeps its referential-stability contract.
-  const { openDetail: onSelect } = useNav()
+  const { openDetail: onSelect, goTo } = useNav()
 
   // "tonight" startedness tracks the CLOCK, not just the data — re-seed when the
   // tab returns to view + every 10 min while open (same cadence as the old hero).
@@ -121,7 +121,10 @@ export default function HomeView({ events, anchors, wx }) {
             tag chips + inline [Save] [Add to tonight/day]. */}
         {bigOne && (
           <section className="sec">
-            <SecHead overline="Handpicked for you" title={featuredTitle} />
+            {/* R-H6: title + "See all" (no gray subline) — matches the benchmark.
+                See-all goes to the Events browse (all picks), like the other Home
+                see-alls. */}
+            <SecHead title={featuredTitle} onSeeAll={() => goTo(viewIndex('hot'))} />
             <FeaturedCard e={bigOne} onSelect={onSelect} onAdd={addToPlan} />
           </section>
         )}
