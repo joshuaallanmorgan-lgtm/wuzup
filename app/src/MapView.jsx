@@ -43,7 +43,7 @@ import { useNav, viewIndex } from './nav.jsx'
 import { CATEGORY_HUES, CardImg, HeatBadge, PriceChip, SponsoredTag } from './cards.jsx'
 import { SaveHeart } from './saves.js'
 import { dayLabelLoose, keyOf, startLabel } from './lib.js'
-import { CATEGORIES } from './categories.js'
+import { CATEGORIES, CATEGORY_EMOJI, PLACETYPE_EMOJI } from './categories.js'
 import { usePlaces, isPlaceKey } from './places.js'
 import './map.css'
 
@@ -121,6 +121,8 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
   const [ready, setReady] = useState(false) // map exists (set on first activation)
   const [sheet, setSheet] = useState(null) // J3: event/place previewed in the bottom sheet
   const [inView, setInView] = useState(null) // J4: count in bounds (null until the map exists)
+  const [picks, setPicks] = useState([]) // 3.7P-28: top in-view items feeding the decision deck
+  const [deckOpen, setDeckOpen] = useState(false) // 3.7P-28: deck expanded (full picks) vs one-pick peek
   // ===== T1 filter state =====
   // layer: null = AUTO (follow context — Events normally, but Both while a
   // place focus is pending so "Open in Map" from a PlaceDetail lands on the
@@ -300,14 +302,28 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
       layer.addLayer(m)
     }
   }
-  // J4: count events inside the current bounds (the note renders it live)
+  // J4 / 3.7P-28: scan the current bounds ONCE — it feeds BOTH the honest in-view
+  // count AND the decision deck's top picks, so a pan updates them together. Picks
+  // are "curated" by a REAL signal: event buzz, with a hot ring counting double.
+  // Places carry no heat (places.js contract) so they score 0 — on a Spots view
+  // the deck is an honest "what's here" list and its header drops the "Top" claim
+  // (D6). Capped at 8: the deck never holds the whole in-view set (a metro view
+  // can be hundreds), and never-hide still holds — every pin stays on the map.
   const countInView = () => {
     const map = mapRef.current
     if (!map) return
     const b = map.getBounds()
-    let n = 0
-    for (const e of withCoords) if (b.contains([e.lat, e.lng])) n++
-    setInView(n)
+    const vis = []
+    for (const e of withCoords) if (b.contains([e.lat, e.lng])) vis.push(e)
+    setInView(vis.length)
+    const scored = vis
+      .map((e) => ({
+        e,
+        s: e.kind === 'place' ? 0 : (typeof e.buzz === 'number' ? e.buzz : 0) + (e.buzz >= 3 ? 5 : 0),
+      }))
+      .sort((a, z) => z.s - a.s)
+      .slice(0, 8)
+    setPicks(scored.map((x) => x.e))
   }
   // map event handlers are bound ONCE at creation — they read the latest
   // closures through refs (same contract as onSelectRef). Declared before the
@@ -434,6 +450,52 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
     else if (requestCoords) requestCoords().then(apply)
   }
 
+  // 3.7P-28: the decision deck — a docked card answering "what should I do in
+  // THIS view?" without hunting pin to pin. A pick taps straight into the map's
+  // OWN flow (pan + the existing PinSheet preview), never a parallel one. The
+  // emoji mirrors the pin's identity: category for events, placeType for spots.
+  const pickEmoji = (e) =>
+    e.kind === 'place' ? PLACETYPE_EMOJI[e.placeType] ?? '📍' : CATEGORY_EMOJI[e.category] ?? '⭐'
+  const pickMeta = (e) =>
+    e.kind === 'place'
+      ? 'Spot'
+      : e._ongoing
+        ? 'Ongoing'
+        : [dayLabelLoose(e), startLabel(e)].filter(Boolean).join(' · ') || 'Tap for details'
+  const onPickTap = (p) => {
+    const map = mapRef.current
+    if (map && p.lat != null && p.lng != null) {
+      map.setView([p.lat, p.lng], Math.max(map.getZoom(), PIN_ZOOM), { animate: true })
+    }
+    setSheet(p) // the SAME preview a marker tap opens (the deck hides while it's up)
+  }
+  // header honesty (D6): "Top picks" only earns the word when a real ranking
+  // exists (some in-view event carries buzz); a flat / pure-spots view is "In
+  // this area". expandable gates the toggle; deckList is the peek vs the full set.
+  const ranked = picks.some((p) => p.kind !== 'place' && (p.buzz || 0) > 0)
+  const expandable = picks.length > 1
+  const deckList = expandable && deckOpen ? picks.slice(0, 6) : picks.slice(0, 1)
+  const countLabel =
+    inView == null
+      ? `${num(withCoords.length)} ${noun} on the map`
+      : inView === 0
+        ? 'Nothing mapped in this view'
+        : `${num(inView)} ${inView === 1 ? 'thing' : 'things'} in this area`
+  const supplyLabel = `${num(withCoords.length)}/${num(totalShown)} ${noun} mapped`
+  const deckHead = (
+    <>
+      <span className="map-deck-titlerow">
+        <span className="map-deck-count">{countLabel}</span>
+        {expandable && (
+          <span className="map-deck-chev" aria-hidden>
+            {deckOpen ? '▴' : '▾'}
+          </span>
+        )}
+      </span>
+      <span className="map-deck-supply">{supplyLabel}</span>
+    </>
+  )
+
   return (
     <div className="map-wrap">
       <div ref={elRef} className="map" />
@@ -550,15 +612,55 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
         </div>
       )}
 
-      {!sheet && (
-        <div className="map-note">
-          {placesLoading && layer === 'places'
-            ? 'Loading spots…'
-            : inView == null
-              ? `${num(withCoords.length)} of ${num(totalShown)} ${noun} on the map`
-              : `${num(inView)} in view · ${num(withCoords.length)}/${num(totalShown)} ${noun} on the map`}
-        </div>
-      )}
+      {!sheet &&
+        (placesLoading && layer === 'places' ? (
+          <div className="map-deck">
+            <div className="map-deck-head">
+              <span className="map-deck-titlerow">
+                <span className="map-deck-count">Loading spots…</span>
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className={'map-deck' + (deckOpen ? ' open' : '')}>
+            {expandable ? (
+              <button
+                className="map-deck-head map-deck-toggle"
+                onClick={() => setDeckOpen((v) => !v)}
+                aria-expanded={deckOpen}
+                aria-label={deckOpen ? 'Hide top picks in this area' : 'Show top picks in this area'}
+              >
+                {deckHead}
+              </button>
+            ) : (
+              <div className="map-deck-head">{deckHead}</div>
+            )}
+            {picks.length > 0 && (
+              <div className="map-deck-list">
+                {deckOpen && <div className="map-deck-label">{ranked ? 'Top picks in this area' : 'In this area'}</div>}
+                {deckList.map((p) => (
+                  <button key={keyOf(p)} className="map-deck-pick pressable" onClick={() => onPickTap(p)}>
+                    <span className="map-deck-emoji" aria-hidden>
+                      {pickEmoji(p)}
+                    </span>
+                    <span className="map-deck-pick-main">
+                      <span className="map-deck-pick-title">{p.title}</span>
+                      <span className="map-deck-pick-meta">{pickMeta(p)}</span>
+                    </span>
+                    <span className="map-deck-go" aria-hidden>
+                      ›
+                    </span>
+                  </button>
+                ))}
+                {expandable && !deckOpen && (
+                  <button className="map-deck-more" onClick={() => setDeckOpen(true)}>
+                    {num(picks.length - 1)} more in this view ▾
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
       {sheet && (
         <PinSheet
           key={keyOf(sheet)} // another pin tapped → the sheet swaps (remount replays the rise)

@@ -475,3 +475,160 @@
     transition: none;
   }
 }
+
+/* ===== 3.7P-28 decision deck (§N screen 5) =====
+   A docked card answering "what should I do in THIS view?" — the honest in-view
+   count + a one-pick peek that expands to the top curated picks. It REPLACES the
+   old .map-note pill (App.css; that rule is now dead). Sits at z 1006: over the
+   toolbar (1005) + pins, under the pin-preview sheet (1010) it gives way to and
+   the filter wrap (1700) — all inside .map-wrap's stacking context (under the
+   tabbar, 1100). Dark glass to match .map-seg / the old note, so it reads as map
+   chrome, not a content card. Accent text is gold-on-near-black (AA-safe) — the
+   white-on-gold ban is about gold BACKGROUNDS, which this never uses. */
+.map-deck {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: calc(78px + env(safe-area-inset-bottom)); /* clears the 64px tabbar */
+  z-index: 1006;
+  background: rgba(21, 23, 28, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+  animation: mapDeckIn var(--dur-page) var(--ease-emphasis) both;
+}
+@keyframes mapDeckIn {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.map-deck-head {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  text-align: left;
+  color: #fff;
+  font: inherit;
+}
+.map-deck-toggle {
+  cursor: pointer;
+}
+.map-deck-titlerow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.map-deck-count {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.map-deck-chev {
+  margin-left: auto;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+.map-deck-supply {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+}
+.map-deck-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 8px 8px;
+}
+.map-deck-label {
+  padding: 2px 6px 6px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+.map-deck-pick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  border-radius: 11px;
+  text-align: left;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.map-deck-pick:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.map-deck-emoji {
+  flex: none;
+  font-size: 18px;
+  line-height: 1;
+}
+.map-deck-pick-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.map-deck-pick-title {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.map-deck-pick-meta {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.62);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.map-deck-go {
+  flex: none;
+  margin-left: auto;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.55);
+}
+.map-deck-more {
+  margin-top: 2px;
+  padding: 7px;
+  background: none;
+  border: none;
+  border-radius: 9px;
+  color: var(--accent);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.map-deck-more:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+@media (prefers-reduced-motion: reduce) {
+  .map-deck {
+    animation: none;
+  }
+  .map-deck-pick {
+    transition: none;
+  }
+}

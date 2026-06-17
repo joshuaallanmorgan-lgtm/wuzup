@@ -1340,6 +1340,21 @@ test('3.7P-24 §N spot detail: Best-for (from activity predicates) + honest Watc
   assert.ok(/check the forecast/.test(pd), 'Watch-out cautions are honest (paid gate + real rainy forecast), not fabricated')
 })
 
+test('3.7P-28 §N Map: in-view decision deck (curated picks + honest count, seam-safe)', () => {
+  const mv = readFileSync(path.join(ROOT, 'app', 'src', 'MapView.jsx'), 'utf8')
+  assert.ok(/map-deck/.test(mv), 'Map renders the in-view decision deck')
+  // count + picks come from ONE live bounds scan (never a static/fabricated list)
+  assert.ok(/for \(const e of withCoords\) if \(b\.contains/.test(mv), 'the deck scans the live map bounds')
+  assert.ok(/setInView\(vis\.length\)/.test(mv) && /setPicks\(/.test(mv), 'one scan feeds both the in-view count and the picks')
+  // D3: picks curated by a REAL signal (event buzz; a hot ring counts double), capped
+  assert.ok(/typeof e\.buzz === 'number'/.test(mv) && /e\.buzz >= 3 \? 5 : 0/.test(mv), 'picks are ranked by real buzz (a hot ring counts double)')
+  assert.ok(/\.slice\(0, 8\)/.test(mv), 'the deck caps its picks (never holds the whole in-view set — never-hide still holds)')
+  // D6 honesty: "Top picks" only when a ranking truly exists, else neutral
+  assert.ok(/ranked \? 'Top picks in this area' : 'In this area'/.test(mv), 'the "Top picks" label is gated by a real ranking (else "In this area")')
+  // a deck pick taps into the SAME pin-preview flow a marker tap uses — not a parallel nav
+  assert.ok(/setSheet\(p\)/.test(mv), 'a deck pick opens the shared PinSheet preview (same flow as a marker tap)')
+})
+
 test('3.7P-39 review: every hidden-gem reader honors NON_GEM_RE (no off-shelf "gem" claim)', () => {
   const taste = readFileSync(path.join(ROOT, 'app', 'src', 'taste.js'), 'utf8')
   assert.ok(/hidden-gem'\) && !NON_GEM_RE\.test/.test(taste), 'whyReasons gates the "Hidden gem" reason chip with NON_GEM_RE')
