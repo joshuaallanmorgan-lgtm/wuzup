@@ -683,16 +683,14 @@ test('N5b re-entry: Profile save→plan pull (Calendar pull retired in 3.7P-17)'
   assert.ok(/shelfItems/.test(saves) && /openDetail/.test(saves), 'the save→plan loop stays reachable via My saves (tap a save → detail → add to day)')
 })
 
-// N5c — the day-fill deck is a first-class way to BUILD a day: a prominent hero
-// on an empty day (the deck woven into Finch day-building, Josh), dropping to the
-// quiet chip once a slot is filled.
-test('N5c deck-in-Finch: prominent build-this-day hero on an empty day', () => {
+// S1-D4 — the FillDay swipe deck was removed from the day screen (Plan-your-day
+// rework). The DayFillDeck component (incl. its prominent hero variant) stays in
+// the tree for later reuse; the DayPage just no longer renders it.
+test('S1-D4: the FillDay swipe deck is removed from DayPage (logic kept for reuse)', () => {
   const dfk = readFileSync(path.join(ROOT, 'app', 'src', 'DayFillDeck.jsx'), 'utf8')
-  assert.ok(/prominent/.test(dfk) && /dfk-entry-hero/.test(dfk), 'FillDayButton must have a prominent hero variant')
+  assert.ok(/prominent/.test(dfk) && /dfk-entry-hero/.test(dfk), 'DayFillDeck keeps its prominent hero variant (reusable later)')
   const dp = readFileSync(path.join(ROOT, 'app', 'src', 'DayPage.jsx'), 'utf8')
-  assert.ok(/slotsEmpty && <FillDayButton ts=\{ts\} prominent/.test(dp), 'an empty day must lead with the prominent deck hero')
-  // the small chip is for the partially-filled case only (empty uses the hero)
-  assert.ok(/entry\.slots\.day \|\| entry\.slots\.night\) && !\(entry\.slots\.day && entry\.slots\.night\)/.test(dp), 'the small fill chip shows only when partially filled')
+  assert.ok(!/FillDayButton/.test(dp), 'DayPage no longer renders the FillDay deck (S1-D4)')
 })
 
 // ============================================================

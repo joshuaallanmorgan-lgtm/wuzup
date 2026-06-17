@@ -32,11 +32,10 @@ import { Icon, keyOf, timeOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { CardImg, EventCard, SponsoredTag } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
-import { tasteNudge } from './taste.js'
+import { tasteNudge, useTaste, railReady } from './taste.js'
 import { usePlaces, isPlaceKey } from './places.js'
 import { daypartOf, fitsDay, pickerModel, whyFits, wxMood } from './weekend.js'
 import { eventsIcs, shareDayText } from './share.js'
-import { FillDayButton } from './DayFillDeck.jsx'
 import {
   dayEntryFor,
   emptyDay,
@@ -53,7 +52,8 @@ import './day.css'
 const wdLong = (ts) => new Date(ts).toLocaleDateString('en-US', { weekday: 'long' })
 
 export default function DayPage({ ts, events, anchors, wx }) {
-  const { openDetail: onSelect, closePage: onClose, openAdd, detail } = useNav()
+  const { openDetail: onSelect, closePage: onClose, openAdd, openDay, detail } = useNav()
+  const taste = useTaste()
 
   // the day-plan map: loaded once on mount (loadDayPlans runs the one-shot
   // WB migration + the past-day archive sweep), persisted on every change —
@@ -83,8 +83,18 @@ export default function DayPage({ ts, events, anchors, wx }) {
   useEffect(() => () => clearTimeout(fillTRef.current), [])
 
   // ===== header bits =====
-  const title = ts === anchors.todayTs ? 'Today' : ts === anchors.tomorrowTs ? 'Tomorrow' : wdLong(ts)
-  const dateLine = new Date(ts).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+  // S1-D1/D2: the header title is the constant "Plan your day"; this dayLabel
+  // (Today / Tomorrow / weekday) + the short date feed the tappable day selector,
+  // which swaps the day via openDay — a clean keyed remount, day-plan keys stay
+  // ts-keyed. Prev is clamped at today (no planning the past, the Calendar rule).
+  const dayLabel = ts === anchors.todayTs ? 'Today' : ts === anchors.tomorrowTs ? 'Tomorrow' : wdLong(ts)
+  const monthDay = new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  const shiftDay = (n) => {
+    const d = new Date(ts)
+    d.setHours(0, 0, 0, 0)
+    d.setDate(d.getDate() + n)
+    return d.getTime()
+  }
 
   // weather: the 16-day forecast map (App-owned). No entry for this day +
   // a live map = the day is past coverage → say so honestly instead of
@@ -109,9 +119,11 @@ export default function DayPage({ ts, events, anchors, wx }) {
         (e._endDay ?? e._day) >= anchors.todayTs &&
         Math.max(e._day, anchors.todayTs) === ts
     )
-    list.sort((a, b) => a._t - b._t)
+    // S1-D6: "Suggestions for you" — taste REORDERS (count-preserving; never hides),
+    // with time as the tiebreak. With no taste signal yet this falls to chronological.
+    list.sort((a, b) => tasteNudge(b, taste) - tasteNudge(a, taste) || a._t - b._t)
     return list
-  }, [events, anchors, ts])
+  }, [events, anchors, ts, taste])
 
   // ===== slots: the picker's resolution pool (same wiring as WB) =====
   const upcoming = useMemo(
@@ -226,6 +238,21 @@ export default function DayPage({ ts, events, anchors, wx }) {
     clearTimeout(toastTRef.current)
     toastTRef.current = setTimeout(() => setToast(null), 1600)
   }
+  // S1-D7: a per-suggestion quick-add — slot the event into its natural daypart for
+  // THIS day (the shared withSlot seam, same as Home/HotView "Add to day"). A taken
+  // slot flashes instead of clobbering; an open slot pops + toasts.
+  const addToDay = (e) => {
+    const part = daypartOf(e) === 'night' ? 'night' : 'day'
+    if (entry.slots[part]) {
+      flash(`Your ${part} slot is taken — clear it first`)
+      return
+    }
+    setPlans(withSlot(plans, ts, part, keyOf(e)))
+    setJustFilled(part)
+    clearTimeout(fillTRef.current)
+    fillTRef.current = setTimeout(() => setJustFilled(null), 460)
+    flash(part === 'night' ? 'Added to night ✓' : 'Added to day ✓')
+  }
   const downloadIcs = (file) => {
     const url = URL.createObjectURL(file)
     const a = document.createElement('a')
@@ -333,12 +360,21 @@ export default function DayPage({ ts, events, anchors, wx }) {
         <button className="pg-back" onClick={onClose} aria-label="Back">
           <Icon.chevron />
         </button>
-        <div>
-          <h1 className="pg-head-title">{title}</h1>
-          <div className="pg-count">{dateLine}</div>
-        </div>
+        {/* S1-D2: constant title; the date moves into the day selector below. */}
+        <h1 className="pg-head-title">Plan your day</h1>
       </header>
       <div className="pg-body dpg-body">
+        {/* S1-D1: tappable day selector — prev/next swap the day via openDay (a
+            keyed remount; day-plan keys stay ts-keyed). Prev clamps at today. */}
+        <div className="dpg-daysel">
+          <button className="dpg-daynav pressable" onClick={() => openDay(shiftDay(-1))} disabled={ts <= anchors.todayTs} aria-label="Previous day">
+            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </button>
+          <span className="dpg-daysel-label">{dayLabel} · {monthDay}</span>
+          <button className="dpg-daynav pressable" onClick={() => openDay(shiftDay(1))} aria-label="Next day">
+            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </button>
+        </div>
         {wxLine ? (
           <div className="dpg-wx">
             {wxLine}
@@ -348,6 +384,20 @@ export default function DayPage({ ts, events, anchors, wx }) {
           wx && ts > anchors.todayTs && (
             <div className="dpg-wx dpg-wx-far">Too far out for a forecast — it reaches ~16 days</div>
           )
+        )}
+
+        {/* S1-D5: the utility actions sit up here by the selector, out of the plan
+            area. "Mark a quiet day" only while both slots are empty (the mutual-
+            exclusivity rule); the whole row hides once resting. */}
+        {!rest && (
+          <div className="dpg-top-actions">
+            <button className="dpg-own-btn" onClick={() => openAdd(ts)}>+ Add your own</button>
+            {slotsEmpty && (
+              <button className="dpg-rest-btn" onClick={() => setPlans(withRest(plans, ts, true))}>
+                Mark a quiet day 🌙
+              </button>
+            )}
+          </div>
         )}
 
         {/* ===== your plan: two slots, or the calm rest card ===== */}
@@ -366,49 +416,37 @@ export default function DayPage({ ts, events, anchors, wx }) {
               {renderSlot('day')}
               {renderSlot('night')}
             </div>
-            {/* N5c — on an EMPTY day the deck is the LEAD "build this day"
-                affordance: a hero card right under the open slots. Finch-style
-                day-building made prominent (Josh). The deck falls back to the
-                picker on ≤3 candidates. DRAFT */}
-            {slotsEmpty && <FillDayButton ts={ts} prominent />}
-            <div className="dpg-plan-actions">
-              {/* day-fill deck (U-b), small chip: once ONE slot is filled the
-                  deck drops to a quiet action (the empty day uses the hero
-                  above; a fully-planned day has nothing left to fill). DRAFT */}
-              {(entry.slots.day || entry.slots.night) && !(entry.slots.day && entry.slots.night) && (
-                <FillDayButton ts={ts} />
-              )}
-              {/* create-from-day (U-c): opens the existing Add flow with this
-                  day pre-filled; submitting auto-slots it back here. DRAFT */}
-              <button className="dpg-own-btn" onClick={() => openAdd(ts)}>
-                + Add your own
-              </button>
-              {/* share this day (U-c) — only when a slot is filled */}
-              {canShare && (
+            {/* S1-D4: the FillDay swipe deck was removed from this surface (its
+                DayFillDeck logic is kept for reuse). Share stays — only when a
+                slot is filled. */}
+            {canShare && (
+              <div className="dpg-plan-actions">
                 <button className="dpg-share-btn" onClick={shareDay}>
                   📤 Share this day
                 </button>
-              )}
-            </div>
-            {/* the quiet rest control: ONLY offered while both slots are
-                empty (the mutual-exclusivity rule), only ever user-initiated */}
-            {slotsEmpty && (
-              <button className="dpg-rest-btn" onClick={() => setPlans(withRest(plans, ts, true))}>
-                Mark it a quiet day 🌙
-              </button>
+              </div>
             )}
           </>
         )}
 
-        {/* ===== the day's agenda (one-day semantics — see header comment;
-            the picker above may legitimately offer MORE via span fits) ===== */}
-        <h3 className="day-header dpg-sec">
-          Happening {ts === anchors.todayTs ? 'today' : 'this day'}
-          {agenda.length ? ` · ${agenda.length}` : ''}
-        </h3>
+        {/* ===== S1-D6: "Suggestions for you" — the day's events, taste-reordered
+            (count-preserving; never hides). One-day semantics (see header comment).
+            The subline names the REAL basis: taste when there's signal, else neutral
+            (the day's weather is carried by the expanded module above — events are
+            not weather-ranked yet, so the subline doesn't claim it). ===== */}
+        <h3 className="day-header dpg-sec">Suggestions for you</h3>
+        <div className="dpg-sec-sub">{railReady(taste) ? 'Ranked by what you like' : 'Everything on for this day'}</div>
         <div className="cal-list">
           {agenda.length ? (
-            agenda.map((e, i) => <EventCard key={keyOf(e) + i} e={e} index={i} onSelect={onSelect} />)
+            agenda.map((e, i) => (
+              <div className="dpg-sugg-row" key={keyOf(e) + i}>
+                <EventCard e={e} index={i} onSelect={onSelect} />
+                {/* S1-D7: quick-add this suggestion to the day's natural daypart */}
+                <button className="dpg-sugg-add pressable" onClick={() => addToDay(e)} aria-label={`Add ${e.title} to this day`}>
+                  +
+                </button>
+              </div>
+            ))
           ) : (
             <div className="empty empty-sm">Nothing listed for this day yet.</div>
           )}

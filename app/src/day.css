@@ -9,9 +9,33 @@
 
 /* weather line under the header (the day screen's own; the old Calendar
    .cal-wx supply summary was removed in Phase 3.5 W2) */
+/* S1-D1: the tappable day selector (prev/next swap the day via openDay) */
+.dpg-daysel { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 4px 20px 2px; }
+.dpg-daysel-label { font-size: 15px; font-weight: 700; color: var(--ink); letter-spacing: -0.2px; }
+.dpg-daynav {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform var(--dur-micro);
+}
+.dpg-daynav:active { transform: scale(0.92); }
+.dpg-daynav:disabled { opacity: 0.35; pointer-events: none; }
+
+/* S1-D3: the weather is a fuller module now (was a thin 13px line) */
 .dpg-wx {
-  padding: 4px 20px 0;
-  font-size: 13px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  min-height: 60px;
+  padding: 12px 20px 8px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--muted);
 }
@@ -191,3 +215,31 @@
   font-weight: 700;
   cursor: pointer;
 }
+
+/* S1-D5: the top utility row (Add your own / Mark a quiet day) by the selector —
+   reuses the hairline button styles but lays them side-by-side, out of the plan
+   area (overrides .dpg-rest-btn's full-width block form). */
+.dpg-top-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 16px 2px; }
+.dpg-top-actions .dpg-own-btn,
+.dpg-top-actions .dpg-rest-btn { flex: 1 1 auto; width: auto; margin: 0; }
+
+/* S1-D6: the honest subline under "Suggestions for you" */
+.dpg-sec-sub { margin: 0 20px 4px; font-size: 13px; font-weight: 500; color: var(--muted); }
+
+/* S1-D7: each suggestion = the event card + a quick-add (+). The card's own inset
+   margin moves to the row so they align; the + slots it into the day's daypart. */
+.dpg-sugg-row { display: flex; align-items: center; gap: 6px; margin: 7px 14px; }
+.dpg-sugg-row .card { flex: 1; width: auto; min-width: 0; margin: 0; }
+.dpg-sugg-add {
+  flex: 0 0 42px;
+  align-self: stretch;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--cta);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+.dpg-sugg-add:active { transform: scale(0.94); }
