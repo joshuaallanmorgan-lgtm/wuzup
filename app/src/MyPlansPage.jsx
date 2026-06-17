@@ -48,16 +48,18 @@ export default function MyPlansPage({ events, anchors }) {
   const dayHist = useMemo(() => loadDayHistory().reverse().slice(0, 10), [])
   const shelf = useMemo(() => shelfItems(savedList, events, anchors), [savedList, events, anchors])
 
-  // honest scoped count: distinct days with a filled slot (current + history)
+  // honest scoped count: distinct days with a filled slot (current + ALL history).
+  // Counts the FULL loadDayHistory() — NOT the 10-row `dayHist` slice (which is for
+  // rendering only) — so the badge never undercounts a power user's real total.
   const plansCount = useMemo(() => {
     let n = 0
     for (const k of Object.keys(dayPlans)) {
       const e = dayEntryFor(dayPlans[k])
       if (e && (e.slots.day || e.slots.night)) n++
     }
-    for (const h of dayHist) if (h?.slots && (h.slots.day || h.slots.night)) n++
+    for (const h of loadDayHistory()) if (h?.slots && (h.slots.day || h.slots.night)) n++
     return n
-  }, [dayPlans, dayHist])
+  }, [dayPlans])
 
   // a slot can hold a PLACE ('p|') key — fold the lazy places in so the journal
   // resolves their titles (the ~1.2MB fetch fires ONLY when a place key exists)
@@ -144,7 +146,7 @@ export default function MyPlansPage({ events, anchors }) {
       </header>
       <div className="pg-body">
         {!hasAnything && (
-          <div className="pf-empty">No plans yet — start one from the calendar.</div>
+          <div className="pf-empty">No plans yet — start one from the Plan tab.</div>
         )}
 
         {/* Plans → Reality — this month's planned vs follow-through (zero-is-silence) */}
