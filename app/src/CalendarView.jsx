@@ -57,6 +57,11 @@ export default function CalendarView({ events, anchors, wx }) {
   const { openDay, page } = useNav()
   const [selKey, setSelKey] = useState(null) // the TAPPED day (null = none); drives the inline bottom panel
   const [monthOff, setMonthOff] = useState(0)
+  // R-C2: month-picker popover state + refs (dropdown focus + focus-return)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const monthBtnRef = useRef(null)
+  const pickerRef = useRef(null)
+  const pickerWasOpen = useRef(false) // R-C2: drives post-commit focus-return
   // 3.7P-17: the day detail is an INLINE bottom panel (replaces the FB-12 popover)
   // — tapping a day swaps the bottom content in place, never blocking the next
   // tap. planTick re-reads the (non-reactive) plan store after an inline remove.
@@ -139,7 +144,9 @@ export default function CalendarView({ events, anchors, wx }) {
   // the most-glanced surface reads as a score/"you only made 1 of 3". Show only
   // the kept count, and SILENT on misses (gate on went, not planned) — the
   // reflective plans-vs-reality lives in Profile's logbook line, not here.
-  if (reality.went > 0) rhythmStats.push({ k: 'plans', num: String(reality.went), lab: reality.went === 1 ? 'plan kept' : 'plans kept' })
+  // R-C1: month-scoped stats name the month ("out in June", "kept in June") so
+  // they read distinctly from the global ones ("day rhythm", "planned ahead").
+  if (reality.went > 0) rhythmStats.push({ k: 'plans', num: String(reality.went), lab: `kept in ${monthName}` })
   if (plannedAhead > 0) rhythmStats.push({ k: 'ahead', num: String(plannedAhead), lab: 'planned ahead' })
 
   // ===== U-d: the morning-after conversion card (the two-beat RETURN beat) =====
@@ -240,6 +247,44 @@ export default function CalendarView({ events, anchors, wx }) {
 
   // ===== the month canvas =====
   const monthTitle = month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  // R-C2: the picker offers this month + the next 12 (future-only, matching the
+  // prev/next clamp) so a selection can never push monthOff out of grid range.
+  const monthOptions = useMemo(() => {
+    const b = new Date(anchors.todayTs)
+    const out = []
+    for (let o = 0; o <= 12; o++) {
+      const m = new Date(b.getFullYear(), b.getMonth() + o, 1)
+      out.push({ off: o, label: m.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) })
+    }
+    return out
+  }, [anchors.todayTs])
+  // R-C2: capture-Escape closes the picker before App's global listener (the
+  // PickerSheet pattern); focus moves into the list on open. Only setMonthOff is
+  // ever called — todayTs/dayPlans untouched.
+  useEffect(() => {
+    if (!pickerOpen) return
+    pickerRef.current?.focus()
+    const onKey = (ev) => {
+      if (ev.key !== 'Escape') return
+      ev.stopPropagation()
+      setPickerOpen(false)
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [pickerOpen])
+  // R-C2 (review P2): focus-return runs in a POST-COMMIT effect, not synchronously
+  // in the option onClick — selecting a different month bumps the cal-fade key, so
+  // the trigger button REMOUNTS; a sync focus() would hit the old (about-to-unmount)
+  // node and drop focus to <body>. By the time this effect runs, monthBtnRef points
+  // at the fresh node. Covers every close path (select / Escape / scrim); the
+  // wasOpen ref prevents stealing focus on the initial mount.
+  useEffect(() => {
+    if (pickerOpen) pickerWasOpen.current = true
+    else if (pickerWasOpen.current) {
+      pickerWasOpen.current = false
+      monthBtnRef.current?.focus()
+    }
+  }, [pickerOpen])
   const firstDow = month.getDay()
   const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate()
   const cells = []
@@ -368,7 +413,43 @@ export default function CalendarView({ events, anchors, wx }) {
           the journal). */}
       <div className="cal-fade" key={'month' + monthOff}>
         <div className="mon-head">
-          <h3 className="mon-title">{monthTitle}</h3>
+          {/* R-C2: the month/year label is a tappable popover trigger now — a
+              caret opens a month picker (this month + the next 12); the prev/next
+              arrows stay as secondary one-step nudges. The picker only ever calls
+              setMonthOff (clamped to [0,12]) — it never touches the day stores. */}
+          <div className="mon-pickwrap">
+            <button
+              ref={monthBtnRef}
+              className="mon-pick pressable"
+              onClick={() => setPickerOpen((v) => !v)}
+              aria-haspopup="listbox"
+              aria-expanded={pickerOpen}
+            >
+              <h3 className="mon-title">{monthTitle}</h3>
+              <span className={'mon-caret' + (pickerOpen ? ' open' : '')} aria-hidden>▾</span>
+            </button>
+            {pickerOpen && (
+              <>
+                <button className="mon-picker-scrim" aria-label="Close month picker" onClick={() => setPickerOpen(false)} />
+                <div className="mon-picker" role="listbox" aria-label="Choose a month" ref={pickerRef} tabIndex={-1}>
+                  {monthOptions.map((m) => (
+                    <button
+                      key={m.off}
+                      role="option"
+                      aria-selected={m.off === monthOff}
+                      className={'mon-opt' + (m.off === monthOff ? ' on' : '')}
+                      onClick={() => {
+                        setMonthOff(m.off)
+                        setPickerOpen(false)
+                      }}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
           <div className="mon-navs">
             {/* Stage R: a "Today" quick-jump — back to the current month + select
                 today (the inline day panel follows). */}
@@ -392,9 +473,11 @@ export default function CalendarView({ events, anchors, wx }) {
             >
               <svg viewBox="0 0 24 24" width="16" height="16"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </button>
+            {/* R-C2: clamp the forward nudge to the picker's 12-month horizon */}
             <button
               className="mon-nav"
-              onClick={() => setMonthOff((o) => o + 1)}
+              onClick={() => setMonthOff((o) => Math.min(o + 1, 12))}
+              disabled={monthOff === 12}
               aria-label="Next month"
             >
               <svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
