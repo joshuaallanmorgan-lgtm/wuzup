@@ -10,10 +10,12 @@
 // an "Add your name" prompt — never a fabricated name. The city is the app's
 // active-city label (CITY.name; one constant for Tampa Bay now, ready to wire to
 // the future city selector). DRAFT copy — ⚑ Charles.
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { CITY } from './lib.js'
 import { useNav } from './nav.jsx'
 import { lsGet, lsSet } from './storage.js'
+import { useSaves, useBeenThere } from './saves.js'
+import { loadDayPlans, loadDayHistory, didDays, dayEntryFor } from './dayplan.js'
 import './profile.css'
 
 const NAME_KEY = 'profile-name-v1'
@@ -35,10 +37,36 @@ const PrefsIc = () => (<svg {...S} aria-hidden><path d="M4 7h9M18 7h2M4 17h2M11 
 const HelpIc = () => (<svg {...S} aria-hidden><circle cx="12" cy="12" r="9" /><path d="M9.3 9.3a2.8 2.8 0 0 1 5.3 1c0 1.9-2.6 2.1-2.6 3.7" /><path d="M12 17.4h.01" /></svg>)
 const Chev = () => (<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M9 6l6 6-6 6" /></svg>)
 
-export default function ProfileView() {
-  const { openSettings, openTaste, openMyPlans, openMySaves } = useNav()
+export default function ProfileView({ anchors }) {
+  const { openSettings, openTaste, openMyPlans, openMySaves, page } = useNav()
   const [name, setName] = useState(() => lsGet(NAME_KEY) || '')
   const [editing, setEditing] = useState(false)
+
+  // S1-P3: honest lifetime stats from the REAL stores — never hardcoded. Saves +
+  // days-out are reactive (hooks); plans reads the non-reactive day store, so it
+  // recomputes on mount and whenever a subpage closes back to Profile (page flip).
+  const { list: savedList } = useSaves()
+  const been = useBeenThere()
+  // distinct filled days across the live plan store + history. localStorage isn't
+  // reactive, so re-read on subpage edges (`void page`) — a day planned in My plans
+  // reflects here on return. (useMemo, not effect+setState — same CalendarView seam.)
+  const planCount = useMemo(() => {
+    void page
+    const map = loadDayPlans(anchors)
+    const days = new Set()
+    for (const k of Object.keys(map)) {
+      const e = dayEntryFor(map[k])
+      if (e && (e.slots.day || e.slots.night)) days.add(k)
+    }
+    for (const h of loadDayHistory()) if (h?.slots && (h.slots.day || h.slots.night)) days.add(String(h.dayTs))
+    return days.size
+  }, [anchors, page])
+  const daysOut = didDays(been).size
+  const stats = [
+    { k: 'plans', n: planCount, lab: planCount === 1 ? 'Plan' : 'Plans' },
+    { k: 'saves', n: savedList.length, lab: savedList.length === 1 ? 'Save' : 'Saves' },
+    { k: 'days', n: daysOut, lab: daysOut === 1 ? 'Day out' : 'Days out' },
+  ]
   const save = (v) => {
     const t = (v || '').trim().slice(0, 40)
     setName(t)
@@ -62,7 +90,8 @@ export default function ProfileView() {
         <button className="pf-gear" onClick={openSettings} aria-label="Settings">
           <GearIc />
         </button>
-        <div className="pf-id">
+        {/* S1-P1: the colored identity card — name + city in white on --cta. */}
+        <div className="pf-name-block">
           <div className="pf-avatar">{initial || <PersonIc />}</div>
           <div className="pf-id-main">
             {editing ? (
@@ -96,6 +125,16 @@ export default function ProfileView() {
             )}
             <div className="pf-loc">{CITY.name}</div>
           </div>
+        </div>
+        {/* S1-P3/P4: the honest lifetime stats trio (Plans · Saves · Days out),
+            below the name block, above the hairline + menu. */}
+        <div className="pf-stats">
+          {stats.map((s) => (
+            <div className="pf-stat" key={s.k}>
+              <span className="pf-stat-num">{s.n}</span>
+              <span className="pf-stat-lab">{s.lab}</span>
+            </div>
+          ))}
         </div>
       </header>
 

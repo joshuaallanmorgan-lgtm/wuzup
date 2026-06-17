@@ -1339,11 +1339,13 @@ test('3.7P-41 §N Search: NL example prompts + result-type tabs', () => {
   assert.ok(/export function searchGuides/.test(srch) && /!q\.text\.length\) return \[\]/.test(srch), 'searchGuides is text-only (a guide has no date/price) — honest, no fabricated matches')
 })
 
-test('3.7P-30b → Stage R: honest counts live in the My plans / My saves subpages', () => {
-  // The Stage R Profile rework removed the header stats-trio; the honest counts
-  // moved INTO the drill-ins, still computed from real stores (never hardcoded).
+test('S1-P3: the Profile header stats-trio is computed from real stores (re-added)', () => {
+  // S1-P3 (resolved decision) RE-ADDS the header stats-trio, computed from the real
+  // stores (distinct filled days · saves length · didDays size) — never hardcoded.
+  // The drill-ins keep their own counts too.
   const pv = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
-  assert.ok(!/pf-stats/.test(pv), 'the header stats-trio was removed (Profile = avatar + name + menu)')
+  assert.ok(/pf-stats/.test(pv), 'the header stats-trio is present (S1-P3)')
+  assert.ok(/loadDayPlans\(/.test(pv) && /didDays\(/.test(pv) && /useSaves\(/.test(pv), 'the trio is computed from real stores (plans / days-out / saves)')
   const mp = readFileSync(path.join(ROOT, 'app', 'src', 'MyPlansPage.jsx'), 'utf8')
   assert.ok(/plansCount/.test(mp) && /e\.slots\.day \|\| e\.slots\.night/.test(mp), 'My plans count = distinct filled days from the real day store (computed)')
   const ms = readFileSync(path.join(ROOT, 'app', 'src', 'MySavesPage.jsx'), 'utf8')

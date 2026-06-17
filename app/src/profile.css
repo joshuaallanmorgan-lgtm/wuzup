@@ -41,7 +41,24 @@
 .pf-gear:active { transform: scale(0.92); }
 
 /* ===== Stage R Profile rework: identity header + flat menu list ===== */
-.pf-id { display: flex; align-items: center; gap: 14px; margin-top: 8px; }
+/* S1-P1: the colored identity card — name + city in WHITE on --cta (#bb5719 ≈
+   4.68:1 AA; the one sanctioned white-on-warm — never the light gold --accent). */
+.pf-name-block {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 8px;
+  padding: 18px;
+  border-radius: 18px;
+  background: var(--cta);
+  color: #fff;
+}
+.pf-name-block .pf-avatar { background: rgba(255, 255, 255, 0.18); color: #fff; }
+.pf-name-block .pf-name { color: #fff; }
+.pf-name-block .pf-name-empty { color: rgba(255, 255, 255, 0.82); }
+.pf-name-block .pf-name-input { color: #fff; border-bottom-color: rgba(255, 255, 255, 0.6); }
+.pf-name-block .pf-name-input::placeholder { color: rgba(255, 255, 255, 0.7); }
+.pf-name-block .pf-loc { color: rgba(255, 255, 255, 0.88); }
 .pf-avatar {
   flex: 0 0 52px;
   width: 52px;
