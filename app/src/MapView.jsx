@@ -42,7 +42,7 @@ import { getLeaflet } from './leaflet-lazy.js'
 import { useNav, viewIndex } from './nav.jsx'
 import { CATEGORY_HUES, CardImg, HeatBadge, PriceChip, SponsoredTag } from './cards.jsx'
 import { SaveHeart } from './saves.js'
-import { dayLabelLoose, keyOf, startLabel } from './lib.js'
+import { CITY, dayLabelLoose, keyOf, startLabel } from './lib.js'
 import { CATEGORIES, CATEGORY_EMOJI, PLACETYPE_EMOJI } from './categories.js'
 import { usePlaces, isPlaceKey } from './places.js'
 import './map.css'
@@ -474,13 +474,16 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
   // this area". expandable gates the toggle; deckList is the peek vs the full set.
   const ranked = picks.some((p) => p.kind !== 'place' && (p.buzz || 0) > 0)
   const expandable = picks.length > 1
-  const deckList = expandable && deckOpen ? picks.slice(0, 6) : picks.slice(0, 1)
+  // Stage R: the deck shows a few picks BY DEFAULT (benchmark), expanding to the
+  // full capped top-8 on "View all in this area".
+  const PEEK = 3
+  const deckList = deckOpen ? picks.slice(0, 8) : picks.slice(0, PEEK)
   const countLabel =
     inView == null
       ? `${num(withCoords.length)} ${noun} on the map`
       : inView === 0
         ? 'Nothing mapped in this view'
-        : `${num(inView)} ${inView === 1 ? 'thing' : 'things'} in this area`
+        : `${num(inView)} ${inView === 1 ? 'thing' : 'things'} around ${CITY.name}`
   const supplyLabel = `${num(withCoords.length)}/${num(totalShown)} ${noun} mapped`
   const deckHead = (
     <>
@@ -637,7 +640,8 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
             )}
             {picks.length > 0 && (
               <div className="map-deck-list">
-                {deckOpen && <div className="map-deck-label">{ranked ? 'Top picks in this area' : 'In this area'}</div>}
+                {/* Stage R: the label shows by default above the picks (benchmark). */}
+                <div className="map-deck-label">{ranked ? 'Top picks in this area' : 'In this area'}</div>
                 {deckList.map((p) => (
                   <button key={keyOf(p)} className="map-deck-pick pressable" onClick={() => onPickTap(p)}>
                     <span className="map-deck-emoji" aria-hidden>
@@ -652,11 +656,20 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
                     </span>
                   </button>
                 ))}
-                {expandable && !deckOpen && (
-                  <button className="map-deck-more" onClick={() => setDeckOpen(true)}>
-                    {num(picks.length - 1)} more in this view ▾
-                  </button>
-                )}
+                {/* Stage R: "View all in this area" reveals the full set of TOP
+                    picks (capped at 8); the count line above shows the true total,
+                    so "view all" reads as "view all the top picks" (honest, never
+                    implies the deck holds every in-view pin). */}
+                {expandable &&
+                  (picks.length > deckList.length ? (
+                    <button className="map-deck-more" onClick={() => setDeckOpen(true)}>
+                      View all in this area
+                    </button>
+                  ) : deckOpen && picks.length > PEEK ? (
+                    <button className="map-deck-more" onClick={() => setDeckOpen(false)}>
+                      Show fewer
+                    </button>
+                  ) : null)}
               </div>
             )}
           </div>
