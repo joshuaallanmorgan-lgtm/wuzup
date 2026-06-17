@@ -28,8 +28,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon, milesBetween } from './lib.js'
 import { useNav } from './nav.jsx'
-import { RowFeed } from './cards.jsx'
+import { IntentTile, RowFeed, SecHead } from './cards.jsx'
 import { CATEGORIES } from './categories.js'
+import { GUIDES } from './guides.js'
 import { usePlaces } from './places.js'
 import { tasteNudge } from './taste.js'
 import {
@@ -39,6 +40,7 @@ import {
   recordSearchRecent,
   removeSearchRecent,
   searchEvents,
+  searchGuides,
   searchPlaces,
 } from './search.js'
 import './bubble.css'
@@ -56,7 +58,7 @@ const SUGGESTIONS = [
 ]
 
 export default function SearchPage({ events, anchors, coords }) {
-  const { openDetail, closePage: onClose } = useNav()
+  const { openDetail, openGuide, closePage: onClose } = useNav()
   const pgRef = useRef(null) // the scrolling ancestor — RowFeed's IO root
   const inputRef = useRef(null)
   const [q, setQ] = useState('') // live input value
@@ -103,13 +105,30 @@ export default function SearchPage({ events, anchors, coords }) {
     () => (parsed.empty ? [] : searchPlaces(placePool, anchors, dq)),
     [parsed, placePool, anchors, dq]
   )
+  // Stage R: GUIDES are the 4th scope (searchGuides matches name/pov text → real
+  // GuidePages). A date/free-only query yields none (a guide has no date/price).
+  const guideResults = useMemo(
+    () => (parsed.empty ? [] : searchGuides(GUIDES, dq, anchors)),
+    [parsed, dq, anchors]
+  )
   const hasQ = !parsed.empty
-  const total = results.length + placeResults.length
-  // TWO labeled groups: Events first (the question the home tab answers), then
-  // Spots. An empty group renders no header (RowFeed skips label-only sections
-  // with no items); a date-constrained query naturally yields zero Spots.
-  const eventSection = useMemo(() => [{ label: 'Events', items: results }], [results])
-  const placeSection = useMemo(() => [{ label: 'Spots', items: placeResults }], [placeResults])
+  const total = results.length + placeResults.length + guideResults.length
+  // Stage R section labels (benchmark): events split into "Best matches" (the
+  // top relevance-ranked hits — TRUE because searchEvents sorts by match score on
+  // a TEXT query) + "Other events" (the rest). A DATE-ONLY browse isn't relevance-
+  // ranked (it is de-flood/taste order), so it stays one honest "Events" group —
+  // no "best" claim. Spots → "Spots that fit"; Guides render in their own block.
+  const eventSection = useMemo(() => {
+    if (!results.length) return []
+    if (parsed.text.length && results.length > 4) {
+      return [
+        { label: 'Best matches', items: results.slice(0, 3) },
+        { label: 'Other events', items: results.slice(3) },
+      ]
+    }
+    return [{ label: parsed.text.length ? 'Best matches' : 'Events', items: results }]
+  }, [results, parsed])
+  const placeSection = useMemo(() => [{ label: 'Spots that fit', items: placeResults }], [placeResults])
 
   // recents record on a tapped result (the query earned its keep) — works for
   // both an event and a place (openDetail branches on kind in App) …
@@ -184,13 +203,15 @@ export default function SearchPage({ events, anchors, coords }) {
             <div className="srch-count">
               {total.toLocaleString('en-US')} result{total === 1 ? '' : 's'} for “{dq.trim()}”
             </div>
-            {/* 3.7P-41 (§N screen 9): result-type tabs to scope the union. Only
-                the tabs that have results are offered (no dead "Spots (0)" tab). */}
+            {/* 3.7P-41 → Stage R (§N screen 9): result-type tabs scope the union —
+                All · Events · Spots · Guides. Only tabs that have results are
+                offered (no dead "Guides (0)" tab — honest). */}
             <div className="srch-tabs">
               {[
                 { id: 'all', label: 'All', n: total },
                 { id: 'events', label: 'Events', n: results.length },
                 { id: 'spots', label: 'Spots', n: placeResults.length },
+                { id: 'guides', label: 'Guides', n: guideResults.length },
               ]
                 .filter((t) => t.id === 'all' || t.n > 0)
                 .map((t) => (
@@ -204,18 +225,45 @@ export default function SearchPage({ events, anchors, coords }) {
                   </button>
                 ))}
             </div>
-            {/* ONE RowFeed over the in-scope labeled groups so pagination + the
-                end-cap span them; an empty group renders no header. A Spots row
-                opens PlaceDetail via the shared select. key resets paging per query+tab */}
-            <RowFeed
-              key={dq.trim() + '|' + tab}
-              sections={[...(tab !== 'spots' ? eventSection : []), ...(tab !== 'events' ? placeSection : [])]}
-              showDist={!!coords}
-              stagger
-              compact
-              scrollRootRef={pgRef}
-              onSelect={select}
-            />
+            {/* events + spots via the shared RowFeed (compact CompactRows); not
+                rendered on the Guides tab (a guide isn't a RowFeed item). key
+                resets paging per query+tab. */}
+            {tab !== 'guides' && (
+              <RowFeed
+                key={dq.trim() + '|' + tab}
+                sections={[
+                  ...(tab === 'all' || tab === 'events' ? eventSection : []),
+                  ...(tab === 'all' || tab === 'spots' ? placeSection : []),
+                ]}
+                showDist={!!coords}
+                stagger
+                compact
+                scrollRootRef={pgRef}
+                onSelect={select}
+              />
+            )}
+            {/* Guides — real GuidePages whose name/pov matched the query; shown in
+                the All feed (after events/spots) and as the dedicated Guides tab. */}
+            {(tab === 'all' || tab === 'guides') && guideResults.length > 0 && (
+              <section className="sec">
+                <SecHead overline="Collections" title="Guides" />
+                <div className="intent-grid">
+                  {guideResults.map((g) => (
+                    <IntentTile
+                      key={g.id}
+                      emoji={g.emoji}
+                      label={g.title}
+                      pov={g.pov}
+                      hue={g.hue}
+                      onClick={() => {
+                        setRecents(recordSearchRecent(dq))
+                        openGuide(g)
+                      }}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
           </>
         )}
         {hasQ && total === 0 && (

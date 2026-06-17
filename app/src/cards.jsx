@@ -541,6 +541,10 @@ export const CompactRow = memo(function CompactRow({ e, dist, style, onSelect })
         <SponsoredTag e={e} />
       </div>
       {mode === 'photo' && <CardImg e={e} className="crow-thumb" />}
+      {/* Stage R: every compare row carries an inline Save (was absent — the row
+          had no heart at all). SaveHeart is a span[role=button] (valid inside the
+          row button) + stopPropagation; modes.css styles it in-flow at the right. */}
+      <SaveHeart e={e} />
     </button>
   )
 })

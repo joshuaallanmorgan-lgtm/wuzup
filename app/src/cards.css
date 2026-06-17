@@ -329,7 +329,10 @@
   text-align: left;
   cursor: pointer;
 }
-.featc-img { display: block; width: 100%; aspect-ratio: var(--ar-card); border-radius: 0; }
+/* Stage R: round the image's TOP corners to match the 18px card (1px border →
+   17px inner), so the hero corners read rounded even if overflow:hidden doesn't
+   clip the <img> on a given renderer. */
+.featc-img { display: block; width: 100%; aspect-ratio: var(--ar-card); border-radius: 17px 17px 0 0; }
 .featc-open .free-badge { top: 10px; left: 10px; }
 .featc-body { display: flex; flex-direction: column; gap: 6px; padding: 13px 15px 4px; }
 .featc-meta { font-size: 13px; font-weight: 600; color: var(--muted); }

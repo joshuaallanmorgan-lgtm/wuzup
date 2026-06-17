@@ -13,7 +13,7 @@ import { useNav } from './nav.jsx'
 import { DAY, dayKey, hotDesc, Icon, keyOf, parseDate, priceLabel, timeOf } from './lib.js'
 import { eventIcs } from './share.js'
 import { CATEGORY_EMOJI, HeatBadge, SecHead, TonightCard, hueFor } from './cards.jsx'
-import { SaveHeart } from './saves.js'
+import { SaveHeart, useSaves } from './saves.js'
 import { whyReasons } from './taste.js'
 import { daypartOf } from './weekend.js'
 import { loadDayPlans, saveDayPlans, withSlot, dayEntryFor } from './dayplan.js'
@@ -242,6 +242,19 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
   const planDays = useMemo(() => eventPlanDays(e, anchors), [e, anchors])
   const canPlan = planDays.length > 0
   const natural = daypartOf(e) // 'day' | 'night' | 'any'
+  // Stage R: the bottom bar pairs Save + the primary (benchmark). An honest
+  // day-specific CTA label — the event's first plannable day (the sheet's
+  // default) + its natural daypart ("tonight"/"today" when that day is today).
+  const { has: hasSave, toggle: toggleSave } = useSaves()
+  const saved = hasSave(e)
+  const d0 = planDays[0]
+  const addLabel = d0
+    ? d0.ts === anchors.todayTs
+      ? natural === 'night'
+        ? 'Add to tonight'
+        : 'Add to today'
+      : `Add to ${d0.label}${natural === 'night' ? ' night' : ''}`
+    : 'Add to day'
   const [planning, setPlanning] = useState(false)
   const [planDayTs, setPlanDayTs] = useState(null)
   const [plansVersion, setPlansVersion] = useState(0)
@@ -582,28 +595,38 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         </div>
       )}
 
-      {/* PLANNER-FIRST primary CTA (3.7P-34): "Add to day" leads; the official
-          event / ticket link is demoted into the util-row above. A past or undated
-          event can't be planned, so it falls back to the event link as the CTA. */}
-      {canPlan ? (
-        <button className="detail-cta" ref={planBtnRef} onClick={() => setPlanning(true)}>
-          ＋ Add to day
+      {/* Stage R (§N event detail): the bottom ACTION BAR — Save (outline, flex:0)
+          + the primary (gold, flex:1), side by side (mirrors the spot-detail bar).
+          PLANNER-FIRST (3.7P-34): "Add to {day}" leads; the official event/ticket
+          link is the fallback primary for a past/undated event (still saveable). */}
+      <div className="detail-actionbar">
+        <button
+          className={'detail-save-btn' + (saved ? ' on' : '')}
+          onClick={() => toggleSave(e)}
+          aria-pressed={saved}
+        >
+          {saved ? '♥ Saved' : '♡ Save'}
         </button>
-      ) : (
-        e.url && (
-          <a className="detail-cta" href={e.url} target="_blank" rel="noreferrer">
-            {e.isFree === true || !(e.price > 0) ? (
-              <>
-                View event <span className="cta-arr">↗</span>
-              </>
-            ) : (
-              <>
-                Get Tickets <span className="cta-arr">→</span>
-              </>
-            )}
-          </a>
-        )
-      )}
+        {canPlan ? (
+          <button className="loc-plan-cta detail-actionbar-cta" ref={planBtnRef} onClick={() => setPlanning(true)}>
+            ＋ {addLabel}
+          </button>
+        ) : (
+          e.url && (
+            <a className="loc-plan-cta detail-actionbar-cta" href={e.url} target="_blank" rel="noreferrer">
+              {e.isFree === true || !(e.price > 0) ? (
+                <>
+                  View event <span className="cta-arr">↗</span>
+                </>
+              ) : (
+                <>
+                  Get Tickets <span className="cta-arr">→</span>
+                </>
+              )}
+            </a>
+          )
+        )}
+      </div>
     </div>
   )
 }

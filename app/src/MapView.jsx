@@ -259,7 +259,8 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
     const icon = L.divIcon({
       className: 'pl-ico',
       html: `<span class="pl-pin" style="background:hsl(${hueOf(p)},62%,42%)"></span>`,
-      iconSize: [16, 16],
+      iconSize: [14, 14], // Stage R: match .pl-pin (14px) so the pin centers on the coord
+      iconAnchor: [7, 7],
     })
     const m = L.marker([p.lat, p.lng], { icon, bubblingMouseEvents: false })
     m.on('click', () => setSheet(p))

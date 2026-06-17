@@ -1237,9 +1237,13 @@ test('3.7P-34 event-detail: planner-first Add-to-day CTA + demoted event link', 
   const dp = readFileSync(path.join(ROOT, 'app', 'src', 'DetailPage.jsx'), 'utf8')
   assert.ok(/from '\.\/dayplan\.js'/.test(dp) && /withSlot/.test(dp) && /dayEntryFor/.test(dp), 'DetailPage imports the day-plan seams')
   assert.ok(/daypartOf/.test(dp), 'uses daypartOf for the natural slot suggestion')
-  assert.ok(/＋ Add to day/.test(dp) && /canPlan \?/.test(dp), 'the primary .detail-cta is Add-to-day when the event can be planned')
+  // Stage R: the primary is now an honest day-specific label (Add to tonight /
+  // Add to Friday night) in a two-button action bar (Save + Add). canPlan gates it.
+  assert.ok(/＋ \{addLabel\}/.test(dp) && /canPlan \?/.test(dp), 'the primary CTA is the planner Add when the event can be planned')
+  assert.ok(/Add to tonight/.test(dp) && /Add to \$\{d0\.label\}/.test(dp), 'the Add label is day-specific + honest (event own day + natural daypart)')
+  assert.ok(/detail-actionbar/.test(dp) && /detail-save-btn/.test(dp), 'the bottom bar pairs Save + the primary (two-button)')
   assert.ok(/if \(entry && entry\.slots\[part\]\) return/.test(dp), 'addToPlan never clobbers a filled slot')
-  assert.ok(/canPlan && e\.url &&/.test(dp), 'the official event / ticket link is demoted to a secondary util action')
+  assert.ok(/canPlan \? \(/.test(dp) && /e\.url && \(/.test(dp), 'the official event / ticket link is the fallback primary for a non-plannable event')
   assert.ok(/function eventPlanDays/.test(dp) && /Math\.max\(e\._day, anchors\.todayTs\)/.test(dp), 'plan days are clamped to the event run (its own day), never arbitrary')
   assert.ok(/aria-modal="true"/.test(dp) && /planSheetRef/.test(dp) && /planBtnRef\.current\?\.focus\(\)/.test(dp), 'the add-to-day sheet is a focus-managed dialog (focus in + return to trigger)')
 })
@@ -1317,9 +1321,16 @@ test('3.7P-24 §N Spots: Recommended featured card + compact place Everything (g
 test('3.7P-41 §N Search: NL example prompts + result-type tabs', () => {
   const sp = readFileSync(path.join(ROOT, 'app', 'src', 'SearchPage.jsx'), 'utf8')
   assert.ok(/NL_EXAMPLES = \[/.test(sp) && /free things tonight/.test(sp), 'Search offers natural-language example prompts')
-  assert.ok(/srch-tabs/.test(sp) && /id: 'events'/.test(sp) && /id: 'spots'/.test(sp), 'Search has All/Events/Spots result tabs')
+  // Stage R: All · Events · Spots · Guides (the 4th scope is honest — guides match
+  // on name/pov text and render as real GuidePages; the empty-tab filter keeps a
+  // 0-match Guides tab hidden). Events split into "Best matches" / "Other events".
+  assert.ok(/srch-tabs/.test(sp) && /id: 'events'/.test(sp) && /id: 'spots'/.test(sp) && /id: 'guides'/.test(sp), 'Search has All/Events/Spots/Guides result tabs')
   assert.ok(/t\.id === 'all' \|\| t\.n > 0/.test(sp), 'a result tab is only offered when it has matches (no dead empty tab)')
-  assert.ok(/tab !== 'spots' \? eventSection/.test(sp), 'the active tab scopes which groups render')
+  assert.ok(/tab === 'all' \|\| tab === 'events' \? eventSection/.test(sp), 'the active tab scopes which groups render')
+  assert.ok(/label: 'Best matches'/.test(sp) && /label: 'Other events'/.test(sp) && /Spots that fit/.test(sp), 'sections are labelled Best matches / Other events / Spots that fit')
+  assert.ok(/searchGuides\(GUIDES/.test(sp) && /openGuide\(g\)/.test(sp), 'the Guides scope searches real GUIDES and opens their GuidePage')
+  const srch = readFileSync(path.join(ROOT, 'app', 'src', 'search.js'), 'utf8')
+  assert.ok(/export function searchGuides/.test(srch) && /!q\.text\.length\) return \[\]/.test(srch), 'searchGuides is text-only (a guide has no date/price) — honest, no fabricated matches')
 })
 
 test('3.7P-30b §N Profile: computed stats strip (Plans · Saves · Days out)', () => {

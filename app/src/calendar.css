@@ -68,6 +68,23 @@
 }
 .mon-nav:active { transform: scale(0.92); }
 .mon-nav:disabled { opacity: 0.35; pointer-events: none; }
+/* Stage R: the "Today" quick-jump pill in the month nav */
+.cal-today {
+  align-self: center;
+  height: 32px;
+  padding: 0 13px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.cal-today:active {
+  transform: scale(0.95);
+}
 .mgrid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 0 12px; }
 .mdow { text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); padding: 8px 0 4px; }
 .mcell-blank { height: 56px; }

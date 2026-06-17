@@ -180,6 +180,20 @@
 .crow-series { margin-top: 4px; font-size: 12px; font-weight: 700; color: var(--accent-ink); letter-spacing: 0.01em; }
 .crow .sp-label { display: block; margin-top: 3px; }
 .crow-thumb { flex: 0 0 48px; width: 48px; height: 48px; border-radius: 10px; }
+/* Stage R: the inline Save at the right of every compact row — in-flow (not the
+   dark image-overlay pill), a plain heart glyph that goes hot when saved. */
+.crow > .save-btn {
+  position: static;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  background: none;
+  backdrop-filter: none;
+  color: var(--muted);
+}
+.crow > .save-btn.on {
+  color: var(--hot);
+}
 /* the staggered rise also covers compact rows when a page swaps its list in */
 .feed-stagger .crow { animation: rowIn var(--dur-fast) var(--ease-out) both; }
 /* 3.7P-23 review: in a bare .feed--compact (Home gem/recents sections, no trailing

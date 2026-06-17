@@ -289,6 +289,41 @@ export function searchPlaces(places, anchors, query) {
   return hits.map((h) => h.p)
 }
 
+// ===== Stage R: the GUIDES matcher (the 4th search scope). A guide is a curated
+// collection (guides.js) — it has no date and no venue, so it matches ONLY on
+// TEXT tokens against its title / point-of-view / id (word-prefix, same fold).
+// A date-only or free-only query returns [] (a guide isn't "on Friday" and "free"
+// is an event/place filter). Honest: results are real guides whose name/pov the
+// query actually hits; tapping one opens its real GuidePage. =====
+const guideWords = (g) => [...words(g.title), ...words(g.pov || ''), ...words(g.id || '')]
+export function searchGuides(guides, query, anchors) {
+  const q = parseQuery(query, anchors)
+  if (q.empty || !q.text.length) return [] // guides match on name/pov text only
+  const hits = []
+  for (const g of Array.isArray(guides) ? guides : []) {
+    const hay = guideWords(g)
+    let score = 0
+    let miss = false
+    for (const t of q.text) {
+      let s = 0
+      for (const w of hay) {
+        if (w === t) {
+          if (35 > s) s = 35
+        } else if (w.startsWith(t) && 25 > s) s = 25
+      }
+      if (!s) {
+        miss = true
+        break
+      }
+      score += s
+    }
+    if (miss) continue
+    hits.push({ g, score })
+  }
+  hits.sort((a, b) => b.score - a.score || fold(a.g.title).localeCompare(fold(b.g.title)))
+  return hits.map((h) => h.g)
+}
+
 // ---- recent searches ('search-recents-v1' → twh:search-recents-v1) ----
 export const SEARCH_RECENTS_KEY = 'search-recents-v1'
 const RECENTS_CAP = 8
