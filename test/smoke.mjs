@@ -1298,6 +1298,15 @@ test('3.7P-23c §N Home: featured DecisionCard with inline Save / Add actions', 
   assert.ok(/rev={planRev}/.test(hot), 'NextDays re-reads after an inline add (no stale plan-state on the same screen)')
 })
 
+test('3.7P-24 §N Spots: Recommended featured card + compact place Everything (green-wall fix)', () => {
+  const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
+  assert.ok(/<FeaturedCard /.test(loc), 'Spots shows a Recommended FeaturedCard')
+  assert.ok(/sections={everything} compact/.test(loc), 'the place Everything feed is compact (no green art wall)')
+  const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
+  assert.ok(/const isPlace = e\.kind === 'place'/.test(cards) && /spotChips\(e\)\.map/.test(cards), 'FeaturedCard is place-aware (activity-first meta + amenity chips)')
+  assert.ok(/\{onAdd && <button className="featc-act featc-add"/.test(cards), 'the inline Add only renders when onAdd is provided (places open the detail to pick a day)')
+})
+
 test('3.7P-39 review: every hidden-gem reader honors NON_GEM_RE (no off-shelf "gem" claim)', () => {
   const taste = readFileSync(path.join(ROOT, 'app', 'src', 'taste.js'), 'utf8')
   assert.ok(/hidden-gem'\) && !NON_GEM_RE\.test/.test(taste), 'whyReasons gates the "Hidden gem" reason chip with NON_GEM_RE')

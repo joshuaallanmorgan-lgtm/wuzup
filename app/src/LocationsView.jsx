@@ -13,7 +13,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNav } from './nav.jsx'
 import { CITY } from './lib.js'
-import { SecHead, SpotCard, EndCap, IntentTile, RowFeed } from './cards.jsx'
+import { SecHead, SpotCard, EndCap, FeaturedCard, IntentTile, RowFeed } from './cards.jsx'
 import { GUIDES } from './guides.js'
 import { tasteNudge, useTaste } from './taste.js'
 import { usePlaces, ACTIVITIES, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES, nearest, isPlaceKey, normalizePlace } from './places.js'
@@ -57,6 +57,9 @@ export default function LocationsView({ coords }) {
 
   const all = useMemo(() => (Array.isArray(places) ? placeOrder(places, taste) : []), [places, taste])
   const near = useMemo(() => nearest(all, coords, 12), [all, coords])
+  // 3.7P-24 (§N screen 6): the single "Recommended" featured spot — the closest
+  // taste-top place when located, else the taste-top place overall.
+  const topSpot = (coords && near[0]) || all[0] || null
 
   // 3.7P-12: per-activity taster lists. `all` is taste-ordered, so a plain
   // slice keeps taste order; with a fix, nearest() re-sorts by distance. An
@@ -156,18 +159,14 @@ export default function LocationsView({ coords }) {
           </div>
         </section>
 
-        {/* 3.7P-21: "Near you" surfaces ONLY with a location fix. The inline
-            "use my location" gate is retired — location is opt-in once in
-            Settings → Data & privacy; denied/unset = this section is simply
-            absent (honest, no nag). */}
-        {coords && near.length > 0 && (
+        {/* 3.7P-24 (§N screen 6): "Recommended" — ONE featured spot DecisionCard
+            (image + name + type · distance · free + amenity chips + inline Save).
+            Replaces the old nearby carousel; always present (taste-top spot, closest
+            when located). Tap → PlaceDetail (where "Make this my plan" lives). */}
+        {topSpot && (
           <section className="sec">
-            <SecHead overline="Closest to you" title="Near you" sub={`${near.length} within reach`} />
-            <div className="carousel">
-              {near.map((p) => (
-                <SpotCard key={p.key} p={p} onSelect={onSelect} />
-              ))}
-            </div>
+            <SecHead overline="Worth a visit" title={coords ? 'Recommended near you' : 'Recommended for you'} />
+            <FeaturedCard e={topSpot} onSelect={onSelect} />
           </section>
         )}
 
@@ -228,7 +227,10 @@ export default function LocationsView({ coords }) {
             title={<>Everything <span className="sec-count">· {all.length.toLocaleString('en-US')}</span></>}
             sub="Every place, by your vibe"
           />
-          <RowFeed sections={everything} onSelect={onSelect} />
+          {/* 3.7P-24: the place list goes COMPACT — dense field-guide rows (name ·
+              type · distance · amenity chips), NO green art placeholder for the
+              photo-less majority (the green-wall fix; decide = dense). */}
+          <RowFeed sections={everything} compact onSelect={onSelect} />
         </section>
       </div>
     </div>

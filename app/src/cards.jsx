@@ -228,22 +228,28 @@ function featuredChips(e) {
 export function FeaturedCard({ e, onSelect, onAdd }) {
   const { has, toggle } = useSaves()
   const saved = has(e)
+  const isPlace = e.kind === 'place'
   const free = e._free === true || e.isFree === true
-  const meta = (e._ongoing ? ['Ongoing', e.venue] : [dayLabelLoose(e), timeOf(e.start), e.venue]).filter(Boolean).join(' · ')
-  const chips = featuredChips(e)
+  // kind-aware meta: a PLACE leads activity/utility-first (type · distance · free),
+  // an EVENT leads time-first (day · time · venue) — the Decision-Layer thesis.
+  const meta = isPlace
+    ? [placeTypeLabel(e), distLabel(e), free ? 'Free' : null].filter(Boolean).join(' · ')
+    : (e._ongoing ? ['Ongoing', e.venue] : [dayLabelLoose(e), timeOf(e.start), e.venue]).filter(Boolean).join(' · ')
+  const chips = isPlace ? spotChips(e).map((c) => c.label) : featuredChips(e)
   // 3.7P-23c review: the label must match the slot the add WRITES to (daypartOf,
   // the clock-time signal) — not _tonight (a day-SPAN flag true for any daytime
   // event today). "tonight" only for a genuinely-evening pick.
-  const addLabel = e._tonight && daypartOf(e) === 'night' ? '＋ Add to tonight' : '＋ Add to day'
+  const addLabel = !isPlace && e._tonight && daypartOf(e) === 'night' ? '＋ Add to tonight' : '＋ Add to day'
   return (
     <div className="featc">
       <button className="featc-open pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
         <CardImg e={e} className="featc-img">
           <HeatBadge e={e} />
           {free && <span className="free-badge">FREE</span>}
+          {isPlace && e.hidden && <span className="spot-badge" aria-label="Hidden gem">💎</span>}
         </CardImg>
         <span className="featc-body">
-          <span className="featc-meta">{meta || 'Coming up'}</span>
+          <span className="featc-meta">{meta || (isPlace ? 'Spot' : 'Coming up')}</span>
           <span className="featc-title">{e.title}</span>
           {chips.length > 0 && (
             <span className="featc-chips">
@@ -259,7 +265,9 @@ export function FeaturedCard({ e, onSelect, onAdd }) {
         <button className={'featc-act featc-save' + (saved ? ' on' : '')} onClick={() => toggle(e)} aria-pressed={saved}>
           {saved ? '♥ Saved' : '♡ Save'}
         </button>
-        <button className="featc-act featc-add" onClick={() => onAdd(e)}>{addLabel}</button>
+        {/* the inline planner Add (events one-tap; places need a day, so they open
+            the detail's "Make this my plan" sheet — the host passes no onAdd) */}
+        {onAdd && <button className="featc-act featc-add" onClick={() => onAdd(e)}>{addLabel}</button>}
       </div>
     </div>
   )

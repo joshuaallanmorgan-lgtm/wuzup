@@ -371,6 +371,8 @@
 /* Save = ghost/outline secondary; toggles to a filled-heart state */
 .featc-save { flex: 0 0 auto; padding: 0 16px; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
 .featc-save.on { color: var(--hot); border-color: rgba(var(--hot-rgb), 0.4); background: rgba(var(--hot-rgb), 0.08); }
+/* a place featured card has Save only (no inline Add — places need a day) → stretch it */
+.featc-save:only-child { flex: 1; }
 /* Add = primary, dark ink on Sunset Gold (white fails AA — D.0 binding) */
 .featc-add {
   flex: 1;
