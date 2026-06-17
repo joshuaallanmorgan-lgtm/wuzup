@@ -283,8 +283,8 @@
 }
 .cal-recap-yes {
   border: none;
-  color: var(--ink); /* dark ink on Sunset Gold — white fails AA (3.73a sweep) */
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff; /* D.0-R: shared primary-button fill (white text) */
+  background: var(--cta);
 }
 .cal-recap-no {
   border: 1px solid var(--line);

@@ -51,6 +51,13 @@
   --card: #fefdfb; /* Parchment — creamy premium surface (was #ffffff) */
   --bg: #fcfbf9; /* Stage R (R-H3): near-white warm to match the benchmark Home bg
                     (was #faf8f5); stays just under --card so cards still lift */
+  /* Stage R (D.0-R, binding): the ONE shared PRIMARY-BUTTON fill. White text on
+     this darker warm passes WCAG AA (~4.86:1) — which matches the benchmark's
+     white-on-warm buttons WITHOUT violating D.0 (white is still forbidden on the
+     LIGHT gold --accent #ff8c42, which now serves accents/chips/active-states/
+     markers only — never a white-text fill). Tune brighter only while white stays
+     >= 4.5:1. Primary buttons set: background var(--cta); color #fff. */
+  --cta: #b35418;
 
   /* motion tokens (UI_SPEC §3) */
   --dur-micro: 120ms; /* press, chip fill */

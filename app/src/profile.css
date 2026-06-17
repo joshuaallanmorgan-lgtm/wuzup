@@ -345,7 +345,7 @@
 }
 .pf-ask-yes:active,
 .pf-ask-no:active { transform: scale(0.96); }
-.pf-ask-yes { border: none; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: var(--ink); } /* dark ink on Sunset Gold — white fails AA (3.73a sweep) */
+.pf-ask-yes { border: none; background: var(--cta); color: #fff; } /* D.0-R: shared primary-button fill (white text) */
 .pf-ask-no { border: 1px solid var(--line); background: none; color: var(--muted); }
 
 /* ===== footer: the privacy truth, said quietly ===== */

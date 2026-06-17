@@ -138,8 +138,8 @@
   gap: 8px;
   font-size: 16px;
   font-weight: 800;
-  color: var(--ink); /* 3.73a: dark ink on Sunset Gold — white failed AA (the 3.71 review pattern, this CTA was missed) */
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff; /* D.0-R: shared primary-button fill (white text on --cta, AA ~4.86:1) */
+  background: var(--cta);
   border: none;
   border-radius: 14px;
   padding: 15px 16px;

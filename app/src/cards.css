@@ -379,8 +379,8 @@
 /* Add = primary, dark ink on Sunset Gold (white fails AA — D.0 binding) */
 .featc-add {
   flex: 1;
-  color: var(--ink);
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff; /* D.0-R: shared primary-button fill (white text) */
+  background: var(--cta);
   border: none;
   box-shadow: 0 4px 14px rgba(var(--accent-rgb), 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }

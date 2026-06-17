@@ -329,8 +329,8 @@
   padding: 13px;
   border: none;
   border-radius: 14px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: var(--ink); /* dark ink on Sunset Gold — white fails AA */
+  background: var(--cta); /* D.0-R: shared primary-button fill (white text) */
+  color: #fff;
   font: inherit;
   font-size: 15px;
   font-weight: 800;
@@ -477,8 +477,8 @@
   padding: 11px;
   border: none;
   border-radius: 12px;
-  background: var(--accent);
-  color: var(--ink); /* dark ink on Sunset Gold — white fails AA (3.76c) */
+  background: var(--cta); /* D.0-R: shared primary-button fill (white text) */
+  color: #fff;
   font: inherit;
   font-size: 14px;
   font-weight: 800;

@@ -421,8 +421,8 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: var(--ink); /* dark ink on Sunset Gold — white fails AA (3.71 review) */
+  background: var(--cta); /* D.0-R: shared primary-button fill (white text, AA ~4.86:1) */
+  color: #fff;
   text-decoration: none;
   font-weight: 800;
   font-size: 16px;

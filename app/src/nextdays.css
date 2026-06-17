@@ -48,17 +48,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-/* the planner CTA — matched to the benchmark's Primary button (gold fill, ~10px
-   rounded rect, the same weight/padding). D.0 BINDING: the reference shows WHITE
-   text on the gold fill, which fails AA — so this uses dark --ink on gold instead
-   (the contract wins over the mock; flagged in the commit). */
+/* the planner CTA — the shared primary-button treatment (D.0-R): --cta fill +
+   white text (AA ~4.86:1), ~10px rounded rect, the benchmark's weight/padding. */
 .nd-cta {
   flex: 0 0 auto;
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.1px;
-  color: var(--ink);
-  background: var(--accent);
+  color: #fff;
+  background: var(--cta);
   border-radius: 10px;
   padding: 9px 15px;
   box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.26);

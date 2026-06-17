@@ -36,8 +36,8 @@
   padding: var(--sp-md);
   border: none;
   border-radius: 16px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: var(--ink); /* dark ink on Sunset Gold — white fails AA (3.73a sweep) */
+  background: var(--cta); /* D.0-R: shared primary-button fill (white text) */
+  color: #fff;
   font-family: inherit;
   text-align: left;
   cursor: pointer;

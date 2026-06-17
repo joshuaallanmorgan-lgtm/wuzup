@@ -115,8 +115,8 @@ textarea.ae-input { height: auto; min-height: 96px; padding: 11px 14px; resize: 
   margin-top: 26px;
   border: none;
   border-radius: 14px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: var(--ink); /* dark ink on Sunset Gold — white fails AA (3.71 review) */
+  background: var(--cta); /* D.0-R: shared primary-button fill (white text) */
+  color: #fff;
   font-family: inherit;
   font-size: 16px;
   font-weight: 800;
