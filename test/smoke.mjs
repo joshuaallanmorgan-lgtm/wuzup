@@ -676,8 +676,11 @@ test('N5b re-entry: Profile save→plan pull (Calendar pull retired in 3.7P-17)'
   const cal = readFileSync(path.join(ROOT, 'app', 'src', 'CalendarView.jsx'), 'utf8')
   assert.ok(!/cal-plan-pull/.test(cal), '3.7P-17: the Calendar "Plan your weekend" pull is retired')
   const pf = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
-  assert.ok(/pf-pull/.test(pf) && /showPlanPull/.test(pf), 'Profile shows the save→plan pull')
-  assert.ok(/upcomingSaves > 0 && !hasUpcomingPlan/.test(pf), 'the Profile pull is gated on saves-waiting + nothing-planned (never a nag)')
+  // Stage R Profile rework: the dashboard sections (incl. the save→plan pull) left
+  // the main view; Profile is a clean menu now. The loop survives via My saves.
+  assert.ok(!/pf-pull/.test(pf), 'Stage R: the Profile dashboard pull left the clean menu view')
+  const saves = readFileSync(path.join(ROOT, 'app', 'src', 'MySavesPage.jsx'), 'utf8')
+  assert.ok(/shelfItems/.test(saves) && /openDetail/.test(saves), 'the save→plan loop stays reachable via My saves (tap a save → detail → add to day)')
 })
 
 // N5c — the day-fill deck is a first-class way to BUILD a day: a prominent hero
@@ -1046,12 +1049,12 @@ test('V1 (Q2 carry-in): whenPreference is the ONE resolver — editor outranks p
   // nothing set + skipped primer → null (no claim)
   taste.resetTaste()
   assert.equal(taste.whenPreference(taste.getProfile(), null), null, 'no editor + no primer → null (claims nothing)')
-  // ProfileView is the surface that SHOWS when-preference, so it must use the ONE
-  // resolver (no duplicated patch). 3.7P-23b: HotView's hero greeting moved to a
-  // plain time-of-day greeting ("Good morning") per the §N benchmark — it no
-  // longer surfaces when-preference, so it correctly no longer calls the resolver.
-  const profSrc = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
-  assert.ok(/whenPreference\(/.test(profSrc), 'ProfileView must use the whenPreference resolver')
+  // The when-preference surfaces through the taste SUMMARY (taste.js's ONE
+  // resolver) now — HotView's hero (3.7P-23b) and the Profile header (Stage R
+  // rework) both stopped showing it, so no component duplicates the resolver; the
+  // single source of truth is the summary.
+  const tasteSrc = readFileSync(path.join(ROOT, 'app', 'src', 'taste.js'), 'utf8')
+  assert.ok(/when: whenPreference\(/.test(tasteSrc), 'the taste summary is the ONE consumer of the whenPreference resolver (no duplicated patch)')
 })
 
 test('V3: setCategoryPref keeps boost/mute disjoint + is ordering-only (no catScores touch)', () => {
@@ -1333,14 +1336,43 @@ test('3.7P-41 §N Search: NL example prompts + result-type tabs', () => {
   assert.ok(/export function searchGuides/.test(srch) && /!q\.text\.length\) return \[\]/.test(srch), 'searchGuides is text-only (a guide has no date/price) — honest, no fabricated matches')
 })
 
-test('3.7P-30b §N Profile: computed stats strip (Plans · Saves · Days out)', () => {
+test('3.7P-30b → Stage R: honest counts live in the My plans / My saves subpages', () => {
+  // The Stage R Profile rework removed the header stats-trio; the honest counts
+  // moved INTO the drill-ins, still computed from real stores (never hardcoded).
   const pv = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
-  assert.ok(/pf-stats/.test(pv) && /pf-stat-num/.test(pv), 'Profile renders a stats strip')
-  // honesty: every stat is computed from a real store, not a literal
-  assert.ok(/saves: savedList\.length/.test(pv), 'Saves = the real saved list length')
-  assert.ok(/out: didDays\(been\)\.size/.test(pv), 'Days out = real did-days')
-  assert.ok(/loadDayPlans\(anchors\)/.test(pv) && /plans\+\+/.test(pv), 'Plans = counted from the real day-plan store')
-  assert.ok(!/\b47 Plans\b|>128<|>23</.test(pv), 'no hardcoded stat numbers')
+  assert.ok(!/pf-stats/.test(pv), 'the header stats-trio was removed (Profile = avatar + name + menu)')
+  const mp = readFileSync(path.join(ROOT, 'app', 'src', 'MyPlansPage.jsx'), 'utf8')
+  assert.ok(/plansCount/.test(mp) && /e\.slots\.day \|\| e\.slots\.night/.test(mp), 'My plans count = distinct filled days from the real day store (computed)')
+  const ms = readFileSync(path.join(ROOT, 'app', 'src', 'MySavesPage.jsx'), 'utf8')
+  assert.ok(/shelf\.length/.test(ms), 'My saves count = the real saved-shelf length')
+  assert.ok(!/\b47\b|>128<|>23</.test(pv), 'no hardcoded stat numbers')
+})
+
+test('Stage R Profile rework: avatar + editable name + city + 5-row menu + subpages', () => {
+  const pv = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
+  // header: monogram avatar + editable on-device name (honest default) + city
+  assert.ok(/pf-avatar/.test(pv) && /pf-name/.test(pv) && /pf-loc/.test(pv), 'Profile header = avatar + editable name + city')
+  assert.ok(/profile-name-v1/.test(pv) && /lsGet\(NAME_KEY\)/.test(pv) && /lsSet\(NAME_KEY/.test(pv), 'the display name is stored on-device (profile-name-v1)')
+  assert.ok(/Add your name/.test(pv) && !/'Alex'/.test(pv), 'name defaults to an "Add your name" prompt — never a fabricated name')
+  assert.ok(/\{CITY\.name\}/.test(pv), 'city = the app active-city label (CITY.name), one constant for now')
+  // the flat 5-row menu (real labels mapping to our stores)
+  for (const label of ['My plans', 'My saves', 'My likes', 'Settings & preferences', 'Help &amp; feedback']) {
+    assert.ok(pv.includes(label), `Profile menu has the "${label}" row`)
+  }
+  assert.ok(/pf-row-stub/.test(pv) && /Coming soon/.test(pv), 'Help & feedback is an inert "Coming soon" stub (no opener)')
+  // path-safety: rows CALL existing openers; My likes uses openTaste() with NO
+  // 'settings' arg (so back closes to the Profile tab); Settings uses openSettings.
+  assert.ok(/onClick: openMyPlans/.test(pv) && /onClick: openMySaves/.test(pv), 'My plans/My saves open the new single-slot subpages')
+  assert.ok(/onClick: \(\) => openTaste\(\)/.test(pv), 'My likes = openTaste() (no settings origin → back to Profile)')
+  // nav openers + App subpage shells exist (single-slot, like settings/search)
+  const nav = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
+  assert.ok(/const openMyPlans = useCallback/.test(nav) && /const openMySaves = useCallback/.test(nav), 'nav exposes openMyPlans + openMySaves')
+  assert.ok(/setPage\(\{ type: 'myplans' \}\)/.test(nav) && /setPage\(\{ type: 'mysaves' \}\)/.test(nav), 'the new openers follow the single-slot subpage pattern')
+  const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
+  assert.ok(/page\.type === 'myplans' && <MyPlansPage/.test(app) && /page\.type === 'mysaves' && <MySavesPage/.test(app), 'App renders the My plans + My saves subpages')
+  // the existing opener guards are UNTOUCHED (path-safety): openTaste/openInterests
+  // still treat a non-literal-'settings' arg as "not settings".
+  assert.ok(/from === 'settings' \? 'settings' : null/.test(nav), 'openInterests/openTaste from-guard unchanged (literal === settings)')
 })
 
 test('3.7P-40 §N Calendar: Upcoming day-stack (NextDays) + date-state legend', () => {
@@ -1855,10 +1887,12 @@ test('Sprint S: Calendar + Profile fold lazy places into their slot resolvers (g
   assert.ok(/live\.kind === 'place'/.test(calSrc), 'CalendarView must special-case a slotted place in the "went" snapshot')
   assert.ok(/\.\.\.snapshotFor\(live\), start: cardDateISO/.test(calSrc), 'a slotted-place "went" must stamp the planned day as snapshot.start so the did-day still derives')
 
-  const pfSrc = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
-  assert.ok(/isPlaceKey\(/.test(pfSrc), 'ProfileView must gate the places fetch on a place key in a plan/journal/weekend slot')
-  assert.ok(/usePlaces\(hasPlaceKey\)/.test(pfSrc), 'ProfileView must lazily load places only when a slotted place is present')
-  assert.ok(/for \(const p of placeList\) m\.set\(p\.key, p\.title\)/.test(pfSrc), 'ProfileView must fold place titles into titleByKey (no "no longer listed" for a live place)')
+  // Stage R: the days/journal (with its place-slot resolver) moved to the My plans
+  // subpage; the gated lazy-places fold lives there now.
+  const mpSrc = readFileSync(path.join(ROOT, 'app', 'src', 'MyPlansPage.jsx'), 'utf8')
+  assert.ok(/isPlaceKey\(/.test(mpSrc), 'MyPlansPage must gate the places fetch on a place key in a plan/journal slot')
+  assert.ok(/usePlaces\(hasPlaceKey\)/.test(mpSrc), 'MyPlansPage must lazily load places only when a slotted place is present')
+  assert.ok(/for \(const p of placeList\) m\.set\(p\.key, p\.title\)/.test(mpSrc), 'MyPlansPage must fold place titles into titleByKey (no "no longer listed" for a live place)')
 })
 
 // Sprint U-d — the --reward ledger names the did-day conversion (moment #6).
@@ -1922,17 +1956,14 @@ test('W2: the Calendar tab is a logbook — NO event list / counts / heat on it'
 // + the calibration deck, both 4 taps deep in Settings) get a first-class Profile
 // entry, and the deck's close affordance honors a 'profile' origin so it returns
 // to Profile (not Settings).
-test('W6 connectivity: Profile surfaces the taste hub (TastePanel + calibration deck)', () => {
+test('W6 → Stage R: Profile surfaces taste via My likes (deck + interests in Settings)', () => {
+  // Stage R Profile rework: the taste hub is the "My likes" row → openTaste (the
+  // TastePanel, where the vibe chips live now). The rate-to-sharpen deck +
+  // interests stay inside Settings (reached via the Settings & preferences row).
   const pfSrc = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
-  assert.ok(/openTaste/.test(pfSrc), 'ProfileView must surface TastePanel (openTaste) — it was buried in Settings')
-  assert.ok(/openDeck\('profile'\)/.test(pfSrc), "ProfileView must surface the calibration deck via openDeck('profile')")
-  assert.ok(/pf-taste/.test(pfSrc), 'ProfileView must render the Your-taste hub (.pf-taste)')
-  // openDeck must accept a 'profile' origin distinct from 'settings'/'primer'
-  const navSrc = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
-  assert.ok(/origin === 'profile'/.test(navSrc), "openDeck must accept a 'profile' origin (close to Profile, not Settings)")
-  // the deck closes to Settings ONLY for the settings origin; profile/primer close to the tab
-  const appSrc = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
-  assert.ok(/page\.from === 'settings' \? openSettings : closePage/.test(appSrc), "the deck's onClose returns to Settings only for the settings origin")
+  assert.ok(/openTaste/.test(pfSrc), 'Profile "My likes" opens the TastePanel (openTaste)')
+  assert.ok(!/openDeck/.test(pfSrc), 'Stage R: the rate-to-sharpen deck is not on the Profile main view (it lives in Settings)')
+  assert.ok(/openSettings/.test(pfSrc), 'Profile keeps the gear + a "Settings & preferences" row → openSettings')
   // the retired Weekend pill class is gone CODEBASE-WIDE (it had a duplicate
   // rule in weekend.css — a stale connection W6 must not leave behind)
   for (const f of ['calendar.css', 'weekend.css']) {

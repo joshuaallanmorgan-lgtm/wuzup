@@ -15,6 +15,8 @@ import LocationsView from './LocationsView.jsx'
 import MapView from './MapView.jsx'
 import CalendarView from './CalendarView.jsx'
 import ProfileView from './ProfileView.jsx'
+import MyPlansPage from './MyPlansPage.jsx'
+import MySavesPage from './MySavesPage.jsx'
 import DetailPage from './DetailPage.jsx'
 import PlaceDetail from './PlaceDetail.jsx'
 import BubblePage from './BubblePage.jsx'
@@ -353,6 +355,9 @@ function Shell() {
             {page.type === 'settings' && (
               <SettingsPage events={norm} dataAt={dataAt} primer={primer} onPrimerDone={setPrimer} locationAllowed={locAllowed} onAllowLocation={setLocationAllowed} />
             )}
+            {/* Stage R (Profile rework): the two new Profile drill-ins, single-slot */}
+            {page.type === 'myplans' && <MyPlansPage events={norm} anchors={anchors} />}
+            {page.type === 'mysaves' && <MySavesPage events={norm} anchors={anchors} />}
             {page.type === 'interests' && <InterestEditor from={page.from} />}
             {/* Sprint V2/V3: the "why your feed looks like this" + mute/boost
                 panel — opened from Settings, back returns there (the `from`
