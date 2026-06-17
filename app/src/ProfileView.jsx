@@ -137,6 +137,22 @@ export default function ProfileView({ events, anchors, primer }) {
     return loadDayHistory().reverse().slice(0, 10) // most recent first
   }, [planPageUp])
 
+  // 3.7P-30b (§N screen 10): the honest stats strip — Plans · Saves · Days out,
+  // every number COMPUTED from the real local stores (never hardcoded). Plans =
+  // distinct days you filled a slot on (current + history), Saves = the saved list,
+  // Days out = did-days ('went'). Zero is honest, not shaming.
+  const stats = useMemo(() => {
+    void planPageUp
+    const pm = loadDayPlans(anchors)
+    let plans = 0
+    for (const k of Object.keys(pm)) {
+      const e = dayEntryFor(pm[k])
+      if (e && (e.slots.day || e.slots.night)) plans++
+    }
+    for (const h of loadDayHistory()) if (h?.slots && (h.slots.day || h.slots.night)) plans++
+    return { plans, saves: savedList.length, out: didDays(been).size }
+  }, [planPageUp, savedList, been, anchors])
+
   // Sprint S: a slot can hold a PLACE ('p|') key — written by PlaceDetail's
   // "Make this my plan" — which is NEVER in `events` (places are a separate
   // store). A place key can ride a current day plan, a past-days journal row,
@@ -327,6 +343,22 @@ export default function ProfileView({ events, anchors, primer }) {
           </div>
         )}
         <div className="pf-note">{vibeNote}</div>
+        {/* 3.7P-30b (§N screen 10): the stats strip — every number computed from
+            real local stores (Plans · Saves · Days out), never hardcoded. */}
+        <div className="pf-stats">
+          <div className="pf-stat">
+            <span className="pf-stat-num">{stats.plans}</span>
+            <span className="pf-stat-lab">{stats.plans === 1 ? 'Plan' : 'Plans'}</span>
+          </div>
+          <div className="pf-stat">
+            <span className="pf-stat-num">{stats.saves}</span>
+            <span className="pf-stat-lab">{stats.saves === 1 ? 'Save' : 'Saves'}</span>
+          </div>
+          <div className="pf-stat">
+            <span className="pf-stat-num">{stats.out}</span>
+            <span className="pf-stat-lab">Days out</span>
+          </div>
+        </div>
       </header>
 
       <div className="pf-body">

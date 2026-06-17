@@ -370,3 +370,20 @@
   .pf-ask-yes:active,
   .pf-ask-no:active { transform: none; }
 }
+
+/* ===== 3.7P-30b (§N screen 10): the profile stats strip (computed, honest) ===== */
+.pf-stats { display: flex; gap: 8px; margin-top: 16px; }
+.pf-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 6px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-card);
+}
+.pf-stat-num { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -0.5px; }
+.pf-stat-lab { font-size: 11.5px; font-weight: 600; color: var(--muted); }

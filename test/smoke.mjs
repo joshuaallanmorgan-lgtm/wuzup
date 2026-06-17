@@ -1307,6 +1307,16 @@ test('3.7P-24 §N Spots: Recommended featured card + compact place Everything (g
   assert.ok(/\{onAdd && <button className="featc-act featc-add"/.test(cards), 'the inline Add only renders when onAdd is provided (places open the detail to pick a day)')
 })
 
+test('3.7P-30b §N Profile: computed stats strip (Plans · Saves · Days out)', () => {
+  const pv = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
+  assert.ok(/pf-stats/.test(pv) && /pf-stat-num/.test(pv), 'Profile renders a stats strip')
+  // honesty: every stat is computed from a real store, not a literal
+  assert.ok(/saves: savedList\.length/.test(pv), 'Saves = the real saved list length')
+  assert.ok(/out: didDays\(been\)\.size/.test(pv), 'Days out = real did-days')
+  assert.ok(/loadDayPlans\(anchors\)/.test(pv) && /plans\+\+/.test(pv), 'Plans = counted from the real day-plan store')
+  assert.ok(!/\b47 Plans\b|>128<|>23</.test(pv), 'no hardcoded stat numbers')
+})
+
 test('3.7P-40 §N Calendar: Upcoming day-stack (NextDays) + date-state legend', () => {
   const cal = readFileSync(path.join(ROOT, 'app', 'src', 'CalendarView.jsx'), 'utf8')
   assert.ok(/<NextDays /.test(cal), 'Calendar renders the Upcoming "Your next days" stack')
