@@ -2,79 +2,28 @@
 // opens a full BubblePage), alternating sections, Everything feed. Navigation
 // (detail/bubble/search/add/weekend openers) comes from useNav() — O6.
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { BUBBLES, CAT_BUBBLES, CITY, LENS_BUBBLES, NON_GEM_RE, dayLabel, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
+import { BUBBLES, CAT_BUBBLES, LENS_BUBBLES, NON_GEM_RE, dayLabel, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
 import LensNav from './LensNav.jsx'
-import NextDays from './NextDays.jsx'
 import { curateFeed } from './curate.js'
 import { useNav } from './nav.jsx'
-import { CompactRow, EndCap, FeaturedCard, GemRow, IntentTile, RowFeed, SecHead, TonightCard } from './cards.jsx'
+import { CompactRow, EndCap, GemRow, IntentTile, RowFeed, SecHead, TonightCard } from './cards.jsx'
 import { GUIDES, useGuides, watchGuideActive, resolveWatchGuide } from './guides.js'
 import { shelfItems, useSaves } from './saves.js'
 import { railReady, tasteNudge, topCategories, useTaste } from './taste.js'
 import { useRecents } from './recents.js'
-import { CONDITION, dateKey } from './weather.js'
-import { daypartOf } from './weekend.js'
-import { loadDayPlans, saveDayPlans, withSlot, dayEntryFor } from './dayplan.js'
 import { DeckThisButton } from './LensDeck.jsx'
 
-// 3.7P-23b (§N): a warm time-of-day greeting ("Good morning" / "Good evening")
-// replaces the old daypart kicker — the personal top of Home. Pure(now); the
-// weather line below carries the day's real forecast.
-function heroKicker(now) {
-  const h = now.getHours()
-  return h < 5 ? 'Still up' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
-}
-
-// the emotional lead under the city name — daypart-aware + honest, framed as
-// abundance/invitation (never a countdown or guilt; CALENDAR_BRIEF §7 ban-list
-// clean — softened from "still time to…" per the 3.72 review). DRAFT — ⚑ Charles.
-function heroLine(now, tonightLeft) {
-  const h = now.getHours()
-  const night = h >= 17 || h < 5
-  if (tonightLeft > 0) return night ? 'Lots happening tonight.' : 'Lots happening today.'
-  if (h < 5) return 'Tomorrow’s wide open.'
-  if (h < 17) return 'A good day to get out.'
-  return 'Tomorrow’s wide open.'
-}
-
-export default function HotView({ events, anchors, loading, wx }) {
-  // onSelect identity note: openDetail is useCallback-stable in nav.js, so the
+export default function HotView({ events, anchors, loading }) {
+  // Stage R nav restructure: HotView is now the EVENTS BROWSE (search + filter +
+  // event decision-card sections). The dashboard top (greeting + Your-next-days
+  // + the featured pick) split out to HomeView; the cinematic image hero was
+  // replaced by a clean light "Events" header to match the benchmark.
+  // onSelect identity note: openDetail is useCallback-stable in nav.jsx, so the
   // memo'd Rows (M1) keep their referential-stability contract intact.
-  const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, openGuide } = useNav()
+  const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, openMap: onOpenMap, openGuide } = useNav()
   const scrollRef = useRef(null)
   const evRef = useRef(null)
   const [entered, setEntered] = useState(false) // entrance animations already played?
-  const [heroOk, setHeroOk] = useState(false)
-
-  // hero image: preload + 300ms fade (no pop). onload fires even for cached
-  // images because the handler is attached before src is set.
-  useEffect(() => {
-    const img = new Image()
-    img.onload = () => setHeroOk(true)
-    img.src = CITY.heroes?.[0]?.url || CITY.hero // preload the SAME image the hero renders
-    return () => {
-      img.onload = null
-    }
-  }, [])
-
-  // hero parallax + scrim ramp: one rAF scroll listener writing CSS vars
-  useEffect(() => {
-    const el = scrollRef.current
-    if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    let ticking = false
-    const onScroll = () => {
-      if (ticking) return
-      ticking = true
-      requestAnimationFrame(() => {
-        const y = el.scrollTop
-        el.style.setProperty('--hs', (y * 0.4).toFixed(1) + 'px')
-        el.style.setProperty('--scrimo', (0.3 + Math.min(y / 180, 1) * 0.4).toFixed(3))
-        ticking = false
-      })
-    }
-    el.addEventListener('scroll', onScroll, { passive: true })
-    return () => el.removeEventListener('scroll', onScroll)
-  }, [])
 
   // entrance animations: first data paint only, never again (class drops after the
   // longest entrance — 50ms×5 stagger + 700ms reveal — has finished)
@@ -92,7 +41,6 @@ export default function HotView({ events, anchors, loading, wx }) {
       .map((e) => ({ ...e, _clamp: e._day < anchors.todayTs ? anchors.todayTs : e._day }))
       .sort((x, y) => x._clamp - y._clamp || x._t - y._t)
   }, [events, anchors])
-  const hasHot = useMemo(() => upcoming.some((e) => e.hotScore != null), [upcoming])
   // Tonight startedness must track the CLOCK, not just the data: anchors only
   // change at midnight/day-rollover, but "7 PM has passed" happens mid-session.
   // Re-seed when the tab returns to view + every 10 min while open.
@@ -119,12 +67,6 @@ export default function HotView({ events, anchors, loading, wx }) {
     () => (watchGuides || []).filter((g) => watchGuideActive(g, anchors.todayTs) && resolveWatchGuide(g, upcoming).length > 0),
     [watchGuides, upcoming, anchors]
   )
-  const bigOne = useMemo(() => {
-    if (!hasHot) return null // hotScore data absent → skip section gracefully
-    const oneOffs = upcoming.filter((e) => e.tags.includes('one-off') && e.hotScore != null)
-    const pool = oneOffs.length ? oneOffs : upcoming.filter((e) => e.hotScore != null)
-    return pool.reduce((best, e) => (best == null || e.hotScore > best.hotScore ? e : best), null)
-  }, [upcoming, hasHot])
   // unsliced — section subs report the real totals; renders slice to 3 / 10.
   // Gems sort by score so the homepage trio is the BEST of the shelf, not
   // whichever three happen soonest.
@@ -234,41 +176,6 @@ export default function HotView({ events, anchors, loading, wx }) {
       </div>
     ) : undefined
 
-  // 3.7P-23b: the hero weather line — today's real forecast (emoji · condition ·
-  // high), null until the 16-day fetch resolves so the hero never shows a guess.
-  const todayWx = wx ? wx[dateKey(anchors.todayTs)] : null
-  const wxLine = todayWx
-    ? `${todayWx.emoji} ${CONDITION[todayWx.emoji] || 'Forecast'}${todayWx.hi != null ? ' · ' + todayWx.hi + '°' : ''}`
-    : null
-
-  // 3.7P-23c: the FeaturedCard's inline "Add to {tonight|day}" — a one-tap planner
-  // write (the DecisionCard "cards act" pattern). Adds the event to its OWN day at
-  // its natural daypart via the shared withSlot seam; never clobbers a filled slot.
-  const [toast, setToast] = useState(null)
-  const toastTRef = useRef(null)
-  const [planRev, setPlanRev] = useState(0) // bump → NextDays re-reads the non-reactive day-plan store
-  useEffect(() => () => clearTimeout(toastTRef.current), [])
-  const flash = (m) => {
-    setToast(m)
-    clearTimeout(toastTRef.current)
-    toastTRef.current = setTimeout(() => setToast(null), 1700)
-  }
-  const addToPlan = (e) => {
-    const dayTs = e._day ?? anchors.todayTs
-    const part = daypartOf(e) === 'night' ? 'night' : 'day'
-    const map = loadDayPlans(anchors)
-    const entry = dayEntryFor(map[String(dayTs)])
-    if (entry && entry.slots[part]) {
-      flash('That slot is taken — open the day to adjust')
-      return
-    }
-    saveDayPlans(withSlot(map, dayTs, part, keyOf(e)))
-    setPlanRev((v) => v + 1) // refresh the "Your next days" stack on this same screen
-    // 3.7P-23c review: the toast names the slot the write ACTUALLY filled (daypart),
-    // not _tonight (a day-span flag) — so a 2 PM today pick says "your day", not "tonight"
-    flash(part === 'night' ? 'Added to tonight ✓' : 'Added to your day ✓')
-  }
-
   const scrollToList = (el) => {
     const sc = scrollRef.current
     if (sc && el) sc.scrollTo({ top: Math.max(el.offsetTop - 64, 0), behavior: 'smooth' })
@@ -281,52 +188,32 @@ export default function HotView({ events, anchors, loading, wx }) {
 
   return (
     <div className="hot-scroll" ref={scrollRef}>
-      <header className="hero">
-        {/* 3.7P-6: cinematic hero — a slow Ken-Burns zoom on the real city photo
-            (FB-06's "slight zoom in/out"; reduced-motion holds it still). Reads the
-            CITY.heroes[] array (swipe-ready: the multi-photo crossfade turns on when
-            ≥3 hero-quality images are curated). FB-07: the 🔎 moved out of the hero,
-            down beside "Near Me" in the lens row below. */}
-        <div className={'hero-img hero-kb' + (heroOk ? ' on' : '')} style={{ backgroundImage: `url(${CITY.heroes?.[0]?.url || CITY.hero})` }} />
-        <div className="hero-dim" />
-        <div className="hero-grad" />
-        <div className="hero-text">
-          {/* Sunlit Coastal Pop (3.71): the Wuzup brand lockup on the masthead */}
-          <div className="hero-brand">
-            <span className="hero-brand-dot" aria-hidden />
-            Wuzup
-          </div>
-          {/* 3.7P-23b (§N): a warm time-of-day greeting + the day's real weather line */}
-          <div className="hero-kicker">{heroKicker(new Date(nowMs))}</div>
-          <h1 className="hero-city">{CITY.name}</h1>
-          {/* weather line when the forecast is loaded (the §N top), else the
-              de-counted abundance lead (3.72). The real event total still lives one
-              tap away in the Everything "See all N" button. */}
-          <div className="hero-sub">{wxLine || heroLine(new Date(nowMs), tonight.futureN)}</div>
-        </div>
+      {/* Stage R: the Events tab is the BROWSE — a clean light header (title +
+          sub) + a search bar, matching the benchmark (and the Spots header). The
+          cinematic image hero + the dashboard top moved to the Home tab. */}
+      <header className="loc-head">
+        <h1 className="loc-head-title">Events</h1>
+        <div className="loc-head-sub">Concerts, comedy, markets, games and more.</div>
+        <button className="loc-search pressable" onClick={onOpenSearch} aria-label="Search events">
+          <span className="loc-search-ic" aria-hidden>🔎</span>
+          <span className="loc-search-ph">Search events, venues, vibes…</span>
+        </button>
       </header>
 
-      {/* Phase 3.6 N1: the quiet top nav — lens pills + an All-categories menu —
-          replaces the loud 16-bubble strip (same destinations via onOpenBubble).
-          Add event lives in the menu now. */}
+      {/* Phase 3.6 N1: the quiet top nav — lens pills + an All-categories menu.
+          Stage R: the search moved to the header bar, and a "Map" pill opens the
+          Map sub-view (Map is no longer a tab). Add event stays in the menu. */}
       <LensNav
         lenses={LENS_BUBBLES}
         categories={CAT_BUBBLES}
         menuLabel="All categories"
         onOpen={onOpenBubble}
         onAdd={onOpenAdd}
-        onSearch={onOpenSearch}
+        onMap={onOpenMap}
       />
 
       <div className="hot-body">
-        {/* 3.7P-23b (§N screen 1): the headline planning stack — your next three
-            days at a glance (real forecast + plan-state + a planner CTA). Leads
-            the Home feed: discover happens below, but "what about MY days" is first. */}
-        <section className="sec">
-          <SecHead overline="Plan ahead" title="Your next days" />
-          <NextDays anchors={anchors} wx={wx} rev={planRev} />
-        </section>
-        {/* 3.7P-10 → 3.7P-20: Guides as the INTENT FRAME under the hero, now an
+        {/* 3.7P-10 → 3.7P-20: Guides as the INTENT FRAME — an
             ALL-VISIBLE grid of the SHARED IntentTile (identical format to the
             Spots "What are you up for?" activities). activeWatch = in-window timely
             guides; the evergreen GUIDES (events + mixed, never spots-only) follow.
@@ -388,25 +275,8 @@ export default function HotView({ events, anchors, loading, wx }) {
             </div>
           </section>
         )}
-        {bigOne && (
-          <section className={'sec' + ent(1).className} style={ent(1).style}>
-            {/* 3.7P-23c (§N screen 2): the featured DecisionCard — image + title +
-                venue + honest tag chips + inline [Save] [Add to tonight/day]. The
-                header names the real slot (review): "tonight" only for an evening
-                pick today, "today" for a daytime pick, else "worth planning around". */}
-            <SecHead
-              overline="Handpicked for you"
-              title={
-                bigOne._tonight && daypartOf(bigOne) === 'night'
-                  ? "Tonight's best bet"
-                  : bigOne._tonight
-                    ? "Today's best bet"
-                    : 'Worth planning around'
-              }
-            />
-            <FeaturedCard e={bigOne} onSelect={onSelect} onAdd={addToPlan} />
-          </section>
-        )}
+        {/* Stage R: the featured "Tonight's top picks" DecisionCard moved to the
+            Home tab (the dashboard). Events is the browse. */}
         {gems.length > 0 && (
           <section className={'sec' + ent(2).className} style={ent(2).style}>
             <SecHead overline="Under the radar" title="Hidden Gems" sub={`${gems.length} hand-scored find${gems.length === 1 ? '' : 's'}`} />
@@ -495,9 +365,6 @@ export default function HotView({ events, anchors, loading, wx }) {
           <div className="empty">Nothing here right now — check back soon.</div>
         )}
       </div>
-      {/* 3.7P-23c: confirmation for the FeaturedCard inline "Add to …" (reuses the
-          shared fixed bottom-center toast style loaded at boot) */}
-      {toast && <div className="detail-toast">{toast}</div>}
     </div>
   )
 }

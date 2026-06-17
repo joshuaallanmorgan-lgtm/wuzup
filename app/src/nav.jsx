@@ -48,11 +48,19 @@ import { recordView } from './recents.js'
 // Locations · Map · Calendar · Profile). Adding it was exactly the promised
 // two-line diff — this entry + one lazy <section> in App.jsx; indices stay
 // derived so nothing else moved.
+// Stage R nav restructure (§P.5): the roster is Home · Events · Spots · Plan ·
+// Profile. IDS STAY STABLE for the seams that key on them — 'hot' (Events
+// browse), 'locations' (Spots), 'calendar' (now labelled "Plan"), 'profile'.
+// 'home' is the NEW dashboard tab (greeting + Your-next-days + featured pick),
+// split out of the old Events/hot tab. MAP IS NO LONGER A TAB — it is a sub-view
+// (the {type:'map'} subpage) reached from Events/Spots + the detail mini-map
+// (focusMap opens the sub-view, not a tab). Indices stay derived (nothing
+// hardcodes a position); MapView reads its active state from page.type now.
 export const VIEWS = [
+  { id: 'home', label: 'Home' },
   { id: 'hot', label: 'Events' },
   { id: 'locations', label: 'Spots' },
-  { id: 'map', label: 'Map' },
-  { id: 'calendar', label: 'Calendar' },
+  { id: 'calendar', label: 'Plan' },
   { id: 'profile', label: 'Profile' },
 ]
 export const viewIndex = (id) => VIEWS.findIndex((v) => v.id === id)
@@ -295,22 +303,28 @@ export function NavProvider({ children }) {
   // Map tab, and hand MapView a focus target ({lat,lng,key}; fresh object
   // every call so re-focusing the same event re-runs MapView's focus effect) =====
   const [mapFocus, setMapFocus] = useState(null)
-  const focusMap = useCallback(
-    (e) => {
-      morphElRef.current = null // card name is already cleared post-open; just drop the ref
-      setDetail(null)
-      setClosing(false)
-      setVtOpen(false)
-      clearTimeout(pageTRef.current)
-      setPage(null)
-      setPageClosing(false)
-      // carry kind so MapView can switch on the Spots layer when the focus is a
-      // place (its default Events-only layer would otherwise drop the pin)
-      setMapFocus({ lat: e.lat, lng: e.lng, key: keyOf(e), kind: e.kind ?? null })
-      goTo(viewIndex('map'))
-    },
-    [goTo]
-  )
+  // Stage R: Map is a SUB-VIEW now (not a tab). openMap opens it unfocused (the
+  // "Map" affordance on Events/Spots).
+  const openMap = useCallback(() => {
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    setMapFocus(null)
+    setPage({ type: 'map' })
+  }, [])
+  // §O.1 path 5 (REWIRED, Stage R): the detail mini-map tap used to goTo the Map
+  // TAB; Map is now a sub-view, so it opens the {type:'map'} subpage instead. It
+  // still closes the detail, sets a FRESH focus object (re-runs MapView's focus
+  // effect every call), and carries kind so the Spots layer flips for a place.
+  const focusMap = useCallback((e) => {
+    morphElRef.current = null // card name is already cleared post-open; just drop the ref
+    setDetail(null)
+    setClosing(false)
+    setVtOpen(false)
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    setMapFocus({ lat: e.lat, lng: e.lng, key: keyOf(e), kind: e.kind ?? null })
+    setPage({ type: 'map' }) // open the Map sub-view (was a Map-TAB jump pre-Stage-R)
+  }, [])
 
   // Escape closes the topmost layer: detail first, then any open subpage
   // (bubble phase — MapView/PickerSheet capture-phase handlers run first)
@@ -339,6 +353,7 @@ export function NavProvider({ children }) {
       openPlaceBubble,
       openGuide,
       openSearch,
+      openMap,
       openAdd,
       openDay,
       openSettings,
@@ -353,7 +368,7 @@ export function NavProvider({ children }) {
       vtOpen,
       openDetail,
       closeDetail,
-      // detail → map handoff
+      // detail → map handoff (Map sub-view)
       mapFocus,
       focusMap,
     }),
@@ -369,6 +384,7 @@ export function NavProvider({ children }) {
       openPlaceBubble,
       openGuide,
       openSearch,
+      openMap,
       openAdd,
       openDay,
       openSettings,

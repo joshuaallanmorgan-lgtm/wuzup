@@ -1136,9 +1136,11 @@ test('V4: feed-quality metric — diverse top-20, on-lean lift, no starvation', 
 // children must be gated on the nav visited-set (mount on first visit), and
 // the set must seed with ONLY the boot tab. Boot therefore renders exactly
 // one tab's tree — strictly less than the old eager three-tab boot.
-test('O1 lazy mounting: non-Events tabs gate on visited, boot seeds one tab', () => {
+test('O1 lazy mounting: non-boot tabs gate on visited, boot seeds one tab', () => {
   const appSrc = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
-  for (const id of ['locations', 'map', 'calendar', 'profile']) {
+  // Stage R nav restructure: Home is the boot tab (eager, index 0); Events ('hot')
+  // is now lazy too. Map is NO LONGER a tab (it's the {type:'map'} sub-view).
+  for (const id of ['hot', 'locations', 'calendar', 'profile']) {
     assert.ok(
       appSrc.includes(`visited.has('${id}') &&`),
       `App.jsx must gate the '${id}' tab's children on visited.has('${id}') — lazy mounting (O1) regressed`
@@ -1272,10 +1274,12 @@ test('3.7P-23/25 wiring: Home compact sections + warm AA-safe guide tiles', () =
 })
 
 test('3.7P-23b §N Home: "Your next days" stack + warm greeting + weather line', () => {
-  const hot = readFileSync(path.join(ROOT, 'app', 'src', 'HotView.jsx'), 'utf8')
-  assert.ok(/<NextDays /.test(hot), 'HotView renders the "Your next days" planning stack')
-  assert.ok(/heroKicker\(new Date\(nowMs\)\)/.test(hot), 'the hero greeting is time-of-day (no whenPref)')
-  assert.ok(/wxLine \|\| heroLine/.test(hot), 'the hero sub leads with the real weather line when loaded')
+  // Stage R nav restructure: the Home dashboard (greeting + Your-next-days +
+  // featured pick) is its own HomeView component now (split out of HotView).
+  const home = readFileSync(path.join(ROOT, 'app', 'src', 'HomeView.jsx'), 'utf8')
+  assert.ok(/<NextDays /.test(home), 'HomeView renders the "Your next days" planning stack')
+  assert.ok(/heroKicker\(new Date\(nowMs\)\)/.test(home), 'the Home greeting is time-of-day (no whenPref)')
+  assert.ok(/wxLine/.test(home), 'the Home header shows the real weather line when loaded')
   const nd = readFileSync(path.join(ROOT, 'app', 'src', 'NextDays.jsx'), 'utf8')
   assert.ok(/loadDayPlans/.test(nd) && /dayEntryFor/.test(nd), 'NextDays reads the real day-plan store')
   assert.ok(/wxMood|CONDITION/.test(nd), 'NextDays derives its weather line from the real forecast only')
@@ -1289,16 +1293,16 @@ test('3.7P-23c §N Home: featured DecisionCard with inline Save / Add actions', 
   assert.ok(/export function FeaturedCard\(/.test(cards), 'FeaturedCard exists')
   assert.ok(/featc-add/.test(cards) && /featc-save/.test(cards), 'FeaturedCard has inline Add + Save actions (cards ACT)')
   assert.ok(/onAdd\(e\)/.test(cards), 'the Add action calls the onAdd planner callback')
-  const hot = readFileSync(path.join(ROOT, 'app', 'src', 'HotView.jsx'), 'utf8')
-  assert.ok(/<FeaturedCard /.test(hot), 'HotView renders the FeaturedCard for the marquee pick')
-  assert.ok(/onAdd=\{addToPlan\}/.test(hot), 'HotView wires the planner add to the featured card')
-  assert.ok(/saveDayPlans\(withSlot\(map, dayTs, part, keyOf\(e\)\)\)/.test(hot), 'addToPlan writes via the shared withSlot seam (never clobbers a filled slot)')
-  assert.ok(!/<BigOne /.test(hot), 'the old overlay BigOne marquee is replaced by the featured DecisionCard')
+  // Stage R: the featured "Tonight's top picks" card lives on the Home dashboard now.
+  const home = readFileSync(path.join(ROOT, 'app', 'src', 'HomeView.jsx'), 'utf8')
+  assert.ok(/<FeaturedCard /.test(home), 'HomeView renders the FeaturedCard for the marquee pick')
+  assert.ok(/onAdd=\{addToPlan\}/.test(home), 'HomeView wires the planner add to the featured card')
+  assert.ok(/saveDayPlans\(withSlot\(map, dayTs, part, keyOf\(e\)\)\)/.test(home), 'addToPlan writes via the shared withSlot seam (never clobbers a filled slot)')
   // review: the "tonight" label/toast must track the ACTUAL daypart slot, not the
   // day-span _tonight flag (a 2 PM today pick is "your day", never "tonight")
   assert.ok(/daypartOf\(e\) === 'night' \? '＋ Add to tonight'/.test(cards), 'FeaturedCard add-label keys off daypartOf, not _tonight')
-  assert.ok(/part === 'night' \? 'Added to tonight/.test(hot), 'the add toast names the real slot (daypart), not _tonight')
-  assert.ok(/rev={planRev}/.test(hot), 'NextDays re-reads after an inline add (no stale plan-state on the same screen)')
+  assert.ok(/part === 'night' \? 'Added to tonight/.test(home), 'the add toast names the real slot (daypart), not _tonight')
+  assert.ok(/rev={planRev}/.test(home), 'NextDays re-reads after an inline add (no stale plan-state on the same screen)')
 })
 
 test('3.7P-24 §N Spots: Recommended featured card + compact place Everything (green-wall fix)', () => {
@@ -1377,10 +1381,32 @@ test('Addendum O seam-lock: nav.jsx VT morph + Escape layering + focusMap + open
   // Escape closes detail BEFORE page (bubble phase; capture-phase sheets run first)
   assert.ok(/if \(detail\) closeDetail\(\)/.test(nav) && /else if \(page && !pageClosing\) closePage\(\)/.test(nav), 'Escape closes detail-before-page')
   assert.ok(nav.indexOf('if (detail) closeDetail') < nav.indexOf('closePage()'), 'detail is closed before page on Escape')
-  // focusMap: close detail + page, set a FRESH map focus carrying kind, jump to Map
-  assert.ok(/setDetail\(null\)/.test(nav) && /setPage\(null\)/.test(nav), 'focusMap clears the detail + subpage layers')
+  // §O.1 path 5 (Stage R REWIRE): Map is a SUB-VIEW now. focusMap closes the
+  // detail, sets a FRESH map focus carrying kind, and OPENS the {type:'map'}
+  // subpage (was goTo(viewIndex('map')) — Map is no longer a tab).
+  assert.ok(/setDetail\(null\)/.test(nav), 'focusMap clears the detail layer')
   assert.ok(/setMapFocus\(\{ lat: e\.lat, lng: e\.lng, key: keyOf\(e\), kind: e\.kind/.test(nav), 'focusMap sets a fresh {lat,lng,key,kind} focus object')
-  assert.ok(/goTo\(viewIndex\('map'\)\)/.test(nav), 'focusMap jumps to the Map tab')
+  assert.ok(/setPage\(\{ type: 'map' \}\)/.test(nav), 'focusMap opens the Map sub-view (not a tab jump)')
+  assert.ok(!/goTo\(viewIndex\('map'\)\)/.test(nav), 'focusMap no longer jumps to a Map TAB (Map is a sub-view)')
+})
+
+// Stage R nav restructure (§P.5): the tab roster is Home · Events · Spots · Plan ·
+// Profile; Map is a sub-view (the {type:'map'} subpage), reached via openMap +
+// focusMap + the LensNav Map pill. IDs stay stable for the seams that key on them.
+test('Stage R nav: roster is home/hot/locations/calendar/profile, Map is a sub-view', () => {
+  const nav = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
+  for (const id of ['home', 'hot', 'locations', 'calendar', 'profile']) {
+    assert.ok(new RegExp(`id: '${id}'`).test(nav), `VIEWS must include the '${id}' tab`)
+  }
+  assert.ok(!/\{ id: 'map'/.test(nav), 'Map must NOT be a tab in VIEWS (it is a sub-view)')
+  assert.ok(/id: 'calendar', label: 'Plan'/.test(nav), "the calendar tab is relabelled 'Plan' (id stays 'calendar')")
+  assert.ok(/const openMap = useCallback/.test(nav), 'nav exposes openMap (the Map sub-view opener)')
+  const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
+  assert.ok(/page\.type === 'map' && <MapView/.test(app), 'App renders MapView in the single-slot subpage (Map sub-view)')
+  assert.ok(/<HomeView /.test(app), 'App mounts the new Home dashboard tab')
+  const mv = readFileSync(path.join(ROOT, 'app', 'src', 'MapView.jsx'), 'utf8')
+  assert.ok(/page\?\.type === 'map'/.test(mv), 'MapView reads its active state from the map subpage (not a tab index)')
+  assert.ok(/map-back/.test(mv), 'the Map sub-view has a back affordance')
 })
 
 test('Addendum O seam-lock: App.jsx detail-after-subpage order + DayPage key + subpage union', () => {

@@ -413,6 +413,21 @@ export function dayLoose(e) {
 
 // --- icons (createElement, since this is a .js file) ---
 export const Icon = {
+  // Home tab (Stage R nav restructure) — a house, same 2.1 stroke voice as the
+  // other tab glyphs.
+  home: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('path', {
+        d: 'M3.5 11.3 12 4.2l8.5 7.1M5.6 9.6V20h12.8V9.6',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinejoin: 'round',
+        strokeLinecap: 'round',
+      })
+    ),
   hot: (p) =>
     h(
       'svg',

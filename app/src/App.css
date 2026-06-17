@@ -30,6 +30,23 @@
 .page-map { overflow: hidden; isolation: isolate; } /* contain Leaflet panes (z 200–1000) */
 .page-hot { overflow: hidden; }
 
+/* ===== Stage R: the Home dashboard clean light header (greeting + weather) ===== */
+.home-head { padding: 22px 18px 6px; }
+.home-greet {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  color: var(--ink);
+}
+.home-wx {
+  margin-top: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
 /* ===== HOT tab scroller ===== */
 .hot-scroll {
   position: relative;

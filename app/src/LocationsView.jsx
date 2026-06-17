@@ -35,7 +35,7 @@ function placeOrder(list, taste) {
 }
 
 export default function LocationsView({ coords }) {
-  const { openDetail: onSelect, openPlaceBubble, openGuide, openSearch } = useNav()
+  const { openDetail: onSelect, openPlaceBubble, openGuide, openSearch, openMap } = useNav()
   // FB-03 (3.7P-7): the Spots page shows SPOTS + MIXED guides (Beach day, Free
   // outdoor reset) — the place-domain guides.
   const spotGuides = GUIDES.filter((g) => g.domain === 'spots' || g.domain === 'mixed')
@@ -126,6 +126,7 @@ export default function LocationsView({ coords }) {
         categories={PLACE_CAT_BUBBLES}
         menuLabel="All spots"
         onOpen={openPlaceBubble}
+        onMap={openMap}
       />
 
       <div className="hot-body">

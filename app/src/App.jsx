@@ -9,6 +9,7 @@ import Primer, { loadPrimerState } from './Primer.jsx'
 import { WxContext } from './cards.jsx'
 import { getForecast } from './weather.js'
 import { lsGet, lsSet } from './storage.js'
+import HomeView from './HomeView.jsx'
 import HotView from './HotView.jsx'
 import LocationsView from './LocationsView.jsx'
 import MapView from './MapView.jsx'
@@ -274,21 +275,26 @@ function Shell() {
             state (Leaflet map, calendar selection) survives tab hops.
             Adding a tab = one VIEWS entry (nav.jsx) + one section here. */}
         <div className="pager" ref={attachPager} onScroll={onPagerScroll} inert={inertAll}>
+          {/* Stage R nav restructure (§P.5): Home · Events · Spots · Plan · Profile.
+              Home is the boot tab (index 0, eager); the rest mount on first visit.
+              Map is NO LONGER a pager section — it is the {type:'map'} sub-view
+              (rendered in the subpage slot below, reached from Events/Spots + the
+              detail mini-map). */}
           <section className="page page-hot">
-            <HotView events={norm} anchors={anchors} loading={loading} wx={wx} whenPref={primer?.when ?? null} />
+            <HomeView events={norm} anchors={anchors} wx={wx} />
+          </section>
+          <section className="page page-hot">
+            {/* Events — the browse (search + filter + event sections). Now lazy
+                (Home is the boot tab), mounts on first visit to the Events tab. */}
+            {visited.has('hot') && <HotView events={norm} anchors={anchors} loading={loading} />}
           </section>
           <section className="page">
-            {/* Sprint S: the Locations tab — lazy-mounted like the rest; its own
-                /places.json fetch (places.js) fires on first visit, never at
-                boot, never merged into the events norm */}
-            {visited.has('locations') && (
-              <LocationsView coords={coords} />
-            )}
-          </section>
-          <section className="page page-map">
-            {visited.has('map') && <MapView events={norm} anchors={anchors} coords={coords} requestCoords={requestCoords} />}
+            {/* Sprint S: the Spots tab — lazy-mounted; its own /places.json fetch
+                (places.js) fires on first visit, never at boot. */}
+            {visited.has('locations') && <LocationsView coords={coords} />}
           </section>
           <section className="page">
+            {/* Plan (id 'calendar') */}
             {visited.has('calendar') && <CalendarView events={norm} anchors={anchors} wx={wx} />}
           </section>
           <section className="page">
@@ -325,6 +331,10 @@ function Shell() {
             {/* 3.75: a tapped Guide → its GuidePage (derivable intention collection) */}
             {page.type === 'guide' && <GuidePage guide={page.guide} events={norm} anchors={anchors} />}
             {page.type === 'search' && <SearchPage events={norm} anchors={anchors} coords={coords} />}
+            {/* Stage R: Map is a SUB-VIEW now (not a tab) — rendered here in the
+                single-slot subpage, reached from Events/Spots + the detail
+                mini-map (focusMap). MapView reads its active state from page.type. */}
+            {page.type === 'map' && <MapView events={norm} anchors={anchors} coords={coords} requestCoords={requestCoords} />}
             {page.type === 'add' && (
               <AddEvent anchors={anchors} myEvents={myEvents} onAdd={addMine} presetTs={page.ts} />
             )}

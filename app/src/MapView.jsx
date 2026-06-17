@@ -39,7 +39,7 @@
 //     list bubbles already scope a list; the note states the honest counts.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { getLeaflet } from './leaflet-lazy.js'
-import { useNav, viewIndex } from './nav.jsx'
+import { useNav } from './nav.jsx'
 import { CATEGORY_HUES, CardImg, HeatBadge, PriceChip, SponsoredTag } from './cards.jsx'
 import { SaveHeart } from './saves.js'
 import { CITY, dayLabelLoose, keyOf, startLabel } from './lib.js'
@@ -106,9 +106,10 @@ function bucketEvents(list, project) {
 }
 
 export default function MapView({ events, anchors, coords, requestCoords }) {
-  // navigation via useNav (O6): tab activation, detail opener, focus handoff
-  const { active: activeIdx, openDetail: onSelect, mapFocus: focusTarget } = useNav()
-  const active = activeIdx === viewIndex('map')
+  // navigation via useNav (O6). Stage R: Map is a SUB-VIEW now — it is "active"
+  // when the {type:'map'} subpage is open (was: the Map tab being the active tab).
+  const { page, openDetail: onSelect, mapFocus: focusTarget, closePage } = useNav()
+  const active = page?.type === 'map'
   const elRef = useRef(null)
   const mapRef = useRef(null)
   const layerRef = useRef(null)
@@ -502,6 +503,12 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
   return (
     <div className="map-wrap">
       <div ref={elRef} className="map" />
+
+      {/* Stage R: Map is a sub-view (subpage) now — a back button closes it back
+          to Events/Spots (Escape also closes it via the nav bubble handler). */}
+      <button className="map-back pressable" onClick={closePage} aria-label="Back">
+        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      </button>
 
       {/* ===== map toolbar (overlays the top). 3.7P-18: compact — date scope +
           Near me (row 1), layer toggle (row 2), and a "Filters" button that opens
