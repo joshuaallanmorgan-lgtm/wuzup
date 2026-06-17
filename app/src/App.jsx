@@ -289,7 +289,7 @@ function Shell() {
             {visited.has('map') && <MapView events={norm} anchors={anchors} coords={coords} requestCoords={requestCoords} />}
           </section>
           <section className="page">
-            {visited.has('calendar') && <CalendarView events={norm} anchors={anchors} />}
+            {visited.has('calendar') && <CalendarView events={norm} anchors={anchors} wx={wx} />}
           </section>
           <section className="page">
             {visited.has('profile') && <ProfileView events={norm} anchors={anchors} primer={primer} />}

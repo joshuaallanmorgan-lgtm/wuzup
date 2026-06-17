@@ -1307,6 +1307,14 @@ test('3.7P-24 §N Spots: Recommended featured card + compact place Everything (g
   assert.ok(/\{onAdd && <button className="featc-act featc-add"/.test(cards), 'the inline Add only renders when onAdd is provided (places open the detail to pick a day)')
 })
 
+test('3.7P-40 §N Calendar: Upcoming day-stack (NextDays) + date-state legend', () => {
+  const cal = readFileSync(path.join(ROOT, 'app', 'src', 'CalendarView.jsx'), 'utf8')
+  assert.ok(/<NextDays /.test(cal), 'Calendar renders the Upcoming "Your next days" stack')
+  assert.ok(/cal-legend/.test(cal), 'Calendar shows a clear date-state legend')
+  const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
+  assert.ok(/<CalendarView[^>]*wx=\{wx\}/.test(app), 'App passes wx to CalendarView (forecast on the upcoming cards)')
+})
+
 test('3.7P-24 §N spot detail: Best-for (from activity predicates) + honest Watch-out', () => {
   const pd = readFileSync(path.join(ROOT, 'app', 'src', 'PlaceDetail.jsx'), 'utf8')
   assert.ok(/ACTIVITIES\.filter\(\(a\) => a\.match\(e\)\)/.test(pd), 'Best-for is derived from the real ACTIVITIES predicates (never invented)')

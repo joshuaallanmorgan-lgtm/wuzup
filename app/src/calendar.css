@@ -300,3 +300,12 @@
 
 /* (3.7P-17: the FB-12 day-peek POPOVER + its scrim/sheet/slot styles were
    retired — the day detail is now the inline .cal-sel panel above.) */
+
+/* ===== 3.7P-40 (§N screen 8): date-state legend + "Upcoming" day-card stack ===== */
+.cal-legend { display: flex; flex-wrap: wrap; gap: 14px; padding: 12px 20px 4px; }
+.cal-leg { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; color: var(--muted); }
+.cal-leg-dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--accent); }
+.cal-leg-bar { width: 12px; height: 3px; border-radius: 2px; background: var(--accent); }
+.cal-leg-chk { color: var(--ink); font-weight: 800; }
+.cal-upcoming { margin-top: 12px; }
+.cal-up-title { margin: 0 20px 8px; font-size: 13px; font-weight: 700; letter-spacing: 0.2px; color: var(--muted); }

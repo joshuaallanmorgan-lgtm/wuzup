@@ -48,11 +48,12 @@ import {
   withClearedSlot,
 } from './dayplan.js'
 import { usePlaces, isPlaceKey } from './places.js'
+import NextDays from './NextDays.jsx'
 import './calendar.css'
 
 const wdLong = (ts) => new Date(ts).toLocaleDateString('en-US', { weekday: 'long' })
 
-export default function CalendarView({ events, anchors }) {
+export default function CalendarView({ events, anchors, wx }) {
   const { openDay, page } = useNav()
   const [selKey, setSelKey] = useState(null) // the TAPPED day (null = none); drives the inline bottom panel
   const [monthOff, setMonthOff] = useState(0)
@@ -424,6 +425,15 @@ export default function CalendarView({ events, anchors }) {
           })}
         </div>
 
+        {/* 3.7P-40 (§N screen 8): a clear date-state legend so the grid marks read
+            unambiguously (today / planned / rest / went). */}
+        <div className="cal-legend" aria-hidden>
+          <span className="cal-leg"><span className="cal-leg-dot" />Today</span>
+          <span className="cal-leg"><span className="cal-leg-bar" />Planned</span>
+          <span className="cal-leg">🌙 Rest</span>
+          <span className="cal-leg"><span className="cal-leg-chk">✓</span> Went</span>
+        </div>
+
         {/* 3.7P-17: the INLINE day panel — fills the blank space below the grid
             with the tapped day's shape (slots / rest / a went record) + an open
             action. Appears only once a day is tapped; a blank future day shows
@@ -470,6 +480,14 @@ export default function CalendarView({ events, anchors }) {
             )}
           </div>
         )}
+      </div>
+
+      {/* 3.7P-40 (§N screen 8): "Upcoming" — the day-first planning-card stack
+          (today + the next two days: real forecast + plan-state + a planner CTA).
+          The same NextDays component the Home leads with; tap → that DayPage. */}
+      <div className="cal-upcoming">
+        <h3 className="cal-up-title">Upcoming</h3>
+        <NextDays anchors={anchors} wx={wx} />
       </div>
     </div>
   )
