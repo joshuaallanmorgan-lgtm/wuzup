@@ -10,12 +10,11 @@
 //
 // Places are a SECOND lazy store (usePlaces): /places.json fetches on first mount
 // of this tab, never at boot, never merged into the events feed. DRAFT copy ⚑ Charles.
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useNav } from './nav.jsx'
-import { CITY } from './lib.js'
 import { SecHead, SpotCard, EndCap, FeaturedCard, IntentTile, RowFeed } from './cards.jsx'
 import { GUIDES } from './guides.js'
-import { tasteNudge, useTaste } from './taste.js'
+import { railReady, tasteNudge, useTaste } from './taste.js'
 import { usePlaces, ACTIVITIES, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES, nearest, isPlaceKey, normalizePlace } from './places.js'
 import { useSaves } from './saves.js'
 import LensNav from './LensNav.jsx'
@@ -36,24 +35,13 @@ function placeOrder(list, taste) {
 }
 
 export default function LocationsView({ coords }) {
-  const { openDetail: onSelect, openPlaceBubble, openGuide } = useNav()
+  const { openDetail: onSelect, openPlaceBubble, openGuide, openSearch } = useNav()
   // FB-03 (3.7P-7): the Spots page shows SPOTS + MIXED guides (Beach day, Free
   // outdoor reset) — the place-domain guides.
   const spotGuides = GUIDES.filter((g) => g.domain === 'spots' || g.domain === 'mixed')
   const { places, status } = usePlaces()
   const saves = useSaves()
   const taste = useTaste()
-
-  // W4: real Spots hero (Bayshore Blvd). Preload + fade over the teal placeholder.
-  const [heroOk, setHeroOk] = useState(false)
-  useEffect(() => {
-    const img = new Image()
-    img.onload = () => setHeroOk(true)
-    img.src = CITY.spotsHeroes?.[0]?.url || CITY.spotsHero
-    return () => {
-      img.onload = null
-    }
-  }, [])
 
   const all = useMemo(() => (Array.isArray(places) ? placeOrder(places, taste) : []), [places, taste])
   const near = useMemo(() => nearest(all, coords, 12), [all, coords])
@@ -93,23 +81,19 @@ export default function LocationsView({ coords }) {
   if (status === 'loading' || places === null) {
     return (
       <div className="hot-scroll">
-        <div className="loc-hero loc-hero-flat">
-          <div className="hero-text">
-            <h1 className="hero-city">Spots</h1>
-            <div className="hero-sub">Loading the bay's places…</div>
-          </div>
-        </div>
+        <header className="loc-head">
+          <h1 className="loc-head-title">Spots</h1>
+          <div className="loc-head-sub">Loading the bay's places…</div>
+        </header>
       </div>
     )
   }
   if (status === 'error' || all.length === 0) {
     return (
       <div className="hot-scroll">
-        <div className="loc-hero loc-hero-flat">
-          <div className="hero-text">
-            <h1 className="hero-city">Spots</h1>
-          </div>
-        </div>
+        <header className="loc-head">
+          <h1 className="loc-head-title">Spots</h1>
+        </header>
         <div className="empty">
           {status === 'error'
             ? "Couldn't load places right now — check back in a moment."
@@ -121,19 +105,18 @@ export default function LocationsView({ coords }) {
 
   return (
     <div className="hot-scroll">
-      {/* W4 + 3.7P-6: real Spots hero — Bayshore Boulevard, Ken-Burns zoom */}
-      <header className="loc-hero">
-        <div className={'loc-hero-img hero-kb' + (heroOk ? ' on' : '')} style={{ backgroundImage: `url(${CITY.spotsHeroes?.[0]?.url || CITY.spotsHero})` }} />
-        <div className="loc-hero-wash" />
-        <div className="hero-text">
-          <div className="hero-brand">
-            <span className="hero-brand-dot" aria-hidden />
-            Wuzup
-          </div>
-          <div className="hero-kicker">Always here, no schedule</div>
-          <h1 className="hero-city">Spots</h1>
-          <div className="hero-sub">Parks, beaches, trails and quiet corners.</div>
-        </div>
+      {/* Stage R (§N screen 6): a CLEAN light header — title + sub + a prominent
+          search bar — replaces the cinematic image hero, matching the benchmark's
+          scannable top (title → search → activity grid). The search bar is a
+          BUTTON into the existing global SearchPage (which already searches places
+          via searchPlaces), not a new matcher — reorganize, not invent. */}
+      <header className="loc-head">
+        <h1 className="loc-head-title">Spots</h1>
+        <div className="loc-head-sub">Parks, beaches, trails and quiet corners.</div>
+        <button className="loc-search pressable" onClick={openSearch} aria-label="Search spots">
+          <span className="loc-search-ic" aria-hidden>🔎</span>
+          <span className="loc-search-ph">Search spots — beaches, trails, dog parks…</span>
+        </button>
       </header>
 
       {/* Phase 3.6 N1: quiet top nav — quality lenses (Free/Hidden/Dog) + an
@@ -165,7 +148,14 @@ export default function LocationsView({ coords }) {
             when located). Tap → PlaceDetail (where "Make this my plan" lives). */}
         {topSpot && (
           <section className="sec">
-            <SecHead overline="Worth a visit" title={coords ? 'Recommended near you' : 'Recommended for you'} />
+            {/* Stage R: honest subtitle (D6) — the pick is nearest when located,
+                taste-derived only when the rail has real organic signal, else a
+                neutral true claim. Never assert "recent taps" without signal. */}
+            <SecHead
+              overline="Worth a visit"
+              title={coords ? 'Recommended near you' : 'Recommended for you'}
+              sub={coords ? 'Closest to you right now' : railReady(taste) ? 'Based on what you have tapped' : 'A local favorite to start with'}
+            />
             <FeaturedCard e={topSpot} onSelect={onSelect} />
           </section>
         )}

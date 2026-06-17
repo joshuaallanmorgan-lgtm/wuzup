@@ -376,10 +376,13 @@ test('W4 wiring: real heroes + place-detail photo + degrade-to-art + passthrough
   assert.match(lib, /heroes:\s*\[/, 'CITY.heroes[] must exist (3.7P-6 swipe-ready hero array)')
   assert.match(lib, /url:\s*'https:\/\/upload\.wikimedia\.org\//, 'CITY.heroes entries must carry a real Commons url')
   assert.match(lib, /license:\s*'(CC |Public domain)/, 'CITY.heroes entries must record a license for the attribution page')
-  // LocationsView renders the real Spots hero image, not just the teal wash
+  // Stage R: the Spots tab now uses a CLEAN light header + a search bar (the
+  // cinematic image hero was removed to match the benchmark). The Spots hero
+  // PHOTO data (CITY.spotsHero) stays in lib.js for the attribution page (asserted
+  // above); it is simply no longer rendered as a Spots hero.
   const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
-  assert.match(loc, /loc-hero-img/, 'LocationsView must render a real .loc-hero-img element')
-  assert.match(loc, /CITY\.spotsHero/, 'the Spots hero must use CITY.spotsHero')
+  assert.match(loc, /loc-head-title/, 'LocationsView uses the clean light header (Stage R: no image hero)')
+  assert.match(loc, /loc-search/, 'LocationsView surfaces a search bar into the global SearchPage')
   // PlaceDetail shows the photo as a hero, gated on heroArt (real photo vs art)
   const pd = readFileSync(path.join(ROOT, 'app', 'src', 'PlaceDetail.jsx'), 'utf8')
   assert.match(pd, /detail-hero-img/, 'PlaceDetail must use the image hero treatment (detail-hero-img)')

@@ -78,6 +78,50 @@
   min-height: 140px;
 }
 
+/* ===== Stage R (§N screen 6): clean light Spots header — title + sub + a
+   prominent search bar — replaces the cinematic image hero to match the
+   benchmark's scannable top. The old .loc-hero* rules above are now unused
+   (kept harmless; sweep later). ===== */
+.loc-head {
+  padding: 18px 18px 6px;
+}
+.loc-head-title {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: var(--ink);
+}
+.loc-head-sub {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.loc-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: var(--shadow-card, 0 1px 3px rgba(0, 0, 0, 0.04));
+  cursor: pointer;
+  text-align: left;
+}
+.loc-search-ic {
+  flex: none;
+  font-size: 15px;
+}
+.loc-search-ph {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
 /* (3.7P-21: the inline "Near-you locate prompt" (.loc-locate*) was retired —
    location is opt-in in Settings now; these styles were removed with the gate.) */
 
