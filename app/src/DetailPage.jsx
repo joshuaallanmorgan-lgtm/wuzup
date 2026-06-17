@@ -391,6 +391,12 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         <button className="detail-back" onClick={onClose} aria-label="Back">
           <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </button>
+        {/* R-HD2: share lives in the hero header now (reuses the util-row `share`
+            handler), so both detail pages cluster the same way — back left ·
+            save + share right. The heat badge clears the share disc via detail.css. */}
+        <button className="detail-share" onClick={share} aria-label="Share">
+          <Icon.share />
+        </button>
         {/* ♥ save toggle (saves.js) — heat badge slides left of it via saves.css */}
         <SaveHeart e={e} big />
         <HeatBadge e={e} />

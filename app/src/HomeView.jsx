@@ -24,7 +24,7 @@ function heroKicker(now) {
 export default function HomeView({ events, anchors, wx }) {
   // onSelect identity note: openDetail is useCallback-stable in nav.jsx, so the
   // FeaturedCard's tap target keeps its referential-stability contract.
-  const { openDetail: onSelect, goTo } = useNav()
+  const { openDetail: onSelect, goTo, openSearch } = useNav()
 
   // "tonight" startedness tracks the CLOCK, not just the data — re-seed when the
   // tab returns to view + every 10 min while open (same cadence as the old hero).
@@ -108,6 +108,14 @@ export default function HomeView({ events, anchors, wx }) {
       <header className="home-head">
         <h1 className="home-greet">{heroKicker(new Date(nowMs))}</h1>
         {wxLine && <div className="home-wx">{wxLine}</div>}
+        {/* R-HD1: a compact magnifier disc → the global SearchPage. Home gets the
+            icon (the greeting owns the row); Events/Spots keep the full bar. */}
+        <button className="home-search pressable" onClick={openSearch} aria-label="Search">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.2-3.2" />
+          </svg>
+        </button>
       </header>
 
       <div className="hot-body">

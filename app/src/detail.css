@@ -11,6 +11,11 @@
   font-size: 12px;
   z-index: 2;
 }
+/* R-HD2: with the share disc now in the hero (back · share · save · badge), the
+   heat badge must clear BOTH the share disc and the heart. 4-class selector beats
+   the saves.css `.detail-hero .save-btn ~ .heat-badge { right: 64px }` regardless
+   of stylesheet order. (16 heart + 38 + 8 → share@62; +40 + 8 → badge@110.) */
+.detail-hero .detail-share ~ .save-btn ~ .heat-badge { right: 110px; }
 .detail-catchip {
   display: inline-block;
   margin: 0 0 11px 8px;

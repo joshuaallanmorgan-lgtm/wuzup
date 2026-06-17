@@ -31,7 +31,26 @@
 .page-hot { overflow: hidden; }
 
 /* ===== Stage R: the Home dashboard clean light header (greeting + weather) ===== */
-.home-head { padding: 22px 18px 6px; }
+.home-head { padding: 22px 18px 6px; position: relative; }
+/* R-HD1: the Home search disc — light-surface icon button (the .pf-gear family),
+   centered against the greeting line, top-right. */
+.home-search {
+  position: absolute;
+  top: calc(18px + env(safe-area-inset-top));
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+.home-search:active { transform: scale(0.92); }
 .home-greet {
   margin: 0;
   font-size: 30px;
