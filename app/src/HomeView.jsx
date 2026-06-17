@@ -114,7 +114,7 @@ export default function HomeView({ events, anchors, wx }) {
         {/* §N screen 1: the headline planning stack — your next three days at a
             glance (real forecast + plan-state + a planner CTA). */}
         <section className="sec">
-          <SecHead overline="Plan ahead" title="Your next days" />
+          <SecHead title="Your next days" />
           <NextDays anchors={anchors} wx={wx} rev={planRev} />
         </section>
         {/* §N screen 1: the featured DecisionCard — image + title + venue + honest

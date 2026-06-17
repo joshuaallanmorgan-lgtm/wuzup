@@ -49,7 +49,8 @@
   --muted: #756b61; /* Warm Taupe — secondary text (was #6b7280) */
   --line: #ede8e2; /* Sandy Whisper — warm divider (was #eceef1) */
   --card: #fefdfb; /* Parchment — creamy premium surface (was #ffffff) */
-  --bg: #faf8f5; /* Aged Linen — warmth anchor (was #f7f8fa) */
+  --bg: #fcfbf9; /* Stage R (R-H3): near-white warm to match the benchmark Home bg
+                    (was #faf8f5); stays just under --card so cards still lift */
 
   /* motion tokens (UI_SPEC §3) */
   --dur-micro: 120ms; /* press, chip fill */

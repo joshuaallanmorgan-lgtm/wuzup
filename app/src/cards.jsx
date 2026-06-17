@@ -156,9 +156,12 @@ export function SecHead({ overline, title, sub, onSeeAll }) {
   return (
     <div className="sec-head">
       <div className="sec-head-main">
-        {overline && <div className="sec-overline">{overline}</div>}
+        {/* Stage R (R-H2): bold ink title LEADS; the descriptor sits underneath in
+            muted gray. The orange overline-on-top is retired — `sub` is the
+            descriptor, `overline` only the fallback when there's no `sub` (so we
+            keep the more specific gray subline and drop redundant eyebrows). */}
         <h2 className="sec-title">{title}</h2>
-        {sub && <div className="sec-sub">{sub}</div>}
+        {(sub || overline) && <div className="sec-sub">{sub || overline}</div>}
       </div>
       {onSeeAll && (
         <button className="sec-seeall pressable" onClick={onSeeAll}>
