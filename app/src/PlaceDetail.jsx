@@ -14,8 +14,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { getLeaflet } from './leaflet-lazy.js'
 import { useNav } from './nav.jsx'
 import { Icon, keyOf } from './lib.js'
-import { SecHead, TonightCard, artEmoji, hueFor } from './cards.jsx'
-import { SaveHeart } from './saves.js'
+import { SecHead, TonightCard, artEmoji, hueFor, spotChips } from './cards.jsx'
+import { SaveHeart, useSaves } from './saves.js'
 import { dateKey } from './weather.js'
 import { usePlaces, ACTIVITIES } from './places.js'
 import { loadDayPlans, saveDayPlans, withSlot, dayEntryFor } from './dayplan.js'
@@ -84,6 +84,8 @@ function planDays(anchors) {
 export default function PlaceDetail({ e, anchors, wx }) {
   const { closing, vtOpen: vt, closeDetail: onClose, openDetail: onSelect, focusMap: onFocusMap } = useNav()
   const { places } = usePlaces()
+  const { has: hasSave, toggle: toggleSave } = useSaves()
+  const saved = hasSave(e)
 
   // W4: a place with a REAL Wikidata photo gets an image hero (preload + 300ms
   // fade over a dark placeholder, DetailPage's exact pattern); places without a
@@ -122,6 +124,9 @@ export default function PlaceDetail({ e, anchors, wx }) {
   // satisfies — derived from the SAME pure ACTIVITIES predicates the Spots tab
   // browses by (real fields, never invented). Up to 4.
   const bestFor = useMemo(() => ACTIVITIES.filter((a) => a.match(e)).slice(0, 4), [e])
+  // Stage R (§N spot detail): top-amenity TAG CHIPS under the title — the same
+  // honest spotChips the cards use; the FULL list still renders in "What's here".
+  const tagChips = useMemo(() => spotChips(e), [e])
   const outdoorish = e.category === 'outdoors' || ['park', 'beach', 'preserve', 'trail', 'viewpoint', 'pier', 'dog_park', 'garden'].includes(e.placeType)
 
   // weather-fit (S2): honest, derived only from the real 16-day forecast.
@@ -313,15 +318,13 @@ export default function PlaceDetail({ e, anchors, wx }) {
         <button className="detail-back" onClick={onClose} aria-label="Back">
           <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </button>
+        {/* Stage R: back / share / heart trio over a CLEAN hero photo — the title
+            + meta now live BELOW the hero on light (benchmark spot detail). */}
+        <button className="detail-share" onClick={share} aria-label="Share">
+          <Icon.share />
+        </button>
         <SaveHeart e={e} big />
         <div className="detail-hero-grad" />
-        <div className="detail-hero-text">
-          {free && <span className="chip detail-chip chip-free">Free</span>}
-          <span className="chip detail-chip detail-catchip" style={{ '--ch': hueFor(e) }}>
-            {artEmoji(e)} {e.placeType?.replace(/_/g, ' ') || 'spot'}
-          </span>
-          <h1 className="detail-title">{e.name}</h1>
-        </div>
         {/* 3.7P-2: the CC-BY/BY-SA attribution duty — a real photo of a place
             carries its captured credit (author · license), linked to the Commons
             file + the license deed. Shown only for real photos (art floor needs
@@ -342,12 +345,28 @@ export default function PlaceDetail({ e, anchors, wx }) {
       </div>
 
       <div className="detail-body">
-        {/* 3.7P-24 (§N screen 7): the field-guide meta line — distance · free · type */}
-        <div className="loc-fg-meta">{[distLine, free ? 'Free' : feeLine, placeTypeLabel].filter(Boolean).join(' · ')}</div>
-        {/* Make this my plan — the headline place action (the place→plan bridge) */}
-        <button className="loc-plan-cta" ref={planCtaRef} onClick={() => setPlanning(true)}>
-          ＋ Make this my plan
-        </button>
+        {/* Stage R (§N spot detail): name + field-guide meta (small line-icons) +
+            top-amenity tag chips, all BELOW the clean hero on light. The primary
+            action ("Make this my plan") moved to the bottom action bar. */}
+        <h1 className="loc-fg-title">{e.name}</h1>
+        <div className="loc-fg-meta">
+          {distLine && <span className="loc-fg-mi"><Icon.compass />{distLine}</span>}
+          {(free || feeLine) && <span className="loc-fg-mi"><Icon.tag />{free ? 'Free' : feeLine}</span>}
+          <span className="loc-fg-mi"><Icon.locations />{placeTypeLabel}</span>
+        </div>
+        {tagChips.length > 0 && (
+          <div className="loc-tag-chips">
+            {tagChips.map((c, i) => {
+              const Glyph = Icon[c.icon]
+              return (
+                <span className="loc-tag-chip" key={i}>
+                  {Glyph && <Glyph className="loc-tag-ic" aria-hidden />}
+                  {c.label}
+                </span>
+              )
+            })}
+          </div>
+        )}
 
         <div className="detail-rows">
           {e.venue && (
@@ -458,6 +477,23 @@ export default function PlaceDetail({ e, anchors, wx }) {
           </details>
         )}
       </div>
+      </div>
+
+      {/* Stage R (§N spot detail): the bottom action bar — Save (outline) + the
+          primary "Make this my plan" (gold, dark ink). A flex sibling OUTSIDE
+          .detail-scroll (the P22 bottom-bar pattern), so it never overlaps the
+          scrolling content. planCtaRef stays on the trigger (focus return). */}
+      <div className="detail-actionbar">
+        <button
+          className={'detail-save-btn' + (saved ? ' on' : '')}
+          onClick={() => toggleSave(e)}
+          aria-pressed={saved}
+        >
+          {saved ? '♥ Saved' : '♡ Save'}
+        </button>
+        <button className="loc-plan-cta detail-actionbar-cta" ref={planCtaRef} onClick={() => setPlanning(true)}>
+          ＋ Make this my plan
+        </button>
       </div>
 
       {/* Make-this-my-plan sheet */}

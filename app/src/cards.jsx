@@ -336,7 +336,9 @@ const AMENITY_CHIPS = [
   { test: (p) => ['picnic', 'grills', 'shelters'].some((a) => has(p, a)), icon: 'picnic', label: 'Picnic' },
   { test: (p) => ['dog-park', 'dogs-allowed', 'dog-beach'].some((a) => has(p, a)), icon: 'dog', label: 'Dog-friendly' },
 ]
-const spotChips = (p) => {
+// exported (Stage R) so PlaceDetail can render the same honest top-amenity tag
+// chips up top; the FULL amenity list still appears in "What's here" (never-hide).
+export const spotChips = (p) => {
   const out = []
   for (const c of AMENITY_CHIPS) {
     if (c.test(p)) out.push(c)
