@@ -1307,6 +1307,13 @@ test('3.7P-24 §N Spots: Recommended featured card + compact place Everything (g
   assert.ok(/\{onAdd && <button className="featc-act featc-add"/.test(cards), 'the inline Add only renders when onAdd is provided (places open the detail to pick a day)')
 })
 
+test('3.7P-24 §N spot detail: Best-for (from activity predicates) + honest Watch-out', () => {
+  const pd = readFileSync(path.join(ROOT, 'app', 'src', 'PlaceDetail.jsx'), 'utf8')
+  assert.ok(/ACTIVITIES\.filter\(\(a\) => a\.match\(e\)\)/.test(pd), 'Best-for is derived from the real ACTIVITIES predicates (never invented)')
+  assert.ok(/loc-bestfor/.test(pd) && /loc-watch/.test(pd), 'PlaceDetail renders Best-for + Watch-out sections')
+  assert.ok(/check the forecast/.test(pd), 'Watch-out cautions are honest (paid gate + real rainy forecast), not fabricated')
+})
+
 test('3.7P-39 review: every hidden-gem reader honors NON_GEM_RE (no off-shelf "gem" claim)', () => {
   const taste = readFileSync(path.join(ROOT, 'app', 'src', 'taste.js'), 'utf8')
   assert.ok(/hidden-gem'\) && !NON_GEM_RE\.test/.test(taste), 'whyReasons gates the "Hidden gem" reason chip with NON_GEM_RE')

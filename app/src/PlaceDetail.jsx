@@ -17,7 +17,7 @@ import { Icon, keyOf } from './lib.js'
 import { SecHead, TonightCard, artEmoji, hueFor } from './cards.jsx'
 import { SaveHeart } from './saves.js'
 import { dateKey } from './weather.js'
-import { usePlaces } from './places.js'
+import { usePlaces, ACTIVITIES } from './places.js'
 import { loadDayPlans, saveDayPlans, withSlot, dayEntryFor } from './dayplan.js'
 import './locations.css'
 
@@ -116,6 +116,13 @@ export default function PlaceDetail({ e, anchors, wx }) {
 
   const free = e.isFree === true
   const feeLine = free ? 'Free' : e.fee ? e.fee : null
+  const placeTypeLabel = (e.placeType || 'spot').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+  const distLine = e._dist != null ? e._dist.toFixed(1) + ' mi away' : null
+  // 3.7P-24 (§N screen 7 "Best for"): the activity intents this place actually
+  // satisfies — derived from the SAME pure ACTIVITIES predicates the Spots tab
+  // browses by (real fields, never invented). Up to 4.
+  const bestFor = useMemo(() => ACTIVITIES.filter((a) => a.match(e)).slice(0, 4), [e])
+  const outdoorish = e.category === 'outdoors' || ['park', 'beach', 'preserve', 'trail', 'viewpoint', 'pier', 'dog_park', 'garden'].includes(e.placeType)
 
   // weather-fit (S2): honest, derived only from the real 16-day forecast.
   // For an outdoor place, find the soonest CLEAR/PARTLY day in the next week
@@ -138,6 +145,20 @@ export default function PlaceDetail({ e, anchors, wx }) {
     }
     return null
   }, [wx, anchors, e.category, e.placeType])
+
+  // 3.7P-24 (§N screen 7 "Watch out"): HONEST cautions only — never fabricated.
+  // A paid gate and a genuinely rainy week (real forecast: no clear day in 7 +
+  // today ≥50% rain) are the cautions our data supports; if none apply the
+  // section is simply absent (no invented "buggy after rain").
+  const cautions = useMemo(() => {
+    const out = []
+    if (!free) out.push({ icon: '💵', text: e.fee ? 'Paid entry · ' + e.fee : 'Entry isn’t free' })
+    if (outdoorish && wx && !wxFit) {
+      const w0 = wx[dateKey(anchors.todayTs)]
+      if (w0 && w0.rain != null && w0.rain >= 50) out.push({ icon: '🌧', text: 'Rain around this week — check the forecast' })
+    }
+    return out
+  }, [free, e.fee, outdoorish, wx, wxFit, anchors])
 
   // mini-map: lazy non-interactive Leaflet, destroyed on unmount (DetailPage's
   // exact pattern — the shared lazy loader keeps Leaflet out of the boot chunk)
@@ -321,6 +342,8 @@ export default function PlaceDetail({ e, anchors, wx }) {
       </div>
 
       <div className="detail-body">
+        {/* 3.7P-24 (§N screen 7): the field-guide meta line — distance · free · type */}
+        <div className="loc-fg-meta">{[distLine, free ? 'Free' : feeLine, placeTypeLabel].filter(Boolean).join(' · ')}</div>
         {/* Make this my plan — the headline place action (the place→plan bridge) */}
         <button className="loc-plan-cta" ref={planCtaRef} onClick={() => setPlanning(true)}>
           ＋ Make this my plan
@@ -360,6 +383,35 @@ export default function PlaceDetail({ e, anchors, wx }) {
                 )
               })}
             </div>
+          </div>
+        )}
+
+        {/* 3.7P-24 (§N screen 7) "Best for" — the activity intents this place truly
+            satisfies (the same pure ACTIVITIES predicates the Spots tab browses by). */}
+        {bestFor.length > 0 && (
+          <div className="loc-bestfor">
+            <div className="d-k">Best for</div>
+            <div className="loc-bestfor-row">
+              {bestFor.map((a) => (
+                <span className="loc-bestfor-item" key={a.id}>
+                  <span className="loc-bestfor-ic" aria-hidden>{a.emoji}</span>
+                  <span className="loc-bestfor-label">{a.label}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 3.7P-24 (§N screen 7) "Watch out" — honest cautions only (paid gate /
+            rainy week from the real forecast); absent when nothing true applies. */}
+        {cautions.length > 0 && (
+          <div className="loc-watch">
+            <div className="d-k">Watch out</div>
+            {cautions.map((c, i) => (
+              <div className="loc-watch-item" key={i}>
+                <span aria-hidden>{c.icon}</span> {c.text}
+              </div>
+            ))}
           </div>
         )}
 
