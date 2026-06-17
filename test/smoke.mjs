@@ -1269,13 +1269,16 @@ test('3.7P-39 section-label honesty: job/career fairs are not Hidden Gems', () =
 })
 
 // 3.7P-23/25/39 review — Phase B wiring + cross-surface honesty.
-test('3.7P-23/25 wiring: Home compact sections + warm AA-safe guide tiles', () => {
+test('3.7P-23/25 wiring: Home compact sections + clean AA-safe guide tiles', () => {
   const hot = readFileSync(path.join(ROOT, 'app', 'src', 'HotView.jsx'), 'utf8')
   assert.ok((hot.match(/feed feed--compact/g) || []).length >= 2, 'both Home secondary sections render as feed--compact')
   assert.ok(/<CompactRow /.test(hot), 'HotView uses CompactRow for the secondary sections')
   const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.css'), 'utf8')
-  assert.ok(/\.intent-tile \{[^}]*linear-gradient/s.test(cards), '.intent-tile carries the warm per-hue gradient')
-  assert.ok(/\.intent-tile-pov \{[^}]*#5f574e/s.test(cards), '.intent-tile-pov uses the AA-safe color (not --muted) over the gradient')
+  // S1-SP2/SP3: the warm per-hue wash is retired — the tile is a clean white card
+  // + neutral hairline; identity moves to the hue-tinted emoji medallion.
+  assert.ok(/\.intent-tile \{[^}]*background: var\(--card\)/s.test(cards), '.intent-tile is a clean white card (S1-SP2)')
+  assert.ok(/\.intent-tile \{[^}]*border: 1px solid var\(--line\)/s.test(cards), '.intent-tile uses a neutral hairline (S1-SP3)')
+  assert.ok(/\.intent-tile-pov \{[^}]*#5f574e/s.test(cards), '.intent-tile-pov keeps the AA-safe text color (now over white)')
   const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
   assert.ok(/By activity"\s+sub=/.test(loc), 'the Spots "By activity" header has a POV sub')
 })

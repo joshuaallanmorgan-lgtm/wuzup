@@ -85,12 +85,9 @@ export const ACTIVITIES = [
   { id: 'act-family', emoji: '🛝', label: 'Family & play', hue: 80, match: (p) => p.placeType === 'playground' || hasClass(p, 'playground') || ['playground', 'splash-pad'].some((a) => hasAmenity(p, a)) },
   { id: 'act-dog', emoji: '🐕', label: 'Dog-friendly', hue: 50, match: (p) => p.placeType === 'dog_park' || hasClass(p, 'dog_park') || ['dog-park', 'dog-beach', 'dogs-allowed'].some((a) => hasAmenity(p, a)) },
   { id: 'act-views', emoji: '🌅', label: 'Scenic views', hue: 25, match: (p) => p.placeType === 'viewpoint' || p.placeType === 'pier' || hasClass(p, 'pier') || ['viewpoint-deck', 'boardwalk'].some((a) => hasAmenity(p, a)) },
-  // catch-all green space (3.7P-12 review): ~530 plain parks/gardens carry no
-  // routing amenity, so without this they'd live ONLY in Everything. They
-  // genuinely ARE parks, so an honest "go to a park" intent gives them a home
-  // (and the activity frame stops implying false completeness). Placed last of
-  // the everyday intents so the specific activities lead.
-  { id: 'act-parks', emoji: '🌳', label: 'Parks & green space', hue: 140, match: (p) => p.placeType === 'park' || p.placeType === 'garden' || hasClass(p, 'park') || hasClass(p, 'garden') },
+  // S1-SP1: the catch-all "Parks & green space" tile was removed (8 tiles, not 9).
+  // Plain parks/gardens with no routing amenity still reach the user via Everything,
+  // search, and the map (never-hide holds) — they just no longer get a dedicated tile.
   { id: 'act-hidden', emoji: '💎', label: 'Hidden gems', hue: 285, match: (p) => p.hidden === true },
 ]
 

@@ -33,7 +33,6 @@ const TAGLINES = {
   'act-family': 'Room to run and play.',
   'act-dog': 'Bring the good boy.',
   'act-views': 'Worth the look.',
-  'act-parks': 'Green space, found.',
   'act-hidden': 'Off the tourist track.',
 }
 

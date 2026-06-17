@@ -214,12 +214,11 @@
   justify-content: flex-start; /* content pins to the top of the stretched tile */
   gap: 7px;
   padding: 13px 8px 12px;
-  /* 3.7P-25: a warm, per-hue editorial wash (a "plan" card, not a neutral filter
-     pill) — soft enough that --ink labels stay AA, with a hue-tinted hairline so
-     each guide carries a little identity. Distinct from LensNav's plain category
-     pills. */
-  background: linear-gradient(160deg, hsl(var(--ih, 30) 60% 97%), hsl(var(--ih, 30) 52% 92%));
-  border: 1px solid hsl(var(--ih, 30) 45% 86%);
+  /* S1-SP2/SP3: a clean white card + neutral hairline (the per-hue editorial wash
+     is retired); each tile keeps its identity via the hue-tinted emoji medallion
+     below. --ink labels stay AA on white. */
+  background: var(--card);
+  border: 1px solid var(--line);
   border-radius: 16px;
   box-shadow: var(--shadow-card);
   text-align: center;
