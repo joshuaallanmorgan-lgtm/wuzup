@@ -49,17 +49,18 @@
   text-overflow: ellipsis;
 }
 /* the planner CTA — the shared primary-button treatment (D.0-R): --cta fill +
-   white text (AA ~4.86:1), ~10px rounded rect, the benchmark's weight/padding. */
+   white text (AA ~4.86:1). 1-C: tightened toward the mock (was 13px/800, 9×15,
+   r10, heavy shadow → less chunky). */
 .nd-cta {
   flex: 0 0 auto;
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 12.5px;
+  font-weight: 700;
   letter-spacing: 0.1px;
   color: #fff;
   background: var(--cta);
-  border-radius: 10px;
-  padding: 9px 15px;
-  box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.26);
+  border-radius: 9px;
+  padding: 7px 13px;
+  box-shadow: 0 1px 5px rgba(var(--accent-rgb), 0.22);
 }
 .nd-chev {
   flex: 0 0 auto;

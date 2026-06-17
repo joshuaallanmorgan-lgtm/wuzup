@@ -6,7 +6,10 @@
    rest / did-day), and the selected-day logbook caption. */
 
 .cal-wrap { min-height: 100svh; background: var(--bg); padding-bottom: 100px; }
-.cal-top { background: linear-gradient(135deg, var(--accent), var(--accent-2)); padding: 20px 0 15px; color: var(--ink); } /* dark ink on Sunset Gold — white fails AA (3.73a sweep) */
+/* 1-A (Stage 1 render-vs-ref): a CLEAN LIGHT header like every other tab + the
+   reference — no orange gradient band. The screen bg carries through; the title is
+   bold ink, the rhythm stats are ink/muted on light. */
+.cal-top { background: var(--bg); padding: 22px 0 6px; color: var(--ink); }
 /* the title row — title-only since W6 retired the Weekend pill (kept as a flex
    row so a future header slot drops in without reflow) */
 .cal-top-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 0 20px; }
@@ -22,9 +25,9 @@
 .cal-rhythm { display: flex; flex-wrap: wrap; gap: 22px; margin: 12px 20px 0; }
 .cal-stat { display: flex; flex-direction: column; gap: 1px; }
 .cal-stat-num { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.05; color: var(--ink); }
-/* 0.82 alpha clears AA (≥4.5:1) for small text even on the lighter end of the
-   gold gradient (review P2 — 0.66 dipped to ~4.0:1 over #ff8c42). */
-.cal-stat-lab { font-size: 11px; font-weight: 700; letter-spacing: 0.2px; color: rgba(26, 20, 16, 0.82); }
+/* 1-A: on the clean light header the rhythm labels read as muted sublabels (like
+   every other tab), no longer the gold-tuned dark-ink alpha. */
+.cal-stat-lab { font-size: 11px; font-weight: 700; letter-spacing: 0.2px; color: var(--muted); }
 /* 3.7P-4: the rhythm/streak chip — the gamification headline, a calm flame + the
    count in ink (NOT violet — violet is reserved for the transient increment beat). */
 .cal-stat-streak .cal-stat-num { display: inline-flex; align-items: center; gap: 3px; }

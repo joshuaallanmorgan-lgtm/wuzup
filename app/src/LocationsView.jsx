@@ -12,7 +12,7 @@
 // of this tab, never at boot, never merged into the events feed. DRAFT copy ⚑ Charles.
 import { useMemo } from 'react'
 import { useNav } from './nav.jsx'
-import { SecHead, SpotCard, EndCap, FeaturedCard, IntentTile, RowFeed } from './cards.jsx'
+import { SecHead, SpotCard, EndCap, FeaturedCard, IntentTile, RowFeed, imageMode } from './cards.jsx'
 import { GUIDES } from './guides.js'
 import { railReady, tasteNudge, useTaste } from './taste.js'
 import { usePlaces, ACTIVITIES, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES, nearest, isPlaceKey, normalizePlace } from './places.js'
@@ -47,7 +47,11 @@ export default function LocationsView({ coords }) {
   const near = useMemo(() => nearest(all, coords, 12), [all, coords])
   // 3.7P-24 (§N screen 6): the single "Recommended" featured spot — the closest
   // taste-top place when located, else the taste-top place overall.
-  const topSpot = (coords && near[0]) || all[0] || null
+  // 1-B (Stage 1): prefer a pick that has a REAL photo so the Recommended hero
+  // never falls back to a flat color block; if none in the active pool qualifies,
+  // take the top pick anyway (FeaturedCard renders the text-rich no-photo card).
+  const spotPool = coords && near.length ? near : all
+  const topSpot = spotPool.find((p) => imageMode(p) === 'photo') || spotPool[0] || null
 
   // 3.7P-12: per-activity taster lists. `all` is taste-ordered, so a plain
   // slice keeps taste order; with a fix, nearest() re-sorts by distance. An

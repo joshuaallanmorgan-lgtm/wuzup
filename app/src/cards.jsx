@@ -243,14 +243,25 @@ export function FeaturedCard({ e, onSelect, onAdd }) {
   // the clock-time signal) — not _tonight (a day-SPAN flag true for any daytime
   // event today). "tonight" only for a genuinely-evening pick.
   const addLabel = !isPlace && e._tonight && daypartOf(e) === 'night' ? '＋ Add to tonight' : '＋ Add to day'
+  // 1-B (Stage 1): a PLACE with no real photo gets a text-rich card — a small
+  // placeType medallion + name + amenity chips — NEVER a big flat color hero (the
+  // "green wall"). Events keep their category-art hero (the event art floor).
+  const placeNoPhoto = isPlace && imageMode(e) !== 'photo'
   return (
-    <div className="featc">
+    <div className={'featc' + (placeNoPhoto ? ' featc-noimg' : '')}>
       <button className="featc-open pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
-        <CardImg e={e} className="featc-img">
-          <HeatBadge e={e} />
-          {free && <span className="free-badge">FREE</span>}
-          {isPlace && e.hidden && <span className="spot-badge" aria-label="Hidden gem">💎</span>}
-        </CardImg>
+        {placeNoPhoto ? (
+          <span className="featc-medallion" aria-hidden style={{ '--mh': hueFor(e) }}>
+            {artEmoji(e)}
+            {e.hidden && <span className="featc-med-gem" aria-label="Hidden gem">💎</span>}
+          </span>
+        ) : (
+          <CardImg e={e} className="featc-img">
+            <HeatBadge e={e} />
+            {free && <span className="free-badge">FREE</span>}
+            {isPlace && e.hidden && <span className="spot-badge" aria-label="Hidden gem">💎</span>}
+          </CardImg>
+        )}
         <span className="featc-body">
           <span className="featc-meta">{meta || (isPlace ? 'Spot' : 'Coming up')}</span>
           <span className="featc-title">{e.title}</span>

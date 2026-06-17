@@ -333,6 +333,24 @@
    17px inner), so the hero corners read rounded even if overflow:hidden doesn't
    clip the <img> on a given renderer. */
 .featc-img { display: block; width: 100%; aspect-ratio: var(--ar-card); border-radius: 17px 17px 0 0; }
+/* 1-B: the no-photo PLACE variant — a horizontal text-rich card (small tinted
+   placeType medallion + name + amenity chips), never a big flat color hero. */
+.featc-noimg .featc-open { display: flex; align-items: flex-start; gap: 14px; padding: 16px 16px 4px; }
+.featc-noimg .featc-body { padding: 0; flex: 1; min-width: 0; }
+.featc-medallion {
+  position: relative;
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  border-radius: 15px;
+  background: hsl(var(--mh, 28) 68% 92%);
+}
+.featc-med-gem { position: absolute; right: -4px; bottom: -4px; font-size: 15px; }
 .featc-open .free-badge { top: 10px; left: 10px; }
 .featc-body { display: flex; flex-direction: column; gap: 6px; padding: 13px 15px 4px; }
 .featc-meta { font-size: 13px; font-weight: 600; color: var(--muted); }
