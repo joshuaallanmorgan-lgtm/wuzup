@@ -69,6 +69,20 @@
   gap: 8px;
   pointer-events: none; /* let map drags through the gaps; children re-enable */
 }
+/* R-M1: the shared .loc-search bar, floated over the map (it re-enables pointers
+   and drops the page-header top margin; a stronger shadow lifts it off the tiles) */
+.map-search {
+  margin-top: 0;
+  pointer-events: auto;
+  box-shadow: 0 2px 12px rgba(26, 20, 16, 0.22);
+}
+/* R-M1/R-M2: the actions row — Filters + Near me, centered under the layer toggle */
+.map-tools-actions {
+  align-self: center;
+  display: flex;
+  gap: 8px;
+}
+.map-filter-ic { display: inline-flex; align-items: center; }
 /* Stage R: Map is a sub-view (subpage) now — a back button (top-left) closes it. */
 .map-back {
   position: absolute;
@@ -322,6 +336,30 @@
   background: var(--free);
   border-color: var(--free);
   color: var(--ink); /* dark ink on green — #fff failed AA (3.07:1); --ink = 5.94:1 */
+}
+/* R-M2: grouped sections inside the sheet (When · Category & price) */
+.map-filter-group { margin-bottom: 14px; }
+.map-filter-grouplab {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.map-filter-note { font-size: 13px; font-weight: 500; color: var(--muted); line-height: 1.45; }
+.map-filter-dates { display: flex; flex-wrap: wrap; gap: 7px; }
+/* the date chips read light inside the sheet (like the category chips), not the
+   dark map-overlay glass they used to wear on the toolbar */
+.map-filter-dates .map-chip {
+  background: var(--bg);
+  border-color: var(--line);
+  color: var(--ink);
+  backdrop-filter: none;
+}
+.map-filter-dates .map-chip.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--ink); /* dark ink on Sunset Gold — never white (D.0) */
 }
 .map-filter-done {
   margin-top: 14px;

@@ -108,7 +108,7 @@ function bucketEvents(list, project) {
 export default function MapView({ events, anchors, coords, requestCoords }) {
   // navigation via useNav (O6). Stage R: Map is a SUB-VIEW now — it is "active"
   // when the {type:'map'} subpage is open (was: the Map tab being the active tab).
-  const { page, openDetail: onSelect, mapFocus: focusTarget, closePage } = useNav()
+  const { page, openDetail: onSelect, mapFocus: focusTarget, closePage, openSearch } = useNav()
   const active = page?.type === 'map'
   const elRef = useRef(null)
   const mapRef = useRef(null)
@@ -145,39 +145,36 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
   const showPlaces = effLayer === 'places' || effLayer === 'both'
   // lazy places: the fetch fires only once the Spots/Both segment is selected
   const { places } = usePlaces(showPlaces)
-  // Escape closes the preview sheet before App's listener can act (capture
-  // phase + stopPropagation — the same pattern as WeekendBuilder's picker).
-  // BUT when a detail page is stacked on top (pin sheet → "Full details"),
-  // the visible detail must win: bail out so App's handler closes IT first —
-  // otherwise the first Escape silently closes the hidden sheet underneath.
-  useEffect(() => {
-    if (!sheet) return
-    const onKey = (ev) => {
-      if (ev.key !== 'Escape') return
-      if (document.querySelector('.detail')) return
-      ev.stopPropagation()
-      setSheet(null)
-    }
-    window.addEventListener('keydown', onKey, true)
-    return () => window.removeEventListener('keydown', onKey, true)
-  }, [sheet])
   // 3.7P-18: the filter sheet is a real dialog (mirrors LensNav) — focus moves IN
   // on open, returns to the trigger on close, and Tab is trapped while open.
   const closeFilters = () => {
     setFiltersOpen(false)
     filterBtnRef.current?.focus() // WCAG 2.4.3: focus returns to the Filters trigger
   }
+  // move focus INTO the filter sheet when it opens (a dialog you can reach)
   useEffect(() => {
-    if (!filtersOpen) return
-    filterSheetRef.current?.focus() // move focus into the sheet (a dialog you can reach)
+    if (filtersOpen) filterSheetRef.current?.focus()
+  }, [filtersOpen])
+  // R-M3: ONE capture-phase Escape ladder for the whole Map sub-view. This
+  // replaces the two separate capture handlers (pin sheet + filter sheet) that
+  // BOTH fired on a single Escape — stopPropagation doesn't stop other listeners
+  // on the same window/phase, so the filter Escape ALSO closed the pin sheet
+  // underneath. Priority: a stacked detail page wins (bail so App closes IT) →
+  // filter sheet → pin sheet. When neither overlay is open this effect isn't
+  // mounted, so Escape falls through to the nav bubble handler (closes the
+  // subpage). The detail guard now covers BOTH overlay paths (was pin-only).
+  useEffect(() => {
+    if (!sheet && !filtersOpen) return
     const onKey = (ev) => {
       if (ev.key !== 'Escape') return
+      if (document.querySelector('.detail')) return // a stacked detail wins
       ev.stopPropagation()
-      closeFilters()
+      if (filtersOpen) closeFilters()
+      else if (sheet) setSheet(null)
     }
-    window.addEventListener('keydown', onKey, true) // capture: close the sheet first
+    window.addEventListener('keydown', onKey, true)
     return () => window.removeEventListener('keydown', onKey, true)
-  }, [filtersOpen])
+  }, [sheet, filtersOpen])
   // minimal Tab trap: keep focus within the sheet's controls while it's open
   const filterTrap = (ev) => {
     if (ev.key !== 'Tab') return
@@ -427,8 +424,12 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
 
   const num = (n) => n.toLocaleString('en-US')
   const noun = effLayer === 'events' ? 'events' : effLayer === 'places' ? 'spots' : 'pins'
-  // 3.7P-18: how many filters are active (category + free), for the Filters button badge
-  const activeFilterCount = (cat !== 'all' ? 1 : 0) + (freeOnly ? 1 : 0)
+  // 3.7P-18 / R-M2: how many filters are active, for the Filters button badge.
+  // Category + Free always count; the date scope counts ONLY when events are
+  // shown — a date filter is meaningless on the pure-Spots layer (places have no
+  // date), so counting it there would make the badge lie about the Spots view.
+  const activeFilterCount =
+    (cat !== 'all' ? 1 : 0) + (freeOnly ? 1 : 0) + (showEvents && dateF !== 'any' ? 1 : 0)
 
   // 3.7P-14: recenter on the user. With a cached fix, jump straight there; else
   // ask (App's requestCoords resolves to coords or null). A denial resolves null
@@ -471,15 +472,18 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
     }
     setSheet(p) // the SAME preview a marker tap opens (the deck hides while it's up)
   }
-  // header honesty (D6): "Top picks" only earns the word when a real ranking
-  // exists (some in-view event carries buzz); a flat / pure-spots view is "In
-  // this area". expandable gates the toggle; deckList is the peek vs the full set.
-  const ranked = picks.some((p) => p.kind !== 'place' && (p.buzz || 0) > 0)
   const expandable = picks.length > 1
   // Stage R: the deck shows a few picks BY DEFAULT (benchmark), expanding to the
   // full capped top-8 on "View all in this area".
   const PEEK = 3
   const deckList = deckOpen ? picks.slice(0, 8) : picks.slice(0, PEEK)
+  // header honesty (D6 / R-M4): "Top picks" only earns the word when a VISIBLE
+  // pick is a ranked event (carries buzz); a flat / pure-spots view stays the
+  // honest "In this area". Gate on deckList (what's actually rendered) rather
+  // than the full picks array: today picks is score-sorted desc so a ranked
+  // event always lands in the leading peek (the two checks coincide), but tying
+  // the label to the shown rows keeps it honest if the ordering/cap ever changes.
+  const ranked = deckList.some((p) => p.kind !== 'place' && (p.buzz || 0) > 0)
   const countLabel =
     inView == null
       ? `${num(withCoords.length)} ${noun} on the map`
@@ -511,38 +515,20 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
         <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
 
-      {/* ===== map toolbar (overlays the top). 3.7P-18: compact — date scope +
-          Near me (row 1), layer toggle (row 2), and a "Filters" button that opens
-          the category/Free sheet, so the 12 category chips no longer sprawl across
-          the map. Hierarchy stays date → layer → filters (Josh). ===== */}
+      {/* ===== map toolbar (overlays the top). R-M1/R-M2: a search bar matching
+          Events/Spots (row 1) → into the global SearchPage, the layer toggle (row
+          2), and an actions row with ALL filters behind one button (dates moved in
+          too) + Near me. The date strip + 12-chip sprawl no longer sit on the map. ===== */}
       <div className="map-tools">
-        <div className="map-tools-top">
-          {/* the date scope gates EVENTS only. 3.7P-18: on the Spots-only layer a
-              date filter is meaningless, so instead of dimmed-but-tappable buttons
-              (which read as "blocked"), show a clear one-line reason. */}
-          {showEvents ? (
-            <div className="map-dates">
-              {DATE_FILTERS.map((d) => (
-                <button
-                  key={d.id}
-                  className={'map-chip' + (dateF === d.id ? ' on' : '')}
-                  onClick={() => setDateF(d.id)}
-                >
-                  {d.label}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="map-dates-note">🗓️ Dates apply to events</div>
-          )}
-          <button
-            className="map-near pressable"
-            onClick={goNearMe}
-            aria-label="Center the map on your location"
-          >
-            <span aria-hidden>📍</span> Near me
-          </button>
-        </div>
+        {/* R-M1: the search bar — the same .loc-search affordance Events/Spots use */}
+        <button
+          className="loc-search map-search pressable"
+          onClick={openSearch}
+          aria-label="Search events and spots"
+        >
+          <span className="loc-search-ic" aria-hidden>🔎</span>
+          <span className="loc-search-ph">Search events, spots, vibes…</span>
+        </button>
         {/* layer toggle — events / spots / both */}
         <div className="map-seg" role="group" aria-label="Map layer">
           {[
@@ -560,16 +546,30 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
             </button>
           ))}
         </div>
-        {/* 3.7P-18: category + Free collapse behind one compact Filters button */}
-        <button
-          ref={filterBtnRef}
-          className={'map-filter-btn pressable' + (activeFilterCount > 0 ? ' on' : '')}
-          onClick={() => setFiltersOpen(true)}
-          aria-haspopup="dialog"
-          aria-expanded={filtersOpen}
-        >
-          <span aria-hidden>⚙️</span> Filters{activeFilterCount > 0 ? ` · ${activeFilterCount}` : ''}
-        </button>
+        {/* R-M1/R-M2: actions row — the Filters button (now holds date + category +
+            Free behind a sliders glyph) and Near me. */}
+        <div className="map-tools-actions">
+          <button
+            ref={filterBtnRef}
+            className={'map-filter-btn pressable' + (activeFilterCount > 0 ? ' on' : '')}
+            onClick={() => setFiltersOpen(true)}
+            aria-haspopup="dialog"
+            aria-expanded={filtersOpen}
+          >
+            {/* R-M1: horizontal-lines / sliders glyph (was a ⚙️ gear) */}
+            <span className="map-filter-ic" aria-hidden>
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M6 12h12M10 18h4" /></svg>
+            </span>
+            Filters{activeFilterCount > 0 ? ` · ${activeFilterCount}` : ''}
+          </button>
+          <button
+            className="map-near pressable"
+            onClick={goNearMe}
+            aria-label="Center the map on your location"
+          >
+            <span aria-hidden>📍</span> Near me
+          </button>
+        </div>
       </div>
 
       {/* 3.7P-18: the filter sheet — category + Free, opened from the Filters
@@ -594,27 +594,52 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
                 ✕
               </button>
             </div>
-            <div className="map-chips map-filter-chips">
-              <button
-                className={'map-chip map-chip-free' + (freeOnly ? ' on' : '')}
-                aria-pressed={freeOnly}
-                onClick={() => setFreeOnly((v) => !v)}
-              >
-                🆓 Free
-              </button>
-              <button className={'map-chip' + (cat === 'all' ? ' on' : '')} onClick={() => setCat('all')}>
-                All
-              </button>
-              {CATEGORIES.filter((c) => c.id !== 'other').map((c) => (
+            {/* R-M2: the date scope lives in the sheet now. It gates EVENTS only —
+                a place has no date — so on the Spots layer it's an honest note
+                instead of dead buttons. */}
+            <div className="map-filter-group">
+              <div className="map-filter-grouplab">When</div>
+              {showEvents ? (
+                <div className="map-filter-dates">
+                  {DATE_FILTERS.map((d) => (
+                    <button
+                      key={d.id}
+                      className={'map-chip' + (dateF === d.id ? ' on' : '')}
+                      aria-pressed={dateF === d.id}
+                      onClick={() => setDateF(d.id)}
+                    >
+                      {d.label}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="map-filter-note">🗓️ Dates apply to events — switch on the Events layer to filter by day.</div>
+              )}
+            </div>
+            <div className="map-filter-group">
+              <div className="map-filter-grouplab">Category &amp; price</div>
+              <div className="map-chips map-filter-chips">
                 <button
-                  key={c.id}
-                  className={'map-chip' + (cat === c.id ? ' on' : '')}
-                  aria-pressed={cat === c.id}
-                  onClick={() => setCat((v) => (v === c.id ? 'all' : c.id))}
+                  className={'map-chip map-chip-free' + (freeOnly ? ' on' : '')}
+                  aria-pressed={freeOnly}
+                  onClick={() => setFreeOnly((v) => !v)}
                 >
-                  <span aria-hidden>{c.emoji}</span> {c.label}
+                  🆓 Free
                 </button>
-              ))}
+                <button className={'map-chip' + (cat === 'all' ? ' on' : '')} onClick={() => setCat('all')}>
+                  All
+                </button>
+                {CATEGORIES.filter((c) => c.id !== 'other').map((c) => (
+                  <button
+                    key={c.id}
+                    className={'map-chip' + (cat === c.id ? ' on' : '')}
+                    aria-pressed={cat === c.id}
+                    onClick={() => setCat((v) => (v === c.id ? 'all' : c.id))}
+                  >
+                    <span aria-hidden>{c.emoji}</span> {c.label}
+                  </button>
+                ))}
+              </div>
             </div>
             <button className="map-filter-done pressable" onClick={closeFilters}>
               Done
