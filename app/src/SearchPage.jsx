@@ -46,9 +46,12 @@ import './bubble.css'
 // honest zero-state shortcuts: two date-grammar chips + every real category
 // from the canonical registry ('other' is a fallback bucket, not a chip) —
 // each is literally the query it runs, no hand-waved "popular" claims.
+// 3.7P-41 (§N screen 9): natural-language example prompts FIRST (each is a real
+// query the matcher actually runs — free/date tokens + text), then the category
+// shortcuts. No aspirational example that returns nothing.
+const NL_EXAMPLES = ['free things tonight', 'music this weekend', 'comedy tonight', 'outdoors this weekend']
 const SUGGESTIONS = [
-  'tonight',
-  'free this weekend',
+  ...NL_EXAMPLES,
   ...CATEGORIES.filter((c) => c.id !== 'other').map((c) => c.label.toLowerCase()),
 ]
 
@@ -59,6 +62,7 @@ export default function SearchPage({ events, anchors, coords }) {
   const [q, setQ] = useState('') // live input value
   const [dq, setDq] = useState('') // debounced ~120ms — drives the matcher
   const [recents, setRecents] = useState(loadSearchRecents)
+  const [tab, setTab] = useState('all') // 3.7P-41: result-type scope (all/events/spots)
   useEffect(() => {
     const t = setTimeout(() => setDq(q), 120)
     return () => clearTimeout(t)
@@ -180,13 +184,32 @@ export default function SearchPage({ events, anchors, coords }) {
             <div className="srch-count">
               {total.toLocaleString('en-US')} result{total === 1 ? '' : 's'} for “{dq.trim()}”
             </div>
-            {/* T2: ONE RowFeed over BOTH labeled groups (Events, then Spots) so
-                pagination + the end-cap span the union; an empty group renders
-                no header. A Spots row opens PlaceDetail via the shared select.
-                key resets pagination + replays the stagger per query */}
+            {/* 3.7P-41 (§N screen 9): result-type tabs to scope the union. Only
+                the tabs that have results are offered (no dead "Spots (0)" tab). */}
+            <div className="srch-tabs">
+              {[
+                { id: 'all', label: 'All', n: total },
+                { id: 'events', label: 'Events', n: results.length },
+                { id: 'spots', label: 'Spots', n: placeResults.length },
+              ]
+                .filter((t) => t.id === 'all' || t.n > 0)
+                .map((t) => (
+                  <button
+                    key={t.id}
+                    className={'srch-tab' + (tab === t.id ? ' on' : '')}
+                    onClick={() => setTab(t.id)}
+                    aria-pressed={tab === t.id}
+                  >
+                    {t.label} <span className="srch-tab-n">{t.n}</span>
+                  </button>
+                ))}
+            </div>
+            {/* ONE RowFeed over the in-scope labeled groups so pagination + the
+                end-cap span them; an empty group renders no header. A Spots row
+                opens PlaceDetail via the shared select. key resets paging per query+tab */}
             <RowFeed
-              key={dq.trim()}
-              sections={[...eventSection, ...placeSection]}
+              key={dq.trim() + '|' + tab}
+              sections={[...(tab !== 'spots' ? eventSection : []), ...(tab !== 'events' ? placeSection : [])]}
               showDist={!!coords}
               stagger
               compact

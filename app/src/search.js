@@ -73,6 +73,16 @@ const inRange = (e, r) => e._day != null && e._day <= r.end && (e._endDay ?? e._
 
 // parseQuery(query, anchors) → { empty, text: [token…], days: [{start,end}…], free }
 // `empty` = no usable token at all → the page shows its zero-state.
+// 3.7P-41: pure NOISE words dropped from TEXT tokens so a natural-language query
+// ("free things tonight", "stuff to do this weekend") matches on its meaningful
+// tokens (free / tonight / category) instead of dying on "things"/"to"/"do". These
+// are never date/free reserved words, so the grammar is unchanged for real terms.
+const STOPWORDS = new Set([
+  'things', 'thing', 'stuff', 'something', 'anything', 'idea', 'ideas',
+  'to', 'do', 'a', 'an', 'the', 'of', 'for', 'me', 'my', 'with', 'and',
+  'place', 'places', 'spot', 'spots', 'event', 'events',
+])
+
 export function parseQuery(query, anchors) {
   const raw = fold(query).split(/[^a-z0-9]+/).filter(Boolean)
   const text = []
@@ -91,7 +101,7 @@ export function parseQuery(query, anchors) {
     else if (t === 'tomorrow') days.push({ start: anchors.tomorrowTs, end: anchors.tomorrowTs })
     else if (t === 'weekend') days.push({ start: anchors.wkStartTs, end: anchors.wkEndTs })
     else if (t === 'free') free = true
-    else text.push(t)
+    else if (!STOPWORDS.has(t)) text.push(t) // drop pure noise words (3.7P-41)
   }
   return { empty: !text.length && !days.length && !free, text, days, free }
 }

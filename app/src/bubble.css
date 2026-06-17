@@ -204,3 +204,21 @@
   .srch-clear:active,
   .srch-sug-btn:active { transform: none; }
 }
+
+/* ===== 3.7P-41 (§N screen 9): search result-type tabs ===== */
+.srch-tabs { display: flex; gap: 8px; padding: 6px 20px 6px; flex-wrap: wrap; }
+.srch-tab {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform var(--dur-micro);
+}
+.srch-tab:active { transform: scale(0.97); }
+.srch-tab.on { background: var(--accent); border-color: var(--accent); color: var(--ink); } /* dark ink on gold (AA) */
+.srch-tab-n { opacity: 0.55; font-weight: 600; margin-left: 2px; }
+.srch-tab.on .srch-tab-n { opacity: 0.8; }

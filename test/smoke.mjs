@@ -1307,6 +1307,14 @@ test('3.7P-24 §N Spots: Recommended featured card + compact place Everything (g
   assert.ok(/\{onAdd && <button className="featc-act featc-add"/.test(cards), 'the inline Add only renders when onAdd is provided (places open the detail to pick a day)')
 })
 
+test('3.7P-41 §N Search: NL example prompts + result-type tabs', () => {
+  const sp = readFileSync(path.join(ROOT, 'app', 'src', 'SearchPage.jsx'), 'utf8')
+  assert.ok(/NL_EXAMPLES = \[/.test(sp) && /free things tonight/.test(sp), 'Search offers natural-language example prompts')
+  assert.ok(/srch-tabs/.test(sp) && /id: 'events'/.test(sp) && /id: 'spots'/.test(sp), 'Search has All/Events/Spots result tabs')
+  assert.ok(/t\.id === 'all' \|\| t\.n > 0/.test(sp), 'a result tab is only offered when it has matches (no dead empty tab)')
+  assert.ok(/tab !== 'spots' \? eventSection/.test(sp), 'the active tab scopes which groups render')
+})
+
 test('3.7P-30b §N Profile: computed stats strip (Plans · Saves · Days out)', () => {
   const pv = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
   assert.ok(/pf-stats/.test(pv) && /pf-stat-num/.test(pv), 'Profile renders a stats strip')
