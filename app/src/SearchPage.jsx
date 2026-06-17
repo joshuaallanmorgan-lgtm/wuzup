@@ -120,15 +120,24 @@ export default function SearchPage({ events, anchors, coords }) {
   // no "best" claim. Spots → "Spots that fit"; Guides render in their own block.
   const eventSection = useMemo(() => {
     if (!results.length) return []
-    if (parsed.text.length && results.length > 4) {
+    // R-S2: only split into Best/Other when there's a REAL remainder (top 3 +
+    // more) — don't label a short list "Best matches" with nothing to be best
+    // over. Relevance ranking is preserved either way. R-S3: the no-split text
+    // label parallels "Spots that fit"; a date-only browse stays a neutral "Events".
+    if (parsed.text.length && results.length > 3) {
       return [
         { label: 'Best matches', items: results.slice(0, 3) },
         { label: 'Other events', items: results.slice(3) },
       ]
     }
-    return [{ label: parsed.text.length ? 'Best matches' : 'Events', items: results }]
+    return [{ label: parsed.text.length ? 'Events that fit' : 'Events', items: results }]
   }, [results, parsed])
-  const placeSection = useMemo(() => [{ label: 'Spots that fit', items: placeResults }], [placeResults])
+  // R-S1 (honesty): omit the Spots section entirely when there are no place
+  // results — never show a "Spots that fit" header over zero spots.
+  const placeSection = useMemo(
+    () => (placeResults.length ? [{ label: 'Spots that fit', items: placeResults }] : []),
+    [placeResults]
+  )
 
   // recents record on a tapped result (the query earned its keep) — works for
   // both an event and a place (openDetail branches on kind in App) …
