@@ -9,10 +9,10 @@
 // with my days?" — your plans, your rest, your did-days, the morning-after beat.
 //
 // THE PERSONAL LAYER, top to bottom:
-//   · the morning-after two-beat conversion card (cal-recap, U-d) — unchanged;
-//   · a light gentle-ledger line ("N days out in {month}") — a calm RECORD,
-//     ZERO IS SILENCE (ban §7 #8); the rich firsts + past-days journal stay in
-//     Profile (no duplication — see the report's "kept" note);
+//   · a calm this-month rhythm strip (streak / kept / planned-ahead) — ZERO IS
+//     SILENCE (ban §7 #8); the rich ledger (days-out, firsts, the past-days
+//     journal) + the morning-after "did you make it?" answer flow live in
+//     Profile → My plans (S1-C2/S1-C3 retired both from this glanceable tab);
 //   · a month grid that shows ONLY YOUR shape per day — planned (teal
 //     underline), rest (crescent), did-day (a calm check stamp derived from
 //     been-there 'went' / didDays). A blank day is a quiet page, never shamed;
@@ -28,21 +28,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { keyOf } from './lib.js'
 import { useNav } from './nav.jsx'
-import { markBeen, snapshotFor, useBeenThere } from './saves.js'
+import { useBeenThere } from './saves.js'
 import { fitsDay } from './weekend.js'
 import { restDayList, rhythmSummary } from './gamify.js'
 import {
   dayEntryFor,
-  daysOutInMonth,
   didDays,
   emptyDay,
   hasContent,
-  loadConverted,
   loadDayHistory,
   loadDayPlans,
-  markDayConverted,
   monthReality,
-  morningAfterCandidates,
   PARTS,
   saveDayPlans,
   withClearedSlot,
@@ -50,8 +46,6 @@ import {
 import { usePlaces, isPlaceKey } from './places.js'
 import NextDays from './NextDays.jsx'
 import './calendar.css'
-
-const wdLong = (ts) => new Date(ts).toLocaleDateString('en-US', { weekday: 'long' })
 
 export default function CalendarView({ events, anchors, wx }) {
   const { openDay, page } = useNav()
@@ -100,17 +94,14 @@ export default function CalendarView({ events, anchors, wx }) {
   const been = useBeenThere()
   const dids = useMemo(() => didDays(been), [been])
 
-  // ===== the gentle ledger (light version): "N days out in {month}" =====
-  // A calm RECORD, never a score: ZERO IS SILENCE (rendered only when n > 0,
-  // never "0 📉" — ban §7 #8). The count tracks the DISPLAYED month so it reads
-  // as the caption of the grid you're looking at. The RICH ledger (variety
-  // firsts + the past-days journal) stays in Profile — surfacing only this one
-  // line here makes the tab feel full without duplicating Profile (see report).
+  // the displayed month window (drives the grid + the month-scoped rhythm stats).
+  // S1-C3 retired the "N days out in {month}" stat, so daysOut/daysOutInMonth are
+  // gone too — the RICH ledger (days-out, variety firsts, past-days journal) lives
+  // in Profile → My plans, unduplicated.
   const base = new Date(anchors.todayTs)
   const month = new Date(base.getFullYear(), base.getMonth() + monthOff, 1)
   const monthStartTs = month.getTime()
   const nextMonthStartTs = new Date(month.getFullYear(), month.getMonth() + 1, 1).getTime()
-  const daysOut = daysOutInMonth(dids, monthStartTs, nextMonthStartTs)
   const monthName = month.toLocaleDateString('en-US', { month: 'long' })
 
   // FB-13 (3.7P-3): the calm this-month rhythm strip — a few glanceable FACTS
@@ -139,7 +130,8 @@ export default function CalendarView({ events, anchors, wx }) {
   const rhythmStats = []
   // the rhythm leads (a streak of 2+; a 1-day "streak" isn't one — stays silent)
   if (rhythm.current >= 2) rhythmStats.push({ k: 'rhythm', num: String(rhythm.current), lab: 'day rhythm', streak: true })
-  if (daysOut > 0) rhythmStats.push({ k: 'out', num: String(daysOut), lab: `out in ${monthName}` })
+  // S1-C3: the "N out in {month}" days-out stat is retired from the strip; the
+  // rhythm + "kept in {month}" + "planned ahead" stats carry it.
   // plans → reality as a POSITIVE COUNT, never a fraction (review P1): a "1/3" on
   // the most-glanced surface reads as a score/"you only made 1 of 3". Show only
   // the kept count, and SILENT on misses (gate on went, not planned) — the
@@ -149,101 +141,26 @@ export default function CalendarView({ events, anchors, wx }) {
   if (reality.went > 0) rhythmStats.push({ k: 'plans', num: String(reality.went), lab: `kept in ${monthName}` })
   if (plannedAhead > 0) rhythmStats.push({ k: 'ahead', num: String(plannedAhead), lab: 'planned ahead' })
 
-  // ===== U-d: the morning-after conversion card (the two-beat RETURN beat) =====
-  // A single quiet card for the most-recent PAST PLANNED day not yet answered
-  // (loadDayPlans already swept past plans into history; a past REST day is
-  // excluded by morningAfterCandidates — a rested day is a record, never
-  // asked). Re-derives on the same subpage edge as the grid marks (`page` flip)
-  // so answering on the day screen / dismissing here reflects without remount.
-  // Subscribing to been-there keeps the card honest when a "went" is answered
-  // from ANOTHER surface (Profile's prompts) while Calendar is mounted.
-  // A local bump (cardTick) re-derives the card after an answer HERE.
-  const [cardTick, setCardTick] = useState(0)
-  const card = useMemo(() => {
-    void been
-    void page
-    void cardTick
-    const cands = morningAfterCandidates(loadDayHistory(), loadConverted(), anchors)
-    return cands[0] ?? null
-  }, [anchors, been, page, cardTick])
-  // resolve the card's slotted keys to live events for the title + the markBeen
-  // snapshot; a vanished event still gets asked (we synthesize a start-bearing
-  // snapshot so the day still derives as a did-day on "went"). A slot can hold a
-  // PLACE ('p|') key, which is NEVER in `events` — fold the lazily-loaded places
-  // into the resolver so a slotted place NAMES itself. The ~1.2MB places fetch
-  // fires ONLY when THIS card's slots hold a place key (the DayPage gate).
-  // the selected day's entry — read it so places are folded into the resolver
-  // only when a slot actually holds a place key (same lazy gate as the card +
-  // DayPage; an event-only/empty selection pays no ~1.2MB places fetch).
+  // S1-C2: the morning-after "did you make it?" recap — BOTH the prompt and the
+  // violet "logged ✓" glow (litCard) — was removed from the Calendar. The same
+  // answer flow lives in Profile → My plans (markBeen). The glow was only ever
+  // triggered by this prompt's answer, so it can't be kept lint-clean once the
+  // prompt is gone (it would be unreachable dead code with an unused setter). The
+  // morning-after machinery (card/answerCard/markDayConverted) went with it.
+
+  // the selected day's entry — read it so places are folded into the resolver only
+  // when a slot actually holds a place key (the lazy gate; an event-only or empty
+  // selection pays no ~1.2MB places fetch). Drives the inline day panel.
   const selEntry = selKey != null ? (dayEntryFor(dayPlans[String(selKey)]) ?? emptyDay()) : null
-  const hasCardPlaceKey = card ? PARTS.some((p) => isPlaceKey(card.slots[p])) : false
   const hasSelPlaceKey = selEntry ? PARTS.some((p) => isPlaceKey(selEntry.slots[p])) : false
-  const { places: placeList } = usePlaces(hasCardPlaceKey || hasSelPlaceKey)
-  // key → live event/place, shared by the morning-after card AND the day-peek.
+  const { places: placeList } = usePlaces(hasSelPlaceKey)
+  // key → live event/place, used by the inline day-peek's slot resolver.
   const byKey = useMemo(() => {
     const m = new Map()
     for (const e of events) m.set(keyOf(e), e)
     if (Array.isArray(placeList)) for (const p of placeList) m.set(p.key, p)
     return m
   }, [events, placeList])
-  // [violet beat] moment #6. The PERSISTED one-shot lives in the converted
-  // ledger (markDayConverted only lights violet on a first 'went'). The glow
-  // must survive the answer: markBeen + markDayConverted both re-derive `card`
-  // to null in the SAME batched commit, which would unmount the recap before
-  // .lit ever paints. So on a lit 'went' we FREEZE the answered card into
-  // litCard and render IT (with .lit) for the glow's duration; the ref-cleared
-  // timer then clears it (toast pattern).
-  const [litCard, setLitCard] = useState(null)
-  const violetTRef = useRef(null)
-  useEffect(() => () => clearTimeout(violetTRef.current), [])
-  const VIOLET_MS = 900
-
-  const cardSlots = card
-    ? PARTS.map((part) => ({ part, key: card.slots[part] })).filter((x) => x.key)
-    : []
-  const cardPrimary = cardSlots.length ? byKey.get(cardSlots[0].key) : null
-  // the day as a local-midnight ISO date — the synthesized snapshot's start, so
-  // a vanished-event "went" still lands on the right did-day (didDays derives
-  // from snapshot.start). Title degrades honestly when the event is gone.
-  const cardDateISO = card
-    ? (() => {
-        const d = new Date(card.dayTs)
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-      })()
-    : null
-  const cardTitle = cardPrimary?.title || null
-
-  const answerCard = (status) => {
-    if (!card) return
-    if (status === 'went') {
-      // mark every slotted entry "went" (idempotent +2 via markBeen) so the
-      // day's plan converts to journal entries; a vanished event gets a
-      // synthesized start-bearing snapshot so the did-day still derives.
-      for (const { key } of cardSlots) {
-        const live = byKey.get(key)
-        let snap
-        if (!live) {
-          snap = { title: null, start: cardDateISO, category: null }
-        } else if (live.kind === 'place') {
-          // a slotted PLACE has a real title/category but NO date of its own —
-          // stamp the planned day as start so the did-day still derives.
-          snap = { ...snapshotFor(live), start: cardDateISO }
-        } else {
-          snap = snapshotFor(live)
-        }
-        markBeen(key, snap, 'went')
-      }
-    }
-    // record the answer (one-shot, persisted) — violet fires ONLY on a first
-    // 'went' for this day; 'missed' is silent and the day just goes blank.
-    const { violet: lit } = markDayConverted(card.dayTs, status)
-    if (lit) {
-      setLitCard({ dayTs: card.dayTs, title: cardTitle })
-      clearTimeout(violetTRef.current)
-      violetTRef.current = setTimeout(() => setLitCard(null), VIOLET_MS)
-    }
-    setCardTick((t) => t + 1)
-  }
 
   // ===== the month canvas =====
   const monthTitle = month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
@@ -361,51 +278,9 @@ export default function CalendarView({ events, anchors, wx }) {
         )}
       </div>
 
-      {/* U-d — the two-beat RETURN beat: a single quiet morning-after card for
-          the most-recent past PLANNED day, not yet answered. Went → records the
-          attendance (idempotent +2) + the ONE sanctioned violet beat #6; Missed
-          → silent, the day just goes blank. A past REST day is never asked.
-          The violet glow (litCard) WINS the render while it plays. ALL COPY IS
-          DRAFT for Charles. */}
-      {litCard ? (
-        <div className="cal-recap lit">
-          <div className="cal-recap-q">
-            {wdLong(litCard.dayTs)} — logged ✓{/* DRAFT for Charles */}
-          </div>
-          {/* 3.7P-4b: the streak PAYOFF rides the sanctioned violet beat (#6) — no
-              new --reward minted. `rhythm` is live, so it reflects the just-logged
-              'went'. Gated at 2+; a gap never shows here (the beat only fires on a
-              logged day). DRAFT copy. */}
-          {rhythm.current >= 2 && (
-            <div className="cal-recap-rhythm">
-              <span aria-hidden>🔥</span> {rhythm.current}-day rhythm
-            </div>
-          )}
-        </div>
-      ) : (
-        card && (
-          <div className="cal-recap">
-            <div className="cal-recap-q">
-              {wdLong(card.dayTs)} — did you make it
-              {cardTitle ? (
-                <>
-                  {' '}to <span className="cal-recap-what">{cardTitle}</span>?
-                </>
-              ) : (
-                ' out?'
-              )}
-            </div>
-            <div className="cal-recap-btns">
-              <button className="cal-recap-yes" onClick={() => answerCard('went')}>
-                I went 🎉
-              </button>
-              <button className="cal-recap-no" onClick={() => answerCard('missed')}>
-                Missed it
-              </button>
-            </div>
-          </div>
-        )
-      )}
+      {/* S1-C2: the morning-after "did you make it?" recap was removed from the
+          Calendar (prompt + violet glow). The answer flow lives in Profile → My
+          plans; the Calendar stays a calm glance. */}
 
       {/* the month canvas — ONLY the personal layer. No event counts, no heat
           tint, no hot ring. Tapping a today-or-later cell opens the day screen
@@ -450,39 +325,18 @@ export default function CalendarView({ events, anchors, wx }) {
               </>
             )}
           </div>
-          <div className="mon-navs">
-            {/* Stage R: a "Today" quick-jump — back to the current month + select
-                today (the inline day panel follows). */}
-            <button
-              className="cal-today"
-              onClick={() => {
-                setMonthOff(0)
-                setSelKey(anchors.todayTs)
-              }}
-            >
-              Today
-            </button>
-            {/* clamp at the current month: past months hold only past days
-                (browse-only records), and the marks still render — but the grid
-                stays anchored at "now" forward as the planning surface */}
-            <button
-              className="mon-nav"
-              onClick={() => setMonthOff((o) => Math.max(o - 1, 0))}
-              disabled={monthOff === 0}
-              aria-label="Previous month"
-            >
-              <svg viewBox="0 0 24 24" width="16" height="16"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            </button>
-            {/* R-C2: clamp the forward nudge to the picker's 12-month horizon */}
-            <button
-              className="mon-nav"
-              onClick={() => setMonthOff((o) => Math.min(o + 1, 12))}
-              disabled={monthOff === 12}
-              aria-label="Next month"
-            >
-              <svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            </button>
-          </div>
+          {/* S1-C4: the prev/next ‹ › arrows are removed — month navigation happens
+              through the picker dropdown (R-C2). "Today" quick-jumps to the current
+              month and selects today; it sits far-right (margin-left:auto). */}
+          <button
+            className="cal-today"
+            onClick={() => {
+              setMonthOff(0)
+              setSelKey(anchors.todayTs)
+            }}
+          >
+            Today
+          </button>
         </div>
         <div className="mgrid">
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (

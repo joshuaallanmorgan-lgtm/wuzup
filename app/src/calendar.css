@@ -54,7 +54,7 @@
 
 /* month grid: 56px cells — personal marks only (no heat, no hot ring) */
 .mon-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 6px; }
-.mon-title { margin: 0; font-size: 17px; font-weight: 800; letter-spacing: -0.2px; }
+.mon-title { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.2px; } /* S1-C6: lighter */
 /* R-C2: the month/year picker popover (tappable label + caret → month list) */
 .mon-pickwrap { position: relative; }
 .mon-pick {
@@ -70,7 +70,7 @@
   cursor: pointer;
 }
 .mon-pick:active { transform: scale(0.97); }
-.mon-caret { font-size: 12px; color: var(--muted); transition: transform 0.15s; }
+.mon-caret { font-size: 11px; color: var(--cta); transition: transform 0.15s; } /* S1-C5: accent caret */
 .mon-caret.open { transform: rotate(180deg); }
 .mon-picker-scrim { position: fixed; inset: 0; z-index: 40; border: none; background: transparent; cursor: default; }
 .mon-picker {
@@ -104,25 +104,12 @@
 }
 .mon-opt:hover { background: var(--bg); }
 .mon-opt.on { background: var(--accent); color: var(--ink); } /* dark ink on Sunset Gold — never white (D.0) */
-.mon-navs { display: flex; gap: 8px; }
-.mon-nav {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid var(--line);
-  background: var(--card);
-  color: var(--ink);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: transform var(--dur-micro);
-}
-.mon-nav:active { transform: scale(0.92); }
-.mon-nav:disabled { opacity: 0.35; pointer-events: none; }
-/* Stage R: the "Today" quick-jump pill in the month nav */
+/* S1-C4: .mon-navs / .mon-nav (the prev/next arrows) are removed — month
+   navigation is the picker dropdown now. */
+/* the "Today" quick-jump pill — pinned far-right in the month head (S1-C4) */
 .cal-today {
   align-self: center;
+  margin-left: auto;
   height: 32px;
   padding: 0 13px;
   border-radius: 999px;

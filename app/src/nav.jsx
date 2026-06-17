@@ -60,7 +60,7 @@ export const VIEWS = [
   { id: 'home', label: 'Home' },
   { id: 'hot', label: 'Events' },
   { id: 'locations', label: 'Spots' },
-  { id: 'calendar', label: 'Plan' },
+  { id: 'calendar', label: 'Calendar' },
   { id: 'profile', label: 'Profile' },
 ]
 export const viewIndex = (id) => VIEWS.findIndex((v) => v.id === id)

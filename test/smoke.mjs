@@ -1445,7 +1445,7 @@ test('Stage R nav: roster is home/hot/locations/calendar/profile, Map is a sub-v
     assert.ok(new RegExp(`id: '${id}'`).test(nav), `VIEWS must include the '${id}' tab`)
   }
   assert.ok(!/\{ id: 'map'/.test(nav), 'Map must NOT be a tab in VIEWS (it is a sub-view)')
-  assert.ok(/id: 'calendar', label: 'Plan'/.test(nav), "the calendar tab is relabelled 'Plan' (id stays 'calendar')")
+  assert.ok(/id: 'calendar', label: 'Calendar'/.test(nav), "the calendar tab label is 'Calendar' (S1-C1; id stays 'calendar')")
   assert.ok(/const openMap = useCallback/.test(nav), 'nav exposes openMap (the Map sub-view opener)')
   const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
   assert.ok(/page\.type === 'map' && <MapView/.test(app), 'App renders MapView in the single-slot subpage (Map sub-view)')
@@ -1854,13 +1854,17 @@ test('U-d: variety firsts are breadth stamps, fixed + capped (never a volume bad
 // stays unfarmable, and slotting earns NO taste signal in v1 (the nudge ceiling
 // 18 is the wall — asserted above). saves.js can't import into Node (CSS), so
 // grep the wiring CalendarView leans on, like the places round-trip test.
-test('U-d: the conversion "went" rides markBeen + lights violet once (CalendarView wiring)', () => {
+test('S1-C2: the morning-after recap is off the Calendar; "went" still rides markBeen (in My plans)', () => {
+  // S1-C2 removed the "did you make it?" prompt + violet glow + their machinery
+  // from the Calendar (it was a coupled unit; the glow was only reachable via the
+  // prompt). The answer flow lives in Profile → My plans now.
   const calSrc = readFileSync(path.join(ROOT, 'app', 'src', 'CalendarView.jsx'), 'utf8')
-  assert.ok(/markBeen\(key, snap, 'went'\)/.test(calSrc), 'the card\'s "I went" must ride the idempotent markBeen seam (+2 unfarmable)')
-  assert.ok(/markDayConverted\(card\.dayTs, status\)/.test(calSrc), 'the answer must persist through the one-shot conversion ledger')
-  assert.ok(/morningAfterCandidates\(/.test(calSrc), 'the card must derive from morningAfterCandidates (past planned, rest excluded)')
-  // the violet beat is gated on the one-shot's return — never an unconditional pop
-  assert.ok(/if \(lit\)/.test(calSrc), 'the violet beat fires ONLY when markDayConverted returns violet (one-shot per day)')
+  assert.ok(!/morningAfterCandidates\(/.test(calSrc), 'CalendarView no longer derives a morning-after card')
+  assert.ok(!/markDayConverted\(/.test(calSrc), 'CalendarView no longer writes the conversion ledger')
+  assert.ok(!/cal-recap/.test(calSrc), 'the recap markup is removed from the Calendar')
+  // the idempotent +2 "went" seam relocated to My plans (still unfarmable)
+  const mpSrc = readFileSync(path.join(ROOT, 'app', 'src', 'MyPlansPage.jsx'), 'utf8')
+  assert.ok(/markBeen\(key, snapshot, 'went'\)/.test(mpSrc), 'My plans "I went" rides the idempotent markBeen seam (+2 unfarmable)')
   // no taste signal is recorded for slotting anywhere in the day surfaces
   const daySrc = readFileSync(path.join(ROOT, 'app', 'src', 'DayPage.jsx'), 'utf8')
   assert.ok(!/recordSignal\(/.test(daySrc), 'DayPage must record NO taste signal for slotting (only "went" feeds taste, v1)')
@@ -1876,19 +1880,13 @@ test('U-d: the conversion "went" rides markBeen + lights violet once (CalendarVi
 // and CSS), same approach as the CalendarView wiring test above.
 test('Sprint S: Calendar + Profile fold lazy places into their slot resolvers (gated)', () => {
   const calSrc = readFileSync(path.join(ROOT, 'app', 'src', 'CalendarView.jsx'), 'utf8')
-  // the fetch is GATED on a place key actually being in the card's slots — an
-  // event-only/empty card must never pay the ~1.2MB places fetch
-  assert.ok(/isPlaceKey\(card\.slots\[p\]\)/.test(calSrc), 'CalendarView must gate the places fetch on a place key in the card slots')
-  // 3.7P-17: the gate covers the inline day panel — places load lazily when
-  // EITHER the morning-after card OR the selected day holds a place key (never unconditionally).
-  assert.ok(/usePlaces\(hasCardPlaceKey \|\| hasSelPlaceKey\)/.test(calSrc), 'CalendarView must lazily load places only when the card or the selected day holds a place key')
-  // …and fold them into the shared resolver so a slotted place NAMES itself
+  // S1-C2: the morning-after card is gone — the inline day panel is the remaining
+  // place-slot resolver. The fetch is GATED on a place key in the SELECTED day
+  // (never unconditional; an event-only/empty selection pays no ~1.2MB fetch).
+  assert.ok(/isPlaceKey\(selEntry\.slots\[p\]\)/.test(calSrc), 'CalendarView gates the places fetch on a place key in the selected day')
+  assert.ok(/usePlaces\(hasSelPlaceKey\)/.test(calSrc), 'CalendarView lazily loads places only when the selected day holds a place key')
+  // …and folds them into the shared resolver so a slotted place NAMES itself
   assert.ok(/for \(const p of placeList\) m\.set\(p\.key, p\)/.test(calSrc), 'CalendarView must fold places into the byKey resolver')
-  // the "went" snapshot for a place must carry its real title/category AND stamp
-  // the planned day as start — else the did-day (didDays keys on snapshot.start)
-  // would stop deriving (places have no date of their own): a silent regression
-  assert.ok(/live\.kind === 'place'/.test(calSrc), 'CalendarView must special-case a slotted place in the "went" snapshot')
-  assert.ok(/\.\.\.snapshotFor\(live\), start: cardDateISO/.test(calSrc), 'a slotted-place "went" must stamp the planned day as snapshot.start so the did-day still derives')
 
   // Stage R: the days/journal (with its place-slot resolver) moved to the My plans
   // subpage; the gated lazy-places fold lives there now.
@@ -1950,9 +1948,11 @@ test('W2: the Calendar tab is a logbook — NO event list / counts / heat on it'
   // retired the Weekend Builder view entirely — planning lives in the day screens)
   assert.ok(!/cal-wkb/.test(calSrc), 'the Weekend pill (.cal-wkb) must be removed from the Calendar tab (W6)')
   assert.ok(!/openWeekend/.test(calSrc), 'the Calendar tab must not wire openWeekend anymore (W6 retired the pill)')
-  // the gentle ledger is surfaced LIGHT here (days-out line), zero is silence
-  assert.ok(/daysOutInMonth\(/.test(calSrc), 'the light gentle-ledger line derives from daysOutInMonth')
-  assert.ok(/daysOut > 0/.test(calSrc), 'the days-out line is SILENT at zero (ban §7 #8 — never "0 📉")')
+  // S1-C3: the "N out in {month}" days-out stat is retired from the Calendar strip
+  // (the rich ledger lives in Profile → My plans, unduplicated); the strip keeps
+  // its zero-is-silence gate via the remaining rhythm/kept/planned-ahead stats.
+  assert.ok(!/daysOutInMonth\(/.test(calSrc), 'the days-out stat (daysOutInMonth) is removed from the Calendar (S1-C3)')
+  assert.ok(/rhythmStats\.length > 0/.test(calSrc), 'the rhythm strip still renders only when a true stat exists (zero is silence)')
 })
 
 // Phase 3.5 W6 — CONNECTIVITY. The buried taste surfaces (TastePanel transparency
