@@ -106,6 +106,9 @@ export default function HomeView({ events, anchors, wx }) {
       {/* Stage R: a CLEAN light greeting header (no image hero) — matches the
           benchmark Home. */}
       <header className="home-head">
+        {/* S1-H1: the page name as a small muted overline; the greeting reads as
+            the subtitle below it (greeting/weather logic unchanged). */}
+        <h2 className="home-title">Home</h2>
         <h1 className="home-greet">{heroKicker(new Date(nowMs))}</h1>
         {wxLine && <div className="home-wx">{wxLine}</div>}
         {/* R-HD1: a compact magnifier disc → the global SearchPage. Home gets the

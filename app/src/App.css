@@ -32,6 +32,15 @@
 
 /* ===== Stage R: the Home dashboard clean light header (greeting + weather) ===== */
 .home-head { padding: 22px 18px 6px; position: relative; }
+/* S1-H1: the small muted page-name overline above the greeting. */
+.home-title {
+  margin: 0 0 3px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
 /* R-HD1: the Home search disc — light-surface icon button (the .pf-gear family),
    centered against the greeting line, top-right. */
 .home-search {
