@@ -18,6 +18,7 @@ import { railReady, tasteNudge, useTaste } from './taste.js'
 import { usePlaces, ACTIVITIES, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES, nearest, isPlaceKey, normalizePlace } from './places.js'
 import { useSaves } from './saves.js'
 import LensNav from './LensNav.jsx'
+import SearchBarButton from './SearchBarButton.jsx'
 import './locations.css'
 
 // count-preserving order: category affinity (S3) desc, then FREE, then
@@ -117,10 +118,7 @@ export default function LocationsView({ coords }) {
       <header className="loc-head">
         <h1 className="loc-head-title">Spots</h1>
         <div className="loc-head-sub">Parks, beaches, trails and quiet corners.</div>
-        <button className="loc-search pressable" onClick={openSearch} aria-label="Search spots">
-          <span className="loc-search-ic" aria-hidden>🔎</span>
-          <span className="loc-search-ph">Search spots — beaches, trails, dog parks…</span>
-        </button>
+        <SearchBarButton placeholder="Search spots — beaches, trails, dog parks…" onClick={openSearch} ariaLabel="Search spots" />
       </header>
 
       {/* Phase 3.6 N1: quiet top nav — quality lenses (Free/Hidden/Dog) + an

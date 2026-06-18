@@ -45,6 +45,7 @@ import { SaveHeart } from './saves.js'
 import { CITY, dayLabelLoose, keyOf, startLabel } from './lib.js'
 import { CATEGORIES, CATEGORY_EMOJI, PLACETYPE_EMOJI } from './categories.js'
 import { usePlaces, isPlaceKey } from './places.js'
+import SearchBarButton from './SearchBarButton.jsx'
 import './map.css'
 
 // Leaflet arrives via the shared lazy loader (leaflet-lazy.js, audit prep #3):
@@ -520,15 +521,9 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
           2), and an actions row with ALL filters behind one button (dates moved in
           too) + Near me. The date strip + 12-chip sprawl no longer sit on the map. ===== */}
       <div className="map-tools">
-        {/* R-M1: the search bar — the same .loc-search affordance Events/Spots use */}
-        <button
-          className="loc-search map-search pressable"
-          onClick={openSearch}
-          aria-label="Search events and spots"
-        >
-          <span className="loc-search-ic" aria-hidden>🔎</span>
-          <span className="loc-search-ph">Search events, spots, vibes…</span>
-        </button>
+        {/* R-M1: the search bar — the shared SearchBarButton, with .map-search so it
+            floats over the tiles (margin/pointer-events/shadow in map.css). */}
+        <SearchBarButton className="map-search" placeholder="Search events, spots, vibes…" onClick={openSearch} ariaLabel="Search events and spots" />
         {/* S1-M1: row 2 — layer toggle LEFT, actions RIGHT (space-between). */}
         <div className="map-tools-row2">
           {/* layer toggle — events / spots / both */}

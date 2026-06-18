@@ -382,7 +382,8 @@ test('W4 wiring: real heroes + place-detail photo + degrade-to-art + passthrough
   // above); it is simply no longer rendered as a Spots hero.
   const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
   assert.match(loc, /loc-head-title/, 'LocationsView uses the clean light header (Stage R: no image hero)')
-  assert.match(loc, /loc-search/, 'LocationsView surfaces a search bar into the global SearchPage')
+  // Stage 2 Tier 3: the .loc-search markup moved into the shared <SearchBarButton>
+  assert.match(loc, /<SearchBarButton[^>]*onClick=\{openSearch\}/, 'LocationsView surfaces a search bar (shared SearchBarButton) into the global SearchPage')
   // PlaceDetail shows the photo as a hero, gated on heroArt (real photo vs art)
   const pd = readFileSync(path.join(ROOT, 'app', 'src', 'PlaceDetail.jsx'), 'utf8')
   assert.match(pd, /detail-hero-img/, 'PlaceDetail must use the image hero treatment (detail-hero-img)')

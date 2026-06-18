@@ -12,6 +12,7 @@ import { shelfItems, useSaves } from './saves.js'
 import { railReady, tasteNudge, topCategories, useTaste } from './taste.js'
 import { useRecents } from './recents.js'
 import { DeckThisButton } from './LensDeck.jsx'
+import SearchBarButton from './SearchBarButton.jsx'
 
 export default function HotView({ events, anchors, loading }) {
   // Stage R nav restructure: HotView is now the EVENTS BROWSE (search + filter +
@@ -194,10 +195,7 @@ export default function HotView({ events, anchors, loading }) {
       <header className="loc-head">
         <h1 className="loc-head-title">Events</h1>
         <div className="loc-head-sub">Concerts, comedy, markets, games and more.</div>
-        <button className="loc-search pressable" onClick={onOpenSearch} aria-label="Search events">
-          <span className="loc-search-ic" aria-hidden>🔎</span>
-          <span className="loc-search-ph">Search events, venues, vibes…</span>
-        </button>
+        <SearchBarButton placeholder="Search events, venues, vibes…" onClick={onOpenSearch} ariaLabel="Search events" />
       </header>
 
       {/* Phase 3.6 N1: the quiet top nav — lens pills + an All-categories menu.
