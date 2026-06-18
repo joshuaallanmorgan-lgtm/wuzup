@@ -132,7 +132,9 @@ export default function InterestEditor({ from }) {
         <button className="pg-back" onClick={back} aria-label="Back">
           <Icon.chevron />
         </button>
-        <h1 className="pg-head-title">Your interests</h1>
+        {/* S1-ST3: titled "Customize interests" to match sheet-b + the Settings
+            row that opens it (was "Your interests"). */}
+        <h1 className="pg-head-title">Customize interests</h1>
       </header>
 
       <div className="ie-body">

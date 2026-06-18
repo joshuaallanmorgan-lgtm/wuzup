@@ -73,27 +73,12 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone, loc
             (W6 hub); the rows here are demoted/retitled so they don't read as
             verbatim duplicates (⚑W5). ALL COPY DRAFT for Charles. */}
 
-        {/* ===== 1 · YOUR TASTE — lives in Profile now (3.76 clean split, D-PS1).
-            Settings no longer mirrors the taste tools: the static chip card +
-            the "See your taste details" (TastePanel) and "Rate & refine"
-            (CalibrationDeck) doors moved out to their canonical home, so the two
-            surfaces stop overlapping. One quiet deep-link points you there. =====*/}
+        {/* ===== S1-ST1 · CUSTOMIZE YOUR FEED — the preference controls lead now
+            (sheet-b #4): Customize interests, then Retake primer nested under it.
+            (was the second section; moved above the taste deep-link so the page
+            opens on the controls, like the reference.) ===== */}
         <section className="st-sec">
-          <div className="st-over">Your taste</div>
-          <div className="st-rows">
-            <button className="st-row" onClick={() => { onClose(); goTo(viewIndex('profile')) }}>
-              <span className="st-row-main">
-                <span className="st-row-title">Manage your taste in Profile</span>
-                <span className="st-row-sub">Your vibe, what your feed learned, and the calibration deck — all in one place</span>
-              </span>
-              <span className="st-row-go" aria-hidden>→</span>
-            </button>
-          </div>
-        </section>
-
-        {/* ===== 2 · TUNE YOUR FEED (the active controls) ===== */}
-        <section className="st-sec">
-          <div className="st-over">Tune your feed</div>
+          <div className="st-over">Customize your feed</div>
           <div className="st-rows">
             <button className="st-row" onClick={() => openInterests('settings')}>
               <span className="st-row-main">
@@ -108,6 +93,22 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone, loc
                 {/* honest verb: a skipped first-open never "re"-takes */}
                 <span className="st-row-title">{primer?.done ? 'Retake the quick primer' : 'Take the quick primer'}</span>
                 <span className="st-row-sub">3 taps — the first-open questions{primer?.done ? ', again' : ''}</span>
+              </span>
+              <span className="st-row-go" aria-hidden>→</span>
+            </button>
+          </div>
+        </section>
+
+        {/* ===== YOUR TASTE — the quiet deep-link to the canonical taste hub in
+            Profile (3.76 clean split, D-PS1). The reference omits this Wuzup-
+            specific row; kept as an honest pointer (taste lives in Profile now). ===== */}
+        <section className="st-sec">
+          <div className="st-over">Your taste</div>
+          <div className="st-rows">
+            <button className="st-row" onClick={() => { onClose(); goTo(viewIndex('profile')) }}>
+              <span className="st-row-main">
+                <span className="st-row-title">Manage your taste in Profile</span>
+                <span className="st-row-sub">Your vibe, what your feed learned, and the calibration deck — all in one place</span>
               </span>
               <span className="st-row-go" aria-hidden>→</span>
             </button>

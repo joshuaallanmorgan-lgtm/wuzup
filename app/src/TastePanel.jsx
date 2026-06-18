@@ -71,7 +71,9 @@ export default function TastePanel({ from, primer }) {
         <button className="pg-back" onClick={back} aria-label="Back">
           <Icon.chevron />
         </button>
-        <h1 className="pg-head-title">Why your feed looks like this</h1>
+        {/* S1-ST2: titled "Taste profile" to match sheet-b; the "why" is carried
+            by the content below (headline + the never-hide promise + the bars). */}
+        <h1 className="pg-head-title">Taste profile</h1>
       </header>
 
       <div className="tp-body">
