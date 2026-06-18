@@ -129,15 +129,8 @@
   background: var(--accent);
   color: var(--ink); /* dark ink on Sunset Gold — white fails AA (3.76c) */
 }
-/* 3.7P-14: the primary top row — layer toggle + "Near me" centered together.
-   The wrapper passes map drags through its gaps; the controls re-enable pointers. */
-.map-tools-top {
-  display: flex;
-  flex-wrap: wrap; /* narrow phones: dates + Near me wrap instead of overflowing */
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
+/* Stage 2 sweep: .map-tools-top removed — the S1-M1 toolbar reorg replaced it with
+   .map-tools-row2 (layer toggle left, actions right). */
 .map-near {
   pointer-events: auto;
   display: inline-flex;
@@ -195,26 +188,8 @@
   padding: 2px 2px 4px;
   pointer-events: auto;
 }
-.map-dates {
-  display: inline-flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 7px;
-}
-/* 3.7P-18: the Spots-only date reason — a clear one-line note instead of the old
-   dimmed-but-tappable date buttons (which read as mysteriously "blocked"). */
-.map-dates-note {
-  pointer-events: auto;
-  align-self: center;
-  font-size: 12px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.92);
-  background: rgba(21, 23, 28, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 999px;
-  padding: 8px 14px;
-  backdrop-filter: blur(8px);
-}
+/* Stage 2 sweep: .map-dates + .map-dates-note removed — the date filter moved into
+   the filter sheet (.map-filter-dates / .map-filter-note) in R-M2. */
 .map-chip {
   flex: 0 0 auto;
   white-space: nowrap;

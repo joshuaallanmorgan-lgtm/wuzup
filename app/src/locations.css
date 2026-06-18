@@ -2,86 +2,13 @@
    (hot-scroll, sec, carousel, detail-*, row) is reused from App.css / cards.css /
    detail.css + LensNav (topnav.css) so the Locations tab IS Hot's structural twin. */
 
-/* ===== the Locations hero — ⚑S1 CSS placeholder (water/park energy) until
-   Charles supplies the real image. A teal→green wash, no external asset. ===== */
-.loc-hero {
-  position: relative;
-  min-height: 200px;
-  padding: 0 18px 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  overflow: hidden;
-  color: #fff;
-}
-.loc-hero-wash,
-.loc-hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-}
-.loc-hero::before {
-  background: linear-gradient(155deg, #ff8c42 0%, #e0703a 45%, #6b6b4a 100%);
-  z-index: 0;
-}
-/* legibility scrim over the real photo: a bottom-up darkening for the white
-   title (mirrors the Events hero's .hero-grad strength), fading to clear so the
-   waterfront still reads. Stronger than the old teal-gradient wash needed. */
-.loc-hero-wash {
-  background: linear-gradient(0deg, rgba(0, 0, 0, 0.58) 0%, rgba(0, 0, 0, 0.18) 42%, transparent 70%);
-  z-index: 1;
-}
-/* W4: the real Spots hero photo. Sits ABOVE the teal ::before placeholder (an
-   actual child outranks the pseudo at equal z-index) and BELOW the wash scrim
-   (z 1) + text (z 2). Fades in on load — until then the teal gradient shows, so
-   there is never an empty flash and a failed image degrades to the wash. */
-.loc-hero-img {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background-size: cover;
-  background-position: center 38%;
-  opacity: 0;
-  transition: opacity 320ms ease;
-}
-.loc-hero-img.on { opacity: 1; }
-.loc-hero .hero-text {
-  position: relative;
-  z-index: 2;
-}
-/* text-shadow backstops (mirror the Events hero): the white type stays legible
-   over a bright daytime photo regardless of which frame Charles's final pick
-   lands on — never relying on the scrim alone. */
-.loc-hero .hero-kicker {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  opacity: 0.9;
-  margin-bottom: 4px;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
-}
-.loc-hero .hero-city {
-  font-size: 34px;
-  font-weight: 800;
-  margin: 0;
-  line-height: 1.05;
-  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
-}
-.loc-hero .hero-sub {
-  font-size: 14px;
-  opacity: 0.92;
-  margin-top: 4px;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
-}
-/* flat variant for the loading / empty states (no wash needed) */
-.loc-hero-flat {
-  min-height: 140px;
-}
+/* Stage 2 sweep: the cinematic Spots image hero (.loc-hero / ::before / -wash /
+   -img / -flat + the .loc-hero .hero-* descendants) was removed — Stage R replaced
+   it with the clean light header below (.loc-head + .loc-search). */
 
 /* ===== Stage R (§N screen 6): clean light Spots header — title + sub + a
    prominent search bar — replaces the cinematic image hero to match the
-   benchmark's scannable top. The old .loc-hero* rules above are now unused
-   (kept harmless; sweep later). ===== */
+   benchmark's scannable top. ===== */
 .loc-head {
   padding: 18px 18px 6px;
 }

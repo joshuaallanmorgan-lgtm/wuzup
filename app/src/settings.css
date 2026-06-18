@@ -30,20 +30,9 @@
 .st-line + .st-line { margin-top: 4px; }
 .st-dim { color: var(--muted); font-weight: 500; }
 
-/* ===== taste summary (read-only mini vibe) ===== */
-.st-taste-line { font-size: 14px; font-weight: 600; line-height: 1.5; }
-.st-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-.st-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 11px;
-  border-radius: 999px;
-  background: hsla(var(--ph, 200), 80%, 45%, 0.12);
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--ink);
-}
+/* Stage 2 sweep: the read-only taste-summary block (.st-taste-line / .st-chips /
+   .st-chip) was removed — Settings links to the taste hub in Profile now (3.76
+   split), it no longer mirrors the chips inline. */
 .st-wiped { margin-top: 10px; font-size: 12.5px; font-weight: 600; color: var(--free); }
 
 /* ===== action rows ===== */

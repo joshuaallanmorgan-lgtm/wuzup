@@ -134,103 +134,16 @@
 .pf-row-stub .pf-row-label { color: var(--muted); font-weight: 600; }
 .pf-row-soon { flex: 0 0 auto; font-size: 11.5px; font-weight: 700; color: var(--muted); opacity: 0.8; }
 
-.pf-over {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.2px;
-  color: var(--accent-ink);
-}
-.pf-title {
-  margin: 6px 0 0;
-  font-size: 28px;
-  font-weight: 900;
-  letter-spacing: -0.7px;
-  line-height: 1.1;
-}
-.pf-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
-/* tappable since Q2 (buttons → the InterestEditor) — same look, plus the
-   press affordance every other tappable chip in the app carries */
-.pf-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 13px;
-  border: none;
-  border-radius: 999px;
-  background: hsla(var(--ph, 200), 80%, 45%, 0.12);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink);
-  cursor: pointer;
-  transition: transform var(--dur-micro);
-}
-.pf-chip:active { transform: scale(0.95); }
-.pf-chip-free { background: rgba(var(--accent-rgb), 0.1); color: var(--free); }
-/* the visible door: dashed = "this is editable", muted so it never competes
-   with the identity chips it sits behind */
-.pf-chip-edit {
-  background: none;
-  border: 1.5px dashed var(--line);
-  padding: 6.5px 12px;
-  color: var(--muted);
-}
-.pf-when { margin-top: 12px; font-size: 14px; font-weight: 600; }
-.pf-when-actual { color: var(--muted); font-weight: 500; } /* 3.76b: the actual-rhythm mirror beside the stated when */
-.pf-note { margin-top: 8px; font-size: 13px; font-weight: 500; color: var(--muted); line-height: 1.5; }
+/* Stage 2 sweep: the OLD Profile identity header was removed — .pf-over / .pf-title /
+   .pf-chips / .pf-chip(:active/-free/-edit) / .pf-when(-actual) / .pf-note. The
+   rework's header is the colored .pf-name-block (name + city) + the stats trio. */
 
-/* ===== body / sections ===== */
-.pf-body { padding-bottom: 110px; }
-.pf-sec { margin-top: 34px; }
+/* ===== body / sections (Stage 2 sweep: dead .pf-body / .pf-sec removed) ===== */
 .pf-rows { display: flex; flex-direction: column; gap: 10px; padding: 0 20px; }
 
-/* W6: the Your-taste hub — surfaced rows (transparency panel + calibration
-   deck), the same hairline-card voice as the plan card, each closing to Profile */
-.pf-taste { display: flex; flex-direction: column; gap: 10px; padding: 0 20px; }
-.pf-taste-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--card);
-  text-align: left;
-  font-family: inherit;
-  color: var(--ink);
-  cursor: pointer;
-}
-.pf-taste-ic { flex: 0 0 auto; font-size: 20px; line-height: 1; }
-.pf-taste-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.pf-taste-t { font-size: 14px; font-weight: 700; letter-spacing: -0.2px; }
-.pf-taste-s { font-size: 12px; font-weight: 500; color: var(--muted); }
-.pf-taste-go { flex: 0 0 auto; font-size: 16px; font-weight: 800; color: var(--accent-ink); }
-
-/* N5b — the re-entry "turn a save into a plan" pull (Discover→Save→Plan). Quiet
-   accent card at the top of the body; shown only when saves wait + nothing's
-   planned. Forward invitation, never a guilt nudge. */
-.pf-pull {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: calc(100% - 40px);
-  margin: var(--sp-md) 20px 0;
-  padding: var(--sp-md);
-  border: 1px solid rgba(var(--accent-rgb), 0.3);
-  border-radius: 16px;
-  background:
-    radial-gradient(120% 100% at 100% 0%, rgba(var(--accent-rgb), 0.07), transparent 60%),
-    var(--card);
-  text-align: left;
-  font-family: inherit;
-  color: var(--ink);
-  cursor: pointer;
-}
-.pf-pull-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.pf-pull-title { font-size: 15px; font-weight: 800; letter-spacing: -0.2px; color: var(--accent-ink); }
-.pf-pull-sub { font-size: 12.5px; font-weight: 500; color: var(--muted); }
-.pf-pull-go { flex: 0 0 auto; font-size: 18px; font-weight: 800; color: var(--accent-ink); }
+/* Stage 2 sweep: the W6 "Your taste" hub rows (.pf-taste*) and the N5b save→plan
+   pull card (.pf-pull*) were removed — neither is rendered anymore (taste lives in
+   the Profile menu → My likes; the pull card was never wired into the render). */
 
 /* saved-list rows: past items grey out + wear a "Happened" tag over the thumb */
 .pf-item { position: relative; }
@@ -264,45 +177,11 @@
   background: var(--card);
 }
 
-/* ===== Your plans: the current-weekend summary card (WB primary entry) ===== */
-.pf-plan {
-  position: relative;
-  display: block;
-  width: calc(100% - 40px);
-  margin: 0 20px;
-  padding: 16px 40px 16px 16px;
-  border: 1px solid rgba(var(--accent-rgb), 0.35);
-  border-radius: 16px;
-  background:
-    radial-gradient(120% 100% at 100% 0%, rgba(var(--accent-rgb), 0.08), transparent 60%),
-    var(--card);
-  font-family: inherit;
-  color: var(--ink);
-  text-align: left;
-  cursor: pointer;
-}
-.pf-plan-over {
-  display: block;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.2px;
-  color: var(--accent-ink);
-}
-.pf-plan-range { display: block; margin-top: 4px; font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
-.pf-plan-fill { display: block; margin-top: 3px; font-size: 13px; font-weight: 600; color: var(--muted); }
-.pf-plan-picks { display: block; margin-top: 8px; font-size: 12.5px; font-weight: 600; line-height: 1.5; }
-.pf-plan-pick { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pf-plan-go {
-  position: absolute;
-  top: 50%;
-  right: 14px;
-  transform: translateY(-50%);
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--accent-ink);
-}
+/* Stage 2 sweep: the old "Your plans" weekend-summary card (.pf-plan*) was removed
+   — plans live in the My plans subpage now (its own markup). */
 
-/* ===== plan history: compact read-only cards ===== */
+/* ===== .pf-hist-label: the "Past days" / "Been there" section labels in the My
+   plans subpage (the rest of the old .pf-hist* weekend-history card is swept). ===== */
 .pf-hist-label {
   margin: 18px 20px 8px;
   font-size: 11px;
@@ -310,43 +189,6 @@
   letter-spacing: 0.2px;
   color: var(--muted);
 }
-.pf-hist { margin: 0 20px 8px; box-shadow: var(--shadow-card); border-radius: 14px; background: var(--card); overflow: hidden; } /* 3.7P-1: float */
-.pf-hist-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  width: 100%;
-  padding: 12px 14px;
-  border: none;
-  background: none;
-  font-family: inherit;
-  color: var(--ink);
-  cursor: pointer;
-}
-.pf-hist-range { font-size: 13.5px; font-weight: 700; }
-.pf-hist-n { font-size: 12px; font-weight: 600; color: var(--muted); }
-.pf-hist-chev { margin-left: 2px; }
-.pf-hist-rows { border-top: 1px solid var(--line); padding: 6px 0; }
-.pf-hist-row {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  width: 100%;
-  padding: 7px 14px;
-  border: none;
-  background: none;
-  font-family: inherit;
-  color: var(--ink);
-  text-align: left;
-}
-.pf-hist-live { cursor: pointer; }
-.pf-hist-live:active { background: rgba(var(--accent-rgb), 0.06); }
-.pf-hist-slot { flex: 0 0 64px; font-size: 11px; font-weight: 800; letter-spacing: 0.2px; color: var(--muted); }
-.pf-hist-title { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pf-hist-live .pf-hist-title { color: var(--accent-ink); }
-.pf-hist-gone { color: var(--muted); font-style: italic; font-weight: 500; }
-
 /* ===== U-a: past DAYS from day-history-v1 — one quiet row per day
    (U-d makes this rich; same card voice as the weekend history) ===== */
 .pf-dayh {
@@ -467,11 +309,9 @@
 /* ===== reduced motion: no press-scales (added with the tappable chips, Q2 —
    also covers the page's pre-existing micro-presses) ===== */
 @media (prefers-reduced-motion: reduce) {
-  .pf-chip,
   .pf-gear,
   .pf-ask-yes,
   .pf-ask-no { transition: none; }
-  .pf-chip:active,
   .pf-gear:active,
   .pf-ask-yes:active,
   .pf-ask-no:active { transform: none; }

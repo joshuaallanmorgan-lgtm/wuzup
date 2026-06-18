@@ -280,76 +280,11 @@
 }
 .cal-sel-full:active { transform: scale(0.98); }
 
-/* ===== U-d — the morning-after conversion card (the two-beat RETURN beat).
-   A quiet white card, NOT a shout: one warm question, two calm buttons. It
-   asks once about one past planned day; answered, it goes away. Nothing red,
-   nothing guilt-toned (ban §7). The ONE violet beat (#6) is a brief border
-   glow on a 'went' conversion — the same scarce --reward token, used once. */
-.cal-recap {
-  margin: 14px 16px 0;
-  padding: 14px 16px;
-  background: var(--card);
-  /* 3.7P-1: float on the card shadow (was a hairline + 1px legacy shadow). Keep
-     a TRANSPARENT border so the sanctioned violet "I went" beat below — which
-     marks the moment via border-color (incl. the reduced-motion static path) —
-     still resolves without re-introducing a visible hairline. */
-  border: 1px solid transparent;
-  border-radius: 16px;
-  box-shadow: var(--shadow-card);
-}
-.cal-recap-q {
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.2px;
-  line-height: 1.4;
-  color: var(--ink);
-}
-.cal-recap-what { color: var(--accent-ink); }
-/* 3.7P-4b: the streak payoff inside the violet 'I went' beat — INK text (the 🔥 +
-   the beat's violet border carry the warmth; reward-violet as text fails AA). */
-.cal-recap-rhythm { margin-top: 6px; font-size: 13px; font-weight: 800; letter-spacing: -0.1px; color: var(--ink); }
-.cal-recap-btns { display: flex; gap: 10px; margin-top: 12px; }
-.cal-recap-yes,
-.cal-recap-no {
-  flex: 1;
-  height: 38px;
-  border-radius: 999px;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform var(--dur-micro) var(--ease-out);
-}
-.cal-recap-yes {
-  border: none;
-  color: #fff; /* D.0-R: shared primary-button fill (white text) */
-  background: var(--cta);
-}
-.cal-recap-no {
-  border: 1px solid var(--line);
-  background: var(--card);
-  color: var(--muted);
-}
-.cal-recap-yes:active,
-.cal-recap-no:active { transform: scale(0.97); }
-
-/* the violet beat (#6): a single brief glow at the moment of conversion —
-   never a badge, never a counter. Scarcity is the meaning (index.css ledger). */
-@keyframes calRecapLit {
-  0% { box-shadow: 0 0 0 0 rgba(var(--reward-rgb), 0); }
-  35% { box-shadow: 0 0 0 4px rgba(var(--reward-rgb), 0.35); border-color: var(--reward); }
-  100% { box-shadow: 0 0 0 0 rgba(var(--reward-rgb), 0); }
-}
-.cal-recap.lit {
-  animation: calRecapLit 900ms var(--ease-out);
-  border-color: var(--reward);
-}
+/* Stage 2 sweep: the morning-after conversion card (.cal-recap* + the calRecapLit
+   keyframes + .cal-recap.lit) was removed — S1-C2 took the recap off the Calendar
+   (the answer flow lives in Profile → My plans). The reduced-motion guard below
+   keeps only its still-live targets. */
 @media (prefers-reduced-motion: reduce) {
-  /* no pulse under reduced motion — a single static violet border still marks
-     the moment without movement (the beat survives, the animation doesn't) */
-  .cal-recap.lit { animation: none; border-color: var(--reward); }
-  .cal-recap-yes:active,
-  .cal-recap-no:active,
   .cal-sel-full:active,
   .mcell:active .mnum { transform: none; }
 }

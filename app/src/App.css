@@ -27,7 +27,8 @@
   scrollbar-width: none;
 }
 .page::-webkit-scrollbar { display: none; }
-.page-map { overflow: hidden; isolation: isolate; } /* contain Leaflet panes (z 200–1000) */
+/* Stage 2 sweep: .page-map removed — Map is no longer a pager section (it renders
+   as the .map-wrap sub-view); the pager is page / page-hot only. */
 .page-hot { overflow: hidden; }
 
 /* ===== Stage R: the Home dashboard clean light header (greeting + weather) ===== */
@@ -86,67 +87,10 @@
 }
 .hot-scroll::-webkit-scrollbar { display: none; }
 
-/* ===== hero (220px, parallax + scrim ramp via CSS vars, 300ms preload fade) ===== */
-.hero { position: relative; height: 220px; overflow: hidden; background: #241c15; }
-.hero-img {
-  position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-  transform: translateY(var(--hs, 0px));
-  will-change: transform;
-  opacity: 0;
-  transition: opacity var(--dur-emphasis) var(--ease-out);
-}
-.hero-img.on { opacity: 1; }
-/* 3.7P-6: the cinematic Ken-Burns zoom (FB-06's "slight zoom in/out"). The
-   keyframe keeps translateY(var(--hs)) so the Home hero's scroll parallax still
-   rides on top of the slow scale; the Spots hero has no --hs so it just zooms.
-   Reduced-motion holds it still (the static .hero-img transform/parallax remains). */
-@keyframes heroKenBurns {
-  from { transform: translateY(var(--hs, 0px)) scale(1); }
-  to { transform: translateY(var(--hs, 0px)) scale(1.08); }
-}
-.hero-kb { animation: heroKenBurns 22s ease-in-out infinite alternate; }
-@media (prefers-reduced-motion: reduce) {
-  .hero-kb { animation: none; }
-}
-.hero-dim {
-  position: absolute;
-  inset: 0;
-  background: #000;
-  opacity: var(--scrimo, 0.3);
-  pointer-events: none;
-}
-.hero-grad {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 35%, rgba(0, 0, 0, 0.55) 100%);
-}
-.hero-text { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 20px 16px; color: #fff; }
-.hero-kicker { font-size: 13px; font-weight: 600; letter-spacing: 0.2px; opacity: 0.88; margin-bottom: 4px; } /* 3.72: softened from the tracked ALL-CAPS label to a calm title-case greeting */
-.hero-city { margin: 0; font-size: 34px; font-weight: 900; letter-spacing: -1.1px; line-height: 1; text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45); }
-.hero-sub { margin-top: 6px; font-size: 13px; font-weight: 600; opacity: 0.92; }
-/* Sunlit Coastal Pop (3.71): the Wuzup brand lockup — a small wordmark on the
-   masthead (the highest-value branded moment). A Sunset Gold mark + the name. */
-.hero-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-family: 'Kumbh Sans', sans-serif;
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: 0.2px;
-  margin-bottom: 11px;
-  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45);
-}
-.hero-brand-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.75);
-}
+/* Stage 2 Deep Sweep: the retired 220px image-hero block was removed — none of
+   .hero / .hero-img / heroKenBurns / .hero-kb / .hero-dim / .hero-grad /
+   .hero-text / .hero-kicker / .hero-city / .hero-sub / .hero-brand(-dot) is
+   applied in any JSX (the Home greeting is .home-greet; detail uses .detail-hero*). */
 
 /* (3.7P-6 FB-07: the hero 🔎 search button was retired — search moved into the
    lens row beside "Near Me", styled .lens-search in topnav.css.) */
@@ -176,13 +120,8 @@
   padding: 0 20px;
   margin-bottom: 14px;
 }
-.sec-overline {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.2px;
-  color: var(--accent-ink);
-  margin-bottom: 4px;
-}
+/* Stage 2 sweep: .sec-overline removed — SecHead retired the orange overline-on-top
+   (R-H2); the descriptor renders into .sec-sub now, never .sec-overline. */
 .sec-title { margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -0.01em; }
 /* quiet inline tally inside a section title ("Everything · 1,342") */
 .sec-count { font-size: 14px; font-weight: 600; color: var(--muted); letter-spacing: 0; }
@@ -439,30 +378,10 @@
 .d-k { font-size: 11px; font-weight: 800; letter-spacing: 0.2px; color: var(--muted); }
 .d-v { font-size: 15px; font-weight: 600; margin-top: 2px; line-height: 1.35; }
 .detail-desc { margin: 18px 0 0; font-size: 15px; line-height: 1.6; color: #4a423a; }
-.detail-cta {
-  /* 3.7P-22: a true bottom bar — a flex sibling of .detail-scroll (NOT a fixed
-     overlay, which drifted because .detail is transformed). Always at the bottom,
-     never over content; the scroll area above it takes the remaining height. */
-  flex: 0 0 auto;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  background: var(--cta); /* D.0-R: shared primary-button fill (white text, AA ~4.86:1) */
-  color: #fff;
-  text-decoration: none;
-  font-weight: 800;
-  font-size: 16px;
-  letter-spacing: 0.2px;
-  padding: 17px;
-  padding-bottom: calc(17px + env(safe-area-inset-bottom));
-  z-index: 2010;
-  box-shadow: 0 -6px 24px rgba(26, 20, 16, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.35); /* 3.7P-1: tactile top-highlight on the gold CTA */
-}
-.detail-cta:active { filter: brightness(0.95); }
+/* Stage 2 sweep: .detail-cta (+ :active, + :hover .cta-arr) removed — the detail
+   bottom CTA is .loc-plan-cta / .detail-actionbar-cta now (locations.css). The
+   .cta-arr arrow stays — it's still used in the detail CTA markup. */
 .cta-arr { transition: transform var(--dur-fast); }
-.detail-cta:hover .cta-arr { transform: translateX(4px); }
 
 /* ===== view transition morph (card image ↔ detail hero) ===== */
 ::view-transition-group(evt-hero) {

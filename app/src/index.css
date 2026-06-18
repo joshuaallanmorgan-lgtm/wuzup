@@ -132,7 +132,7 @@ a { color: inherit; }
    spine. Per-selector letter-spacing (tuned for the old face) is left intact;
    revisit if Kumbh's metrics read loose. */
 h1, h2,
-.hero-city, .sec-title, .bigone-title, .pg-head-title, .cal-up-title,
+.sec-title, .bigone-title, .pg-head-title, .cal-up-title,
 .deck-kicker-title, .ldk-kicker-title, .tn-sheet-title {
   font-family: 'Kumbh Sans', 'Inter', system-ui, -apple-system, sans-serif;
 }
