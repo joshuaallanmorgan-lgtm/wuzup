@@ -529,46 +529,50 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
           <span className="loc-search-ic" aria-hidden>🔎</span>
           <span className="loc-search-ph">Search events, spots, vibes…</span>
         </button>
-        {/* layer toggle — events / spots / both */}
-        <div className="map-seg" role="group" aria-label="Map layer">
-          {[
-            ['events', 'Events'],
-            ['places', 'Spots'],
-            ['both', 'Both'],
-          ].map(([id, lbl]) => (
+        {/* S1-M1: row 2 — layer toggle LEFT, actions RIGHT (space-between). */}
+        <div className="map-tools-row2">
+          {/* layer toggle — events / spots / both */}
+          <div className="map-seg" role="group" aria-label="Map layer">
+            {[
+              ['events', 'Events'],
+              ['places', 'Spots'],
+              ['both', 'Both'],
+            ].map(([id, lbl]) => (
+              <button
+                key={id}
+                className={'map-seg-btn' + (effLayer === id ? ' on' : '')}
+                aria-pressed={effLayer === id}
+                onClick={() => setLayer(id)}
+              >
+                {lbl}
+              </button>
+            ))}
+          </div>
+          <div className="map-tools-actions">
+            {/* S1-M3: Filters is icon-only now (sliders glyph + a count badge);
+                the label moved to aria-label. It still opens the all-filters sheet. */}
             <button
-              key={id}
-              className={'map-seg-btn' + (effLayer === id ? ' on' : '')}
-              aria-pressed={effLayer === id}
-              onClick={() => setLayer(id)}
+              ref={filterBtnRef}
+              className={'map-filter-btn pressable' + (activeFilterCount > 0 ? ' on' : '')}
+              onClick={() => setFiltersOpen(true)}
+              aria-haspopup="dialog"
+              aria-expanded={filtersOpen}
+              aria-label={`Filters${activeFilterCount > 0 ? ` (${activeFilterCount} active)` : ''}`}
             >
-              {lbl}
+              <span className="map-filter-ic" aria-hidden>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M6 12h12M10 18h4" /></svg>
+              </span>
+              {activeFilterCount > 0 && <span className="map-filter-badge" aria-hidden>{activeFilterCount}</span>}
             </button>
-          ))}
-        </div>
-        {/* R-M1/R-M2: actions row — the Filters button (now holds date + category +
-            Free behind a sliders glyph) and Near me. */}
-        <div className="map-tools-actions">
-          <button
-            ref={filterBtnRef}
-            className={'map-filter-btn pressable' + (activeFilterCount > 0 ? ' on' : '')}
-            onClick={() => setFiltersOpen(true)}
-            aria-haspopup="dialog"
-            aria-expanded={filtersOpen}
-          >
-            {/* R-M1: horizontal-lines / sliders glyph (was a ⚙️ gear) */}
-            <span className="map-filter-ic" aria-hidden>
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M6 12h12M10 18h4" /></svg>
-            </span>
-            Filters{activeFilterCount > 0 ? ` · ${activeFilterCount}` : ''}
-          </button>
-          <button
-            className="map-near pressable"
-            onClick={goNearMe}
-            aria-label="Center the map on your location"
-          >
-            <span aria-hidden>📍</span> Near me
-          </button>
+            {/* S1-M4: Near me — orange (--cta) + white while a location fix is live. */}
+            <button
+              className={'map-near pressable' + (coords ? ' on' : '')}
+              onClick={goNearMe}
+              aria-label="Center the map on your location"
+            >
+              <span aria-hidden>📍</span> Near me
+            </button>
+          </div>
         </div>
       </div>
 

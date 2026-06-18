@@ -76,12 +76,10 @@
   pointer-events: auto;
   box-shadow: 0 2px 12px rgba(26, 20, 16, 0.22);
 }
-/* R-M1/R-M2: the actions row — Filters + Near me, centered under the layer toggle */
-.map-tools-actions {
-  align-self: center;
-  display: flex;
-  gap: 8px;
-}
+/* S1-M1: row 2 — layer toggle (left) + actions (right), space-between, vertically
+   centered. The map still drags through the gaps (children re-enable pointers). */
+.map-tools-row2 { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.map-tools-actions { display: flex; align-items: center; gap: 8px; }
 .map-filter-ic { display: inline-flex; align-items: center; }
 /* Stage R: Map is a sub-view (subpage) now — a back button (top-left) closes it. */
 .map-back {
@@ -160,6 +158,12 @@
 }
 .map-near:active {
   transform: scale(0.96);
+}
+/* S1-M4: live-location state — orange (--cta) + white (D.0-R sanctioned) */
+.map-near.on {
+  background: var(--cta);
+  border-color: var(--cta);
+  color: #fff;
 }
 /* the passive "you are here" dot — universal blue, distinct from the gold
    clusters + category-hued pins so it never reads as supply */
@@ -241,20 +245,21 @@
 /* ===== 3.7P-18: the compact "Filters" button + the filter sheet (category +
    Free). Collapses the old 12-chip sprawl off the map; mirrors the LensNav
    bottom-sheet pattern. ===== */
+/* S1-M3: Filters is an icon-only ~40px disc now (label moved to aria-label); a
+   small gold count badge rides the corner when filters are active. */
 .map-filter-btn {
-  align-self: center;
+  position: relative;
   pointer-events: auto;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(21, 23, 28, 0.86);
   color: rgba(255, 255, 255, 0.92);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 800;
-  padding: 8px 16px;
-  border-radius: 999px;
+  border-radius: 50%;
   backdrop-filter: blur(8px);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
   cursor: pointer;
@@ -265,7 +270,22 @@
   color: var(--accent);
 }
 .map-filter-btn:active {
-  transform: scale(0.96);
+  transform: scale(0.92);
+}
+.map-filter-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--ink); /* dark ink on Sunset Gold — never white (D.0) */
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 16px;
+  text-align: center;
 }
 .map-filter-wrap {
   position: fixed;
@@ -545,17 +565,19 @@
    tabbar, 1100). Dark glass to match .map-seg / the old note, so it reads as map
    chrome, not a content card. Accent text is gold-on-near-black (AA-safe) — the
    white-on-gold ban is about gold BACKGROUNDS, which this never uses. */
+/* S1-M5: the decision deck is a LIGHT card now (was dark glass) — white surface,
+   dark ink, hairline + soft shadow; accent text uses --accent-ink (AA on light). */
 .map-deck {
   position: absolute;
   left: 10px;
   right: 10px;
   bottom: calc(78px + env(safe-area-inset-bottom)); /* clears the 64px tabbar */
   z-index: 1006;
-  background: rgba(21, 23, 28, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--line);
   border-radius: 16px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 8px 28px rgba(26, 20, 16, 0.16);
   overflow: hidden;
   animation: mapDeckIn var(--dur-page) var(--ease-emphasis) both;
 }
@@ -578,7 +600,7 @@
   background: none;
   border: none;
   text-align: left;
-  color: #fff;
+  color: var(--ink); /* S1-M5: dark ink on the light deck (was #fff for the old dark glass) */
   font: inherit;
 }
 .map-deck-toggle {
@@ -597,12 +619,12 @@
 .map-deck-chev {
   margin-left: auto;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--muted);
 }
 .map-deck-supply {
   font-size: 11px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--muted);
 }
 .map-deck-list {
   display: flex;
@@ -616,7 +638,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--accent);
+  color: var(--accent-ink); /* S1-M5: AA-safe accent on the light deck (not raw gold) */
 }
 .map-deck-pick {
   display: flex;
@@ -624,17 +646,17 @@
   gap: 10px;
   width: 100%;
   padding: 8px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(26, 20, 16, 0.04);
   border: none;
   border-radius: 11px;
   text-align: left;
-  color: #fff;
+  color: var(--ink);
   font: inherit;
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out);
 }
 .map-deck-pick:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(26, 20, 16, 0.07);
 }
 .map-deck-emoji {
   flex: none;
@@ -658,7 +680,7 @@
 .map-deck-pick-meta {
   font-size: 11px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.62);
+  color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -667,22 +689,22 @@
   flex: none;
   margin-left: auto;
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--muted);
 }
 .map-deck-more {
   margin-top: 4px;
   padding: 10px 7px 4px;
   background: none;
   border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.08); /* Stage R: reads as a "View all" footer */
-  color: var(--accent);
+  border-top: 1px solid var(--line); /* Stage R: reads as a "View all" footer */
+  color: var(--accent-ink); /* S1-M5: AA-safe accent on the light deck */
   font: inherit;
   font-size: 12.5px;
   font-weight: 800;
   cursor: pointer;
 }
 .map-deck-more:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(26, 20, 16, 0.04);
 }
 @media (prefers-reduced-motion: reduce) {
   .map-deck {
