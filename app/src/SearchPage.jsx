@@ -284,6 +284,17 @@ export default function SearchPage({ events, anchors, coords }) {
         )}
         {!hasQ && (
           <>
+            {/* S1-PS3: a muted, non-interactive preview of the result-scope tabs
+                (All · Events · Spots · Guides) — foreshadows the results UI you'll
+                get once you search. Decorative (aria-hidden); the real, counted
+                tabs render on a live query. */}
+            <div className="srch-tabs srch-tabs--preview" aria-hidden>
+              {['All', 'Events', 'Spots', 'Guides'].map((l) => (
+                <span className="srch-tab" key={l}>
+                  {l}
+                </span>
+              ))}
+            </div>
             {recents.length > 0 && (
               <div className="srch-recents">
                 <div className="srch-recents-head">

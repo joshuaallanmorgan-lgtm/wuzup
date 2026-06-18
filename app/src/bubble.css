@@ -222,3 +222,6 @@
 .srch-tab.on { background: var(--accent); border-color: var(--accent); color: var(--ink); } /* dark ink on gold (AA) */
 .srch-tab-n { opacity: 0.55; font-weight: 600; margin-left: 2px; }
 .srch-tab.on .srch-tab-n { opacity: 0.8; }
+/* S1-PS3: the search zero-state's preview tabs — muted + non-interactive, a
+   foreshadow of the result-scope selector (not real controls). */
+.srch-tabs--preview { opacity: 0.5; pointer-events: none; }
