@@ -85,7 +85,7 @@ export function SponsoredTag({ e }) {
 // I3 designed composition instead of an empty block: .imgbox-art layers a
 // category-hue gradient (via --ch / CATEGORY_HUES) under an oversized rotated
 // CATEGORY_EMOJI watermark (.imgbox-mark, cqmin-sized so the SAME composition
-// holds from the 58px agenda thumb to the 420px BigOne), with the existing
+// holds from the 58px agenda thumb to the full-width feature card), with the existing
 // time/emoji foreground on top. Pure CSS + emoji — no assets, no canvas.
 // data-vt marks the element that morphs into the detail hero via View Transitions.
 // children render on top (heat badges, FREE badge, …).
@@ -189,27 +189,6 @@ export function TonightCard({ e, onSelect, withDate = false }) {
       <div className="tcard-title">{e.title}</div>
       <div className={'tcard-meta' + startedCls(meta)}>{meta || 'Details inside'}</div>
       <SponsoredTag e={e} />
-    </button>
-  )
-}
-
-export function BigOne({ e, onSelect, animate }) {
-  const meta = e._ongoing
-    ? ['Ongoing', e.venue]
-    : [dayLabelLoose(e), timeOf(e.start), e.venue]
-  return (
-    <button className={'bigone pressable' + (animate ? ' bigone-reveal' : '')} onClick={(ev) => onSelect(e, ev.currentTarget)}>
-      <CardImg e={e} className="bigone-img">
-        <SaveHeart e={e} />
-        <HeatBadge e={e} />
-      </CardImg>
-      <div className="bigone-grad" />
-      <div className="bigone-text">
-        <div className="bigone-over">The Big One</div>
-        <h2 className="bigone-title">{e.title}</h2>
-        <div className="bigone-meta">{meta.filter(Boolean).join(' · ')}</div>
-        <SponsoredTag e={e} />
-      </div>
     </button>
   )
 }

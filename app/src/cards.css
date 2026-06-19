@@ -1,6 +1,6 @@
 /* cards.css — styles for everything exported by cards.jsx:
    pressable, imgbox, badges, chips, carousels (tcard/fcard/endcap),
-   BigOne, gems, Everything rows + RowFeed, compact .card. */
+   FeaturedCard, gems, Everything rows + RowFeed, compact .card. */
 
 /* ===== shared press state: every tappable card ===== */
 .pressable { transition: transform var(--dur-fast) var(--ease-out); }
@@ -83,7 +83,7 @@
   user-select: none;
 }
 /* foreground scales with the tile, clamped so the time stays legible on the
-   58px agenda thumb and never goes billboard on the 420px BigOne */
+   58px agenda thumb and never goes billboard on the full-width feature card */
 .imgbox-art .imgbox-fall { font-size: clamp(11px, 14cqmin, 26px); }
 
 /* ===== 🔥 heat badge (hot palette: buzz-driven, hot-ness only) ===== */
@@ -105,15 +105,12 @@
   box-shadow: 0 2px 8px rgba(var(--hot-rgb), 0.35); /* was a 255,60,90 transposition of --hot-rgb */
 }
 .gem-img .heat-badge { top: 4px; right: 4px; padding: 3px 6px; font-size: 10px; }
-.bigone-img .heat-badge { top: 14px; right: 14px; padding: 5px 10px; font-size: 12px; }
 /* agenda card: badge sits in the row (58px thumb is too small), editorial-rail style */
 .card > .heat-badge { position: static; flex: 0 0 auto; align-self: center; }
 
 /* ===== sponsored disclosure (tiny, muted, never hidden) ===== */
 .sp-label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.02em; }
 .tcard .sp-label, .gem .sp-label, .fcard .sp-label { display: block; margin-top: 2px; }
-.bigone .sp-label { display: block; margin-top: 5px; color: rgba(255, 255, 255, 0.78); }
-.bigone .sp-label.my-label { color: #ffb066; } /* Sunset Gold (light) — readable on the dark scrim (3.71, was teal) */
 .card .sp-label { display: block; margin-top: 2px; }
 
 /* "Started 7:00 PM …" metas (event already underway) read quieter — class is a
@@ -267,45 +264,6 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
-/* ===== The Big One (full-width 4:5 feature card) ===== */
-.bigone {
-  display: block;
-  position: relative;
-  width: calc(100% - 40px);
-  margin: 0 20px;
-  aspect-ratio: var(--ar-detail); /* 3.7P-1: framing token (was 4 / 5) */
-  border: none;
-  border-radius: 20px;
-  overflow: hidden;
-  padding: 0;
-  font: inherit;
-  color: #fff;
-  text-align: left;
-  cursor: pointer;
-  background: #241c15;
-  box-shadow: 0 10px 30px rgba(26, 20, 16, 0.18);
-}
-.bigone-img { position: absolute; inset: 0; border-radius: 0; }
-@keyframes bigScale { from { transform: scale(1.04); } to { transform: none; } }
-.bigone-reveal .bigone-img { animation: bigScale 700ms var(--ease-emphasis) both; }
-/* The Big One is the sanctioned dark-drama surface (tasting verdict): its scrim
-   carries cinematic's blue-black tint and runs slightly deeper, in every mode */
-.bigone-grad {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(26, 20, 16, 0.1) 30%, rgba(26, 20, 16, 0.82) 100%);
-}
-.bigone-text { position: absolute; left: 20px; right: 20px; bottom: 20px; }
-.bigone-over {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.2px;
-  color: var(--hot); /* The Big One = hot-ness semantics, stays warm */
-  margin-bottom: 8px;
-}
-.bigone-title { margin: 0 0 7px; font-size: 26px; font-weight: 800; line-height: 1.06; letter-spacing: -0.5px; text-shadow: 0 2px 22px rgba(0, 0, 0, 0.55); }
-.bigone-meta { font-size: 13px; font-weight: 600; opacity: 0.92; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45); }
 
 /* ===== 3.7P-23c FeaturedCard — the §N "Tonight's best bets" DecisionCard:
    image on top, content + honest chips below, inline [Save] [Add] actions ===== */
@@ -568,7 +526,6 @@
 
 /* ===== reduced motion (card-scope) ===== */
 @media (prefers-reduced-motion: reduce) {
-  .bigone-reveal .bigone-img,
   .feed-stagger .row,
   .card { animation: none !important; }
   .pressable:active,
