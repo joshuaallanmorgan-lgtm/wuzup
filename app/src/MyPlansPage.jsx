@@ -146,7 +146,7 @@ export default function MyPlansPage({ events, anchors }) {
       </header>
       <div className="pg-body">
         {!hasAnything && (
-          <div className="pf-empty">No plans yet — start one from the Plan tab.</div>
+          <div className="pf-empty">No plans yet — start one from the Calendar tab.</div>
         )}
 
         {/* Plans → Reality — this month's planned vs follow-through (zero-is-silence) */}
