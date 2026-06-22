@@ -12,7 +12,7 @@
 // of this tab, never at boot, never merged into the events feed. DRAFT copy ⚑ Charles.
 import { useMemo } from 'react'
 import { useNav } from './nav.jsx'
-import { SecHead, SpotCard, EndCap, FeaturedCard, IntentTile, RowFeed, imageMode } from './cards.jsx'
+import { SecHead, SpotCard, EndCap, IntentTile, RowFeed, imageMode } from './cards.jsx'
 import { GUIDES } from './guides.js'
 import { railReady, tasteNudge, useTaste } from './taste.js'
 import { usePlaces, ACTIVITIES, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES, nearest, isPlaceKey, normalizePlace } from './places.js'
@@ -51,8 +51,17 @@ export default function LocationsView({ coords }) {
   // 1-B (Stage 1): prefer a pick that has a REAL photo so the Recommended hero
   // never falls back to a flat color block; if none in the active pool qualifies,
   // take the top pick anyway (FeaturedCard renders the text-rich no-photo card).
-  const spotPool = coords && near.length ? near : all
-  const topSpot = spotPool.find((p) => imageMode(p) === 'photo') || spotPool[0] || null
+  // SP-L3: "Recommended near you" = carousel of top SpotCards (nearest with photos first).
+  const nearSpots = useMemo(() => {
+    const pool = coords && near.length ? near : all
+    return pool.filter((p) => imageMode(p) !== 'none').slice(0, 6)
+  }, [near, all, coords])
+
+  // SP-L3: "Worth the drive" = next batch of spots not already shown in nearSpots.
+  const driveSpots = useMemo(() => {
+    const nearKeys = new Set(nearSpots.map((p) => p.key))
+    return all.filter((p) => !nearKeys.has(p.key) && imageMode(p) !== 'none').slice(0, 6)
+  }, [all, nearSpots])
 
   // 3.7P-12: per-activity taster lists. `all` is taste-ordered, so a plain
   // slice keeps taste order; with a fix, nearest() re-sorts by distance. An
@@ -149,17 +158,35 @@ export default function LocationsView({ coords }) {
             (image + name + type · distance · free + amenity chips + inline Save).
             Replaces the old nearby carousel; always present (taste-top spot, closest
             when located). Tap → PlaceDetail (where "Make this my plan" lives). */}
-        {topSpot && (
+        {nearSpots.length > 0 && (
           <section className="sec">
-            {/* Stage R: honest subtitle (D6) — the pick is nearest when located,
-                taste-derived only when the rail has real organic signal, else a
-                neutral true claim. Never assert "recent taps" without signal. */}
+            {/* SP-L3: "Recommended near you" — carousel of SpotCards, closest with real photos first. */}
             <SecHead
               overline="Worth a visit"
               title={coords ? 'Recommended near you' : 'Recommended for you'}
-              sub={coords ? 'Closest to you right now' : railReady(taste) ? 'Based on what you have tapped' : 'A local favorite to start with'}
+              sub={coords ? 'Closest to you right now' : railReady(taste) ? 'Based on what you have tapped' : 'Local favorites to explore'}
             />
-            <FeaturedCard e={topSpot} onSelect={onSelect} />
+            <div className="carousel">
+              {nearSpots.map((p) => (
+                <SpotCard key={p.key} p={p} onSelect={onSelect} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {driveSpots.length >= 2 && (
+          <section className="sec">
+            {/* SP-L3: "Worth the drive" — excellent spots not in the near-you set. */}
+            <SecHead
+              overline="A bit further out"
+              title="Worth the drive"
+              sub="Excellent spots a short trip away."
+            />
+            <div className="carousel">
+              {driveSpots.map((p) => (
+                <SpotCard key={p.key} p={p} onSelect={onSelect} />
+              ))}
+            </div>
           </section>
         )}
 

@@ -13,6 +13,7 @@
 import { createContext, memo, useContext, useEffect, useRef, useState } from 'react'
 import { CATEGORY_EMOJI, CATEGORY_HUES, PLACETYPE_EMOJI, PLACETYPE_HUE } from './categories.js'
 import { Icon, dayLabelLoose, dayLoose, keyOf, priceLabel, startLabel, timeOf } from './lib.js'
+import { ACTIVITIES } from './places.js'
 import { imageMode } from './imageMode.js'
 import { daypartOf } from './weekend.js'
 import { SaveHeart, useSaves } from './saves.js'
@@ -342,9 +343,14 @@ export const spotChips = (p) => {
   return out
 }
 const distLabel = (p) => (p._dist != null ? p._dist.toFixed(1) + ' mi' : null)
+const spotBestFor = (p) => {
+  const match = ACTIVITIES.find((a) => a.match(p))
+  return match ? match.label : null
+}
 export function SpotCard({ p, onSelect }) {
   const chips = spotChips(p)
   const dist = distLabel(p)
+  const bestFor = spotBestFor(p)
   return (
     <button className="spotcard pressable" onClick={(ev) => onSelect(p, ev.currentTarget)}>
       <CardImg e={p} className="spotcard-img">
@@ -369,6 +375,7 @@ export function SpotCard({ p, onSelect }) {
       ) : (
         <div className="spotcard-meta">{dist || p.venue || 'Tap for details'}</div>
       )}
+      {bestFor && <div className="spotcard-bestfor">★ Best for: {bestFor}</div>}
     </button>
   )
 }

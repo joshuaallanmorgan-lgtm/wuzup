@@ -193,6 +193,8 @@
 .spot-amen-ic { width: 13px; height: 13px; flex: 0 0 auto; color: var(--accent-ink); }
 .spot-amen-dist { font-weight: 500; }
 .spot-badge { position: absolute; top: 8px; left: 8px; z-index: 1; width: 28px; height: 28px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 14px; background: rgba(26, 20, 16, 0.5); backdrop-filter: blur(4px); }
+/* SP-L1: honest "★ Best for" activity line on spot cards (derived from ACTIVITIES predicates, never invented) */
+.spotcard-bestfor { margin-top: 5px; font-size: 11.5px; font-weight: 700; color: var(--accent-ink); letter-spacing: -0.05px; }
 
 /* ===== 3.7P-20: the shared INTENT widget (IntentTile) — ONE format for Events
    Guides, Spots Activities, and Spots Guides, laid out as an ALL-VISIBLE grid

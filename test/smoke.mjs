@@ -1313,13 +1313,17 @@ test('3.7P-23c §N Home: tonight GemRow picks + Quick actions grid (HOME_GRIND)'
   assert.ok(/openGuide/.test(home), 'HomeView quick action wires Markets/Sports bars → openGuide')
 })
 
-test('3.7P-24 §N Spots: Recommended featured card + compact place Everything (green-wall fix)', () => {
+test('3.7P-24 §N Spots: SpotCard carousel sections + compact place Everything (SPOTS_GRIND SP-L1/L3)', () => {
   const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
-  assert.ok(/<FeaturedCard /.test(loc), 'Spots shows a Recommended FeaturedCard')
+  // SP-L3: Recommended now a SpotCard carousel (not a single FeaturedCard); Worth the drive added
+  assert.ok(/nearSpots/.test(loc) && /<SpotCard/.test(loc), 'Spots Recommended = SpotCard carousel (SP-L3)')
+  assert.ok(/Worth the drive/.test(loc) && /driveSpots/.test(loc), 'Spots has Worth the drive section (SP-L3)')
   assert.ok(/sections={everything} compact/.test(loc), 'the place Everything feed is compact (no green art wall)')
   const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
   assert.ok(/const isPlace = e\.kind === 'place'/.test(cards) && /spotChips\(e\)\.map/.test(cards), 'FeaturedCard is place-aware (activity-first meta + amenity chips)')
   assert.ok(/\{onAdd && <button className="featc-act featc-add"/.test(cards), 'the inline Add only renders when onAdd is provided (places open the detail to pick a day)')
+  // SP-L1: SpotCard gains honest bestFor line
+  assert.ok(/spotBestFor/.test(cards) && /spotcard-bestfor/.test(cards), 'SpotCard renders SP-L1 bestFor line')
 })
 
 test('3.7P-41 §N Search: NL example prompts + result-type tabs', () => {
