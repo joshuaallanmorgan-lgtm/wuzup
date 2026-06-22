@@ -11,19 +11,19 @@
   overflow-x: hidden;
   scrollbar-width: none;
   background: var(--bg);
-  padding-bottom: calc(96px + env(safe-area-inset-bottom)); /* clears the fixed tabbar */
+  padding-bottom: calc(14px + env(safe-area-inset-bottom)); /* compact: the whole page fits above the tabbar, no scroll */
 }
 .pf-scroll::-webkit-scrollbar { display: none; }
 
 /* ===== vibe header ===== */
 .pf-head {
-  position: relative; /* anchors the gear */
-  padding: calc(26px + env(safe-area-inset-top)) 20px 4px;
+  position: relative;
+  padding: calc(16px + env(safe-area-inset-top)) 20px 4px;
 }
 
 /* ===== PROFILE_GRIND: page title + WHITE identity card + 6-row menu ===== */
 /* P1: the page title — big bold ink (Inter, app-wide) */
-.pf-title { margin: 0 0 16px; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; color: var(--ink); }
+.pf-title { margin: 0 0 9px; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: var(--ink); }
 
 /* P2: the identity card is WHITE (reverts Batch-4's --cta fill to match the ref) —
    it wraps the avatar+name+city+pencil row AND the stats trio as one card. */
@@ -38,8 +38,8 @@
   position: relative; /* anchors the edit pencil */
   display: flex;
   align-items: center;
-  gap: 13px;
-  padding: 15px 50px 15px 15px; /* tightened a touch; right pad clears the pencil */
+  gap: 12px;
+  padding: 11px 48px 11px 13px; /* compact; right pad clears the pencil */
 }
 /* P4: the edit pencil — replaces the old top-right gear; triggers the inline name
    edit. Settings is reachable via its own menu row now. */
@@ -61,9 +61,9 @@
 }
 .pf-edit:active { transform: scale(0.9); }
 .pf-avatar {
-  flex: 0 0 48px;
-  width: 48px;
-  height: 48px;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -81,8 +81,9 @@
   background: none;
   padding: 0;
   font: inherit;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 900;
+  line-height: 1.15;
   letter-spacing: -0.5px;
   color: var(--ink);
   text-align: left;
@@ -100,19 +101,19 @@
   background: none;
   padding: 0 0 2px;
   font: inherit;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 900;
   letter-spacing: -0.5px;
   color: var(--ink);
   outline: none;
 }
-.pf-loc { font-size: 14px; font-weight: 600; color: var(--muted); }
+.pf-loc { font-size: 14px; font-weight: 600; line-height: 1.2; color: var(--muted); }
 
 /* P6: the menu — ONE connected card (rows share hairline dividers, no gaps), each
    row an accent-tinted icon tile + label + description + chevron (the ref's
    grouped settings-list look). */
 .pf-menu {
-  margin: 22px 20px 0;
+  margin: 12px 20px 0;
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 16px;
@@ -122,9 +123,9 @@
 .pf-row {
   display: flex;
   align-items: center;
-  gap: 13px;
+  gap: 12px;
   width: 100%;
-  padding: 14px;
+  padding: 10px 14px;
   border: none;
   border-top: 1px solid var(--line);
   background: none;
@@ -139,12 +140,12 @@
 .pf-row:hover { background: rgba(var(--accent-rgb), 0.03); }
 .pf-row-ic {
   flex: 0 0 auto;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
+  border-radius: 11px;
   background: rgba(var(--accent-rgb), 0.1);
   color: var(--accent-ink);
 }
@@ -154,7 +155,7 @@
 .pf-row-go { flex: 0 0 auto; display: flex; color: var(--muted); }
 
 /* ===== P7: Recently saved — header + See all + 2 canonical GemRow cards ===== */
-.pf-recent { margin: 26px 20px 0; }
+.pf-recent { margin: 14px 20px 0; }
 .pf-recent-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
 .pf-recent-title { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -0.3px; color: var(--ink); }
 .pf-seeall { border: none; background: none; padding: 0; font: inherit; font-size: 13px; font-weight: 700; color: var(--accent-ink); cursor: pointer; }
@@ -346,8 +347,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 12px 6px;
+  gap: 2px;
+  padding: 9px 6px;
 }
 .pf-stat-num { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -0.5px; }
 .pf-stat-lab { font-size: 11.5px; font-weight: 600; color: var(--muted); }
