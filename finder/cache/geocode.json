@@ -983,12 +983,34 @@
     "lat": 27.8171386,
     "lng": -82.6514249
   },
-  "200 Central Ave., Ste 165, Saint Petersburg, FL, 33701": null,
-  "2724 Sixth Ave S, Saint Petersburg, F, 33712": null,
-  "1750 Central Ave, St.Petersburg, F, 33712": null,
+  "2108 34th St S, St. Petersburg, FL, 33711": {
+    "lat": 27.7493428,
+    "lng": -82.6792372
+  },
+  "28540 US Hwy. 19 N., Clearwater, FL, 33761": {
+    "lat": 28.0145368,
+    "lng": -82.7366422
+  },
+  "797 Florida Ave., Palm Harbor, 34683": {
+    "lat": 28.0780418,
+    "lng": -82.7702246
+  },
+  "1759 Central Avenue, St Petersburg, 33712": {
+    "lat": 27.7712038,
+    "lng": -82.6571476
+  },
+  "691 S Gulfview Blvd, Clearwater Beach, FL, 33767": {
+    "lat": 27.969033,
+    "lng": -82.8291158
+  },
+  "3745 9th Avenue North, St. Petersburg, FL, 33713": {
+    "lat": 27.7816044,
+    "lng": -82.6844197
+  },
+  "4951 78th Ave N, Pinellas Park, FL": {
+    "lat": 27.8429467,
+    "lng": -82.7016046
+  },
   "12938 N. Dale Mbry Hwy, Tampa, FL, 33618": null,
-  "Taverna Costale, Tampa Bay, Florida": null,
-  "The Clay Co-Op, Tampa Bay, Florida": null,
-  "UltraMundane, St.Petersburg, Florida": null,
   "Side Splitters Comedy Club, Tampa, Florida": null
 }
