@@ -388,8 +388,13 @@
   overflow: hidden;
 }
 .gem-meta { margin-top: 2px; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* TOUCHUP P2: tinted category chip below the title (like FeaturedCard's chips) */
+.gem-cat { display: inline-block; margin-top: 5px; font-size: 11px; font-weight: 700; color: var(--accent-ink); background: rgba(var(--accent-rgb), 0.1); border-radius: 999px; padding: 3px 9px; }
 /* E-L2: "Why this fits" — honest derived reason, never fabricated */
 .gem-why { margin-top: 4px; font-size: 11.5px; font-weight: 700; color: var(--accent-ink); letter-spacing: -0.1px; }
+/* TOUCHUP P2: shared on-image badge (event time · spot distance) — dark pill, bottom-left */
+.imgbadge { position: absolute; left: 6px; bottom: 6px; z-index: 1; padding: 3px 7px; border-radius: 7px; font-size: 11px; font-weight: 800; letter-spacing: 0.1px; color: #fff; background: rgba(26, 20, 16, 0.6); backdrop-filter: blur(4px); white-space: nowrap; }
+.spotcard-dist { left: 8px; bottom: 8px; }
 .gems-more {
   margin: 12px 20px 0;
   padding: 0;

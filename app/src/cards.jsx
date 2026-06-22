@@ -268,15 +268,21 @@ export function FeaturedCard({ e, onSelect, onAdd }) {
 }
 
 export function GemRow({ e, onSelect }) {
+  // TOUCHUP P2: on-image time badge (events only — places/ongoing have no clock
+  // time) + a tinted category chip below the title (per ref-events.png).
+  const time = e.kind !== 'place' && !e._ongoing ? timeOf(e.start) : null
+  const cat = e.category && e.category !== 'other' ? e.category.charAt(0).toUpperCase() + e.category.slice(1) : null
   return (
     <button className="gem pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
       <CardImg e={e} className="gem-img">
         <SaveHeart e={e} />
         <HeatBadge e={e} />
+        {time && <span className="imgbadge gem-time">{time}</span>}
       </CardImg>
       <div className="gem-main">
         <div className="gem-title">{e.title}</div>
         <div className="gem-meta">{[dayLoose(e), e.venue].filter(Boolean).join(' · ')}</div>
+        {cat && <span className="gem-cat">{cat}</span>}
         {/* E-L2: honest "Why this fits" — only renders when caller sets e._why */}
         {e._why && <div className="gem-why">+ Why this fits: {e._why}</div>}
         <SponsoredTag e={e} />
@@ -356,6 +362,8 @@ export function SpotCard({ p, onSelect }) {
       <CardImg e={p} className="spotcard-img">
         <SaveHeart e={p} />
         {p.hidden && <span className="spot-badge" aria-label="Hidden gem">💎</span>}
+        {/* TOUCHUP P2: distance now an on-image badge (overlay, bottom-left) */}
+        {dist && <span className="imgbadge spotcard-dist">{dist}</span>}
       </CardImg>
       <div className="spotcard-type">{placeTypeLabel(p)}</div>
       <div className="spotcard-title">{p.title}</div>
@@ -370,10 +378,9 @@ export function SpotCard({ p, onSelect }) {
               </span>
             )
           })}
-          {dist && <span className="spot-amen-dist">{dist}</span>}
         </div>
       ) : (
-        <div className="spotcard-meta">{dist || p.venue || 'Tap for details'}</div>
+        <div className="spotcard-meta">{p.venue || 'Tap for details'}</div>
       )}
       {bestFor && <div className="spotcard-bestfor">★ Best for: {bestFor}</div>}
     </button>
