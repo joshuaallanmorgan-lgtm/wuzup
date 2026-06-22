@@ -19,6 +19,8 @@ import MyPlansPage from './MyPlansPage.jsx'
 import MySavesPage from './MySavesPage.jsx'
 import EditProfilePage from './EditProfilePage.jsx'
 import HelpFeedbackPage from './HelpFeedbackPage.jsx'
+import ForecastPage from './ForecastPage.jsx'
+import NotificationsPage from './NotificationsPage.jsx'
 import DetailPage from './DetailPage.jsx'
 import PlaceDetail from './PlaceDetail.jsx'
 import BubblePage from './BubblePage.jsx'
@@ -363,6 +365,9 @@ function Shell() {
             {/* PROFILE_PHASE2: net-new single-slot Profile drill-ins */}
             {page.type === 'editprofile' && <EditProfilePage />}
             {page.type === 'helpfeedback' && <HelpFeedbackPage />}
+            {/* HOME_PHASE2: Forecast + Notifications */}
+            {page.type === 'forecast' && <ForecastPage anchors={anchors} wx={wx} />}
+            {page.type === 'notifications' && <NotificationsPage />}
             {page.type === 'interests' && <InterestEditor from={page.from} />}
             {/* Sprint V2/V3: the "why your feed looks like this" + mute/boost
                 panel — opened from Settings, back returns there (the `from`

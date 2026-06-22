@@ -229,6 +229,17 @@ export function NavProvider({ children }) {
     setPageClosing(false)
     setPage({ type: 'helpfeedback' })
   }, [])
+  // HOME_PHASE2: two net-new Home drill-ins — full 7-day Forecast + Notifications.
+  const openForecast = useCallback(() => {
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    setPage({ type: 'forecast' })
+  }, [])
+  const openNotifications = useCallback(() => {
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    setPage({ type: 'notifications' })
+  }, [])
   // Q2c: the InterestEditor. `from` is honored ONLY as the literal 'settings'
   // (callers pass it through onClick, so a click-event arg must read as "not
   // from settings") — it routes the editor's back affordance: settings row →
@@ -386,6 +397,8 @@ export function NavProvider({ children }) {
       openMySaves,
       openEditProfile,
       openHelpFeedback,
+      openForecast,
+      openNotifications,
       openInterests,
       openTaste,
       openDeck,
@@ -421,6 +434,8 @@ export function NavProvider({ children }) {
       openMySaves,
       openEditProfile,
       openHelpFeedback,
+      openForecast,
+      openNotifications,
       openInterests,
       openTaste,
       openDeck,

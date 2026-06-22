@@ -1297,21 +1297,20 @@ test('3.7P-23b §N Home: "Your next days" stack + warm greeting + weather line',
   assert.ok(/void page/.test(nd), 'plan-state re-reads on the subpage edge (stays fresh)')
 })
 
-test('3.7P-23c §N Home: featured DecisionCard with inline Save / Add actions', () => {
+test('3.7P-23c §N Home: tonight GemRow picks + Quick actions grid (HOME_GRIND)', () => {
+  // FeaturedCard still exists and is used by Spots/LocationsView; no longer on Home.
   const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
-  assert.ok(/export function FeaturedCard\(/.test(cards), 'FeaturedCard exists')
-  assert.ok(/featc-add/.test(cards) && /featc-save/.test(cards), 'FeaturedCard has inline Add + Save actions (cards ACT)')
-  assert.ok(/onAdd\(e\)/.test(cards), 'the Add action calls the onAdd planner callback')
-  // Stage R: the featured "Tonight's top picks" card lives on the Home dashboard now.
+  assert.ok(/export function FeaturedCard\(/.test(cards), 'FeaturedCard still exists in cards.jsx')
+  assert.ok(/featc-add/.test(cards) && /featc-save/.test(cards), 'FeaturedCard still has Add + Save actions (used by Spots)')
+  // HOME_GRIND: Home now shows tonight picks as GemRow cards + Quick actions grid.
   const home = readFileSync(path.join(ROOT, 'app', 'src', 'HomeView.jsx'), 'utf8')
-  assert.ok(/<FeaturedCard /.test(home), 'HomeView renders the FeaturedCard for the marquee pick')
-  assert.ok(/onAdd=\{addToPlan\}/.test(home), 'HomeView wires the planner add to the featured card')
-  assert.ok(/saveDayPlans\(withSlot\(map, dayTs, part, keyOf\(e\)\)\)/.test(home), 'addToPlan writes via the shared withSlot seam (never clobbers a filled slot)')
-  // review: the "tonight" label/toast must track the ACTUAL daypart slot, not the
-  // day-span _tonight flag (a 2 PM today pick is "your day", never "tonight")
-  assert.ok(/daypartOf\(e\) === 'night' \? '＋ Add to tonight'/.test(cards), 'FeaturedCard add-label keys off daypartOf, not _tonight')
-  assert.ok(/part === 'night' \? 'Added to tonight/.test(home), 'the add toast names the real slot (daypart), not _tonight')
-  assert.ok(/rev={planRev}/.test(home), 'NextDays re-reads after an inline add (no stale plan-state on the same screen)')
+  assert.ok(/tonightModel/.test(home), 'HomeView uses tonightModel for tonight picks')
+  assert.ok(/<GemRow/.test(home), 'HomeView renders GemRow cards for tonight\'s top picks')
+  assert.ok(/intent-grid/.test(home), 'HomeView has a Quick actions intent-grid')
+  assert.ok(/openNotifications/.test(home), 'HomeView bell → openNotifications (H-L1)')
+  assert.ok(/openForecast/.test(home), 'HomeView "View full forecast" → openForecast (H-L2)')
+  assert.ok(/openBubble/.test(home), 'HomeView quick action wires Free tonight → openBubble')
+  assert.ok(/openGuide/.test(home), 'HomeView quick action wires Markets/Sports bars → openGuide')
 })
 
 test('3.7P-24 §N Spots: Recommended featured card + compact place Everything (green-wall fix)', () => {

@@ -82,6 +82,29 @@ export const GUIDES = [
         (e) => DATE_CATS.has(e.category) && (daypartOf(e) === 'night' || (e._weekend === true && daypartOf(e) !== 'day'))
       ),
   },
+  // HOME_PHASE2: Quick-action destinations
+  {
+    id: 'markets',
+    emoji: '🛍️',
+    hue: 45,
+    title: 'Markets',
+    pov: 'Fresh finds, local makers, and weekend favorites.',
+    domain: 'events',
+    plannable: false,
+    needsPlaces: false,
+    select: ({ events }) => (events || []).filter((e) => e.category === 'market'),
+  },
+  {
+    id: 'sports-bars',
+    emoji: '📺',
+    hue: 210,
+    title: 'Sports bars',
+    pov: 'Catch the game, big screens, cold beers.',
+    domain: 'events',
+    plannable: false,
+    needsPlaces: false,
+    select: ({ events }) => (events || []).filter((e) => e.category === 'sports' || e.category === 'nightlife'),
+  },
 ]
 
 export const guideById = Object.fromEntries(GUIDES.map((g) => [g.id, g]))

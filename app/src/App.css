@@ -75,6 +75,27 @@
   font-weight: 600;
   color: var(--muted);
 }
+/* H-L2: "View full forecast →" text link below NextDays */
+.home-forecast-link {
+  display: block;
+  margin: 4px 20px 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+}
+/* H-L4: column of left-image GemRow cards for "Tonight's top picks" */
+.home-picks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 20px;
+}
 
 /* ===== HOT tab scroller ===== */
 .hot-scroll {

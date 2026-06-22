@@ -62,7 +62,7 @@ export default function NextDays({ anchors, wx, rev }) {
               <span className="nd-sub">{sub}</span>
             </span>
             {cta ? (
-              <span className="nd-cta">{cta}</span>
+              <span className={d.label === 'Today' ? 'nd-cta' : 'nd-cta-outline'}>{cta}</span>
             ) : (
               <span className="nd-chev" aria-hidden>
                 <Icon.chevron />

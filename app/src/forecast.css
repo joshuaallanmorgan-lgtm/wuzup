@@ -1,0 +1,45 @@
+/* forecast.css — ForecastPage (HOME_PHASE2). 7-day wx rows. */
+.fc-pg .pg-body {
+  padding: 8px 0 80px;
+}
+.fc-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.fc-row:first-child { border-top: 1px solid var(--line); }
+.fc-row-today { background: var(--card); }
+.fc-emoji {
+  flex: 0 0 auto;
+  font-size: 28px;
+  width: 32px;
+  text-align: center;
+  line-height: 1;
+}
+.fc-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fc-label {
+  font-size: 15px;
+  font-weight: 750;
+  color: var(--ink);
+  letter-spacing: -0.15px;
+}
+.fc-cond {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.fc-hi {
+  flex: 0 0 auto;
+  font-size: 18px;
+  font-weight: 750;
+  color: var(--ink);
+  letter-spacing: -0.3px;
+}

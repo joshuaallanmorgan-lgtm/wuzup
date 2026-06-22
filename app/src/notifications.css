@@ -1,0 +1,29 @@
+/* notifications.css — NotificationsPage (HOME_PHASE2). */
+.notif-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50svh;
+}
+.notif-empty {
+  text-align: center;
+  padding: 0 32px;
+}
+.notif-empty-icon {
+  font-size: 48px;
+  line-height: 1;
+  margin-bottom: 16px;
+}
+.notif-empty-title {
+  font-size: 18px;
+  font-weight: 750;
+  color: var(--ink);
+  margin-bottom: 8px;
+  letter-spacing: -0.15px;
+}
+.notif-empty-sub {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1.55;
+}
