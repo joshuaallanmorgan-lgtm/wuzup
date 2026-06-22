@@ -17,6 +17,11 @@ import { keyOf } from './lib.js'
 const INDOOR = new Set(['arts', 'theatre', 'comedy', 'music', 'nightlife', 'food', 'family', 'market', 'community'])
 // an easy-night-out cut (not a raw category filter — an intention)
 const DATE_CATS = new Set(['food', 'music', 'theatre', 'arts', 'nightlife'])
+// TOUCHUP P1: "catch the game" content — genuine sports-watch events (watch
+// parties, finals, pregames), keyword-matched so the destination is honestly
+// sports-bar fare, not the whole sports+nightlife bucket (which dragged in
+// singles mixers, networking happy hours, trivia and 80s nights).
+const GAMEWATCH_RE = /watch party|game ?day|big game|catch the game|world cup|super bowl|march madness|playoff|stanley cup|nba finals|fight night|uefa|game watch|pregame/i
 // outdoor placeTypes that read as "get outside"
 const OUTDOOR_PLACE = new Set(['park', 'trail', 'preserve', 'garden', 'beach', 'viewpoint', 'pier'])
 
@@ -103,7 +108,12 @@ export const GUIDES = [
     domain: 'events',
     plannable: false,
     needsPlaces: false,
-    select: ({ events }) => (events || []).filter((e) => e.category === 'sports' || e.category === 'nightlife'),
+    // honest "catch the game" cut: real sports-watch events (a sports-bar PLACES
+    // activity isn't possible — places.js is all parks/beaches/trails, no bars).
+    select: ({ events }) =>
+      (events || []).filter(
+        (e) => (e.category === 'sports' || e.category === 'nightlife') && GAMEWATCH_RE.test(`${e.title || ''} ${e.description || ''}`)
+      ),
   },
 ]
 
