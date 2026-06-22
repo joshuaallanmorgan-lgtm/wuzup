@@ -1,44 +1,41 @@
-// ProfileView — the Profile tab (Stage R full rework). A clean account-style
-// page matching the benchmark: a monogram avatar + an editable on-device display
-// name + the active city, a quiet gear → Settings, and a flat 5-row menu. The
-// old dashboard sections moved to drill-ins: My plans + My saves subpages, My
-// likes → the TastePanel (the vibe chips live there + in Settings), Settings &
-// preferences → SettingsPage (the rate-to-sharpen deck + interests stay inside
-// it), Help & feedback → an inert "Coming soon" stub. NO Sign Out (no auth).
+// ProfileView — the Profile tab (PROFILE_GRIND pixel-match to ref-profile.png).
+// Canonical order: "Profile" title → a WHITE identity card (avatar · name · city ·
+// edit pencil + the stats trio inside it) → a 6-row menu with description lines →
+// a "Recently saved" preview → nav. The old colored identity block (Batch 4) is
+// reverted to white per the ref. Settings moved off the top-right gear into its
+// menu row; an edit pencil on the card now triggers the inline name edit.
 //
 // The display name lives ONLY on this device ('profile-name-v1') and defaults to
-// an "Add your name" prompt — never a fabricated name. The city is the app's
-// active-city label (CITY.name; one constant for Tampa Bay now, ready to wire to
-// the future city selector). DRAFT copy — ⚑ Charles.
+// an "Add your name" prompt — never a fabricated name (the ref's sample name and
+// stat counts are mock; we show real counts only). The city is CITY.name.
+// Path-safety: every row still CALLS its existing opener (openMyPlans/openMySaves/
+// openTaste()/openInterests('profile')/openSettings) — only labels, descriptions,
+// one new row, the pencil and structure changed. DRAFT copy — ⚑ Charles.
 import { useMemo, useState } from 'react'
-import { CITY } from './lib.js'
+import { CITY, keyOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { lsGet, lsSet } from './storage.js'
-import { useSaves, useBeenThere } from './saves.js'
+import { useSaves, useBeenThere, shelfItems } from './saves.js'
 import { loadDayPlans, loadDayHistory, didDays, dayEntryFor } from './dayplan.js'
+import { GemRow } from './cards.jsx'
 import './profile.css'
 
 const NAME_KEY = 'profile-name-v1'
 
-// the quiet stroke gear (top-right maintenance hatch) — editorial, not loud
-const GearIc = () => (
-  <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <circle cx="12" cy="12" r="3.2" />
-    <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.12-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.56-1.12 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.56 1.03z" />
-  </svg>
-)
-// calm mono stroke glyphs (currentColor) for the menu + the empty avatar
+// calm mono stroke glyphs (currentColor) for the avatar + the menu rows
 const S = { viewBox: '0 0 24 24', width: 22, height: 22, fill: 'none', stroke: 'currentColor', strokeWidth: 1.9, strokeLinecap: 'round', strokeLinejoin: 'round' }
 const PersonIc = () => (<svg {...S} aria-hidden><circle cx="12" cy="9" r="3.4" /><path d="M5.5 19.5c1-3.3 3.6-5 6.5-5s5.5 1.7 6.5 5" /></svg>)
+const PencilIc = () => (<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>)
 const PlansIc = () => (<svg {...S} aria-hidden><rect x="3" y="5" width="18" height="16" rx="2.5" /><path d="M3 9.5h18M8 3v4M16 3v4" /></svg>)
-const SavesIc = () => (<svg {...S} aria-hidden><path d="M12 20s-7-4.6-7-9.6A3.9 3.9 0 0 1 12 7a3.9 3.9 0 0 1 7 3.4c0 5-7 9.6-7 9.6Z" /></svg>)
-const LikesIc = () => (<svg {...S} aria-hidden><path d="M12 3l1.7 5 5 1.2-5 1.2L12 16l-1.7-5.6-5-1.2 5-1.2L12 3Z" /></svg>)
-const PrefsIc = () => (<svg {...S} aria-hidden><path d="M4 7h9M18 7h2M4 17h2M11 17h9" /><circle cx="15.5" cy="7" r="2.2" /><circle cx="8.5" cy="17" r="2.2" /></svg>)
+const BookmarkIc = () => (<svg {...S} aria-hidden><path d="M6 3.5h12a1 1 0 0 1 1 1V21l-7-4-7 4V4.5a1 1 0 0 1 1-1Z" /></svg>)
+const HeartIc = () => (<svg {...S} aria-hidden><path d="M12 20s-7-4.6-7-9.6A3.9 3.9 0 0 1 12 7a3.9 3.9 0 0 1 7 3.4c0 5-7 9.6-7 9.6Z" /></svg>)
+const SparkleIc = () => (<svg {...S} aria-hidden><path d="M12 3l1.7 5 5 1.2-5 1.2L12 16l-1.7-5.6-5-1.2 5-1.2L12 3Z" /></svg>)
+const CogIc = () => (<svg {...S} aria-hidden><circle cx="12" cy="12" r="3.3" /><path d="M12 2.5v2.4M12 19.1v2.4M21.5 12h-2.4M4.9 12H2.5M18.7 5.3l-1.7 1.7M7 17l-1.7 1.7M18.7 18.7 17 17M7 7 5.3 5.3" /></svg>)
 const HelpIc = () => (<svg {...S} aria-hidden><circle cx="12" cy="12" r="9" /><path d="M9.3 9.3a2.8 2.8 0 0 1 5.3 1c0 1.9-2.6 2.1-2.6 3.7" /><path d="M12 17.4h.01" /></svg>)
 const Chev = () => (<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M9 6l6 6-6 6" /></svg>)
 
-export default function ProfileView({ anchors }) {
-  const { openSettings, openTaste, openMyPlans, openMySaves, page } = useNav()
+export default function ProfileView({ events, anchors }) {
+  const { openSettings, openTaste, openInterests, openMyPlans, openMySaves, openDetail, page } = useNav()
   const [name, setName] = useState(() => lsGet(NAME_KEY) || '')
   const [editing, setEditing] = useState(false)
 
@@ -47,9 +44,6 @@ export default function ProfileView({ anchors }) {
   // recomputes on mount and whenever a subpage closes back to Profile (page flip).
   const { list: savedList } = useSaves()
   const been = useBeenThere()
-  // distinct filled days across the live plan store + history. localStorage isn't
-  // reactive, so re-read on subpage edges (`void page`) — a day planned in My plans
-  // reflects here on return. (useMemo, not effect+setState — same CalendarView seam.)
   const planCount = useMemo(() => {
     void page
     const map = loadDayPlans(anchors)
@@ -64,9 +58,18 @@ export default function ProfileView({ anchors }) {
   const daysOut = didDays(been).size
   const stats = [
     { k: 'plans', n: planCount, lab: planCount === 1 ? 'Plan' : 'Plans' },
-    { k: 'saves', n: savedList.length, lab: savedList.length === 1 ? 'Save' : 'Saves' },
+    { k: 'saves', n: savedList.length, lab: 'Saved' },
     { k: 'days', n: daysOut, lab: daysOut === 1 ? 'Day out' : 'Days out' },
   ]
+
+  // P7: a "Recently saved" preview — the first 2 of the live saved shelf (upcoming
+  // first, past >7d dropped; live-from-dataset, snapshot fallback). Real data only;
+  // the whole section hides when nothing is saved (never a barren placeholder).
+  const recentSaves = useMemo(
+    () => shelfItems(savedList, Array.isArray(events) ? events : [], anchors).slice(0, 2),
+    [savedList, events, anchors]
+  )
+
   const save = (v) => {
     const t = (v || '').trim().slice(0, 40)
     setName(t)
@@ -74,92 +77,112 @@ export default function ProfileView({ anchors }) {
   }
   const initial = name ? name.trim()[0].toUpperCase() : ''
 
-  // each row CALLS an existing opener (no from/origin arg → My likes/Settings
-  // close back to the Profile tab); My plans/My saves are the new single-slot
-  // subpages. Help & feedback is an inert stub (no opener, no chevron).
+  // each row CALLS an existing opener (path-safety). My likes → Taste profile via
+  // openTaste() with NO 'settings' arg (closes back to the Profile tab); the new
+  // Customize interests row → openInterests('profile') (the literal-string guard
+  // treats 'profile' as not-settings → back to tab). Help & feedback = a normal
+  // row with a placeholder destination (stubbed feature — PROFILE_GRIND §4).
   const rows = [
-    { id: 'plans', Ic: PlansIc, label: 'My plans', onClick: openMyPlans },
-    { id: 'saves', Ic: SavesIc, label: 'My saves', onClick: openMySaves },
-    { id: 'likes', Ic: LikesIc, label: 'My likes', onClick: () => openTaste() },
-    { id: 'settings', Ic: PrefsIc, label: 'Settings & preferences', onClick: openSettings },
+    { id: 'plans', Ic: PlansIc, label: 'My Plans', desc: 'Your day plans and upcoming itineraries', onClick: openMyPlans },
+    { id: 'saves', Ic: BookmarkIc, label: 'My Saves', desc: 'Spots, events, and guides you saved', onClick: openMySaves },
+    { id: 'taste', Ic: HeartIc, label: 'Taste profile', desc: 'Tell us what you like and improve your picks', onClick: () => openTaste() },
+    { id: 'interests', Ic: SparkleIc, label: 'Customize interests', desc: 'Choose topics you love and get better recs', onClick: () => openInterests('profile') },
+    { id: 'settings', Ic: CogIc, label: 'Settings & preferences', desc: 'Account, notifications, privacy, and more', onClick: openSettings },
+    { id: 'help', Ic: HelpIc, label: 'Help & feedback', desc: 'Get help or share your thoughts', onClick: () => {} },
   ]
 
   return (
     <div className="pf-scroll">
       <header className="pf-head">
-        <button className="pf-gear" onClick={openSettings} aria-label="Settings">
-          <GearIc />
-        </button>
-        {/* S1-P1: the colored identity card — name + city in white on --cta. */}
-        <div className="pf-name-block">
-          <div className="pf-avatar">{initial || <PersonIc />}</div>
-          <div className="pf-id-main">
-            {editing ? (
-              <input
-                className="pf-name-input"
-                autoFocus
-                defaultValue={name}
-                placeholder="Your name"
-                maxLength={40}
-                aria-label="Your display name"
-                onBlur={(e) => {
-                  save(e.target.value)
-                  setEditing(false)
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+        {/* P1: the page title — big bold ink, mirrors the app's heading family */}
+        <h1 className="pf-title">Profile</h1>
+
+        {/* P2/P3/P4: the WHITE identity card — avatar · editable name · city · an
+            edit pencil — with the honest stats trio inside the same card. */}
+        <section className="pf-id-card">
+          <div className="pf-name-block">
+            <div className="pf-avatar">{initial || <PersonIc />}</div>
+            <div className="pf-id-main">
+              {editing ? (
+                <input
+                  className="pf-name-input"
+                  autoFocus
+                  defaultValue={name}
+                  placeholder="Your name"
+                  maxLength={40}
+                  aria-label="Your display name"
+                  onBlur={(e) => {
                     save(e.target.value)
                     setEditing(false)
-                  }
-                  if (e.key === 'Escape') setEditing(false)
-                }}
-              />
-            ) : (
-              <button
-                className={'pf-name' + (name ? '' : ' pf-name-empty')}
-                onClick={() => setEditing(true)}
-                aria-label={name ? 'Edit your name' : 'Add your name'}
-              >
-                {name || 'Add your name'}
-              </button>
-            )}
-            <div className="pf-loc">{CITY.name}</div>
-          </div>
-        </div>
-        {/* S1-P3/P4: the honest lifetime stats trio (Plans · Saves · Days out),
-            below the name block, above the hairline + menu. */}
-        <div className="pf-stats">
-          {stats.map((s) => (
-            <div className="pf-stat" key={s.k}>
-              <span className="pf-stat-num">{s.n}</span>
-              <span className="pf-stat-lab">{s.lab}</span>
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      save(e.target.value)
+                      setEditing(false)
+                    }
+                    if (e.key === 'Escape') setEditing(false)
+                  }}
+                />
+              ) : (
+                <button
+                  className={'pf-name' + (name ? '' : ' pf-name-empty')}
+                  onClick={() => setEditing(true)}
+                  aria-label={name ? 'Edit your name' : 'Add your name'}
+                >
+                  {name || 'Add your name'}
+                </button>
+              )}
+              <div className="pf-loc">{CITY.name}</div>
             </div>
-          ))}
-        </div>
+            <button className="pf-edit" onClick={() => setEditing(true)} aria-label="Edit your profile">
+              <PencilIc />
+            </button>
+          </div>
+          {/* P5: the honest lifetime stats trio (Plans · Saved · Days out) */}
+          <div className="pf-stats">
+            {stats.map((s) => (
+              <div className="pf-stat" key={s.k}>
+                <span className="pf-stat-num">{s.n}</span>
+                <span className="pf-stat-lab">{s.lab}</span>
+              </div>
+            ))}
+          </div>
+        </section>
       </header>
 
+      {/* P6: the menu — 6 rows, each an icon tile + label + description + chevron */}
       <nav className="pf-menu" aria-label="Your stuff">
-        {rows.map(({ id, Ic, label, onClick }) => (
+        {rows.map(({ id, Ic, label, desc, onClick }) => (
           <button key={id} className="pf-row pressable" onClick={onClick}>
             <span className="pf-row-ic" aria-hidden>
               <Ic />
             </span>
-            <span className="pf-row-label">{label}</span>
+            <span className="pf-row-text">
+              <span className="pf-row-label">{label}</span>
+              <span className="pf-row-desc">{desc}</span>
+            </span>
             <span className="pf-row-go" aria-hidden>
               <Chev />
             </span>
           </button>
         ))}
-        <div className="pf-row pf-row-stub">
-          <span className="pf-row-ic" aria-hidden>
-            <HelpIc />
-          </span>
-          <span className="pf-row-label">Help &amp; feedback</span>
-          <span className="pf-row-soon">Coming soon</span>
-        </div>
       </nav>
 
-      <div className="pf-foot">This whole page lives in your browser — no account, nothing leaves your phone.</div>
+      {/* P7: Recently saved — the 2 most-recent saved cards (canonical GemRow);
+          hidden entirely when nothing is saved (honest, never a barren block). */}
+      {recentSaves.length > 0 && (
+        <section className="pf-recent">
+          <div className="pf-recent-head">
+            <h2 className="pf-recent-title">Recently saved</h2>
+            <button className="pf-seeall" onClick={openMySaves}>See all</button>
+          </div>
+          <div className="pf-recent-list">
+            {recentSaves.map(({ e }) => (
+              <GemRow key={keyOf(e)} e={e} onSelect={openDetail} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   )
 }

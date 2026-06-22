@@ -11,6 +11,7 @@
   overflow-x: hidden;
   scrollbar-width: none;
   background: var(--bg);
+  padding-bottom: calc(96px + env(safe-area-inset-bottom)); /* clears the fixed tabbar */
 }
 .pf-scroll::-webkit-scrollbar { display: none; }
 
@@ -20,45 +21,45 @@
   padding: calc(26px + env(safe-area-inset-top)) 20px 4px;
 }
 
-/* the quiet gear (Sprint P1): maintenance hatch, not identity — muted ring,
-   top-right, same 40px disc language as .pg-back */
-.pf-gear {
-  position: absolute;
-  top: calc(22px + env(safe-area-inset-top));
-  right: 16px;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  background: var(--card);
-  color: var(--muted);
-  cursor: pointer;
-  transition: transform var(--dur-micro);
-}
-.pf-gear:active { transform: scale(0.92); }
+/* ===== PROFILE_GRIND: page title + WHITE identity card + 6-row menu ===== */
+/* P1: the page title — big bold ink (the heading family; Kumbh via index.css) */
+.pf-title { margin: 0 0 16px; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; color: var(--ink); }
 
-/* ===== Stage R Profile rework: identity header + flat menu list ===== */
-/* S1-P1: the colored identity card — name + city in WHITE on --cta (#bb5719 ≈
-   4.68:1 AA; the one sanctioned white-on-warm — never the light gold --accent). */
+/* P2: the identity card is WHITE (reverts Batch-4's --cta fill to match the ref) —
+   it wraps the avatar+name+city+pencil row AND the stats trio as one card. */
+.pf-id-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
 .pf-name-block {
+  position: relative; /* anchors the edit pencil */
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-top: 8px;
-  padding: 18px;
-  border-radius: 18px;
-  background: var(--cta);
-  color: #fff;
+  padding: 18px 52px 18px 18px; /* right pad clears the pencil */
 }
-.pf-name-block .pf-avatar { background: rgba(255, 255, 255, 0.18); color: #fff; }
-.pf-name-block .pf-name { color: #fff; }
-.pf-name-block .pf-name-empty { color: rgba(255, 255, 255, 0.82); }
-.pf-name-block .pf-name-input { color: #fff; border-bottom-color: rgba(255, 255, 255, 0.6); }
-.pf-name-block .pf-name-input::placeholder { color: rgba(255, 255, 255, 0.7); }
-.pf-name-block .pf-loc { color: rgba(255, 255, 255, 0.88); }
+/* P4: the edit pencil — replaces the old top-right gear; triggers the inline name
+   edit. Settings is reachable via its own menu row now. */
+.pf-edit {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--accent-ink);
+  cursor: pointer;
+  transition: transform var(--dur-micro);
+}
+.pf-edit:active { transform: scale(0.9); }
 .pf-avatar {
   flex: 0 0 52px;
   width: 52px;
@@ -107,32 +108,49 @@
 }
 .pf-loc { font-size: 14px; font-weight: 600; color: var(--muted); }
 
-/* the flat menu — full-width rows, hairline dividers, no cards (benchmark) */
-.pf-menu { margin-top: 26px; }
+/* P6: the menu — a stack of white card rows, each an accent-tinted icon tile, a
+   label + description, and a chevron (the ref's settings-list look). */
+.pf-menu { margin: 22px 20px 0; display: flex; flex-direction: column; gap: 10px; }
 .pf-row {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 13px;
   width: 100%;
-  padding: 16px 20px;
-  border: none;
-  border-top: 1px solid var(--line);
-  background: none;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow-card);
   font: inherit;
   color: var(--ink);
   text-align: left;
   cursor: pointer;
-  transition: background var(--dur-micro) var(--ease-out);
+  transition: transform var(--dur-micro) var(--ease-out), background var(--dur-micro);
 }
-.pf-row:last-child { border-bottom: 1px solid var(--line); }
-.pf-row:not(.pf-row-stub):active { background: rgba(var(--accent-rgb), 0.05); }
-.pf-row:not(.pf-row-stub):hover { background: rgba(var(--accent-rgb), 0.04); }
-.pf-row-ic { flex: 0 0 auto; display: flex; color: var(--muted); }
-.pf-row-label { flex: 1; min-width: 0; font-size: 15.5px; font-weight: 700; letter-spacing: -0.2px; }
+.pf-row:active { transform: scale(0.99); background: rgba(var(--accent-rgb), 0.04); }
+.pf-row:hover { background: rgba(var(--accent-rgb), 0.03); }
+.pf-row-ic {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(var(--accent-rgb), 0.1);
+  color: var(--accent-ink);
+}
+.pf-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.pf-row-label { font-size: 15px; font-weight: 700; letter-spacing: -0.2px; color: var(--ink); }
+.pf-row-desc { font-size: 12.5px; font-weight: 500; color: var(--muted); line-height: 1.3; }
 .pf-row-go { flex: 0 0 auto; display: flex; color: var(--muted); }
-.pf-row-stub { cursor: default; }
-.pf-row-stub .pf-row-label { color: var(--muted); font-weight: 600; }
-.pf-row-soon { flex: 0 0 auto; font-size: 11.5px; font-weight: 700; color: var(--muted); opacity: 0.8; }
+
+/* ===== P7: Recently saved — header + See all + 2 canonical GemRow cards ===== */
+.pf-recent { margin: 26px 20px 0; }
+.pf-recent-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+.pf-recent-title { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -0.3px; color: var(--ink); }
+.pf-seeall { border: none; background: none; padding: 0; font: inherit; font-size: 13px; font-weight: 700; color: var(--accent-ink); cursor: pointer; }
+.pf-recent-list { display: flex; flex-direction: column; gap: 10px; }
 
 /* Stage 2 sweep: the OLD Profile identity header was removed — .pf-over / .pf-title /
    .pf-chips / .pf-chip(:active/-free/-edit) / .pf-when(-actual) / .pf-note. The
@@ -296,40 +314,31 @@
 .pf-ask-yes { border: none; background: var(--cta); color: #fff; } /* D.0-R: shared primary-button fill (white text) */
 .pf-ask-no { border: 1px solid var(--line); background: none; color: var(--muted); }
 
-/* ===== footer: the privacy truth, said quietly ===== */
-.pf-foot {
-  margin: 40px 28px 0;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--muted);
-  text-align: center;
-  line-height: 1.5;
-}
+/* (P8: the footer privacy note was removed — it lives in Settings, not the ref.) */
 
 /* ===== reduced motion: no press-scales (added with the tappable chips, Q2 —
    also covers the page's pre-existing micro-presses) ===== */
 @media (prefers-reduced-motion: reduce) {
-  .pf-gear,
+  .pf-edit,
+  .pf-row,
   .pf-ask-yes,
   .pf-ask-no { transition: none; }
-  .pf-gear:active,
+  .pf-edit:active,
+  .pf-row:active,
   .pf-ask-yes:active,
   .pf-ask-no:active { transform: none; }
 }
 
-/* ===== 3.7P-30b (§N screen 10): the profile stats strip (computed, honest) ===== */
-.pf-stats { display: flex; gap: 8px; margin-top: 16px; }
+/* ===== P5: the stats trio — plain columns INSIDE the white identity card, a
+   hairline above (no individual card chrome; the ref's clean big-number look) ===== */
+.pf-stats { display: flex; border-top: 1px solid var(--line); }
 .pf-stat {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 12px 6px;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  box-shadow: var(--shadow-card);
+  gap: 3px;
+  padding: 14px 6px;
 }
 .pf-stat-num { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -0.5px; }
 .pf-stat-lab { font-size: 11.5px; font-weight: 600; color: var(--muted); }

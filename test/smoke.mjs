@@ -1352,31 +1352,48 @@ test('S1-P3: the Profile header stats-trio is computed from real stores (re-adde
   assert.ok(!/\b47\b|>128<|>23</.test(pv), 'no hardcoded stat numbers')
 })
 
-test('Stage R Profile rework: avatar + editable name + city + 5-row menu + subpages', () => {
+test('PROFILE_GRIND: title + white identity card + pencil + 6-row menu + Recently saved', () => {
   const pv = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
-  // header: monogram avatar + editable on-device name (honest default) + city
-  assert.ok(/pf-avatar/.test(pv) && /pf-name/.test(pv) && /pf-loc/.test(pv), 'Profile header = avatar + editable name + city')
+  const css = readFileSync(path.join(ROOT, 'app', 'src', 'profile.css'), 'utf8')
+  // P1: the page title
+  assert.ok(/pf-title/.test(pv) && />Profile</.test(pv), 'P1: a "Profile" page title')
+  // P2/P3: WHITE identity card (the old --cta fill is reverted) + monogram avatar
+  assert.ok(/pf-id-card/.test(pv), 'P2: the identity card wrapper is present')
+  assert.ok(/pf-avatar/.test(pv) && /pf-name/.test(pv) && /pf-loc/.test(pv), 'header = avatar + editable name + city')
+  assert.ok(/\.pf-id-card\s*\{[^}]*background:\s*var\(--card\)/.test(css), 'P2: the identity card is WHITE (var(--card), not --cta)')
+  assert.ok(!/\.pf-name-block\s*\{[^}]*background:\s*var\(--cta\)/.test(css), 'P2: the colored --cta identity block is gone')
+  // honest name + on-device store; no fabricated person / mock numbers
   assert.ok(/profile-name-v1/.test(pv) && /lsGet\(NAME_KEY\)/.test(pv) && /lsSet\(NAME_KEY/.test(pv), 'the display name is stored on-device (profile-name-v1)')
-  assert.ok(/Add your name/.test(pv) && !/'Alex'/.test(pv), 'name defaults to an "Add your name" prompt — never a fabricated name')
-  assert.ok(/\{CITY\.name\}/.test(pv), 'city = the app active-city label (CITY.name), one constant for now')
-  // the flat 5-row menu (real labels mapping to our stores)
-  for (const label of ['My plans', 'My saves', 'My likes', 'Settings & preferences', 'Help &amp; feedback']) {
-    assert.ok(pv.includes(label), `Profile menu has the "${label}" row`)
+  assert.ok(/Add your name/.test(pv) && !/'Alex'/.test(pv), 'name defaults to "Add your name" — never a fabricated name')
+  assert.ok(/\{CITY\.name\}/.test(pv), 'city = the app active-city label (CITY.name)')
+  assert.ok(!/\b47\b|>128<|>23</.test(pv), 'no hardcoded mock stat numbers (real counts only)')
+  // P4: an edit pencil replaces the gear (Settings reachable via its menu row)
+  assert.ok(/pf-edit/.test(pv) && /setEditing\(true\)/.test(pv), 'P4: an edit pencil triggers the inline name edit')
+  assert.ok(!/pf-gear/.test(pv), 'P4: the old top-right gear button is gone from the view')
+  assert.ok(!/\.pf-gear/.test(css), 'P4: the dead .pf-gear CSS is removed')
+  // P5: "Saved" label (was "Saves"); the trio is computed from real stores
+  assert.ok(/pf-stats/.test(pv) && /'Saved'/.test(pv), 'P5: the stats trio relabels Saves → Saved')
+  // P6: the 6-row menu with descriptions + the right openers (path-safety intact)
+  for (const label of ['My Plans', 'My Saves', 'Taste profile', 'Customize interests', 'Settings & preferences', 'Help & feedback']) {
+    assert.ok(pv.includes(label), `P6: Profile menu has the "${label}" row`)
   }
-  assert.ok(/pf-row-stub/.test(pv) && /Coming soon/.test(pv), 'Help & feedback is an inert "Coming soon" stub (no opener)')
-  // path-safety: rows CALL existing openers; My likes uses openTaste() with NO
-  // 'settings' arg (so back closes to the Profile tab); Settings uses openSettings.
-  assert.ok(/onClick: openMyPlans/.test(pv) && /onClick: openMySaves/.test(pv), 'My plans/My saves open the new single-slot subpages')
-  assert.ok(/onClick: \(\) => openTaste\(\)/.test(pv), 'My likes = openTaste() (no settings origin → back to Profile)')
-  // nav openers + App subpage shells exist (single-slot, like settings/search)
+  assert.ok(/pf-row-desc/.test(pv), 'P6: rows carry a description line')
+  assert.ok(!/pf-row-stub/.test(pv) && !/Coming soon/.test(pv), 'P6: Help & feedback is a normal row (no "Coming soon" stub)')
+  assert.ok(/onClick: openMyPlans/.test(pv) && /onClick: openMySaves/.test(pv), 'My Plans/My Saves open the single-slot subpages')
+  assert.ok(/onClick: \(\) => openTaste\(\)/.test(pv), 'Taste profile = openTaste() (no settings origin → back to Profile)')
+  assert.ok(/openInterests\('profile'\)/.test(pv), "Customize interests = openInterests('profile') (back to the tab)")
+  // P7: a "Recently saved" preview reusing the canonical GemRow + shelfItems
+  assert.ok(/Recently saved/.test(pv) && /pf-recent/.test(pv), 'P7: a "Recently saved" section')
+  assert.ok(/shelfItems\(/.test(pv) && /<GemRow/.test(pv), 'P7: it reuses shelfItems + the canonical GemRow')
+  assert.ok(/onClick=\{openMySaves\}/.test(pv), 'P7: "See all" → openMySaves')
+  // P8: the footer privacy note is gone (it lives in Settings)
+  assert.ok(!/pf-foot/.test(pv), 'P8: the footer privacy note is removed')
+  // path-safety: nav openers + App subpage shells unchanged
   const nav = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
-  assert.ok(/const openMyPlans = useCallback/.test(nav) && /const openMySaves = useCallback/.test(nav), 'nav exposes openMyPlans + openMySaves')
-  assert.ok(/setPage\(\{ type: 'myplans' \}\)/.test(nav) && /setPage\(\{ type: 'mysaves' \}\)/.test(nav), 'the new openers follow the single-slot subpage pattern')
+  assert.ok(/setPage\(\{ type: 'myplans' \}\)/.test(nav) && /setPage\(\{ type: 'mysaves' \}\)/.test(nav), 'the My plans/saves openers are the single-slot subpage pattern')
+  assert.ok(/from === 'settings' \? 'settings' : null/.test(nav), 'openInterests/openTaste from-guard unchanged (literal === settings)')
   const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
   assert.ok(/page\.type === 'myplans' && <MyPlansPage/.test(app) && /page\.type === 'mysaves' && <MySavesPage/.test(app), 'App renders the My plans + My saves subpages')
-  // the existing opener guards are UNTOUCHED (path-safety): openTaste/openInterests
-  // still treat a non-literal-'settings' arg as "not settings".
-  assert.ok(/from === 'settings' \? 'settings' : null/.test(nav), 'openInterests/openTaste from-guard unchanged (literal === settings)')
 })
 
 test('3.7P-40 §N Calendar: Upcoming day-stack (NextDays) + date-state legend', () => {
@@ -1960,14 +1977,14 @@ test('W2: the Calendar tab is a logbook — NO event list / counts / heat on it'
 // + the calibration deck, both 4 taps deep in Settings) get a first-class Profile
 // entry, and the deck's close affordance honors a 'profile' origin so it returns
 // to Profile (not Settings).
-test('W6 → Stage R: Profile surfaces taste via My likes (deck + interests in Settings)', () => {
-  // Stage R Profile rework: the taste hub is the "My likes" row → openTaste (the
-  // TastePanel, where the vibe chips live now). The rate-to-sharpen deck +
-  // interests stay inside Settings (reached via the Settings & preferences row).
+test('W6 → PROFILE_GRIND: Profile surfaces taste via Taste profile (deck stays in Settings)', () => {
+  // The taste hub is the "Taste profile" row → openTaste (the TastePanel, where the
+  // vibe chips live). PROFILE_GRIND also adds a "Customize interests" row →
+  // openInterests('profile'); the rate-to-sharpen DECK stays inside Settings.
   const pfSrc = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
-  assert.ok(/openTaste/.test(pfSrc), 'Profile "My likes" opens the TastePanel (openTaste)')
-  assert.ok(!/openDeck/.test(pfSrc), 'Stage R: the rate-to-sharpen deck is not on the Profile main view (it lives in Settings)')
-  assert.ok(/openSettings/.test(pfSrc), 'Profile keeps the gear + a "Settings & preferences" row → openSettings')
+  assert.ok(/openTaste/.test(pfSrc), 'Profile "Taste profile" opens the TastePanel (openTaste)')
+  assert.ok(!/openDeck/.test(pfSrc), 'the rate-to-sharpen deck is not on the Profile main view (it lives in Settings)')
+  assert.ok(/openSettings/.test(pfSrc), 'Profile has a "Settings & preferences" row → openSettings')
   // the retired Weekend pill class is gone CODEBASE-WIDE (it had a duplicate
   // rule in weekend.css — a stale connection W6 must not leave behind)
   for (const f of ['calendar.css', 'weekend.css']) {
