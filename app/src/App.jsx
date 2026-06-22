@@ -21,6 +21,7 @@ import EditProfilePage from './EditProfilePage.jsx'
 import HelpFeedbackPage from './HelpFeedbackPage.jsx'
 import ForecastPage from './ForecastPage.jsx'
 import NotificationsPage from './NotificationsPage.jsx'
+import FiltersSheet from './FiltersSheet.jsx'
 import DetailPage from './DetailPage.jsx'
 import PlaceDetail from './PlaceDetail.jsx'
 import BubblePage from './BubblePage.jsx'
@@ -368,6 +369,8 @@ function Shell() {
             {/* HOME_PHASE2: Forecast + Notifications */}
             {page.type === 'forecast' && <ForecastPage anchors={anchors} wx={wx} />}
             {page.type === 'notifications' && <NotificationsPage />}
+            {/* EVENTS_PHASE2: Filters bottom-sheet */}
+            {page.type === 'evfilters' && <FiltersSheet />}
             {page.type === 'interests' && <InterestEditor from={page.from} />}
             {/* Sprint V2/V3: the "why your feed looks like this" + mute/boost
                 panel — opened from Settings, back returns there (the `from`

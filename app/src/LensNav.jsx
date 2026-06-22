@@ -16,7 +16,7 @@
 import { useEffect, useRef, useState } from 'react'
 import './topnav.css'
 
-export default function LensNav({ lenses = [], categories = [], menuLabel = 'All categories', navLabel = 'Browse', onOpen, onAdd, onSearch, onMap }) {
+export default function LensNav({ lenses = [], categories = [], menuLabel = 'All categories', navLabel = 'Browse', onOpen, onAdd, onSearch, onMap, onFilter }) {
   const [open, setOpen] = useState(false)
   const [closing, setClosing] = useState(false)
   const tRef = useRef(null)
@@ -102,6 +102,11 @@ export default function LensNav({ lenses = [], categories = [], menuLabel = 'All
             {onMap && (
               <button className="lens-pill lens-map pressable" onClick={onMap} aria-label="Open the map" title="Open the map">
                 <span aria-hidden>🗺️</span> Map
+              </button>
+            )}
+            {onFilter && (
+              <button className="lens-pill lens-filter pressable" onClick={onFilter} aria-label="Filter events" title="Filter events">
+                <span aria-hidden>🎚️</span> Filter
               </button>
             )}
           </div>

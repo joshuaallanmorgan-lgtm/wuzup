@@ -240,6 +240,12 @@ export function NavProvider({ children }) {
     setPageClosing(false)
     setPage({ type: 'notifications' })
   }, [])
+  // EVENTS_PHASE2: the Events Filters bottom-sheet (When · Price · Category).
+  const openEvFilters = useCallback(() => {
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    setPage({ type: 'evfilters' })
+  }, [])
   // Q2c: the InterestEditor. `from` is honored ONLY as the literal 'settings'
   // (callers pass it through onClick, so a click-event arg must read as "not
   // from settings") — it routes the editor's back affordance: settings row →
@@ -399,6 +405,7 @@ export function NavProvider({ children }) {
       openHelpFeedback,
       openForecast,
       openNotifications,
+      openEvFilters,
       openInterests,
       openTaste,
       openDeck,
@@ -436,6 +443,7 @@ export function NavProvider({ children }) {
       openHelpFeedback,
       openForecast,
       openNotifications,
+      openEvFilters,
       openInterests,
       openTaste,
       openDeck,

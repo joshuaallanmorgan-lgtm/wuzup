@@ -1,0 +1,143 @@
+/* FiltersSheet — EVENTS_PHASE2 bottom-sheet, mirrors the Map filter-sheet pattern */
+
+/* mfFade / mfUp are also defined in map.css; identical keyframes, no conflict */
+@keyframes fltFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fltUp   { from { transform: translateY(100%); } to { transform: none; } }
+
+.flt-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 1700;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.flt-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(26, 20, 16, 0.4);
+  animation: fltFade var(--dur-fast) ease;
+  border: none;
+  cursor: default;
+  width: 100%;
+}
+
+.flt-sheet {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  background: var(--card);
+  border-radius: 22px 22px 0 0;
+  box-shadow: 0 -10px 40px rgba(26, 20, 16, 0.24);
+  padding: 16px 16px calc(20px + env(safe-area-inset-bottom));
+  animation: fltUp var(--dur-page) var(--ease-emphasis);
+}
+
+.flt-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.flt-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.2px;
+}
+
+.flt-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--muted-fill);
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.flt-section {
+  margin-bottom: 20px;
+}
+
+.flt-section-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.flt-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.flt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border-radius: 20px;
+  background: var(--muted-fill);
+  border: 1.5px solid transparent;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 120ms, border-color 120ms, color 120ms;
+}
+
+.flt-chip--on {
+  background: color-mix(in srgb, var(--cta) 12%, var(--card));
+  border-color: var(--cta);
+  color: var(--cta);
+}
+
+.flt-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+  padding-top: 16px;
+  border-top: 1px solid var(--divider);
+}
+
+.flt-reset {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 120ms;
+}
+
+.flt-reset:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.flt-submit {
+  background: var(--cta);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.1px;
+  border: none;
+  border-radius: 12px;
+  padding: 11px 24px;
+  cursor: pointer;
+}

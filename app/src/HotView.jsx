@@ -21,7 +21,7 @@ import { dateKey } from './weather.js'
 const DAY_MS = 86400000
 
 export default function HotView({ events, anchors, loading }) {
-  const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, openMap: onOpenMap, openGuide } = useNav()
+  const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, openMap: onOpenMap, openGuide, openEvFilters } = useNav()
   const wx = useContext(WxContext) // access weather without prop threading
   const scrollRef = useRef(null)
   const evRef = useRef(null)
@@ -188,6 +188,7 @@ export default function HotView({ events, anchors, loading }) {
         onOpen={onOpenBubble}
         onAdd={onOpenAdd}
         onMap={onOpenMap}
+        onFilter={openEvFilters}
       />
 
       <div className="hot-body">
