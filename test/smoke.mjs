@@ -1352,7 +1352,7 @@ test('S1-P3: the Profile header stats-trio is computed from real stores (re-adde
   assert.ok(!/\b47\b|>128<|>23</.test(pv), 'no hardcoded stat numbers')
 })
 
-test('PROFILE_GRIND: title + white identity card + pencil + 6-row menu + Recently saved', () => {
+test('PROFILE_GRIND (final): title + white identity card + pencil + 6 menu cards (no Recently saved)', () => {
   const pv = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
   const css = readFileSync(path.join(ROOT, 'app', 'src', 'profile.css'), 'utf8')
   // P1: the page title
@@ -1382,10 +1382,13 @@ test('PROFILE_GRIND: title + white identity card + pencil + 6-row menu + Recentl
   assert.ok(/onClick: openMyPlans/.test(pv) && /onClick: openMySaves/.test(pv), 'My Plans/My Saves open the single-slot subpages')
   assert.ok(/onClick: \(\) => openTaste\(\)/.test(pv), 'Taste profile = openTaste() (no settings origin → back to Profile)')
   assert.ok(/openInterests\('profile'\)/.test(pv), "Customize interests = openInterests('profile') (back to the tab)")
-  // P7: a "Recently saved" preview reusing the canonical GemRow + shelfItems
-  assert.ok(/Recently saved/.test(pv) && /pf-recent/.test(pv), 'P7: a "Recently saved" section')
-  assert.ok(/shelfItems\(/.test(pv) && /<GemRow/.test(pv), 'P7: it reuses shelfItems + the canonical GemRow')
-  assert.ok(/onClick=\{openRecentlySaved\}/.test(pv), 'P7: "See all" → openRecentlySaved')
+  // F6: the menu is 6 SEPARATE cards with circular icon discs (final ref)
+  assert.ok(/\.pf-menu\s*\{[^}]*gap:/.test(css), 'F6: the menu is separated cards (gap), not one connected card')
+  assert.ok(/\.pf-row-ic\s*\{[^}]*border-radius:\s*50%/.test(css), 'F6: the row icon is a circular disc')
+  assert.ok(/\.pf-row\s*\{[^}]*box-shadow:\s*var\(--shadow-card\)/.test(css), 'F6: each menu row is its own white card')
+  // F7: Recently saved is REMOVED entirely (final MVP ref — no section, no See all)
+  assert.ok(!/pf-recent/.test(pv) && !/Recently saved/.test(pv), 'F7: the Recently saved section is gone')
+  assert.ok(!/shelfItems/.test(pv) && !/GemRow/.test(pv), 'F7: ProfileView no longer imports shelfItems/GemRow')
   // P8: the footer privacy note is gone (it lives in Settings)
   assert.ok(!/pf-foot/.test(pv), 'P8: the footer privacy note is removed')
   // path-safety: nav openers + App subpage shells unchanged
@@ -1396,27 +1399,23 @@ test('PROFILE_GRIND: title + white identity card + pencil + 6-row menu + Recentl
   assert.ok(/page\.type === 'myplans' && <MyPlansPage/.test(app) && /page\.type === 'mysaves' && <MySavesPage/.test(app), 'App renders the My plans + My saves subpages')
 })
 
-test('PROFILE_PHASE2: net-new drill-ins (Recently Saved · Edit Profile · Help & Feedback) wired + honest', () => {
+test('PROFILE_PHASE2: net-new drill-ins (Edit Profile · Help & Feedback) wired + honest', () => {
   const nav = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
   const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
   const pv = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
   // nav openers follow the single-slot pattern + App renders each subpage
-  for (const [opener, type] of [['openRecentlySaved', 'recentlysaved'], ['openEditProfile', 'editprofile'], ['openHelpFeedback', 'helpfeedback']]) {
+  for (const [opener, type] of [['openEditProfile', 'editprofile'], ['openHelpFeedback', 'helpfeedback']]) {
     assert.ok(new RegExp('const ' + opener + ' = useCallback').test(nav), `nav exposes ${opener}`)
     assert.ok(new RegExp("setPage\\(\\{ type: '" + type + "' \\}\\)").test(nav), `${opener} sets {type:'${type}'}`)
     assert.ok(app.includes("page.type === '" + type + "'"), `App renders the ${type} subpage`)
   }
-  assert.ok(/import RecentlySavedPage/.test(app) && /import EditProfilePage/.test(app) && /import HelpFeedbackPage/.test(app), 'App imports the 3 net-new pages')
-  // ProfileView rewiring: pencil/name → Edit Profile, Help → Help&Feedback, See all → Recently Saved
+  assert.ok(/import EditProfilePage/.test(app) && /import HelpFeedbackPage/.test(app), 'App imports the 2 net-new pages')
+  // the removed Recently Saved destination is fully gone (final MVP wipe)
+  assert.ok(!/recentlysaved/.test(nav) && !/recentlysaved/.test(app), 'the Recently Saved opener/route is removed everywhere')
+  // ProfileView rewiring: pencil/name → Edit Profile, Help → Help & Feedback
   assert.ok(/onClick=\{openEditProfile\}/.test(pv), 'pencil + name open Edit Profile')
   assert.ok(/onClick: openHelpFeedback/.test(pv), 'Help & feedback row opens Help & Feedback (no dead stub)')
-  assert.ok(/onClick=\{openRecentlySaved\}/.test(pv), 'See all opens Recently Saved')
   assert.ok(!/onClick: \(\) => \{\}/.test(pv), 'no dead no-op onClick remains on the Profile menu')
-  // saves.js exports the time-grouper (non-breaking); the screens reuse canonical pieces
-  const saves = readFileSync(path.join(ROOT, 'app', 'src', 'saves.js'), 'utf8')
-  assert.ok(/export function groupShelfByTime/.test(saves), 'saves.js exports groupShelfByTime')
-  const rs = readFileSync(path.join(ROOT, 'app', 'src', 'RecentlySavedPage.jsx'), 'utf8')
-  assert.ok(/groupShelfByTime\(/.test(rs) && /<GemRow/.test(rs), 'Recently Saved reuses groupShelfByTime + GemRow')
   // Edit Profile: writes the on-device name; honest stubs (never a fabricated person)
   const ep = readFileSync(path.join(ROOT, 'app', 'src', 'EditProfilePage.jsx'), 'utf8')
   assert.ok(/lsSet\(NAME_KEY/.test(ep) && /profile-name-v1/.test(ep), 'Edit Profile writes the on-device name (profile-name-v1)')

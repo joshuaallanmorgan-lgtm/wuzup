@@ -1,23 +1,22 @@
-// ProfileView — the Profile tab (PROFILE_GRIND pixel-match to ref-profile.png).
-// Canonical order: "Profile" title → a WHITE identity card (avatar · name · city ·
-// edit pencil + the stats trio inside it) → a 6-row menu with description lines →
-// a "Recently saved" preview → nav. The old colored identity block (Batch 4) is
-// reverted to white per the ref. Settings moved off the top-right gear into its
-// menu row; an edit pencil on the card now triggers the inline name edit.
+// ProfileView — the Profile tab (FINAL MVP, pixel-match to ref-profile-final.png).
+// Canonical order: "Profile" title → ONE white identity card (avatar · name · city ·
+// orange edit pencil, with the stats trio inside it) → 6 separate menu CARDS (tinted
+// circular icon disc · title · description · chevron) → nav. No saved-items preview
+// section, no footer. The pencil + name open Edit Profile (PROFILE_PHASE2); Settings
+// is the gear's old job, now its own menu row.
 //
 // The display name lives ONLY on this device ('profile-name-v1') and defaults to
 // an "Add your name" prompt — never a fabricated name (the ref's sample name and
 // stat counts are mock; we show real counts only). The city is CITY.name.
-// Path-safety: every row still CALLS its existing opener (openMyPlans/openMySaves/
-// openTaste()/openInterests('profile')/openSettings) — only labels, descriptions,
-// one new row, the pencil and structure changed. DRAFT copy — ⚑ Charles.
+// Path-safety: every row CALLS its existing opener (openMyPlans/openMySaves/
+// openTaste()/openInterests('profile')/openSettings/openHelpFeedback) — only
+// structure/styling changed. DRAFT copy — ⚑ Charles.
 import { useMemo } from 'react'
-import { CITY, keyOf } from './lib.js'
+import { CITY } from './lib.js'
 import { useNav } from './nav.jsx'
 import { lsGet } from './storage.js'
-import { useSaves, useBeenThere, shelfItems } from './saves.js'
+import { useSaves, useBeenThere } from './saves.js'
 import { loadDayPlans, loadDayHistory, didDays, dayEntryFor } from './dayplan.js'
-import { GemRow } from './cards.jsx'
 import './profile.css'
 
 const NAME_KEY = 'profile-name-v1'
@@ -36,8 +35,8 @@ const CogIc = () => (<svg {...S} aria-hidden><circle cx="12" cy="12" r="3.1" /><
 const HelpIc = () => (<svg {...S} aria-hidden><circle cx="12" cy="12" r="9.5" /><path d="M9.4 9.3a2.7 2.7 0 0 1 5.2 1c0 1.8-2.6 2-2.6 3.6" /><path d="M12 17.2h.01" /></svg>)
 const Chev = () => (<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M9 6l6 6-6 6" /></svg>)
 
-export default function ProfileView({ events, anchors }) {
-  const { openSettings, openTaste, openInterests, openMyPlans, openMySaves, openDetail, openEditProfile, openHelpFeedback, openRecentlySaved, page } = useNav()
+export default function ProfileView({ anchors }) {
+  const { openSettings, openTaste, openInterests, openMyPlans, openMySaves, openEditProfile, openHelpFeedback, page } = useNav()
   // name is read on mount + re-read whenever a subpage closes back here (page flip)
   // — so an edit saved in Edit Profile reflects on return (same seam as planCount).
   const name = useMemo(() => {
@@ -68,14 +67,6 @@ export default function ProfileView({ events, anchors }) {
     { k: 'saves', n: savedList.length, lab: 'Saved' },
     { k: 'days', n: daysOut, lab: 'Days out' },
   ]
-
-  // P7: a "Recently saved" preview — the first 2 of the live saved shelf (upcoming
-  // first, past >7d dropped; live-from-dataset, snapshot fallback). Real data only;
-  // the whole section hides when nothing is saved (never a barren placeholder).
-  const recentSaves = useMemo(
-    () => shelfItems(savedList, Array.isArray(events) ? events : [], anchors).slice(0, 2),
-    [savedList, events, anchors]
-  )
 
   const initial = name ? name.trim()[0].toUpperCase() : ''
 
@@ -148,27 +139,6 @@ export default function ProfileView({ events, anchors }) {
           </button>
         ))}
       </nav>
-
-      {/* P7: Recently saved — always present (so the section is never "missing");
-          shows the 2 most-recent saves via the canonical GemRow, or an honest
-          empty state (no fake cards) when nothing is saved yet. */}
-      <section className="pf-recent">
-        <div className="pf-recent-head">
-          <h2 className="pf-recent-title">Recently saved</h2>
-          {recentSaves.length > 0 && (
-            <button className="pf-seeall" onClick={openRecentlySaved}>See all</button>
-          )}
-        </div>
-        {recentSaves.length > 0 ? (
-          <div className="pf-recent-list">
-            {recentSaves.map(({ e }) => (
-              <GemRow key={keyOf(e)} e={e} onSelect={openDetail} />
-            ))}
-          </div>
-        ) : (
-          <div className="pf-empty">Nothing saved yet — tap ♥ on an event or spot to keep it here.</div>
-        )}
-      </section>
     </div>
   )
 }

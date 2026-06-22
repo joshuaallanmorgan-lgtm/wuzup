@@ -217,13 +217,8 @@ export function NavProvider({ children }) {
     setPageClosing(false)
     setPage({ type: 'mysaves' })
   }, [])
-  // PROFILE_PHASE2: three more plain single-slot Profile drill-ins (same pattern;
+  // PROFILE_PHASE2: two net-new plain single-slot Profile drill-ins (same pattern;
   // back/close via closePage → the Profile tab). No `from`/origin.
-  const openRecentlySaved = useCallback(() => {
-    clearTimeout(pageTRef.current)
-    setPageClosing(false)
-    setPage({ type: 'recentlysaved' })
-  }, [])
   const openEditProfile = useCallback(() => {
     clearTimeout(pageTRef.current)
     setPageClosing(false)
@@ -389,7 +384,6 @@ export function NavProvider({ children }) {
       openSettings,
       openMyPlans,
       openMySaves,
-      openRecentlySaved,
       openEditProfile,
       openHelpFeedback,
       openInterests,
@@ -425,7 +419,6 @@ export function NavProvider({ children }) {
       openSettings,
       openMyPlans,
       openMySaves,
-      openRecentlySaved,
       openEditProfile,
       openHelpFeedback,
       openInterests,

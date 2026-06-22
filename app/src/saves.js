@@ -256,22 +256,6 @@ export function shelfItems(list, events, anchors) {
   return out
 }
 
-// PROFILE_PHASE2: time-bucket the saved shelf by SAVE recency (Recently Saved +
-// My Saves). Reuses shelfItems for the live-resolve + past handling, then groups
-// the same {e, past} items by their savedAt into Today / Yesterday / Earlier this
-// week / Earlier (empty buckets dropped; order within a bucket = shelfItems
-// order). Purely additive — non-breaking.
-export function groupShelfByTime(list, events, anchors) {
-  const items = shelfItems(list, events, anchors)
-  const savedAt = new Map(list.map((s) => [s.key, s.savedAt || 0]))
-  const t0 = anchors.todayTs
-  const LABELS = ['Today', 'Yesterday', 'Earlier this week', 'Earlier']
-  const bucket = (ts) => (ts >= t0 ? 0 : ts >= t0 - DAY ? 1 : ts >= t0 - 7 * DAY ? 2 : 3)
-  const groups = [[], [], [], []]
-  for (const it of items) groups[bucket(savedAt.get(keyOf(it.e)) || 0)].push(it)
-  return LABELS.map((label, i) => ({ label, items: groups[i] })).filter((g) => g.items.length)
-}
-
 // ♥ toggle. Rendered INSIDE card <button>s, so it's a span[role=button]
 // (a nested <button> is invalid HTML); stopPropagation keeps the card from
 // opening. big = detail-hero variant (38px). The pop animation plays only on

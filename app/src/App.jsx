@@ -17,7 +17,6 @@ import CalendarView from './CalendarView.jsx'
 import ProfileView from './ProfileView.jsx'
 import MyPlansPage from './MyPlansPage.jsx'
 import MySavesPage from './MySavesPage.jsx'
-import RecentlySavedPage from './RecentlySavedPage.jsx'
 import EditProfilePage from './EditProfilePage.jsx'
 import HelpFeedbackPage from './HelpFeedbackPage.jsx'
 import DetailPage from './DetailPage.jsx'
@@ -361,8 +360,7 @@ function Shell() {
             {/* Stage R (Profile rework): the two new Profile drill-ins, single-slot */}
             {page.type === 'myplans' && <MyPlansPage events={norm} anchors={anchors} />}
             {page.type === 'mysaves' && <MySavesPage events={norm} anchors={anchors} />}
-            {/* PROFILE_PHASE2: three more single-slot Profile drill-ins */}
-            {page.type === 'recentlysaved' && <RecentlySavedPage events={norm} anchors={anchors} />}
+            {/* PROFILE_PHASE2: net-new single-slot Profile drill-ins */}
             {page.type === 'editprofile' && <EditProfilePage />}
             {page.type === 'helpfeedback' && <HelpFeedbackPage />}
             {page.type === 'interests' && <InterestEditor from={page.from} />}
