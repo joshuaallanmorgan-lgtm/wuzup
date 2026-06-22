@@ -375,6 +375,28 @@
 }
 .ep-save:active { transform: scale(0.99); }
 
+/* My Saves: filter tabs + time-group labels (PROFILE_PHASE2 polish) */
+.ms-tabs {
+  display: flex; gap: 8px; padding: 10px 20px 0;
+}
+.ms-tab {
+  flex: 1; padding: 9px 10px;
+  border: 1.5px solid var(--line); border-radius: 999px;
+  background: var(--card); color: var(--muted);
+  font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+  transition: border-color var(--dur-fast), color var(--dur-fast), background var(--dur-fast);
+}
+.ms-tab-sel {
+  border-color: var(--cta); background: var(--cta); color: #fff;
+}
+.ms-group { margin-bottom: 14px; }
+.ms-group:first-child { margin-top: 10px; }
+.ms-group-label {
+  margin: 0 20px 8px;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.2px;
+  text-transform: uppercase; color: var(--muted);
+}
+
 /* Help & feedback (.hf-*) — warm intro hero (CSS, no image asset) + mailto rows */
 .hf-hero {
   margin: 8px 20px 16px; padding: 26px 18px; border-radius: 18px; text-align: center;

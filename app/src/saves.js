@@ -202,6 +202,31 @@ export function useSaves() {
   return { ids: s.ids, list: s.list, has: (e) => s.ids.has(keyOf(e)), toggle: toggleSave }
 }
 
+// PROFILE_PHASE2: time-group the saved-shelf for MySavesPage.
+// Groups (in order): Upcoming · Yesterday · Earlier this week · Saved earlier.
+// Based on the event's end day vs todayTs; past saves drop after 7 days (shelfItems
+// contract) so the "Saved earlier" bucket is thin by design.
+export function groupShelfByTime(shelf, anchors) {
+  const now = anchors.todayTs
+  const groups = [
+    { key: 'upcoming', label: 'Upcoming', items: [] },
+    { key: 'yesterday', label: 'Yesterday', items: [] },
+    { key: 'week', label: 'Earlier this week', items: [] },
+    { key: 'older', label: 'Saved earlier', items: [] },
+  ]
+  for (const item of shelf) {
+    if (!item.past) {
+      groups[0].items.push(item)
+    } else {
+      const endDay = item.e._endDay ?? item.e._day ?? 0
+      if (endDay >= now - DAY) groups[1].items.push(item)
+      else if (endDay >= now - 6 * DAY) groups[2].items.push(item)
+      else groups[3].items.push(item)
+    }
+  }
+  return groups.filter((g) => g.items.length > 0)
+}
+
 // Saved-shelf items: the live event when its key still exists in the dataset,
 // otherwise the stored snapshot (normalized so cards/detail render it fine).
 // Past saves wear past:true (grey + "happened") and drop off the shelf 7 days

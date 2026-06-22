@@ -92,6 +92,24 @@
 
 .ie-foot { margin-top: 14px; font-size: 12px; font-weight: 500; color: var(--muted); line-height: 1.5; }
 
+/* Save & continue primary CTA (PROFILE_PHASE2) */
+.ie-save-btn {
+  display: block;
+  width: 100%;
+  margin-top: 28px;
+  padding: 15px;
+  border: none;
+  border-radius: 14px;
+  background: var(--cta);
+  color: #fff;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform var(--dur-micro);
+}
+.ie-save-btn:active { transform: scale(0.99); }
+
 /* ===== reduced motion ===== */
 @media (prefers-reduced-motion: reduce) {
   .ie-chip,

@@ -29,8 +29,29 @@ import { useNav } from './nav.jsx'
 import { interviewAnswers, recordInterview } from './taste.js'
 import './interests.css'
 
-// the grid = the whole registry minus the 'other' fallback bucket
-const GRID_CATS = CATEGORIES.filter((c) => c.id !== 'other')
+// Interest chip sections — Lifestyle / Vibes / Practical (PROFILE_PHASE2 polish).
+// Groups are presentational only; the underlying store is still category-id flat.
+const CHIP_SECTIONS = [
+  {
+    key: 'lifestyle',
+    label: 'Lifestyle',
+    ids: new Set(['food', 'market', 'outdoors', 'family']),
+  },
+  {
+    key: 'vibes',
+    label: 'Vibes',
+    ids: new Set(['music', 'nightlife', 'art', 'theatre', 'comedy']),
+  },
+  {
+    key: 'practical',
+    label: 'Practical',
+    ids: new Set(['sports', 'community']),
+  },
+]
+const ALL_SECTION_IDS = new Set(CHIP_SECTIONS.flatMap((s) => [...s.ids]))
+// any category not in the 3 buckets falls into the last section (future-proof)
+const EXTRA_CATS = CATEGORIES.filter((c) => c.id !== 'other' && !ALL_SECTION_IDS.has(c.id))
+const catsFor = (ids) => CATEGORIES.filter((c) => ids.has(c.id))
 
 const EMPTY = {
   cats: [],
@@ -144,31 +165,53 @@ export default function InterestEditor({ from }) {
           tap around the app still counts most, and nothing ever gets hidden.
         </p>
 
-        {/* ===== the chip grid: stated interests, directly tappable ===== */}
-        <section className="ie-sec">
-          <div className="ie-over">Into these</div>
-          <div className="ie-grid" role="group" aria-label="Your interest categories">
-            {GRID_CATS.map((c) => {
-              const sel = ans.cats.includes(c.id)
-              return (
-                <button
-                  key={c.id}
-                  className={'ie-chip' + (sel ? ' sel' : '')}
-                  style={{ '--ph': c.hue }}
-                  aria-pressed={sel}
-                  onClick={() => toggleCat(c.id)}
-                >
-                  <span aria-hidden>{c.emoji}</span> {c.label}
-                </button>
-              )
-            })}
-          </div>
-          <div className="ie-grid-note">
-            {ans.cats.length
-              ? `${ans.cats.length} picked — tap any to change your mind.`
-              : 'Nothing picked — your feed leans on your taps alone.'}
-          </div>
-        </section>
+        {/* ===== the chip grid: 3 sections (Lifestyle / Vibes / Practical) ===== */}
+        {CHIP_SECTIONS.map((sec) => (
+          <section key={sec.key} className="ie-sec">
+            <div className="ie-over">{sec.label}</div>
+            <div className="ie-grid" role="group" aria-label={sec.label + ' interests'}>
+              {catsFor(sec.ids).map((c) => {
+                const sel = ans.cats.includes(c.id)
+                return (
+                  <button
+                    key={c.id}
+                    className={'ie-chip' + (sel ? ' sel' : '')}
+                    style={{ '--ph': c.hue }}
+                    aria-pressed={sel}
+                    onClick={() => toggleCat(c.id)}
+                  >
+                    <span aria-hidden>{c.emoji}</span> {c.label}
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+        ))}
+        {EXTRA_CATS.length > 0 && (
+          <section className="ie-sec">
+            <div className="ie-grid" role="group" aria-label="More interests">
+              {EXTRA_CATS.map((c) => {
+                const sel = ans.cats.includes(c.id)
+                return (
+                  <button
+                    key={c.id}
+                    className={'ie-chip' + (sel ? ' sel' : '')}
+                    style={{ '--ph': c.hue }}
+                    aria-pressed={sel}
+                    onClick={() => toggleCat(c.id)}
+                  >
+                    <span aria-hidden>{c.emoji}</span> {c.label}
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+        )}
+        <div className="ie-grid-note">
+          {ans.cats.length
+            ? `${ans.cats.length} picked — tap any to change your mind.`
+            : 'Nothing picked — your feed leans on your taps alone.'}
+        </div>
 
         {/* ===== the surviving interview questions, always editable ===== */}
         <section className="ie-sec">
@@ -201,6 +244,11 @@ export default function InterestEditor({ from }) {
             you like.
           </div>
         </section>
+
+        {/* Save & continue — writes are already live; this just closes the screen */}
+        <button className="ie-save-btn" type="button" onClick={back}>
+          Save &amp; continue
+        </button>
       </div>
     </div>
   )
