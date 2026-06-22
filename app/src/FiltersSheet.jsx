@@ -3,11 +3,14 @@
 // the page with the matching BubblePage; "Reset" clears all selections.
 // Reuses the Map filter-sheet CSS pattern (mfUp/mfFade animations from map.css).
 import { useState } from 'react'
-import { BUBBLES, CAT_BUBBLES, LENS_BUBBLES } from './lib.js'
+import { BUBBLES, CAT_BUBBLES, LENS_BUBBLES, TOMORROW_BUBBLE } from './lib.js'
 import { useNav } from './nav.jsx'
 import './filters.css'
 
-const WHEN_BUBBLES = LENS_BUBBLES.filter((b) => b.kind === 'time')
+// When: Tonight · Tomorrow · This Weekend (Tomorrow is Filters-only — see lib.js)
+const TONIGHT_BUBBLE = LENS_BUBBLES.find((b) => b.id === 'tonight')
+const WEEKEND_BUBBLE = LENS_BUBBLES.find((b) => b.id === 'weekend')
+const WHEN_BUBBLES = [TONIGHT_BUBBLE, TOMORROW_BUBBLE, WEEKEND_BUBBLE].filter(Boolean)
 const FREE_BUBBLE = BUBBLES.find((b) => b.id === 'free')
 
 export default function FiltersSheet() {
@@ -27,7 +30,7 @@ export default function FiltersSheet() {
   const handleShowResults = () => {
     let target = null
     if (cat) target = CAT_BUBBLES.find((b) => b.id === cat)
-    else if (when) target = BUBBLES.find((b) => b.id === when)
+    else if (when) target = WHEN_BUBBLES.find((b) => b.id === when)
     else if (price === 'free') target = FREE_BUBBLE
     if (target) openBubble(target)
     else closePage()

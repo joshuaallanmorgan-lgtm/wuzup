@@ -76,6 +76,10 @@ export const BUBBLES = [
 // CATEGORIES tuck into the "All categories" menu. Same destinations, quieter.
 export const LENS_BUBBLES = BUBBLES.filter((b) => b.kind !== 'cat')
 export const CAT_BUBBLES = BUBBLES.filter((b) => b.kind === 'cat')
+// TOUCHUP P2: a Tomorrow filter for the Events FiltersSheet — deliberately NOT in
+// BUBBLES (so it never joins the lens row / category menu), only reachable through
+// Filters. BubblePage handles value==='tomorrow' (events on the tomorrow date).
+export const TOMORROW_BUBBLE = { id: 'tomorrow', emoji: '🌅', label: 'Tomorrow', kind: 'time', value: 'tomorrow', hue: 40 }
 
 // hotScore desc, nulls last, ties by start time
 export const hotDesc = (x, y) => (y.hotScore ?? -Infinity) - (x.hotScore ?? -Infinity) || x._t - y._t

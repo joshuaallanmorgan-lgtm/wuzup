@@ -23,9 +23,21 @@ import { tasteNudge } from './taste.js'
 import { DeckThisButton } from './LensDeck.jsx'
 import './bubble.css'
 
+// TOUCHUP P2: ref-matched result headers for the time/free/near filters (the
+// FiltersSheet + lens-row destinations) — "Tonight" → "Tonight's top picks" etc.
+// Categories keep their plain label.
+const HEADERS = {
+  tonight: "Tonight's top picks",
+  tomorrow: "Tomorrow's events",
+  weekend: 'The weekend',
+  free: 'Free events',
+  near: 'Near you',
+}
+
 // one-line personality per bubble (Charles: every destination gets a wink)
 const TAGLINES = {
   tonight: 'No plans? Not anymore.',
+  tomorrow: 'Get a head start on tomorrow.',
   weekend: 'Friday to Sunday, fully loaded.',
   free: 'Your wallet stays home.',
   near: 'Good times, walking distance.',
@@ -46,6 +58,7 @@ const TAGLINES = {
 // Premium voice (N3 DRAFT — Charles): plain + warm, no winking, no emoji-in-prose.
 const EMPTIES = {
   tonight: 'Nothing listed for tonight yet — check back soon.',
+  tomorrow: 'Nothing listed for tomorrow yet — check back soon.',
   weekend: 'Nothing on the weekend yet — check back soon.',
   free: 'No free events listed right now.',
   near: 'Nothing nearby right now.',
@@ -62,7 +75,13 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
     const up = events
       .filter((e) => e._day != null && (e._endDay ?? e._day) >= anchors.todayTs)
       .map((e) => ({ ...e, _clamp: Math.max(e._day, anchors.todayTs) }))
-    if (bubble.kind === 'time') return up.filter((e) => (bubble.value === 'tonight' ? e._tonight : e._weekend))
+    if (bubble.kind === 'time') {
+      if (bubble.value === 'tonight') return up.filter((e) => e._tonight)
+      // TOUCHUP P2: tomorrow = events that START tomorrow (a clean single-day list;
+      // multi-day events already in progress live under Today/Tonight, not here)
+      if (bubble.value === 'tomorrow') return up.filter((e) => e._day === anchors.tomorrowTs)
+      return up.filter((e) => e._weekend)
+    }
     if (bubble.kind === 'free') return up.filter((e) => e._free)
     if (bubble.kind === 'cat') return up.filter((e) => e.category === bubble.value)
     return up // 'sort' (Near Me): all upcoming; ordering handles the rest
@@ -112,7 +131,7 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
         <div className="bub-band-main">
           <h1 className="bub-title">
             <span className="bub-emoji">{bubble.emoji}</span>
-            {bubble.label}
+            {HEADERS[bubble.id] || bubble.label}
           </h1>
           <div className="pg-count">
             {count.toLocaleString('en-US')} event{count === 1 ? '' : 's'} in {CITY.name}
