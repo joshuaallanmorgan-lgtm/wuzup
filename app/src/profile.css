@@ -93,20 +93,6 @@
   text-overflow: ellipsis;
 }
 .pf-name-empty { color: var(--muted); font-weight: 700; }
-.pf-name-input {
-  width: 100%;
-  max-width: 240px;
-  border: none;
-  border-bottom: 2px solid var(--accent);
-  background: none;
-  padding: 0 0 2px;
-  font: inherit;
-  font-size: 22px;
-  font-weight: 900;
-  letter-spacing: -0.5px;
-  color: var(--ink);
-  outline: none;
-}
 .pf-loc { font-size: 14px; font-weight: 600; line-height: 1.2; color: var(--muted); }
 
 /* P6: the menu — ONE connected card (rows share hairline dividers, no gaps), each
@@ -352,3 +338,59 @@
 }
 .pf-stat-num { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -0.5px; }
 .pf-stat-lab { font-size: 11.5px; font-weight: 600; color: var(--muted); }
+
+/* ===== PROFILE_PHASE2: net-new drill-in screens (append-only) ===== */
+/* Edit Profile (.ep-*) — the pencil's destination; a pinned Save bar at the bottom */
+.ep-pg { display: flex; flex-direction: column; overflow: hidden; }
+.ep-pg .pg-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.ep-body { display: flex; flex-direction: column; gap: 14px; padding: 8px 20px 16px; }
+.ep-photo-row { display: flex; align-items: center; gap: 14px; }
+.ep-photo {
+  flex: 0 0 64px; width: 64px; height: 64px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(var(--accent-rgb), 0.12); color: var(--accent-ink);
+  font-size: 26px; font-weight: 800;
+}
+.ep-photo-edit {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--line); border-radius: 999px; background: var(--card);
+  color: var(--muted); font: inherit; font-size: 13px; font-weight: 700;
+  padding: 8px 13px; cursor: not-allowed;
+}
+.ep-soon {
+  font-size: 10.5px; font-weight: 800; color: var(--accent-ink);
+  background: rgba(var(--accent-rgb), 0.12); border-radius: 999px; padding: 2px 8px;
+}
+.ep-field { display: flex; flex-direction: column; gap: 6px; }
+.ep-label { font-size: 12px; font-weight: 700; letter-spacing: 0.02em; color: var(--muted); }
+.ep-input {
+  width: 100%; box-sizing: border-box;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--card);
+  padding: 12px 14px; font: inherit; font-size: 15px; color: var(--ink); outline: none;
+}
+.ep-input:focus { border-color: rgba(var(--accent-rgb), 0.5); }
+.ep-input-ro { color: var(--muted); background: var(--bg); }
+.ep-sec-label { margin-top: 6px; font-size: 12px; font-weight: 800; letter-spacing: 0.02em; color: var(--muted); }
+.ep-pref {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 14px; border: 1px solid var(--line); border-radius: 12px;
+  background: var(--card); font-size: 14.5px; font-weight: 600; color: var(--ink);
+}
+.ep-pref-v { color: var(--muted); font-weight: 700; }
+.ep-save {
+  flex: 0 0 auto;
+  margin: 12px 20px calc(16px + env(safe-area-inset-bottom));
+  padding: 15px; border: none; border-radius: 14px;
+  background: var(--cta); color: #fff; font: inherit; font-size: 16px; font-weight: 800; cursor: pointer;
+  transition: transform var(--dur-micro);
+}
+.ep-save:active { transform: scale(0.99); }
+
+/* Help & feedback (.hf-*) — warm intro hero (CSS, no image asset) + mailto rows */
+.hf-hero {
+  margin: 8px 20px 16px; padding: 26px 18px; border-radius: 18px; text-align: center;
+  background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.18), rgba(var(--accent-rgb), 0.06));
+}
+.hf-hero-title { font-size: 18px; font-weight: 800; color: var(--ink); }
+.hf-hero-sub { margin-top: 6px; font-size: 13px; font-weight: 500; line-height: 1.4; color: var(--muted); }
+.hf-row { text-decoration: none; }

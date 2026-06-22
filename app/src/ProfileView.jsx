@@ -11,10 +11,10 @@
 // Path-safety: every row still CALLS its existing opener (openMyPlans/openMySaves/
 // openTaste()/openInterests('profile')/openSettings) — only labels, descriptions,
 // one new row, the pencil and structure changed. DRAFT copy — ⚑ Charles.
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { CITY, keyOf } from './lib.js'
 import { useNav } from './nav.jsx'
-import { lsGet, lsSet } from './storage.js'
+import { lsGet } from './storage.js'
 import { useSaves, useBeenThere, shelfItems } from './saves.js'
 import { loadDayPlans, loadDayHistory, didDays, dayEntryFor } from './dayplan.js'
 import { GemRow } from './cards.jsx'
@@ -37,9 +37,13 @@ const HelpIc = () => (<svg {...S} aria-hidden><circle cx="12" cy="12" r="9.5" />
 const Chev = () => (<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M9 6l6 6-6 6" /></svg>)
 
 export default function ProfileView({ events, anchors }) {
-  const { openSettings, openTaste, openInterests, openMyPlans, openMySaves, openDetail, page } = useNav()
-  const [name, setName] = useState(() => lsGet(NAME_KEY) || '')
-  const [editing, setEditing] = useState(false)
+  const { openSettings, openTaste, openInterests, openMyPlans, openMySaves, openDetail, openEditProfile, openHelpFeedback, openRecentlySaved, page } = useNav()
+  // name is read on mount + re-read whenever a subpage closes back here (page flip)
+  // — so an edit saved in Edit Profile reflects on return (same seam as planCount).
+  const name = useMemo(() => {
+    void page
+    return lsGet(NAME_KEY) || ''
+  }, [page])
 
   // S1-P3: honest lifetime stats from the REAL stores — never hardcoded. Saves +
   // days-out are reactive (hooks); plans reads the non-reactive day store, so it
@@ -73,25 +77,19 @@ export default function ProfileView({ events, anchors }) {
     [savedList, events, anchors]
   )
 
-  const save = (v) => {
-    const t = (v || '').trim().slice(0, 40)
-    setName(t)
-    lsSet(NAME_KEY, t)
-  }
   const initial = name ? name.trim()[0].toUpperCase() : ''
 
-  // each row CALLS an existing opener (path-safety). My likes → Taste profile via
-  // openTaste() with NO 'settings' arg (closes back to the Profile tab); the new
-  // Customize interests row → openInterests('profile') (the literal-string guard
-  // treats 'profile' as not-settings → back to tab). Help & feedback = a normal
-  // row with a placeholder destination (stubbed feature — PROFILE_GRIND §4).
+  // each row CALLS an existing opener (path-safety). Taste profile → openTaste()
+  // and Customize interests → openInterests('profile') (the literal-string guard
+  // treats 'profile' as not-settings → back to tab). PROFILE_PHASE2 gives Help &
+  // feedback a real destination (openHelpFeedback) — no more dead stub.
   const rows = [
     { id: 'plans', Ic: PlansIc, label: 'My Plans', desc: 'Your day plans and upcoming itineraries', onClick: openMyPlans },
     { id: 'saves', Ic: BookmarkIc, label: 'My Saves', desc: 'Spots, events, and guides you saved', onClick: openMySaves },
     { id: 'taste', Ic: HeartIc, label: 'Taste profile', desc: 'Tell us what you like and improve your picks', onClick: () => openTaste() },
     { id: 'interests', Ic: TuneIc, label: 'Customize interests', desc: 'Choose topics you love and get better recs', onClick: () => openInterests('profile') },
     { id: 'settings', Ic: CogIc, label: 'Settings & preferences', desc: 'Account, notifications, privacy, and more', onClick: openSettings },
-    { id: 'help', Ic: HelpIc, label: 'Help & feedback', desc: 'Get help or share your thoughts', onClick: () => {} },
+    { id: 'help', Ic: HelpIc, label: 'Help & feedback', desc: 'Get help or share your thoughts', onClick: openHelpFeedback },
   ]
 
   return (
@@ -106,38 +104,18 @@ export default function ProfileView({ events, anchors }) {
           <div className="pf-name-block">
             <div className="pf-avatar">{initial || <PersonIc />}</div>
             <div className="pf-id-main">
-              {editing ? (
-                <input
-                  className="pf-name-input"
-                  autoFocus
-                  defaultValue={name}
-                  placeholder="Your name"
-                  maxLength={40}
-                  aria-label="Your display name"
-                  onBlur={(e) => {
-                    save(e.target.value)
-                    setEditing(false)
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      save(e.target.value)
-                      setEditing(false)
-                    }
-                    if (e.key === 'Escape') setEditing(false)
-                  }}
-                />
-              ) : (
-                <button
-                  className={'pf-name' + (name ? '' : ' pf-name-empty')}
-                  onClick={() => setEditing(true)}
-                  aria-label={name ? 'Edit your name' : 'Add your name'}
-                >
-                  {name || 'Add your name'}
-                </button>
-              )}
+              {/* name + pencil both open Edit Profile (PROFILE_PHASE2 absorbed the
+                  inline edit into that screen) */}
+              <button
+                className={'pf-name' + (name ? '' : ' pf-name-empty')}
+                onClick={openEditProfile}
+                aria-label={name ? 'Edit your profile' : 'Add your name'}
+              >
+                {name || 'Add your name'}
+              </button>
               <div className="pf-loc">{CITY.name}</div>
             </div>
-            <button className="pf-edit" onClick={() => setEditing(true)} aria-label="Edit your profile">
+            <button className="pf-edit" onClick={openEditProfile} aria-label="Edit profile">
               <PencilIc />
             </button>
           </div>
@@ -178,7 +156,7 @@ export default function ProfileView({ events, anchors }) {
         <div className="pf-recent-head">
           <h2 className="pf-recent-title">Recently saved</h2>
           {recentSaves.length > 0 && (
-            <button className="pf-seeall" onClick={openMySaves}>See all</button>
+            <button className="pf-seeall" onClick={openRecentlySaved}>See all</button>
           )}
         </div>
         {recentSaves.length > 0 ? (

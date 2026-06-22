@@ -217,6 +217,23 @@ export function NavProvider({ children }) {
     setPageClosing(false)
     setPage({ type: 'mysaves' })
   }, [])
+  // PROFILE_PHASE2: three more plain single-slot Profile drill-ins (same pattern;
+  // back/close via closePage → the Profile tab). No `from`/origin.
+  const openRecentlySaved = useCallback(() => {
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    setPage({ type: 'recentlysaved' })
+  }, [])
+  const openEditProfile = useCallback(() => {
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    setPage({ type: 'editprofile' })
+  }, [])
+  const openHelpFeedback = useCallback(() => {
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    setPage({ type: 'helpfeedback' })
+  }, [])
   // Q2c: the InterestEditor. `from` is honored ONLY as the literal 'settings'
   // (callers pass it through onClick, so a click-event arg must read as "not
   // from settings") — it routes the editor's back affordance: settings row →
@@ -372,6 +389,9 @@ export function NavProvider({ children }) {
       openSettings,
       openMyPlans,
       openMySaves,
+      openRecentlySaved,
+      openEditProfile,
+      openHelpFeedback,
       openInterests,
       openTaste,
       openDeck,
@@ -405,6 +425,9 @@ export function NavProvider({ children }) {
       openSettings,
       openMyPlans,
       openMySaves,
+      openRecentlySaved,
+      openEditProfile,
+      openHelpFeedback,
       openInterests,
       openTaste,
       openDeck,

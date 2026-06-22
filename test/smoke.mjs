@@ -1363,12 +1363,12 @@ test('PROFILE_GRIND: title + white identity card + pencil + 6-row menu + Recentl
   assert.ok(/\.pf-id-card\s*\{[^}]*background:\s*var\(--card\)/.test(css), 'P2: the identity card is WHITE (var(--card), not --cta)')
   assert.ok(!/\.pf-name-block\s*\{[^}]*background:\s*var\(--cta\)/.test(css), 'P2: the colored --cta identity block is gone')
   // honest name + on-device store; no fabricated person / mock numbers
-  assert.ok(/profile-name-v1/.test(pv) && /lsGet\(NAME_KEY\)/.test(pv) && /lsSet\(NAME_KEY/.test(pv), 'the display name is stored on-device (profile-name-v1)')
+  assert.ok(/profile-name-v1/.test(pv) && /lsGet\(NAME_KEY\)/.test(pv), 'the display name is read on-device (profile-name-v1); the write moved to Edit Profile')
   assert.ok(/Add your name/.test(pv) && !/'Alex'/.test(pv), 'name defaults to "Add your name" — never a fabricated name')
   assert.ok(/\{CITY\.name\}/.test(pv), 'city = the app active-city label (CITY.name)')
   assert.ok(!/\b47\b|>128<|>23</.test(pv), 'no hardcoded mock stat numbers (real counts only)')
   // P4: an edit pencil replaces the gear (Settings reachable via its menu row)
-  assert.ok(/pf-edit/.test(pv) && /setEditing\(true\)/.test(pv), 'P4: an edit pencil triggers the inline name edit')
+  assert.ok(/pf-edit/.test(pv) && /onClick=\{openEditProfile\}/.test(pv), 'P4: the edit pencil opens Edit Profile (PROFILE_PHASE2 absorbed the inline edit)')
   assert.ok(!/pf-gear/.test(pv), 'P4: the old top-right gear button is gone from the view')
   assert.ok(!/\.pf-gear/.test(css), 'P4: the dead .pf-gear CSS is removed')
   // P5: "Saved" label (was "Saves"); the trio is computed from real stores
@@ -1385,7 +1385,7 @@ test('PROFILE_GRIND: title + white identity card + pencil + 6-row menu + Recentl
   // P7: a "Recently saved" preview reusing the canonical GemRow + shelfItems
   assert.ok(/Recently saved/.test(pv) && /pf-recent/.test(pv), 'P7: a "Recently saved" section')
   assert.ok(/shelfItems\(/.test(pv) && /<GemRow/.test(pv), 'P7: it reuses shelfItems + the canonical GemRow')
-  assert.ok(/onClick=\{openMySaves\}/.test(pv), 'P7: "See all" → openMySaves')
+  assert.ok(/onClick=\{openRecentlySaved\}/.test(pv), 'P7: "See all" → openRecentlySaved')
   // P8: the footer privacy note is gone (it lives in Settings)
   assert.ok(!/pf-foot/.test(pv), 'P8: the footer privacy note is removed')
   // path-safety: nav openers + App subpage shells unchanged
@@ -1394,6 +1394,36 @@ test('PROFILE_GRIND: title + white identity card + pencil + 6-row menu + Recentl
   assert.ok(/from === 'settings' \? 'settings' : null/.test(nav), 'openInterests/openTaste from-guard unchanged (literal === settings)')
   const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
   assert.ok(/page\.type === 'myplans' && <MyPlansPage/.test(app) && /page\.type === 'mysaves' && <MySavesPage/.test(app), 'App renders the My plans + My saves subpages')
+})
+
+test('PROFILE_PHASE2: net-new drill-ins (Recently Saved · Edit Profile · Help & Feedback) wired + honest', () => {
+  const nav = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
+  const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
+  const pv = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
+  // nav openers follow the single-slot pattern + App renders each subpage
+  for (const [opener, type] of [['openRecentlySaved', 'recentlysaved'], ['openEditProfile', 'editprofile'], ['openHelpFeedback', 'helpfeedback']]) {
+    assert.ok(new RegExp('const ' + opener + ' = useCallback').test(nav), `nav exposes ${opener}`)
+    assert.ok(new RegExp("setPage\\(\\{ type: '" + type + "' \\}\\)").test(nav), `${opener} sets {type:'${type}'}`)
+    assert.ok(app.includes("page.type === '" + type + "'"), `App renders the ${type} subpage`)
+  }
+  assert.ok(/import RecentlySavedPage/.test(app) && /import EditProfilePage/.test(app) && /import HelpFeedbackPage/.test(app), 'App imports the 3 net-new pages')
+  // ProfileView rewiring: pencil/name → Edit Profile, Help → Help&Feedback, See all → Recently Saved
+  assert.ok(/onClick=\{openEditProfile\}/.test(pv), 'pencil + name open Edit Profile')
+  assert.ok(/onClick: openHelpFeedback/.test(pv), 'Help & feedback row opens Help & Feedback (no dead stub)')
+  assert.ok(/onClick=\{openRecentlySaved\}/.test(pv), 'See all opens Recently Saved')
+  assert.ok(!/onClick: \(\) => \{\}/.test(pv), 'no dead no-op onClick remains on the Profile menu')
+  // saves.js exports the time-grouper (non-breaking); the screens reuse canonical pieces
+  const saves = readFileSync(path.join(ROOT, 'app', 'src', 'saves.js'), 'utf8')
+  assert.ok(/export function groupShelfByTime/.test(saves), 'saves.js exports groupShelfByTime')
+  const rs = readFileSync(path.join(ROOT, 'app', 'src', 'RecentlySavedPage.jsx'), 'utf8')
+  assert.ok(/groupShelfByTime\(/.test(rs) && /<GemRow/.test(rs), 'Recently Saved reuses groupShelfByTime + GemRow')
+  // Edit Profile: writes the on-device name; honest stubs (never a fabricated person)
+  const ep = readFileSync(path.join(ROOT, 'app', 'src', 'EditProfilePage.jsx'), 'utf8')
+  assert.ok(/lsSet\(NAME_KEY/.test(ep) && /profile-name-v1/.test(ep), 'Edit Profile writes the on-device name (profile-name-v1)')
+  assert.ok(!/'Alex'/.test(ep) && /(Coming soon|Soon)/.test(ep), 'Edit Profile uses honest placeholders, never a fabricated person')
+  // Help & Feedback: real mailto actions, not fake UI
+  const hf = readFileSync(path.join(ROOT, 'app', 'src', 'HelpFeedbackPage.jsx'), 'utf8')
+  assert.ok(/mailto:/.test(hf) && /Contact support/.test(hf) && /Report a problem/.test(hf), 'Help & Feedback rows are real mailto actions')
 })
 
 test('3.7P-40 §N Calendar: Upcoming day-stack (NextDays) + date-state legend', () => {
