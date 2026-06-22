@@ -366,6 +366,10 @@
   background: var(--card); font-size: 14.5px; font-weight: 600; color: var(--ink);
 }
 .ep-pref-v { color: var(--muted); font-weight: 700; }
+/* TOUCHUP P2: tappable preference row (Interests → editor) */
+.ep-pref-link { width: 100%; text-align: left; cursor: pointer; font: inherit; }
+.ep-pref-go { display: inline-flex; color: var(--muted); }
+.ep-pref-go svg { width: 18px; height: 18px; display: block; }
 .ep-save {
   flex: 0 0 auto;
   margin: 12px 20px calc(16px + env(safe-area-inset-bottom));

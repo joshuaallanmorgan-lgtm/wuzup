@@ -18,7 +18,7 @@ const PersonIc = () => (
 )
 
 export default function EditProfilePage() {
-  const { closePage: onClose } = useNav()
+  const { closePage: onClose, openInterests } = useNav()
   const [name, setName] = useState(() => lsGet(NAME_KEY) || '')
   const initial = name ? name.trim()[0].toUpperCase() : ''
   const save = () => {
@@ -71,6 +71,11 @@ export default function EditProfilePage() {
           <span>Profile visibility</span>
           <span className="ep-soon">Coming soon</span>
         </div>
+        {/* a real destination — the interest editor (matches the ref's Interests row) */}
+        <button className="ep-pref ep-pref-link pressable" type="button" onClick={() => openInterests()}>
+          <span>Interests</span>
+          <span className="ep-pref-go" aria-hidden><Icon.chevron /></span>
+        </button>
       </div>
 
       <button className="ep-save" type="button" onClick={save}>
