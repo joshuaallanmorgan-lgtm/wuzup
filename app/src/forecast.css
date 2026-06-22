@@ -1,7 +1,45 @@
-/* forecast.css — ForecastPage (HOME_PHASE2). 7-day wx rows. */
+/* forecast.css — ForecastPage (HOME_PHASE2 + TOUCHUP P2). Today hero, best-day
+   callout, 7-day wx rows (hi/lo + rain). */
 .fc-pg .pg-body {
   padding: 8px 0 80px;
 }
+/* Today hero */
+.fc-hero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 20px 20px;
+}
+.fc-hero-emoji { font-size: 64px; line-height: 1; flex: 0 0 auto; }
+.fc-hero-main { min-width: 0; }
+.fc-hero-temp { font-size: 46px; font-weight: 800; color: var(--ink); letter-spacing: -1.5px; line-height: 1; }
+.fc-hero-cond { margin-top: 4px; font-size: 15px; font-weight: 650; color: var(--ink); }
+.fc-hero-sub { margin-top: 4px; display: flex; gap: 12px; font-size: 13px; font-weight: 500; color: var(--muted); }
+/* Best day to get outside */
+.fc-best {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 20px 16px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(var(--accent-rgb), 0.09);
+}
+.fc-best-icon { font-size: 24px; flex: 0 0 auto; }
+.fc-best-title { font-size: 13px; font-weight: 800; color: var(--accent-ink); letter-spacing: -0.1px; }
+.fc-best-sub { margin-top: 1px; font-size: 13px; font-weight: 550; color: var(--muted); }
+/* 7-day list header */
+.fc-list-head {
+  padding: 4px 20px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+/* hi/lo pair on each row */
+.fc-temps { flex: 0 0 auto; display: flex; align-items: baseline; gap: 8px; }
+.fc-lo { font-size: 15px; font-weight: 550; color: var(--muted); letter-spacing: -0.3px; }
 .fc-row {
   display: flex;
   align-items: center;

@@ -1,7 +1,8 @@
 // weather.js — Open-Meteo 16-day daily forecast for Tampa Bay (free, no key).
-// getForecast() resolves to { 'YYYY-MM-DD': { emoji, hi, rain } } or null.
+// getForecast() resolves to { 'YYYY-MM-DD': { emoji, hi, lo, rain } } or null.
 //   emoji: WMO weather_code mapped to a condition emoji
 //   hi:    daily max temperature, converted to °F (API returns °C), rounded
+//   lo:    daily min temperature, °F (TOUCHUP P2 — additive; older callers ignore it)
 //   rain:  precipitation_probability_max (0–100) or null
 // Cached in localStorage ('wx-tampa-v1', 6h TTL); on fetch failure serves stale
 // cache or null so the UI degrades gracefully to "no weather".
@@ -9,7 +10,7 @@
 import { lsGet, lsSet } from './storage.js'
 
 const WX_URL =
-  'https://api.open-meteo.com/v1/forecast?latitude=27.95&longitude=-82.46&daily=weather_code,temperature_2m_max,precipitation_probability_max&timezone=America%2FNew_York&forecast_days=16'
+  'https://api.open-meteo.com/v1/forecast?latitude=27.95&longitude=-82.46&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FNew_York&forecast_days=16'
 const CACHE_KEY = 'wx-tampa-v1' // stored as twh:wx-tampa-v1 via storage.js
 const TTL = 6 * 60 * 60 * 1000 // 6h
 const FETCH_TIMEOUT = 10000 // 10s
@@ -90,10 +91,13 @@ export async function getForecast() {
       const emoji = wmoEmoji(daily.weather_code?.[i])
       if (!emoji) continue
       const hiC = daily.temperature_2m_max?.[i]
+      const loC = daily.temperature_2m_min?.[i]
       const rain = daily.precipitation_probability_max?.[i]
       data[days[i]] = {
         emoji,
         hi: typeof hiC === 'number' ? Math.round((hiC * 9) / 5 + 32) : null,
+        // additive (TOUCHUP P2): daily low, °F — existing {emoji,hi,rain} consumers ignore it
+        lo: typeof loC === 'number' ? Math.round((loC * 9) / 5 + 32) : null,
         rain: typeof rain === 'number' ? Math.round(rain) : null,
       }
     }
