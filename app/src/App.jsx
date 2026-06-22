@@ -368,7 +368,7 @@ function Shell() {
             {page.type === 'helpfeedback' && <HelpFeedbackPage />}
             {/* HOME_PHASE2: Forecast + Notifications */}
             {page.type === 'forecast' && <ForecastPage anchors={anchors} wx={wx} />}
-            {page.type === 'notifications' && <NotificationsPage />}
+            {page.type === 'notifications' && <NotificationsPage events={norm} anchors={anchors} wx={wx} />}
             {/* EVENTS_PHASE2: Filters bottom-sheet */}
             {page.type === 'evfilters' && <FiltersSheet />}
             {page.type === 'interests' && <InterestEditor from={page.from} />}
