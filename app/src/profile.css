@@ -22,7 +22,7 @@
 }
 
 /* ===== PROFILE_GRIND: page title + WHITE identity card + 6-row menu ===== */
-/* P1: the page title — big bold ink (the heading family; Kumbh via index.css) */
+/* P1: the page title — big bold ink (Inter, app-wide) */
 .pf-title { margin: 0 0 16px; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; color: var(--ink); }
 
 /* P2: the identity card is WHITE (reverts Batch-4's --cta fill to match the ref) —

@@ -300,6 +300,6 @@
 .cal-leg-chk { color: var(--ink); font-weight: 800; }
 .cal-upcoming { margin-top: 12px; }
 /* R-C1: the "Upcoming" header matches the confirmed bold-ink section hierarchy
-   (.sec-title — 21px/700 ink, Kumbh via index.css), not the old muted overline,
+   (.sec-title — 21px/700 ink, Inter), not the old muted overline,
    so it reads like Home's "Your next days". */
 .cal-up-title { margin: 0 20px 10px; font-size: 21px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }

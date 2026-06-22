@@ -127,15 +127,9 @@ body {
 
 a { color: inherit; }
 
-/* Sunlit Coastal Pop (3.71): Kumbh Sans is the editorial title face — large
-   headings only; body, meta, and small card titles stay Inter for the legibility
-   spine. Per-selector letter-spacing (tuned for the old face) is left intact;
-   revisit if Kumbh's metrics read loose. */
-h1, h2,
-.sec-title, .pf-title, .pg-head-title, .cal-up-title,
-.deck-kicker-title, .ldk-kicker-title, .tn-sheet-title {
-  font-family: 'Kumbh Sans', 'Inter', system-ui, -apple-system, sans-serif;
-}
+/* Font: Inter everywhere (Josh's call — retires the 3.71 Kumbh title face; the
+   3.7P-44 A/B is resolved). Titles inherit Inter from the body font-family above;
+   per-selector size/weight/letter-spacing carry the hierarchy. */
 
 /* 3.7P-1: honor reduced-transparency — drop the frosted-glass sheets to opaque cream */
 @media (prefers-reduced-transparency: reduce) {
