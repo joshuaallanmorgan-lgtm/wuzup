@@ -56,10 +56,11 @@ export default function ProfileView({ events, anchors }) {
     return days.size
   }, [anchors, page])
   const daysOut = didDays(been).size
+  // labels stay plural (matches the ref): Plans · Saved · Days out
   const stats = [
-    { k: 'plans', n: planCount, lab: planCount === 1 ? 'Plan' : 'Plans' },
+    { k: 'plans', n: planCount, lab: 'Plans' },
     { k: 'saves', n: savedList.length, lab: 'Saved' },
-    { k: 'days', n: daysOut, lab: daysOut === 1 ? 'Day out' : 'Days out' },
+    { k: 'days', n: daysOut, lab: 'Days out' },
   ]
 
   // P7: a "Recently saved" preview — the first 2 of the live saved shelf (upcoming
@@ -153,7 +154,7 @@ export default function ProfileView({ events, anchors }) {
       {/* P6: the menu — 6 rows, each an icon tile + label + description + chevron */}
       <nav className="pf-menu" aria-label="Your stuff">
         {rows.map(({ id, Ic, label, desc, onClick }) => (
-          <button key={id} className="pf-row pressable" onClick={onClick}>
+          <button key={id} className="pf-row" onClick={onClick}>
             <span className="pf-row-ic" aria-hidden>
               <Ic />
             </span>
@@ -168,21 +169,26 @@ export default function ProfileView({ events, anchors }) {
         ))}
       </nav>
 
-      {/* P7: Recently saved — the 2 most-recent saved cards (canonical GemRow);
-          hidden entirely when nothing is saved (honest, never a barren block). */}
-      {recentSaves.length > 0 && (
-        <section className="pf-recent">
-          <div className="pf-recent-head">
-            <h2 className="pf-recent-title">Recently saved</h2>
+      {/* P7: Recently saved — always present (so the section is never "missing");
+          shows the 2 most-recent saves via the canonical GemRow, or an honest
+          empty state (no fake cards) when nothing is saved yet. */}
+      <section className="pf-recent">
+        <div className="pf-recent-head">
+          <h2 className="pf-recent-title">Recently saved</h2>
+          {recentSaves.length > 0 && (
             <button className="pf-seeall" onClick={openMySaves}>See all</button>
-          </div>
+          )}
+        </div>
+        {recentSaves.length > 0 ? (
           <div className="pf-recent-list">
             {recentSaves.map(({ e }) => (
               <GemRow key={keyOf(e)} e={e} onSelect={openDetail} />
             ))}
           </div>
-        </section>
-      )}
+        ) : (
+          <div className="pf-empty">Nothing saved yet — tap ♥ on an event or spot to keep it here.</div>
+        )}
+      </section>
     </div>
   )
 }

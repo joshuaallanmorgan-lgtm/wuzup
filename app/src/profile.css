@@ -38,8 +38,8 @@
   position: relative; /* anchors the edit pencil */
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 18px 52px 18px 18px; /* right pad clears the pencil */
+  gap: 13px;
+  padding: 15px 50px 15px 15px; /* tightened a touch; right pad clears the pencil */
 }
 /* P4: the edit pencil — replaces the old top-right gear; triggers the inline name
    edit. Settings is reachable via its own menu row now. */
@@ -61,9 +61,9 @@
 }
 .pf-edit:active { transform: scale(0.9); }
 .pf-avatar {
-  flex: 0 0 52px;
-  width: 52px;
-  height: 52px;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -108,26 +108,34 @@
 }
 .pf-loc { font-size: 14px; font-weight: 600; color: var(--muted); }
 
-/* P6: the menu — a stack of white card rows, each an accent-tinted icon tile, a
-   label + description, and a chevron (the ref's settings-list look). */
-.pf-menu { margin: 22px 20px 0; display: flex; flex-direction: column; gap: 10px; }
+/* P6: the menu — ONE connected card (rows share hairline dividers, no gaps), each
+   row an accent-tinted icon tile + label + description + chevron (the ref's
+   grouped settings-list look). */
+.pf-menu {
+  margin: 22px 20px 0;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
 .pf-row {
   display: flex;
   align-items: center;
   gap: 13px;
   width: 100%;
-  padding: 13px 14px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--card);
-  box-shadow: var(--shadow-card);
+  padding: 14px;
+  border: none;
+  border-top: 1px solid var(--line);
+  background: none;
   font: inherit;
   color: var(--ink);
   text-align: left;
   cursor: pointer;
-  transition: transform var(--dur-micro) var(--ease-out), background var(--dur-micro);
+  transition: background var(--dur-micro);
 }
-.pf-row:active { transform: scale(0.99); background: rgba(var(--accent-rgb), 0.04); }
+.pf-row:first-child { border-top: none; }
+.pf-row:active { background: rgba(var(--accent-rgb), 0.06); }
 .pf-row:hover { background: rgba(var(--accent-rgb), 0.03); }
 .pf-row-ic {
   flex: 0 0 auto;
@@ -151,6 +159,7 @@
 .pf-recent-title { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -0.3px; color: var(--ink); }
 .pf-seeall { border: none; background: none; padding: 0; font: inherit; font-size: 13px; font-weight: 700; color: var(--accent-ink); cursor: pointer; }
 .pf-recent-list { display: flex; flex-direction: column; gap: 10px; }
+.pf-recent .pf-empty { margin: 0; } /* the section already insets; don't double it */
 
 /* Stage 2 sweep: the OLD Profile identity header was removed — .pf-over / .pf-title /
    .pf-chips / .pf-chip(:active/-free/-edit) / .pf-when(-actual) / .pf-note. The
@@ -338,7 +347,7 @@
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  padding: 14px 6px;
+  padding: 12px 6px;
 }
 .pf-stat-num { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -0.5px; }
 .pf-stat-lab { font-size: 11.5px; font-weight: 600; color: var(--muted); }
