@@ -1,33 +1,32 @@
 // HotView — the Hot tab magazine: hero (+ 🔎 search), bubble strip (each bubble
 // opens a full BubblePage), alternating sections, Everything feed. Navigation
 // (detail/bubble/search/add/weekend openers) comes from useNav() — O6.
-import { useEffect, useMemo, useRef, useState } from 'react'
+// EVENTS_GRIND: Tonight carousel → vertical GemRow "Tonight's best bets" +
+// new "This weekend" section (day-grouped GemRow); both gain honest _why lines.
+import { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { BUBBLES, CAT_BUBBLES, LENS_BUBBLES, NON_GEM_RE, dayLabel, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
 import LensNav from './LensNav.jsx'
 import { curateFeed } from './curate.js'
 import { useNav } from './nav.jsx'
-import { CompactRow, EndCap, GemRow, IntentTile, RowFeed, SecHead, TonightCard } from './cards.jsx'
+import { CompactRow, GemRow, IntentTile, RowFeed, SecHead, TonightCard, WxContext } from './cards.jsx'
 import { GUIDES, useGuides, watchGuideActive, resolveWatchGuide } from './guides.js'
 import { shelfItems, useSaves } from './saves.js'
 import { railReady, tasteNudge, topCategories, useTaste } from './taste.js'
 import { useRecents } from './recents.js'
 import { DeckThisButton } from './LensDeck.jsx'
 import SearchBarButton from './SearchBarButton.jsx'
+import { whyFits } from './weekend.js'
+import { dateKey } from './weather.js'
+
+const DAY_MS = 86400000
 
 export default function HotView({ events, anchors, loading }) {
-  // Stage R nav restructure: HotView is now the EVENTS BROWSE (search + filter +
-  // event decision-card sections). The dashboard top (greeting + Your-next-days
-  // + the featured pick) split out to HomeView; the cinematic image hero was
-  // replaced by a clean light "Events" header to match the benchmark.
-  // onSelect identity note: openDetail is useCallback-stable in nav.jsx, so the
-  // memo'd Rows (M1) keep their referential-stability contract intact.
   const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, openMap: onOpenMap, openGuide } = useNav()
+  const wx = useContext(WxContext) // access weather without prop threading
   const scrollRef = useRef(null)
   const evRef = useRef(null)
-  const [entered, setEntered] = useState(false) // entrance animations already played?
+  const [entered, setEntered] = useState(false)
 
-  // entrance animations: first data paint only, never again (class drops after the
-  // longest entrance — 50ms×5 stagger + 700ms reveal — has finished)
   const animate = events.length > 0 && !entered
   useEffect(() => {
     if (!events.length || entered) return
@@ -42,9 +41,7 @@ export default function HotView({ events, anchors, loading }) {
       .map((e) => ({ ...e, _clamp: e._day < anchors.todayTs ? anchors.todayTs : e._day }))
       .sort((x, y) => x._clamp - y._clamp || x._t - y._t)
   }, [events, anchors])
-  // Tonight startedness must track the CLOCK, not just the data: anchors only
-  // change at midnight/day-rollover, but "7 PM has passed" happens mid-session.
-  // Re-seed when the tab returns to view + every 10 min while open.
+
   const [nowMs, setNowMs] = useState(() => Date.now())
   useEffect(() => {
     const tick = () => setNowMs(Date.now())
@@ -58,44 +55,24 @@ export default function HotView({ events, anchors, loading }) {
       clearInterval(t)
     }
   }, [])
-  // { items:[{e,withDate}], late, futureN, tomorrowN } — future first, started
-  // sunk (never hidden); late nights fold in tomorrow's early evening (lib.js)
+
   const tonight = useMemo(() => tonightModel(upcoming, anchors, new Date(nowMs)), [upcoming, anchors, nowMs])
-  // 3.75b: timely Watch Guides — only the ones in-window AND with real matches
-  // (never advertise an empty one). The guides.json fetch is tiny + lazy.
+
   const { watchGuides } = useGuides()
   const activeWatch = useMemo(
     () => (watchGuides || []).filter((g) => watchGuideActive(g, anchors.todayTs) && resolveWatchGuide(g, upcoming).length > 0),
     [watchGuides, upcoming, anchors]
   )
-  // unsliced — section subs report the real totals; renders slice to 3 / 10.
-  // Gems sort by score so the homepage trio is the BEST of the shelf, not
-  // whichever three happen soonest.
-  // 3.7P-39 (D6 strict label honesty): a job/career fair is not a "hand-scored
-  // find" — drop it from the Hidden Gems shelf (it stays in Everything). Guards
-  // the current data even before the finder's matching exclusion next re-runs.
+
   const gems = useMemo(
     () => upcoming.filter((e) => e.tags.includes('hidden-gem') && !NON_GEM_RE.test(e.title || '')).sort(hotDesc),
     [upcoming]
   )
-  // 3.7P-10: the "Free this week" carousel was CUT — Free stays reachable via the
-  // LensNav "Free" lens + the FREE badge in Everything (never-hide intact), so a
-  // dedicated carousel was redundant. (freeWeek derivation removed with it.)
-  // ♥ Saved shelf (Sprint C): saved events, live-from-dataset when possible,
-  // snapshot otherwise; past saves grey out + drop after 7 days (saves.js).
-  // useSaves re-renders this view on any toggle — even one made from the
-  // detail page — so the shelf appears/updates live, no remount.
+
   const { list: savedList } = useSaves()
   const shelf = useMemo(() => shelfItems(savedList, events, anchors), [savedList, events, anchors])
-  const shelfOn = shelf.length > 0 // any saved item keeps the shelf — past saves grey out, they don't vanish it
-  // "Your kind of night" rail (G4): renders ONLY once the local taste profile
-  // has real ORGANIC signal (railReady = 6+ REAL taps, V1b) AND a top category
-  // exists — absent silently before that. SEED-ONLY profiles (primer+interview)
-  // tilt ordering everywhere but do NOT light this rail: it claims to know your
-  // taste, a claim only your own taps can earn (Sprint-P carry-in (b) decision,
-  // documented in taste.js railConfidence). Up to 8 upcoming events from the
-  // top-2 categories by adjustedScore; items may also appear in other sections
-  // (normal magazine behavior). useTaste = live, no remount needed.
+  const shelfOn = shelf.length > 0
+
   const taste = useTaste()
   const rail = useMemo(() => {
     if (!railReady(taste)) return null
@@ -108,14 +85,9 @@ export default function HotView({ events, anchors, loading }) {
       .sort((a, b) => b.s - a.s || a.e._t - b.e._t)
       .slice(0, 6)
       .map((x) => x.e)
-    return picks.length >= 3 ? picks : null // a 1-card "rail" reads broken, wait for data
+    return picks.length >= 3 ? picks : null
   }, [upcoming, taste])
-  // H3 "Recently viewed" + H4 session recap — both read the recents store.
-  // Rail: persisted keys resolved against the LIVE upcoming set only (vanished
-  // or already-ended events silently drop — keys, never snapshots), max 6,
-  // shown once ≥2 resolve (a 1-row rail reads broken, same bar as the taste
-  // rail). Recap: ≥3 DISTINCT details opened THIS session (in-memory list,
-  // resets on reload) upgrades the end-of-Everything message — see `recap`.
+
   const { keys: recentKeys, session } = useRecents()
   const byKey = useMemo(() => {
     const m = new Map()
@@ -126,34 +98,19 @@ export default function HotView({ events, anchors, loading }) {
     const out = recentKeys.map((k) => byKey.get(k)).filter(Boolean).slice(0, 6)
     return out.length >= 2 ? out : []
   }, [recentKeys, byKey])
-  // Everything: W3 CURATION (Phase 3.5). curateFeed runs TWO count-preserving
-  // passes over the date-asc `upcoming` list: (1) GLOBAL collapse of recurring
-  // series — "Baby Time" on 88 days becomes ONE card stamped "+87 more dates"
-  // (the library de-spam, ≈half the feed); (2) a front-page quality filter
-  // (frontPagePredicate) over the collapsed groups. Both come back day-grouped
-  // and diversity-ordered (orderDay — no >2-run of one family/category;
-  // count-preserving). `curated` is the DEFAULT feed; `full` is the unfiltered,
-  // still-collapsed See-all destination. NEVER-HIDE: curated ⊆ full, and full's
-  // groups' _series enumerate every event — "See all" reaches all of them.
-  // Taste is read at compute time; the order does NOT reshuffle mid-session.
+
   const feed = useMemo(
     () =>
       curateFeed(upcoming, {
         dayOf: (e) => e._clamp,
-        labelOf: (ts) => ({ label: dayLabel(ts, anchors), dayTs: ts }), // Q2: lens identity for "Deck this"
+        labelOf: (ts) => ({ label: dayLabel(ts, anchors), dayTs: ts }),
         order: (items) => orderDay(items, tasteNudge),
       }),
     [upcoming, anchors]
   )
-  // See-all toggle: default shows the curated front page; one tap reveals every
-  // event (the full, still-collapsed feed). State, not navigation — the escape
-  // is right here at the Everything header, never more than one tap from all N.
   const [seeAllEv, setSeeAllEv] = useState(false)
   const evSections = seeAllEv ? feed.full : feed.curated
-  // H4 — the gentle stopping cue, feed END only (GPT report). 3+ distinct
-  // details opened this session upgrades RowFeed's "that's everything" line to
-  // a recap card: count + the last 3 viewed (live-resolved; vanished ones just
-  // shorten the list) + a save nudge. Calm, never nagging, never a popup.
+
   const recapRows = useMemo(
     () => session.slice(0, 3).map((k) => byKey.get(k)).filter(Boolean),
     [session, byKey]
@@ -177,11 +134,40 @@ export default function HotView({ events, anchors, loading }) {
       </div>
     ) : undefined
 
+  // E-L2: tag tonight items with honest _why reasons (weather + free + taste).
+  const todayWx = wx ? wx[dateKey(anchors.todayTs)] : null
+  const tonightTagged = useMemo(() => {
+    const nudge = (ev) => tasteNudge(ev, taste)
+    return tonight.items.slice(0, 6).map(({ e }) => ({
+      ...e,
+      _why: whyFits(e, { w: todayWx, nudge }),
+    }))
+  }, [tonight.items, todayWx, taste])
+
+  // E-L1/E-L5: "This weekend" — upcoming Fri + Sat events (not today), day-grouped.
+  const weekendDays = useMemo(() => {
+    const nudge = (ev) => tasteNudge(ev, taste)
+    const out = []
+    for (let off = 1; off <= 14 && out.length < 2; off++) {
+      const ts = anchors.todayTs + off * DAY_MS
+      const dow = new Date(ts).getDay()
+      if (dow !== 5 && dow !== 6) continue
+      const evs = upcoming.filter((e) => e._day === ts)
+      if (evs.length === 0) continue
+      const wxDay = wx ? wx[dateKey(ts)] : null
+      out.push({
+        ts,
+        label: dow === 5 ? 'Friday' : 'Saturday',
+        evs: evs.slice(0, 6).map((e) => ({ ...e, _why: whyFits(e, { w: wxDay, nudge }) })),
+      })
+    }
+    return out
+  }, [upcoming, anchors, wx, taste])
+
   const scrollToList = (el) => {
     const sc = scrollRef.current
     if (sc && el) sc.scrollTo({ top: Math.max(el.offsetTop - 64, 0), behavior: 'smooth' })
   }
-  // "See all" opens the matching bubble PAGE (round-3: bubbles are destinations)
   const seeAll = (bubbleId) => {
     const b = BUBBLES.find((x) => x.id === bubbleId)
     if (b) onOpenBubble(b)
@@ -189,18 +175,12 @@ export default function HotView({ events, anchors, loading }) {
 
   return (
     <div className="hot-scroll" ref={scrollRef}>
-      {/* Stage R: the Events tab is the BROWSE — a clean light header (title +
-          sub) + a search bar, matching the benchmark (and the Spots header). The
-          cinematic image hero + the dashboard top moved to the Home tab. */}
       <header className="loc-head">
         <h1 className="loc-head-title">Events</h1>
         <div className="loc-head-sub">Concerts, comedy, markets, games and more.</div>
         <SearchBarButton placeholder="Search events, venues, vibes…" onClick={onOpenSearch} ariaLabel="Search events" />
       </header>
 
-      {/* Phase 3.6 N1: the quiet top nav — lens pills + an All-categories menu.
-          Stage R: the search moved to the header bar, and a "Map" pill opens the
-          Map sub-view (Map is no longer a tab). Add event stays in the menu. */}
       <LensNav
         lenses={LENS_BUBBLES}
         categories={CAT_BUBBLES}
@@ -211,11 +191,45 @@ export default function HotView({ events, anchors, loading }) {
       />
 
       <div className="hot-body">
-        {/* 3.7P-10 → 3.7P-20: Guides as the INTENT FRAME — an
-            ALL-VISIBLE grid of the SHARED IntentTile (identical format to the
-            Spots "What are you up for?" activities). activeWatch = in-window timely
-            guides; the evergreen GUIDES (events + mixed, never spots-only) follow.
-            Each tile opens its GuidePage. */}
+        {/* E-L1/E-L5: "Tonight's best bets" — vertical left-image GemRow cards,
+            first section per the ref (was a horizontal carousel). */}
+        {tonightTagged.length > 0 && (
+          <section className={'sec' + ent(0).className} style={ent(0).style}>
+            <SecHead
+              title="Tonight's best bets"
+              sub={
+                tonight.late
+                  ? `${tonight.futureN} still going · ${tonight.tomorrowN} tomorrow`
+                  : `${tonight.items.length} on for tonight`
+              }
+              onSeeAll={() => seeAll('tonight')}
+            />
+            <div className="home-picks">
+              {tonightTagged.map((e) => (
+                <GemRow key={keyOf(e)} e={e} onSelect={onSelect} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* E-L1/E-L5: "This weekend" — day-grouped vertical GemRow cards. */}
+        {weekendDays.length > 0 && (
+          <section className="sec">
+            <SecHead title="This weekend" onSeeAll={() => seeAll('weekend')} />
+            {weekendDays.map(({ ts, label, evs }) => (
+              <div key={ts} className="weekend-day">
+                <div className="weekend-day-label">{label}</div>
+                <div className="home-picks">
+                  {evs.map((e) => (
+                    <GemRow key={keyOf(e)} e={e} onSelect={onSelect} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </section>
+        )}
+
+        {/* Guides intent grid */}
         {(activeWatch.length > 0 || GUIDES.some((g) => g.domain !== 'spots')) && (
           <section className="sec">
             <SecHead overline="Plans by mood" title="Guides" sub="Pick a vibe — we'll line up the night." />
@@ -226,6 +240,7 @@ export default function HotView({ events, anchors, loading }) {
             </div>
           </section>
         )}
+
         {shelfOn && (
           <section className="sec shelf-sec">
             <SecHead
@@ -237,9 +252,6 @@ export default function HotView({ events, anchors, loading }) {
               }
               sub="Your saves, ready when you are."
             />
-            {/* Phase 3.5: the "Full list + weekend plans → Profile" pointer was
-                removed (Josh — Profile owns Your-list + plans; the shelf
-                carousel here is reminder enough). */}
             <div className="carousel">
               {shelf.map(({ e, past }) => (
                 <div key={keyOf(e)} className={'shelf-item' + (past ? ' shelf-past' : '')}>
@@ -250,37 +262,10 @@ export default function HotView({ events, anchors, loading }) {
             </div>
           </section>
         )}
-        {tonight.items.length > 0 && (
-          <section className={'sec' + ent(0).className} style={ent(0).style}>
-            <SecHead
-              overline={tonight.late ? 'Still going · up next' : 'Happening today'}
-              title={tonight.late ? 'Late tonight + tomorrow' : 'Tonight'}
-              sub={
-                tonight.late
-                  ? `${tonight.futureN} left tonight · ${tonight.tomorrowN} tomorrow`
-                  : // both counts, so the sub can't contradict the cards below it:
-                    // the carousel includes all-day/date-only events, the kicker
-                    // counts clocked showtimes only (DRAFT for Charles)
-                    `${tonight.items.length} on today · ${tonight.futureN} with showtimes ahead`
-              }
-              onSeeAll={() => seeAll('tonight')}
-            />
-            <div className="carousel">
-              {tonight.items.slice(0, 8).map(({ e, withDate }, i) => (
-                <TonightCard key={keyOf(e) + i} e={e} onSelect={onSelect} withDate={withDate} />
-              ))}
-              <EndCap onClick={() => seeAll('tonight')} />
-            </div>
-          </section>
-        )}
-        {/* Stage R: the featured "Tonight's top picks" DecisionCard moved to the
-            Home tab (the dashboard). Events is the browse. */}
+
         {gems.length > 0 && (
           <section className={'sec' + ent(2).className} style={ent(2).style}>
             <SecHead overline="Under the radar" title="Hidden Gems" sub={`${gems.length} hand-scored find${gems.length === 1 ? '' : 's'}`} />
-            {/* 3.7P-23: secondary Home sections go to the dense CompactRow (the §N
-                reference look); the Everything feed below keeps big Rows (discover
-                = visual; the O.1 "Row on Home" contract is the MAIN feed). */}
             <div className="feed feed--compact">
               {gems.slice(0, 3).map((e, i) => (
                 <CompactRow key={keyOf(e) + i} e={e} onSelect={onSelect} />
@@ -291,12 +276,10 @@ export default function HotView({ events, anchors, loading }) {
             </button>
           </section>
         )}
-        {/* 3.7P-10: the slim taste rail — railReady-gated (6+ organic taps), ~6
-            cards, moved LOW (after the editorial picks, was right after Tonight)
-            so it doesn't pre-empt Everything's taste order. DRAFT — ⚑ Charles */}
+
         {rail && (
           <section className="sec">
-            <SecHead overline="For you" title="Your kind of night" sub="Tuned to what you’ve tapped." />
+            <SecHead overline="For you" title="Your kind of night" sub="Tuned to what you've tapped." />
             <div className="carousel">
               {rail.map((e, i) => (
                 <TonightCard key={keyOf(e) + i} e={e} onSelect={onSelect} withDate />
@@ -304,10 +287,9 @@ export default function HotView({ events, anchors, loading }) {
             </div>
           </section>
         )}
+
         {recents.length > 0 && (
           <section className="sec">
-            {/* H3: placed LOW on purpose — after the taste rail, before Everything
-                (3.7P-10 cut the Free carousel that used to sit above it) */}
             <SecHead overline="Pick up where you left off" title="Recently viewed" />
             <div className="feed feed--compact">
               {recents.map((e, i) => (
@@ -316,12 +298,10 @@ export default function HotView({ events, anchors, loading }) {
             </div>
           </section>
         )}
+
         {upcoming.length > 0 && (
           <section className="sec sec-ev" ref={evRef}>
             <div className={ent(4).className.trim()} style={ent(4).style}>
-              {/* DRAFT COPY (Charles): honest framing — curated default vs the
-                  full collapsed feed. The count is CARDS (recurring already one);
-                  the See-all button below quotes the raw EVENT total. */}
               <SecHead
                 title={
                   <>
@@ -334,9 +314,6 @@ export default function HotView({ events, anchors, loading }) {
                 sub={seeAllEv ? 'Every event, recurring series grouped' : 'The picks — quality first'}
               />
             </div>
-            {/* See-all / show-less: the never-hide escape, right at the header.
-                Default → "See all {N} events" (the REAL event count, fullEventCount,
-                not the collapsed card count — honest about how much is one tap away). */}
             <button
               type="button"
               className="ev-seeall pressable"
@@ -347,9 +324,6 @@ export default function HotView({ events, anchors, loading }) {
                 ? '← Show the picks'
                 : `See all ${feed.fullEventCount.toLocaleString('en-US')} events →`}
             </button>
-            {/* rows themselves never entrance-animate; endSlot = the H4 recap.
-                headerExtra (Q2): every day-header carries its 🃏 "Deck this"
-                entry — a finite deck of exactly that day's list */}
             <RowFeed
               sections={evSections}
               scrollRootRef={scrollRef}

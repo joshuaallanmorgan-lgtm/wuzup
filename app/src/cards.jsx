@@ -276,6 +276,8 @@ export function GemRow({ e, onSelect }) {
       <div className="gem-main">
         <div className="gem-title">{e.title}</div>
         <div className="gem-meta">{[dayLoose(e), e.venue].filter(Boolean).join(' · ')}</div>
+        {/* E-L2: honest "Why this fits" — only renders when caller sets e._why */}
+        {e._why && <div className="gem-why">+ Why this fits: {e._why}</div>}
         <SponsoredTag e={e} />
       </div>
     </button>
