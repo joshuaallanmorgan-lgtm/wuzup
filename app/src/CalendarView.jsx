@@ -29,7 +29,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { keyOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { useBeenThere } from './saves.js'
-import { fitsDay } from './weekend.js'
+import { fitsDay, DAYPART } from './weekend.js'
 import { restDayList, rhythmSummary } from './gamify.js'
 import {
   dayEntryFor,
@@ -406,10 +406,10 @@ export default function CalendarView({ events, anchors, wx }) {
               selFilled && (
                 <div className="cal-sel-slots">
                   {selSlots.map(({ part, e }) => {
-                    const when = part === 'day' ? 'Day' : 'Night'
+                    const when = DAYPART[part].label
                     return (
                       <div className={'cal-sel-slot' + (e ? ' filled' : '')} key={part} aria-label={`${when}: ${e ? e.title || e.name : 'open'}`}>
-                        <span className="cal-sel-when" aria-hidden>{part === 'day' ? '☀️' : '🌙'} {when}</span>
+                        <span className="cal-sel-when" aria-hidden>{DAYPART[part].emoji} {when}</span>
                         {e ? (
                           <>
                             <span className="cal-sel-what" aria-hidden>{e.title || e.name}</span>

@@ -7,7 +7,7 @@
 import { useMemo } from 'react'
 import { Icon } from './lib.js'
 import { useNav } from './nav.jsx'
-import { loadDayPlans, dayEntryFor, hasContent, emptyDay } from './dayplan.js'
+import { loadDayPlans, dayEntryFor, hasContent, emptyDay, PARTS } from './dayplan.js'
 import { dateKey, CONDITION } from './weather.js'
 import { wxMood } from './weekend.js'
 import './nextdays.css'
@@ -38,7 +38,7 @@ export default function NextDays({ anchors, wx, rev }) {
         const entry = dayEntryFor(plans[String(d.ts)]) ?? emptyDay() // null for an unplanned day
         const rest = entry.state === 'rest'
         const planned = hasContent(entry) && !rest
-        const n = (entry.slots.day ? 1 : 0) + (entry.slots.night ? 1 : 0)
+        const n = PARTS.filter((p) => entry.slots[p]).length
         const mood = wxMood(w)
         // weather phrase (real forecast only) + honest plan-state
         const wxTxt = w ? (CONDITION[w.emoji] || 'Forecast') + (w.hi != null ? ' · ' + w.hi + '°' : '') : null

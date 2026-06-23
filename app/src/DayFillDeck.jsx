@@ -38,7 +38,7 @@ import { useSaves } from './saves.js'
 import { recordCalibration, tasteNudge } from './taste.js'
 import { pushFmnSeen } from './fmnseen.js'
 import { usePlaces } from './places.js'
-import { daypartOf } from './weekend.js'
+import { fillOrder, DAYPART } from './weekend.js'
 import { dealDayFill, dayFillIdOf } from './dayfill.js'
 import {
   dayEntryFor,
@@ -161,14 +161,13 @@ export default function DayFillDeck({ lens, events, anchors, coords }) {
     const k = keyOf(e)
     const map = loadDayPlans(anchors)
     const cur = dayEntryFor(map[String(ts)])
-    const part = daypartOf(e) // 'day' | 'night' | 'any' (places + date-only)
-    const order = part === 'night' ? ['night', 'day'] : ['day', 'night'] // 'any' → day first
+    const order = fillOrder(e) // natural daypart first, then the rest ('any' → morning-first)
     const target = order.find((p) => !(cur && cur.slots[p]))
     if (!target) {
-      flash('Both slots are full — cleared nothing') // never overwrite silently
+      flash('Every slot is full — cleared nothing') // never overwrite silently
     } else {
       saveDayPlans(withSlot(map, ts, target, k)) // withSlot clears any rest mark
-      flash((target === 'day' ? '☀️' : '🌙') + ' Added to ' + label)
+      flash(DAYPART[target].emoji + ' Added to ' + label)
     }
     setSlotted((n) => n + 1)
   }

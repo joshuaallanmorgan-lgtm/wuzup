@@ -50,11 +50,12 @@ export default function GuidePage({ guide, events, anchors }) {
   }, [items, guide])
 
   // "Plan a day around this": seed the top always-there PLACE into the upcoming
-  // weekend's day slot, then open it. If the guide has no place (event-only),
+  // weekend's morning slot, then open it. If the guide has no place (event-only),
   // just open the weekend day to plan — never pre-seed a date-pinned event.
+  // ⚑PLAN-P0: a place is daypart 'any' → the morning slot (the day's start).
   const planDay = () => {
     const place = items.find((it) => it.kind === 'place')
-    if (place) saveDayPlans(withSlot(loadDayPlans(anchors), anchors.wkStartTs, 'day', place.key))
+    if (place) saveDayPlans(withSlot(loadDayPlans(anchors), anchors.wkStartTs, 'morning', place.key))
     openDay(anchors.wkStartTs)
   }
 

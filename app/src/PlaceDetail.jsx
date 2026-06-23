@@ -18,7 +18,8 @@ import { SecHead, TonightCard, artEmoji, hueFor, spotChips } from './cards.jsx'
 import { SaveHeart, useSaves } from './saves.js'
 import { dateKey } from './weather.js'
 import { usePlaces, ACTIVITIES } from './places.js'
-import { loadDayPlans, saveDayPlans, withSlot, dayEntryFor } from './dayplan.js'
+import { DAYPART } from './weekend.js'
+import { loadDayPlans, saveDayPlans, withSlot, dayEntryFor, PARTS } from './dayplan.js'
 import './locations.css'
 
 // normalized amenity vocabulary → human label + emoji (DRAFT for Charles).
@@ -248,7 +249,7 @@ export default function PlaceDetail({ e, anchors, wx }) {
     void plansVersion
     const map = loadDayPlans(anchors)
     const entry = dayEntryFor(map[String(planDay)])
-    return { day: entry?.slots.day || null, night: entry?.slots.night || null, rest: entry?.state === 'rest' }
+    return { ...Object.fromEntries(PARTS.map((p) => [p, entry?.slots[p] || null])), rest: entry?.state === 'rest' }
   }, [planDay, anchors, plansVersion])
   const closePlanning = () => {
     setPlanning(false)
@@ -262,7 +263,7 @@ export default function PlaceDetail({ e, anchors, wx }) {
     saveDayPlans(withSlot(map, planDay, part, e.key))
     setPlansVersion((v) => v + 1)
     const dlabel = days.find((d) => d.ts === planDay)?.label || ''
-    flash(`Added to ${dlabel} ${part === 'day' ? '☀️' : '🌙'} ✓`)
+    flash(`Added to ${dlabel} ${DAYPART[part].emoji} ✓`)
     closePlanning()
   }
   // 3.7P-34 review: the plan sheet is a focus-managed modal (was role=dialog only —
@@ -520,15 +521,15 @@ export default function PlaceDetail({ e, anchors, wx }) {
               <div className="loc-note">That's a quiet day 🌙 — clear the rest mark on the day screen to plan it.</div>
             ) : (
               <div className="loc-plan-slots">
-                {['day', 'night'].map((part) => (
+                {PARTS.map((part) => (
                   <button
                     key={part}
                     className="loc-plan-slot"
                     disabled={!!filled[part]}
                     onClick={() => addToPlan(part)}
                   >
-                    <span className="loc-plan-slot-ic">{part === 'day' ? '☀️' : '🌙'}</span>
-                    <span className="loc-plan-slot-label">{part === 'day' ? 'Daytime' : 'Night'}</span>
+                    <span className="loc-plan-slot-ic">{DAYPART[part].emoji}</span>
+                    <span className="loc-plan-slot-label">{DAYPART[part].label}</span>
                     {filled[part] && <span className="loc-plan-slot-taken">taken</span>}
                   </button>
                 ))}

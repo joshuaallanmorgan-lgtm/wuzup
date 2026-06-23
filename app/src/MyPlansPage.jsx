@@ -12,6 +12,7 @@ import { useMemo } from 'react'
 import { Icon, dayLoose, keyOf, normalize, rawOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { GemRow, SponsoredTag } from './cards.jsx'
+import { DAYPART } from './weekend.js'
 import { markBeen, shelfItems, useBeenThere, useSaves } from './saves.js'
 import { restDayList, rhythmSummary } from './gamify.js'
 import {
@@ -55,9 +56,9 @@ export default function MyPlansPage({ events, anchors }) {
     let n = 0
     for (const k of Object.keys(dayPlans)) {
       const e = dayEntryFor(dayPlans[k])
-      if (e && (e.slots.day || e.slots.night)) n++
+      if (e && PARTS.some((p) => e.slots[p])) n++
     }
-    for (const h of loadDayHistory()) if (h?.slots && (h.slots.day || h.slots.night)) n++
+    for (const h of loadDayHistory()) if (h?.slots && PARTS.some((p) => h.slots[p])) n++
     return n
   }, [dayPlans])
 
@@ -202,7 +203,7 @@ export default function MyPlansPage({ events, anchors }) {
                     {h.state === 'rest'
                       ? 'Rested 🌙'
                       : PARTS.filter((p) => h.slots[p])
-                          .map((p) => (p === 'day' ? '☀️ ' : '🌙 ') + (titleByKey.get(h.slots[p]) ?? 'no longer listed'))
+                          .map((p) => DAYPART[p].emoji + ' ' + (titleByKey.get(h.slots[p]) ?? 'no longer listed'))
                           .join(' · ')}
                   </span>
                   {went && h.state !== 'rest' && <span className="pf-dayh-went-tag">✓ Went</span>}

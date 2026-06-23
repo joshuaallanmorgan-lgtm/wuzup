@@ -16,7 +16,7 @@ import { CITY } from './lib.js'
 import { useNav } from './nav.jsx'
 import { lsGet } from './storage.js'
 import { useSaves, useBeenThere } from './saves.js'
-import { loadDayPlans, loadDayHistory, didDays, dayEntryFor } from './dayplan.js'
+import { loadDayPlans, loadDayHistory, didDays, dayEntryFor, PARTS } from './dayplan.js'
 import './profile.css'
 
 const NAME_KEY = 'profile-name-v1'
@@ -55,9 +55,9 @@ export default function ProfileView({ anchors }) {
     const days = new Set()
     for (const k of Object.keys(map)) {
       const e = dayEntryFor(map[k])
-      if (e && (e.slots.day || e.slots.night)) days.add(k)
+      if (e && PARTS.some((p) => e.slots[p])) days.add(k)
     }
-    for (const h of loadDayHistory()) if (h?.slots && (h.slots.day || h.slots.night)) days.add(String(h.dayTs))
+    for (const h of loadDayHistory()) if (h?.slots && PARTS.some((p) => h.slots[p])) days.add(String(h.dayTs))
     return days.size
   }, [anchors, page])
   const daysOut = didDays(been).size

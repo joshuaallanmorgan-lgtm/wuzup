@@ -848,12 +848,14 @@ test('tonightModel: future-first ordering, started sink, late-night fold-in', ()
   assert.ok(!m2.items.some((x) => x.e.title === 'tomorrow-late'), 'tomorrow 23:00 start is outside the 16–22h fold-in window')
 })
 
-test('daypartOf: boundary hours', () => {
+test('daypartOf: boundary hours (ternary morning/afternoon/night)', () => {
   const at = (hhmm) => weekend.daypartOf({ start: `2026-06-12T${hhmm}:00` })
-  assert.equal(weekend.daypartOf({ start: '2026-06-12' }), 'any', 'date-only events are "any" (both pickers)')
+  assert.equal(weekend.daypartOf({ start: '2026-06-12' }), 'any', 'date-only events are "any" (shown in all three)')
   assert.equal(at('04:59'), 'night', '04:59 is the tail of a night out')
-  assert.equal(at('05:00'), 'day', '05:00 opens the day window')
-  assert.equal(at('16:59'), 'day', '16:59 is still day')
+  assert.equal(at('05:00'), 'morning', '05:00 opens the morning window')
+  assert.equal(at('12:59'), 'morning', '12:59 is still morning')
+  assert.equal(at('13:00'), 'afternoon', '13:00 opens the afternoon window')
+  assert.equal(at('16:59'), 'afternoon', '16:59 is still afternoon')
   assert.equal(at('17:00'), 'night', '17:00 opens the night window')
   assert.equal(at('00:30'), 'night', '00:30 is night (small hours)')
 })
@@ -884,14 +886,14 @@ test('share.js: shareDayText composes ☀️/🌙 lines, null on nothing to shar
   const dayTs = new Date(2026, 5, 13).getTime()
   const day = N(ev({ title: 'Beach', start: '2026-06-13T10:00:00', venue: 'Fort De Soto' }), AN)
   const night = N(ev({ title: 'Show', start: '2026-06-13T20:00:00', venue: 'Orpheum' }), AN)
-  const txt = share.shareDayText(dayTs, [{ part: 'day', e: day }, { part: 'night', e: night }])
+  const txt = share.shareDayText(dayTs, [{ part: 'afternoon', e: day }, { part: 'night', e: night }])
   const lines = txt.split('\n')
   assert.ok(lines[0].startsWith('My plan for'), 'first line is the day header')
-  assert.ok(lines.some((l) => l.startsWith('☀️ ') && l.includes('Beach')), 'day slot rendered with sun')
+  assert.ok(lines.some((l) => l.startsWith('☀️ ') && l.includes('Beach')), 'daytime slot rendered with sun')
   assert.ok(lines.some((l) => l.startsWith('🌙 ') && l.includes('Show')), 'night slot rendered with moon')
   // nothing to share → null (empty/rest day gets no share affordance at all)
   assert.equal(share.shareDayText(dayTs, []), null, 'empty day shares nothing')
-  assert.equal(share.shareDayText(dayTs, [{ part: 'day', e: null }]), null, 'unresolved slots drop to nothing')
+  assert.equal(share.shareDayText(dayTs, [{ part: 'afternoon', e: null }]), null, 'unresolved slots drop to nothing')
 })
 
 // Sprint U-c + 3.7P-8: weekend.js's live plan store retired in U-c (loadPlan/
@@ -1349,7 +1351,7 @@ test('S1-P3: the Profile header stats-trio is computed from real stores (re-adde
   assert.ok(/pf-stats/.test(pv), 'the header stats-trio is present (S1-P3)')
   assert.ok(/loadDayPlans\(/.test(pv) && /didDays\(/.test(pv) && /useSaves\(/.test(pv), 'the trio is computed from real stores (plans / days-out / saves)')
   const mp = readFileSync(path.join(ROOT, 'app', 'src', 'MyPlansPage.jsx'), 'utf8')
-  assert.ok(/plansCount/.test(mp) && /e\.slots\.day \|\| e\.slots\.night/.test(mp), 'My plans count = distinct filled days from the real day store (computed)')
+  assert.ok(/plansCount/.test(mp) && /PARTS\.some\(\(p\) => e\.slots\[p\]\)/.test(mp), 'My plans count = distinct filled days across all dayparts (PARTS-iterated; no hardcoded day/night)')
   const ms = readFileSync(path.join(ROOT, 'app', 'src', 'MySavesPage.jsx'), 'utf8')
   assert.ok(/shelf\.length/.test(ms), 'My saves count = the real saved-shelf length')
   assert.ok(!/\b47\b|>128<|>23</.test(pv), 'no hardcoded stat numbers')
@@ -1843,9 +1845,9 @@ test('U-d: the days-out counter is SILENT at zero (never shame)', () => {
 test('U-d: the morning-after card does NOT fire for a past REST day', () => {
   const converted = {} // nothing answered yet
   const history = [
-    { dayTs: dts(2026, 5, 13), state: 'rest', slots: { day: null, night: null } }, // a past REST day
-    { dayTs: dts(2026, 5, 14), state: null, slots: { day: 'k1', night: null } }, // a past PLANNED day
-    { dayTs: dts(2026, 5, 15), state: null, slots: { day: null, night: null } }, // empty (no plan)
+    { dayTs: dts(2026, 5, 13), state: 'rest', slots: { morning: null, afternoon: null, night: null } }, // a past REST day
+    { dayTs: dts(2026, 5, 14), state: null, slots: { morning: null, afternoon: 'k1', night: null } }, // a past PLANNED day
+    { dayTs: dts(2026, 5, 15), state: null, slots: { morning: null, afternoon: null, night: null } }, // empty (no plan)
   ]
   const cands = dayplan.morningAfterCandidates(history, converted, UD_AN)
   const candDays = cands.map((c) => c.dayTs)
@@ -1855,8 +1857,8 @@ test('U-d: the morning-after card does NOT fire for a past REST day', () => {
   // ONE quiet card at a time: most-recent-first ordering (the caller takes [0])
   const two = dayplan.morningAfterCandidates(
     [
-      { dayTs: dts(2026, 5, 10), state: null, slots: { day: 'a', night: null } },
-      { dayTs: dts(2026, 5, 16), state: null, slots: { day: 'b', night: null } },
+      { dayTs: dts(2026, 5, 10), state: null, slots: { morning: null, afternoon: 'a', night: null } },
+      { dayTs: dts(2026, 5, 16), state: null, slots: { morning: null, afternoon: 'b', night: null } },
     ],
     {},
     UD_AN
@@ -1868,7 +1870,7 @@ test('U-d: the morning-after card does NOT fire for a past REST day', () => {
   assert.deepEqual(answered, [], 'a missed (or went) day is removed from candidates — never re-asked')
   // a FUTURE planned day is never a morning-after candidate (it has not happened)
   const future = dayplan.morningAfterCandidates(
-    [{ dayTs: dts(2026, 5, 25), state: null, slots: { day: 'x', night: null } }],
+    [{ dayTs: dts(2026, 5, 25), state: null, slots: { morning: null, afternoon: 'x', night: null } }],
     {},
     UD_AN
   )
@@ -1898,6 +1900,67 @@ test('U-d: variety firsts are breadth stamps, fixed + capped (never a volume bad
   assert.ok(!ids.includes('art'), 'a MISSED outing earns no stamp')
   assert.ok(stamps.length <= dayplan.MAX_FIRSTS, `firsts are capped at MAX_FIRSTS (${dayplan.MAX_FIRSTS}) — a handful, never a tracker`)
   assert.deepEqual(dayplan.varietyFirsts(null), [], 'a missing list earns no firsts')
+})
+
+// ⚑PLAN-P0 — the binary {day,night} → ternary {morning,afternoon,night} daypart
+// migration. The path-risky prerequisite: day→afternoon, night→night, morning is
+// a new empty slot. MUST be idempotent (guarded + remap self-skips), forward-only,
+// and lose NO data — across BOTH the active map AND the history archive.
+test('⚑PLAN-P0: binary→ternary migration is idempotent, lossless (map + history)', async () => {
+  const storage = await import('../app/src/storage.js')
+  const setJ = (k, v) => storage.lsSet(k, JSON.stringify(v))
+  const getJ = (k) => JSON.parse(storage.lsGet(k))
+  const tsA = String(dts(2026, 7, 4))
+  const tsB = String(dts(2026, 7, 5))
+  const tsR = String(dts(2026, 7, 6))
+  const tsH = dts(2026, 4, 20)
+
+  // hermetic setup: clear the guard + both stores, then seed legacy BINARY blobs
+  storage.lsRemove('day-migrated-v1')
+  setJ('day-plans-v1', {
+    [tsA]: { state: null, slots: { day: 'e|a', night: 'e|b' }, done: false, v: 1 }, // both slots
+    [tsB]: { state: null, slots: { day: 'e|c', night: null }, done: false, v: 1 }, // day only
+    [tsR]: { state: 'rest', slots: { day: null, night: null }, done: false, v: 1 }, // a rest day
+  })
+  setJ('day-history-v1', [{ dayTs: tsH, state: null, slots: { day: 'e|h', night: null }, done: false, v: 1 }])
+
+  dayplan.migrateBinaryToTernary()
+
+  // guard set; mapping day→afternoon, night→night, morning new+empty; rest intact
+  assert.equal(storage.lsGet('day-migrated-v1'), '1', 'the one-shot guard is set after migrating')
+  const map1 = getJ('day-plans-v1')
+  assert.deepEqual(map1[tsA].slots, { morning: null, afternoon: 'e|a', night: 'e|b' }, 'day→afternoon, night→night')
+  assert.deepEqual(map1[tsB].slots, { morning: null, afternoon: 'e|c', night: null }, 'a day-only plan moves to afternoon (no loss)')
+  assert.equal(map1[tsR].state, 'rest', 'a rest day stays a rest day')
+  assert.deepEqual(map1[tsR].slots, { morning: null, afternoon: null, night: null }, 'rest day slots are ternary + empty')
+  // NO legacy 'day' key survives anywhere in either store
+  const noLegacy = (slots) => !('day' in slots)
+  assert.ok(Object.values(map1).every((e) => noLegacy(e.slots)), 'no legacy day key remains in the active map')
+  const hist1 = getJ('day-history-v1')
+  assert.deepEqual(hist1[0].slots, { morning: null, afternoon: 'e|h', night: null }, 'history archive migrates too (no archived plan dropped)')
+  assert.ok(noLegacy(hist1[0].slots), 'no legacy day key remains in history')
+  // the migrated entries round-trip cleanly through dayEntryFor (the read path)
+  assert.equal(dayplan.dayEntryFor(map1[tsA]).slots.afternoon, 'e|a', 'a migrated entry reads back through dayEntryFor')
+
+  // IDEMPOTENT #1 — a second call (guard set) is a pure no-op
+  const before = storage.lsGet('day-plans-v1')
+  const beforeH = storage.lsGet('day-history-v1')
+  dayplan.migrateBinaryToTernary()
+  assert.equal(storage.lsGet('day-plans-v1'), before, 'guarded re-run leaves the active map byte-identical')
+  assert.equal(storage.lsGet('day-history-v1'), beforeH, 'guarded re-run leaves history byte-identical')
+
+  // IDEMPOTENT #2 — even with the guard CLEARED, the remap self-skips ternary data
+  storage.lsRemove('day-migrated-v1')
+  dayplan.migrateBinaryToTernary()
+  assert.equal(storage.lsGet('day-plans-v1'), before, 'unguarded re-run on ternary data still changes nothing (remap self-skips)')
+  assert.equal(storage.lsGet('day-history-v1'), beforeH, 'unguarded re-run leaves history unchanged')
+
+  // EMPTY case — a fresh install (no data) never crashes and still sets the guard
+  storage.lsRemove('day-migrated-v1')
+  storage.lsRemove('day-plans-v1')
+  storage.lsRemove('day-history-v1')
+  dayplan.migrateBinaryToTernary()
+  assert.equal(storage.lsGet('day-migrated-v1'), '1', 'empty install migrates harmlessly and sets the guard')
 })
 
 // Sprint U-d — the "went" side rides the EXISTING markBeen seam so the +2 taste

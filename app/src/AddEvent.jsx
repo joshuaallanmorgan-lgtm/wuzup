@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from 'react'
 import { BUBBLES, dayTs, Icon, keyOf, MY_SOURCE } from './lib.js'
 import { useNav } from './nav.jsx'
 import { recordSignal } from './taste.js'
-import { daypartOf } from './weekend.js'
+import { fillOrder } from './weekend.js'
 import { dayEntryFor, loadDayPlans, saveDayPlans, withSlot } from './dayplan.js'
 import './addevent.css'
 
@@ -81,7 +81,7 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
   // entry, routed by daypart. NEVER clobbers — if the routed slot is taken, it
   // falls back to the other slot; if BOTH are full, it slots nothing (the
   // event still lives in my-events + the agenda, it just isn't auto-placed).
-  // 'any' (date-only) prefers the day slot. Writes straight to the store
+  // 'any' (date-only) prefers the morning slot. Writes straight to the store
   // because AddEvent REPLACED the day screen in the subpage union (single slot)
   // — DayPage re-reads the store on its next mount and shows the slot. The
   // event itself never goes through a second store; this only records a key.
@@ -89,10 +89,9 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
     const k = keyOf(raw)
     const map = loadDayPlans(anchors)
     const cur = dayEntryFor(map[String(presetTs)])
-    const part = daypartOf(raw) // 'day' | 'night' | 'any'
-    const order = part === 'night' ? ['night', 'day'] : ['day', 'night'] // 'any' → day first
+    const order = fillOrder(raw) // natural daypart first, then the rest ('any' → morning-first)
     const target = order.find((p) => !(cur && cur.slots[p])) // first free slot in preference order
-    if (!target) return // both slots filled — never overwrite silently
+    if (!target) return // every slot filled — never overwrite silently
     saveDayPlans(withSlot(map, presetTs, target, k)) // withSlot clears any rest mark
   }
 

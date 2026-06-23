@@ -40,14 +40,43 @@ export function visibleWeekend(anchors) {
     .filter((d) => d.ts >= anchors.todayTs)
 }
 
-// --- daypart classification ---
-// 05:00–16:59 starts → 'day'; 17:00+ AND the small hours (a 12:30 AM club
-// night is the tail of a night out, not a daytime plan) → 'night'; no
-// clocked time (date-only) → 'any' — shown in BOTH pickers, flagged "Anytime".
+// --- daypart classification (TERNARY: morning / afternoon / night) ---
+// ⚑PLAN-P0: the plan slots went binary {day,night} → ternary. Thresholds:
+//   05:00–12:59 → morning · 13:00–16:59 → afternoon · 17:00+ AND the small
+//   hours (≤04:59 — a 12:30 AM club night is the tail of a night out, not a
+//   morning plan) → night. No clocked time (date-only) → 'any' — shown in ALL
+//   THREE pickers (flagged "Anytime") and defaulting to morning when auto-routed.
 export function daypartOf(e) {
   if (!/T\d/.test(e.start || '')) return 'any'
   const h = new Date(e.start).getHours()
-  return h >= 5 && h < 17 ? 'day' : 'night'
+  if (h >= 5 && h < 13) return 'morning'
+  if (h >= 13 && h < 17) return 'afternoon'
+  return 'night'
+}
+
+// --- the three dayparts: ONE source of truth for slot label + emoji, in the
+// canonical morning → afternoon → night order. EVERY renderer consumes this so a
+// slot can never silently mislabel (a future 4th part would surface here, not
+// fall into a binary ☀️/🌙 else — the ⚑PLAN-P0 scout contract). Keep the ids in
+// sync with dayplan.PARTS (the store's slot keys). ---
+export const DAYPARTS = [
+  { id: 'morning', label: 'Morning', emoji: '☀️' },
+  { id: 'afternoon', label: 'Afternoon', emoji: '☀️' },
+  { id: 'night', label: 'Night', emoji: '🌙' },
+]
+export const DAYPART = Object.fromEntries(DAYPARTS.map((d) => [d.id, d]))
+const PART_ORDER = DAYPARTS.map((d) => d.id)
+
+// auto-add slot PREFERENCE for an event: its natural daypart first, then the
+// remaining parts in canonical order — so a one-tap add lands in the right slot
+// and only falls back when that slot is taken (never clobbers). 'any' (places /
+// date-only) → morning-first, the day's start (matching the picker default).
+// Shared by every daypart-routing writer (AddEvent / DayFillDeck) so they can't
+// drift apart.
+export function fillOrder(e) {
+  const p = daypartOf(e)
+  const pref = p === 'any' ? 'morning' : p
+  return [pref, ...PART_ORDER.filter((x) => x !== pref)]
 }
 
 // an event fits a day when its start..end span covers that day — a Saturday

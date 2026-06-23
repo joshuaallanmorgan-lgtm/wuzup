@@ -15,8 +15,8 @@ import { eventIcs } from './share.js'
 import { CATEGORY_EMOJI, HeatBadge, SecHead, TonightCard, hueFor } from './cards.jsx'
 import { SaveHeart, useSaves } from './saves.js'
 import { whyReasons } from './taste.js'
-import { daypartOf } from './weekend.js'
-import { loadDayPlans, saveDayPlans, withSlot, dayEntryFor } from './dayplan.js'
+import { daypartOf, DAYPART } from './weekend.js'
+import { loadDayPlans, saveDayPlans, withSlot, dayEntryFor, PARTS } from './dayplan.js'
 import { CONDITION, dateKey } from './weather.js'
 import './detail.css'
 import './locations.css' // 3.7P-34: the shared "Add to day" sheet (.loc-plan-*) lives here
@@ -265,7 +265,7 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
     void plansVersion
     if (curDay == null) return {}
     const entry = dayEntryFor(loadDayPlans(anchors)[String(curDay)])
-    return { day: entry?.slots.day || null, night: entry?.slots.night || null, rest: entry?.state === 'rest' }
+    return { ...Object.fromEntries(PARTS.map((p) => [p, entry?.slots[p] || null])), rest: entry?.state === 'rest' }
   }, [curDay, anchors, plansVersion])
   const closePlan = () => {
     setPlanning(false)
@@ -279,7 +279,7 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
     saveDayPlans(withSlot(map, curDay, part, keyOf(e)))
     setPlansVersion((v) => v + 1)
     const dl = planDays.find((d) => d.ts === curDay)?.label || ''
-    flash(`Added to ${dl} ${part === 'day' ? '☀️' : '🌙'} ✓`)
+    flash(`Added to ${dl} ${DAYPART[part].emoji} ✓`)
     closePlan()
   }
   // dialog a11y (mirrors the map filter sheet): focus in on open, Escape closes,
@@ -584,10 +584,10 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
               <div className="loc-note">That's a quiet day 🌙 — clear the rest mark on the day screen to plan it.</div>
             ) : (
               <div className="loc-plan-slots">
-                {['day', 'night'].map((part) => (
+                {PARTS.map((part) => (
                   <button key={part} className="loc-plan-slot" disabled={!!filled[part]} onClick={() => addToPlan(part)}>
-                    <span className="loc-plan-slot-ic">{part === 'day' ? '☀️' : '🌙'}</span>
-                    <span className="loc-plan-slot-label">{part === 'day' ? 'Daytime' : 'Night'}</span>
+                    <span className="loc-plan-slot-ic">{DAYPART[part].emoji}</span>
+                    <span className="loc-plan-slot-label">{DAYPART[part].label}</span>
                     {filled[part] ? (
                       <span className="loc-plan-slot-taken">taken</span>
                     ) : (

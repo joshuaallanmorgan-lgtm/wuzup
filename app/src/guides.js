@@ -82,10 +82,13 @@ export const GUIDES = [
     needsPlaces: false,
     select: ({ events }) =>
       // an EVENING-out cut: night events, or weekend evenings — never a weekend
-      // DAYTIME thing riding in under a "night" label (3.75 review).
-      (events || []).filter(
-        (e) => DATE_CATS.has(e.category) && (daypartOf(e) === 'night' || (e._weekend === true && daypartOf(e) !== 'day'))
-      ),
+      // DAYTIME (morning/afternoon) thing riding in under a "night" label (3.75
+      // review). ⚑PLAN-P0: daypartOf is ternary now, so "not daytime" = not
+      // morning AND not afternoon (i.e. night, or the date-only 'any').
+      (events || []).filter((e) => {
+        const dp = daypartOf(e)
+        return DATE_CATS.has(e.category) && (dp === 'night' || (e._weekend === true && dp !== 'morning' && dp !== 'afternoon'))
+      }),
   },
   // HOME_PHASE2: Quick-action destinations
   {

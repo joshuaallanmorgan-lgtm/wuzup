@@ -1,14 +1,18 @@
 // dayplan.js — the day-plan store (Sprint U-a, CALENDAR_BRIEF Model C).
-// weekend.js generalized: ANY day can carry a two-slot plan or a rest state,
+// weekend.js generalized: ANY day can carry a THREE-slot plan or a rest state,
 // not just the Fri–Sun window. Pure logic only — plain .js, NO JSX and no
 // React (same rule as lib.js / weekend.js) so the Node verification sims can
 // import it directly. The slot semantics (daypartOf / fitsSlot / pickerModel /
 // shareText) deliberately STAY in weekend.js — this module imports what it
 // needs and the smoke harness's weekend.js imports never move.
 //
+// ⚑PLAN-P0: the slots are TERNARY (morning/afternoon/night) — migrated forward
+// from the binary {day,night} model (day→afternoon, night→night) once, on the
+// first loadDayPlans, by migrateBinaryToTernary (idempotent, see below).
+//
 // STORAGE: 'day-plans-v1' (auto-prefixed twh: via storage.js) = an object
 // keyed by dayTs STRING (local-midnight ms, String(ts)):
-//   { [dayTs]: { state: 'rest'|null, slots: { day: keyOf|null, night: keyOf|null }, done: false, v: 1 } }
+//   { [dayTs]: { state: 'rest'|null, slots: { morning: keyOf|null, afternoon: keyOf|null, night: keyOf|null }, done: false, v: 1 } }
 // · state==='rest' is the user-initiated quiet-day mark. REST AND SLOTS ARE
 //   MUTUALLY EXCLUSIVE: withSlot() clears rest, withRest(on) refuses while a
 //   slot is filled (the UI only offers the toggle on slot-empty days; this is
@@ -33,10 +37,15 @@ export const DAYPLANS_KEY = 'day-plans-v1' // stored as twh:day-plans-v1
 const DAYHISTORY_KEY = 'day-history-v1'
 const WEEKEND_DONE_KEY = 'weekend-done-v1' // the WB completion beat's one-shot memory (see below)
 const CONVERTED_KEY = 'day-converted-v1' // U-d's morning-after answer ledger (see §U-d block)
+const MIGRATED_KEY = 'day-migrated-v1' // ⚑PLAN-P0 binary→ternary one-shot guard (see migrateBinaryToTernary)
 export const HISTORY_CAP = 120
-export const PARTS = ['day', 'night']
+// ⚑PLAN-P0: the day-plan slots are TERNARY (was binary {day,night}). PARTS is the
+// store's source of truth for slot keys, in canonical order; weekend.DAYPARTS
+// carries the matching label/emoji per id (keep the two in sync). Everything that
+// reads/counts a slot iterates PARTS so a new daypart can never be silently dropped.
+export const PARTS = ['morning', 'afternoon', 'night']
 
-export const emptyDay = () => ({ state: null, slots: { day: null, night: null }, done: false, v: 1 })
+export const emptyDay = () => ({ state: null, slots: { morning: null, afternoon: null, night: null }, done: false, v: 1 })
 
 // stored → clean entry, planFor-grade: wrong shape / wrong version returns
 // null (the caller DROPS it — never crash on a corrupt blob); a valid entry
@@ -52,14 +61,15 @@ export function dayEntryFor(stored) {
   // rest+slots is a contradiction no mutator can produce — a hand-edited blob
   // carrying both would render as an invisible-but-counted plan (rest card
   // hides the slot, Profile counts it), so slots win and rest drops here
-  if (stored.state === 'rest' && !d.slots.day && !d.slots.night) d.state = 'rest'
+  if (stored.state === 'rest' && !PARTS.some((p) => d.slots[p])) d.state = 'rest'
   d.done = stored.done === true
   return d
 }
 
-// "is this entry worth keeping/archiving?" — a rest mark or any filled slot.
+// "is this entry worth keeping/archiving?" — a rest mark or any filled slot
+// (iterates PARTS so a ternary afternoon plan counts just like day/night did).
 // (done alone is impossible in U-a and meaningless without content anyway)
-export const hasContent = (d) => d.state === 'rest' || !!d.slots.day || !!d.slots.night
+export const hasContent = (d) => d.state === 'rest' || PARTS.some((p) => !!d.slots[p])
 
 function readMap() {
   try {
@@ -110,6 +120,7 @@ function archiveDays(rows) {
 // (wrong shapes drop silently), sweeps past days into history, persists the
 // cleaned map when anything changed, returns { [String(dayTs)]: entry }.
 export function loadDayPlans(anchors) {
+  migrateBinaryToTernary() // ⚑PLAN-P0 one-shot binary→ternary (idempotent, guarded) — BEFORE the weekend migration so it reads/writes ternary slots
   migrateWeekendPlan(anchors) // idempotent; a missing weekend-plan-v1 is one lsGet
   const raw = readMap()
   const map = {}
@@ -176,7 +187,7 @@ export function withRest(map, dayTs, on) {
   const k = String(dayTs)
   const cur = dayEntryFor(map[k]) ?? emptyDay()
   if (on) {
-    if (cur.slots.day || cur.slots.night) return map
+    if (PARTS.some((p) => cur.slots[p])) return map
     return { ...map, [k]: { ...cur, state: 'rest' } }
   }
   const next = { ...cur, state: null }
@@ -197,11 +208,72 @@ export function filledForDays(map, dayTsList) {
   return n
 }
 
+// ===== ⚑PLAN-P0 — the one-shot binary → ternary daypart migration =====
+// remap ONE stored entry's binary slots {day,night} → ternary
+// {morning,afternoon,night}: day → afternoon, night → night, morning starts
+// empty. Returns a NEW entry object ONLY when a legacy 'day' key was present
+// (so callers detect a change by identity); anything already ternary, or not a
+// valid entry/slots object, passes through UNCHANGED. That pass-through is the
+// defense-in-depth idempotency: even an unguarded re-run can't double-remap a
+// slot that no longer carries a 'day' key.
+function remapBinaryEntry(entry) {
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return entry
+  const s = entry.slots
+  if (!s || typeof s !== 'object' || Array.isArray(s)) return entry
+  if (!('day' in s)) return entry // already ternary (or never had a daytime slot) — untouched
+  const dayKey = typeof s.day === 'string' && s.day ? s.day : null
+  const nightKey = typeof s.night === 'string' && s.night ? s.night : null
+  // an explicit morning/afternoon (shouldn't exist pre-migration) is preserved;
+  // otherwise the old daytime 'day' lands in afternoon, and night stays night
+  const morning = typeof s.morning === 'string' && s.morning ? s.morning : null
+  const afternoon = typeof s.afternoon === 'string' && s.afternoon ? s.afternoon : dayKey
+  return { ...entry, slots: { morning, afternoon, night: nightKey } }
+}
+
+// THE MIGRATION (⚑PLAN-P0). Converts the binary {day,night} day-plan model to
+// the ternary {morning,afternoon,night} model: day → afternoon, night → night;
+// morning is a NEW, empty slot. Runs EXACTLY ONCE, guarded by 'day-migrated-v1';
+// a second call returns immediately, and even unguarded the per-entry remap
+// skips anything already ternary (idempotent two ways). Migrates BOTH stores
+// that hold the slot shape:
+//   · the active 'day-plans-v1' map, AND
+//   · the 'day-history-v1' archive — otherwise an archived daytime plan would
+//     silently vanish when dayEntryFor rebuilds it on the new PARTS (the journal
+//     / Profile / monthReality reads), which would be data loss.
+// Forward-only · no data loss. The guard key is written LAST so a mid-run quota
+// failure simply retries the whole remap on the next load (it never persists the
+// guard without the data). Called at the top of loadDayPlans (the one read path).
+export function migrateBinaryToTernary() {
+  if (lsGet(MIGRATED_KEY) !== null) return // already migrated — the normal case
+  // active map: day-plans-v1
+  const raw = readMap()
+  let changed = false
+  for (const k of Object.keys(raw)) {
+    const next = remapBinaryEntry(raw[k])
+    if (next !== raw[k]) {
+      raw[k] = next
+      changed = true
+    }
+  }
+  if (changed) saveDayPlans(raw)
+  // archive: day-history-v1 (same {day,night} shape; dayEntryFor reads it on PARTS)
+  const hist = readHistory()
+  let histChanged = false
+  const nextHist = hist.map((h) => {
+    const next = remapBinaryEntry(h)
+    if (next !== h) histChanged = true
+    return next
+  })
+  if (histChanged) lsSet(DAYHISTORY_KEY, JSON.stringify(nextHist))
+  lsSet(MIGRATED_KEY, '1') // guard LAST — see the header
+}
+
 // ===== ⚑U-WB — the one-shot weekend-plan-v1 migration =====
 // A stored 'weekend-plan-v1' whose weekendStartTs is current-or-future
-// converts into day entries (fri/sat/sun dayTs; fri_day → slots.day etc.,
-// 1:1) — existing day entries keep their already-filled slots (migration
-// never clobbers; in practice the day store is empty when this runs). A PAST
+// converts into day entries (fri/sat/sun dayTs; the legacy fri_day → slots.afternoon,
+// fri_night → slots.night per ⚑PLAN-P0) — existing day entries keep their
+// already-filled slots (migration never clobbers; in practice the day store is
+// empty when this runs). A PAST
 // plan is intentionally DISCARDED: 3.7P-8 retired the Weekend Builder and the
 // 'weekend-history-v1' archive, so there's no past-weekend record anymore (the
 // day-history-v1 journal accumulates going forward). weekend-plan-v1 is REMOVED
@@ -232,13 +304,19 @@ export function migrateWeekendPlan(anchors) {
     !Array.isArray(stored.slots)
   if (valid) {
     if (stored.weekendStartTs >= anchors.wkStartTs) {
-      // current (or future) weekend → day entries, slot-for-slot
+      // current (or future) weekend → day entries, slot-for-slot. The legacy
+      // 'weekend-plan-v1' slots are suffixed _day/_night (the OLD binary
+      // dayparts); map them to the TERNARY slots — _day → afternoon, _night →
+      // night (matching ⚑PLAN-P0's binary→ternary rule). Decoupled from PARTS
+      // ON PURPOSE: the source keys are the old daypart names, not the new ones.
       const dayTsArr = weekendDays({ wkStartTs: stored.weekendStartTs })
       const map = readMap()
+      const WEEKEND_SLOT_MAP = { day: 'afternoon', night: 'night' }
       for (let i = 0; i < DAY_IDS.length; i++) {
-        for (const part of PARTS) {
-          const key = stored.slots[DAY_IDS[i] + '_' + part]
+        for (const legacy of Object.keys(WEEKEND_SLOT_MAP)) {
+          const key = stored.slots[DAY_IDS[i] + '_' + legacy]
           if (typeof key !== 'string' || !key) continue
+          const part = WEEKEND_SLOT_MAP[legacy]
           const k = String(dayTsArr[i])
           const cur = dayEntryFor(map[k]) ?? emptyDay()
           if (cur.slots[part]) continue // never clobber an existing day slot
@@ -384,7 +462,7 @@ export function morningAfterCandidates(history, converted, anchors) {
       if (!h || typeof h.dayTs !== 'number') return false
       if (h.dayTs >= anchors.todayTs) return false // not past yet
       if (h.state === 'rest') return false // a rested day is a record, never asked
-      if (!h.slots || (!h.slots.day && !h.slots.night)) return false // no plan to convert
+      if (!h.slots || !PARTS.some((p) => h.slots[p])) return false // no plan to convert (any daypart)
       if (answered[String(h.dayTs)]) return false // already went/missed
       return true
     })
@@ -414,7 +492,7 @@ export function monthReality(history, didDaySet, monthStartTs, nextMonthStartTs)
   let went = 0
   for (const h of history) {
     if (h.dayTs < monthStartTs || h.dayTs >= nextMonthStartTs) continue
-    if (h.slots?.day || h.slots?.night) planned++
+    if (PARTS.some((p) => h.slots?.[p])) planned++
     if (didDaySet.has(h.dayTs)) went++
   }
   return { planned, went }

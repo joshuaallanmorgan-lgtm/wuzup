@@ -14,6 +14,7 @@
 // eventsIcs for the multi-VEVENT download. weekend.js's shareText (the whole
 // weekend) is untouched — the Weekend Builder still uses it verbatim.
 import { parseDate, timeOf } from './lib.js'
+import { DAYPART } from './weekend.js'
 
 // ===== ICS (RFC 5545) =====
 // vevent(e) → the lines of ONE VEVENT (no envelope). Date-only events become
@@ -108,8 +109,8 @@ export const eventsIcs = (list) => wrapIcs(list.map(vevent).filter(Boolean))
 
 // ===== human share text for ONE day =====
 // generalizes weekend.js shareText's per-day block. entries = the day's filled
-// slots in render order [{ part:'day'|'night', e }] (caller resolves keys to
-// live events and drops empties); dayTs = the day's local-midnight ms.
+// slots in render order [{ part:'morning'|'afternoon'|'night', e }] (caller
+// resolves keys to live events and drops empties); dayTs = local-midnight ms.
 // Returns null when there's nothing to share (an empty/rest day has no text —
 // U-c: no share affordance is offered there, this is the defensive backstop).
 // ALL COPY IS DRAFT for Charles.
@@ -120,7 +121,7 @@ export function shareDayText(dayTs, entries) {
   const lines = ['My plan for ' + dateLine + ' 🌴'] // DRAFT for Charles
   for (const { part, e } of picks) {
     const bits = [e.title, timeOf(e.start) || null, e.venue || null].filter(Boolean).join(' · ')
-    lines.push((part === 'day' ? '☀️ ' : '🌙 ') + bits)
+    lines.push((DAYPART[part]?.emoji ?? '🗓️') + ' ' + bits) // ⚑PLAN-P0: shared label map; safe fallback if a stale part slips through
   }
   return lines.join('\n')
 }
