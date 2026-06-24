@@ -1,13 +1,13 @@
-# Tampa Bay Places — 1832 real places
+# Tampa Bay Places — 2163 real places
 
-_Generated 6/15/2026, 1:39:15 PM · sources: FDEP State Parks, FWC Boat Ramps, Hillsborough County Parks, OSM, Pinellas Park Points, SWFWMD Recreation, Tampa Parks_
+_Generated 6/24/2026, 7:14:45 PM · sources: FDEP State Parks, FWC Boat Ramps, Hillsborough County Parks, OSM, Pinellas Park Points, SWFWMD Recreation, Tampa Parks_
 
 ## Summary
 
-- Total places: 1832
-- By type: park 1322 · boat_ramp 204 · preserve 74 · trail 40 · pier 37 · playground 34 · courts 31 · garden 31 · dog_park 29 · beach 22 · viewpoint 8
-- By designation: (none) 1011 · City 536 · County 224 · Water-Mgmt 37 · State 20 · Other 4
-- With hours: 435 · with amenities: 1127 · with description: 119
+- Total places: 2163
+- By type: park 1323 · cafe 332 · boat_ramp 202 · preserve 74 · trail 40 · pier 37 · playground 34 · courts 31 · garden 31 · dog_park 29 · beach 22 · viewpoint 8
+- By designation: (none) 1342 · City 536 · County 224 · Water-Mgmt 37 · State 20 · Other 4
+- With hours: 529 · with amenities: 1299 · with description: 119
 - Cross-sourced (srcCount ≥ 2): 496
 - Hidden shelf: 24 (cap 24)
 
