@@ -549,7 +549,8 @@ export default function DayPage({ ts, events, anchors, wx }) {
 
       {picker && model && (
         <PickerSheet
-          title={DAYPART[picker].emoji + ' ' + wdLong(ts) + ' ' + DAYPART[picker].label.toLowerCase()}
+          part={picker}
+          dayLabel={dayLabel}
           model={model}
           noSaves={savedList.length === 0}
           closing={sheetClosing}
