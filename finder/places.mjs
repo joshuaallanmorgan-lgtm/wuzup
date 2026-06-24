@@ -150,15 +150,18 @@ const srcRank = (s) => {
 const isGov = (s) => GOV_ORDER.includes(s);
 
 // ===================== schema v1 vocabulary =================================
-const PLACETYPE_ORDER = ['park', 'preserve', 'beach', 'trail', 'dog_park', 'garden', 'pier', 'boat_ramp', 'playground', 'viewpoint', 'courts'];
+const PLACETYPE_ORDER = ['park', 'preserve', 'beach', 'trail', 'dog_park', 'garden', 'pier', 'boat_ramp', 'playground', 'viewpoint', 'courts', 'cafe'];
 function placeTypeOf(classes) {
   for (const t of PLACETYPE_ORDER) if (classes.includes(t)) return t;
   return classes[0] || 'park';
 }
 // Singular category into the app's 12-category taxonomy (Phase-2 decision).
+// A cafe is genuinely 'food' (already in the taxonomy) — the honest home for the
+// Spots-full "Coffee & Hang" theme; a cafe co-tagged with a park reads as the park.
 function categoryOf(placeType) {
   if (placeType === 'courts') return 'sports';
   if (placeType === 'playground') return 'family';
+  if (placeType === 'cafe') return 'food';
   return 'outdoors';
 }
 
@@ -601,6 +604,8 @@ async function main() {
     if (p.description) out.description = p.description;
     if (p.amenities.length) out.amenities = p.amenities;
     if (p.isFree != null) out.isFree = p.isFree;
+    // a cafe is PAID by nature — never tag it Free (honesty), overriding any infer
+    if (placeType === 'cafe') out.isFree = false;
     if (p.fee) out.fee = p.fee;
     if (p.hours) out.hours = p.hours;
     if (p.url) out.url = p.url;

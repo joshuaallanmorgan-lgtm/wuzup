@@ -271,7 +271,7 @@ test(`data invariants: full events.json (${fullEvents.length} events)`, () => {
 const APP_PLACES = path.join(ROOT, 'app', 'public', 'places.json')
 const TB_BOX = { latMin: 27.3, latMax: 28.6, lngMin: -83.3, lngMax: -81.9 } // == finder TB_BOX
 const PLACE_CATEGORIES = new Set(['music', 'sports', 'theatre', 'comedy', 'art', 'market', 'food', 'outdoors', 'nightlife', 'family', 'community', 'other'])
-const PLACE_TYPES = new Set(['park', 'preserve', 'beach', 'trail', 'dog_park', 'garden', 'pier', 'boat_ramp', 'playground', 'viewpoint', 'courts'])
+const PLACE_TYPES = new Set(['park', 'preserve', 'beach', 'trail', 'dog_park', 'garden', 'pier', 'boat_ramp', 'playground', 'viewpoint', 'courts', 'cafe'])
 
 test('places data invariants: schema v1 places.json', () => {
   assert.ok(existsSync(APP_PLACES), `missing ${APP_PLACES} — run "node finder/places.mjs" first; the places layer has no data`)

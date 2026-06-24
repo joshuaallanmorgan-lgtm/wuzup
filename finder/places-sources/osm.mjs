@@ -49,6 +49,10 @@ const CLASSES = [
   { id: 'trails',          filter: 'relation["route"~"^(hiking|foot|walking)$"]',    cls: 'trail' },
   { id: 'dog-parks',       filter: 'nwr["leisure"="dog_park"]',                      cls: 'dog_park', breweryFilter: true },
   { id: 'gardens',         filter: 'nwr["leisure"="garden"]',                        cls: 'garden', namedOnly: true },
+  // Coffee & Hang (Spots-full): real cafes. namedOnly — an anonymous cafe is not a
+  // destination (no chipAnonymous → anonymous dropped). Paid by nature (handled
+  // downstream: placeType 'cafe' forces isFree:false; never a Free tag).
+  { id: 'cafes',           filter: 'nwr["amenity"="cafe"]',                          cls: 'cafe', namedOnly: true },
   { id: 'piers',           filter: 'nwr["man_made"="pier"]',                         cls: 'pier', namedOnly: true, chipAnonymous: 'pier' },
   { id: 'boat-ramps',      filter: 'nwr["leisure"="slipway"]',                       cls: 'boat_ramp' },
   { id: 'viewpoints',      filter: 'nwr["tourism"="viewpoint"]',                     cls: 'viewpoint' },
@@ -291,6 +295,10 @@ function addPlace(byId, el, tags, pt, nm, cls) {
     if (tags.charge && !rec.fee) rec.fee = tags.charge;
     if (tags.wheelchair === 'yes') rec.amenities.push('ada');
     if (tags.dog === 'yes' || tags.dogs === 'yes') rec.amenities.push('dogs-allowed');
+    // cafe-relevant OSM amenities (generic — present mostly on amenity=cafe)
+    if (tags.outdoor_seating === 'yes') rec.amenities.push('outdoor-seating');
+    if (['yes', 'wlan', 'free'].includes(tags.internet_access) || ['yes', 'free'].includes(tags.wifi)) rec.amenities.push('wifi');
+    if (tags.takeaway === 'yes' || tags.takeaway === 'only') rec.amenities.push('takeaway');
     byId.set(key, rec);
   }
   if (!rec.classes.includes(cls)) rec.classes.push(cls);

@@ -57,6 +57,7 @@ export const PLACETYPE_HUE = {
   dog_park: 50, // warm amber
   playground: 45, // warm
   courts: 35, // clay court
+  cafe: 24, // warm coffee brown
   park: 140, // the classic green — now one of many, not all
 }
 export const PLACETYPE_EMOJI = {
@@ -70,5 +71,6 @@ export const PLACETYPE_EMOJI = {
   dog_park: '🐕',
   playground: '🛝',
   courts: '🎾',
+  cafe: '☕',
   park: '🌳',
 }
