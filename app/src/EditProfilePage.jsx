@@ -10,6 +10,8 @@ import { lsGet, lsSet } from './storage.js'
 import './profile.css'
 
 const NAME_KEY = 'profile-name-v1'
+const BIO_KEY = 'profile-bio-v1'
+const BIO_MAX = 120
 const PersonIc = () => (
   <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <circle cx="12" cy="9" r="3.4" />
@@ -20,9 +22,11 @@ const PersonIc = () => (
 export default function EditProfilePage() {
   const { closePage: onClose, openInterests } = useNav()
   const [name, setName] = useState(() => lsGet(NAME_KEY) || '')
+  const [bio, setBio] = useState(() => lsGet(BIO_KEY) || '')
   const initial = name ? name.trim()[0].toUpperCase() : ''
   const save = () => {
     lsSet(NAME_KEY, (name || '').trim().slice(0, 40))
+    lsSet(BIO_KEY, (bio || '').trim().slice(0, BIO_MAX))
     onClose()
   }
 
@@ -58,6 +62,22 @@ export default function EditProfilePage() {
         <label className="ep-field">
           <span className="ep-label">Location</span>
           <input className="ep-input ep-input-ro" value={CITY.name} readOnly aria-label="Your city" />
+        </label>
+
+        <label className="ep-field">
+          <span className="ep-label ep-label-row">
+            <span>Bio <span className="ep-optional">(optional)</span></span>
+            <span className="ep-count">{bio.length}/{BIO_MAX}</span>
+          </span>
+          <textarea
+            className="ep-input ep-textarea"
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            maxLength={BIO_MAX}
+            rows={3}
+            placeholder="Tell people what you're into (optional)"
+            aria-label="Your bio"
+          />
         </label>
 
         {/* Profile preferences — honest stubs (future keys); shown so the screen

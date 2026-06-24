@@ -359,6 +359,10 @@
 }
 .ep-input:focus { border-color: rgba(var(--accent-rgb), 0.5); }
 .ep-input-ro { color: var(--muted); background: var(--bg); }
+.ep-label-row { display: flex; align-items: baseline; justify-content: space-between; }
+.ep-optional { font-weight: 600; color: var(--muted); opacity: 0.8; }
+.ep-count { font-size: 11px; font-weight: 600; color: var(--muted); }
+.ep-textarea { min-height: 76px; resize: none; line-height: 1.45; font: inherit; }
 .ep-sec-label { margin-top: 6px; font-size: 12px; font-weight: 800; letter-spacing: 0.02em; color: var(--muted); }
 .ep-pref {
   display: flex; align-items: center; justify-content: space-between;

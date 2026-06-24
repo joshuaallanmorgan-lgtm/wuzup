@@ -8,6 +8,7 @@
 import { useMemo } from 'react'
 import { BUBBLES, CITY, Icon, keyOf } from './lib.js'
 import { useNav } from './nav.jsx'
+import { CardImg } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
 import { CONDITION, dateKey } from './weather.js'
 import './notifications.css'
@@ -40,7 +41,7 @@ export default function NotificationsPage({ events = [], anchors, wx }) {
       if (offset < 0 || offset > 3) continue
       out.push({
         id: 'save-' + keyOf(e),
-        icon: '❤️',
+        img: e, // real event photo (CardImg falls to the category-art floor if none) — never fabricated
         title: e.title,
         sub: `On your list · coming up ${relDay(day, anchors.todayTs)}`,
         onClick: () => openDetail(e),
@@ -104,7 +105,11 @@ export default function NotificationsPage({ events = [], anchors, wx }) {
           <div className="notif-list">
             {items.map((n) => (
               <button key={n.id} className="notif-item pressable" onClick={n.onClick}>
-                <span className="notif-item-icon" aria-hidden>{n.icon}</span>
+                {n.img ? (
+                  <CardImg e={n.img} className="notif-thumb" />
+                ) : (
+                  <span className="notif-item-icon" aria-hidden>{n.icon}</span>
+                )}
                 <span className="notif-item-main">
                   <span className="notif-item-title">{n.title}</span>
                   <span className="notif-item-sub">{n.sub}</span>

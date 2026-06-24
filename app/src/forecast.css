@@ -3,18 +3,22 @@
 .fc-pg .pg-body {
   padding: 8px 0 80px;
 }
+/* location subhead above the hero (real active city, never geolocated "current") */
+.fc-loc { display: flex; align-items: center; gap: 5px; padding: 6px 20px 0; font-size: 13px; font-weight: 700; color: var(--ink); }
+.fc-loc-pin { width: 14px; height: 14px; flex: 0 0 auto; color: var(--muted); }
 /* Today hero */
 .fc-hero {
   display: flex;
   align-items: center;
   gap: 18px;
-  padding: 16px 20px 20px;
+  padding: 10px 20px 20px;
 }
 .fc-hero-emoji { font-size: 64px; line-height: 1; flex: 0 0 auto; }
 .fc-hero-main { min-width: 0; }
+.fc-hero-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .fc-hero-temp { font-size: 46px; font-weight: 800; color: var(--ink); letter-spacing: -1.5px; line-height: 1; }
-.fc-hero-cond { margin-top: 4px; font-size: 15px; font-weight: 650; color: var(--ink); }
-.fc-hero-sub { margin-top: 4px; display: flex; gap: 12px; font-size: 13px; font-weight: 500; color: var(--muted); }
+.fc-hero-cond { font-size: 16px; font-weight: 650; color: var(--ink); }
+.fc-hero-sub { margin-top: 6px; display: flex; gap: 12px; font-size: 13px; font-weight: 500; color: var(--muted); }
 /* Best day to get outside */
 .fc-best {
   display: flex;

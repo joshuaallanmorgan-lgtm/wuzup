@@ -5,7 +5,7 @@
 // No hourly strip — the forecast feed is daily-only, and we never fabricate data.
 // No forecast at all = honest empty state.
 import { useMemo } from 'react'
-import { Icon } from './lib.js'
+import { CITY, Icon } from './lib.js'
 import { useNav } from './nav.jsx'
 import { CONDITION, dateKey } from './weather.js'
 import './forecast.css'
@@ -61,19 +61,29 @@ export default function ForecastPage({ anchors, wx }) {
           <div className="pf-empty">No forecast available right now.</div>
         ) : (
           <>
-            {/* Today hero — big condition + high temp, with low + rain underneath */}
+            {/* Today hero — high temp + condition side by side, with H/L + precip
+                underneath. Daily-fetch data only (no current/feels-like temp). */}
             {today && (
-              <div className="fc-hero">
-                <span className="fc-hero-emoji" aria-hidden>{today.emoji}</span>
-                <div className="fc-hero-main">
-                  <div className="fc-hero-temp">{today.hi != null ? today.hi + '°' : '—'}</div>
-                  <div className="fc-hero-cond">{CONDITION[today.emoji] || 'Forecast'}</div>
-                  <div className="fc-hero-sub">
-                    {today.lo != null && <span>Low {today.lo}°</span>}
-                    {today.rain != null && <span>{today.rain}% rain</span>}
+              <>
+                <div className="fc-loc">
+                  <Icon.locations className="fc-loc-pin" aria-hidden />
+                  <span>{CITY.name}</span>
+                </div>
+                <div className="fc-hero">
+                  <span className="fc-hero-emoji" aria-hidden>{today.emoji}</span>
+                  <div className="fc-hero-main">
+                    <div className="fc-hero-top">
+                      <span className="fc-hero-temp">{today.hi != null ? today.hi + '°' : '—'}</span>
+                      <span className="fc-hero-cond">{CONDITION[today.emoji] || 'Forecast'}</span>
+                    </div>
+                    <div className="fc-hero-sub">
+                      {today.hi != null && <span>H: {today.hi}°</span>}
+                      {today.lo != null && <span>L: {today.lo}°</span>}
+                      {today.rain != null && <span>Precip {today.rain}%</span>}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </>
             )}
 
             {/* Honest best-day-to-get-outside callout (omitted when no nice day) */}
