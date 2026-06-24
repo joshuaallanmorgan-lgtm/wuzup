@@ -12,7 +12,7 @@
 // of this tab, never at boot, never merged into the events feed. DRAFT copy ⚑ Charles.
 import { useMemo } from 'react'
 import { useNav } from './nav.jsx'
-import { SecHead, SpotCard, EndCap, IntentTile, RowFeed, imageMode } from './cards.jsx'
+import { SecHead, SpotCard, IntentTile, RowFeed, imageMode } from './cards.jsx'
 import { GUIDES } from './guides.js'
 import { railReady, tasteNudge, useTaste } from './taste.js'
 import { usePlaces, ACTIVITIES, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES, nearest, isPlaceKey, normalizePlace } from './places.js'
@@ -35,6 +35,19 @@ function placeOrder(list, taste) {
   )
 }
 
+// SPOTS_GRIND themed sections (ref-spots-full), each reusing the REAL ACTIVITY
+// predicates (no new data) so the grouping is honest. HONESTY NOTE: the ref's
+// "Coffee & Hang" has NO data — the place store is OSM outdoor recreation (zero
+// cafes; "coffee" only matches parks named "Coffee Pot") — so it is substituted
+// with the data-rich, honest "Gardens & Picnics" (gardens + picnic spots).
+const actMatch = (id) => ACTIVITIES.find((a) => a.id === id)?.match || (() => false)
+const SPOT_THEMES = [
+  { id: 'nature-water', emoji: '🌿', label: 'Nature & Water', hue: 150, sub: 'Trails, springs, and the water’s edge.', match: (p) => actMatch('act-trails')(p) || actMatch('act-water')(p) },
+  { id: 'gardens-picnics', emoji: '🌸', label: 'Gardens & Picnics', hue: 95, sub: 'Greens and shady tables to linger at.', match: (p) => p.placeType === 'garden' || (p.amenities || []).some((a) => ['picnic', 'grills', 'shelters'].includes(a)) },
+  { id: 'sunset-views', emoji: '🌅', label: 'Sunset Views', hue: 25, sub: 'Where the bay puts on a show.', match: (p) => actMatch('act-views')(p) || actMatch('act-beach')(p) },
+  { id: 'quiet-corners', emoji: '🤫', label: 'Quiet Corners', hue: 280, sub: 'Hidden gems and calm preserves.', match: (p) => p.hidden === true || p.placeType === 'preserve' },
+]
+
 export default function LocationsView({ coords }) {
   const { openDetail: onSelect, openPlaceBubble, openGuide, openSearch, openMap } = useNav()
   // FB-03 (3.7P-7): the Spots page shows SPOTS + MIXED guides (Beach day, Free
@@ -52,28 +65,31 @@ export default function LocationsView({ coords }) {
   // never falls back to a flat color block; if none in the active pool qualifies,
   // take the top pick anyway (FeaturedCard renders the text-rich no-photo card).
   // SP-L3: "Recommended near you" = carousel of top SpotCards (nearest with photos first).
+  // SPOTS_GRIND: "Recommended near you" / "Worth the drive" are now vertical
+  // SpotCard ROW lists (ref-spots-full), so a tighter top set.
   const nearSpots = useMemo(() => {
     const pool = coords && near.length ? near : all
-    return pool.filter((p) => imageMode(p) !== 'none').slice(0, 6)
+    return pool.filter((p) => imageMode(p) !== 'none').slice(0, 4)
   }, [near, all, coords])
 
   // SP-L3: "Worth the drive" = next batch of spots not already shown in nearSpots.
   const driveSpots = useMemo(() => {
     const nearKeys = new Set(nearSpots.map((p) => p.key))
-    return all.filter((p) => !nearKeys.has(p.key) && imageMode(p) !== 'none').slice(0, 6)
+    return all.filter((p) => !nearKeys.has(p.key) && imageMode(p) !== 'none').slice(0, 4)
   }, [all, nearSpots])
 
-  // 3.7P-12: per-activity taster lists. `all` is taste-ordered, so a plain
-  // slice keeps taste order; with a fix, nearest() re-sorts by distance. An
-  // activity carousel shows only when ≥3 places match (never a thin/fake row);
-  // the full set is always one tap away (See all → PlaceBubblePage, never-hide).
-  const activitySections = useMemo(
+  // SPOTS_GRIND themed sections — each a curated vertical SpotCard-row list, real
+  // photos preferred, honestly gated (≥3 members). The FULL set is one tap away
+  // (See all → PlaceBubblePage on the theme predicate, never-hide).
+  const themeSections = useMemo(
     () =>
-      ACTIVITIES.map((a) => {
-        const matched = all.filter(a.match)
-        const items = coords ? nearest(matched, coords, 6) : matched.slice(0, 6)
-        return { a, items, total: matched.length }
-      }).filter((s) => s.total >= 3),
+      SPOT_THEMES.map((t) => {
+        const matched = all.filter(t.match)
+        const withPhoto = matched.filter((p) => imageMode(p) !== 'none')
+        const pool = withPhoto.length >= 4 ? withPhoto : matched
+        const items = coords ? nearest(pool, coords, 4) : pool.slice(0, 4)
+        return { t, items, total: matched.length }
+      }).filter((s) => s.total >= 3 && s.items.length > 0),
     [all, coords]
   )
 
@@ -166,9 +182,9 @@ export default function LocationsView({ coords }) {
               title={coords ? 'Recommended near you' : 'Recommended for you'}
               sub={coords ? 'Closest to you right now' : railReady(taste) ? 'Based on what you have tapped' : 'Local favorites to explore'}
             />
-            <div className="carousel">
+            <div className="home-picks">
               {nearSpots.map((p) => (
-                <SpotCard key={p.key} p={p} onSelect={onSelect} />
+                <SpotCard key={p.key} p={p} row onSelect={onSelect} />
               ))}
             </div>
           </section>
@@ -182,9 +198,9 @@ export default function LocationsView({ coords }) {
               title="Worth the drive"
               sub="Excellent spots a short trip away."
             />
-            <div className="carousel">
+            <div className="home-picks">
               {driveSpots.map((p) => (
-                <SpotCard key={p.key} p={p} onSelect={onSelect} />
+                <SpotCard key={p.key} p={p} row onSelect={onSelect} />
               ))}
             </div>
           </section>
@@ -202,27 +218,26 @@ export default function LocationsView({ coords }) {
           </section>
         )}
 
-        {/* 3.7P-12: the activity-first body — a taster carousel per activity, each
-            with a See-all into the full filtered set (never-hide). Replaces the
-            old placeType sections (Beaches/Hidden/Classics/Free); "The classics"
-            is dropped (srcCount≥3 = weak signal) and Hidden is now an activity. */}
-        {activitySections.map(({ a, items, total }) => (
-          <section className="sec" key={a.id}>
+        {/* SPOTS_GRIND: the THEMED body — curated vertical SpotCard-row sections
+            (Nature & Water · Gardens & Picnics · Sunset Views · Quiet Corners),
+            each a See-all into the full theme (never-hide). Replaces the per-
+            activity carousels; the activity intent grid above stays the quick nav. */}
+        {themeSections.map(({ t, items }) => (
+          <section className="sec" key={t.id}>
             <SecHead
               title={
                 <>
-                  <span aria-hidden>{a.emoji} </span>
-                  {a.label}
+                  <span aria-hidden>{t.emoji} </span>
+                  {t.label}
                 </>
               }
-              sub={coords ? 'Nearest first' : `${total.toLocaleString('en-US')} to explore`}
-              onSeeAll={() => openPlaceBubble(a)}
+              sub={t.sub}
+              onSeeAll={() => openPlaceBubble(t)}
             />
-            <div className="carousel">
+            <div className="home-picks">
               {items.map((p) => (
-                <SpotCard key={p.key} p={p} onSelect={onSelect} />
+                <SpotCard key={p.key} p={p} row onSelect={onSelect} />
               ))}
-              <EndCap onClick={() => openPlaceBubble(a)} />
             </div>
           </section>
         ))}
