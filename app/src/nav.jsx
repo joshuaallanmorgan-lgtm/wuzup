@@ -195,6 +195,16 @@ export function NavProvider({ children }) {
     setPageClosing(false)
     setPage({ type: 'day', ts })
   }, [])
+  // Plan Phase 2: the DayPage day-selector's date picker ({type:'calpicker',ts}).
+  // `ts` is the day currently being planned (to highlight); selecting a date in
+  // the picker calls openDay, which REPLACES this page (single-slot union — the
+  // picker is one level deep, never stacked). Additive subpage, same pattern as
+  // openDay/openAdd; a non-numeric ts is ignored (defaults to today inside).
+  const openCalendarPicker = useCallback((ts) => {
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    setPage({ type: 'calpicker', ts: typeof ts === 'number' && Number.isFinite(ts) ? ts : null })
+  }, [])
   // Sprint P: settings (Profile gear) + the taste flows it launches.
   // Opening one while another is up REPLACES the page (single-slot union) —
   // the .subpage shell stays mounted, so settings → interests → settings
@@ -398,6 +408,7 @@ export function NavProvider({ children }) {
       openMap,
       openAdd,
       openDay,
+      openCalendarPicker,
       openSettings,
       openMyPlans,
       openMySaves,
@@ -436,6 +447,7 @@ export function NavProvider({ children }) {
       openMap,
       openAdd,
       openDay,
+      openCalendarPicker,
       openSettings,
       openMyPlans,
       openMySaves,

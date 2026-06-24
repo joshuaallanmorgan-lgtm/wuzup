@@ -1,0 +1,114 @@
+/* calpicker.css — Plan Phase 2 date picker (ref-plan-flows-1 p1-2). Light
+   theme, warm tokens, --cta orange for the selected date + the Full-calendar
+   row. Page scaffolding (.pg/.pg-head/.pg-body) comes from App.css. */
+
+.calpick-body { padding: 6px 16px 24px; }
+
+/* ===== the quick "Pick a date" list ===== */
+.calpick-list { display: flex; flex-direction: column; gap: 8px; }
+.calpick-listhead {
+  margin: 14px 2px 2px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.calpick-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  text-align: left;
+  font-family: inherit;
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform var(--dur-micro);
+}
+.calpick-row:active { transform: scale(0.99); }
+.calpick-row-ic { flex: 0 0 auto; display: flex; color: var(--muted); }
+.calpick-row-label { flex: 1; min-width: 0; font-size: 15px; font-weight: 700; letter-spacing: -0.2px; }
+.calpick-row-chev { flex: 0 0 auto; display: flex; color: var(--muted); }
+/* the selected date — soft orange wash + --cta ink (matches the ref) */
+.calpick-row.is-cur {
+  border-color: rgba(187, 87, 25, 0.4);
+  background: rgba(187, 87, 25, 0.07);
+}
+.calpick-row.is-cur .calpick-row-ic,
+.calpick-row.is-cur .calpick-row-label { color: var(--cta); }
+/* the Full-calendar row — quietly distinct (a door, not a date) */
+.calpick-full .calpick-row-label { font-weight: 700; }
+.calpick-full .calpick-row-ic { color: var(--cta); }
+
+/* ===== the Full-calendar month grid ===== */
+.calpick-grid-wrap {
+  margin-bottom: 8px;
+  padding: 12px 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow-card);
+}
+.calpick-monthbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px 8px;
+}
+.calpick-monthlabel { font-size: 15px; font-weight: 800; letter-spacing: -0.2px; color: var(--ink); }
+.calpick-mnav {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: none;
+  color: var(--ink);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.calpick-mnav:disabled { opacity: 0.3; pointer-events: none; }
+.calpick-dow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 2px;
+}
+.calpick-dow span {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 4px 0;
+}
+.calpick-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.calpick-cell {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+.calpick-cell.is-empty { visibility: hidden; }
+.calpick-cell.is-past { color: var(--muted); opacity: 0.4; pointer-events: none; }
+.calpick-cell.is-today { font-weight: 800; box-shadow: inset 0 0 0 1.5px var(--line); }
+.calpick-cell.is-cur {
+  background: var(--cta);
+  color: #fff;
+  font-weight: 800;
+  box-shadow: none;
+}
+.calpick-cell:not(.is-cur):not(.is-past):active { background: rgba(187, 87, 25, 0.1); }

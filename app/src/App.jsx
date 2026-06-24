@@ -30,6 +30,7 @@ import GuidePage from './GuidePage.jsx'
 import SearchPage from './SearchPage.jsx'
 import AddEvent from './AddEvent.jsx'
 import DayPage from './DayPage.jsx'
+import CalendarPickerPage from './CalendarPickerPage.jsx'
 import SettingsPage from './SettingsPage.jsx'
 import InterestEditor from './InterestEditor.jsx'
 import TastePanel from './TastePanel.jsx'
@@ -353,6 +354,9 @@ function Shell() {
                  offering slots) */
               <DayPage key={page.ts + '-' + anchors.todayTs} ts={page.ts} events={norm} anchors={anchors} wx={wx} />
             )}
+            {/* Plan Phase 2: the DayPage day-selector's date picker (quick list +
+                Full-calendar grid); selecting a date → openDay (replaces this page) */}
+            {page.type === 'calpicker' && <CalendarPickerPage ts={page.ts} anchors={anchors} />}
             {/* Sprint P/Q2c: settings + the taste flows. Single-slot union —
                 interests/deck REPLACE the settings page and hand back via
                 their `from` origin, so the trio feels stacked without stack
