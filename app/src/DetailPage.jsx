@@ -258,6 +258,10 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
   const [planning, setPlanning] = useState(false)
   const [planDayTs, setPlanDayTs] = useState(null)
   const [plansVersion, setPlansVersion] = useState(0)
+  // Plan Phase 2 (flows-2 p2): the add-to-day sheet is select-then-confirm — the
+  // user picks a daypart, then taps "Add to {day}". selPart holds the pick; null
+  // until they choose (the natural free daypart is the rendered default).
+  const [selPart, setSelPart] = useState(null)
   const curDay = planDayTs ?? planDays[0]?.ts ?? null
   const planSheetRef = useRef(null)
   const planBtnRef = useRef(null)
@@ -267,8 +271,14 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
     const entry = dayEntryFor(loadDayPlans(anchors)[String(curDay)])
     return { ...Object.fromEntries(PARTS.map((p) => [p, entry?.slots[p] || null])), rest: entry?.state === 'rest' }
   }, [curDay, anchors, plansVersion])
+  // the effective selected daypart: the user's pick when still free, else the
+  // natural daypart, else the first free slot (so "Add to {day}" always targets
+  // a real open slot — and stays disabled only when every slot is taken).
+  const naturalPart = natural === 'any' ? 'morning' : natural
+  const sel = selPart && !filled[selPart] ? selPart : !filled[naturalPart] ? naturalPart : PARTS.find((p) => !filled[p]) || null
   const closePlan = () => {
     setPlanning(false)
+    setSelPart(null)
     planBtnRef.current?.focus() // WCAG 2.4.3: focus returns to the trigger
   }
   const addToPlan = (part) => {
@@ -583,19 +593,31 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
             {filled.rest ? (
               <div className="loc-note">That's a quiet day 🌙 — clear the rest mark on the day screen to plan it.</div>
             ) : (
-              <div className="loc-plan-slots">
-                {PARTS.map((part) => (
-                  <button key={part} className="loc-plan-slot" disabled={!!filled[part]} onClick={() => addToPlan(part)}>
-                    <span className="loc-plan-slot-ic">{DAYPART[part].emoji}</span>
-                    <span className="loc-plan-slot-label">{DAYPART[part].label}</span>
-                    {filled[part] ? (
-                      <span className="loc-plan-slot-taken">taken</span>
-                    ) : (
-                      natural === part && <span className="loc-plan-slot-taken">suggested</span>
-                    )}
-                  </button>
-                ))}
-              </div>
+              <>
+                <div className="loc-plan-choose">Choose a time</div>
+                <div className="loc-plan-slots">
+                  {PARTS.map((part) => (
+                    <button
+                      key={part}
+                      className={'loc-plan-slot' + (part === sel ? ' on' : '')}
+                      disabled={!!filled[part]}
+                      onClick={() => setSelPart(part)}
+                      aria-pressed={part === sel}
+                    >
+                      <span className="loc-plan-slot-ic">{DAYPART[part].emoji}</span>
+                      <span className="loc-plan-slot-label">{DAYPART[part].label}</span>
+                      {filled[part] ? (
+                        <span className="loc-plan-slot-taken">taken</span>
+                      ) : (
+                        natural === part && <span className="loc-plan-slot-taken">suggested</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <button className="loc-plan-add" disabled={!sel} onClick={() => sel && addToPlan(sel)}>
+                  Add to {planDays.find((d) => d.ts === curDay)?.label || 'day'}
+                </button>
+              </>
             )}
           </div>
         </div>

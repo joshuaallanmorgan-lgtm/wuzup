@@ -388,3 +388,36 @@
   font-size: 11px;
   color: var(--muted);
 }
+/* Plan Phase 2 (flows-2 p2): "Choose a time" label + the selected daypart + the
+   primary "Add to day" confirm (D.0-R: --cta fill, white text). */
+.loc-plan-choose {
+  margin-bottom: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.loc-plan-slot.on {
+  border-color: var(--cta);
+  background: rgba(187, 87, 25, 0.06);
+}
+.loc-plan-slot.on .loc-plan-slot-label {
+  color: var(--cta);
+}
+.loc-plan-add {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--cta);
+  color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  transition: transform var(--dur-micro);
+}
+.loc-plan-add:not(:disabled):active { transform: scale(0.99); }
+.loc-plan-add:disabled { opacity: 0.45; cursor: default; }

@@ -241,6 +241,9 @@ export default function PlaceDetail({ e, anchors, wx }) {
   const [planning, setPlanning] = useState(false)
   const [planDay, setPlanDay] = useState(anchors.todayTs)
   const [plansVersion, setPlansVersion] = useState(0) // bump to re-read filled state after a write
+  // Plan Phase 2 (flows-2 p2): select-then-confirm — selPart holds the chosen
+  // daypart, then "Add to {day}" commits. A place is 'any' → morning is the default.
+  const [selPart, setSelPart] = useState(null)
   const planSheetRef = useRef(null)
   const planCtaRef = useRef(null)
   const days = useMemo(() => planDays(anchors), [anchors])
@@ -251,8 +254,12 @@ export default function PlaceDetail({ e, anchors, wx }) {
     const entry = dayEntryFor(map[String(planDay)])
     return { ...Object.fromEntries(PARTS.map((p) => [p, entry?.slots[p] || null])), rest: entry?.state === 'rest' }
   }, [planDay, anchors, plansVersion])
+  // the effective selected daypart: the user's pick when free, else morning (the
+  // 'any' default), else the first free slot
+  const sel = selPart && !filled[selPart] ? selPart : !filled.morning ? 'morning' : PARTS.find((p) => !filled[p]) || null
   const closePlanning = () => {
     setPlanning(false)
+    setSelPart(null)
     planCtaRef.current?.focus() // WCAG 2.4.3: focus returns to the trigger
   }
 
@@ -520,20 +527,27 @@ export default function PlaceDetail({ e, anchors, wx }) {
             {filled.rest ? (
               <div className="loc-note">That's a quiet day 🌙 — clear the rest mark on the day screen to plan it.</div>
             ) : (
-              <div className="loc-plan-slots">
-                {PARTS.map((part) => (
-                  <button
-                    key={part}
-                    className="loc-plan-slot"
-                    disabled={!!filled[part]}
-                    onClick={() => addToPlan(part)}
-                  >
-                    <span className="loc-plan-slot-ic">{DAYPART[part].emoji}</span>
-                    <span className="loc-plan-slot-label">{DAYPART[part].label}</span>
-                    {filled[part] && <span className="loc-plan-slot-taken">taken</span>}
-                  </button>
-                ))}
-              </div>
+              <>
+                <div className="loc-plan-choose">Choose a time</div>
+                <div className="loc-plan-slots">
+                  {PARTS.map((part) => (
+                    <button
+                      key={part}
+                      className={'loc-plan-slot' + (part === sel ? ' on' : '')}
+                      disabled={!!filled[part]}
+                      onClick={() => setSelPart(part)}
+                      aria-pressed={part === sel}
+                    >
+                      <span className="loc-plan-slot-ic">{DAYPART[part].emoji}</span>
+                      <span className="loc-plan-slot-label">{DAYPART[part].label}</span>
+                      {filled[part] && <span className="loc-plan-slot-taken">taken</span>}
+                    </button>
+                  ))}
+                </div>
+                <button className="loc-plan-add" disabled={!sel} onClick={() => sel && addToPlan(sel)}>
+                  Add to {days.find((d) => d.ts === planDay)?.label || 'day'}
+                </button>
+              </>
             )}
           </div>
         </div>
