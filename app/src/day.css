@@ -1,104 +1,140 @@
-/* day.css — the day screen (Sprint U-a). Editorial and calm: teal identity,
-   hairlines, white cards — the Weekend Builder's voice at single-day width.
-   NO --reward anywhere here (violet #7 belongs to Sprint U-d's conversion);
-   rest is a quiet filled state, never an alarm. Page scaffolding (.pg,
-   .pg-head, .pg-body) comes from App.css; the picker sheet styles ride
-   weekend.css via PickerSheet. */
+/* day.css — the day screen ("Plan your day", Plan Phase 1, pixel-match
+   ref-plan.png). Editorial and calm: warm ink, hairlines, white cards, the
+   --cta orange for the day-selector + the add affordances. Light theme. NO
+   --reward anywhere here (violet #7 belongs to Sprint U-d's conversion); rest
+   is a quiet filled state, never an alarm. Page scaffolding (.pg, .pg-head,
+   .pg-body) comes from App.css; the picker sheet rides weekend.css. */
 
-.dpg-body { padding-top: 4px; }
+.dpg-body { padding-top: 2px; }
 
-/* weather line under the header (the day screen's own; the old Calendar
-   .cal-wx supply summary was removed in Phase 3.5 W2) */
-/* S1-D1: the tappable day selector (prev/next swap the day via openDay) */
-.dpg-daysel { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 4px 20px 2px; }
-.dpg-daysel-label { font-size: 15px; font-weight: 700; color: var(--ink); letter-spacing: -0.2px; }
-.dpg-daynav {
-  width: 32px;
-  height: 32px;
+/* ===== the tappable day selector (label → calendar picker · calendar icon) ===== */
+.dpg-daysel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 18px 6px;
+}
+.dpg-daysel-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--cta);
+  cursor: pointer;
+}
+.dpg-daysel-caret { margin-top: 1px; }
+.dpg-daysel-label:active { opacity: 0.65; }
+.dpg-daysel-cal {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  background: var(--card);
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
   color: var(--ink);
   cursor: pointer;
   transition: transform var(--dur-micro);
 }
-.dpg-daynav:active { transform: scale(0.92); }
-.dpg-daynav:disabled { opacity: 0.35; pointer-events: none; }
+.dpg-daysel-cal:active { transform: scale(0.9); }
 
-/* S1-D3: the weather is a fuller module now (was a thin 13px line) */
+/* ===== the expanded weather module (emoji + temp/condition + honest detail) ===== */
 .dpg-wx {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  min-height: 60px;
-  padding: 12px 20px 8px;
-  font-size: 15px;
+  gap: 13px;
+  margin: 0 16px;
+  padding: 13px 15px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+.dpg-wx-emoji { flex: 0 0 auto; font-size: 26px; line-height: 1; }
+.dpg-wx-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.dpg-wx-temp { font-size: 15px; font-weight: 700; color: var(--ink); }
+.dpg-wx-detail { font-size: 13px; font-weight: 500; color: var(--muted); line-height: 1.35; }
+/* past forecast coverage: the same calm card, quieter — an honest caveat, not an error */
+.dpg-wx-far {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+/* ===== small folded utility actions near the top (quiet text affordances) ===== */
+.dpg-top-actions { display: flex; flex-wrap: wrap; gap: 16px; margin: 10px 20px 2px; }
+.dpg-fold-btn {
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: 13px;
   font-weight: 600;
   color: var(--muted);
+  cursor: pointer;
 }
-/* past forecast coverage: same quiet voice, slightly lighter (honest caveat,
-   not an error state) */
-.dpg-wx-far { opacity: 0.75; font-weight: 500; }
+.dpg-fold-btn:active { opacity: 0.55; }
 
-.dpg-sec { padding-top: 20px; }
-
-/* ===== the two plan slots ===== */
-.dpg-slots { display: flex; flex-direction: column; gap: 12px; padding: 2px 16px 0; }
+/* ===== the three daypart slots ===== */
+.dpg-slots { display: flex; flex-direction: column; gap: 16px; padding: 10px 16px 0; }
 .dpg-part {
-  margin-bottom: 5px;
+  margin-bottom: 7px;
   padding: 0 2px;
-  font-size: 10px;
+  font-size: 15px;
   font-weight: 800;
-  letter-spacing: 0.2px;
-  color: var(--muted);
+  letter-spacing: -0.2px;
+  color: var(--ink);
 }
 
-/* empty slot: the WB dashed invitation, row-sized */
+/* empty slot: the dashed invitation — text block left, circled + right */
 .dpg-empty {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 12px;
   width: 100%;
-  min-height: 56px;
-  padding: 8px;
-  border: 1.5px dashed rgba(var(--accent-rgb), 0.45);
+  padding: 14px 15px;
+  border: 1.5px dashed rgba(187, 87, 25, 0.4); /* --cta @ 40% */
   border-radius: 14px;
-  background: rgba(var(--accent-rgb), 0.07);
-  color: var(--accent-ink);
+  background: rgba(187, 87, 25, 0.04);
   font-family: inherit;
+  text-align: left;
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out);
 }
-.dpg-empty:active { background: rgba(var(--accent-rgb), 0.12); }
-/* 3.74: a more inviting empty slot — a + chip + a warm "Add a plan" instead of
-   the flat dashed "Open — tap to plan". */
+.dpg-empty:active { background: rgba(187, 87, 25, 0.09); }
+.dpg-empty-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.dpg-empty-txt { font-size: 14px; font-weight: 700; color: var(--ink); }
+.dpg-empty-sub { font-size: 12.5px; font-weight: 500; color: var(--muted); }
 .dpg-empty-plus {
-  flex: 0 0 22px;
-  width: 22px;
-  height: 22px;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
   border-radius: 999px;
-  background: rgba(var(--accent-rgb), 0.16);
-  color: var(--accent-ink);
+  border: 1.5px solid var(--cta);
+  color: var(--cta);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 600;
   line-height: 1;
 }
-.dpg-empty-txt { font-size: 13px; font-weight: 700; }
-/* 3.74: the gentle weather decision cue appended to the forecast line */
-.dpg-wx-cue { color: var(--accent-ink); font-weight: 600; }
 
-/* filled slot: horizontal mini-card (thumb + text), ✕ to clear */
+/* filled slot: thumb (+ time badge) · title · 📍venue · time · chips, ⋯ top-right */
 .dpg-filled { position: relative; }
 /* 3.7P-4b: a satisfying gold pop when a slot just got a plan — the savePop
    overshoot grammar in brand-gold (planning earns NO --reward violet per the ban
-   list), a single scale + a brief gold ring that settles. Reduced-motion kills it. */
+   list). Reduced-motion kills it. */
 @keyframes slotPop {
   0% { transform: scale(0.95); }
   55% { transform: scale(1.04); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.25); }
@@ -110,93 +146,82 @@
 }
 .dpg-card {
   display: flex;
-  align-items: center;
-  gap: 11px;
+  align-items: flex-start;
+  gap: 12px;
   width: 100%;
-  padding: 8px;
+  padding: 10px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--card);
+  box-shadow: var(--shadow-card);
   text-align: left;
   font-family: inherit;
   color: var(--ink);
   cursor: pointer;
 }
-.dpg-thumb { flex: 0 0 56px; width: 56px; height: 56px; border-radius: 10px; }
-.dpg-card-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding-right: 22px; }
+.dpg-thumb { position: relative; flex: 0 0 64px; width: 64px; height: 64px; border-radius: 10px; overflow: hidden; }
+.dpg-thumb-time {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  padding: 2px 5px;
+  border-radius: 6px;
+  background: rgba(26, 20, 16, 0.78);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1px;
+  line-height: 1.3;
+}
+.dpg-card-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; padding-right: 26px; }
 .dpg-card-title {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 700;
-  line-height: 1.3;
+  line-height: 1.25;
 }
+.dpg-card-venue,
 .dpg-card-meta {
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 500;
   color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.dpg-clear { top: 50%; transform: translateY(-50%); }
-.dpg-clear:active { transform: translateY(-50%) scale(0.88); }
-
-/* ===== plan actions row (U-c): "+ add your own" + "Share this day" =====
-   quiet, side-by-side affordances under the slots — never a CTA shout, in the
-   day screen's text-weight voice (the share/own pair sits below the slots and
-   above the rest control). On a narrow frame they wrap gracefully. */
-.dpg-plan-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 12px 16px 0;
+.dpg-card-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 3px; }
+.dpg-chip {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--line);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 600;
 }
-.dpg-own-btn,
-.dpg-share-btn {
-  flex: 1 1 auto;
-  min-width: 0;
-  padding: 11px 12px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
+.dpg-more {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 30px;
+  height: 26px;
+  border: 0;
+  border-radius: 8px;
   background: none;
   color: var(--muted);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 20px;
+  line-height: 1;
   cursor: pointer;
 }
-/* share is the slightly louder of the two once a plan exists — teal ink,
-   still a hairline button, no fill */
-.dpg-share-btn {
-  border-color: rgba(var(--accent-rgb), 0.35);
-  color: var(--accent-ink);
-  font-weight: 700;
-}
-
-/* the quiet rest control — a text-weight affordance, never a CTA shout */
-.dpg-rest-btn {
-  display: block;
-  margin: 12px 16px 0;
-  width: calc(100% - 32px);
-  padding: 11px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: none;
-  color: var(--muted);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
+.dpg-more:active { transform: scale(0.88); }
 
 /* rest day: the calm FILLED state that replaces the slot pickers */
 .dpg-rest {
-  margin: 2px 16px 0;
+  margin: 8px 16px 0;
   padding: 20px 16px;
-  box-shadow: var(--shadow-card); /* 3.7P-1: float the rest-day card */
+  box-shadow: var(--shadow-card);
   border-radius: 16px;
   background: var(--card);
   text-align: center;
@@ -206,40 +231,70 @@
 .dpg-rest-undo {
   margin-top: 14px;
   padding: 8px 14px;
-  border: 1px solid rgba(var(--accent-rgb), 0.35);
+  border: 1px solid rgba(187, 87, 25, 0.35);
   border-radius: 999px;
   background: none;
-  color: var(--accent-ink);
+  color: var(--cta);
   font-family: inherit;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
 }
 
-/* S1-D5: the top utility row (Add your own / Mark a quiet day) by the selector —
-   reuses the hairline button styles but lays them side-by-side, out of the plan
-   area (overrides .dpg-rest-btn's full-width block form). */
-.dpg-top-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 16px 2px; }
-.dpg-top-actions .dpg-own-btn,
-.dpg-top-actions .dpg-rest-btn { flex: 1 1 auto; width: auto; margin: 0; }
-
-/* S1-D6: the honest subline under "Suggestions for you" */
-.dpg-sec-sub { margin: 0 20px 4px; font-size: 13px; font-weight: 500; color: var(--muted); }
-
-/* S1-D7: each suggestion = the event card + a quick-add (+). The card's own inset
-   margin moves to the row so they align; the + slots it into the day's daypart. */
-.dpg-sugg-row { display: flex; align-items: center; gap: 6px; margin: 7px 14px; }
-.dpg-sugg-row .card { flex: 1; width: auto; min-width: 0; margin: 0; }
-.dpg-sugg-add {
-  flex: 0 0 42px;
-  align-self: stretch;
+/* ===== "Suggestions for you" ===== */
+.dpg-sec { padding-top: 22px; }
+.dpg-sec-sub { margin: 1px 20px 9px; font-size: 13px; font-weight: 500; color: var(--muted); }
+.dpg-suggs { display: flex; flex-direction: column; gap: 10px; padding: 0 16px; }
+.dpg-sugg { display: flex; align-items: center; gap: 9px; }
+.dpg-sugg-card {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 8px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--card);
+  text-align: left;
+  font-family: inherit;
+  color: var(--ink);
+  cursor: pointer;
+}
+.dpg-sugg-thumb { position: relative; flex: 0 0 52px; width: 52px; height: 52px; border-radius: 10px; overflow: hidden; }
+.dpg-sugg-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.dpg-sugg-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.dpg-sugg-meta {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dpg-sugg-why { font-size: 11.5px; font-weight: 600; color: var(--cta); }
+.dpg-sugg-add {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--cta);
+  border-radius: 999px;
+  background: rgba(187, 87, 25, 0.05);
   color: var(--cta);
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 600;
   line-height: 1;
   cursor: pointer;
 }
-.dpg-sugg-add:active { transform: scale(0.94); }
+.dpg-sugg-add:active { transform: scale(0.9); }

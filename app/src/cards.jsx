@@ -200,7 +200,7 @@ export function TonightCard({ e, onSelect, withDate = false }) {
 // text are one tap target that opens the detail (the CardImg [data-vt] morph); the
 // action buttons are siblings (never nested in the open button). onAdd(e) is the
 // planner write, owned by the host (HotView) so the toast + day-plan live there.
-function featuredChips(e) {
+export function featuredChips(e) {
   const out = []
   if (e.category && e.category !== 'other') out.push(e.category.charAt(0).toUpperCase() + e.category.slice(1))
   if (e._free === true || e.isFree === true) out.push('Free')
