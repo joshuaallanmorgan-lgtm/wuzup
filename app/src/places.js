@@ -50,22 +50,53 @@ export function normalizePlace(raw) {
 // BUBBLES). Order = the magazine reading order. DRAFT labels for Charles. =====
 const hasClass = (p, c) => p.classes.includes(c)
 const hasAmenity = (p, a) => p.amenities.includes(a)
+// honest "Open now" from a place's STATED hours: sunrise/sunset & dawn/dusk read
+// as daylight, explicit time ranges parse, 24/7 is always; a place with UNKNOWN
+// hours is NEVER claimed open (no fabrication). Heuristic but grounded in real data.
+export function isOpenNow(p) {
+  const h = (p.hours || '').toLowerCase().trim()
+  if (!h) return false
+  if (/24\/7|24 hours|always/.test(h)) return true
+  const now = new Date()
+  const hr = now.getHours() + now.getMinutes() / 60
+  const daylight = hr >= 6.5 && hr <= 20
+  if (/sunrise|sunset|dawn|dusk|daytime|daylight/.test(h) && !/\d/.test(h)) return daylight
+  const m = h.match(/(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)?\s*(?:-|–|to|until)\s*(?:(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)?|sunset|dusk)/)
+  if (m) {
+    const h24 = (hh, mm, ap) => {
+      hh = +hh
+      const a = (ap || '').replace(/\./g, '')
+      if (a === 'pm' && hh < 12) hh += 12
+      if (a === 'am' && hh === 12) hh = 0
+      return hh + (mm ? +mm / 60 : 0)
+    }
+    const open = h24(m[1], m[2], m[3])
+    let close = m[4] ? h24(m[4], m[5], m[6]) : 20 // "…to sunset" ≈ 20:00
+    if (close <= open) close += 24
+    return hr >= open && hr <= close
+  }
+  if (/sunset|dusk/.test(h)) return daylight
+  return false
+}
 export const PLACE_BUBBLES = [
   { id: 'beaches', emoji: '🏖️', label: 'Beaches', hue: 200, match: (p) => p.placeType === 'beach' || hasClass(p, 'beach') },
   { id: 'parks', emoji: '🌳', label: 'Parks & trails', hue: 140, match: (p) => p.placeType === 'park' || hasClass(p, 'park') || p.placeType === 'trail' || hasClass(p, 'trail') },
   { id: 'courts', emoji: '🎾', label: 'Courts & rec', hue: 35, match: (p) => p.placeType === 'courts' || ['tennis', 'basketball', 'pickleball', 'volleyball', 'racquetball', 'disc-golf', 'shuffleboard', 'skate-park'].some((a) => hasAmenity(p, a)) },
   { id: 'nature', emoji: '🥾', label: 'Nature paths', hue: 110, match: (p) => p.placeType === 'preserve' || p.placeType === 'trail' || hasClass(p, 'preserve') || hasClass(p, 'trail') || hasAmenity(p, 'nature-trails') || hasAmenity(p, 'trails') },
-  { id: 'views', emoji: '🌅', label: 'Views', hue: 25, match: (p) => p.placeType === 'viewpoint' || p.placeType === 'pier' || hasClass(p, 'pier') },
-  { id: 'dog', emoji: '🐕', label: 'Dog-friendly', hue: 50, match: (p) => p.placeType === 'dog_park' || hasClass(p, 'dog_park') || ['dog-park', 'dog-beach', 'dogs-allowed'].some((a) => hasAmenity(p, a)) },
+  // CARD_LOCK / Spots-full: the filter-chip row reconciled to ref-spots-full —
+  // "Water Views · Easy Walk · Dog Friendly · Open Now · Free". Each maps to a REAL
+  // predicate over existing fields (no dead chips).
+  { id: 'views', emoji: '🌅', label: 'Water Views', hue: 25, match: (p) => p.placeType === 'viewpoint' || p.placeType === 'pier' || hasClass(p, 'pier') },
+  { id: 'easywalk', emoji: '🚶', label: 'Easy Walk', hue: 120, match: (p) => ['garden', 'trail', 'preserve'].includes(p.placeType) || ['boardwalk', 'trails', 'nature-trails', 'ada', 'paved', 'hiking'].some((a) => hasAmenity(p, a)) },
+  { id: 'dog', emoji: '🐕', label: 'Dog Friendly', hue: 50, match: (p) => p.placeType === 'dog_park' || hasClass(p, 'dog_park') || ['dog-park', 'dog-beach', 'dogs-allowed'].some((a) => hasAmenity(p, a)) },
+  { id: 'open', emoji: '🕑', label: 'Open Now', hue: 160, match: isOpenNow },
   { id: 'hidden', emoji: '💎', label: 'Hidden spots', hue: 285, match: (p) => p.hidden === true },
-  { id: 'free', emoji: '🆓', label: 'Free forever', hue: 145, match: (p) => p.isFree === true },
+  { id: 'free', emoji: '🆓', label: 'Free', hue: 145, match: (p) => p.isFree === true },
 ]
-// Phase 3.6 N1 — the quiet top-nav split for Spots (never-hide preserved:
-// LENS ∪ CAT === PLACE_BUBBLES). The place-TYPE bubbles (beaches/parks/courts/
-// nature/views) live in the "All spots" menu; the QUALITY bubbles (free/hidden/
-// dog) ride the calm pill row, since they're the contextual filters you reach for.
-// ordered so the row reads Free · Hidden · Dog (Free leads, mirroring Events)
-const PLACE_LENS_ORDER = ['free', 'hidden', 'dog']
+// Phase 3.6 N1 / Spots-full — the quiet top-nav split for Spots (never-hide preserved:
+// LENS ∪ CAT === PLACE_BUBBLES). The 5 ref filter chips ride the pill row; the
+// place-TYPE bubbles (beaches/parks/courts/nature) + Hidden live in "All spots".
+const PLACE_LENS_ORDER = ['views', 'easywalk', 'dog', 'open', 'free']
 export const PLACE_LENS_BUBBLES = PLACE_LENS_ORDER.map((id) => PLACE_BUBBLES.find((b) => b.id === id)).filter(Boolean)
 export const PLACE_CAT_BUBBLES = PLACE_BUBBLES.filter((b) => !PLACE_LENS_ORDER.includes(b.id))
 

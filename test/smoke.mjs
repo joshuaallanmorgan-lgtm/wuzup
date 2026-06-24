@@ -1568,17 +1568,24 @@ test('places.js: normalizePlace aliases name→title, defaults category, rejects
   assert.equal(placesMod.normalizePlace({ key: 'p|x', name: 'X', lat: 'nope', lng: -82 }), null, 'non-numeric coords → null')
 })
 
-test('places.js: the eight bubbles partition sensibly + classics filter', () => {
+test('places.js: the bubbles partition sensibly + the reconciled filter chips + classics', () => {
   const ids = placesMod.PLACE_BUBBLES.map((b) => b.id)
-  assert.equal(ids.length, 8, 'exactly the eight Locations bubbles')
+  assert.equal(ids.length, 10, 'the Locations bubbles incl. the reconciled Easy Walk + Open Now chips')
   const mk = (over) => placesMod.normalizePlace({ key: 'p|t', name: 'T', lat: 28, lng: -82, placeType: 'park', classes: [], amenities: [], srcCount: 1, ...over })
   const find = (id) => placesMod.PLACE_BUBBLES.find((b) => b.id === id)
   assert.ok(find('beaches').match(mk({ placeType: 'beach' })), 'a beach matches Beaches')
-  assert.ok(find('dog').match(mk({ classes: ['dog_park'] })), 'a dog_park matches Dog-friendly')
+  assert.ok(find('dog').match(mk({ classes: ['dog_park'] })), 'a dog_park matches Dog Friendly')
   assert.ok(find('free').match(mk({ isFree: true })), 'a free place matches Free')
   assert.ok(find('hidden').match(mk({ hidden: true })), 'a hidden place matches Hidden')
   assert.ok(!find('hidden').match(mk({ hidden: false })), 'a non-hidden place does NOT match Hidden')
   assert.ok(find('courts').match(mk({ amenities: ['pickleball'] })), 'a pickleball court matches Courts & rec')
+  // Spots-full: the reconciled filter chips (ref-spots-full) map to REAL predicates
+  assert.equal(find('views').label, 'Water Views', 'the views chip is relabeled "Water Views"')
+  assert.ok(find('easywalk').match(mk({ placeType: 'garden' })) && find('easywalk').match(mk({ amenities: ['boardwalk'] })), 'Easy Walk matches gardens / boardwalks')
+  assert.equal(typeof placesMod.isOpenNow, 'function', 'isOpenNow is exported (the Open Now predicate)')
+  assert.equal(find('open').match, placesMod.isOpenNow, 'the Open Now chip uses isOpenNow')
+  assert.equal(placesMod.isOpenNow({ hours: '24/7' }), true, '24/7 reads as open')
+  assert.equal(placesMod.isOpenNow({ hours: '' }), false, 'unknown hours are NEVER claimed open (honesty)')
   // classics = corroborated across 3+ sources
   const list = [mk({ srcCount: 3 }), mk({ srcCount: 1 }), mk({ srcCount: 5 })]
   assert.equal(placesMod.classics(list).length, 2, 'classics keeps only srcCount>=3')
