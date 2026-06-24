@@ -234,9 +234,10 @@ export default function SearchPage({ events, anchors, coords }) {
                   </button>
                 ))}
             </div>
-            {/* events + spots via the shared RowFeed (compact CompactRows); not
-                rendered on the Guides tab (a guide isn't a RowFeed item). key
-                resets paging per query+tab. */}
+            {/* events + spots via the shared RowFeed — CARD_LOCK: the kind-aware
+                ResultCard renders GemRow per event + SpotCard per place, so this
+                mixed feed splits itself per item. Not on the Guides tab (a guide
+                isn't a RowFeed item). key resets paging per query+tab. */}
             {tab !== 'guides' && (
               <RowFeed
                 key={dq.trim() + '|' + tab}
@@ -244,9 +245,7 @@ export default function SearchPage({ events, anchors, coords }) {
                   ...(tab === 'all' || tab === 'events' ? eventSection : []),
                   ...(tab === 'all' || tab === 'spots' ? placeSection : []),
                 ]}
-                showDist={!!coords}
                 stagger
-                compact
                 scrollRootRef={pgRef}
                 onSelect={select}
               />

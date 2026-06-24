@@ -533,9 +533,37 @@
 /* (display-mode control fully retired in Q2a — pill in P1, segmented row +
    the modes themselves here; editorial is the app) */
 
+/* ===========================================================================
+   CARD_LOCK (Phase 0) — the canonical result feed + the SpotCard row form.
+   RowFeed now renders the kind-aware ResultCard (GemRow event / SpotCard place)
+   in a .feed--cards container, spaced like the landing .home-picks. The dense
+   .feed--compact (CompactRow) + editorial .feed--editorial (Row) feeds are retired.
+   =========================================================================== */
+.feed--cards { display: flex; flex-direction: column; gap: 12px; padding: 0 16px; }
+/* day-group headers keep the editorial hairline divider, aligned to the cards */
+.feed--cards .feed-date { margin: 6px 0 0; padding: 14px 2px 8px; border-top: 1px solid var(--line); }
+.feed--cards .feed-date:first-child { margin-top: 0; padding-top: 4px; border-top: none; }
+.feed--cards .feed-end { padding-top: 18px; }
+/* the one-shot staggered rise now plays on the canonical cards */
+.feed--cards.feed-stagger > .gem,
+.feed--cards.feed-stagger > .spotcard { animation: rowIn var(--dur-fast) var(--ease-out) both; }
+
+/* honest collapsed-series stamp on the universal GemRow (was Row/CompactRow only) */
+.gem-series { margin-top: 4px; font-size: 11.5px; font-weight: 700; color: var(--accent-ink); letter-spacing: 0.01em; }
+
+/* SpotCard ROW form — the full-width LEFT-image place row for result feeds
+   (the carousel tile stays the default). The .spotcard-body wrapper is inert in
+   tile mode; here it becomes the flex text column beside a fixed-size image. */
+.spotcard--row { flex: 1 1 auto; width: 100%; display: flex; align-items: flex-start; gap: 12px; scroll-snap-align: unset; }
+.spotcard--row .spotcard-img { flex: 0 0 92px; width: 92px; height: 92px; }
+.spotcard--row .spotcard-body { flex: 1; min-width: 0; }
+.spotcard--row .spotcard-type { margin-top: 0; }
+
 /* ===== reduced motion (card-scope) ===== */
 @media (prefers-reduced-motion: reduce) {
   .feed-stagger .row,
+  .feed--cards.feed-stagger > .gem,
+  .feed--cards.feed-stagger > .spotcard,
   .card { animation: none !important; }
   .pressable:active,
   .gems-more:active,

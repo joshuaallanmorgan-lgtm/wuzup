@@ -10,14 +10,13 @@
 // wins live on inside editorial (FREE overlay, hue energy); cinematic survives
 // only as bespoke styling on naturally dark surfaces (FMN, Big One) — their
 // own CSS, not a mode.
-import { createContext, memo, useContext, useEffect, useRef, useState } from 'react'
+import { createContext, memo, useEffect, useRef, useState } from 'react'
 import { CATEGORY_EMOJI, CATEGORY_HUES, PLACETYPE_EMOJI, PLACETYPE_HUE } from './categories.js'
 import { Icon, dayLabelLoose, dayLoose, keyOf, priceLabel, startLabel, timeOf } from './lib.js'
 import { ACTIVITIES } from './places.js'
 import { imageMode } from './imageMode.js'
 import { daypartOf } from './weekend.js'
 import { SaveHeart, useSaves } from './saves.js'
-import { dateKey } from './weather.js'
 import './cards.css'
 import './modes.css'
 
@@ -272,6 +271,17 @@ export function GemRow({ e, onSelect }) {
   // time) + a tinted category chip below the title (per ref-events.png).
   const time = e.kind !== 'place' && !e._ongoing ? timeOf(e.start) : null
   const cat = e.category && e.category !== 'other' ? e.category.charAt(0).toUpperCase() + e.category.slice(1) : null
+  // CARD_LOCK: GemRow is now the universal result card, so a COLLAPSED recurring
+  // series must wear its honest "+ N more …" stamp here too (never pose as a single
+  // occurrence) — the same disclosure Row/CompactRow carried. Honest about WHAT
+  // varies: a multi-venue series says "dates & venues".
+  const more = (() => {
+    if (typeof e._moreDates !== 'number' || e._moreDates <= 0) return null
+    const n = e._moreDates
+    const venues = Array.isArray(e._series) ? new Set(e._series.map((x) => x.venue || '').filter(Boolean)) : null
+    if (venues && venues.size > 1) return `+${n} more dates & venues`
+    return n === 1 ? '+1 more date' : `+${n} more dates`
+  })()
   return (
     <button className="gem pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
       <CardImg e={e} className="gem-img">
@@ -283,6 +293,7 @@ export function GemRow({ e, onSelect }) {
         <div className="gem-title">{e.title}</div>
         <div className="gem-meta">{[dayLoose(e), e.venue].filter(Boolean).join(' · ')}</div>
         {cat && <span className="gem-cat">{cat}</span>}
+        {more && <div className="gem-series">{more}</div>}
         {/* E-L2: honest "Why this fits" — only renders when caller sets e._why */}
         {e._why && <div className="gem-why">+ Why this fits: {e._why}</div>}
         <SponsoredTag e={e} />
@@ -353,39 +364,56 @@ const spotBestFor = (p) => {
   const match = ACTIVITIES.find((a) => a.match(p))
   return match ? match.label : null
 }
-export function SpotCard({ p, onSelect }) {
+// CARD_LOCK: SpotCard is the universal PLACE card. `row` renders the full-width
+// LEFT-image form for vertical RESULT feeds (the ref's "Recommended near you"
+// list); the default is the 200px top-image carousel TILE (LocationsView rails).
+// Same content either way — only the layout flips (via .spotcard--row + the
+// .spotcard-body wrapper). Distance stays the honest on-image badge in Phase 0;
+// the SPOTS_GRIND text-distance correction is Phase 2.
+export function SpotCard({ p, onSelect, row = false }) {
   const chips = spotChips(p)
   const dist = distLabel(p)
   const bestFor = spotBestFor(p)
   return (
-    <button className="spotcard pressable" onClick={(ev) => onSelect(p, ev.currentTarget)}>
+    <button className={'spotcard pressable' + (row ? ' spotcard--row' : '')} onClick={(ev) => onSelect(p, ev.currentTarget)}>
       <CardImg e={p} className="spotcard-img">
         <SaveHeart e={p} />
         {p.hidden && <span className="spot-badge" aria-label="Hidden gem">💎</span>}
         {/* TOUCHUP P2: distance now an on-image badge (overlay, bottom-left) */}
         {dist && <span className="imgbadge spotcard-dist">{dist}</span>}
       </CardImg>
-      <div className="spotcard-type">{placeTypeLabel(p)}</div>
-      <div className="spotcard-title">{p.title}</div>
-      {chips.length > 0 ? (
-        <div className="spotcard-amen">
-          {chips.map((c, i) => {
-            const Glyph = Icon[c.icon]
-            return (
-              <span className="spot-amen" key={i}>
-                {Glyph && <Glyph className="spot-amen-ic" aria-hidden />}
-                {c.label}
-              </span>
-            )
-          })}
-        </div>
-      ) : (
-        <div className="spotcard-meta">{p.venue || 'Tap for details'}</div>
-      )}
-      {bestFor && <div className="spotcard-bestfor">★ Best for: {bestFor}</div>}
+      <div className="spotcard-body">
+        <div className="spotcard-type">{placeTypeLabel(p)}</div>
+        <div className="spotcard-title">{p.title}</div>
+        {chips.length > 0 ? (
+          <div className="spotcard-amen">
+            {chips.map((c, i) => {
+              const Glyph = Icon[c.icon]
+              return (
+                <span className="spot-amen" key={i}>
+                  {Glyph && <Glyph className="spot-amen-ic" aria-hidden />}
+                  {c.label}
+                </span>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="spotcard-meta">{p.venue || 'Tap for details'}</div>
+        )}
+        {bestFor && <div className="spotcard-bestfor">★ Best for: {bestFor}</div>}
+      </div>
     </button>
   )
 }
+
+// CARD_LOCK — the canonical VERTICAL result card, kind-aware: an EVENT renders
+// GemRow, a PLACE renders the SpotCard ROW form. ONE swap point for every result
+// feed (RowFeed + any direct result list) so a mixed feed (SearchPage) lays each
+// item out with the right card. memo'd (Row/CompactRow parity) so a long feed
+// re-renders ~0 rows per detail-open when e + onSelect are stable.
+export const ResultCard = memo(function ResultCard({ e, onSelect }) {
+  return e.kind === 'place' ? <SpotCard p={e} row onSelect={onSelect} /> : <GemRow e={e} onSelect={onSelect} />
+})
 
 // IntentTile (3.7P-20) — the ONE shared "intent" widget for BOTH pages: a hue-
 // tinted emoji disc + a label + an optional point-of-view line. Events Guides,
@@ -414,150 +442,6 @@ export function EndCap({ square, onClick, children = 'See all →' }) {
   )
 }
 
-// the Everything/feed row, editorial treatment (THE design system): 110px
-// image left, category overline + spine in the category hue, FREE overlay on
-// the image (poster's best element, folded in), heat badge / price chip
-// (priced only) / distance in a right-aligned rail. CardImg keeps [data-vt]
-// so the detail morph works.
-//
-// memo'd (Sprint M1): HotView re-renders on every taste/recents/saves emit —
-// i.e. on every detail open — and RowFeed reconciles up to `limit` rows each
-// time (1,600+ once the Everything feed is fully paged). All four props are
-// referentially stable across those re-renders (e: from the evSections memo;
-// onSelect: App's useCallback'd openDetail; dist: null; style: undefined or a
-// hoisted STAGGER_STYLES constant), so memo turns ~1,600 row re-renders per
-// card tap into ~0. Context reads (weather) bypass memo by design, so
-// forecast arrival still repaints every row.
-export const Row = memo(function Row({ e, dist, style, onSelect }) {
-  // outdoor events on a rainy forecast day carry a tiny honesty hint in the meta
-  const wx = useContext(WxContext)
-  const wxDay = e.category === 'outdoors' && e._day != null && wx ? wx[dateKey(e._day)] : null
-  const rain = wxDay && wxDay.rain != null && wxDay.rain >= 30 ? '🌧 ' + wxDay.rain + '%' : null
-  const st = { ...style, '--ch': hueFor(e) }
-  const open = (ev) => onSelect(e, ev.currentTarget)
-  const mi = dist != null ? dist.toFixed(1) + ' mi' : null
-  const free = e._free === true || e.isFree === true
-
-  // W3 collapsed recurring series: a card representing N dates wears an honest
-  // "+ N more …" stamp so it never poses as a single occurrence. The noun is
-  // honest about WHAT varies — a single-venue repeat is "+N more dates", but a
-  // series running across venues (same title, different places) says "dates &
-  // venues" so the card never implies one location. Tap → detail's full "All
-  // dates & venues" list (the openable instances). DRAFT copy — ⚑ Charles.
-  const more = (() => {
-    if (typeof e._moreDates !== 'number' || e._moreDates <= 0) return null
-    const n = e._moreDates
-    const venues = Array.isArray(e._series) ? new Set(e._series.map((x) => x.venue || '').filter(Boolean)) : null
-    if (venues && venues.size > 1) return `+${n} more dates & venues`
-    return n === 1 ? '+1 more date' : `+${n} more dates`
-  })()
-  const meta = (e._ongoing ? ['Ongoing', e.venue, rain] : [dayLabelLoose(e), timeOf(e.start), e.venue, rain])
-    .filter(Boolean)
-    .join(' · ')
-  return (
-    <button className="row row--editorial pressable" style={st} onClick={open}>
-      <CardImg e={e} className="row-img">
-        <SaveHeart e={e} />
-        {/* poster's best element folded in (tasting verdict): FREE overlay */}
-        {free && <span className="free-badge">FREE</span>}
-      </CardImg>
-      <div className="row-main">
-        {/* 'other' is a fallback bucket, not a real category — no overline */}
-        {e.category !== 'other' && <div className="row-cat">{e.category}</div>}
-        <div className="row-title">{e.title}</div>
-        <div className="row-meta">{meta || 'Tap for details'}</div>
-        {more && <div className="row-series">{more}</div>}
-        <SponsoredTag e={e} />
-      </div>
-      <div className="row-side">
-        <HeatBadge e={e} />
-        {/* free-ness lives on the image badge now — rail chip only for priced */}
-        {!free && <PriceChip e={e} />}
-        {mi && <span className="row-dist">{mi}</span>}
-      </div>
-    </button>
-  )
-})
-
-// the 6 distinct stagger delays as frozen module constants: an inline object
-// literal per row would hand memo(Row) a fresh `style` identity every render
-// and silently defeat it on the stagger pages (Bubble/Search)
-const STAGGER_STYLES = [0, 30, 60, 90, 120, 150].map((ms) => Object.freeze({ animationDelay: ms + 'ms' }))
-
-// 3.7P-42 — CompactRow: the CompactListRow of the DecisionCard system. The dense,
-// text-forward decision row for COMPARE/DECIDE surfaces (guide + bubble + see-all
-// lists), where Home's big cards are for DISCOVER. Text LEADS; a real photo is a
-// supporting 48×48 thumb on the right (imageMode gate) and a photo-less item shows
-// NO placeholder (the "green wall" fix) — the title carries the row, so ~8+ fit per
-// screen for fast compare. Kind-aware per the Decision-Layer thesis: an EVENT reads
-// TIME-first (day · time · venue · dist), a PLACE reads ACTIVITY/UTILITY-first
-// (type · dist · amenity chips). Tap → the shared detail (where Save / Add-to-day
-// live). memo'd like Row so a 1,000-item bubble list re-renders ~0 rows per open.
-export const CompactRow = memo(function CompactRow({ e, dist, style, onSelect }) {
-  const wx = useContext(WxContext)
-  const isPlace = e.kind === 'place'
-  const mode = imageMode(e) // 'photo' → 48px thumb; 'icon'/'text' → text-led, no box
-  const open = (ev) => onSelect(e, ev.currentTarget)
-  // same dist contract as Row (RowFeed's dist prop only; no silent e._dist fallback)
-  const mi = dist != null ? dist.toFixed(1) + ' mi' : null
-  const free = e._free === true || e.isFree === true
-  // a PAID event must still show its cost on the compare surface (Row parity)
-  const priced = !isPlace && !free ? priceLabel(e) : null
-  const hot = !isPlace && typeof e.buzz === 'number' && e.buzz >= 2
-  // weather honesty hint (outdoor events on a rainy day) — the lightweight "fit" cue
-  const wxDay = !isPlace && e.category === 'outdoors' && e._day != null && wx ? wx[dateKey(e._day)] : null
-  const rain = wxDay && wxDay.rain != null && wxDay.rain >= 30 ? '🌧 ' + wxDay.rain + '%' : null
-  // collapsed-series stamp (events) — honest about WHAT varies (dates vs venues)
-  const more = (() => {
-    if (isPlace || typeof e._moreDates !== 'number' || e._moreDates <= 0) return null
-    const n = e._moreDates
-    const venues = Array.isArray(e._series) ? new Set(e._series.map((x) => x.venue || '').filter(Boolean)) : null
-    if (venues && venues.size > 1) return `+${n} more dates & venues`
-    return n === 1 ? '+1 more date' : `+${n} more dates`
-  })()
-  const meta = isPlace
-    ? [placeTypeLabel(e), mi].filter(Boolean).join(' · ')
-    : (e._ongoing ? ['Ongoing', e.venue, mi, rain] : [dayLabelLoose(e), timeOf(e.start), e.venue, mi, rain])
-        .filter(Boolean)
-        .join(' · ')
-  const chips = isPlace ? spotChips(e) : null
-  return (
-    <button className="crow pressable" style={style} onClick={open}>
-      <div className="crow-main">
-        <div className="crow-head">
-          <span className="crow-title">{e.title}</span>
-          {/* events wear an inline Free tag or price; places get Free as their first amenity chip */}
-          {!isPlace && free && <span className="crow-free">Free</span>}
-          {priced && <span className="crow-price">{priced}</span>}
-          {hot && <span className="crow-hot" aria-hidden>🔥{e.buzz >= 3 ? e.buzz : ''}</span>}
-          {isPlace && e.hidden && <span className="crow-gem" aria-label="Hidden gem">💎</span>}
-        </div>
-        <div className="crow-meta">{meta || 'Tap for details'}</div>
-        {isPlace && chips && chips.length > 0 && (
-          <div className="crow-chips">
-            {chips.map((c, i) => {
-              const Glyph = Icon[c.icon]
-              return (
-                <span className="crow-chip" key={i}>
-                  {Glyph && <Glyph className="crow-chip-ic" aria-hidden />}
-                  {c.label}
-                </span>
-              )
-            })}
-          </div>
-        )}
-        {more && <div className="crow-series">{more}</div>}
-        <SponsoredTag e={e} />
-      </div>
-      {mode === 'photo' && <CardImg e={e} className="crow-thumb" />}
-      {/* Stage R: every compare row carries an inline Save (was absent — the row
-          had no heart at all). SaveHeart is a span[role=button] (valid inside the
-          row button) + stopPropagation; modes.css styles it in-flow at the right. */}
-      <SaveHeart e={e} />
-    </button>
-  )
-})
-
 // vertical feed with optional date headers + infinite paging (30 rows/page).
 // sections: [{ label: string|null, items: event[] }]. stagger=true plays a one-shot
 // staggered rise on the first 6 rows (use when a page swaps its list in).
@@ -566,10 +450,9 @@ export const CompactRow = memo(function CompactRow({ e, dist, style, onSelect })
 // headerExtra (Q2): optional (section) => node rendered inside the day header
 // (HotView's 🃏 "Deck this" entry); when it returns something the header flexes
 // via .feed-date-deck — consumers that don't pass it render byte-identically.
-// compact (3.7P-42): COMPARE/DECIDE drill-in lists (guides, bubbles, see-all) pass
-// it to render the dense text-forward CompactRow instead of the big editorial Row —
-// Home discovery keeps the big cards (discover = visual; decide = dense).
-export function RowFeed({ sections, showDist, stagger, compact, scrollRootRef, endSlot, headerExtra, onSelect }) {
+// CARD_LOCK: every row is the canonical kind-aware ResultCard now (GemRow event /
+// SpotCard place) — the dense CompactRow + the editorial Row are retired; one card.
+export function RowFeed({ sections, stagger, scrollRootRef, endSlot, headerExtra, onSelect }) {
   const [limit, setLimit] = useState(PAGE_SIZE)
   const sentRef = useRef(null)
   const total = sections.reduce((n, s) => n + s.items.length, 0)
@@ -601,22 +484,15 @@ export function RowFeed({ sections, showDist, stagger, compact, scrollRootRef, e
         </div>
       )
     }
-    const RowComp = compact ? CompactRow : Row
     for (const it of items) {
-      out.push(
-        <RowComp
-          key={keyOf(it) + rowIdx}
-          e={it}
-          dist={showDist ? it._dist : null}
-          style={stagger ? STAGGER_STYLES[Math.min(rowIdx, 5)] : undefined}
-          onSelect={onSelect}
-        />
-      )
+      // CARD_LOCK: the canonical kind-aware card (GemRow event / SpotCard place),
+      // so a mixed feed (SearchPage) renders each item with the right card.
+      out.push(<ResultCard key={keyOf(it) + rowIdx} e={it} onSelect={onSelect} />)
       rowIdx++
     }
     count += items.length
   }
-  const cls = 'feed feed--editorial' + (compact ? ' feed--compact' : '') + (stagger ? ' feed-stagger' : '')
+  const cls = 'feed feed--cards' + (stagger ? ' feed-stagger' : '')
   return (
     <div className={cls}>
       {out}

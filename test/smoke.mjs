@@ -1210,28 +1210,28 @@ test('3.7P-36 imageMode: photo / icon / text gate (no green placeholder as prima
   assert.equal(im(undefined), 'text', 'no event object → text-led (defensive)')
 })
 
-// 3.7P-42 — the DecisionCard spine. A shared, kind-aware CompactRow renders the
-// dense COMPARE/DECIDE drill-in lists (guides/bubbles), where Home keeps big cards.
-test('3.7P-42 CompactRow: kind-aware dense rows wired into the drill-in lists', () => {
+// CARD_LOCK (Phase 0) — the canonical result card. The dense CompactRow + the
+// editorial Row are RETIRED; ONE kind-aware ResultCard (GemRow event / SpotCard
+// place) renders every vertical result feed via RowFeed.
+test('CARD_LOCK: ResultCard is the kind-aware canonical card; CompactRow/Row retired', () => {
   const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
-  assert.ok(/export const CompactRow = memo\(/.test(cards), 'cards.jsx exports a memo CompactRow (the CompactListRow)')
-  // kind-aware per the Decision-Layer thesis: events time-first, places activity-first
-  assert.ok(/const isPlace = e\.kind === 'place'/.test(cards), 'CompactRow branches on place vs event')
-  assert.ok(/imageMode\(e\)/.test(cards), 'CompactRow consults the imageMode gate for its thumb')
-  assert.ok(/mode === 'photo' && <CardImg/.test(cards), 'a thumb renders ONLY for a real photo (no green placeholder)')
-  assert.ok(/isPlace \? spotChips\(e\)/.test(cards), 'places lead with activity/amenity chips')
-  // RowFeed switches Row→CompactRow on the compact flag; Home stays big
-  assert.ok(/const RowComp = compact \? CompactRow : Row/.test(cards), 'RowFeed picks CompactRow when compact')
-  // the drill-in / compare lists opt in; HotView (Home discovery) must NOT
-  for (const f of ['GuidePage.jsx', 'BubblePage.jsx', 'PlaceBubblePage.jsx', 'SearchPage.jsx']) {
+  assert.ok(/export const ResultCard = memo\(/.test(cards), 'cards.jsx exports a memo ResultCard (the canonical result card)')
+  assert.ok(/e\.kind === 'place' \? <SpotCard/.test(cards), 'ResultCard renders SpotCard (row form) for a place')
+  assert.ok(/: <GemRow e=/.test(cards), 'ResultCard renders GemRow for an event')
+  assert.ok(/<ResultCard /.test(cards), 'RowFeed renders the canonical ResultCard')
+  // one card, not three: the dense CompactRow + the editorial Row are GONE
+  assert.ok(!/export const CompactRow = memo\(/.test(cards), 'the dense CompactRow is retired')
+  assert.ok(!/export const Row = memo\(/.test(cards), 'the editorial Row is retired (consolidated into GemRow)')
+  assert.ok(!/compact \? CompactRow/.test(cards), 'RowFeed no longer branches on a compact flag')
+  // SpotCard gained the left-image ROW form for feeds (the carousel tile stays default)
+  assert.ok(/function SpotCard\(\{ p, onSelect, row = false \}\)/.test(cards), 'SpotCard supports the row form for feeds')
+  assert.ok(/spotcard--row/.test(cards), 'SpotCard applies the row class for the feed layout')
+  // every result/destination feed renders the canonical card — NONE pass `compact`
+  for (const f of ['GuidePage.jsx', 'BubblePage.jsx', 'PlaceBubblePage.jsx', 'SearchPage.jsx', 'LocationsView.jsx']) {
     const src = readFileSync(path.join(ROOT, 'app', 'src', f), 'utf8')
-    assert.ok(/<RowFeed[^>]*\scompact/s.test(src) || /compact\b/.test(src), `${f} renders RowFeed in compact mode`)
+    assert.ok(/<RowFeed/.test(src), `${f} renders the shared RowFeed`)
+    assert.ok(!/<RowFeed[^>]*\scompact/s.test(src), `${f} no longer renders RowFeed in compact mode (canonical card)`)
   }
-  const hot = readFileSync(path.join(ROOT, 'app', 'src', 'HotView.jsx'), 'utf8')
-  assert.ok(!/<RowFeed[^>]*\scompact/s.test(hot), 'Home discovery (HotView) keeps the big editorial Row (discover = visual)')
-  // the compact styles exist
-  const modes = readFileSync(path.join(ROOT, 'app', 'src', 'modes.css'), 'utf8')
-  assert.ok(/\.crow\b/.test(modes) && /\.crow-thumb/.test(modes), 'modes.css carries the .crow compact-row styles')
 })
 
 // 3.7P-34 — event detail goes planner-first: the primary sticky CTA is "Add to
@@ -1272,8 +1272,11 @@ test('3.7P-39 section-label honesty: job/career fairs are not Hidden Gems', () =
 // 3.7P-23/25/39 review — Phase B wiring + cross-surface honesty.
 test('3.7P-23/25 wiring: Home compact sections + clean AA-safe guide tiles', () => {
   const hot = readFileSync(path.join(ROOT, 'app', 'src', 'HotView.jsx'), 'utf8')
-  assert.ok((hot.match(/feed feed--compact/g) || []).length >= 2, 'both Home secondary sections render as feed--compact')
-  assert.ok(/<CompactRow /.test(hot), 'HotView uses CompactRow for the secondary sections')
+  // CARD_LOCK: Home's secondary sections (Hidden Gems / Recently viewed) render the
+  // canonical cards in .home-picks now — the dense CompactRow + feed--compact retired.
+  assert.ok(!/<CompactRow /.test(hot), 'HotView no longer uses the retired CompactRow')
+  assert.ok(!/feed feed--compact/.test(hot), 'HotView secondary sections are no longer feed--compact')
+  assert.ok(/<GemRow /.test(hot) && /<ResultCard /.test(hot), 'HotView renders canonical GemRow / ResultCard for its sections')
   const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.css'), 'utf8')
   // S1-SP2/SP3: the warm per-hue wash is retired — the tile is a clean white card
   // + neutral hairline; identity moves to the hue-tinted emoji medallion.
@@ -1320,7 +1323,7 @@ test('3.7P-24 §N Spots: SpotCard carousel sections + compact place Everything (
   // SP-L3: Recommended now a SpotCard carousel (not a single FeaturedCard); Worth the drive added
   assert.ok(/nearSpots/.test(loc) && /<SpotCard/.test(loc), 'Spots Recommended = SpotCard carousel (SP-L3)')
   assert.ok(/Worth the drive/.test(loc) && /driveSpots/.test(loc), 'Spots has Worth the drive section (SP-L3)')
-  assert.ok(/sections={everything} compact/.test(loc), 'the place Everything feed is compact (no green art wall)')
+  assert.ok(/sections={everything}/.test(loc) && !/sections={everything} compact/.test(loc), 'CARD_LOCK: the place Everything feed renders the canonical SpotCard rows (no compact)')
   const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
   assert.ok(/const isPlace = e\.kind === 'place'/.test(cards) && /spotChips\(e\)\.map/.test(cards), 'FeaturedCard is place-aware (activity-first meta + amenity chips)')
   assert.ok(/\{onAdd && <button className="featc-act featc-add"/.test(cards), 'the inline Add only renders when onAdd is provided (places open the detail to pick a day)')
@@ -1522,11 +1525,11 @@ test('Addendum O seam-lock: PickerSheet Escape is capture-phase (closes the shee
   assert.ok(/window\.addEventListener\('keydown', onKey, true\)/.test(ps) && /ev\.stopPropagation\(\)/.test(ps), 'PickerSheet Escape is capture-phase + stopPropagation')
 })
 
-test('Addendum O seam-lock: CompactRow drill-in / Row Home split stays intact', () => {
+test('CARD_LOCK seam-lock: one kind-aware ResultCard feeds every result list', () => {
   const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
-  assert.ok(/export const CompactRow = memo\(/.test(cards), 'CompactRow exists (memo)')
-  assert.ok(/const RowComp = compact \? CompactRow : Row/.test(cards), 'RowFeed switches Row↔CompactRow on the compact flag')
-  assert.ok(/const isPlace = e\.kind === 'place'/.test(cards) && /imageMode\(e\)/.test(cards), 'CompactRow is kind-aware and consults the imageMode gate')
+  assert.ok(/export const ResultCard = memo\(/.test(cards), 'the canonical ResultCard exists (memo)')
+  assert.ok(/<ResultCard /.test(cards), 'RowFeed renders the ResultCard (no Row/CompactRow branch)')
+  assert.ok(!/export const CompactRow = memo\(/.test(cards) && !/export const Row = memo\(/.test(cards), 'CompactRow + the editorial Row are retired')
 })
 
 // 3.7P-35 review (integration): cleaning the display title must NOT shift an

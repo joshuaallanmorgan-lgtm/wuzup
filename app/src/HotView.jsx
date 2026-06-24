@@ -8,7 +8,7 @@ import { BUBBLES, CAT_BUBBLES, LENS_BUBBLES, NON_GEM_RE, dayLabel, hotDesc, keyO
 import LensNav from './LensNav.jsx'
 import { curateFeed } from './curate.js'
 import { useNav } from './nav.jsx'
-import { CompactRow, GemRow, IntentTile, RowFeed, SecHead, TonightCard, WxContext } from './cards.jsx'
+import { GemRow, IntentTile, ResultCard, RowFeed, SecHead, TonightCard, WxContext } from './cards.jsx'
 import { GUIDES, useGuides, watchGuideActive, resolveWatchGuide } from './guides.js'
 import { shelfItems, useSaves } from './saves.js'
 import { railReady, tasteNudge, topCategories, useTaste } from './taste.js'
@@ -267,9 +267,9 @@ export default function HotView({ events, anchors, loading }) {
         {gems.length > 0 && (
           <section className={'sec' + ent(2).className} style={ent(2).style}>
             <SecHead overline="Under the radar" title="Hidden Gems" sub={`${gems.length} hand-scored find${gems.length === 1 ? '' : 's'}`} />
-            <div className="feed feed--compact">
-              {gems.slice(0, 3).map((e, i) => (
-                <CompactRow key={keyOf(e) + i} e={e} onSelect={onSelect} />
+            <div className="home-picks">
+              {gems.slice(0, 3).map((e) => (
+                <GemRow key={keyOf(e)} e={e} onSelect={onSelect} />
               ))}
             </div>
             <button className="gems-more" onClick={() => scrollToList(evRef.current)}>
@@ -292,9 +292,9 @@ export default function HotView({ events, anchors, loading }) {
         {recents.length > 0 && (
           <section className="sec">
             <SecHead overline="Pick up where you left off" title="Recently viewed" />
-            <div className="feed feed--compact">
+            <div className="home-picks">
               {recents.map((e, i) => (
-                <CompactRow key={keyOf(e) + i} e={e} onSelect={onSelect} />
+                <ResultCard key={keyOf(e) + i} e={e} onSelect={onSelect} />
               ))}
             </div>
           </section>

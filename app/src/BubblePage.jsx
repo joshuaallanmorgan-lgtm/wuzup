@@ -16,9 +16,10 @@
 // (Today/Tomorrow/weekday), hotScore desc within a day, RowFeed pages ~30 rows
 // via IntersectionObserver rooted at this page's own .pg scroller.
 import { useMemo, useRef, useState } from 'react'
-import { CITY, dayLabel, hotDesc, Icon, milesBetween, orderDay } from './lib.js'
+import { CITY, dayLabel, hotDesc, Icon, milesBetween, orderDay, LENS_BUBBLES, CAT_BUBBLES } from './lib.js'
 import { useNav } from './nav.jsx'
 import { RowFeed } from './cards.jsx'
+import LensNav from './LensNav.jsx'
 import { tasteNudge } from './taste.js'
 import { DeckThisButton } from './LensDeck.jsx'
 import './bubble.css'
@@ -65,7 +66,7 @@ const EMPTIES = {
 }
 
 export default function BubblePage({ bubble, events, anchors, coords, requestCoords }) {
-  const { openDetail: onSelect, closePage: onClose } = useNav()
+  const { openDetail: onSelect, closePage: onClose, openBubble, openEvFilters } = useNav()
   const pgRef = useRef(null) // the scrolling ancestor — RowFeed's IO root
   const [locState, setLocState] = useState('idle') // 'idle' | 'asking' | 'denied'
   const near = bubble.kind === 'sort'
@@ -147,6 +148,9 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
           )}
         </div>
       </header>
+      {/* CARD_LOCK: the shared filter-chip bar on results too — chips navigate to
+          real bubbles (active = this one), "Filter" opens the FiltersSheet. */}
+      <LensNav lenses={LENS_BUBBLES} categories={CAT_BUBBLES} onOpen={openBubble} onFilter={openEvFilters} activeId={bubble.id} />
       <div className="pg-body">
         {near && !coords && count > 0 && (
           <div className="bub-locate">
@@ -163,14 +167,7 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
           </div>
         )}
         {count > 0 ? (
-          <RowFeed
-            sections={sections}
-            showDist={near && !!coords}
-            stagger
-            compact
-            scrollRootRef={pgRef}
-            onSelect={onSelect}
-          />
+          <RowFeed sections={sections} stagger scrollRootRef={pgRef} onSelect={onSelect} />
         ) : (
           <div className="empty">
             {EMPTIES[bubble.id] || `No ${bubble.label.toLowerCase()} listed right now.`}

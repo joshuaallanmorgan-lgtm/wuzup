@@ -11,8 +11,9 @@ import { useMemo, useRef } from 'react'
 import { Icon } from './lib.js'
 import { useNav } from './nav.jsx'
 import { RowFeed } from './cards.jsx'
+import LensNav from './LensNav.jsx'
 import { tasteNudge, useTaste } from './taste.js'
-import { usePlaces } from './places.js'
+import { usePlaces, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES } from './places.js'
 import './bubble.css'
 import './locations.css'
 
@@ -37,7 +38,7 @@ const TAGLINES = {
 }
 
 export default function PlaceBubblePage({ bubble }) {
-  const { openDetail: onSelect, closePage: onClose } = useNav()
+  const { openDetail: onSelect, closePage: onClose, openPlaceBubble } = useNav()
   const { places, status } = usePlaces()
   const taste = useTaste()
   const pgRef = useRef(null)
@@ -74,9 +75,11 @@ export default function PlaceBubblePage({ bubble }) {
           <div className="bub-tag">{TAGLINES[bubble.id] || 'Picked fresh for you.'}</div>
         </div>
       </header>
+      {/* CARD_LOCK: the shared filter-chip bar on results too (place lenses). */}
+      <LensNav lenses={PLACE_LENS_BUBBLES} categories={PLACE_CAT_BUBBLES} menuLabel="All spots" onOpen={openPlaceBubble} activeId={bubble.id} />
       <div className="pg-body">
         {count > 0 ? (
-          <RowFeed sections={sections} stagger compact scrollRootRef={pgRef} onSelect={onSelect} />
+          <RowFeed sections={sections} stagger scrollRootRef={pgRef} onSelect={onSelect} />
         ) : (
           <div className="empty">
             {status === 'loading'

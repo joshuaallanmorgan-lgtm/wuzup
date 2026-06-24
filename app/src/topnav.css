@@ -30,6 +30,10 @@
   transition: background var(--dur-fast), border-color var(--dur-fast), transform var(--dur-micro);
 }
 .lens-pill:hover { border-color: rgba(var(--accent-rgb), 0.4); }
+/* CARD_LOCK: the ACTIVE chip (the filter/bubble you're currently viewing) =
+   --cta fill + white; the rest stay outline (the bordered pill above). */
+.lens-pill.active { background: var(--cta); border-color: var(--cta); color: #fff; }
+.lens-pill.active:hover { border-color: var(--cta); }
 /* 3.7P-19: the search pill is now ICON-ONLY (no "Search" text), sitting to the
    RIGHT of the lenses so the whole lens row fits one line. A fixed 44px circle,
    accent-tinted so it reads as the search ENTRY (not an empty filter chip). */

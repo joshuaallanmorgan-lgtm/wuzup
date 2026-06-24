@@ -10,17 +10,19 @@
 // Only PLACES are ever pre-seeded (always-there); a date-pinned event is never
 // dropped onto an arbitrary day. DRAFT copy — ⚑ Charles.
 import { useMemo, useRef } from 'react'
-import { Icon } from './lib.js'
+import { Icon, LENS_BUBBLES, CAT_BUBBLES } from './lib.js'
 import { useNav } from './nav.jsx'
 import { RowFeed } from './cards.jsx'
-import { usePlaces } from './places.js'
+import LensNav from './LensNav.jsx'
+import { usePlaces, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES } from './places.js'
 import { resolveGuide, resolveWatchGuide } from './guides.js'
 import { loadDayPlans, saveDayPlans, withSlot } from './dayplan.js'
 import './bubble.css'
 
 export default function GuidePage({ guide, events, anchors }) {
-  const { openDetail: onSelect, closePage: onClose, openDay } = useNav()
+  const { openDetail: onSelect, closePage: onClose, openDay, openBubble, openPlaceBubble, openEvFilters } = useNav()
   const pgRef = useRef(null)
+  const isSpots = guide?.domain === 'spots' // a spots guide gets the place lenses
   // load places only for guides that need them (lazy ~1.2MB fetch, like Spots)
   const { places } = usePlaces(!!guide?.needsPlaces)
 
@@ -86,9 +88,17 @@ export default function GuidePage({ guide, events, anchors }) {
           )}
         </div>
       </header>
+      {/* CARD_LOCK: the shared filter-chip bar on results too — lenses by domain. */}
+      <LensNav
+        lenses={isSpots ? PLACE_LENS_BUBBLES : LENS_BUBBLES}
+        categories={isSpots ? PLACE_CAT_BUBBLES : CAT_BUBBLES}
+        menuLabel={isSpots ? 'All spots' : 'All categories'}
+        onOpen={isSpots ? openPlaceBubble : openBubble}
+        onFilter={isSpots ? undefined : openEvFilters}
+      />
       <div className="pg-body">
         {items.length > 0 ? (
-          <RowFeed sections={sections} compact scrollRootRef={pgRef} onSelect={onSelect} />
+          <RowFeed sections={sections} scrollRootRef={pgRef} onSelect={onSelect} />
         ) : (
           <div className="empty">
             Nothing fits this guide right now — check back soon.

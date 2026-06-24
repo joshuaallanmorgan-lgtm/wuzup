@@ -247,10 +247,9 @@ export default function LocationsView({ coords }) {
             title={<>Everything <span className="sec-count">· {all.length.toLocaleString('en-US')}</span></>}
             sub="Every place, by your vibe"
           />
-          {/* 3.7P-24: the place list goes COMPACT — dense field-guide rows (name ·
-              type · distance · amenity chips), NO green art placeholder for the
-              photo-less majority (the green-wall fix; decide = dense). */}
-          <RowFeed sections={everything} compact onSelect={onSelect} />
+          {/* CARD_LOCK: the place list now renders the canonical SpotCard rows
+              (left-image), the one card across every result feed. */}
+          <RowFeed sections={everything} onSelect={onSelect} />
         </section>
       </div>
     </div>
