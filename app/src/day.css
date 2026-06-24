@@ -298,3 +298,64 @@
   cursor: pointer;
 }
 .dpg-sugg-add:active { transform: scale(0.9); }
+
+/* ===== Plan Phase 2: the planned-item action menu (move / remove) ===== */
+.dpg-menu-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 1600;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(26, 20, 16, 0.32);
+}
+.dpg-menu {
+  width: 100%;
+  max-width: 460px;
+  margin: 0 8px 8px;
+  padding: 8px;
+  border-radius: 18px;
+  background: var(--card);
+  box-shadow: var(--shadow-card);
+}
+.dpg-menu-title {
+  padding: 10px 12px 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dpg-menu-item {
+  display: block;
+  width: 100%;
+  padding: 14px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  text-align: center;
+  cursor: pointer;
+}
+.dpg-menu-item:active { background: var(--line); }
+.dpg-menu-item:disabled { color: var(--muted); opacity: 0.5; pointer-events: none; }
+.dpg-menu-danger { color: #b3261e; }
+.dpg-menu-cancel {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 14px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: none;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+}

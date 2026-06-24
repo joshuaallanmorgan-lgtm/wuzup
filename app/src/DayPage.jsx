@@ -88,6 +88,32 @@ export default function DayPage({ ts, events, anchors, wx }) {
   const [justFilled, setJustFilled] = useState(null)
   const fillTRef = useRef(null)
   useEffect(() => () => clearTimeout(fillTRef.current), [])
+  // Plan Phase 2: the planned-item "⋯" menu (flows-1 p4) — Move to a different
+  // time / Remove from plan. menuPart = the slot whose ⋯ is open; moveMode flips
+  // the menu to the daypart chooser.
+  const [menuPart, setMenuPart] = useState(null)
+  const [moveMode, setMoveMode] = useState(false)
+  const openMenu = (part) => {
+    setMenuPart(part)
+    setMoveMode(false)
+  }
+  const closeMenu = () => {
+    setMenuPart(null)
+    setMoveMode(false)
+  }
+  // capture-phase Escape closes the menu BEFORE nav's window listener closes the
+  // whole DayPage (the PickerSheet pattern)
+  useEffect(() => {
+    if (!menuPart) return
+    const onKey = (ev) => {
+      if (ev.key !== 'Escape') return
+      ev.stopPropagation()
+      setMenuPart(null)
+      setMoveMode(false)
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [menuPart])
 
   // ===== header bits =====
   // The header title is the constant "Plan your day"; this dayLabel (Today /
@@ -277,6 +303,23 @@ export default function DayPage({ ts, events, anchors, wx }) {
     fillTRef.current = setTimeout(() => setJustFilled(null), 460)
     flash(`Added to ${label} ✓`)
   }
+  // Plan Phase 2 (flows-1 p4): move a planned item to another daypart (carry the
+  // key over, clear the old slot) — never clobbers a filled target. Remove drops
+  // the slot. Both ride the param-based withSlot/withClearedSlot seams.
+  const moveSlot = (from, to) => {
+    const key = entry.slots[from]
+    if (!key || entry.slots[to]) return
+    setPlans(withClearedSlot(withSlot(plans, ts, to, key), ts, from))
+    setJustFilled(to)
+    clearTimeout(fillTRef.current)
+    fillTRef.current = setTimeout(() => setJustFilled(null), 460)
+    closeMenu()
+    flash(`Moved to ${DAYPART[to].label.toLowerCase()} ✓`)
+  }
+  const removeSlot = (part) => {
+    setPlans(withClearedSlot(plans, ts, part))
+    closeMenu()
+  }
   const downloadIcs = (file) => {
     const url = URL.createObjectURL(file)
     const a = document.createElement('a')
@@ -371,13 +414,8 @@ export default function DayPage({ ts, events, anchors, wx }) {
                 <SponsoredTag e={e} />
               </span>
             </button>
-            {/* Phase 1: the ⋯ removes the plan; Plan Phase 2 expands it to a
-                move/remove menu (PLAN_PHASE2 plan-item actions). */}
-            <button
-              className="dpg-more"
-              onClick={() => setPlans(withClearedSlot(plans, ts, part))}
-              aria-label={`Remove ${e.title} from ${partLow}`}
-            >
+            {/* Plan Phase 2 (flows-1 p4): the ⋯ opens the move/remove menu */}
+            <button className="dpg-more" onClick={() => openMenu(part)} aria-label={`Options for ${e.title}`}>
               ⋯
             </button>
           </div>
@@ -518,6 +556,37 @@ export default function DayPage({ ts, events, anchors, wx }) {
           onPick={assign}
           onClose={closeSheet}
         />
+      )}
+      {/* Plan Phase 2 (flows-1 p4): the planned-item action menu */}
+      {menuPart && (
+        <div className="dpg-menu-wrap" onClick={closeMenu}>
+          <div className="dpg-menu" role="dialog" aria-label="Plan item options" onClick={(ev) => ev.stopPropagation()}>
+            {!moveMode ? (
+              <>
+                <div className="dpg-menu-title">{resolveSlot(entry.slots[menuPart])?.title || DAYPART[menuPart].label}</div>
+                <button className="dpg-menu-item" onClick={() => setMoveMode(true)}>
+                  Move to a different time
+                </button>
+                <button className="dpg-menu-item dpg-menu-danger" onClick={() => removeSlot(menuPart)}>
+                  Remove from plan
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="dpg-menu-title">Move to…</div>
+                {PARTS.filter((p) => p !== menuPart).map((p) => (
+                  <button key={p} className="dpg-menu-item" disabled={!!entry.slots[p]} onClick={() => moveSlot(menuPart, p)}>
+                    {DAYPART[p].emoji} {DAYPART[p].label}
+                    {entry.slots[p] ? ' · taken' : ''}
+                  </button>
+                ))}
+              </>
+            )}
+            <button className="dpg-menu-cancel" onClick={closeMenu}>
+              Cancel
+            </button>
+          </div>
+        </div>
       )}
       {toast && <div className="detail-toast wkb-toast">{toast}</div>}
     </div>
