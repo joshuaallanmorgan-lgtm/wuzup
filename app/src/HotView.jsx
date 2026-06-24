@@ -8,7 +8,7 @@ import { BUBBLES, CAT_BUBBLES, LENS_BUBBLES, NON_GEM_RE, dayLabel, dayLoose, hot
 import LensNav from './LensNav.jsx'
 import { curateFeed, collapseSeries } from './curate.js'
 import { useNav } from './nav.jsx'
-import { CardImg, GemRow, IntentTile, ResultCard, RowFeed, SecHead, TonightCard, WxContext } from './cards.jsx'
+import { CardImg, GemRow, IntentTile, ResultCard, RowFeed, SecHead, TonightCard, WxContext, featuredChips } from './cards.jsx'
 import { GUIDES, useGuides, watchGuideActive, resolveWatchGuide } from './guides.js'
 import { SaveHeart, shelfItems, useSaves } from './saves.js'
 import { railReady, tasteNudge, topCategories, useTaste } from './taste.js'
@@ -376,18 +376,28 @@ export default function HotView({ events, anchors, loading }) {
         {/* EVENTS_GRIND: "Neighborhood Picks" — a 2-up spread across distinct areas. */}
         {neighborhoods.length >= 2 && (
           <section className="sec">
-            <SecHead title="Neighborhood Picks" sub="A spread across the bay." />
+            <SecHead title="Neighborhood Picks" sub="A spread across the bay." onSeeAll={() => scrollToList(evRef.current)} />
             <div className="nbhd-grid">
-              {neighborhoods.map((e) => (
-                <button key={keyOf(e)} className="nbhd-card pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
-                  <CardImg e={e} className="nbhd-img">
-                    <SaveHeart e={e} />
-                  </CardImg>
-                  <div className="nbhd-area">📍 {e._area}</div>
-                  <div className="nbhd-title">{e.title}</div>
-                  <div className="nbhd-meta">{[dayLoose(e), e.venue].filter(Boolean).join(' · ')}</div>
-                </button>
-              ))}
+              {neighborhoods.map((e) => {
+                const chips = featuredChips(e)
+                return (
+                  <button key={keyOf(e)} className="nbhd-card pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
+                    <CardImg e={e} className="nbhd-img">
+                      <SaveHeart e={e} />
+                    </CardImg>
+                    <div className="nbhd-area">📍 {e._area}</div>
+                    <div className="nbhd-title">{e.title}</div>
+                    <div className="nbhd-meta">{[dayLoose(e), e.venue].filter(Boolean).join(' · ')}</div>
+                    {chips.length > 0 && (
+                      <div className="nbhd-chips">
+                        {chips.map((c, i) => (
+                          <span className="gem-chip" key={i}>{c}</span>
+                        ))}
+                      </div>
+                    )}
+                  </button>
+                )
+              })}
             </div>
           </section>
         )}

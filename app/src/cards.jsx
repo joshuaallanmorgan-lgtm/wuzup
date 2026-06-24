@@ -11,16 +11,70 @@
 // only as bespoke styling on naturally dark surfaces (FMN, Big One) — their
 // own CSS, not a mode.
 import { createContext, memo, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { CATEGORY_EMOJI, CATEGORY_HUES, PLACETYPE_EMOJI, PLACETYPE_HUE } from './categories.js'
-import { Icon, dayLabelLoose, dayLoose, keyOf, priceLabel, startLabel, timeOf } from './lib.js'
+import { Icon, dayLabelLoose, dayLoose, keyOf, makeAnchors, priceLabel, startLabel, timeOf } from './lib.js'
 import { ACTIVITIES } from './places.js'
 import { imageMode } from './imageMode.js'
-import { daypartOf } from './weekend.js'
+import { daypartOf, DAYPART, fillOrder } from './weekend.js'
+import { dayEntryFor, loadDayPlans, saveDayPlans, withSlot } from './dayplan.js'
 import { SaveHeart, useSaves } from './saves.js'
 import './cards.css'
 import './modes.css'
 
 const PAGE_SIZE = 30
+
+// ===== self-contained card actions: a tiny module-level toast + a one-tap
+// "Add to plan" so the UNIVERSAL cards (GemRow / SpotCard) can write the real
+// day-plan and confirm WITHOUT a host threading onAdd. One toast at a time,
+// rendered into a portal by <CardToastHost/> (mounted once in App). =====
+let _cardToastSet = null
+export function cardToast(msg) {
+  if (_cardToastSet) _cardToastSet(msg)
+}
+export function CardToastHost() {
+  const [msg, setMsg] = useState(null)
+  const tRef = useRef(null)
+  useEffect(() => {
+    _cardToastSet = (m) => {
+      setMsg(m)
+      clearTimeout(tRef.current)
+      tRef.current = setTimeout(() => setMsg(null), 1700)
+    }
+    return () => {
+      _cardToastSet = null
+      clearTimeout(tRef.current)
+    }
+  }, [])
+  if (!msg) return null
+  return createPortal(<div className="card-toast">{msg}</div>, document.body)
+}
+
+// slot an event/place into its day's natural daypart — TODAY for an undated/place
+// item — never clobbering a filled slot, and confirm via the module toast. The
+// SAME loadDayPlans → withSlot seam DayPage + FeaturedCard use (daypartOf → slot).
+function addToPlan(e) {
+  const anchors = makeAnchors(new Date())
+  const dayTs = Math.max(e._day ?? anchors.todayTs, anchors.todayTs)
+  const map = loadDayPlans(anchors)
+  const cur = dayEntryFor(map[String(dayTs)])
+  const target = fillOrder(e).find((p) => !(cur && cur.slots[p])) // natural daypart first ('any' → morning)
+  if (!target) {
+    cardToast('That day is full — clear a slot first')
+    return
+  }
+  saveDayPlans(withSlot(map, dayTs, target, keyOf(e)))
+  const when = dayTs === anchors.todayTs ? 'today' : new Date(dayTs).toLocaleDateString('en-US', { weekday: 'long' })
+  cardToast(`${DAYPART[target].emoji} Added to ${when} ${DAYPART[target].label.toLowerCase()}`)
+}
+
+// a small calendar glyph for the "Add to plan" pill (matches the day-selector icon)
+const CalIcon = () => (
+  <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden>
+    <rect x="3" y="5" width="18" height="16" rx="2.5" fill="none" stroke="currentColor" strokeWidth="2" />
+    <path d="M3 9.5h18M8 3v4M16 3v4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+)
 
 // presentational hook only: lib's startLabel may emit "Started 7:00 PM" for
 // already-underway events — metas that LEAD with it read quieter (.meta-started)
@@ -266,20 +320,27 @@ export function FeaturedCard({ e, onSelect, onAdd }) {
   )
 }
 
+const startOfTodayMs = () => {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  return d.getTime()
+}
+
+// GemRow — the canonical EVENT card (CARD polish, ref-events-full). A light card
+// surface holds: [image (on-image badge) · two-line meta · neutral chips] then a
+// right RAIL with the outline SaveHeart over a self-contained "Add to plan" pill
+// (writes the real day-plan). The on-image badge stacks DAY-over-TIME for a future
+// day (Sat / 7:00 PM); today's events show time only. Real fields only.
 export function GemRow({ e, onSelect }) {
-  // on-image time badge (events only — places/ongoing have no clock time). The
-  // meta leads with 📍venue then the day + a time RANGE (ref-events-full), and the
-  // single category chip became the canonical featuredChips set (category / Free /
-  // buzz, ≤3) — EVENTS_GRIND card touch-up. Real fields only; each piece omits when absent.
   const time = e.kind !== 'place' && !e._ongoing ? timeOf(e.start) : null
   const timeRange =
     e.kind !== 'place' && !e._ongoing ? [timeOf(e.start), e.end ? timeOf(e.end) : null].filter(Boolean).join(' – ') : null
+  const dayShort =
+    time && e._day != null && e._day !== startOfTodayMs() ? new Date(e._day).toLocaleDateString('en-US', { weekday: 'short' }) : null
   const chips = featuredChips(e)
-  const meta = [e.venue ? '📍 ' + e.venue : null, dayLoose(e), timeRange].filter(Boolean).join(' · ')
-  // CARD_LOCK: GemRow is now the universal result card, so a COLLAPSED recurring
-  // series must wear its honest "+ N more …" stamp here too (never pose as a single
-  // occurrence) — the same disclosure Row/CompactRow carried. Honest about WHAT
-  // varies: a multi-venue series says "dates & venues".
+  const when = [dayLoose(e), timeRange].filter(Boolean).join(' · ')
+  // CARD_LOCK: a COLLAPSED recurring series wears its honest "+ N more …" stamp
+  // (never poses as a single occurrence). Honest about WHAT varies (dates vs venues).
   const more = (() => {
     if (typeof e._moreDates !== 'number' || e._moreDates <= 0) return null
     const n = e._moreDates
@@ -288,28 +349,41 @@ export function GemRow({ e, onSelect }) {
     return n === 1 ? '+1 more date' : `+${n} more dates`
   })()
   return (
-    <button className="gem pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
-      <CardImg e={e} className="gem-img">
+    <div className="gem">
+      <button className="gem-open pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
+        <CardImg e={e} className="gem-img">
+          <HeatBadge e={e} />
+          {time && (
+            <span className={'imgbadge gem-time' + (dayShort ? ' gem-time-stack' : '')}>
+              {dayShort && <span className="gem-time-day">{dayShort}</span>}
+              {time}
+            </span>
+          )}
+        </CardImg>
+        <div className="gem-main">
+          <div className="gem-title">{e.title}</div>
+          {e.venue && <div className="gem-venue">📍 {e.venue}</div>}
+          {when && <div className="gem-when">{when}</div>}
+          {chips.length > 0 && (
+            <div className="gem-chips">
+              {chips.map((c, i) => (
+                <span className="gem-chip" key={i}>{c}</span>
+              ))}
+            </div>
+          )}
+          {more && <div className="gem-series">{more}</div>}
+          {/* E-L2: honest "Why this fits" — only renders when caller sets e._why */}
+          {e._why && <div className="gem-why">+ Why this fits: {e._why}</div>}
+          <SponsoredTag e={e} />
+        </div>
+      </button>
+      <div className="gem-rail">
         <SaveHeart e={e} />
-        <HeatBadge e={e} />
-        {time && <span className="imgbadge gem-time">{time}</span>}
-      </CardImg>
-      <div className="gem-main">
-        <div className="gem-title">{e.title}</div>
-        <div className="gem-meta">{meta || 'Tap for details'}</div>
-        {chips.length > 0 && (
-          <div className="gem-chips">
-            {chips.map((c, i) => (
-              <span className="gem-chip" key={i}>{c}</span>
-            ))}
-          </div>
-        )}
-        {more && <div className="gem-series">{more}</div>}
-        {/* E-L2: honest "Why this fits" — only renders when caller sets e._why */}
-        {e._why && <div className="gem-why">+ Why this fits: {e._why}</div>}
-        <SponsoredTag e={e} />
+        <button className="gem-add" onClick={() => addToPlan(e)} aria-label={`Add ${e.title} to your plan`}>
+          <CalIcon /> Add to plan
+        </button>
       </div>
-    </button>
+    </div>
   )
 }
 
@@ -375,39 +449,67 @@ const spotBestFor = (p) => {
   const match = ACTIVITIES.find((a) => a.match(p))
   return match ? match.label : null
 }
+const spotAmenChips = (chips) =>
+  chips.map((c, i) => {
+    const Glyph = Icon[c.icon]
+    return (
+      <span className="spot-amen" key={i}>
+        {Glyph && <Glyph className="spot-amen-ic" aria-hidden />}
+        {c.label}
+      </span>
+    )
+  })
+
 // CARD_LOCK: SpotCard is the universal PLACE card. `row` renders the full-width
-// LEFT-image form for vertical RESULT feeds (the ref's "Recommended near you"
-// list); the default is the 200px top-image carousel TILE (LocationsView rails).
-// Same content either way — only the layout flips (via .spotcard--row + the
-// .spotcard-body wrapper). Distance stays the honest on-image badge in Phase 0;
-// the SPOTS_GRIND text-distance correction is Phase 2.
+// LEFT-image RESULT-feed form (CARD polish, ref-spots-full): a light card surface,
+// two-line meta (📍location / "12 min · Free · Park" TEXT distance), neutral amenity
+// chips, "★ Best for", and a right RAIL with the outline SaveHeart over a
+// self-contained "Add to day". The DEFAULT is the 200px top-image carousel TILE
+// (LocationsView rails) — left untouched. Real fields only; distance only when known.
 export function SpotCard({ p, onSelect, row = false }) {
   const chips = spotChips(p)
   const dist = distLabel(p)
   const bestFor = spotBestFor(p)
+  if (row) {
+    // Free leads the facts line, so it's dropped from the amenity chips (no dupe)
+    const facts = [dist, p.isFree === true ? 'Free' : null, placeTypeLabel(p)].filter(Boolean).join(' · ')
+    const amen = chips.filter((c) => c.label !== 'Free')
+    return (
+      <div className="spotcard--row">
+        <button className="spotcard-open pressable" onClick={(ev) => onSelect(p, ev.currentTarget)}>
+          <CardImg e={p} className="spotcard-img">
+            {p.hidden && <span className="spot-badge" aria-label="Hidden gem">💎</span>}
+          </CardImg>
+          <div className="spotcard-body">
+            <div className="spotcard-title">{p.title}</div>
+            {p.venue && <div className="spotcard-loc">📍 {p.venue}</div>}
+            {facts && <div className="spotcard-facts">{facts}</div>}
+            {amen.length > 0 && <div className="spotcard-amen">{spotAmenChips(amen)}</div>}
+            {bestFor && <div className="spotcard-bestfor">★ Best for: {bestFor}</div>}
+          </div>
+        </button>
+        <div className="spotcard-rail">
+          <SaveHeart e={p} />
+          <button className="spotcard-add" onClick={() => addToPlan(p)} aria-label={`Add ${p.title} to your day`}>
+            <CalIcon /> Add to day
+          </button>
+        </div>
+      </div>
+    )
+  }
+  // carousel TILE (unchanged) — top-image, on-image heart + distance badge
   return (
-    <button className={'spotcard pressable' + (row ? ' spotcard--row' : '')} onClick={(ev) => onSelect(p, ev.currentTarget)}>
+    <button className="spotcard pressable" onClick={(ev) => onSelect(p, ev.currentTarget)}>
       <CardImg e={p} className="spotcard-img">
         <SaveHeart e={p} />
         {p.hidden && <span className="spot-badge" aria-label="Hidden gem">💎</span>}
-        {/* TOUCHUP P2: distance now an on-image badge (overlay, bottom-left) */}
         {dist && <span className="imgbadge spotcard-dist">{dist}</span>}
       </CardImg>
       <div className="spotcard-body">
         <div className="spotcard-type">{placeTypeLabel(p)}</div>
         <div className="spotcard-title">{p.title}</div>
         {chips.length > 0 ? (
-          <div className="spotcard-amen">
-            {chips.map((c, i) => {
-              const Glyph = Icon[c.icon]
-              return (
-                <span className="spot-amen" key={i}>
-                  {Glyph && <Glyph className="spot-amen-ic" aria-hidden />}
-                  {c.label}
-                </span>
-              )
-            })}
-          </div>
+          <div className="spotcard-amen">{spotAmenChips(chips)}</div>
         ) : (
           <div className="spotcard-meta">{p.venue || 'Tap for details'}</div>
         )}

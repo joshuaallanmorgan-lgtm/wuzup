@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { DAY, Icon, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, saveMyEvents } from './lib.js'
 import { NavProvider, VIEWS, useNav } from './nav.jsx'
 import Primer, { loadPrimerState } from './Primer.jsx'
-import { WxContext } from './cards.jsx'
+import { WxContext, CardToastHost } from './cards.jsx'
 import { getForecast } from './weather.js'
 import { lsGet, lsSet } from './storage.js'
 import HomeView from './HomeView.jsx'
@@ -422,6 +422,9 @@ function Shell() {
             }}
           />
         )}
+        {/* CARD polish: the module toast host for self-contained card actions
+            (GemRow "Add to plan" / SpotCard "Add to day") — renders via portal. */}
+        <CardToastHost />
         {/* keyed by key: a More-like-this swap REMOUNTS the detail (scroll resets
             to top, mini-map is destroyed + rebuilt for the new coords). Sprint S:
             the shared detail layer serves BOTH kinds — a place (kind:'place')

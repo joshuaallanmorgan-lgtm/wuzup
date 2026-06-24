@@ -364,7 +364,22 @@
 
 /* ===== Hidden Gems (compact 3-row list) ===== */
 .gems { display: flex; flex-direction: column; gap: 12px; padding: 0 20px; }
+/* CARD polish (ref-events-full): GemRow is a light card SURFACE holding the tap
+   target (.gem-open: image + body) and a right RAIL (.gem-rail: outline heart over
+   the Add-to-plan pill). */
 .gem {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 10px;
+  box-shadow: var(--shadow-card);
+}
+.gem-open {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -376,22 +391,70 @@
   text-align: left;
   cursor: pointer;
 }
-.gem-img { flex: 0 0 72px; width: 72px; height: 72px; border-radius: 14px; } /* 3.72: unified to the 14px tile radius */
+.gem-img { flex: 0 0 76px; width: 76px; height: 76px; border-radius: 12px; }
 .gem-main { flex: 1; min-width: 0; }
 .gem-title {
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.25;
+  letter-spacing: -0.2px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.gem-meta { margin-top: 2px; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-/* EVENTS_GRIND card touch-up: the canonical chip set (category / Free / buzz, ≤3)
-   below the meta — a wrapping row of tinted pills (was a single category chip). */
-.gem-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
-.gem-chip { font-size: 11px; font-weight: 700; color: var(--accent-ink); background: rgba(var(--accent-rgb), 0.1); border-radius: 999px; padding: 3px 9px; }
+/* two-line meta: 📍venue (up to 2 lines, no truncation) then date · time range */
+.gem-venue {
+  margin-top: 3px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.gem-when { margin-top: 1px; font-size: 12.5px; font-weight: 500; color: var(--muted); }
+/* the canonical chip set (category / Free / buzz, ≤3) — NEUTRAL gray pills */
+.gem-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.gem-chip { font-size: 11px; font-weight: 600; color: var(--ink); background: var(--line); border-radius: 999px; padding: 3px 9px; }
+/* the right action rail: outline heart (top) over the Add-to-plan pill (bottom) */
+.gem-rail { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 8px; }
+.gem-rail .save-btn,
+.spotcard-rail .save-btn {
+  position: static;
+  width: 32px;
+  height: 32px;
+  background: var(--card);
+  border: 1.5px solid rgba(187, 87, 25, 0.45); /* --cta @ 45% */
+  backdrop-filter: none;
+  color: var(--cta);
+}
+.gem-rail .save-btn.on,
+.spotcard-rail .save-btn.on { color: var(--hot); border-color: var(--hot); }
+.gem-add,
+.spotcard-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 9px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(187, 87, 25, 0.1); /* light orange tint */
+  color: var(--cta);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform var(--dur-micro);
+}
+.gem-add:active,
+.spotcard-add:active { transform: scale(0.94); }
+/* cross-day on-image badge: stacked DAY over TIME (Sat / 7:00 PM) */
+.gem-time-stack { display: flex; flex-direction: column; align-items: center; line-height: 1.05; padding-top: 4px; padding-bottom: 4px; }
+.gem-time-day { font-size: 8.5px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; }
 
 /* EVENTS_GRIND: "Neighborhood Picks" — a 2-up grid of compact image-top tiles
    (area overline + title + meta), distinct from the full-width GemRow row. */
@@ -401,6 +464,7 @@
 .nbhd-area { margin-top: 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.1px; color: var(--cta); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nbhd-title { margin-top: 1px; font-size: 14px; font-weight: 700; line-height: 1.25; letter-spacing: -0.2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .nbhd-meta { margin-top: 2px; font-size: 12px; font-weight: 500; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nbhd-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
 /* E-L2: "Why this fits" — honest derived reason, never fabricated */
 .gem-why { margin-top: 4px; font-size: 11.5px; font-weight: 700; color: var(--accent-ink); letter-spacing: -0.1px; }
 /* TOUCHUP P2: shared on-image badge (event time · spot distance) — dark pill, bottom-left */
@@ -562,13 +626,71 @@
 /* honest collapsed-series stamp on the universal GemRow (was Row/CompactRow only) */
 .gem-series { margin-top: 4px; font-size: 11.5px; font-weight: 700; color: var(--accent-ink); letter-spacing: 0.01em; }
 
-/* SpotCard ROW form — the full-width LEFT-image place row for result feeds
-   (the carousel tile stays the default). The .spotcard-body wrapper is inert in
-   tile mode; here it becomes the flex text column beside a fixed-size image. */
-.spotcard--row { flex: 1 1 auto; width: 100%; display: flex; align-items: flex-start; gap: 12px; scroll-snap-align: unset; }
-.spotcard--row .spotcard-img { flex: 0 0 92px; width: 92px; height: 92px; }
+/* CARD polish (ref-spots-full): SpotCard ROW form — a light card SURFACE holding
+   the tap target (.spotcard-open: image + body) and a right RAIL (outline heart
+   over "Add to day"). Two-line meta (📍location / "12 min · Free · Park" text
+   distance). The carousel TILE stays the default (untouched). */
+.spotcard--row {
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 10px;
+  box-shadow: var(--shadow-card);
+  scroll-snap-align: unset;
+}
+.spotcard-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.spotcard--row .spotcard-img { flex: 0 0 84px; width: 84px; height: 84px; }
 .spotcard--row .spotcard-body { flex: 1; min-width: 0; }
-.spotcard--row .spotcard-type { margin-top: 0; }
+.spotcard-loc {
+  margin-top: 3px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.spotcard-facts { margin-top: 1px; font-size: 12.5px; font-weight: 500; color: var(--muted); }
+.spotcard-rail { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 8px; }
+
+/* the module toast that the self-contained card actions (Add to plan / Add to day)
+   fire — floats above the bottom nav, auto-dismisses. */
+.card-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(80px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 3000;
+  max-width: 360px;
+  padding: 11px 18px;
+  border-radius: 999px;
+  background: rgba(26, 20, 16, 0.92);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.1px;
+  box-shadow: var(--shadow-card);
+  pointer-events: none;
+  white-space: nowrap;
+}
 
 /* ===== reduced motion (card-scope) ===== */
 @media (prefers-reduced-motion: reduce) {
