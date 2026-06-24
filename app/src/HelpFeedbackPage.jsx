@@ -8,10 +8,10 @@ import './profile.css'
 
 const SUPPORT = 'hello@wuzup.app' // placeholder support inbox (⚑ real address TBD)
 const ROWS = [
-  { label: 'FAQs', desc: 'Answers to common questions', subject: 'Question about Wuzup' },
-  { label: 'Contact support', desc: 'Get help with your account', subject: 'Support request' },
-  { label: 'Report a problem', desc: 'Something not working right?', subject: 'Bug report' },
-  { label: 'Suggest a feature', desc: 'Tell us what you wish it did', subject: 'Feature idea' },
+  { label: 'FAQ', desc: 'Find answers to common questions', subject: 'Question about Wuzup' },
+  { label: 'Contact support', desc: 'Get help from our team', subject: 'Support request' },
+  { label: 'Report a problem', desc: 'Tell us what went wrong', subject: 'Bug report' },
+  { label: 'Suggest a feature', desc: 'Share your ideas with us', subject: 'Feature idea' },
   { label: 'Give feedback', desc: 'Share your thoughts', subject: 'Feedback' },
 ]
 
@@ -27,8 +27,8 @@ export default function HelpFeedbackPage() {
       </header>
       <div className="pg-body">
         <div className="hf-hero" aria-hidden>
-          <div className="hf-hero-title">We love hearing from you</div>
-          <div className="hf-hero-sub">Questions, bugs, or bright ideas — send them our way.</div>
+          <div className="hf-hero-title">We love hearing from you ❤️</div>
+          <div className="hf-hero-sub">Your feedback helps us build the best days.</div>
         </div>
         <div className="pf-menu hf-menu">
           {ROWS.map((r) => (

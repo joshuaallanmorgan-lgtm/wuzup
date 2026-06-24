@@ -107,7 +107,7 @@ export const GUIDES = [
     emoji: '📺',
     hue: 210,
     title: 'Sports bars',
-    pov: 'Catch the game, big screens, cold beers.',
+    pov: 'Catch the game, big screens, great vibes.',
     domain: 'events',
     plannable: false,
     needsPlaces: false,
