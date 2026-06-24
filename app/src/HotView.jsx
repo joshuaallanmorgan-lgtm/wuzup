@@ -4,13 +4,13 @@
 // EVENTS_GRIND: Tonight carousel → vertical GemRow "Tonight's best bets" +
 // new "This weekend" section (day-grouped GemRow); both gain honest _why lines.
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { BUBBLES, CAT_BUBBLES, LENS_BUBBLES, NON_GEM_RE, dayLabel, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
+import { BUBBLES, CAT_BUBBLES, LENS_BUBBLES, NON_GEM_RE, dayLabel, dayLoose, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
 import LensNav from './LensNav.jsx'
-import { curateFeed } from './curate.js'
+import { curateFeed, collapseSeries } from './curate.js'
 import { useNav } from './nav.jsx'
-import { GemRow, IntentTile, ResultCard, RowFeed, SecHead, TonightCard, WxContext } from './cards.jsx'
+import { CardImg, GemRow, IntentTile, ResultCard, RowFeed, SecHead, TonightCard, WxContext } from './cards.jsx'
 import { GUIDES, useGuides, watchGuideActive, resolveWatchGuide } from './guides.js'
-import { shelfItems, useSaves } from './saves.js'
+import { SaveHeart, shelfItems, useSaves } from './saves.js'
 import { railReady, tasteNudge, topCategories, useTaste } from './taste.js'
 import { useRecents } from './recents.js'
 import { DeckThisButton } from './LensDeck.jsx'
@@ -19,6 +19,23 @@ import { whyFits } from './weekend.js'
 import { dateKey } from './weather.js'
 
 const DAY_MS = 86400000
+
+// derive a neighborhood/city from a US address ("…, City, ZIP") — the last
+// non-ZIP, non-state, non-street segment. null when not confidently parseable
+// (honesty: Neighborhood Picks only labels an area it can actually read).
+const cityOf = (addr) => {
+  if (typeof addr !== 'string' || !addr) return null
+  const parts = addr.split(',').map((s) => s.trim()).filter(Boolean)
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const p = parts[i]
+    if (/^\d/.test(p)) continue // ZIP, or a street segment leading with a number
+    if (/^[A-Z]{2}$/.test(p)) continue // bare state abbreviation
+    if (/^[A-Z]{2}\s+\d/.test(p)) continue // "FL 33712"
+    if (/\d/.test(p) && /\b(ave|st|rd|blvd|dr|ln|way|pkwy|ct|hwy|ste|suite|unit|bldg|building|floor|#)\b/i.test(p)) continue // street/unit
+    return p
+  }
+  return null
+}
 
 export default function HotView({ events, anchors, loading }) {
   const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, openMap: onOpenMap, openGuide, openEvFilters } = useNav()
@@ -164,6 +181,48 @@ export default function HotView({ events, anchors, loading }) {
     return out
   }, [upcoming, anchors, wx, taste])
 
+  // ===== EVENTS_GRIND new sections — all real-data + honestly gated =====
+  // "Worth planning around": the hottest FUTURE events (beyond today) to plan ahead for.
+  const worthPlanning = useMemo(() => {
+    const nudge = (ev) => tasteNudge(ev, taste)
+    return upcoming
+      .filter((e) => e._day != null && e._day > anchors.todayTs)
+      .sort(hotDesc)
+      .slice(0, 4)
+      .map((e) => ({ ...e, _why: whyFits(e, { w: wx ? wx[dateKey(e._day)] : null, nudge }) }))
+  }, [upcoming, anchors, wx, taste])
+  // "Free & Easy": free upcoming events (the section gates off when there are none).
+  const freeEasy = useMemo(
+    () => upcoming.filter((e) => e._free === true || e.isFree === true).sort(hotDesc).slice(0, 4),
+    [upcoming]
+  )
+  // "Recurring Series": collapsed series carrying ≥1 more date (genuinely recurring),
+  // most-recurring first — the honest "+N more dates" stamp rides each card.
+  const recurring = useMemo(
+    () =>
+      collapseSeries(upcoming)
+        .filter((g) => (g._moreDates || 0) > 0)
+        .sort((a, b) => (b._moreDates || 0) - (a._moreDates || 0) || hotDesc(a, b))
+        .slice(0, 4),
+    [upcoming]
+  )
+  // "Neighborhood Picks": the best upcoming pick per DISTINCT area (parsed city),
+  // a 2-up spread across the bay. Only areas we can actually read from the address.
+  const neighborhoods = useMemo(() => {
+    const seen = new Set()
+    const out = []
+    for (const e of [...upcoming].sort(hotDesc)) {
+      const area = cityOf(e.address)
+      if (!area) continue
+      const key = area.toLowerCase().replace(/[^a-z]/g, '') // "St. Petersburg" === "St Petersburg"
+      if (seen.has(key)) continue
+      seen.add(key)
+      out.push({ ...e, _area: area })
+      if (out.length >= 6) break
+    }
+    return out
+  }, [upcoming])
+
   const scrollToList = (el) => {
     const sc = scrollRef.current
     if (sc && el) sc.scrollTo({ top: Math.max(el.offsetTop - 64, 0), behavior: 'smooth' })
@@ -207,6 +266,18 @@ export default function HotView({ events, anchors, loading }) {
             />
             <div className="home-picks">
               {tonightTagged.map((e) => (
+                <GemRow key={keyOf(e)} e={e} onSelect={onSelect} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* EVENTS_GRIND: "Worth planning around" — the hottest future events. */}
+        {worthPlanning.length >= 2 && (
+          <section className="sec">
+            <SecHead title="Worth planning around" sub="Big nights worth a spot on the calendar." onSeeAll={() => scrollToList(evRef.current)} />
+            <div className="home-picks">
+              {worthPlanning.map((e) => (
                 <GemRow key={keyOf(e)} e={e} onSelect={onSelect} />
               ))}
             </div>
@@ -278,6 +349,49 @@ export default function HotView({ events, anchors, loading }) {
           </section>
         )}
 
+        {/* EVENTS_GRIND: "Free & Easy" — free upcoming events (gated on existence). */}
+        {freeEasy.length >= 2 && (
+          <section className="sec">
+            <SecHead title="Free & Easy" sub="Great out, nothing spent." onSeeAll={() => seeAll('free')} />
+            <div className="home-picks">
+              {freeEasy.map((e) => (
+                <GemRow key={keyOf(e)} e={e} onSelect={onSelect} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* EVENTS_GRIND: "Recurring Series" — genuinely recurring events (+N more dates). */}
+        {recurring.length >= 2 && (
+          <section className="sec">
+            <SecHead title="Recurring Series" sub="Reliable weeklies you can count on." onSeeAll={() => scrollToList(evRef.current)} />
+            <div className="home-picks">
+              {recurring.map((e) => (
+                <GemRow key={keyOf(e)} e={e} onSelect={onSelect} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* EVENTS_GRIND: "Neighborhood Picks" — a 2-up spread across distinct areas. */}
+        {neighborhoods.length >= 2 && (
+          <section className="sec">
+            <SecHead title="Neighborhood Picks" sub="A spread across the bay." />
+            <div className="nbhd-grid">
+              {neighborhoods.map((e) => (
+                <button key={keyOf(e)} className="nbhd-card pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
+                  <CardImg e={e} className="nbhd-img">
+                    <SaveHeart e={e} />
+                  </CardImg>
+                  <div className="nbhd-area">📍 {e._area}</div>
+                  <div className="nbhd-title">{e.title}</div>
+                  <div className="nbhd-meta">{[dayLoose(e), e.venue].filter(Boolean).join(' · ')}</div>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
         {rail && (
           <section className="sec">
             <SecHead overline="For you" title="Your kind of night" sub="Tuned to what you've tapped." />
@@ -306,7 +420,7 @@ export default function HotView({ events, anchors, loading }) {
               <SecHead
                 title={
                   <>
-                    Everything{' '}
+                    More upcoming around Tampa Bay{' '}
                     <span className="sec-count">
                       · {(seeAllEv ? feed.fullCount : feed.curatedCount).toLocaleString('en-US')}
                     </span>

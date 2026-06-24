@@ -267,10 +267,15 @@ export function FeaturedCard({ e, onSelect, onAdd }) {
 }
 
 export function GemRow({ e, onSelect }) {
-  // TOUCHUP P2: on-image time badge (events only — places/ongoing have no clock
-  // time) + a tinted category chip below the title (per ref-events.png).
+  // on-image time badge (events only — places/ongoing have no clock time). The
+  // meta leads with 📍venue then the day + a time RANGE (ref-events-full), and the
+  // single category chip became the canonical featuredChips set (category / Free /
+  // buzz, ≤3) — EVENTS_GRIND card touch-up. Real fields only; each piece omits when absent.
   const time = e.kind !== 'place' && !e._ongoing ? timeOf(e.start) : null
-  const cat = e.category && e.category !== 'other' ? e.category.charAt(0).toUpperCase() + e.category.slice(1) : null
+  const timeRange =
+    e.kind !== 'place' && !e._ongoing ? [timeOf(e.start), e.end ? timeOf(e.end) : null].filter(Boolean).join(' – ') : null
+  const chips = featuredChips(e)
+  const meta = [e.venue ? '📍 ' + e.venue : null, dayLoose(e), timeRange].filter(Boolean).join(' · ')
   // CARD_LOCK: GemRow is now the universal result card, so a COLLAPSED recurring
   // series must wear its honest "+ N more …" stamp here too (never pose as a single
   // occurrence) — the same disclosure Row/CompactRow carried. Honest about WHAT
@@ -291,8 +296,14 @@ export function GemRow({ e, onSelect }) {
       </CardImg>
       <div className="gem-main">
         <div className="gem-title">{e.title}</div>
-        <div className="gem-meta">{[dayLoose(e), e.venue].filter(Boolean).join(' · ')}</div>
-        {cat && <span className="gem-cat">{cat}</span>}
+        <div className="gem-meta">{meta || 'Tap for details'}</div>
+        {chips.length > 0 && (
+          <div className="gem-chips">
+            {chips.map((c, i) => (
+              <span className="gem-chip" key={i}>{c}</span>
+            ))}
+          </div>
+        )}
         {more && <div className="gem-series">{more}</div>}
         {/* E-L2: honest "Why this fits" — only renders when caller sets e._why */}
         {e._why && <div className="gem-why">+ Why this fits: {e._why}</div>}

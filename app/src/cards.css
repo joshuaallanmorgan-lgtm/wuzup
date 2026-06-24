@@ -388,8 +388,19 @@
   overflow: hidden;
 }
 .gem-meta { margin-top: 2px; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-/* TOUCHUP P2: tinted category chip below the title (like FeaturedCard's chips) */
-.gem-cat { display: inline-block; margin-top: 5px; font-size: 11px; font-weight: 700; color: var(--accent-ink); background: rgba(var(--accent-rgb), 0.1); border-radius: 999px; padding: 3px 9px; }
+/* EVENTS_GRIND card touch-up: the canonical chip set (category / Free / buzz, ≤3)
+   below the meta — a wrapping row of tinted pills (was a single category chip). */
+.gem-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+.gem-chip { font-size: 11px; font-weight: 700; color: var(--accent-ink); background: rgba(var(--accent-rgb), 0.1); border-radius: 999px; padding: 3px 9px; }
+
+/* EVENTS_GRIND: "Neighborhood Picks" — a 2-up grid of compact image-top tiles
+   (area overline + title + meta), distinct from the full-width GemRow row. */
+.nbhd-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; padding: 0 20px; }
+.nbhd-card { min-width: 0; display: flex; flex-direction: column; background: none; border: none; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.nbhd-img { position: relative; display: block; width: 100%; aspect-ratio: 3 / 2; border-radius: 14px; }
+.nbhd-area { margin-top: 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.1px; color: var(--cta); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nbhd-title { margin-top: 1px; font-size: 14px; font-weight: 700; line-height: 1.25; letter-spacing: -0.2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.nbhd-meta { margin-top: 2px; font-size: 12px; font-weight: 500; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* E-L2: "Why this fits" — honest derived reason, never fabricated */
 .gem-why { margin-top: 4px; font-size: 11.5px; font-weight: 700; color: var(--accent-ink); letter-spacing: -0.1px; }
 /* TOUCHUP P2: shared on-image badge (event time · spot distance) — dark pill, bottom-left */
