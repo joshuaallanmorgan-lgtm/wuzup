@@ -35,15 +35,15 @@ function placeOrder(list, taste) {
   )
 }
 
-// SPOTS_GRIND themed sections (ref-spots-full), each reusing the REAL ACTIVITY
-// predicates (no new data) so the grouping is honest. HONESTY NOTE: the ref's
-// "Coffee & Hang" has NO data — the place store is OSM outdoor recreation (zero
-// cafes; "coffee" only matches parks named "Coffee Pot") — so it is substituted
-// with the data-rich, honest "Gardens & Picnics" (gardens + picnic spots).
+// SPOTS_GRIND themed sections (ref-spots-full), each over REAL fields so the
+// grouping is honest. Coffee & Hang is now real: the finder cafe source (Phase 2)
+// added ~332 named cafes (placeType 'cafe', category 'food'), so it replaces the
+// earlier Gardens & Picnics placeholder. Cafes carry the honest art-floor (☕) —
+// OSM has no cafe photos — and stay paid (never tagged Free).
 const actMatch = (id) => ACTIVITIES.find((a) => a.id === id)?.match || (() => false)
 const SPOT_THEMES = [
   { id: 'nature-water', emoji: '🌿', label: 'Nature & Water', hue: 150, sub: 'Trails, springs, and the water’s edge.', match: (p) => actMatch('act-trails')(p) || actMatch('act-water')(p) },
-  { id: 'gardens-picnics', emoji: '🌸', label: 'Gardens & Picnics', hue: 95, sub: 'Greens and shady tables to linger at.', match: (p) => p.placeType === 'garden' || (p.amenities || []).some((a) => ['picnic', 'grills', 'shelters'].includes(a)) },
+  { id: 'coffee-hang', emoji: '☕', label: 'Coffee & Hang', hue: 24, sub: 'Cafes and cozy spots to linger.', match: (p) => p.placeType === 'cafe' },
   { id: 'sunset-views', emoji: '🌅', label: 'Sunset Views', hue: 25, sub: 'Where the bay puts on a show.', match: (p) => actMatch('act-views')(p) || actMatch('act-beach')(p) },
   { id: 'quiet-corners', emoji: '🤫', label: 'Quiet Corners', hue: 280, sub: 'Hidden gems and calm preserves.', match: (p) => p.hidden === true || p.placeType === 'preserve' },
 ]

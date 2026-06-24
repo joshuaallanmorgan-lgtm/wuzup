@@ -433,6 +433,10 @@ const AMENITY_CHIPS = [
   { test: (p) => has(p, 'skate-park'), icon: 'sports', label: 'Skate park' },
   { test: (p) => ['picnic', 'grills', 'shelters'].some((a) => has(p, a)), icon: 'picnic', label: 'Picnic' },
   { test: (p) => ['dog-park', 'dogs-allowed', 'dog-beach'].some((a) => has(p, a)), icon: 'dog', label: 'Dog-friendly' },
+  // cafe amenities (real OSM tags via the finder cafe source) — for Coffee & Hang
+  { test: (p) => has(p, 'outdoor-seating'), icon: 'tag', label: 'Outdoor seating' },
+  { test: (p) => has(p, 'wifi'), icon: 'tag', label: 'Wifi' },
+  { test: (p) => has(p, 'takeaway'), icon: 'tag', label: 'Takeaway' },
 ]
 // exported (Stage R) so PlaceDetail can render the same honest top-amenity tag
 // chips up top; the FULL amenity list still appears in "What's here" (never-hide).
