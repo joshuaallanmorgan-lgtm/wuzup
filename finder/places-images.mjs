@@ -9,19 +9,8 @@
 //   • P18 ("image") — the entity's single curated lead photo. Strongest signal.
 //   • P373 ("Commons category") — the entity's OWN category; its file members
 //     are curated-as-depicting that exact entity (3.7P-2 fallback when no P18).
-//
-// ⚑ AMENDED — PREMIUM A3 (Josh, 2026-06-25): the contract is now HYBRID. The
-// `image` field above STILL means "a verified photo of THIS place" and is the
-// SOLE thing this pipeline writes — UNCHANGED. What changed is the *floor*: a
-// place WITHOUT a real photo no longer falls straight to the flat hue+emoji block.
-// It gets a curated, free-licensed (Pexels), CREDITED CATEGORY-STOCK image from
-// finder/category-images.json — a CLEARLY-GENERIC floor, picked by placeType +
-// hash(key) at RENDER time (app/src/categoryImages.js → CardImg / PlaceDetail),
-// NEVER written into `image` and NEVER claimed to be the specific venue. The stock
-// images are credited as stock on the Settings → About page (source + author). The
-// honesty bar is the SAME the emoji floor met — a generic stand-in that doesn't
-// pose as this place — just prettier. The art floor (refined: muted, textured)
-// remains the last resort when no real image AND no/failed category image.
+// Places without either keep their category-art (the honest floor — refined in
+// W4's CSS, never faked).
 //
 // 3.7P-2 honesty guardrails on the P373 fallback (mining a category is riskier
 // than a single curated P18, so it is fenced hard):

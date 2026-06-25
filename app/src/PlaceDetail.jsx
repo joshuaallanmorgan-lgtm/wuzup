@@ -14,7 +14,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { getLeaflet } from './leaflet-lazy.js'
 import { useNav } from './nav.jsx'
 import { Icon, keyOf } from './lib.js'
-import { SecHead, TonightCard, artEmoji, categoryImageFor, hueFor, spotChips } from './cards.jsx'
+import { SecHead, TonightCard, artEmoji, hueFor, spotChips } from './cards.jsx'
 import { SaveHeart, useSaves } from './saves.js'
 import { dateKey } from './weather.js'
 import { usePlaces, ACTIVITIES } from './places.js'
@@ -88,31 +88,27 @@ export default function PlaceDetail({ e, anchors, wx }) {
   const { has: hasSave, toggle: toggleSave } = useSaves()
   const saved = hasSave(e)
 
-  // PREMIUM A3 (hybrid imagery): hero source ladder = real photo → category floor →
-  // art. e.image is only ever a verified photo OF THIS place (Wikidata P18/P373). A
-  // place with none gets a CREDITED category-stock floor (categoryImageFor) — generic,
-  // never claimed as this venue (credited in Settings → About). Art is the last resort.
-  const floor = e.image ? null : categoryImageFor(e)
+  // W4: a place with a REAL Wikidata photo gets an image hero (preload + 300ms
+  // fade over a dark placeholder, DetailPage's exact pattern); places without a
+  // photo keep the category-art hero. e.image is only ever a verified photo OF
+  // THIS place (Wikidata P18 → Commons), never a representative stand-in.
   const [loadedSrc, setLoadedSrc] = useState(null)
-  const [realFailed, setRealFailed] = useState(false)
-  const [floorFailed, setFloorFailed] = useState(false)
-  const useReal = !!e.image && !realFailed
-  const useFloor = !useReal && !!floor && !floorFailed
-  const heroSrc = useReal ? e.image : useFloor ? floor.url : null
+  const [heroFailed, setHeroFailed] = useState(false)
   useEffect(() => {
-    if (!heroSrc) return
+    if (!e.image) return
+    const src = e.image
     const img = new Image()
-    img.onload = () => setLoadedSrc(heroSrc)
-    img.onerror = () => (useReal ? setRealFailed(true) : setFloorFailed(true)) // walk down the ladder
-    img.src = heroSrc
+    img.onload = () => setLoadedSrc(src)
+    img.onerror = () => setHeroFailed(true) // dead URL → fall back to category-art
+    img.src = src
     return () => {
       img.onload = null
       img.onerror = null
     }
-  }, [heroSrc, useReal])
-  const imgOk = loadedSrc === heroSrc
-  // a real OR floor photo that loads → image hero; nothing usable → art hero
-  const heroArt = !heroSrc
+  }, [e.image])
+  const imgOk = loadedSrc === e.image
+  // a real photo that loads → image hero; no photo OR a broken URL → art hero
+  const heroArt = !e.image || heroFailed
 
   const hasCoords = e.lat != null && e.lng != null
   const mapsUrl = hasCoords
@@ -321,7 +317,7 @@ export default function PlaceDetail({ e, anchors, wx }) {
         }
       >
         {!heroArt ? (
-          <div className={'detail-hero-img' + (imgOk ? ' on' : '')} style={{ backgroundImage: `url(${heroSrc})` }} />
+          <div className={'detail-hero-img' + (imgOk ? ' on' : '')} style={{ backgroundImage: `url(${e.image})` }} />
         ) : (
           <span className="imgbox-mark" aria-hidden>
             {artEmoji(e)}

@@ -16,8 +16,6 @@ import { CATEGORY_EMOJI, CATEGORY_HUES, PLACETYPE_EMOJI, PLACETYPE_HUE } from '.
 import { Icon, dayLabelLoose, dayLoose, keyOf, makeAnchors, priceLabel, startLabel, timeOf } from './lib.js'
 import { ACTIVITIES } from './places.js'
 import { imageMode } from './imageMode.js'
-import CATEGORY_IMAGES from '../../finder/category-images.json'
-import { pickCategoryImage } from './categoryImages.js'
 import { daypartOf, DAYPART, fillOrder } from './weekend.js'
 import { dayEntryFor, loadDayPlans, saveDayPlans, withSlot } from './dayplan.js'
 import { SaveHeart, useSaves } from './saves.js'
@@ -168,10 +166,6 @@ export const artEmoji = (e) => {
   if (e?.kind === 'place' && PLACETYPE_EMOJI[e.placeType]) return PLACETYPE_EMOJI[e.placeType]
   return CATEGORY_EMOJI[e.category] ?? CATEGORY_EMOJI.other
 }
-// PREMIUM A3: the bound category-floor picker (the manifest is baked in here, the
-// one binding point) for non-CardImg consumers — the PlaceDetail hero + deck place
-// faces. Returns the credited stock entry { url, credit, source } | null.
-export const categoryImageFor = (e) => pickCategoryImage(CATEGORY_IMAGES, e)
 
 export function PriceChip({ e }) {
   const label = priceLabel(e)
@@ -212,39 +206,34 @@ export function SponsoredTag({ e }) {
 // children render on top (heat badges, FREE badge, …).
 export function CardImg({ e, className = '', children }) {
   const [ok, setOk] = useState(false)
-  const [realFailed, setRealFailed] = useState(false)
-  const [floorFailed, setFloorFailed] = useState(false)
+  const [failed, setFailed] = useState(false)
   const emoji = artEmoji(e)
   // artwork is the TIME, not the status — strip startLabel's "Started " prefix here only
   const fall = startLabel(e).replace(/^Started /, '') || '★'
-  // PREMIUM A3 (hybrid imagery): the source ladder is real → category-floor → art.
-  //   1. a REAL photo OF THIS PLACE (Wikidata P18/P373 → e.image) always wins.
-  //   2. a place with none gets a CREDITED category-stock FLOOR (pickCategoryImage)
-  //      so the card/hero reads premium, not a flat hue+emoji block. The floor is
-  //      generic + credited (Settings → About), NEVER claimed as this venue.
-  //   3. the (upgraded) art floor is the LAST resort — no real image AND no/failed
-  //      floor (a not-yet-curated placeType, or the stock URL died).
-  // onError walks DOWN the ladder a step (real→floor→art), never a broken glyph.
-  const floor = e.image ? null : pickCategoryImage(CATEGORY_IMAGES, e)
-  const useReal = !!e.image && !realFailed
-  const useFloor = !useReal && !!floor && !floorFailed
-  const src = useReal ? e.image : useFloor ? floor.url : null
-  const showArt = !src
+  // W4 trust contract: a dead/broken image URL degrades to the category-art
+  // FLOOR (the designed hue + emoji), never the browser's broken-image glyph and
+  // never a flat dark box. onError flips to art; a real photo never regresses.
+  // (3.7P-36 review: a successfully-LOADED photo is real content and is NEVER
+  // swapped for the art floor — the floor is for no-image + onError only. The
+  // "poster → small thumb / no green placeholder" win is delivered by the cards
+  // that CONSUME imageMode() at layout time, P42's CompactRow, not a CardImg
+  // runtime crop that mismatched the cover detail-hero it View-Transitions into.)
+  const showArt = !e.image || failed
   return (
     <span
-      className={'imgbox ' + className + (showArt ? ' imgbox-art' : '') + (useFloor ? ' imgbox-floor' : '')}
+      className={'imgbox ' + className + (showArt ? ' imgbox-art' : '')}
       data-vt
       style={showArt ? { '--ch': hueFor(e) } : undefined}
     >
       {!showArt ? (
         <img
           className={'imgbox-img' + (ok ? ' on' : '')}
-          src={src}
+          src={e.image}
           alt=""
           loading="lazy"
           draggable={false}
           onLoad={() => setOk(true)}
-          onError={() => (useReal ? setRealFailed(true) : setFloorFailed(true))}
+          onError={() => setFailed(true)}
         />
       ) : (
         <>
