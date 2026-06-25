@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-06-16T02:09:38.249Z",
+  "fetchedAt": "2026-06-25T15:14:58.065Z",
   "byFile": {
     "File:Hurrah Lake - Alafia River State Park.jpg": {
       "file": "File:Hurrah Lake - Alafia River State Park.jpg",
@@ -234,6 +234,780 @@
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
       "sourceFamily": "wikidata-p373",
       "at": "2026-06-16T02:09:37.999Z"
+    },
+    "File:Pine Island Beach, Hernando County, Florida - panoramio (1).jpg": {
+      "file": "File:Pine Island Beach, Hernando County, Florida - panoramio (1).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3APine%20Island%20Beach%2C%20Hernando%20County%2C%20Florida%20-%20panoramio%20(1).jpg",
+      "author": "Michelle Maria",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:23:25.633Z"
+    },
+    "File:Anna Maria Pier www.florida-infos.com - panoramio - Franz Stellbrink (1).jpg": {
+      "file": "File:Anna Maria Pier www.florida-infos.com - panoramio - Franz Stellbrink (1).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AAnna%20Maria%20Pier%20www.florida-infos.com%20-%20panoramio%20-%20Franz%20Stellbrink%20(1).jpg",
+      "author": "Franz Stellbrink",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:23:53.961Z"
+    },
+    "File:Tampa Skyline from Ballast Point Park April 2024.jpg": {
+      "file": "File:Tampa Skyline from Ballast Point Park April 2024.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ATampa%20Skyline%20from%20Ballast%20Point%20Park%20April%202024.jpg",
+      "author": "Trevorrrrvalent",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:24:36.075Z"
+    },
+    "File:Bandit Coffee Co., Saint Petersburg, United States (Unsplash).jpg": {
+      "file": "File:Bandit Coffee Co., Saint Petersburg, United States (Unsplash).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ABandit%20Coffee%20Co.%2C%20Saint%20Petersburg%2C%20United%20States%20(Unsplash).jpg",
+      "author": "Drew Coffman drewcoffman",
+      "license": "CC0",
+      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:24:39.979Z"
+    },
+    "File:Sand Key, Clearwater, FL 33767, USA - panoramio (2).jpg": {
+      "file": "File:Sand Key, Clearwater, FL 33767, USA - panoramio (2).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ASand%20Key%2C%20Clearwater%2C%20FL%2033767%2C%20USA%20-%20panoramio%20(2).jpg",
+      "author": "Evan Nichols (Virtua…",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:25:02.514Z"
+    },
+    "File:Ringling Causeway from Bird Key.jpg": {
+      "file": "File:Ringling Causeway from Bird Key.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ARingling%20Causeway%20from%20Bird%20Key.jpg",
+      "author": "The Grid",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:26:02.283Z"
+    },
+    "File:Black & Brew, Lakeland, Florida.jpg": {
+      "file": "File:Black & Brew, Lakeland, Florida.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ABlack%20%26%20Brew%2C%20Lakeland%2C%20Florida.jpg",
+      "author": "Pokemonprime",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:26:06.020Z"
+    },
+    "File:John R. Bonner Nature Park, Largo, United States (Unsplash aFlmRgsf9X0).jpg": {
+      "file": "File:John R. Bonner Nature Park, Largo, United States (Unsplash aFlmRgsf9X0).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AJohn%20R.%20Bonner%20Nature%20Park%2C%20Largo%2C%20United%20States%20(Unsplash%20aFlmRgsf9X0).jpg",
+      "author": "Drew Coffman drewcoffman",
+      "license": "CC0",
+      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:26:49.193Z"
+    },
+    "File:Bonnet Springs Park Entrance.jpg": {
+      "file": "File:Bonnet Springs Park Entrance.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ABonnet%20Springs%20Park%20Entrance.jpg",
+      "author": "Butter142",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:26:50.372Z"
+    },
+    "File:Bro Bowl at Perry Harvey Sr. Park - Tampa, Florida.jpg": {
+      "file": "File:Bro Bowl at Perry Harvey Sr. Park - Tampa, Florida.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ABro%20Bowl%20at%20Perry%20Harvey%20Sr.%20Park%20-%20Tampa%2C%20Florida.jpg",
+      "author": "Payton Chung from DCA, USA",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:27:24.832Z"
+    },
+    "File:Painted bunting at Celery Fields, Sarasota, Florida. (53458749069).jpg": {
+      "file": "File:Painted bunting at Celery Fields, Sarasota, Florida. (53458749069).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3APainted%20bunting%20at%20Celery%20Fields%2C%20Sarasota%2C%20Florida.%20(53458749069).jpg",
+      "author": "Joseph Gage from Yorkville, IL, USA",
+      "license": "CC BY-SA 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:29:00.367Z"
+    },
+    "File:Centennial Park Station, Ybor City, Florida.jpg": {
+      "file": "File:Centennial Park Station, Ybor City, Florida.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ACentennial%20Park%20Station%2C%20Ybor%20City%2C%20Florida.jpg",
+      "author": "Pokemonprime",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:29:02.761Z"
+    },
+    "File:Fox Hollow Golf Club, Florida.jpg": {
+      "file": "File:Fox Hollow Golf Club, Florida.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AFox%20Hollow%20Golf%20Club%2C%20Florida.jpg",
+      "author": "Bernard Gagnon",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:29:14.671Z"
+    },
+    "File:Clearwater Beach - panoramio - 4net (1).jpg": {
+      "file": "File:Clearwater Beach - panoramio - 4net (1).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AClearwater%20Beach%20-%20panoramio%20-%204net%20(1).jpg",
+      "author": "4net",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:29:56.057Z"
+    },
+    "File:Clearwater Beach - panoramio - 4net (10).jpg": {
+      "file": "File:Clearwater Beach - panoramio - 4net (10).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AClearwater%20Beach%20-%20panoramio%20-%204net%20(10).jpg",
+      "author": "4net",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:29:57.400Z"
+    },
+    "File:Coquina Beach Jetty (28091850649).jpg": {
+      "file": "File:Coquina Beach Jetty (28091850649).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ACoquina%20Beach%20Jetty%20(28091850649).jpg",
+      "author": "Gregory Urbano from St. Petersburg, Florida, USA",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:30:58.959Z"
+    },
+    "File:Tarpon Spring,Florida,USA. - panoramio.jpg": {
+      "file": "File:Tarpon Spring,Florida,USA. - panoramio.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ATarpon%20Spring%2CFlorida%2CUSA.%20-%20panoramio.jpg",
+      "author": "Roman Eugeniusz",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:31:31.081Z"
+    },
+    "File:By Crescent Lake, St Petersburg, Florida (51132312827).jpg": {
+      "file": "File:By Crescent Lake, St Petersburg, Florida (51132312827).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ABy%20Crescent%20Lake%2C%20St%20Petersburg%2C%20Florida%20(51132312827).jpg",
+      "author": "Calmuziclover",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:31:34.968Z"
+    },
+    "File:Double-crested Cormorants, Crystal Beach, Florida.jpg": {
+      "file": "File:Double-crested Cormorants, Crystal Beach, Florida.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ADouble-crested%20Cormorants%2C%20Crystal%20Beach%2C%20Florida.jpg",
+      "author": "Xrzt",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:31:44.708Z"
+    },
+    "File:Cypress Swamp at Lettuce Lake (41155373232).jpg": {
+      "file": "File:Cypress Swamp at Lettuce Lake (41155373232).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ACypress%20Swamp%20at%20Lettuce%20Lake%20(41155373232).jpg",
+      "author": "Trish Hartmann from Tampa, Florida, USA",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:32:03.600Z"
+    },
+    "File:Davis Islands,Tampa,Florida,USA. - panoramio (1).jpg": {
+      "file": "File:Davis Islands,Tampa,Florida,USA. - panoramio (1).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ADavis%20Islands%2CTampa%2CFlorida%2CUSA.%20-%20panoramio%20(1).jpg",
+      "author": "Roman Eugeniusz",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:32:23.249Z"
+    },
+    "File:Davis Islands,Tampa,Florida,USA. - panoramio (4).jpg": {
+      "file": "File:Davis Islands,Tampa,Florida,USA. - panoramio (4).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ADavis%20Islands%2CTampa%2CFlorida%2CUSA.%20-%20panoramio%20(4).jpg",
+      "author": "Roman Eugeniusz",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:32:25.618Z"
+    },
+    "File:Bikini modelling Del Bello Park pp.jpg": {
+      "file": "File:Bikini modelling Del Bello Park pp.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ABikini%20modelling%20Del%20Bello%20Park%20pp.jpg",
+      "author": "Walter",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:32:31.075Z"
+    },
+    "File:Don Cesar Hotel - panoramio (1).jpg": {
+      "file": "File:Don Cesar Hotel - panoramio (1).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ADon%20Cesar%20Hotel%20-%20panoramio%20(1).jpg",
+      "author": "Art Anderson",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:33:02.371Z"
+    },
+    "File:Hammock Park (15208028960).jpg": {
+      "file": "File:Hammock Park (15208028960).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AHammock%20Park%20(15208028960).jpg",
+      "author": "Michel Curi",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:33:25.302Z"
+    },
+    "File:Eagle Lake Park picnic shelter - panoramio.jpg": {
+      "file": "File:Eagle Lake Park picnic shelter - panoramio.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AEagle%20Lake%20Park%20picnic%20shelter%20-%20panoramio.jpg",
+      "author": "unclemormor",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:33:40.949Z"
+    },
+    "File:Edward Medard Park Lake July 2024.jpg": {
+      "file": "File:Edward Medard Park Lake July 2024.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AEdward%20Medard%20Park%20Lake%20July%202024.jpg",
+      "author": "Trevorrrrvalent",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:34:04.521Z"
+    },
+    "File:Egmont Key the lighthouse from the beach.jpg": {
+      "file": "File:Egmont Key the lighthouse from the beach.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AEgmont%20Key%20the%20lighthouse%20from%20the%20beach.jpg",
+      "author": "Staci McCullough",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:34:12.497Z"
+    },
+    "File:Elva Rouse Park.jpg": {
+      "file": "File:Elva Rouse Park.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AElva%20Rouse%20Park.jpg",
+      "author": "RayScript",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:34:25.471Z"
+    },
+    "File:Emerson Point Preserve Palmetto Florida 2022-7297.jpg": {
+      "file": "File:Emerson Point Preserve Palmetto Florida 2022-7297.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AEmerson%20Point%20Preserve%20Palmetto%20Florida%202022-7297.jpg",
+      "author": "Paul Burley",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:34:29.451Z"
+    },
+    "File:Five Points Roundabout in Sarasota, Florida.jpg": {
+      "file": "File:Five Points Roundabout in Sarasota, Florida.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AFive%20Points%20Roundabout%20in%20Sarasota%2C%20Florida.jpg",
+      "author": "Patrick Braga",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:35:01.319Z"
+    },
+    "File:Flora Wylie Park.jpg": {
+      "file": "File:Flora Wylie Park.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AFlora%20Wylie%20Park.jpg",
+      "author": "RayScript",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:35:02.427Z"
+    },
+    "File:Fort Hamer Bridge.jpg": {
+      "file": "File:Fort Hamer Bridge.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AFort%20Hamer%20Bridge.jpg",
+      "author": "Mykhaylovdimitriy",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:35:25.752Z"
+    },
+    "File:Ybor City (8061548385).jpg": {
+      "file": "File:Ybor City (8061548385).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AYbor%20City%20(8061548385).jpg",
+      "author": "Walter from Tampa/St Petersburg, Florida",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:35:29.897Z"
+    },
+    "File:Gandy Bridge from Gandy Park South 01.jpg": {
+      "file": "File:Gandy Bridge from Gandy Park South 01.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AGandy%20Bridge%20from%20Gandy%20Park%20South%2001.jpg",
+      "author": "Andrew Heneen",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:36:16.001Z"
+    },
+    "File:Gizella Kopsick Palm Arboretum.jpg": {
+      "file": "File:Gizella Kopsick Palm Arboretum.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AGizella%20Kopsick%20Palm%20Arboretum.jpg",
+      "author": "RayScript",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:36:44.556Z"
+    },
+    "File:Gulfport Beach - GeckoFest 2014.jpg": {
+      "file": "File:Gulfport Beach - GeckoFest 2014.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AGulfport%20Beach%20-%20GeckoFest%202014.jpg",
+      "author": "amateur photography by michel",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:37:34.792Z"
+    },
+    "File:Redington Long Pier Sunset Silhouette (28108622979).jpg": {
+      "file": "File:Redington Long Pier Sunset Silhouette (28108622979).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ARedington%20Long%20Pier%20Sunset%20Silhouette%20(28108622979).jpg",
+      "author": "Gregory Urbano from St. Petersburg, Florida, USA",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:37:44.124Z"
+    },
+    "File:House of Seven Gables at Heritage Village.jpg": {
+      "file": "File:House of Seven Gables at Heritage Village.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AHouse%20of%20Seven%20Gables%20at%20Heritage%20Village.jpg",
+      "author": "Rocarra",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:38:30.129Z"
+    },
+    "File:Aerial Photo of the Flats in Hernando Beach.jpg": {
+      "file": "File:Aerial Photo of the Flats in Hernando Beach.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AAerial%20Photo%20of%20the%20Flats%20in%20Hernando%20Beach.jpg",
+      "author": "FHarder",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:38:32.947Z"
+    },
+    "File:Reclaimed water maintenance hole cover in Indian Rocks Beach.jpg": {
+      "file": "File:Reclaimed water maintenance hole cover in Indian Rocks Beach.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AReclaimed%20water%20maintenance%20hole%20cover%20in%20Indian%20Rocks%20Beach.jpg",
+      "author": "Grendelkhan",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:39:33.180Z"
+    },
+    "File:Indian Rocks Beach Free Library.jpg": {
+      "file": "File:Indian Rocks Beach Free Library.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AIndian%20Rocks%20Beach%20Free%20Library.jpg",
+      "author": "Grendelkhan",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:39:34.498Z"
+    },
+    "File:Parque Amigos de José Martí.jpg": {
+      "file": "File:Parque Amigos de José Martí.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AParque%20Amigos%20de%20Jos%C3%A9%20Mart%C3%AD.jpg",
+      "author": "Flpubliclibrarian",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:40:41.917Z"
+    },
+    "File:Jungle Prada.JPG": {
+      "file": "File:Jungle Prada.JPG",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AJungle%20Prada.JPG",
+      "author": "Josh02 11",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:40:49.065Z"
+    },
+    "File:Ken Thompson Park - Sarasota, Florida 2023-01-23 (01).jpg": {
+      "file": "File:Ken Thompson Park - Sarasota, Florida 2023-01-23 (01).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AKen%20Thompson%20Park%20-%20Sarasota%2C%20Florida%202023-01-23%20(01).jpg",
+      "author": "Ryan Hodnett",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:41:23.332Z"
+    },
+    "File:Lake Seminole Park Scenery.jpg": {
+      "file": "File:Lake Seminole Park Scenery.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ALake%20Seminole%20Park%20Scenery.jpg",
+      "author": "Timbot4x4",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:42:35.977Z"
+    },
+    "File:Barred Owl at Lettuce Lake (12735495095).jpg": {
+      "file": "File:Barred Owl at Lettuce Lake (12735495095).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ABarred%20Owl%20at%20Lettuce%20Lake%20(12735495095).jpg",
+      "author": "Trish Hartmann from Tampa, Florida, USA",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:43:33.617Z"
+    },
+    "File:Plant - Longboat Key, Florida 2023-01-24 (02).jpg": {
+      "file": "File:Plant - Longboat Key, Florida 2023-01-24 (02).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3APlant%20-%20Longboat%20Key%2C%20Florida%202023-01-24%20(02).jpg",
+      "author": "Ryan Hodnett",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:44:21.368Z"
+    },
+    "File:Morris Bridge Summer Day (9433839633).jpg": {
+      "file": "File:Morris Bridge Summer Day (9433839633).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AMorris%20Bridge%20Summer%20Day%20(9433839633).jpg",
+      "author": "Trish Hartmann from Tampa, Florida, USA",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:44:34.931Z"
+    },
+    "File:Lowry Park Zoological Garden Dedication Plaque.jpg": {
+      "file": "File:Lowry Park Zoological Garden Dedication Plaque.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ALowry%20Park%20Zoological%20Garden%20Dedication%20Plaque.jpg",
+      "author": "SkyRose18",
+      "license": "CC0",
+      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:44:39.148Z"
+    },
+    "File:Macfarlane Park, Tampa.jpg": {
+      "file": "File:Macfarlane Park, Tampa.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AMacfarlane%20Park%2C%20Tampa.jpg",
+      "author": "LittleT889",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:44:59.818Z"
+    },
+    "File:Madira Bickel Mound Site Terra Ceia Florida 2019-2587 01.jpg": {
+      "file": "File:Madira Bickel Mound Site Terra Ceia Florida 2019-2587 01.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AMadira%20Bickel%20Mound%20Site%20Terra%20Ceia%20Florida%202019-2587%2001.jpg",
+      "author": "Paul R. Burley",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:45:08.776Z"
+    },
+    "File:2024-Mirror Lake Library-back, St. Petersburg, FL.jpg": {
+      "file": "File:2024-Mirror Lake Library-back, St. Petersburg, FL.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3A2024-Mirror%20Lake%20Library-back%2C%20St.%20Petersburg%2C%20FL.jpg",
+      "author": "Myotus",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:46:29.916Z"
+    },
+    "File:Wood Stork Nest with Chicks (49516852181).jpg": {
+      "file": "File:Wood Stork Nest with Chicks (49516852181).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AWood%20Stork%20Nest%20with%20Chicks%20(49516852181).jpg",
+      "author": "Trish Hartmann from Tampa, Florida, USA",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:48:21.403Z"
+    },
+    "File:Fishhawk Ranch Park Square Plaza May 2024.jpg": {
+      "file": "File:Fishhawk Ranch Park Square Plaza May 2024.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AFishhawk%20Ranch%20Park%20Square%20Plaza%20May%202024.jpg",
+      "author": "Trevorrrrvalent",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:49:35.197Z"
+    },
+    "File:Bar-Grille on Pass-a-Grille Beach,Florida - Bar-Resto sur la plage de St-Pete Beach, Floride - panoramio.jpg": {
+      "file": "File:Bar-Grille on Pass-a-Grille Beach,Florida - Bar-Resto sur la plage de St-Pete Beach, Floride - panoramio.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ABar-Grille%20on%20Pass-a-Grille%20Beach%2CFlorida%20-%20Bar-Resto%20sur%20la%20plage%20de%20St-Pete%20Beach%2C%20Floride%20-%20panoramio.jpg",
+      "author": "Richard Mc Neil",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:49:41.803Z"
+    },
+    "File:Tarpon Springs, FL, USA - panoramio (4).jpg": {
+      "file": "File:Tarpon Springs, FL, USA - panoramio (4).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ATarpon%20Springs%2C%20FL%2C%20USA%20-%20panoramio%20(4).jpg",
+      "author": "Roman Eugeniusz",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:50:07.878Z"
+    },
+    "File:Pier 60 at Clearwater, FL 2016 - panoramio.jpg": {
+      "file": "File:Pier 60 at Clearwater, FL 2016 - panoramio.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3APier%2060%20at%20Clearwater%2C%20FL%202016%20-%20panoramio.jpg",
+      "author": "Jana Taylor",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:50:28.125Z"
+    },
+    "File:Quick Point Nature Preserve - Longboat Key, Florida 2023-01-24 (01).jpg": {
+      "file": "File:Quick Point Nature Preserve - Longboat Key, Florida 2023-01-24 (01).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AQuick%20Point%20Nature%20Preserve%20-%20Longboat%20Key%2C%20Florida%202023-01-24%20(01).jpg",
+      "author": "Ryan Hodnett",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:51:50.332Z"
+    },
+    "File:Temple Terrace, FL, USA - panoramio (1).jpg": {
+      "file": "File:Temple Terrace, FL, USA - panoramio (1).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ATemple%20Terrace%2C%20FL%2C%20USA%20-%20panoramio%20(1).jpg",
+      "author": "Evan Nichols (Virtua…",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:53:42.905Z"
+    },
+    "File:Safety Harbor, FL, USA - panoramio - Roman Eugeniusz (1).jpg": {
+      "file": "File:Safety Harbor, FL, USA - panoramio - Roman Eugeniusz (1).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ASafety%20Harbor%2C%20FL%2C%20USA%20-%20panoramio%20-%20Roman%20Eugeniusz%20(1).jpg",
+      "author": "Roman Eugeniusz",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:54:09.010Z"
+    },
+    "File:Saint Petersburg,Florida,USA. - panoramio.jpg": {
+      "file": "File:Saint Petersburg,Florida,USA. - panoramio.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ASaint%20Petersburg%2CFlorida%2CUSA.%20-%20panoramio.jpg",
+      "author": "Roman Eugeniusz",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:54:11.156Z"
+    },
+    "File:Gulf Blvd by Sheraton Sand Key - panoramio.jpg": {
+      "file": "File:Gulf Blvd by Sheraton Sand Key - panoramio.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AGulf%20Blvd%20by%20Sheraton%20Sand%20Key%20-%20panoramio.jpg",
+      "author": "Geo. Paterson",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:54:25.896Z"
+    },
+    "File:Sarasota Bay - Sarasota, Florida 2023-01-23 (02).jpg": {
+      "file": "File:Sarasota Bay - Sarasota, Florida 2023-01-23 (02).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ASarasota%20Bay%20-%20Sarasota%2C%20Florida%202023-01-23%20(02).jpg",
+      "author": "Ryan Hodnett",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:54:34.034Z"
+    },
+    "File:Seminole Heights Garden Center.jpg": {
+      "file": "File:Seminole Heights Garden Center.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ASeminole%20Heights%20Garden%20Center.jpg",
+      "author": "TampAGS, for AGS Media",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:54:54.171Z"
+    },
+    "File:Control structure at Se7en Wetlands.jpg": {
+      "file": "File:Control structure at Se7en Wetlands.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AControl%20structure%20at%20Se7en%20Wetlands.jpg",
+      "author": "Lakeland julie",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:55:07.787Z"
+    },
+    "File:Simmons Park Water Tower University of South Florida 2024.jpg": {
+      "file": "File:Simmons Park Water Tower University of South Florida 2024.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ASimmons%20Park%20Water%20Tower%20University%20of%20South%20Florida%202024.jpg",
+      "author": "Trevorrrrvalent",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:55:32.972Z"
+    },
+    "File:Snell Isle Blvd, St. Petersburg - panoramio.jpg": {
+      "file": "File:Snell Isle Blvd, St. Petersburg - panoramio.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ASnell%20Isle%20Blvd%2C%20St.%20Petersburg%20-%20panoramio.jpg",
+      "author": "Raman Patel",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:55:58.768Z"
+    },
+    "File:Eckerd College South Beach at Sunset.jpg": {
+      "file": "File:Eckerd College South Beach at Sunset.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AEckerd%20College%20South%20Beach%20at%20Sunset.jpg",
+      "author": "Seekadventuremedia",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:56:08.827Z"
+    },
+    "File:South Lido County Park - Sarasota, Florida 2023-01-22 (02).jpg": {
+      "file": "File:South Lido County Park - Sarasota, Florida 2023-01-22 (02).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ASouth%20Lido%20County%20Park%20-%20Sarasota%2C%20Florida%202023-01-22%20(02).jpg",
+      "author": "Ryan Hodnett",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:56:13.684Z"
+    },
+    "File:Sunset At Crabby Bills St Pete Beach - panoramio.jpg": {
+      "file": "File:Sunset At Crabby Bills St Pete Beach - panoramio.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ASunset%20At%20Crabby%20Bills%20St%20Pete%20Beach%20-%20panoramio.jpg",
+      "author": "Allyn Hane",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:56:40.373Z"
+    },
+    "File:Sulphur Springs Museum and Heritage Center 2.jpg": {
+      "file": "File:Sulphur Springs Museum and Heritage Center 2.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ASulphur%20Springs%20Museum%20and%20Heritage%20Center%202.jpg",
+      "author": "LittleT889",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:58:33.079Z"
+    },
+    "File:Sunset Beach, Tarpon Springs, United States (Unsplash).jpg": {
+      "file": "File:Sunset Beach, Tarpon Springs, United States (Unsplash).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ASunset%20Beach%2C%20Tarpon%20Springs%2C%20United%20States%20(Unsplash).jpg",
+      "author": "AnonymousUnknown author",
+      "license": "CC0",
+      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:58:47.606Z"
+    },
+    "File:Sunset Beach,Treasure Island,Florida,USA. - panoramio (1).jpg": {
+      "file": "File:Sunset Beach,Treasure Island,Florida,USA. - panoramio (1).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ASunset%20Beach%2CTreasure%20Island%2CFlorida%2CUSA.%20-%20panoramio%20(1).jpg",
+      "author": "Roman Eugeniusz",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:58:49.732Z"
+    },
+    "File:Island Estates, Clearwater, FL 33767, USA - panoramio (1).jpg": {
+      "file": "File:Island Estates, Clearwater, FL 33767, USA - panoramio (1).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AIsland%20Estates%2C%20Clearwater%2C%20FL%2033767%2C%20USA%20-%20panoramio%20(1).jpg",
+      "author": "Evan Nichols (Virtua…",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:58:55.403Z"
+    },
+    "File:Pinellas National Wildlife Refuge from North Sunshine Skyway rest area.JPG": {
+      "file": "File:Pinellas National Wildlife Refuge from North Sunshine Skyway rest area.JPG",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3APinellas%20National%20Wildlife%20Refuge%20from%20North%20Sunshine%20Skyway%20rest%20area.JPG",
+      "author": "John O'Neill",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:59:01.885Z"
+    },
+    "File:Harbor at Tarpon Springs - panoramio.jpg": {
+      "file": "File:Harbor at Tarpon Springs - panoramio.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AHarbor%20at%20Tarpon%20Springs%20-%20panoramio.jpg",
+      "author": "jonathan c. wheeler",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:59:33.134Z"
+    },
+    "File:Terra Ceia Aquatic Preserve Manatee County Florida 2020-2601.jpg": {
+      "file": "File:Terra Ceia Aquatic Preserve Manatee County Florida 2020-2601.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ATerra%20Ceia%20Aquatic%20Preserve%20Manatee%20County%20Florida%202020-2601.jpg",
+      "author": "Paul R. Burley",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T14:59:57.921Z"
+    },
+    "File:Palm Harbor HS gym.jpg": {
+      "file": "File:Palm Harbor HS gym.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3APalm%20Harbor%20HS%20gym.jpg",
+      "author": "JGHowes, photographer",
+      "license": "Attribution",
+      "licenseUrl": null,
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T15:00:14.457Z"
+    },
+    "File:Treasure Island Beach.jpg": {
+      "file": "File:Treasure Island Beach.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ATreasure%20Island%20Beach.jpg",
+      "author": "G1images",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T15:01:20.729Z"
+    },
+    "File:Euphorbia cumulicola 1 - Wall Springs Park - November 2025.jpg": {
+      "file": "File:Euphorbia cumulicola 1 - Wall Springs Park - November 2025.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AEuphorbia%20cumulicola%201%20-%20Wall%20Springs%20Park%20-%20November%202025.jpg",
+      "author": "Dsandii",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T15:02:27.324Z"
+    },
+    "File:Weedon Island preserve - panoramio (1).jpg": {
+      "file": "File:Weedon Island preserve - panoramio (1).jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AWeedon%20Island%20preserve%20-%20panoramio%20(1).jpg",
+      "author": "jesseasmith",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T15:02:58.958Z"
+    },
+    "File:Florida Jungle at Dead River (explored 2-7-20) - Flickr - trishhartmann.jpg": {
+      "file": "File:Florida Jungle at Dead River (explored 2-7-20) - Flickr - trishhartmann.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AFlorida%20Jungle%20at%20Dead%20River%20(explored%202-7-20)%20-%20Flickr%20-%20trishhartmann.jpg",
+      "author": "Trish Hartmann from Tampa, Florida, USA",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T15:03:40.536Z"
+    },
+    "File:Williams Park.jpg": {
+      "file": "File:Williams Park.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AWilliams%20Park.jpg",
+      "author": "RayScript",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T15:03:49.753Z"
+    },
+    "File:Williams Pier - Boca Ciega Bay 1 - GeckoFest 2014.jpg": {
+      "file": "File:Williams Pier - Boca Ciega Bay 1 - GeckoFest 2014.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AWilliams%20Pier%20-%20Boca%20Ciega%20Bay%201%20-%20GeckoFest%202014.jpg",
+      "author": "amateur photography by michel",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T15:03:54.140Z"
+    },
+    "File:Woodmont Park.jpg": {
+      "file": "File:Woodmont Park.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AWoodmont%20Park.jpg",
+      "author": "Slapp9",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T15:04:19.973Z"
     }
   }
 }

@@ -4,13 +4,16 @@
 // THE HONEST-IMAGES CONTRACT (Josh, 2026-06-15): a place image is ONLY ever a
 // verified photo OF THAT ACTUAL PLACE — never a representative stand-in (a
 // generic park photo on a specific park would imply it's that place: soft
-// fabrication, rejected). We trust two curated provenances on Wikimedia, both
-// keyed off the place's Wikidata Q-id:
-//   • P18 ("image") — the entity's single curated lead photo. Strongest signal.
+// fabrication, rejected). We trust three of-the-place provenances, EACH gated by
+// the same name-match + credit checks; first hit wins:
+//   • P18 ("image") — the Wikidata entity's single curated lead photo. Strongest.
 //   • P373 ("Commons category") — the entity's OWN category; its file members
 //     are curated-as-depicting that exact entity (3.7P-2 fallback when no P18).
-// Places without either keep their category-art (the honest floor — refined in
-// W4's CSS, never faked).
+//   • Commons GEOSEARCH + name-match (honest-imagery Phase 1) — for the ~97% of
+//     places with coords but no usable Q-id: geotagged Commons files within 500m,
+//     then the SAME name-match HARD GATE turns "near" into "of" (resolveCommonsGeosearch).
+// Places where all fail keep their category-art (the honest floor — refined in
+// W4's CSS, never faked). NO generic stock (the A3 category-stock floor was rejected).
 //
 // 3.7P-2 honesty guardrails on the P373 fallback (mining a category is riskier
 // than a single curated P18, so it is fenced hard):
@@ -48,6 +51,10 @@ import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CACHE_FILE = join(HERE, 'cache', 'wikidata-images.json');
 const ATTRIB_FILE = join(HERE, 'cache', 'attributions.json');
+// honest-imagery Phase 1: the place-KEYED cache for the Commons GEOSEARCH ladder
+// step (the ~97% of places with coords but no usable Q-id), alongside the Q-id
+// cache above. Same shape/TTL; keyed by place.key.
+const GEO_CACHE_FILE = join(HERE, 'cache', 'place-geo-images.json');
 // a descriptive User-Agent is required by the Wikimedia API etiquette policy.
 const UA = {
   'User-Agent':
@@ -108,6 +115,35 @@ const titleMatchesName = (fileTitle, toks) => {
   const t = (fileTitle || '').toLowerCase();
   return toks.some((tok) => t.includes(tok));
 };
+// STRONG name-match for the GEOSEARCH path (Phase-1 review): geosearch has no
+// category-membership proof (unlike P373) — it's proximity only — so a single
+// shared NEIGHBORHOOD/AREA token ("Ybor", "Tampa", "Clearwater") is NOT enough:
+// it would put a generic Ybor streetcar on a specific Ybor dog park (a soft
+// fabrication, the exact thing the contract forbids). Require a 2-WORD PHRASE from
+// the place name to appear contiguously in the file title — strong proof the file
+// is OF this place ("Lake Seminole Park scenery" ✓; "Ybor streetcar" ✗). A phrase
+// of two generic words ("state park") carries no signal and is skipped. A 1-word
+// place name falls back to its single distinctive token.
+const namePhrases = (name) => {
+  const words = (name || '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+  const out = [];
+  for (let i = 0; i + 1 < words.length; i++) {
+    const a = words[i], b = words[i + 1];
+    if (a.length < 2 || b.length < 2) continue;
+    if (STOP.has(a) && STOP.has(b)) continue; // "state park" / "beach park" = no signal
+    out.push(a + ' ' + b);
+  }
+  return out;
+};
+const nameMatchStrong = (fileTitle, name) => {
+  const t = (fileTitle || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ');
+  const phrases = namePhrases(name);
+  // require a 2-word phrase. A 1-word place name ("Brandon") is almost always a
+  // town/area, not a specific venue — a single shared token would put any photo
+  // from that town on it (a generic "Brandon Family Cemetery" on the town node).
+  // Those keep the art floor (honest) rather than a soft "of."
+  return phrases.length > 0 && phrases.some((ph) => t.includes(ph));
+};
 // cheap belt-and-suspenders for the P373 pick: titles that are clearly a non-photo
 // subject (map/logo/sign) OR a weak hero — a closeup/marker (3.7P-2 review P1) or
 // a self-undermining condition shot like "What's left of it" (a drought photo).
@@ -151,6 +187,33 @@ async function resolveCommonsFile(fileTitle) {
   return recFromImageInfo(info, (page && page.title) || fileTitle, 'wikidata-p18');
 }
 
+// shared honest pick (the P373 category path + the NEW geosearch path): from the
+// credit-passed candidates, apply the name-match HARD GATE — a file must match the
+// place name, because "in the category" / "near the coords" only becomes "OF this
+// place" with the name — and the deterministic establishing-shot ordering (earliest
+// name-token position, then alphabetical). `strong` (geosearch) requires a 2-word
+// phrase; the weak token-match is for P373 (already fenced by category membership).
+// Returns the best record | null.
+function bestNamedRecord(cands, name, { strong = false } = {}) {
+  const toks = nameTokens(name);
+  const match = strong
+    ? (c) => nameMatchStrong(c.fileTitle, name)
+    : (c) => toks.length > 0 && titleMatchesName(c.fileTitle, toks);
+  const named = cands.filter(match);
+  if (!named.length) return null;
+  const pos = (ft) => {
+    const t = ft.toLowerCase();
+    let m = Infinity;
+    for (const tok of toks) {
+      const i = t.indexOf(tok);
+      if (i >= 0) m = Math.min(m, i);
+    }
+    return m;
+  };
+  named.sort((a, b) => pos(a.fileTitle) - pos(b.fileTitle) || a.fileTitle.localeCompare(b.fileTitle));
+  return named[0];
+}
+
 // 3.7P-2: resolve a Wikidata P373 Commons category → the best honest photo of
 // the entity, applying the guardrails above. category is the bare name (no
 // "Category:" prefix). Returns a record | null.
@@ -182,24 +245,43 @@ async function resolveCommonsCategory(category, name) {
   // matching file → return null and keep the honest art floor. This closes the
   // "in the category but not provably of the place" stand-in path the honesty
   // pillar forbids (PHASE_3.7.md: reject category mining w/o name-match).
+  return bestNamedRecord(cands, name);
+}
+
+// honest-imagery Phase 1 — resolve a REAL of-the-place photo by COORDS. A near-
+// clone of resolveCommonsCategory: it swaps the category generator for a Commons
+// GEOSEARCH (geotagged files within 500m of the place) and runs the IDENTICAL
+// honest filter chain — BAD_TITLE + BITMAP + jpeg/png + width floor + creditOk —
+// then the SAME name-match HARD GATE (geosearch returns "near"; the name match is
+// the proof it's "of"). Covers the ~97% of places with coords but no usable Q-id.
+async function resolveCommonsGeosearch(lat, lng, name) {
+  // no distinctive name token → we could never prove a file is "of this place".
+  // Skip the call entirely (cheaper + honest): keep the art floor.
   const toks = nameTokens(name);
-  const named = toks.length ? cands.filter((c) => titleMatchesName(c.fileTitle, toks)) : [];
-  if (!named.length) return null;
-  // establishing shots LEAD with the place name ("Exploring Nathan Benderson
-  // Park"); specimen/subject shots trail it ("Pinus elliottii Werner-Boyce").
-  // Prefer the earliest name-token position, then alphabetical (deterministic).
-  // A pure sort PREFERENCE — never drops an honest photo, just orders better.
-  const pos = (ft) => {
-    const t = ft.toLowerCase();
-    let m = Infinity;
-    for (const tok of toks) {
-      const i = t.indexOf(tok);
-      if (i >= 0) m = Math.min(m, i);
-    }
-    return m;
-  };
-  named.sort((a, b) => pos(a.fileTitle) - pos(b.fileTitle) || a.fileTitle.localeCompare(b.fileTitle));
-  return named[0];
+  if (!toks.length) return null;
+  const api =
+    `https://commons.wikimedia.org/w/api.php?action=query&format=json` +
+    `&generator=geosearch&ggscoord=${lat}%7C${lng}&ggsradius=500&ggslimit=40&ggsnamespace=6` +
+    `&prop=imageinfo&${II_PROPS}&iiurlwidth=${THUMB_W}`;
+  const r = await fetch(api, { headers: UA }).then((x) => (x.ok ? x.json() : null));
+  const pages = r && r.query && r.query.pages ? Object.values(r.query.pages) : [];
+  const cands = [];
+  for (const pg of pages) {
+    const info = pg.imageinfo && pg.imageinfo[0];
+    if (!info || !info.thumburl) continue;
+    const t = pg.title || '';
+    if (BAD_TITLE.test(t)) continue; // skip maps/logos/signs by title
+    if (info.mediatype !== 'BITMAP') continue; // photos only (no SVG/PDF/audio)
+    if (info.mime !== 'image/jpeg' && info.mime !== 'image/png') continue;
+    if (!(typeof info.width === 'number' && info.width >= MIN_HERO_W)) continue;
+    const rec = recFromImageInfo(info, t, 'commons-geosearch');
+    if (!creditOk(rec)) continue; // credit-required (license + author when CC-BY)
+    cands.push(rec);
+  }
+  // the STRONG name-match gate (geosearch has no category-membership proof): a
+  // geotagged file near the coords ships ONLY if its title contains a 2-word phrase
+  // from the place name — not just a shared neighborhood token. Otherwise art.
+  return bestNamedRecord(cands, name, { strong: true });
 }
 
 // Q-id → record | null. P18 first (strongest curated signal); if it has no P18,
@@ -250,62 +332,112 @@ const loadAttrib = () => {
   const c = loadJson(ATTRIB_FILE, { fetchedAt: null, byFile: {} });
   return c.byFile ? c : { fetchedAt: null, byFile: {} };
 };
+// honest-imagery Phase 1: the geosearch cache, keyed by place.key.
+const loadGeoCache = () => {
+  const c = loadJson(GEO_CACHE_FILE, { fetchedAt: null, byKey: {} });
+  return c.byKey ? c : { fetchedAt: null, byKey: {} };
+};
+// normalize a resolver record (or null) into the cached/stored shape + timestamp.
+const storeRec = (r) =>
+  r
+    ? {
+        image: r.image, file: r.file, fileTitle: r.fileTitle, fileUrl: r.fileUrl,
+        width: r.width, source: r.source, license: r.license,
+        licenseUrl: r.licenseUrl, author: r.author, at: new Date().toISOString(),
+      }
+    : { image: null, file: null, fileTitle: null, width: null, source: null, license: null, at: new Date().toISOString() };
+// a record ships ONLY with an image + a satisfiable credit + the hero width floor.
+const shippable = (rec) => !!(rec && rec.image && creditOk(rec) && (rec.width == null || rec.width >= MIN_HERO_W));
 
-// Mutates each place that carries a wikidata Q-id, setting `image` when a real,
-// CREDITED photo resolves (and recording that credit). Pure on places with no
-// Q-id; places whose Q-id yields no usable photo keep category-art. enrich is
-// the SOLE writer of `image` — it authoritatively sets OR clears it, so a re-run
-// after a guardrail tightened drops a now-disqualified photo. Returns counts.
+// Mutates EVERY place with coords, setting `image` when a real, CREDITED photo of
+// THAT place resolves (and recording its credit). Per place, a real-photo LADDER —
+// first hit wins: (1) Wikidata Q-id (P18 → P373) for the ~3% with a Q-id, then
+// (2) NEW Commons geosearch + name-match for the rest with coords. enrich is the
+// SOLE writer of `image` — it authoritatively sets OR clears it, so a re-run after a
+// guardrail tightened drops a now-disqualified photo. No generic stock. Returns counts.
 export async function enrichPlacesWithImages(places, { live = false, log = () => {} } = {}) {
   const cache = loadCache();
+  const geoCache = loadGeoCache();
   const attrib = loadAttrib();
   const stats = {
     withQid: 0, set: 0, fromCache: 0, fetched: 0, noImage: 0,
     tooSmall: 0, noCredit: 0, viaP18: 0, viaP373: 0,
+    geoTried: 0, geoFetched: 0, geoFromCache: 0, viaGeo: 0,
   };
   let dirty = false; // only rewrite the TRACKED caches when content changed
+  let geoDirty = false;
   let attribDirty = false;
   const shippedFiles = new Set(); // attributions to keep (prune the rest)
   for (const p of places) {
-    if (!p || !p.wikidata) continue;
-    stats.withQid++;
-    const cached = cache.byQid[p.wikidata];
-    // freshness also requires the NEW record shape (3.7P-2 review P1): a pre-3.7P-2
-    // record carries `image` but no `license`/`source` key — trusting it verbatim
-    // would fail the credit gate below and silently drop a good photo. Treat such
-    // a record as stale so it re-resolves (a live run self-heals an old cache).
-    const newShape = cached && (!cached.image || 'license' in cached);
-    const fresh = cached && cached.at && newShape && Date.now() - Date.parse(cached.at) < MAX_CACHE_AGE_MS;
-    let rec;
-    if (cached && fresh && !live) {
-      rec = cached;
-      stats.fromCache++;
-    } else {
-      try {
-        const r = await resolvePlaceImage(p.wikidata, p.name);
-        rec = r
-          ? {
-              image: r.image, file: r.file, fileTitle: r.fileTitle, fileUrl: r.fileUrl,
-              width: r.width, source: r.source, license: r.license,
-              licenseUrl: r.licenseUrl, author: r.author, at: new Date().toISOString(),
-            }
-          : { image: null, file: null, fileTitle: null, width: null, source: null, license: null, at: new Date().toISOString() };
-        cache.byQid[p.wikidata] = rec;
-        dirty = true;
-        stats.fetched++;
-        await sleep(120); // politeness between live Wikimedia calls
-      } catch (e) {
-        // network hiccup: fall back to any cached value, else leave art
-        rec = cached || { image: null, file: null, fileTitle: null, width: null, source: null, license: null, at: new Date().toISOString() };
-        log(`  ⚠️  ${p.wikidata} (${p.name}): ${e.message || e}`);
+    if (!p) continue;
+    const hasCoords = typeof p.lat === 'number' && typeof p.lng === 'number';
+    let rec = null;
+
+    // ── ladder 1: Wikidata Q-id (P18 → P373) — the curated, strongest signal ──
+    if (p.wikidata) {
+      stats.withQid++;
+      const cached = cache.byQid[p.wikidata];
+      // freshness also requires the NEW record shape (3.7P-2 review P1): a pre-3.7P-2
+      // record carries `image` but no `license`/`source` key — trusting it verbatim
+      // would fail the credit gate below and silently drop a good photo. Treat such
+      // a record as stale so it re-resolves (a live run self-heals an old cache).
+      const newShape = cached && (!cached.image || 'license' in cached);
+      const fresh = cached && cached.at && newShape && Date.now() - Date.parse(cached.at) < MAX_CACHE_AGE_MS;
+      if (cached && fresh && !live) {
+        rec = cached;
+        stats.fromCache++;
+      } else {
+        try {
+          rec = storeRec(await resolvePlaceImage(p.wikidata, p.name));
+          cache.byQid[p.wikidata] = rec;
+          dirty = true;
+          stats.fetched++;
+          await sleep(120); // politeness between live Wikimedia calls
+        } catch (e) {
+          rec = cached || storeRec(null); // network hiccup → cached value, else art
+          log(`  ⚠️  ${p.wikidata} (${p.name}): ${e.message || e}`);
+        }
       }
     }
+
+    // ── ladder 2: Commons GEOSEARCH + name-match (the big outdoor win) — only if
+    //    the Q-id step didn't ship. Runs over EVERY place with coords + a name;
+    //    the name-match HARD GATE inside makes "near" → "of". Place-keyed cache. ──
+    if (!shippable(rec) && hasCoords && p.name) {
+      stats.geoTried++;
+      const gkey = p.key || `${p.lat},${p.lng}`;
+      const gcached = geoCache.byKey[gkey];
+      const gNewShape = gcached && (!gcached.image || 'license' in gcached);
+      const gfresh = gcached && gcached.at && gNewShape && Date.now() - Date.parse(gcached.at) < MAX_CACHE_AGE_MS;
+      let grec;
+      if (gcached && gfresh && !live) {
+        grec = gcached;
+        stats.geoFromCache++;
+      } else {
+        try {
+          grec = storeRec(await resolveCommonsGeosearch(p.lat, p.lng, p.name));
+          geoCache.byKey[gkey] = grec;
+          geoDirty = true;
+          stats.geoFetched++;
+          await sleep(120);
+        } catch (e) {
+          grec = gcached || storeRec(null);
+          log(`  ⚠️  geo ${gkey} (${p.name}): ${e.message || e}`);
+        }
+      }
+      // ship only a STRONG (2-word-phrase) name match — re-validated HERE so a
+      // cached weak pick (from before the gate tightened) self-corrects to the art
+      // floor on a warm run, no re-fetch needed.
+      if (shippable(grec) && nameMatchStrong(grec.fileTitle, p.name)) rec = grec;
+    }
+
+    // ── ship the winning record, or clear ──
     // credit-required + resolution floor: a photo ships ONLY with a SATISFIABLE
-    // credit (license, plus an author when the license is CC-BY) at/above the hero
-    // floor. Otherwise the honest art floor stays. enrich also stamps the inline
-    // credit ON the place (p.imageCredit) so the place-detail hero can render the
-    // byline the CC-BY/BY-SA license legally requires — no live call, no lookup.
-    if (rec.image && creditOk(rec) && (rec.width == null || rec.width >= MIN_HERO_W)) {
+    // credit (license, plus an author when CC-BY) at/above the hero floor. Otherwise
+    // the honest art floor stays. enrich also stamps the inline credit ON the place
+    // (p.imageCredit) so the place-detail hero can render the byline the CC-BY/BY-SA
+    // license legally requires — no live call, no lookup.
+    if (shippable(rec)) {
       const fileUrl = rec.fileUrl || 'https://commons.wikimedia.org/wiki/' + encodeURIComponent(rec.fileTitle);
       p.image = rec.image;
       p.imageCredit = {
@@ -316,6 +448,7 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
       };
       stats.set++;
       if (rec.source === 'wikidata-p373') stats.viaP373++;
+      else if (rec.source === 'commons-geosearch') stats.viaGeo++;
       else stats.viaP18++;
       if (rec.fileTitle) {
         shippedFiles.add(rec.fileTitle);
@@ -341,8 +474,8 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
     } else {
       if ('image' in p) delete p.image;
       if ('imageCredit' in p) delete p.imageCredit;
-      if (rec.image && !creditOk(rec)) stats.noCredit++;
-      else if (rec.image) stats.tooSmall++;
+      if (rec && rec.image && !creditOk(rec)) stats.noCredit++;
+      else if (rec && rec.image) stats.tooSmall++;
       stats.noImage++;
     }
   }
@@ -359,6 +492,10 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
   if (dirty) {
     cache.fetchedAt = new Date().toISOString();
     writeFileSync(CACHE_FILE, JSON.stringify(cache, null, 2));
+  }
+  if (geoDirty) {
+    geoCache.fetchedAt = new Date().toISOString();
+    writeFileSync(GEO_CACHE_FILE, JSON.stringify(geoCache, null, 2));
   }
   if (attribDirty) {
     attrib.fetchedAt = new Date().toISOString();
@@ -386,9 +523,11 @@ async function main() {
     const stats = await enrichPlacesWithImages(doc.places, { live: live && lastStats === null, log: console.log });
     writeFileSync(path, JSON.stringify(doc, null, 2));
     lastStats = stats;
+    const total = doc.places.length;
     console.log(
-      `${path}: ${stats.set}/${stats.withQid} imaged ` +
-        `(P18 ${stats.viaP18}, P373 ${stats.viaP373}; fetched ${stats.fetched}, cache ${stats.fromCache}, ` +
+      `${path}: ${stats.set}/${total} imaged (${((stats.set / total) * 100).toFixed(1)}%) ` +
+        `— P18 ${stats.viaP18}, P373 ${stats.viaP373}, geosearch ${stats.viaGeo} ` +
+        `(qid: fetched ${stats.fetched}/cache ${stats.fromCache}; geo: tried ${stats.geoTried}, fetched ${stats.geoFetched}/cache ${stats.geoFromCache}; ` +
         `none ${stats.noImage} [too-small ${stats.tooSmall}, no-credit ${stats.noCredit}])`
     );
   }

@@ -346,20 +346,25 @@ test('places data invariants: schema v1 places.json', () => {
 // THAT place (Wikidata P18 → Wikimedia Commons), never a representative
 // stand-in; places without a curated photo keep category-art. These invariants
 // lock that contract on the real artifact.
-test('W4 images: place photos are real, Wikidata-sourced, never fabricated', () => {
+test('W4/Phase1 images: place photos are real of-the-place Commons files + every one CREDITED', () => {
   const doc = JSON.parse(readFileSync(APP_PLACES, 'utf8'))
   const places = doc.places
   const imaged = places.filter((p) => p.image)
-  // a meaningful number resolved (the ~24 wikidata places with a P18), but never
-  // more than the wikidata-bearing set — the floor guards a silent regression
-  assert.ok(imaged.length >= 20, `only ${imaged.length} places imaged — the Wikidata image step likely regressed`)
-  const withQid = places.filter((p) => p.wikidata).length
-  assert.ok(imaged.length <= withQid, `${imaged.length} images but only ${withQid} wikidata places — an image leaked onto a place with no Q-id`)
+  // a meaningful number resolved. The honest-imagery Phase-1 geosearch ladder lifts
+  // this well past the ~65 Q-id places (real of-the-place photos on coords+name-match),
+  // so the old "never more than the Q-id set" cap is RETIRED — geosearch legitimately
+  // images non-Q-id places. The honesty guard is now name-match (pipeline) + credit.
+  assert.ok(imaged.length >= 20, `only ${imaged.length} places imaged — the image pipeline likely regressed`)
   for (const p of imaged) {
-    // every image MUST come from Wikimedia Commons (the only honest "of this place" source)
+    // every image is a real Wikimedia Commons file — the ONLY honest of-the-place source.
+    // P18 / P373 / geosearch all resolve to upload.wikimedia.org/.../commons/. NO stock.
     assert.match(p.image, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, `${p.name}: image is not a Wikimedia Commons URL (${p.image})`)
-    // NEVER a stand-in: an image is only allowed on a place that carries the Q-id it was resolved from
-    assert.ok(typeof p.wikidata === 'string' && p.wikidata, `${p.name}: has an image but NO wikidata id — that's a representative stand-in, banned`)
+    // CREDIT-REQUIRED: every shipped photo carries an inline credit (license; author
+    // when the license is CC-BY) — the legal duty + the honesty record.
+    assert.ok(p.imageCredit && p.imageCredit.license, `${p.name}: has an image but no credit (license) — the credit gate must hold on every source`)
+    if (/^\s*cc\s*by/i.test(p.imageCredit.license)) {
+      assert.ok(p.imageCredit.author, `${p.name}: a CC-BY image must carry an author byline`)
+    }
   }
 })
 
@@ -414,7 +419,7 @@ test('honest imagery: no category-stock floor (A3 backed out) — real-of-the-pl
   const settings = readFileSync(path.join(ROOT, 'app', 'src', 'SettingsPage.jsx'), 'utf8')
   assert.ok(!/STOCK_CREDITS|category-images/.test(settings), 'Settings must carry no stock-credits block')
   const contract = readFileSync(path.join(ROOT, 'finder', 'places-images.mjs'), 'utf8')
-  assert.ok(/ONLY ever a/.test(contract) && !/category-stock|generic stock photo/.test(contract), 'the contract header is restored to real-of-the-place only')
+  assert.ok(/ONLY ever a/.test(contract) && /NO generic stock/i.test(contract), 'the contract header is real-of-the-place only (explicitly: no generic stock)')
 })
 
 // 3.73a — placeType-aware art floor (kills the green-on-green wall). Every
