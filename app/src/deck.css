@@ -98,6 +98,21 @@
 .deck-extra .chip-free { background: rgba(10, 157, 110, 0.28); color: #6fe3b6; }
 .deck-extra .sp-label { color: rgba(255, 255, 255, 0.55); }
 .deck-extra .sp-label.my-label { color: #ffb066; } /* Sunset Gold (light) — AA on dark (3.71, was teal) */
+/* TINDER Spots deck: honest amenity chips on the dark place card */
+.deck-amen { flex-wrap: wrap; gap: 6px; }
+.deck-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.deck-chip-ic { width: 12px; height: 12px; flex: 0 0 12px; color: rgba(255, 255, 255, 0.7); }
 
 /* ===== verdict stamps (opacity driven by --like/--nope/--keep from JS) ===== */
 .deck-stamp {

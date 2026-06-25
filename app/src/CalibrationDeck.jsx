@@ -55,8 +55,9 @@ import { CATEGORIES, categoryById } from './categories.js'
 import { Icon, dayLoose, hotDesc, keyOf, timeOf } from './lib.js'
 import { lsGet, lsSet } from './storage.js'
 import { pushFmnSeen } from './fmnseen.js'
-import { CardImg, PriceChip, SponsoredTag } from './cards.jsx'
+import { CardImg, PriceChip, SponsoredTag, placeTypeLabel, spotChips, hueFor, artEmoji } from './cards.jsx'
 import { useSaves } from './saves.js'
+import { usePlaces } from './places.js'
 import { getProfile, recordCalibration, topCategories } from './taste.js'
 import SwipeDeck from './SwipeDeck.jsx'
 import './deck.css'
@@ -65,20 +66,21 @@ export const DECK_SIZE = 15
 const FILL_CAT_CAP = 2 // remainder fill: at most 2 of any category in a deal
 
 // ===== re-deal memory: keys rated in recent deals (FIFO, cap 30 ≈ two full
-// decks). 'deck-last-v1' → stored as twh:deck-last-v1 via storage.js. =====
-const LAST_KEY = 'deck-last-v1'
+// decks). Kind-scoped so the Events + Spots Tinder decks keep INDEPENDENT
+// re-deal memories ('deck-last-v1' events · 'deck-last-places-v1' spots). =====
 const LAST_CAP = 30
-function loadLastDeal() {
+const lastKeyFor = (kind) => (kind === 'places' ? 'deck-last-places-v1' : 'deck-last-v1')
+function loadLastDeal(kind) {
   try {
-    const v = JSON.parse(lsGet(LAST_KEY))
+    const v = JSON.parse(lsGet(lastKeyFor(kind)))
     return Array.isArray(v) ? v.filter((k) => typeof k === 'string') : []
   } catch {
     return [] // missing / corrupt / private mode — memory just starts empty
   }
 }
-function pushLastDeal(key) {
-  const kept = loadLastDeal().filter((k) => k !== key)
-  lsSet(LAST_KEY, JSON.stringify(kept.concat(key).slice(-LAST_CAP))) // guarded in storage.js
+function pushLastDeal(kind, key) {
+  const kept = loadLastDeal(kind).filter((k) => k !== key)
+  lsSet(lastKeyFor(kind), JSON.stringify(kept.concat(key).slice(-LAST_CAP))) // guarded in storage.js
 }
 
 // ===== THE SAMPLER — pure, rng-injectable (Node sims pass a seeded rng).
@@ -139,6 +141,55 @@ export function dealDeck(events, anchors, { exclude = new Set(), size = DECK_SIZ
   return picked
 }
 
+// THE PLACES SAMPLER (Tinder Spots deck): same stratify→fill→shuffle shape as
+// dealDeck, but PLACES have no date/sponsored — so the pool is every place, and
+// the stratum is PLACETYPE (beach/park/trail/cafe/pier/…) for a VARIED deck (a
+// top-N would deal 15 parks). corroboration (srcCount) is the place "hotness".
+// Each rating still feeds the shared CATEGORY taste model via recordCalibration
+// (a beach/park nudge 'outdoors', a cafe nudges 'food', a court 'sports', …).
+export function dealPlaceDeck(places, { exclude = new Set(), size = DECK_SIZE, rng = Math.random } = {}) {
+  let pool = (places || []).filter((p) => !exclude.has(keyOf(p)))
+  if (!pool.length) pool = places || [] // tiny-pool fallback: re-rating beats a dead deck
+  const byType = new Map()
+  for (const p of pool) {
+    const t = p.placeType || 'spot'
+    const list = byType.get(t)
+    if (list) list.push(p)
+    else byType.set(t, [p])
+  }
+  const srcDesc = (a, b) => (b.srcCount || 0) - (a.srcCount || 0)
+  for (const list of byType.values()) list.sort(srcDesc)
+  const picked = []
+  const taken = new Set()
+  for (const list of byType.values()) {
+    if (picked.length >= size) break
+    picked.push(list[0])
+    taken.add(keyOf(list[0]))
+  }
+  const rest = pool.filter((p) => !taken.has(keyOf(p))).sort(srcDesc)
+  const typeCount = {}
+  for (const p of picked) typeCount[p.placeType] = (typeCount[p.placeType] || 0) + 1
+  for (const p of rest) {
+    if (picked.length >= size) break
+    if ((typeCount[p.placeType] || 0) >= FILL_CAT_CAP) continue
+    picked.push(p)
+    taken.add(keyOf(p))
+    typeCount[p.placeType] = (typeCount[p.placeType] || 0) + 1
+  }
+  for (const p of rest) {
+    if (picked.length >= size) break
+    if (!taken.has(keyOf(p))) {
+      picked.push(p)
+      taken.add(keyOf(p))
+    }
+  }
+  for (let i = picked.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1))
+    ;[picked[i], picked[j]] = [picked[j], picked[i]]
+  }
+  return picked
+}
+
 const prefersReduced = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -168,16 +219,56 @@ export function DeckFace({ e }) {
   )
 }
 
+// the PLACE card face (Tinder Spots deck): image (art-floor when no photo) +
+// placeType overline + title + 📍location + honest amenity chips — NO date.
+export function PlaceDeckFace({ e }) {
+  const chips = spotChips(e)
+  return (
+    <>
+      <CardImg e={e} className="deck-img" />
+      <div className="deck-info">
+        <span className="deck-cat" style={{ '--ch': hueFor(e) }}>
+          <span aria-hidden>{artEmoji(e)}</span> {placeTypeLabel(e)}
+        </span>
+        <div className="deck-title">{e.title}</div>
+        {e.venue && <div className="deck-meta">📍 {e.venue}</div>}
+        {chips.length > 0 && (
+          <div className="deck-extra deck-amen">
+            {chips.map((c, i) => {
+              const Glyph = Icon[c.icon]
+              return (
+                <span className="deck-chip" key={i}>
+                  {Glyph && <Glyph className="deck-chip-ic" aria-hidden />}
+                  {c.label}
+                </span>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
+
 // closeLabel: the done/empty button's text — defaults to the settings-origin
 // phrasing; the primer-origin mount (Q2d onboarding offer) passes its own,
 // since a fresh user closes to the Events tab, not to Settings.
-export default function CalibrationDeck({ events, anchors, onClose, closeLabel = 'Back to Settings' }) {
+export default function CalibrationDeck({ kind = 'events', events, places, anchors, onClose, closeLabel = 'Back to Settings' }) {
   const reduced = useMemo(() => prefersReduced(), [])
   const { has, toggle } = useSaves()
+  // TINDER: the deck is parameterized by kind (events|places) — the pool sampler,
+  // the card face, and the re-deal memory differ; the verdict→taste mapping is the
+  // SAME category model (recordCalibration reads e.category — places carry one).
+  const isPlaces = kind === 'places'
+  const noun = isPlaces ? 'spots' : 'events'
   // ONE deal per mount (deliberately not a useMemo on [events]: App rebuilds
   // `norm` identities on anchor refreshes / my-event edits, and a re-deal
   // mid-rating would reshuffle the stack under the user's thumb)
-  const [deck] = useState(() => dealDeck(events, anchors, { exclude: new Set(loadLastDeal()) }))
+  const [deck] = useState(() =>
+    isPlaces
+      ? dealPlaceDeck(places, { exclude: new Set(loadLastDeal('places')) })
+      : dealDeck(events, anchors, { exclude: new Set(loadLastDeal('events')) })
+  )
   const [beforeTop] = useState(() => topCategories(getProfile(), 3)) // the honest "before"
   const [into, setInto] = useState(0) // 'yes' + 'save' verdicts
   const [nope, setNope] = useState(0)
@@ -191,20 +282,20 @@ export default function CalibrationDeck({ events, anchors, onClose, closeLabel =
   const rated = into + nope
   const verdictNo = (e) => {
     recordCalibration('no', e) // −1 category, floored at 0 (P4)
-    pushFmnSeen(keyOf(e)) // rejections only — see header asymmetry note
-    pushLastDeal(keyOf(e))
+    if (!isPlaces) pushFmnSeen(keyOf(e)) // rejections only; FMN is events-only (places never re-pitch there)
+    pushLastDeal(kind, keyOf(e))
     setNope((n) => n + 1)
   }
   const verdictYes = (e) => {
     recordCalibration('yes', e)
-    pushLastDeal(keyOf(e))
+    pushLastDeal(kind, keyOf(e))
     setInto((n) => n + 1)
   }
   const verdictSave = (e) => {
     // 'yes' and 'save' are both "into it"; exactly ONE +3 signal either way
-    if (!has(e)) toggle(e) // save seam records the +3
+    if (!has(e)) toggle(e) // save seam records the +3 (works for places too)
     else recordCalibration('yes', e) // save on an already-saved card
-    pushLastDeal(keyOf(e))
+    pushLastDeal(kind, keyOf(e))
     setInto((n) => n + 1)
   }
 
@@ -279,7 +370,7 @@ export default function CalibrationDeck({ events, anchors, onClose, closeLabel =
             <div className="deck-empty-emoji" aria-hidden>
               🃏
             </div>
-            <p>Nothing to rate right now — come back once fresh events land.</p>
+            <p>Nothing to rate right now — come back once fresh {noun} land.</p>
             <button className="deck-done-btn pressable" onClick={onClose}>
               {closeLabel}
             </button>
@@ -298,7 +389,7 @@ export default function CalibrationDeck({ events, anchors, onClose, closeLabel =
               keyFor={keyOf}
               classPrefix="deck"
               apiRef={deckApi}
-              renderCard={(e) => <DeckFace e={e} />}
+              renderCard={isPlaces ? (e) => <PlaceDeckFace e={e} /> : (e) => <DeckFace e={e} />}
               stamps={
                 <>
                   <span className="deck-stamp deck-stamp-yes" aria-hidden>
@@ -355,6 +446,38 @@ export default function CalibrationDeck({ events, anchors, onClose, closeLabel =
             )}
           </>
         )}
+      </div>
+    </div>
+  )
+}
+
+// TINDER Spots deck: lazy-loads the places store (the deck deals ONCE on mount, so
+// the places must be ready first) and then mounts the kind='places' CalibrationDeck.
+// usePlaces fetches only because this wrapper is mounted only when the Spots Tinder
+// is open (App gates on page.kind==='places').
+export function PlacesDeck({ onClose, closeLabel = 'Done' }) {
+  const { places, status } = usePlaces(true)
+  if (status === 'ready' && Array.isArray(places) && places.length) {
+    return <CalibrationDeck kind="places" places={places} onClose={onClose} closeLabel={closeLabel} />
+  }
+  return (
+    <div className="pg deck">
+      <header className="pg-head deck-head">
+        <button className="pg-back" onClick={onClose} aria-label="Close">
+          <Icon.chevron />
+        </button>
+        <h1 className="pg-head-title">Dial it in</h1>
+      </header>
+      <div className="pg-body deck-body">
+        <div className="deck-empty">
+          <div className="deck-empty-emoji" aria-hidden>
+            🃏
+          </div>
+          <p>{status === 'error' ? "Couldn't load spots right now — try again in a moment." : 'Loading spots…'}</p>
+          <button className="deck-done-btn pressable" onClick={onClose}>
+            {closeLabel}
+          </button>
+        </div>
       </div>
     </div>
   )

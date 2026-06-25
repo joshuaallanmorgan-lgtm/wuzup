@@ -34,7 +34,7 @@ import CalendarPickerPage from './CalendarPickerPage.jsx'
 import SettingsPage from './SettingsPage.jsx'
 import InterestEditor from './InterestEditor.jsx'
 import TastePanel from './TastePanel.jsx'
-import CalibrationDeck from './CalibrationDeck.jsx'
+import CalibrationDeck, { PlacesDeck } from './CalibrationDeck.jsx'
 import LensDeck from './LensDeck.jsx'
 import DayFillDeck from './DayFillDeck.jsx'
 import './App.css'
@@ -381,7 +381,15 @@ function Shell() {
                 origin). primer is handed in so taste.js's one when-resolver
                 decides precedence (primer-v1 is a separate store). */}
             {page.type === 'taste' && <TastePanel from={page.from} primer={primer} />}
-            {page.type === 'deck' && (
+            {/* TINDER: the Spots "Tune your taste" deck (kind:'places') — lazy-loads
+                places via the PlacesDeck wrapper. Closes to the Spots tab. */}
+            {page.type === 'deck' && page.kind === 'places' && (
+              <PlacesDeck
+                onClose={page.from === 'settings' ? openSettings : closePage}
+                closeLabel={page.from === 'settings' ? 'Back to Settings' : 'Done'}
+              />
+            )}
+            {page.type === 'deck' && page.kind !== 'places' && (
               /* primer-origin (the onboarding offer) closes to the tab — a
                  fresh user has no Settings page to "go back" to */
               <CalibrationDeck

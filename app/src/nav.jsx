@@ -277,13 +277,18 @@ export function NavProvider({ children }) {
   // Same literal-string guard as openInterests: anything but 'primer' —
   // including the click event Settings' row hands over — means the historical
   // settings origin, so the deck's close keeps returning to Settings there.
-  const openDeck = useCallback((origin) => {
+  // TINDER: openDeck takes EITHER a legacy origin string (back-compat) OR an object
+  // { kind, origin } — the "Tune your taste" modules pass { kind:'places'|'events',
+  // origin:'spots'|'events' }. kind defaults to 'events'; a new 'events'/'spots'
+  // origin closes to the tab (closePage), Settings stays the historical default.
+  const openDeck = useCallback((arg) => {
     clearTimeout(pageTRef.current)
     setPageClosing(false)
-    // origin routes the deck's close affordance: 'primer' (onboarding offer) and
-    // 'profile' (W6 taste hub) close to the tab; anything else — including the
-    // click event Settings' row hands over — is the historical settings origin.
-    setPage({ type: 'deck', from: origin === 'primer' ? 'primer' : origin === 'profile' ? 'profile' : 'settings' })
+    const isObj = typeof arg === 'object' && arg !== null
+    const origin = isObj ? arg.origin : arg
+    const kind = isObj && arg.kind === 'places' ? 'places' : 'events'
+    const from = ['primer', 'profile', 'events', 'spots'].includes(origin) ? origin : 'settings'
+    setPage({ type: 'deck', kind, from })
   }, [])
   // Sprint Q2: the finite lens deck ("Deck this" on day-headers + bubble
   // pages). lens = {kind:'day',dayTs} | {kind:'bubble',bubble} — LensDeck

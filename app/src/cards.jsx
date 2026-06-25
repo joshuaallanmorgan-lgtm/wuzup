@@ -409,7 +409,7 @@ export function FreeCard({ e, onSelect }) {
 // differentiator + distance (no vanity counts), and the 💎 hidden-gem badge. Used
 // by LocationsView's carousels + sourced guides instead of the event-shaped
 // TonightCard, so a spot reads as a discovery, not a database row. DRAFT — ⚑ Charles.
-const placeTypeLabel = (p) => {
+export const placeTypeLabel = (p) => {
   const t = (p.placeType || 'spot').replace(/_/g, ' ')
   return t.charAt(0).toUpperCase() + t.slice(1)
 }
