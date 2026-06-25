@@ -49,7 +49,7 @@
 .detail .d-k { letter-spacing: 0.8px; }
 .d-sub { font-size: 13px; color: var(--muted); margin-top: 3px; line-height: 1.45; }
 a.d-row { text-decoration: none; color: inherit; }
-.d-ext { margin-left: 6px; font-size: 12px; font-weight: 800; color: var(--accent-ink); }
+.d-ext { margin-left: 6px; font-size: 12px; font-weight: 800; color: var(--muted); } /* PREMIUM A1 (accent restraint): the external-link ↗ marker off orange */
 
 /* ===== mini-map (130px, non-interactive Leaflet; whole surface = one tap target) ===== */
 .mini-map {

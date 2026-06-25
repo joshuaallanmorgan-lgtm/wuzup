@@ -151,7 +151,7 @@
    a light doorway into the dark swipe deck. ===== */
 .tune {
   position: relative;
-  margin: 12px 16px 0;
+  margin: 12px var(--gutter) 0; /* PREMIUM A1 (spacing#2): on the unified 20px body gutter (was 16px) */
   padding: 15px 16px 16px;
   background: var(--card);
   border: 1px solid var(--line);
@@ -294,7 +294,7 @@
 }
 /* Stage 2 sweep: .sec-overline removed — SecHead retired the orange overline-on-top
    (R-H2); the descriptor renders into .sec-sub now, never .sec-overline. */
-.sec-title { margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -0.01em; }
+.sec-title { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; } /* PREMIUM A1 (typo#3): 22/800 so the section title outranks card titles (some 800) */
 /* quiet inline tally inside a section title ("Everything · 1,342") */
 .sec-count { font-size: 14px; font-weight: 600; color: var(--muted); letter-spacing: 0; }
 .sec-sub { font-size: 13px; color: var(--muted); margin-top: 3px; font-weight: 500; }
@@ -303,7 +303,10 @@
   font-family: inherit;
   font-size: 14px;
   font-weight: 600;
-  color: var(--accent-ink);
+  color: var(--muted); /* PREMIUM A1 (color#4 accent restraint): the per-section inline
+                          "See all" is navigation chrome (chevron carries the affordance),
+                          not a primary action — demoted off orange. The full-width
+                          never-hide .ev-seeall pill KEEPS accent. */
   background: none;
   border: none;
   padding: 0 0 2px;
@@ -368,13 +371,16 @@
   width: 100%;
   max-width: 460px;
   display: flex;
-  background: rgba(255, 255, 255, 0.9);
+  /* PREMIUM A1 (color#3 + depth#2): warm cream glass + an UPWARD float shadow so
+     the bar lifts off the canvas instead of sitting as a cold white slab. */
+  background: rgba(254, 253, 251, 0.85);
   backdrop-filter: blur(18px);
   border-top: 1px solid var(--line);
+  box-shadow: 0 -8px 24px rgba(26, 20, 16, 0.06);
   padding: 9px 0 calc(11px + env(safe-area-inset-bottom));
   z-index: 1100;
 }
-.tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; cursor: pointer; font: inherit; color: #aab0ba; padding: 2px 0; transition: color var(--dur-fast); }
+.tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; cursor: pointer; font: inherit; color: #a89e92; padding: 2px 0; transition: color var(--dur-fast); } /* PREMIUM A1: inactive icon → warm gray (was cold #aab0ba slate) */
 .tab-ic { transition: transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.5); }
 .tab-label { font-size: 11px; font-weight: 700; letter-spacing: 0.2px; }
 .tab.active { color: var(--accent-ink); }

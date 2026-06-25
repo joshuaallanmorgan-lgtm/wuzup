@@ -9,7 +9,9 @@
      (~2.2:1). --accent-ink is the AA-safe deep-sunset companion for accent TEXT
      on light surfaces (#b35418 ≈ 4.7:1 on --bg). ⚑ Charles: both hexes tunable;
      keep the AA gap (3.71 review fix — was the systemic teal-as-text issue). */
-  --accent-ink: #b35418;
+  --accent-ink: #ad5116; /* PREMIUM A1: nudged 1 step deeper (was #b35418) so accent
+                            TEXT clears AA on the warmed --bg #f6f2ec (#b35418 fell to
+                            4.49:1 there; #ad5116 ≈ 4.75:1 on bg, 5.21:1 on --card). */
   /* hot palette: RESERVED for hot-ness semantics only (Hot tab active, flame/heat
      badges, The Big One overline, Surprise-me dice, calendar heat shading) —
      plus ONE sanctioned exception: filled save-hearts. A red heart is a
@@ -46,11 +48,15 @@
   --reward-rgb: 217, 102, 245;
   --free: #0fa86d; /* Tropical Sage — free badges (was #0a9d6e) */
   --ink: #1a1410; /* Sun-baked Clay — warm charcoal (was #15171c) */
-  --muted: #756b61; /* Warm Taupe — secondary text (was #6b7280) */
+  --muted: #6b6157; /* Warm Taupe — secondary text (PREMIUM A1: 1 step deeper, was
+                       #756b61, for a comfortable 5.42:1 on the warmed --bg + retires
+                       the per-spot AA patches). */
   --line: #ede8e2; /* Sandy Whisper — warm divider (was #eceef1) */
   --card: #fefdfb; /* Parchment — creamy premium surface (was #ffffff) */
-  --bg: #fcfbf9; /* Stage R (R-H3): near-white warm to match the benchmark Home bg
-                    (was #faf8f5); stays just under --card so cards still lift */
+  --bg: #f6f2ec; /* PREMIUM A1 (color#1): warmed + darkened ONE real step (was
+                    #fcfbf9) so --card (#fefdfb) lifts as a distinct surface — the
+                    figure/ground jump from "flat" to "premium-warm". AA re-verified:
+                    --muted 5.42:1, --accent-ink 4.75:1, --ink 16.4:1 all clear. */
   /* Stage R (D.0-R, binding): the ONE shared PRIMARY-BUTTON fill. White text on
      this warm orange passes WCAG AA with white text — which matches the benchmark's
      white-on-warm buttons WITHOUT violating D.0 (white is still forbidden on the
@@ -76,6 +82,9 @@
   --sp-sm: 12px;
   --sp-md: 16px;
   --sp-lg: 24px;
+  /* PREMIUM A1 (spacing#2): the ONE body gutter. Sections already sit at 20px;
+     this names it so the page edge never silently flips 20→16 mid-scroll. */
+  --gutter: 20px;
   /* 3.7P-1 elite polish: multi-layer card shadow (Gemini §F.2.3). Standalone
      white content panels float on this instead of a hairline border — a tight
      contact layer (edge definition on the low-contrast warm bg) + two soft
@@ -126,6 +135,17 @@ body {
 }
 
 a { color: inherit; }
+
+/* PREMIUM A1 (typo#2 — the cheapest big win): tabular numerals so times, stats,
+   counts, distances and prices line up instead of jittering as digits change.
+   A reusable .num utility plus the standing numeric/meta strings across the app
+   (digit glyphs only; non-numeric label text is unaffected). */
+.num,
+.pf-stat-num, .cal-stat-num, .sec-count, .pg-count,
+.imgbadge, .spotcard-dist, .row-dist, .chip,
+.gem-when, .spotcard-facts, .tcard-meta, .spotcard-meta, .nbhd-meta, .fcard-meta {
+  font-variant-numeric: tabular-nums;
+}
 
 /* Font: Inter everywhere (Josh's call — retires the 3.71 Kumbh title face; the
    3.7P-44 A/B is resolved). Titles inherit Inter from the body font-family above;
