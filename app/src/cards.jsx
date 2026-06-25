@@ -75,6 +75,10 @@ const CalIcon = () => (
     <path d="M3 9.5h18M8 3v4M16 3v4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
   </svg>
 )
+// PREMIUM A2: stroke-icon wrappers for the result-card meta (retire the 📍🔥★ emoji)
+const PinIcon = () => Icon.pin({ className: 'meta-ic', 'aria-hidden': true })
+const FlameIcon = () => Icon.hot({ className: 'heat-ic', 'aria-hidden': true })
+const SparkleIcon = () => Icon.sparkle({ className: 'bestfor-ic', 'aria-hidden': true })
 
 // presentational hook only: lib's startLabel may emit "Started 7:00 PM" for
 // already-underway events — metas that LEAD with it read quieter (.meta-started)
@@ -117,7 +121,7 @@ export function HeatBadge({ e }) {
   if (typeof e.buzz !== 'number' || e.buzz < 2) return null
   return (
     <span className="heat-badge">
-      🔥{e.buzz >= 3 ? <span className="heat-n">{e.buzz}</span> : null}
+      <FlameIcon />{e.buzz >= 3 ? <span className="heat-n">{e.buzz}</span> : null}
     </span>
   )
 }
@@ -182,6 +186,10 @@ export function CardImg({ e, className = '', children }) {
           <span className="imgbox-fall">{fall}</span>
         </>
       )}
+      {/* PREMIUM A2: bottom scrim on REAL photos so on-image time/heat/dist badges
+          stay legible (the art floor already carries its own dark gradients). CSS
+          shows it only on the badge-bearing card thumbs. */}
+      {!showArt && <span className="img-scrim" aria-hidden />}
       {children}
     </span>
   )
@@ -362,7 +370,11 @@ export function GemRow({ e, onSelect }) {
         </CardImg>
         <div className="gem-main">
           <div className="gem-title">{e.title}</div>
-          {e.venue && <div className="gem-venue">📍 {e.venue}</div>}
+          {e.venue && (
+            <div className="gem-venue">
+              <PinIcon /> {e.venue}
+            </div>
+          )}
           {when && <div className="gem-when">{when}</div>}
           {chips.length > 0 && (
             <div className="gem-chips">
@@ -371,18 +383,22 @@ export function GemRow({ e, onSelect }) {
               ))}
             </div>
           )}
-          {more && <div className="gem-series">{more}</div>}
-          {/* E-L2: honest "Why this fits" — only renders when caller sets e._why */}
-          {e._why && <div className="gem-why">+ Why this fits: {e._why}</div>}
+          {/* ONE reason line (D1/uniform-height budget + "one accent per card"):
+              the honest "Why this fits" wins when set, else the series stamp. */}
+          {e._why ? (
+            <div className="gem-why">Why this fits: {e._why}</div>
+          ) : more ? (
+            <div className="gem-series">{more}</div>
+          ) : null}
           <SponsoredTag e={e} />
         </div>
       </button>
-      <div className="gem-rail">
-        <SaveHeart e={e} />
-        <button className="gem-add" onClick={() => addToPlan(e)} aria-label={`Add ${e.title} to your plan`}>
-          <CalIcon /> Add to plan
-        </button>
-      </div>
+      {/* D4: a bare stroke heart at the card's top-right corner (over the body, not
+          the image); D2/CTA: a real "Add to plan" button pinned bottom-right. */}
+      <SaveHeart e={e} bare />
+      <button className="gem-add" onClick={() => addToPlan(e)} aria-label={`Add ${e.title} to your plan`}>
+        <CalIcon /> Add to plan
+      </button>
     </div>
   )
 }
@@ -486,18 +502,25 @@ export function SpotCard({ p, onSelect, row = false }) {
           </CardImg>
           <div className="spotcard-body">
             <div className="spotcard-title">{p.title}</div>
-            {p.venue && <div className="spotcard-loc">📍 {p.venue}</div>}
+            {p.venue && (
+              <div className="spotcard-loc">
+                <PinIcon /> {p.venue}
+              </div>
+            )}
             {facts && <div className="spotcard-facts">{facts}</div>}
             {amen.length > 0 && <div className="spotcard-amen">{spotAmenChips(amen)}</div>}
-            {bestFor && <div className="spotcard-bestfor">★ Best for: {bestFor}</div>}
+            {bestFor && (
+              <div className="spotcard-bestfor">
+                <SparkleIcon /> Best for: {bestFor}
+              </div>
+            )}
           </div>
         </button>
-        <div className="spotcard-rail">
-          <SaveHeart e={p} />
-          <button className="spotcard-add" onClick={() => addToPlan(p)} aria-label={`Add ${p.title} to your day`}>
-            <CalIcon /> Add to day
-          </button>
-        </div>
+        {/* D4: bare top-right heart + a real "Add to day" button pinned bottom-right */}
+        <SaveHeart e={p} bare />
+        <button className="spotcard-add" onClick={() => addToPlan(p)} aria-label={`Add ${p.title} to your day`}>
+          <CalIcon /> Add to day
+        </button>
       </div>
     )
   }
@@ -517,7 +540,11 @@ export function SpotCard({ p, onSelect, row = false }) {
         ) : (
           <div className="spotcard-meta">{p.venue || 'Tap for details'}</div>
         )}
-        {bestFor && <div className="spotcard-bestfor">★ Best for: {bestFor}</div>}
+        {bestFor && (
+          <div className="spotcard-bestfor">
+            <SparkleIcon /> Best for: {bestFor}
+          </div>
+        )}
       </div>
     </button>
   )

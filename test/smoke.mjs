@@ -1265,6 +1265,43 @@ test('CARD_LOCK: ResultCard is the kind-aware canonical card; CompactRow/Row ret
   }
 })
 
+// PREMIUM A2 — the card-system rework (D1–D4). The universal GemRow/SpotCard row
+// share ONE fixed height; a tall left image; a bare stroke heart top-right; a real
+// CTA bottom-right (the rail is gone); engineered stroke icons; one chip primitive.
+test('PREMIUM A2: D1 uniform height · tall image · bare heart · real CTA · stroke icons · chip primitive', () => {
+  const idx = readFileSync(path.join(ROOT, 'app', 'src', 'index.css'), 'utf8')
+  const cardsCss = readFileSync(path.join(ROOT, 'app', 'src', 'cards.css'), 'utf8')
+  const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
+  const lib = readFileSync(path.join(ROOT, 'app', 'src', 'lib.js'), 'utf8')
+  const saves = readFileSync(path.join(ROOT, 'app', 'src', 'saves.js'), 'utf8')
+
+  // D1: ONE shared card height token drives BOTH event + spot rows (no ragged feed)
+  assert.ok(/--card-row-h:/.test(idx), 'index.css defines the --card-row-h token (D1: one card height)')
+  assert.ok(/\.gem\s*\{[^}]*height:\s*var\(--card-row-h\)/s.test(cardsCss), '.gem height is the shared --card-row-h')
+  assert.ok(/\.spotcard--row\s*\{[^}]*height:\s*var\(--card-row-h\)/s.test(cardsCss), '.spotcard--row height is the SAME --card-row-h (uniform with events)')
+  // D2: the 1px card border is dropped (lean on the shadow)
+  assert.ok(!/\.gem\s*\{[^}]*border:\s*1px solid var\(--line\)/s.test(cardsCss), 'D2: the .gem 1px hairline border is dropped')
+  // tall left image (was a ~76/84px square thumb)
+  assert.ok(/\.gem-img\s*\{[^}]*flex:\s*0 0 102px/s.test(cardsCss), 'the gem image is a tall 102px left hero')
+  // D4: the rail is GONE; a bare stroke heart + a real CTA are absolute siblings
+  assert.ok(!/gem-rail|spotcard-rail/.test(cards) && !/gem-rail|spotcard-rail/.test(cardsCss), 'D4: the .gem-rail / .spotcard-rail are removed')
+  assert.ok(/<SaveHeart e=\{e\} bare \/>/.test(cards), 'GemRow renders the bare top-right SaveHeart')
+  assert.ok(/\.save-btn\.save-bare\s*\{/.test(readFileSync(path.join(ROOT, 'app', 'src', 'saves.css'), 'utf8')), 'the bare card-body heart variant exists')
+  assert.ok(/\.gem-add,\s*\.spotcard-add\s*\{[^}]*position:\s*absolute/s.test(cardsCss), 'the Add CTA is a real button pinned (absolute) to the card')
+  assert.ok(/--cta-rgb:/.test(idx), 'index.css adds the --cta-rgb token for the CTA tint/border')
+
+  // engineered stroke icons replace the raw ♥ ♡ 🔥 📍 ★ on the result cards
+  for (const g of ['heart:', 'heartFill:', 'pin:', 'sparkle:']) {
+    assert.ok(new RegExp('\\b' + g).test(lib), `Icon set adds the ${g} stroke glyph`)
+  }
+  assert.ok(/Icon\.heartFill : Icon\.heart/.test(saves) && !/'♥'|'♡'/.test(saves), 'SaveHeart renders the stroke heart (no ♥/♡ emoji)')
+  assert.ok(/<PinIcon \/>/.test(cards) && /<FlameIcon \/>/.test(cards) && /<SparkleIcon \/>/.test(cards), 'the card meta uses the stroke pin/flame/sparkle (not 📍🔥★)')
+
+  // ONE chip primitive (D2) + the card-title token
+  assert.ok(/\.chip,\s*\.gem-chip,\s*\.featc-chip,\s*\.spot-amen\s*\{/s.test(cardsCss), 'the four chip treatments collapse into one primitive')
+  assert.ok(/--t-card-size:/.test(idx) && /var\(--t-card-size\)/.test(cardsCss), 'the card-title token (--t-card) is defined and applied')
+})
+
 // 3.7P-34 — event detail goes planner-first: the primary sticky CTA is "Add to
 // day" (mirrors PlaceDetail's plan bridge); the official event/ticket link is
 // demoted to a secondary util action. A dated event plans onto ITS OWN day.

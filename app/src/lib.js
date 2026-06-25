@@ -667,6 +667,65 @@ export const Icon = {
         fill: 'currentColor',
       })
     ),
+  // PREMIUM A2: the engineered controls family — same 2.1-stroke voice as the tab
+  // glyphs (retires the raw ♥ ♡ 🔥 📍 ★ emoji on the result cards). heart =
+  // outline (resting), heartFill = filled (saved). flame reuses `hot`; the venue
+  // pin + the "Best for" sparkle round out the set. 💎 stays as a deliberate accent.
+  heart: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('path', {
+        d: 'M12 20.6C12 20.6 3.7 15.1 3.7 9.2 3.7 6.3 6 4.4 8.4 4.4 10 4.4 11.4 5.4 12 6.8 12.6 5.4 14 4.4 15.6 4.4 18 4.4 20.3 6.3 20.3 9.2 20.3 15.1 12 20.6 12 20.6Z',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinejoin: 'round',
+        strokeLinecap: 'round',
+      })
+    ),
+  heartFill: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('path', {
+        d: 'M12 20.6C12 20.6 3.7 15.1 3.7 9.2 3.7 6.3 6 4.4 8.4 4.4 10 4.4 11.4 5.4 12 6.8 12.6 5.4 14 4.4 15.6 4.4 18 4.4 20.3 6.3 20.3 9.2 20.3 15.1 12 20.6 12 20.6Z',
+        fill: 'currentColor',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinejoin: 'round',
+        strokeLinecap: 'round',
+      })
+    ),
+  // a compact map pin for the inline venue/location meta line (was 📍)
+  pin: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('path', {
+        d: 'M12 21S5.5 14.8 5.5 9.8a6.5 6.5 0 0 1 13 0c0 5-6.5 11.2-6.5 11.2Z',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinejoin: 'round',
+        strokeLinecap: 'round',
+      }),
+      h('circle', { cx: 12, cy: 9.8, r: 2.2, fill: 'none', stroke: 'currentColor', strokeWidth: 2.1 })
+    ),
+  // a 4-point sparkle for the "Best for" line (was ★)
+  sparkle: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('path', {
+        d: 'M12 3.2c.8 4.6 1.9 5.7 6.5 6.5-4.6.8-5.7 1.9-6.5 6.5-.8-4.6-1.9-5.7-6.5-6.5 4.6-.8 5.7-1.9 6.5-6.5Z',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinejoin: 'round',
+        strokeLinecap: 'round',
+      })
+    ),
 }
 
 // --- "Added by you" events (Add Event MVP, Sprint C) ---

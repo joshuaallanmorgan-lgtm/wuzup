@@ -66,6 +66,21 @@
      4.5 floor (#c05a1a measured 4.45 — too close). Tune brighter only while white
      stays >= 4.5:1. Primary buttons set: background var(--cta); color #fff. */
   --cta: #bb5719;
+  --cta-rgb: 187, 87, 25; /* PREMIUM A2: token for the card CTA tint/border (was hardcoded) */
+
+  /* PREMIUM A2 (typo — card-title sprawl): ONE spec for card titles. --t-card is
+     every STANDARD result/tile card title; --t-card-lg is the FEATURED card only.
+     Retires the orphan 600/750 weights. */
+  --t-card-size: 15px;
+  --t-card-weight: 700;
+  --t-card-track: -0.2px;
+  --t-card-line: 1.16;
+  --t-card-lg-size: 19px;
+  --t-card-lg-weight: 800;
+  --t-card-lg-track: -0.3px;
+  /* PREMIUM A2 (D1): the ONE result-card height. Every event + spot card resolves
+     to this exact height (tall left image defines it) so feeds never run ragged. */
+  --card-row-h: 158px;
 
   /* motion tokens (UI_SPEC §3) */
   --dur-micro: 120ms; /* press, chip fill */

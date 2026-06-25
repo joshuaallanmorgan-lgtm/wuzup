@@ -25,7 +25,7 @@
 // NOTE: plain .js file (same rule as lib.js) — NO JSX; SaveHeart uses
 // createElement.
 import { createElement as h, useState, useSyncExternalStore } from 'react'
-import { DAY, keyOf, normalize } from './lib.js'
+import { DAY, Icon, keyOf, normalize } from './lib.js'
 import { PREFIX, lsGet, lsSet } from './storage.js'
 import { recordSignal } from './taste.js'
 import './saves.css'
@@ -286,7 +286,7 @@ export function shelfItems(list, events, anchors) {
 // opening. big = detail-hero variant (38px). The pop animation plays only on
 // a real local toggle-on — never on mount — and saves.css kills it under
 // prefers-reduced-motion. Saving never reorders or hides anything.
-export function SaveHeart({ e, big }) {
+export function SaveHeart({ e, big, bare }) {
   const { has } = useSaves()
   const on = has(e)
   const [pop, setPop] = useState(false)
@@ -296,12 +296,16 @@ export function SaveHeart({ e, big }) {
     if (!on) setPop(true)
     toggleSave(e)
   }
+  // PREMIUM A2: the engineered stroke heart (outline → filled), retiring ♥ ♡.
+  // `bare` = the top-right card-body heart (no disc); default = the image-overlay
+  // disc (tiles/hero). Resting outline / saved fill both ride currentColor.
+  const Glyph = on ? Icon.heartFill : Icon.heart
   return h(
     'span',
     {
       role: 'button',
       tabIndex: 0,
-      className: 'save-btn' + (on ? ' on' : '') + (big ? ' save-big' : ''),
+      className: 'save-btn' + (on ? ' on' : '') + (big ? ' save-big' : '') + (bare ? ' save-bare' : ''),
       'aria-pressed': on,
       'aria-label': on ? 'Remove from your list' : 'Save to your list',
       onClick: toggle,
@@ -310,6 +314,6 @@ export function SaveHeart({ e, big }) {
       },
       onAnimationEnd: () => setPop(false), // bubbles up from .save-ic
     },
-    h('span', { className: 'save-ic' + (on && pop ? ' pop' : ''), 'aria-hidden': true }, on ? '♥' : '♡')
+    h('span', { className: 'save-ic' + (on && pop ? ' pop' : ''), 'aria-hidden': true }, Glyph({ className: 'save-svg' }))
   )
 }
