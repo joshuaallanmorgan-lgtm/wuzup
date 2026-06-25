@@ -100,12 +100,23 @@
   /* PREMIUM A1 (spacing#2): the ONE body gutter. Sections already sit at 20px;
      this names it so the page edge never silently flips 20→16 mid-scroll. */
   --gutter: 20px;
-  /* 3.7P-1 elite polish: multi-layer card shadow (Gemini §F.2.3). Standalone
-     white content panels float on this instead of a hairline border — a tight
-     contact layer (edge definition on the low-contrast warm bg) + two soft
-     ambient layers for depth. Controls + list rows keep their hairline. */
-  --shadow-card: 0 1px 2px rgba(26, 20, 16, 0.05), 0 2px 10px rgba(26, 20, 16, 0.04),
+  /* PREMIUM A4 (depth#7): the ELEVATION SCALE — one ranked system, assigned by
+     importance, so a long feed reads calm (soft rows) while featured/hero surfaces
+     clearly lift. --shadow-2 is the historical --shadow-card (kept as an alias so
+     every existing consumer is unchanged). All warm (26,20,16) to match the bg.
+       --shadow-1  rows/tiles (numerous: result cards, .pf-row, carousel tiles) — soft
+       --shadow-2  contained cards (.intent-tile, panels) — the 3-layer card float
+       --shadow-3  featured / hero (.featc, detail panels) — deeper
+       --shadow-sheet  bottom sheets (upward throw)
+       --shadow-press  the pressed (tightened) contact step */
+  --shadow-1: 0 1px 2px rgba(26, 20, 16, 0.05), 0 3px 10px rgba(26, 20, 16, 0.05);
+  --shadow-2: 0 1px 2px rgba(26, 20, 16, 0.05), 0 2px 10px rgba(26, 20, 16, 0.04),
     0 8px 24px rgba(26, 20, 16, 0.06);
+  --shadow-3: 0 2px 4px rgba(26, 20, 16, 0.06), 0 8px 20px rgba(26, 20, 16, 0.08),
+    0 18px 40px rgba(26, 20, 16, 0.09);
+  --shadow-sheet: 0 -10px 40px rgba(26, 20, 16, 0.24); /* the established bottom-sheet throw */
+  --shadow-press: 0 1px 3px rgba(26, 20, 16, 0.09);
+  --shadow-card: var(--shadow-2); /* back-compat alias — existing consumers stay at level 2 */
   /* 3.7P-1: the FramedImage aspect-ratio language (FB-04/05). The shared image
      framing (art-floor fallback, hairline frame, fade-in, VT morph) already
      lives in CardImg + .imgbox; these name the ratios so every card type — and

@@ -61,11 +61,68 @@ function addToPlan(e) {
   const target = fillOrder(e).find((p) => !(cur && cur.slots[p])) // natural daypart first ('any' → morning)
   if (!target) {
     cardToast('That day is full — clear a slot first')
-    return
+    return false
   }
   saveDayPlans(withSlot(map, dayTs, target, keyOf(e)))
   const when = dayTs === anchors.todayTs ? 'today' : new Date(dayTs).toLocaleDateString('en-US', { weekday: 'long' })
   cardToast(`${DAYPART[target].emoji} Added to ${when} ${DAYPART[target].label.toLowerCase()}`)
+  return true // PREMIUM A4: lets the Add button morph to its "✓ Added" confirmation
+}
+
+// PREMIUM A4 (motion#7, Josh's gripe): the Add button is a real confirmation — on a
+// successful add it morphs to "✓ Added" with a gold slotPop overshoot for ~2s, then
+// settles back. The module toast (CardToastHost) still fires in parallel.
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden>
+      <path d="M5 12.5l4 4 10-10" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+function AddButton({ e, className, label, ariaLabel }) {
+  const [added, setAdded] = useState(false)
+  const tRef = useRef(null)
+  useEffect(() => () => clearTimeout(tRef.current), [])
+  const onClick = () => {
+    if (addToPlan(e)) {
+      setAdded(true)
+      clearTimeout(tRef.current)
+      tRef.current = setTimeout(() => setAdded(false), 1900)
+    }
+  }
+  return (
+    <button className={className + (added ? ' is-added' : '')} onClick={onClick} aria-label={ariaLabel}>
+      {added ? (
+        <>
+          <CheckIcon /> Added
+        </>
+      ) : (
+        <>
+          <CalIcon /> {label}
+        </>
+      )}
+    </button>
+  )
+}
+
+// PREMIUM A4 (motion#8): a first-load skeleton in the GemRow shape — a shimmer
+// sweep over placeholder bars so the feed FILLS IN instead of hard-popping (or
+// sitting on a bare "Loading…" line). Reduced-motion stills the shimmer.
+export function SkeletonRow() {
+  return (
+    <div className="gem gem-skel" aria-hidden>
+      <span className="skel skel-img" />
+      <div className="gem-main">
+        <span className="skel skel-line skel-title" />
+        <span className="skel skel-line skel-w70" />
+        <span className="skel skel-line skel-w45" />
+        <span className="skel-chips">
+          <span className="skel skel-chip" />
+          <span className="skel skel-chip" />
+        </span>
+      </div>
+    </div>
+  )
 }
 
 // a small calendar glyph for the "Add to plan" pill (matches the day-selector icon)
@@ -396,9 +453,7 @@ export function GemRow({ e, onSelect }) {
       {/* D4: a bare stroke heart at the card's top-right corner (over the body, not
           the image); D2/CTA: a real "Add to plan" button pinned bottom-right. */}
       <SaveHeart e={e} bare />
-      <button className="gem-add" onClick={() => addToPlan(e)} aria-label={`Add ${e.title} to your plan`}>
-        <CalIcon /> Add to plan
-      </button>
+      <AddButton e={e} className="gem-add" label="Add to plan" ariaLabel={`Add ${e.title} to your plan`} />
     </div>
   )
 }
@@ -518,9 +573,7 @@ export function SpotCard({ p, onSelect, row = false }) {
         </button>
         {/* D4: bare top-right heart + a real "Add to day" button pinned bottom-right */}
         <SaveHeart e={p} bare />
-        <button className="spotcard-add" onClick={() => addToPlan(p)} aria-label={`Add ${p.title} to your day`}>
-          <CalIcon /> Add to day
-        </button>
+        <AddButton e={p} className="spotcard-add" label="Add to day" ariaLabel={`Add ${p.title} to your day`} />
       </div>
     )
   }

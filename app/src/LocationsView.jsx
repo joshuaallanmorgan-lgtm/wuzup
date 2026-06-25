@@ -12,7 +12,7 @@
 // of this tab, never at boot, never merged into the events feed. DRAFT copy ⚑ Charles.
 import { useMemo, useRef } from 'react'
 import { useNav } from './nav.jsx'
-import { SecHead, SpotCard, IntentTile, RowFeed, imageMode } from './cards.jsx'
+import { SecHead, SpotCard, IntentTile, RowFeed, SkeletonRow, imageMode } from './cards.jsx'
 import { GUIDES } from './guides.js'
 import { railReady, tasteNudge, useTaste } from './taste.js'
 import { usePlaces, ACTIVITIES, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES, nearest, isPlaceKey, normalizePlace } from './places.js'
@@ -127,6 +127,12 @@ export default function LocationsView({ coords }) {
           <h1 className="loc-head-title">Spots</h1>
           <div className="loc-head-sub">Loading the bay's places…</div>
         </header>
+        {/* PREMIUM A4 (motion#8): skeleton rows fill in instead of a bare line */}
+        <div className="home-picks" style={{ marginTop: 14 }}>
+          {[0, 1, 2].map((i) => (
+            <SkeletonRow key={i} />
+          ))}
+        </div>
       </div>
     )
   }
@@ -228,7 +234,7 @@ export default function LocationsView({ coords }) {
         {savedPlaces.length > 0 && (
           <section className="sec">
             <SecHead overline="Your places" title="Saved" sub={`${savedPlaces.length} kept`} />
-            <div className="carousel">
+            <div className="carousel carousel-stagger">
               {savedPlaces.map((p) => (
                 <SpotCard key={p.key} p={p} onSelect={onSelect} />
               ))}

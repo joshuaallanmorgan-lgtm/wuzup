@@ -11,7 +11,9 @@
   display: block;
   position: relative;
   overflow: hidden;
-  background: #241c15;
+  /* PREMIUM A4 (motion#12): a warm light placeholder (was #241c15) so a loading
+     photo settles UP from cream — no dark flash. The art floor sets its own bg. */
+  background: #e9e2d9;
 }
 /* 3.72: a hairline frame on every image tile (real poster + art floor alike) so
    chaotic third-party flyers sit inside the design language. Edge-only +
@@ -31,9 +33,14 @@
   height: 100%;
   object-fit: cover;
   opacity: 0;
-  transition: opacity 300ms ease;
+  /* PREMIUM A4 (motion#12): blur-up settle — scale 1.04→1 + blur 8→0 as the photo
+     loads (a confident focus-in, not a hard opacity pop). */
+  transform: scale(1.04);
+  filter: blur(8px);
+  transition: opacity var(--dur-emphasis) ease, transform var(--dur-emphasis) var(--ease-out),
+    filter var(--dur-emphasis) var(--ease-out);
 }
-.imgbox-img.on { opacity: 1; }
+.imgbox-img.on { opacity: 1; transform: none; filter: none; }
 .imgbox-fall {
   position: absolute;
   inset: 0;
@@ -573,6 +580,18 @@
 }
 .feed-stagger .row { animation: rowIn var(--dur-fast) var(--ease-out) both; }
 
+/* PREMIUM A4 (motion#11): first-paint left-to-right stagger on carousels (the
+   taste rail / shelf / spot carousels). Plays on MOUNT only — CSS animations don't
+   replay on a React re-render unless the tile remounts (new keys). Capped ~6 so a
+   long rail doesn't trail; stilled under reduced-motion (reset above). */
+.carousel-stagger > * { animation: rowIn var(--dur-fast) var(--ease-out) both; }
+.carousel-stagger > *:nth-child(2) { animation-delay: 45ms; }
+.carousel-stagger > *:nth-child(3) { animation-delay: 90ms; }
+.carousel-stagger > *:nth-child(4) { animation-delay: 135ms; }
+.carousel-stagger > *:nth-child(5) { animation-delay: 180ms; }
+.carousel-stagger > *:nth-child(6) { animation-delay: 225ms; }
+.carousel-stagger > *:nth-child(n + 7) { animation-delay: 270ms; }
+
 /* ============================================================================
    PREMIUM A2 — shared card system (placed after the per-type rules so it unifies
    them): ONE chip primitive · ONE card-title spec · the stroke-icon sizing · the
@@ -660,6 +679,32 @@
 .tcard-img .img-scrim,
 .fcard-img .img-scrim { display: block; }
 
+/* ============================================================================
+   PREMIUM A4 — DEPTH: assign the elevation scale by importance + a press answer.
+   Placed after the per-type rules so it re-levels them. Result cards are the
+   NUMEROUS feed surface → the soft --shadow-1 (a long feed stays calm); featured
+   → --shadow-3; carousel image tiles align to --shadow-1. On :active the card's
+   shadow tightens one step (with the A2 scale) within --dur-micro. Both event +
+   spot result cards stay at the SAME level (the A2 D1 uniformity invariant).
+   ============================================================================ */
+.gem,
+.spotcard--row { box-shadow: var(--shadow-1); transition: box-shadow var(--dur-micro) var(--ease-out); }
+.card { box-shadow: var(--shadow-1); } /* agenda card keeps its own transform+shadow transition */
+.featc { box-shadow: var(--shadow-3); transition: box-shadow var(--dur-micro) var(--ease-out); }
+.intent-tile { transition: transform var(--dur-micro), box-shadow var(--dur-micro) var(--ease-out); }
+/* carousel image tiles → the same soft rows level (was an A1 literal) */
+.tcard-img,
+.fcard-img,
+.nbhd-img,
+.spotcard .spotcard-img { box-shadow: var(--shadow-1); }
+/* press answer: tighten the shadow one step (the :active propagates from the inner
+   .gem-open/.spotcard-open press; the CTAs already scale from A2). */
+.gem:active,
+.spotcard--row:active,
+.featc:active,
+.intent-tile:active,
+.card:active { box-shadow: var(--shadow-press); }
+
 /* ===== compact event card (calendar agenda) ===== */
 .card {
   display: flex;
@@ -675,7 +720,7 @@
   background-image: radial-gradient(circle, rgba(26, 20, 16, 0.022) 1px, transparent 1px);
   background-size: 3px 3px;
   border-radius: 18px;
-  box-shadow: 0 2px 10px rgba(26, 20, 16, 0.06);
+  box-shadow: var(--shadow-1); /* PREMIUM A4: agenda card → soft rows level */
   cursor: pointer;
   font: inherit;
   color: inherit;
@@ -732,7 +777,7 @@
   background: var(--card);
   border-radius: 16px;
   padding: 14px;
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-1); /* PREMIUM A4: soft rows level (matches GemRow) */
   scroll-snap-align: unset;
 }
 .spotcard-open {
@@ -781,18 +826,63 @@
   font-size: 13px;
   font-weight: 700;
   letter-spacing: -0.1px;
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-2);
   pointer-events: none;
   white-space: nowrap;
+  /* PREMIUM A4 (motion#7): a real entrance (rises + fades in), mirroring the detail
+     toast — no more hard pop. (--ease-emphasis = the confident Apple curve.) */
+  animation: cardToastIn var(--dur-fast) var(--ease-emphasis) both;
 }
+@keyframes cardToastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+/* PREMIUM A4 (motion#7): on a successful add the button morphs to "✓ Added" with a
+   gold slotPop overshoot (defined in day.css, global) + a fuller --cta tint. */
+.gem-add.is-added,
+.spotcard-add.is-added {
+  background: rgba(var(--cta-rgb), 0.16);
+  border-color: rgba(var(--cta-rgb), 0.6);
+  animation: slotPop 460ms var(--ease-emphasis);
+}
+
+/* PREMIUM A4 (motion#8): first-load skeleton — a shimmer sweep over GemRow-shaped
+   bars (the card is the .gem surface; the bars shimmer). */
+@keyframes skel {
+  from { background-position: -300px 0; }
+  to { background-position: 300px 0; }
+}
+.skel {
+  display: block;
+  background: linear-gradient(90deg, #ece6dd 25%, #f5f0e9 37%, #ece6dd 63%);
+  background-size: 600px 100%;
+  animation: skel 1.4s linear infinite;
+  border-radius: 8px;
+}
+.gem-skel { gap: 14px; pointer-events: none; }
+.gem-skel .skel-img { flex: 0 0 102px; width: 102px; align-self: stretch; border-radius: 12px; }
+.gem-skel .gem-main { display: flex; flex-direction: column; gap: 9px; padding-top: 6px; padding-right: 0; }
+.skel-line { height: 13px; }
+.skel-title { height: 17px; width: 78%; margin-bottom: 2px; }
+.skel-w70 { width: 70%; }
+.skel-w45 { width: 45%; }
+.skel-chips { display: flex; gap: 6px; margin-top: 4px; }
+.skel-chip { width: 52px; height: 20px; border-radius: 999px; }
 
 /* ===== reduced motion (card-scope) ===== */
 @media (prefers-reduced-motion: reduce) {
   .feed-stagger .row,
   .feed--cards.feed-stagger > .gem,
   .feed--cards.feed-stagger > .spotcard,
+  .carousel-stagger > *,
   .card { animation: none !important; }
   .pressable:active,
   .gems-more:active,
   .card:active { transform: none; }
+  /* PREMIUM A4: no blur-up / button-morph / skeleton-shimmer motion */
+  .imgbox-img { transform: none; filter: none; transition: opacity var(--dur-fast) ease; }
+  .gem-add.is-added,
+  .spotcard-add.is-added,
+  .card-toast { animation: none !important; }
+  .skel { animation: none !important; }
 }

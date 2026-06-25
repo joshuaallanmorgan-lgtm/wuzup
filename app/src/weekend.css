@@ -67,13 +67,14 @@
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-radius: 22px 22px 0 0;
-  box-shadow: 0 -10px 40px rgba(26, 20, 16, 0.24);
+  box-shadow: var(--shadow-sheet);
   animation: wkbUp var(--dur-page) var(--ease-emphasis) both;
 }
 @keyframes wkbFadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes wkbUp { from { transform: translateY(100%); } to { transform: none; } }
-.wkb-sheet-wrap.closing .wkb-scrim { animation: wkbFadeOut 240ms ease forwards; }
-.wkb-sheet-wrap.closing .wkb-sheet { animation: wkbDown 240ms ease forwards; }
+/* PREMIUM A4 (motion#13): symmetric close — --dur-fast --ease-inout (was 240ms ease). */
+.wkb-sheet-wrap.closing .wkb-scrim { animation: wkbFadeOut var(--dur-fast) var(--ease-inout) forwards; }
+.wkb-sheet-wrap.closing .wkb-sheet { animation: wkbDown var(--dur-fast) var(--ease-inout) forwards; }
 @keyframes wkbFadeOut { to { opacity: 0; } }
 @keyframes wkbDown { to { transform: translateY(100%); } }
 

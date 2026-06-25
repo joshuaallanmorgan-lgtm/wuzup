@@ -105,7 +105,7 @@
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-radius: 22px 22px 0 0;
-  box-shadow: 0 -10px 40px rgba(26, 20, 16, 0.24); /* elevation — matches the app's PickerSheet */
+  box-shadow: var(--shadow-sheet); /* elevation — matches the app's PickerSheet */
   animation: tnUp 280ms var(--ease-emphasis);
 }
 .tn-sheet-head {
@@ -157,8 +157,10 @@
 
 @keyframes tnFadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes tnUp { from { transform: translateY(100%); } to { transform: none; } }
-.tn-sheet-wrap.closing .tn-scrim { animation: tnFadeOut 240ms ease forwards; }
-.tn-sheet-wrap.closing .tn-sheet { animation: tnDown 240ms ease forwards; }
+/* PREMIUM A4 (motion#13): symmetric easing — close on --dur-fast --ease-inout (was a
+   slammy 240ms ease); the scrim fades on the same beat. */
+.tn-sheet-wrap.closing .tn-scrim { animation: tnFadeOut var(--dur-fast) var(--ease-inout) forwards; }
+.tn-sheet-wrap.closing .tn-sheet { animation: tnDown var(--dur-fast) var(--ease-inout) forwards; }
 @keyframes tnFadeOut { to { opacity: 0; } }
 @keyframes tnDown { to { transform: translateY(100%); } }
 

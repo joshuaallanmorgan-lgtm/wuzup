@@ -108,6 +108,15 @@ export function NavProvider({ children }) {
       const p = pagerRef.current
       // instant jump: never slide through intermediate pages (finger-swipe snap unaffected)
       if (p) p.scrollTo({ left: i * p.clientWidth, behavior: 'instant' })
+      // PREMIUM A4 (motion#10): a fast content settle on TAP nav only (swipe goes
+      // through onPagerScroll, which never calls goTo). Reduced-motion stills it
+      // via the CSS reset. Reflow restart so re-tapping the same tab replays it.
+      const child = p && p.children[i]
+      if (child) {
+        child.classList.remove('tab-settle')
+        void child.offsetWidth
+        child.classList.add('tab-settle')
+      }
     },
     [visit]
   )

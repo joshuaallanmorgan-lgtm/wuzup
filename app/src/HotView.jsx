@@ -9,7 +9,7 @@ import LensNav from './LensNav.jsx'
 import TasteTuner from './TasteTuner.jsx'
 import { curateFeed, collapseSeries } from './curate.js'
 import { useNav } from './nav.jsx'
-import { CardImg, GemRow, IntentTile, ResultCard, RowFeed, SecHead, TonightCard, WxContext, featuredChips } from './cards.jsx'
+import { CardImg, GemRow, IntentTile, ResultCard, RowFeed, SecHead, SkeletonRow, TonightCard, WxContext, featuredChips } from './cards.jsx'
 import { GUIDES, useGuides, watchGuideActive, resolveWatchGuide } from './guides.js'
 import { SaveHeart, shelfItems, useSaves } from './saves.js'
 import { railReady, tasteNudge, topCategories, useTaste } from './taste.js'
@@ -256,6 +256,15 @@ export default function HotView({ events, anchors, loading }) {
       />
 
       <div className="hot-body">
+        {/* PREMIUM A4 (motion#8): skeleton rows while the first feed loads. */}
+        {loading && upcoming.length === 0 && (
+          <div className="home-picks">
+            {[0, 1, 2].map((i) => (
+              <SkeletonRow key={i} />
+            ))}
+          </div>
+        )}
+
         {/* TINDER P3: "Tune your taste" — a light doorway into the events swipe
             deck, between the chips and the first section (tinder.png). */}
         <TasteTuner kind="events" samples={tuneSamples} onTune={openDeck} />
@@ -333,7 +342,7 @@ export default function HotView({ events, anchors, loading }) {
               }
               sub="Your saves, ready when you are."
             />
-            <div className="carousel">
+            <div className="carousel carousel-stagger">
               {shelf.map(({ e, past }) => (
                 <div key={keyOf(e)} className={'shelf-item' + (past ? ' shelf-past' : '')}>
                   {past && <span className="shelf-happened">Happened</span>}
@@ -414,7 +423,7 @@ export default function HotView({ events, anchors, loading }) {
         {rail && (
           <section className="sec">
             <SecHead overline="For you" title="Your kind of night" sub="Tuned to what you've tapped." />
-            <div className="carousel">
+            <div className="carousel carousel-stagger">
               {rail.map((e, i) => (
                 <TonightCard key={keyOf(e) + i} e={e} onSelect={onSelect} withDate />
               ))}

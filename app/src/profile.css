@@ -110,15 +110,15 @@
   border: 1px solid var(--line);
   border-radius: 16px;
   background: var(--card);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-1); /* PREMIUM A4: a row → the soft elevation level */
   font: inherit;
   color: var(--ink);
   text-align: left;
   text-decoration: none;
   cursor: pointer;
-  transition: transform var(--dur-micro), background var(--dur-micro);
+  transition: transform var(--dur-micro), background var(--dur-micro), box-shadow var(--dur-micro);
 }
-.pf-row:active { transform: scale(0.99); background: rgba(var(--accent-rgb), 0.05); }
+.pf-row:active { transform: scale(0.99); background: rgba(var(--accent-rgb), 0.05); box-shadow: var(--shadow-press); }
 .pf-row:hover { background: rgba(var(--accent-rgb), 0.03); }
 .pf-row-ic {
   flex: 0 0 auto;

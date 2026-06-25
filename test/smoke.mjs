@@ -1302,6 +1302,54 @@ test('PREMIUM A2: D1 uniform height · tall image · bare heart · real CTA · s
   assert.ok(/--t-card-size:/.test(idx) && /var\(--t-card-size\)/.test(cardsCss), 'the card-title token (--t-card) is defined and applied')
 })
 
+// PREMIUM A4 — the depth (elevation scale) + motion systems. Locks: the ranked
+// shadow tokens + their assignment, the press-tighten, the shared primary recipe,
+// and the motion set (add-morph, skeleton, blur-up, carousel stagger, tab settle,
+// symmetric sheet close) — every motion reduced-motion-safe.
+test('PREMIUM A4: elevation scale + motion (depth tokens, press, btn-primary, add-morph, skeleton, blur-up, reduced-motion)', () => {
+  const idx = readFileSync(path.join(ROOT, 'app', 'src', 'index.css'), 'utf8')
+  const cardsCss = readFileSync(path.join(ROOT, 'app', 'src', 'cards.css'), 'utf8')
+  const appCss = readFileSync(path.join(ROOT, 'app', 'src', 'App.css'), 'utf8')
+  const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
+  const saves = readFileSync(path.join(ROOT, 'app', 'src', 'saves.css'), 'utf8')
+  const nav = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
+
+  // DEPTH: the ranked elevation scale + back-compat alias
+  for (const t of ['--shadow-1:', '--shadow-2:', '--shadow-3:', '--shadow-sheet:', '--shadow-press:']) {
+    assert.ok(idx.includes(t), `index.css defines ${t}`)
+  }
+  assert.ok(/--shadow-card:\s*var\(--shadow-2\)/.test(idx), '--shadow-card is kept as a var(--shadow-2) alias (existing consumers unchanged)')
+  // assigned by importance: result rows → shadow-1, featured → shadow-3
+  assert.ok(/\.gem,\s*\.spotcard--row\s*\{[^}]*box-shadow:\s*var\(--shadow-1\)/s.test(cardsCss), 'result cards → --shadow-1 (soft rows)')
+  assert.ok(/\.featc\s*\{\s*box-shadow:\s*var\(--shadow-3\)/.test(cardsCss), 'featured card → --shadow-3')
+  // press answer: shadow tightens on :active
+  assert.ok(/\.gem:active,[\s\S]*?box-shadow:\s*var\(--shadow-press\)/.test(cardsCss), 'cards tighten the shadow on :active (--shadow-press)')
+  // shared primary-button recipe on the laggard CTAs
+  assert.ok(/\.btn-primary,[\s\S]*?\.tune-cta,\s*\.ms-tab-sel\s*\{[\s\S]*?inset 0 1px 0 rgba\(255, 255, 255/.test(appCss), 'the shared .btn-primary glow+sheen recipe covers the laggard CTAs')
+  // hero vignette gained a radial layer
+  assert.ok(/\.detail-hero-grad\s*\{[\s\S]*?radial-gradient/.test(appCss), 'the detail hero scrim layers a radial vignette')
+
+  // MOTION: the add-to-plan confirmation morph
+  assert.ok(/function AddButton/.test(cards) && /is-added/.test(cards), 'the Add button morphs (AddButton + is-added)')
+  assert.ok(/return true \/\/ PREMIUM A4|return true/.test(cards) && /addToPlan\(e\)\)/.test(cards), 'addToPlan reports success so the button can confirm')
+  assert.ok(/@keyframes cardToastIn/.test(cardsCss), 'the card toast has a real entrance')
+  assert.ok(/\.is-added\b[\s\S]*?animation:\s*slotPop/.test(cardsCss), 'a successful add plays the gold slotPop')
+  // skeleton + blur-up
+  assert.ok(/export function SkeletonRow/.test(cards) && /@keyframes skel/.test(cardsCss), 'first-load skeleton (SkeletonRow + .skel shimmer)')
+  assert.ok(/\.imgbox-img\s*\{[\s\S]*?filter:\s*blur\(8px\)/.test(cardsCss), 'image blur-up settle on load')
+  // carousel stagger + tab-tap settle
+  assert.ok(/\.carousel-stagger\s*>\s*\*/.test(cardsCss), 'carousel first-paint stagger')
+  assert.ok(/@keyframes tabSettle/.test(appCss) && /tab-settle/.test(nav), 'tab-TAP content settle (goTo adds .tab-settle)')
+  // savePop reward glow survives on the SVG heart (filter, not just text-shadow)
+  assert.ok(/@keyframes savePop[\s\S]*?filter:\s*drop-shadow/.test(saves), 'the save reward glow rides filter:drop-shadow (SVG heart)')
+
+  // REDUCED-MOTION: every new motion is reset
+  assert.ok(/prefers-reduced-motion:\s*reduce[\s\S]*?\.imgbox-img\s*\{[^}]*filter:\s*none/.test(cardsCss), 'reduced-motion stills the blur-up')
+  assert.ok(/prefers-reduced-motion:\s*reduce[\s\S]*?\.carousel-stagger\s*>\s*\*/.test(cardsCss), 'reduced-motion stills the carousel stagger')
+  assert.ok(/prefers-reduced-motion:\s*reduce[\s\S]*?\.skel\s*\{[^}]*animation:\s*none/.test(cardsCss), 'reduced-motion stills the skeleton shimmer')
+  assert.ok(/prefers-reduced-motion:\s*reduce[\s\S]*?\.page\.tab-settle/.test(appCss), 'reduced-motion stills the tab settle')
+})
+
 // 3.7P-34 — event detail goes planner-first: the primary sticky CTA is "Add to
 // day" (mirrors PlaceDetail's plan bridge); the official event/ticket link is
 // demoted to a secondary util action. A dated event plans onto ITS OWN day.
@@ -1461,7 +1509,7 @@ test('PROFILE_GRIND (final): title + white identity card + pencil + 6 menu cards
   // F6: the menu is 6 SEPARATE cards with circular icon discs (final ref)
   assert.ok(/\.pf-menu\s*\{[^}]*gap:/.test(css), 'F6: the menu is separated cards (gap), not one connected card')
   assert.ok(/\.pf-row-ic\s*\{[^}]*border-radius:\s*50%/.test(css), 'F6: the row icon is a circular disc')
-  assert.ok(/\.pf-row\s*\{[^}]*box-shadow:\s*var\(--shadow-card\)/.test(css), 'F6: each menu row is its own white card')
+  assert.ok(/\.pf-row\s*\{[^}]*box-shadow:\s*var\(--shadow-1\)/.test(css), 'F6: each menu row is its own white card (PREMIUM A4: row → --shadow-1)')
   // F7: Recently saved is REMOVED entirely (final MVP ref — no section, no See all)
   assert.ok(!/pf-recent/.test(pv) && !/Recently saved/.test(pv), 'F7: the Recently saved section is gone')
   assert.ok(!/shelfItems/.test(pv) && !/GemRow/.test(pv), 'F7: ProfileView no longer imports shelfItems/GemRow')

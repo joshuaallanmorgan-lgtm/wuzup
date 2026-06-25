@@ -289,7 +289,7 @@
   margin: 0 auto;
   background: var(--card);
   border-radius: 22px 22px 0 0;
-  box-shadow: 0 -10px 40px rgba(26, 20, 16, 0.24);
+  box-shadow: var(--shadow-sheet);
   padding: 14px 16px calc(18px + env(safe-area-inset-bottom));
   animation: mfUp var(--dur-page) var(--ease-emphasis);
 }

@@ -215,6 +215,31 @@
   box-shadow: 0 2px 8px rgba(187, 87, 25, 0.28);
 }
 
+/* PREMIUM A4 (depth#11): the shared PRIMARY-BUTTON recipe — promote the .featc-add
+   ambient glow + inset top-sheen so the flat laggard --cta CTAs match. On press the
+   glow tightens one step within --dur-micro (pairs with each button's scale). */
+.btn-primary,
+.featc-add,
+.ep-save,
+.pf-ask-yes,
+.loc-plan-add,
+.flt-submit,
+.tune-cta,
+.ms-tab-sel {
+  box-shadow: 0 4px 14px rgba(var(--accent-rgb), 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transition: transform var(--dur-micro), box-shadow var(--dur-micro);
+}
+.btn-primary:active,
+.featc-add:active,
+.ep-save:active,
+.pf-ask-yes:active,
+.loc-plan-add:not(:disabled):active,
+.flt-submit:active,
+.tune-cta:active,
+.ms-tab-sel:active {
+  box-shadow: 0 2px 7px rgba(var(--accent-rgb), 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
 /* the two REAL preview mini-cards — illustrate the swipe control, not a verdict */
 .tune-preview { position: relative; flex: 0 0 128px; width: 128px; min-height: 122px; }
 .tune-pc { position: absolute; width: 96px; }
@@ -337,6 +362,13 @@
   to { opacity: 1; transform: none; }
 }
 .enter { animation: rise var(--dur-base) var(--ease-out) both; }
+/* PREMIUM A4 (motion#10): the tab-TAP content settle — a quick 8px rise (nav.jsx
+   adds .tab-settle to the tapped page; swipe is untouched). */
+@keyframes tabSettle {
+  from { opacity: 0.5; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.page.tab-settle { animation: tabSettle 260ms var(--ease-emphasis); }
 
 /* ===== shared empty state ===== */
 .empty { padding: 64px 28px; text-align: center; color: var(--muted); line-height: 1.6; }
@@ -503,7 +535,16 @@
   transition: opacity var(--dur-emphasis) var(--ease-out);
 }
 .detail-hero-img.on { opacity: 1; }
-.detail-hero-grad { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0) 34%, rgba(0, 0, 0, 0.72) 100%); }
+/* PREMIUM A4 (depth#9): layered hero scrim — a slight radial focus + edge vignette,
+   a stronger TOP wash (back/save chrome legibility) and a richer BOTTOM (title) so
+   the flat single-linear scrim gains real depth. */
+.detail-hero-grad {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(125% 80% at 50% 32%, transparent 56%, rgba(0, 0, 0, 0.26) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.42) 0%, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.34) 62%, rgba(0, 0, 0, 0.82) 100%);
+}
 .detail-back {
   position: absolute;
   top: calc(14px + env(safe-area-inset-top));
@@ -648,6 +689,7 @@
   .subpage,
   .subpage-closing,
   .tune,
+  .page.tab-settle,
   .detail { animation: none !important; }
   ::view-transition-group(*),
   ::view-transition-old(*),
