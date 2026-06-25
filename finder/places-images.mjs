@@ -307,28 +307,73 @@ async function resolveCommonsGeosearch(lat, lng, name) {
   return bestNamedRecord(cands, name, { strong: true });
 }
 
-// Phase 2 — Mapillary street-level (cafes, where Commons has nothing). v4 Graph API
-// images within a ~40m bbox of the venue; pick the FRESHEST capture; CC-BY-SA 4.0
-// credit. Honesty: this is "AT the location" (a real street capture at the cafe's
-// exact coords), not a curated of-the-storefront photo — there's no name-match to
-// gate on (street frames aren't named), so the proximity IS the of-location proof
-// (the plan's accepted stance for cafes). ⚠ the thumb_1024_url is a SIGNED CDN URL
-// that expires ~30 days out (≈ the cache TTL) — a live regen refreshes it; a stale
-// one degrades to the art floor (onError). SECURITY: the token is read from
-// process.env.MAPILLARY_TOKEN ONLY — never hardcoded, never logged. Graceful skip
-// (returns null) when the env var is unset, so Phase-1 runs need nothing.
+// ── Mapillary selection TUNABLES (surfaced for the scout's visual judgement) ──
+// quality over quantity: ship a frame ONLY when the camera is actually pointing at
+// the cafe. Loosen for more coverage, tighten for more precision.
+const MLY_MAX_DIST_M = 30; // the capture must be within this many metres of the cafe
+const MLY_MAX_ALIGN_DEG = 45; // the camera heading must be within this of the bearing-to-cafe
+
+// small-angle / short-distance geo helpers (metres + degrees, WGS84-ish).
+const _toRad = (d) => (d * Math.PI) / 180;
+const _toDeg = (r) => (r * 180) / Math.PI;
+function haversineM(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = _toRad(lat2 - lat1), dLng = _toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(_toRad(lat1)) * Math.cos(_toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
+}
+function initialBearingDeg(lat1, lng1, lat2, lng2) {
+  const φ1 = _toRad(lat1), φ2 = _toRad(lat2), Δλ = _toRad(lng2 - lng1);
+  const y = Math.sin(Δλ) * Math.cos(φ2);
+  const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+  return (_toDeg(Math.atan2(y, x)) + 360) % 360;
+}
+function angularDiffDeg(a, b) {
+  const d = Math.abs(a - b) % 360;
+  return d > 180 ? 360 - d : d;
+}
+
+// Phase 2 (reworked — facing-camera selection) — Mapillary street-level for cafes,
+// where Commons has nothing. v4 Graph API candidates in a ~40m bbox; KEEP only a
+// flat (non-pano) frame that is CLOSE (≤ MLY_MAX_DIST_M) AND whose camera HEADING
+// points roughly AT the cafe (align ≤ MLY_MAX_ALIGN_DEG) — so it ships a frame
+// FACING the storefront, not a random roadside one pointing away. Best survivor =
+// smallest align, distance as tiebreak; none qualify → null (art floor). 360 panos
+// are dropped (their flat thumbs are distorted). CC-BY-SA 4.0 credit. Honesty: a
+// frame at ≤30m pointing at the venue is a real photo OF the storefront. ⚠ the
+// thumb_1024_url is a SIGNED CDN URL that expires ~30 days out (≈ the cache TTL).
+// SECURITY: token read from process.env.MAPILLARY_TOKEN ONLY — never hardcoded /
+// logged. Graceful skip (null) when the env var is unset.
 async function resolveMapillary(lat, lng) {
   const token = process.env.MAPILLARY_TOKEN;
   if (!token) return null;
-  const d = 0.0004; // ~40m half-box
+  const d = 0.0005; // ~50m half-box — wide enough to hold every ≤30m candidate
   const bbox = `${lng - d},${lat - d},${lng + d},${lat + d}`;
-  const api = `https://graph.mapillary.com/images?fields=id,thumb_1024_url,captured_at,creator&bbox=${bbox}&limit=10`;
+  const fields = 'id,geometry,compass_angle,computed_compass_angle,is_pano,captured_at,thumb_1024_url,creator';
+  const api = `https://graph.mapillary.com/images?fields=${fields}&bbox=${bbox}&limit=40`;
   const r = await fetch(api, { headers: { Authorization: `OAuth ${token}` } })
     .then((x) => (x.ok ? x.json() : null))
     .catch(() => null);
   const data = (r && Array.isArray(r.data) && r.data) || [];
-  const best = data.filter((x) => x && x.thumb_1024_url).sort((a, b) => (b.captured_at || 0) - (a.captured_at || 0))[0];
-  if (!best) return null;
+  const survivors = [];
+  for (const c of data) {
+    if (!c || !c.thumb_1024_url) continue;
+    if (c.is_pano !== false) continue; // drop 360 panos (distorted flat thumbs)
+    const co = c.geometry && c.geometry.coordinates;
+    if (!Array.isArray(co) || co.length < 2) continue;
+    const [capLng, capLat] = co;
+    const heading = c.compass_angle ?? c.computed_compass_angle;
+    if (heading == null || Number.isNaN(heading)) continue; // can't verify facing → skip
+    const dist = haversineM(capLat, capLng, lat, lng);
+    if (dist > MLY_MAX_DIST_M) continue;
+    const align = angularDiffDeg(initialBearingDeg(capLat, capLng, lat, lng), heading);
+    if (align > MLY_MAX_ALIGN_DEG) continue; // camera faces away from the cafe
+    survivors.push({ c, dist, align });
+  }
+  if (!survivors.length) return null;
+  // best: most-aligned (facing the cafe), nearest as the tiebreak.
+  survivors.sort((a, b) => a.align - b.align || a.dist - b.dist);
+  const best = survivors[0].c;
   const year = best.captured_at ? new Date(best.captured_at).getFullYear() : null;
   const who = (best.creator && best.creator.username) || 'a Mapillary contributor';
   return {
