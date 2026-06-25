@@ -1,32 +1,36 @@
-# Events grind — pixel-match to `ref-events.png` (landing)
+# Events grind — pixel-match the FULL page to `ref-events-full-1/2/3.png`
 
-> **Self-loop grind** (build → restore screenshots [disable anims+grain] → self-verify vs `ref-events.png`
-> → iterate to ~95% → commit; scout backstop-verifies; **no human QA**). Runs when we reach Events.
-> Light theme · real tokens (`--bg #fcfbf9`, `--card #fefdfb`, `--ink #1a1410`, `--cta #bb5719`+white) ·
-> canonical left-image row card · honesty (never-hide, real data).
->
-> ⚠️ **NOTABLE CHANGE (confirm):** `ref-events.png` shows "Tonight's best bets" + "This weekend" as
-> **vertical left-image cards** with a **"+ Why this fits: …"** reason line. The current HotView uses
-> **horizontal carousels** (`TonightCard` 280×210) without "Why this fits." Matching the ref = switch
-> those sections to vertical left-image cards + add the honest reason line. (Bigger than Profile/Home —
-> it reverses a polished carousel layout. The references are consistent on this: ref-home top-picks are
-> vertical left-image cards too. Recommend matching the ref; flag if you'd rather keep carousels.)
+> **Self-loop grind** (build → screenshot WITH anims+grain disabled → self-verify vs the ref → iterate
+> → commit; scout backstop-verifies; no human QA). Light theme · real tokens · honesty (never-hide).
+> The landing basics (vertical cards, "Why this fits", filter chips) already landed overnight — **this
+> adds the full top-to-bottom section set + the Tinder module.** THE target = `ref-events-full-1/2/3.png`
+> (+ `tinder.png` for the top module).
 
-## Canonical order (`ref-events.png`)
-Header "Events" + "Alex · Tampa, FL" + **search bar** → **filter chips** (Today · Tomorrow · Weekend · Free · Near me) → **"Tonight's best bets"** (vertical left-image cards) → **"This weekend"** (vertical, day-grouped) → *(the extra current sections — Hidden Gems · your-kind-of-night · recently-viewed · "Everything" RowFeed — stay below; theme-fit, never-hide intact).*
+## Canonical event card
+**🔒 LOCKED — see `CARD_LOCK.md`: canonical event card = `GemRow` (make universal); retire `CompactRow` from result feeds; filter-chip bar standardized onto results. Do the Phase 0 consolidation FIRST, then this full-page work.**
+Left image with an **on-image time badge** (bottom-left, e.g. "5:00 PM") + HeatBadge (top-right, when hot) → title (bold) → meta (📍 venue · date · time) → **category chips** → optional honest **"Why this fits"** → SaveHeart (right) → **"Add to plan"** link.
 
-## Diffs (current → ref)
-- **E-L1 — "Tonight's best bets" + "This weekend" → vertical left-image cards** (image left · time badge · title · venue · category chips · heart), not horizontal carousels. `HotView.jsx` (section render) + `cards.jsx`. *(The "Everything" feed is already vertical — make these match it.)*
-- **E-L2 — Add "+ Why this fits: [reason]"** to the event cards. **Honesty-critical:** derive the reason from real signals (taste-category match · free · outdoors · group-friendly) — reuse the detail page's existing why-it-fits logic; **never fabricate.** Omit the line if there's no honest reason. `cards.jsx`.
-- **E-L3 — Filter chips** (Today/Tomorrow/Weekend/Free/Near me) match the ref's chip styling. `LensNav.jsx`.
-- **E-L4 — Header + search bar** match the ref (likely close — verify sizes/copy). `HotView.jsx` / `App.css` `.loc-head`.
-- **E-L5 — Section structure:** lead with Tonight's best bets + This weekend per the ref; keep the extra sections below (theme-fit to the card system). Never-hide / "See all {N}" intact.
+## Full section order (top → bottom)
+1. Header — title + location + search [have]
+2. **"Tune your taste" module** (Tinder entry — see `TINDER.md`) [NEW — ships in its OWN sprint (TINDER.md), NOT in EVENTS P1; Events P1 = the section set below]
+3. Filter chips (Tonight · This Weekend · Free · Near Me · Music · Outdoors) [have]
+4. Tonight's Best Bets [have]
+5. **Worth planning around** [NEW — carousel of worth/buzz events]
+6. This Weekend (day-grouped) [have]
+7. Hidden Gems [have]
+8. **Free & Easy** [NEW — free events carousel]
+9. **Recurring Series** [NEW — `_series`/recurring events]
+10. **Neighborhood Picks** [NEW — 2-column, neighborhood/tag-based]
+11. Your kind of night (taste rail) [have — **move to here**]
+12. Recently viewed [have]
+13. **"More upcoming around Tampa Bay"** — the Everything feed [have — rename heading]
+*(Guides + Your Saves shelf: keep where they fit per the ref.)*
 
-## Path-safety
-Card-tap → `openDetail` (VT morph), "See all" → bubble, chips → bubble/filter, search → `openSearch` — all existing seams; no opener-signature changes. Card-layout + the why-this-fits line are presentational/derived.
+## Diffs
+- **Add the 4 NEW sections** (Worth planning around · Free & Easy · Recurring Series · Neighborhood Picks) — `HotView.jsx` + section logic + `cards.css`. Real data + honest gating (e.g. Free & Easy only if free events exist).
+- **Reorder:** taste rail → after Neighborhood Picks; Everything → after Recently viewed; heading → "More upcoming around Tampa Bay."
+- **Card:** confirm the **on-image time badge + category chips** (this is the touch-up item; the full refs confirm it).
+- **Add the "Tune your taste" module** at position 2 (see `TINDER.md`).
 
-## Honesty
-Never-hide (curated ⊆ full, "See all {N}"); "Why this fits" is real-reason-only; free/price honest; sponsored disclosed.
-
-## Self-loop
-Build → restore screenshots → self-verify each item vs `ref-events.png` → fix → iterate (≤6) → gate → commit + self-verify table. Scout backstop-verifies. No human QA.
+## Path-safety / honesty / self-loop
+Additive sections; existing openers unchanged; never-hide ("See all {N}"); "Why this fits" real-reason-only. Self-loop with the working screenshot trick vs `ref-events-full-1/2/3.png`.
