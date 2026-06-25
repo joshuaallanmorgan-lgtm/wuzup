@@ -55,6 +55,8 @@ const ATTRIB_FILE = join(HERE, 'cache', 'attributions.json');
 // step (the ~97% of places with coords but no usable Q-id), alongside the Q-id
 // cache above. Same shape/TTL; keyed by place.key.
 const GEO_CACHE_FILE = join(HERE, 'cache', 'place-geo-images.json');
+// Phase 2: the place-keyed Mapillary cache (cafes). The stored URL expires ~30d.
+const MLY_CACHE_FILE = join(HERE, 'cache', 'place-mapillary-images.json');
 // a descriptive User-Agent is required by the Wikimedia API etiquette policy.
 const UA = {
   'User-Agent':
@@ -305,6 +307,45 @@ async function resolveCommonsGeosearch(lat, lng, name) {
   return bestNamedRecord(cands, name, { strong: true });
 }
 
+// Phase 2 — Mapillary street-level (cafes, where Commons has nothing). v4 Graph API
+// images within a ~40m bbox of the venue; pick the FRESHEST capture; CC-BY-SA 4.0
+// credit. Honesty: this is "AT the location" (a real street capture at the cafe's
+// exact coords), not a curated of-the-storefront photo — there's no name-match to
+// gate on (street frames aren't named), so the proximity IS the of-location proof
+// (the plan's accepted stance for cafes). ⚠ the thumb_1024_url is a SIGNED CDN URL
+// that expires ~30 days out (≈ the cache TTL) — a live regen refreshes it; a stale
+// one degrades to the art floor (onError). SECURITY: the token is read from
+// process.env.MAPILLARY_TOKEN ONLY — never hardcoded, never logged. Graceful skip
+// (returns null) when the env var is unset, so Phase-1 runs need nothing.
+async function resolveMapillary(lat, lng) {
+  const token = process.env.MAPILLARY_TOKEN;
+  if (!token) return null;
+  const d = 0.0004; // ~40m half-box
+  const bbox = `${lng - d},${lat - d},${lng + d},${lat + d}`;
+  const api = `https://graph.mapillary.com/images?fields=id,thumb_1024_url,captured_at,creator&bbox=${bbox}&limit=10`;
+  const r = await fetch(api, { headers: { Authorization: `OAuth ${token}` } })
+    .then((x) => (x.ok ? x.json() : null))
+    .catch(() => null);
+  const data = (r && Array.isArray(r.data) && r.data) || [];
+  const best = data.filter((x) => x && x.thumb_1024_url).sort((a, b) => (b.captured_at || 0) - (a.captured_at || 0))[0];
+  if (!best) return null;
+  const year = best.captured_at ? new Date(best.captured_at).getFullYear() : null;
+  const who = (best.creator && best.creator.username) || 'a Mapillary contributor';
+  return {
+    image: best.thumb_1024_url,
+    file: `mapillary-${best.id}`,
+    fileTitle: `Mapillary:${best.id}`,
+    fileUrl: `https://www.mapillary.com/app/?pKey=${best.id}`,
+    width: 1024,
+    mediatype: 'BITMAP',
+    mime: 'image/jpeg',
+    license: 'CC BY-SA 4.0',
+    licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
+    author: year ? `${who} via Mapillary (${year})` : `${who} via Mapillary`,
+    source: 'mapillary',
+  };
+}
+
 // Q-id → record | null. P18 first (strongest curated signal); if it has no P18,
 // or its P18 isn't a usable photo, fall back to the P373 category (3.7P-2).
 export async function resolvePlaceImage(qid, name) {
@@ -358,6 +399,10 @@ const loadGeoCache = () => {
   const c = loadJson(GEO_CACHE_FILE, { fetchedAt: null, byKey: {} });
   return c.byKey ? c : { fetchedAt: null, byKey: {} };
 };
+const loadMlyCache = () => {
+  const c = loadJson(MLY_CACHE_FILE, { fetchedAt: null, byKey: {} });
+  return c.byKey ? c : { fetchedAt: null, byKey: {} };
+};
 // normalize a resolver record (or null) into the cached/stored shape + timestamp.
 const storeRec = (r) =>
   r
@@ -379,14 +424,17 @@ const shippable = (rec) => !!(rec && rec.image && creditOk(rec) && (rec.width ==
 export async function enrichPlacesWithImages(places, { live = false, log = () => {} } = {}) {
   const cache = loadCache();
   const geoCache = loadGeoCache();
+  const mlyCache = loadMlyCache();
   const attrib = loadAttrib();
   const stats = {
     withQid: 0, set: 0, fromCache: 0, fetched: 0, noImage: 0,
     tooSmall: 0, noCredit: 0, viaP18: 0, viaP373: 0,
     geoTried: 0, geoFetched: 0, geoFromCache: 0, viaGeo: 0,
+    mlyTried: 0, mlyFetched: 0, mlyFromCache: 0, viaMapillary: 0,
   };
   let dirty = false; // only rewrite the TRACKED caches when content changed
   let geoDirty = false;
+  let mlyDirty = false;
   let attribDirty = false;
   const shippedFiles = new Set(); // attributions to keep (prune the rest)
   for (const p of places) {
@@ -452,6 +500,33 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
       if (shippable(grec) && nameMatchStrong(grec.fileTitle, p.name)) rec = grec;
     }
 
+    // ── ladder 3: Mapillary street-level (CAFES only) — where Commons has nothing.
+    //    "At the location" (a real capture at the cafe's coords), credited CC-BY-SA.
+    //    Skipped entirely when MAPILLARY_TOKEN is unset (Phase-1 runs need nothing). ──
+    if (!shippable(rec) && hasCoords && p.placeType === 'cafe' && process.env.MAPILLARY_TOKEN) {
+      stats.mlyTried++;
+      const mkey = p.key || `${p.lat},${p.lng}`;
+      const mcached = mlyCache.byKey[mkey];
+      const mfresh = mcached && mcached.at && ('license' in mcached || !mcached.image) && Date.now() - Date.parse(mcached.at) < MAX_CACHE_AGE_MS;
+      let mrec;
+      if (mcached && mfresh && !live) {
+        mrec = mcached;
+        stats.mlyFromCache++;
+      } else {
+        try {
+          mrec = storeRec(await resolveMapillary(p.lat, p.lng));
+          mlyCache.byKey[mkey] = mrec;
+          mlyDirty = true;
+          stats.mlyFetched++;
+          await sleep(120);
+        } catch (e) {
+          mrec = mcached || storeRec(null);
+          log(`  ⚠️  mapillary ${mkey} (${p.name}): ${e.message || e}`);
+        }
+      }
+      if (shippable(mrec)) rec = mrec;
+    }
+
     // ── ship the winning record, or clear ──
     // credit-required + resolution floor: a photo ships ONLY with a SATISFIABLE
     // credit (license, plus an author when CC-BY) at/above the hero floor. Otherwise
@@ -470,6 +545,7 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
       stats.set++;
       if (rec.source === 'wikidata-p373') stats.viaP373++;
       else if (rec.source === 'commons-geosearch') stats.viaGeo++;
+      else if (rec.source === 'mapillary') stats.viaMapillary++;
       else stats.viaP18++;
       if (rec.fileTitle) {
         shippedFiles.add(rec.fileTitle);
@@ -518,6 +594,10 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
     geoCache.fetchedAt = new Date().toISOString();
     writeFileSync(GEO_CACHE_FILE, JSON.stringify(geoCache, null, 2));
   }
+  if (mlyDirty) {
+    mlyCache.fetchedAt = new Date().toISOString();
+    writeFileSync(MLY_CACHE_FILE, JSON.stringify(mlyCache, null, 2));
+  }
   if (attribDirty) {
     attrib.fetchedAt = new Date().toISOString();
     writeFileSync(ATTRIB_FILE, JSON.stringify(attrib, null, 2));
@@ -547,8 +627,9 @@ async function main() {
     const total = doc.places.length;
     console.log(
       `${path}: ${stats.set}/${total} imaged (${((stats.set / total) * 100).toFixed(1)}%) ` +
-        `— P18 ${stats.viaP18}, P373 ${stats.viaP373}, geosearch ${stats.viaGeo} ` +
-        `(qid: fetched ${stats.fetched}/cache ${stats.fromCache}; geo: tried ${stats.geoTried}, fetched ${stats.geoFetched}/cache ${stats.geoFromCache}; ` +
+        `— P18 ${stats.viaP18}, P373 ${stats.viaP373}, geosearch ${stats.viaGeo}, mapillary ${stats.viaMapillary} ` +
+        `(geo: tried ${stats.geoTried}, fetched ${stats.geoFetched}/cache ${stats.geoFromCache}; ` +
+        `mly: tried ${stats.mlyTried}, fetched ${stats.mlyFetched}/cache ${stats.mlyFromCache}; ` +
         `none ${stats.noImage} [too-small ${stats.tooSmall}, no-credit ${stats.noCredit}])`
     );
   }
