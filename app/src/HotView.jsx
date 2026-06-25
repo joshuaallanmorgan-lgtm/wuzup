@@ -6,6 +6,7 @@
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { BUBBLES, CAT_BUBBLES, LENS_BUBBLES, NON_GEM_RE, dayLabel, dayLoose, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
 import LensNav from './LensNav.jsx'
+import TasteTuner from './TasteTuner.jsx'
 import { curateFeed, collapseSeries } from './curate.js'
 import { useNav } from './nav.jsx'
 import { CardImg, GemRow, IntentTile, ResultCard, RowFeed, SecHead, TonightCard, WxContext, featuredChips } from './cards.jsx'
@@ -38,7 +39,7 @@ const cityOf = (addr) => {
 }
 
 export default function HotView({ events, anchors, loading }) {
-  const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, openMap: onOpenMap, openGuide, openEvFilters } = useNav()
+  const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, openMap: onOpenMap, openGuide, openEvFilters, openDeck } = useNav()
   const wx = useContext(WxContext) // access weather without prop threading
   const scrollRef = useRef(null)
   const evRef = useRef(null)
@@ -85,6 +86,10 @@ export default function HotView({ events, anchors, loading }) {
     () => upcoming.filter((e) => e.tags.includes('hidden-gem') && !NON_GEM_RE.test(e.title || '')).sort(hotDesc),
     [upcoming]
   )
+
+  // TINDER P3: two REAL hot upcoming events for the Tune-your-taste preview cards
+  // (the tags illustrate the swipe control — they assert no verdict on these).
+  const tuneSamples = useMemo(() => [...upcoming].sort(hotDesc).slice(0, 2), [upcoming])
 
   const { list: savedList } = useSaves()
   const shelf = useMemo(() => shelfItems(savedList, events, anchors), [savedList, events, anchors])
@@ -251,6 +256,10 @@ export default function HotView({ events, anchors, loading }) {
       />
 
       <div className="hot-body">
+        {/* TINDER P3: "Tune your taste" — a light doorway into the events swipe
+            deck, between the chips and the first section (tinder.png). */}
+        <TasteTuner kind="events" samples={tuneSamples} onTune={openDeck} />
+
         {/* E-L1/E-L5: "Tonight's best bets" — vertical left-image GemRow cards,
             first section per the ref (was a horizontal carousel). */}
         {tonightTagged.length > 0 && (

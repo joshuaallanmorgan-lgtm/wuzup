@@ -18,6 +18,7 @@ import { railReady, tasteNudge, useTaste } from './taste.js'
 import { usePlaces, ACTIVITIES, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES, nearest, isPlaceKey, normalizePlace } from './places.js'
 import { useSaves } from './saves.js'
 import LensNav from './LensNav.jsx'
+import TasteTuner from './TasteTuner.jsx'
 import SearchBarButton from './SearchBarButton.jsx'
 import './locations.css'
 
@@ -49,7 +50,7 @@ const SPOT_THEMES = [
 ]
 
 export default function LocationsView({ coords }) {
-  const { openDetail: onSelect, openPlaceBubble, openGuide, openSearch, openMap } = useNav()
+  const { openDetail: onSelect, openPlaceBubble, openGuide, openSearch, openMap, openDeck } = useNav()
   // FB-03 (3.7P-7): the Spots page shows SPOTS + MIXED guides (Beach day, Free
   // outdoor reset) — the place-domain guides.
   const spotGuides = GUIDES.filter((g) => g.domain === 'spots' || g.domain === 'mixed')
@@ -67,6 +68,8 @@ export default function LocationsView({ coords }) {
   }
 
   const all = useMemo(() => (Array.isArray(places) ? placeOrder(places, taste) : []), [places, taste])
+  // TINDER P3: two REAL top-ranked spots for the Tune-your-taste preview cards.
+  const tuneSamples = useMemo(() => all.slice(0, 2), [all])
   const near = useMemo(() => nearest(all, coords, 12), [all, coords])
   // 3.7P-24 (§N screen 6): the single "Recommended" featured spot — the closest
   // taste-top place when located, else the taste-top place overall.
@@ -166,6 +169,10 @@ export default function LocationsView({ coords }) {
       />
 
       <div className="hot-body">
+        {/* TINDER P3: "Tune your taste" — the light doorway into the SPOTS swipe
+            deck, between the chips and the first section (tinder.png). */}
+        <TasteTuner kind="places" samples={tuneSamples} onTune={openDeck} />
+
         {/* 3.7P-12 → 3.7P-20: ACTIVITY intent frame — the primary Spots nav, now
             an ALL-VISIBLE grid of the SHARED IntentTile (identical format to the
             Events "Guides"). Tap an activity → everywhere you can do it (See all →

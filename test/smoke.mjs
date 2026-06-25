@@ -670,6 +670,37 @@ test('N5 onboarding: first-open IA tour (skippable) + honest taste snapshot', ()
   assert.ok(!/give the feed a head start/.test(p), 'the misleading filter-implying "head start" copy must be gone')
 })
 
+// TINDER — the "Tune your taste" swipe-to-calibrate module + a deck parameterized
+// by kind (events|places). Locks: the light module lives on BOTH result pages,
+// opens the RIGHT deck, and its preview cards are REAL (data-driven samples, never
+// fabricated); the deck shares ONE category taste model for events and places.
+test('TINDER: the Tune-your-taste module is on both pages, kind-correct, honest', () => {
+  const tuner = readFileSync(path.join(ROOT, 'app', 'src', 'TasteTuner.jsx'), 'utf8')
+  // honesty: preview cards render REAL passed-in samples (e.title), never a
+  // hardcoded fake event — and reuse the shared art-floor + real chip helpers.
+  assert.ok(/samples/.test(tuner) && /e\?\.title|e\.title/.test(tuner), 'preview cards must render real passed-in samples (data-driven, not fabricated)')
+  assert.ok(/from '\.\/cards\.jsx'/.test(tuner) && /CardImg/.test(tuner), 'preview must reuse CardImg (the real-photo-or-art floor)')
+  assert.ok(/featuredChips/.test(tuner) && /spotChips/.test(tuner), 'preview chips must come from the real chip helpers (events vs places)')
+  // session fatigue guard: dismiss collapses to a discoverable "tune again"
+  assert.ok(/sessionStorage/.test(tuner) && /tune-again/.test(tuner), 'dismiss must use a session guard + collapse to a Tune-again affordance')
+
+  // wired on BOTH result pages, each to its OWN deck kind, via openDeck
+  const hot = readFileSync(path.join(ROOT, 'app', 'src', 'HotView.jsx'), 'utf8')
+  const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
+  assert.ok(/<TasteTuner[^>]*kind="events"[^>]*onTune=\{openDeck\}/.test(hot), 'HotView must render the events Tune module wired to openDeck')
+  assert.ok(/<TasteTuner[^>]*kind="places"[^>]*onTune=\{openDeck\}/.test(loc), 'LocationsView must render the places Tune module wired to openDeck')
+
+  // the deck is parameterized by kind; openDeck routes the {kind, origin} object
+  const deck = readFileSync(path.join(ROOT, 'app', 'src', 'CalibrationDeck.jsx'), 'utf8')
+  assert.ok(/dealPlaceDeck/.test(deck) && /PlaceDeckFace/.test(deck), 'CalibrationDeck must add the places sampler + place face')
+  assert.ok(/recordCalibration/.test(deck), 'verdicts must feed the SAME taste model (recordCalibration) for events + places')
+  assert.ok(/placeType/.test(deck), 'the places deck must stratify by placeType (deck variety, not 15 parks)')
+  const nav = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
+  assert.ok(/arg\.kind === 'places'/.test(nav), 'openDeck must route the {kind, origin} object form additively')
+  const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
+  assert.ok(/PlacesDeck/.test(app) && /page\.kind === 'places'/.test(app), 'App must mount the lazy PlacesDeck for the places kind')
+})
+
 // N5b — re-entry pull cards (pull-based, ban-list-clean): a forward "next step"
 // only when one exists; never a nag. 3.7P-17 RETIRED the Calendar "Plan your
 // weekend" pull (a leftover after P8); the Profile save→plan pull remains.
