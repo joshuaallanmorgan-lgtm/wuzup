@@ -346,27 +346,24 @@ test('places data invariants: schema v1 places.json', () => {
 // THAT place (Wikidata P18 → Wikimedia Commons), never a representative
 // stand-in; places without a curated photo keep category-art. These invariants
 // lock that contract on the real artifact.
-test('W4/Phase1+2 images: every place photo is of-the-place (Commons OR Mapillary) + CREDITED, no stock', () => {
+test('W4/Phase1 images: place photos are real of-the-place Commons files + every one CREDITED', () => {
   const doc = JSON.parse(readFileSync(APP_PLACES, 'utf8'))
   const places = doc.places
   const imaged = places.filter((p) => p.image)
-  // a meaningful number resolved. The geosearch ladder (Phase 1) + Mapillary (Phase 2,
-  // cafes) lift this well past the ~65 Q-id places, so the old "never more than the
-  // Q-id set" cap is RETIRED. The honesty guard is now of-the-place SOURCE + credit.
+  // a meaningful number resolved. The honest-imagery Phase-1 geosearch ladder lifts
+  // this well past the ~65 Q-id places (real of-the-place photos on coords+name-match),
+  // so the old "never more than the Q-id set" cap is RETIRED — geosearch legitimately
+  // images non-Q-id places. The honesty guard is now name-match (pipeline) + credit.
   assert.ok(imaged.length >= 20, `only ${imaged.length} places imaged — the image pipeline likely regressed`)
   for (const p of imaged) {
-    // every image is from a real of-the-place source — Wikimedia Commons (P18/P373/
-    // geosearch, all upload.wikimedia.org/.../commons/) OR a Mapillary street-level
-    // capture AT the venue (credit page on mapillary.com). NO generic stock.
-    const isCommons = /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//.test(p.image)
-    const isMapillary = !!(p.imageCredit && /^https:\/\/(www\.)?mapillary\.com\//.test(p.imageCredit.url || ''))
-    assert.ok(isCommons || isMapillary, `${p.name}: image is neither a Commons file nor a credited Mapillary capture (${p.image})`)
-    assert.ok(!/pexels|unsplash|googleusercontent|googleapis/.test(p.image), `${p.name}: image is generic stock / a ToS-blocked host — banned`)
+    // every image is a real Wikimedia Commons file — the ONLY honest of-the-place source.
+    // P18 / P373 / geosearch all resolve to upload.wikimedia.org/.../commons/. NO stock.
+    assert.match(p.image, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, `${p.name}: image is not a Wikimedia Commons URL (${p.image})`)
     // CREDIT-REQUIRED: every shipped photo carries an inline credit (license; author
-    // when the license is CC-BY/BY-SA) — the legal duty + the honesty record.
+    // when the license is CC-BY) — the legal duty + the honesty record.
     assert.ok(p.imageCredit && p.imageCredit.license, `${p.name}: has an image but no credit (license) — the credit gate must hold on every source`)
     if (/^\s*cc\s*by/i.test(p.imageCredit.license)) {
-      assert.ok(p.imageCredit.author, `${p.name}: a CC-BY(-SA) image must carry an author byline`)
+      assert.ok(p.imageCredit.author, `${p.name}: a CC-BY image must carry an author byline`)
     }
   }
 })
