@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-06-25T15:14:58.065Z",
+  "fetchedAt": "2026-06-25T15:40:18.863Z",
   "byFile": {
     "File:Hurrah Lake - Alafia River State Park.jpg": {
       "file": "File:Hurrah Lake - Alafia River State Park.jpg",
@@ -81,15 +81,6 @@
       "licenseUrl": null,
       "sourceFamily": "wikidata-p18",
       "at": "2026-06-16T01:44:32.183Z"
-    },
-    "File:Iron Gwazi (11).jpg": {
-      "file": "File:Iron Gwazi (11).jpg",
-      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AIron%20Gwazi%20(11).jpg",
-      "author": "Adog",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "sourceFamily": "wikidata-p18",
-      "at": "2026-06-16T01:44:32.493Z"
     },
     "File:Paddling on the Hillsborough River.jpg": {
       "file": "File:Paddling on the Hillsborough River.jpg",
@@ -244,15 +235,6 @@
       "sourceFamily": "commons-geosearch",
       "at": "2026-06-25T14:23:25.633Z"
     },
-    "File:Anna Maria Pier www.florida-infos.com - panoramio - Franz Stellbrink (1).jpg": {
-      "file": "File:Anna Maria Pier www.florida-infos.com - panoramio - Franz Stellbrink (1).jpg",
-      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AAnna%20Maria%20Pier%20www.florida-infos.com%20-%20panoramio%20-%20Franz%20Stellbrink%20(1).jpg",
-      "author": "Franz Stellbrink",
-      "license": "CC BY 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
-      "sourceFamily": "commons-geosearch",
-      "at": "2026-06-25T14:23:53.961Z"
-    },
     "File:Tampa Skyline from Ballast Point Park April 2024.jpg": {
       "file": "File:Tampa Skyline from Ballast Point Park April 2024.jpg",
       "fileUrl": "https://commons.wikimedia.org/wiki/File%3ATampa%20Skyline%20from%20Ballast%20Point%20Park%20April%202024.jpg",
@@ -270,24 +252,6 @@
       "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
       "sourceFamily": "commons-geosearch",
       "at": "2026-06-25T14:24:39.979Z"
-    },
-    "File:Sand Key, Clearwater, FL 33767, USA - panoramio (2).jpg": {
-      "file": "File:Sand Key, Clearwater, FL 33767, USA - panoramio (2).jpg",
-      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ASand%20Key%2C%20Clearwater%2C%20FL%2033767%2C%20USA%20-%20panoramio%20(2).jpg",
-      "author": "Evan Nichols (Virtua…",
-      "license": "CC BY 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
-      "sourceFamily": "commons-geosearch",
-      "at": "2026-06-25T14:25:02.514Z"
-    },
-    "File:Ringling Causeway from Bird Key.jpg": {
-      "file": "File:Ringling Causeway from Bird Key.jpg",
-      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ARingling%20Causeway%20from%20Bird%20Key.jpg",
-      "author": "The Grid",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "sourceFamily": "commons-geosearch",
-      "at": "2026-06-25T14:26:02.283Z"
     },
     "File:Black & Brew, Lakeland, Florida.jpg": {
       "file": "File:Black & Brew, Lakeland, Florida.jpg",
@@ -352,24 +316,6 @@
       "sourceFamily": "commons-geosearch",
       "at": "2026-06-25T14:29:14.671Z"
     },
-    "File:Clearwater Beach - panoramio - 4net (1).jpg": {
-      "file": "File:Clearwater Beach - panoramio - 4net (1).jpg",
-      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AClearwater%20Beach%20-%20panoramio%20-%204net%20(1).jpg",
-      "author": "4net",
-      "license": "CC BY 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
-      "sourceFamily": "commons-geosearch",
-      "at": "2026-06-25T14:29:56.057Z"
-    },
-    "File:Clearwater Beach - panoramio - 4net (10).jpg": {
-      "file": "File:Clearwater Beach - panoramio - 4net (10).jpg",
-      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AClearwater%20Beach%20-%20panoramio%20-%204net%20(10).jpg",
-      "author": "4net",
-      "license": "CC BY 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
-      "sourceFamily": "commons-geosearch",
-      "at": "2026-06-25T14:29:57.400Z"
-    },
     "File:Coquina Beach Jetty (28091850649).jpg": {
       "file": "File:Coquina Beach Jetty (28091850649).jpg",
       "fileUrl": "https://commons.wikimedia.org/wiki/File%3ACoquina%20Beach%20Jetty%20(28091850649).jpg",
@@ -414,24 +360,6 @@
       "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
       "sourceFamily": "commons-geosearch",
       "at": "2026-06-25T14:32:03.600Z"
-    },
-    "File:Davis Islands,Tampa,Florida,USA. - panoramio (1).jpg": {
-      "file": "File:Davis Islands,Tampa,Florida,USA. - panoramio (1).jpg",
-      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ADavis%20Islands%2CTampa%2CFlorida%2CUSA.%20-%20panoramio%20(1).jpg",
-      "author": "Roman Eugeniusz",
-      "license": "CC BY-SA 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-      "sourceFamily": "commons-geosearch",
-      "at": "2026-06-25T14:32:23.249Z"
-    },
-    "File:Davis Islands,Tampa,Florida,USA. - panoramio (4).jpg": {
-      "file": "File:Davis Islands,Tampa,Florida,USA. - panoramio (4).jpg",
-      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ADavis%20Islands%2CTampa%2CFlorida%2CUSA.%20-%20panoramio%20(4).jpg",
-      "author": "Roman Eugeniusz",
-      "license": "CC BY-SA 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-      "sourceFamily": "commons-geosearch",
-      "at": "2026-06-25T14:32:25.618Z"
     },
     "File:Bikini modelling Del Bello Park pp.jpg": {
       "file": "File:Bikini modelling Del Bello Park pp.jpg",
@@ -559,15 +487,6 @@
       "sourceFamily": "commons-geosearch",
       "at": "2026-06-25T14:36:44.556Z"
     },
-    "File:Gulfport Beach - GeckoFest 2014.jpg": {
-      "file": "File:Gulfport Beach - GeckoFest 2014.jpg",
-      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AGulfport%20Beach%20-%20GeckoFest%202014.jpg",
-      "author": "amateur photography by michel",
-      "license": "CC BY 2.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-      "sourceFamily": "commons-geosearch",
-      "at": "2026-06-25T14:37:34.792Z"
-    },
     "File:Redington Long Pier Sunset Silhouette (28108622979).jpg": {
       "file": "File:Redington Long Pier Sunset Silhouette (28108622979).jpg",
       "fileUrl": "https://commons.wikimedia.org/wiki/File%3ARedington%20Long%20Pier%20Sunset%20Silhouette%20(28108622979).jpg",
@@ -585,24 +504,6 @@
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
       "sourceFamily": "commons-geosearch",
       "at": "2026-06-25T14:38:30.129Z"
-    },
-    "File:Aerial Photo of the Flats in Hernando Beach.jpg": {
-      "file": "File:Aerial Photo of the Flats in Hernando Beach.jpg",
-      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AAerial%20Photo%20of%20the%20Flats%20in%20Hernando%20Beach.jpg",
-      "author": "FHarder",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "sourceFamily": "commons-geosearch",
-      "at": "2026-06-25T14:38:32.947Z"
-    },
-    "File:Reclaimed water maintenance hole cover in Indian Rocks Beach.jpg": {
-      "file": "File:Reclaimed water maintenance hole cover in Indian Rocks Beach.jpg",
-      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AReclaimed%20water%20maintenance%20hole%20cover%20in%20Indian%20Rocks%20Beach.jpg",
-      "author": "Grendelkhan",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "sourceFamily": "commons-geosearch",
-      "at": "2026-06-25T14:39:33.180Z"
     },
     "File:Indian Rocks Beach Free Library.jpg": {
       "file": "File:Indian Rocks Beach Free Library.jpg",
@@ -730,24 +631,6 @@
       "sourceFamily": "commons-geosearch",
       "at": "2026-06-25T14:49:35.197Z"
     },
-    "File:Bar-Grille on Pass-a-Grille Beach,Florida - Bar-Resto sur la plage de St-Pete Beach, Floride - panoramio.jpg": {
-      "file": "File:Bar-Grille on Pass-a-Grille Beach,Florida - Bar-Resto sur la plage de St-Pete Beach, Floride - panoramio.jpg",
-      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ABar-Grille%20on%20Pass-a-Grille%20Beach%2CFlorida%20-%20Bar-Resto%20sur%20la%20plage%20de%20St-Pete%20Beach%2C%20Floride%20-%20panoramio.jpg",
-      "author": "Richard Mc Neil",
-      "license": "CC BY 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
-      "sourceFamily": "commons-geosearch",
-      "at": "2026-06-25T14:49:41.803Z"
-    },
-    "File:Tarpon Springs, FL, USA - panoramio (4).jpg": {
-      "file": "File:Tarpon Springs, FL, USA - panoramio (4).jpg",
-      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ATarpon%20Springs%2C%20FL%2C%20USA%20-%20panoramio%20(4).jpg",
-      "author": "Roman Eugeniusz",
-      "license": "CC BY-SA 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-      "sourceFamily": "commons-geosearch",
-      "at": "2026-06-25T14:50:07.878Z"
-    },
     "File:Pier 60 at Clearwater, FL 2016 - panoramio.jpg": {
       "file": "File:Pier 60 at Clearwater, FL 2016 - panoramio.jpg",
       "fileUrl": "https://commons.wikimedia.org/wiki/File%3APier%2060%20at%20Clearwater%2C%20FL%202016%20-%20panoramio.jpg",
@@ -765,42 +648,6 @@
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
       "sourceFamily": "commons-geosearch",
       "at": "2026-06-25T14:51:50.332Z"
-    },
-    "File:Temple Terrace, FL, USA - panoramio (1).jpg": {
-      "file": "File:Temple Terrace, FL, USA - panoramio (1).jpg",
-      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ATemple%20Terrace%2C%20FL%2C%20USA%20-%20panoramio%20(1).jpg",
-      "author": "Evan Nichols (Virtua…",
-      "license": "CC BY 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
-      "sourceFamily": "commons-geosearch",
-      "at": "2026-06-25T14:53:42.905Z"
-    },
-    "File:Safety Harbor, FL, USA - panoramio - Roman Eugeniusz (1).jpg": {
-      "file": "File:Safety Harbor, FL, USA - panoramio - Roman Eugeniusz (1).jpg",
-      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ASafety%20Harbor%2C%20FL%2C%20USA%20-%20panoramio%20-%20Roman%20Eugeniusz%20(1).jpg",
-      "author": "Roman Eugeniusz",
-      "license": "CC BY-SA 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-      "sourceFamily": "commons-geosearch",
-      "at": "2026-06-25T14:54:09.010Z"
-    },
-    "File:Saint Petersburg,Florida,USA. - panoramio.jpg": {
-      "file": "File:Saint Petersburg,Florida,USA. - panoramio.jpg",
-      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ASaint%20Petersburg%2CFlorida%2CUSA.%20-%20panoramio.jpg",
-      "author": "Roman Eugeniusz",
-      "license": "CC BY-SA 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-      "sourceFamily": "commons-geosearch",
-      "at": "2026-06-25T14:54:11.156Z"
-    },
-    "File:Gulf Blvd by Sheraton Sand Key - panoramio.jpg": {
-      "file": "File:Gulf Blvd by Sheraton Sand Key - panoramio.jpg",
-      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AGulf%20Blvd%20by%20Sheraton%20Sand%20Key%20-%20panoramio.jpg",
-      "author": "Geo. Paterson",
-      "license": "CC BY-SA 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-      "sourceFamily": "commons-geosearch",
-      "at": "2026-06-25T14:54:25.896Z"
     },
     "File:Sarasota Bay - Sarasota, Florida 2023-01-23 (02).jpg": {
       "file": "File:Sarasota Bay - Sarasota, Florida 2023-01-23 (02).jpg",
@@ -901,15 +748,6 @@
       "sourceFamily": "commons-geosearch",
       "at": "2026-06-25T14:58:49.732Z"
     },
-    "File:Island Estates, Clearwater, FL 33767, USA - panoramio (1).jpg": {
-      "file": "File:Island Estates, Clearwater, FL 33767, USA - panoramio (1).jpg",
-      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AIsland%20Estates%2C%20Clearwater%2C%20FL%2033767%2C%20USA%20-%20panoramio%20(1).jpg",
-      "author": "Evan Nichols (Virtua…",
-      "license": "CC BY 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
-      "sourceFamily": "commons-geosearch",
-      "at": "2026-06-25T14:58:55.403Z"
-    },
     "File:Pinellas National Wildlife Refuge from North Sunshine Skyway rest area.JPG": {
       "file": "File:Pinellas National Wildlife Refuge from North Sunshine Skyway rest area.JPG",
       "fileUrl": "https://commons.wikimedia.org/wiki/File%3APinellas%20National%20Wildlife%20Refuge%20from%20North%20Sunshine%20Skyway%20rest%20area.JPG",
@@ -918,15 +756,6 @@
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
       "sourceFamily": "commons-geosearch",
       "at": "2026-06-25T14:59:01.885Z"
-    },
-    "File:Harbor at Tarpon Springs - panoramio.jpg": {
-      "file": "File:Harbor at Tarpon Springs - panoramio.jpg",
-      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AHarbor%20at%20Tarpon%20Springs%20-%20panoramio.jpg",
-      "author": "jonathan c. wheeler",
-      "license": "CC BY-SA 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-      "sourceFamily": "commons-geosearch",
-      "at": "2026-06-25T14:59:33.134Z"
     },
     "File:Terra Ceia Aquatic Preserve Manatee County Florida 2020-2601.jpg": {
       "file": "File:Terra Ceia Aquatic Preserve Manatee County Florida 2020-2601.jpg",
@@ -1008,6 +837,15 @@
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
       "sourceFamily": "commons-geosearch",
       "at": "2026-06-25T15:04:19.973Z"
+    },
+    "File:John's Pass new bridge - panoramio.jpg": {
+      "file": "File:John's Pass new bridge - panoramio.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AJohn's%20Pass%20new%20bridge%20-%20panoramio.jpg",
+      "author": "Geo. Paterson",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceFamily": "commons-geosearch",
+      "at": "2026-06-25T15:40:18.856Z"
     }
   }
 }

@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-06-25T15:04:40.201Z",
+  "fetchedAt": "2026-06-25T15:40:18.859Z",
   "byKey": {
     "p|1000-gulf-pier": {
       "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Pier_-_Fort_De_Soto_Park_-_panoramio.jpg/1280px-Pier_-_Fort_De_Soto_Park_-_panoramio.jpg",
@@ -19839,6 +19839,15 @@
       "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
       "author": "SkyRose18",
       "at": "2026-06-25T15:04:40.077Z"
+    },
+    "p|gwazi-field": {
+      "image": null,
+      "file": null,
+      "fileTitle": null,
+      "width": null,
+      "source": null,
+      "license": null,
+      "at": "2026-06-25T15:40:18.723Z"
     }
   }
 }

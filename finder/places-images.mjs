@@ -115,35 +115,56 @@ const titleMatchesName = (fileTitle, toks) => {
   const t = (fileTitle || '').toLowerCase();
   return toks.some((tok) => t.includes(tok));
 };
-// STRONG name-match for the GEOSEARCH path (Phase-1 review): geosearch has no
-// category-membership proof (unlike P373) — it's proximity only — so a single
-// shared NEIGHBORHOOD/AREA token ("Ybor", "Tampa", "Clearwater") is NOT enough:
-// it would put a generic Ybor streetcar on a specific Ybor dog park (a soft
-// fabrication, the exact thing the contract forbids). Require a 2-WORD PHRASE from
-// the place name to appear contiguously in the file title — strong proof the file
-// is OF this place ("Lake Seminole Park scenery" ✓; "Ybor streetcar" ✗). A phrase
-// of two generic words ("state park") carries no signal and is skipped. A 1-word
-// place name falls back to its single distinctive token.
-const namePhrases = (name) => {
+// Tampa-Bay TOWN / CITY / ISLAND / NEIGHBORHOOD words (Phase-1.1 honesty cleanup).
+// A 2-word phrase made ENTIRELY of these is an AREA match — it proves the file is
+// in the same area, NOT that it's OF a specific venue there (a generic "Davis
+// Islands, Tampa - panoramio" geotag on "Davis Islands Park", or an "Anna Maria
+// Pier" on "Anna Maria Bayfront Park"). Generic geo-feature words that pair with a
+// town to form an area name (beach/island/springs/harbor/key) are here too; a
+// DISTINCTIVE word beside them still makes a strong phrase ("Coquina Beach",
+// "Bonnet Springs"). The bar: precision over coverage.
+const AREA = new Set(
+  ('saint petersburg pete tampa clearwater dunedin sarasota bradenton brandon riverview ' +
+    'seminole largo gulfport palmetto tarpon springs safety harbor temple terrace treasure ' +
+    'island islands anna maria davis sand key bird ybor pine hernando pinellas hillsborough ' +
+    'manatee indian rocks shores redington madeira grille apollo ruskin oldsmar estates hyde ' +
+    'westshore channelside beach county usa florida fl').split(' ')
+);
+// the N-word phrases of a place name (contiguous), skipping leading/trailing 1-char
+// fragments and (for 2-word) all-generic pairs ("state park") that carry no signal.
+const namePhrases = (name, n) => {
   const words = (name || '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
   const out = [];
-  for (let i = 0; i + 1 < words.length; i++) {
-    const a = words[i], b = words[i + 1];
-    if (a.length < 2 || b.length < 2) continue;
-    if (STOP.has(a) && STOP.has(b)) continue; // "state park" / "beach park" = no signal
-    out.push(a + ' ' + b);
+  for (let i = 0; i + n - 1 < words.length; i++) {
+    const seg = words.slice(i, i + n);
+    if (seg[0].length < 2 || seg[n - 1].length < 2) continue;
+    if (n === 2 && STOP.has(seg[0]) && STOP.has(seg[1])) continue;
+    out.push(seg.join(' '));
   }
   return out;
 };
+const phraseAreaOnly = (ph) => ph.split(' ').every((w) => AREA.has(w));
+// STRONG name-match for the GEOSEARCH path (geosearch has no category-membership
+// proof — proximity only). A geotagged file ships ONLY if it names THIS place:
+//   • it contains a 3-WORD phrase from the place name (strong: it names the full
+//     specific place — "Treasure Island Beach.jpg" for "Treasure Island Beach"), OR
+//   • it contains a 2-WORD phrase that is NOT purely town/city/island words (so a
+//     mere shared neighborhood — "anna maria", "davis islands" — is not enough).
+// A 1-word place name (a town node like "Brandon") never matches. This rejects the
+// generic-area geotags + adjacent-subject photos the single-token gate let through.
 const nameMatchStrong = (fileTitle, name) => {
   const t = (fileTitle || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ');
-  const phrases = namePhrases(name);
-  // require a 2-word phrase. A 1-word place name ("Brandon") is almost always a
-  // town/area, not a specific venue — a single shared token would put any photo
-  // from that town on it (a generic "Brandon Family Cemetery" on the town node).
-  // Those keep the art floor (honest) rather than a soft "of."
-  return phrases.length > 0 && phrases.some((ph) => t.includes(ph));
+  if (namePhrases(name, 3).some((ph) => t.includes(ph))) return true;
+  const strong = namePhrases(name, 2).filter((ph) => !phraseAreaOnly(ph));
+  return strong.length > 0 && strong.some((ph) => t.includes(ph));
 };
+
+// Wikidata P18/P373 entity-image conflations to EXCLUDE (Phase-1.1): a place whose
+// Wikidata entity carries a curated image that is NOT of-the-place. Q966471 "Gwazi"
+// is now imaged with the Iron Gwazi COASTER that replaced the Gwazi field — an
+// adjacent subject, not the field. P18 stays lenient otherwise (gating it would
+// collateral-drop genuine curated photos like DeSoto Memorial / Weedon Island).
+const QID_DENY = new Set(['Q966471']);
 // cheap belt-and-suspenders for the P373 pick: titles that are clearly a non-photo
 // subject (map/logo/sign) OR a weak hero — a closeup/marker (3.7P-2 review P1) or
 // a self-undermining condition shot like "What's left of it" (a drought photo).
@@ -374,7 +395,7 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
     let rec = null;
 
     // ── ladder 1: Wikidata Q-id (P18 → P373) — the curated, strongest signal ──
-    if (p.wikidata) {
+    if (p.wikidata && !QID_DENY.has(p.wikidata)) {
       stats.withQid++;
       const cached = cache.byQid[p.wikidata];
       // freshness also requires the NEW record shape (3.7P-2 review P1): a pre-3.7P-2
