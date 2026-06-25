@@ -401,6 +401,55 @@ test('W4 wiring: real heroes + place-detail photo + degrade-to-art + passthrough
   assert.equal(place.image, 'https://upload.wikimedia.org/wikipedia/commons/x.jpg', 'normalizePlace must pass the image field through to the card/detail seams')
 })
 
+// PREMIUM A3 — the HYBRID category-image FLOOR. Real-of-this-place still wins (the
+// W4 test above guards p.image = Wikimedia-only); this adds a CREDITED, free-licensed
+// category-stock floor for places WITHOUT a real photo — generic, never claimed as
+// the venue, picked stably by placeType + hash(key) at RENDER time.
+test('PREMIUM A3: curated category floor — manifest valid + credited + place-gated, real photos still win', async () => {
+  const manifest = JSON.parse(readFileSync(path.join(ROOT, 'finder', 'category-images.json'), 'utf8'))
+  // starter set: the highest-volume / 0-coverage types
+  for (const t of ['cafe', 'park', 'beach', 'trail']) {
+    assert.ok(Array.isArray(manifest[t]) && manifest[t].length >= 6, `manifest covers ${t} with a real set`)
+  }
+  // every entry: a free-licensed Pexels/Unsplash CDN url + a credit + a source (the
+  // honesty record). NEVER Google / bare third-party hosts (ToS).
+  const allEntries = Object.entries(manifest)
+    .filter(([k, v]) => !k.startsWith('_') && Array.isArray(v))
+    .flatMap(([, v]) => v)
+  assert.ok(allEntries.length >= 24, 'a real starter set of images')
+  for (const e of allEntries) {
+    assert.match(e.url, /^https:\/\/images\.(pexels\.com|unsplash\.com)\//, `category image must be a Pexels/Unsplash CDN url (${e.url})`)
+    assert.ok(typeof e.credit === 'string' && e.credit.trim(), 'every category image carries a photographer credit')
+    assert.ok(typeof e.source === 'string' && e.source.trim(), 'every category image records its source')
+    assert.ok(!/googleusercontent|googleapis|maps\.google/.test(e.url), 'no Google Places / maps image urls (ToS)')
+  }
+  // the picker: pure, deterministic, place-gated
+  const { pickCategoryImage } = await import('../app/src/categoryImages.js')
+  const park = { placeType: 'park', key: 'p|some-park' }
+  assert.ok(pickCategoryImage(manifest, park)?.url, 'a covered place gets a floor entry')
+  assert.equal(pickCategoryImage(manifest, park).url, pickCategoryImage(manifest, park).url, 'the pick is deterministic for a given place')
+  assert.equal(pickCategoryImage(manifest, { kind: 'event', category: 'music' }), null, 'events (no placeType) get NO floor — the art/text floor stays')
+  assert.equal(pickCategoryImage(manifest, { placeType: 'pier', key: 'p|x' }), null, 'a not-yet-curated placeType keeps the art floor until curated')
+  const spread = new Set(['a', 'b', 'c', 'd', 'e', 'f'].map((k) => pickCategoryImage(manifest, { placeType: 'park', key: 'p|' + k })?.url))
+  assert.ok(spread.size >= 2, 'adjacent places spread across the category set (stable, not all-same)')
+
+  // p.image is STILL real-of-this-place ONLY — the floor is NEVER written into it
+  const doc = JSON.parse(readFileSync(APP_PLACES, 'utf8'))
+  for (const p of doc.places.filter((x) => x.image)) {
+    assert.match(p.image, /^https:\/\/upload\.wikimedia\.org\//, 'the floor must never be written into p.image (real photos only)')
+  }
+
+  // wiring + honesty docs
+  const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
+  assert.ok(/pickCategoryImage/.test(cards) && /imgbox-floor/.test(cards), 'CardImg renders the category floor (imgbox-floor)')
+  const pd = readFileSync(path.join(ROOT, 'app', 'src', 'PlaceDetail.jsx'), 'utf8')
+  assert.ok(/categoryImageFor/.test(pd) && /useFloor/.test(pd), 'PlaceDetail hero walks the real→floor→art ladder')
+  const contract = readFileSync(path.join(ROOT, 'finder', 'places-images.mjs'), 'utf8')
+  assert.ok(/PREMIUM A3/.test(contract) && /category-images\.json/.test(contract), 'the honest-images contract is amended for the hybrid floor')
+  const settings = readFileSync(path.join(ROOT, 'app', 'src', 'SettingsPage.jsx'), 'utf8')
+  assert.ok(/STOCK_CREDITS/.test(settings) && /Image credits/.test(settings), 'the About page credits the stock category images')
+})
+
 // 3.73a — placeType-aware art floor (kills the green-on-green wall). Every
 // placeType present in the data must carry a distinct hue + watermark emoji, or a
 // place card silently falls back to the generic outdoors green/🌳 it replaces.

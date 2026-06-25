@@ -1,0 +1,43 @@
+{
+  "_README": "PREMIUM A3 curated category-image FLOOR. Generic, free-licensed (Pexels) stock keyed by placeType — the premium floor for a place that has NO real photo of itself. NEVER claimed as the specific venue (see places-images.mjs contract). Real Wikidata P18/P373 photos always WIN; this only fills the gap. categoryImageFor() picks one stably by hash(place.key). STARTER SET (cafe/park/beach/trail) — the highest-volume/0-coverage types — pending Josh's taste sign-off before the other 8 types are filled. Every entry HTTP-verified 200 image/jpeg. Credit each in the Settings → About source page.",
+  "cafe": [
+    { "id": 16155698, "url": "https://images.pexels.com/photos/16155698/pexels-photo-16155698.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Beyzaa Yurtkuran", "source": "Pexels" },
+    { "id": 1855214, "url": "https://images.pexels.com/photos/1855214/pexels-photo-1855214.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Fotios Photos", "source": "Pexels" },
+    { "id": 30219550, "url": "https://images.pexels.com/photos/30219550/pexels-photo-30219550.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Oguz Doven", "source": "Pexels" },
+    { "id": 34353697, "url": "https://images.pexels.com/photos/34353697/pexels-photo-34353697.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Fotios Photos", "source": "Pexels" },
+    { "id": 35228395, "url": "https://images.pexels.com/photos/35228395/pexels-photo-35228395.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Maxine Xin", "source": "Pexels" },
+    { "id": 26730484, "url": "https://images.pexels.com/photos/26730484/pexels-photo-26730484.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Senguliv", "source": "Pexels" },
+    { "id": 35518412, "url": "https://images.pexels.com/photos/35518412/pexels-photo-35518412.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Jayce Q", "source": "Pexels" },
+    { "id": 34158721, "url": "https://images.pexels.com/photos/34158721/pexels-photo-34158721.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Ramazan Gun", "source": "Pexels" }
+  ],
+  "park": [
+    { "id": 16805355, "url": "https://images.pexels.com/photos/16805355/pexels-photo-16805355.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Egor Komarov", "source": "Pexels" },
+    { "id": 32062124, "url": "https://images.pexels.com/photos/32062124/pexels-photo-32062124.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Selim Krdy", "source": "Pexels" },
+    { "id": 12407606, "url": "https://images.pexels.com/photos/12407606/pexels-photo-12407606.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Vladyslav Huivyk", "source": "Pexels" },
+    { "id": 6255166, "url": "https://images.pexels.com/photos/6255166/pexels-photo-6255166.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Fino", "source": "Pexels" },
+    { "id": 18951791, "url": "https://images.pexels.com/photos/18951791/pexels-photo-18951791.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Monur Blc", "source": "Pexels" },
+    { "id": 37467573, "url": "https://images.pexels.com/photos/37467573/pexels-photo-37467573.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Abdullah Miraz", "source": "Pexels" },
+    { "id": 33733064, "url": "https://images.pexels.com/photos/33733064/pexels-photo-33733064.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Arlind Photography", "source": "Pexels" },
+    { "id": 31228856, "url": "https://images.pexels.com/photos/31228856/pexels-photo-31228856.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Nguyen Tien Thanh", "source": "Pexels" }
+  ],
+  "beach": [
+    { "id": 109478, "url": "https://images.pexels.com/photos/109478/pexels-photo-109478.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Mali Maeder", "source": "Pexels" },
+    { "id": 31759845, "url": "https://images.pexels.com/photos/31759845/pexels-photo-31759845.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Jeffrey Eisen", "source": "Pexels" },
+    { "id": 5903958, "url": "https://images.pexels.com/photos/5903958/pexels-photo-5903958.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "BlueRhinoMedia", "source": "Pexels" },
+    { "id": 13133906, "url": "https://images.pexels.com/photos/13133906/pexels-photo-13133906.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Styves Exantus", "source": "Pexels" },
+    { "id": 11953064, "url": "https://images.pexels.com/photos/11953064/pexels-photo-11953064.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "DaCapture", "source": "Pexels" },
+    { "id": 33686265, "url": "https://images.pexels.com/photos/33686265/pexels-photo-33686265.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Sergio Monsalve", "source": "Pexels" },
+    { "id": 11953145, "url": "https://images.pexels.com/photos/11953145/pexels-photo-11953145.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "DaCapture", "source": "Pexels" },
+    { "id": 5903963, "url": "https://images.pexels.com/photos/5903963/pexels-photo-5903963.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "BlueRhinoMedia", "source": "Pexels" }
+  ],
+  "trail": [
+    { "id": 32757481, "url": "https://images.pexels.com/photos/32757481/pexels-photo-32757481.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Niki Clark", "source": "Pexels" },
+    { "id": 13905859, "url": "https://images.pexels.com/photos/13905859/pexels-photo-13905859.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Ilze Luize Paulina", "source": "Pexels" },
+    { "id": 33311332, "url": "https://images.pexels.com/photos/33311332/pexels-photo-33311332.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Niki Clark", "source": "Pexels" },
+    { "id": 26285475, "url": "https://images.pexels.com/photos/26285475/pexels-photo-26285475.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Lauripoldre", "source": "Pexels" },
+    { "id": 35016737, "url": "https://images.pexels.com/photos/35016737/pexels-photo-35016737.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Felipe Ormeneze", "source": "Pexels" },
+    { "id": 12836364, "url": "https://images.pexels.com/photos/12836364/pexels-photo-12836364.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "F1lter 88", "source": "Pexels" },
+    { "id": 9280846, "url": "https://images.pexels.com/photos/9280846/pexels-photo-9280846.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Chudin Alexey", "source": "Pexels" },
+    { "id": 33311337, "url": "https://images.pexels.com/photos/33311337/pexels-photo-33311337.jpeg?auto=compress&cs=tinysrgb&w=800", "credit": "Niki Clark", "source": "Pexels" }
+  ]
+}

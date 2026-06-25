@@ -16,6 +16,19 @@
 // ALL COPY IS DRAFT for Charles (inventory in the sprint report).
 import { useMemo, useState } from 'react'
 import { Icon, sourceFamily } from './lib.js'
+import CATEGORY_IMAGES from '../../finder/category-images.json'
+
+// PREMIUM A3 honesty record: the curated category-stock images, grouped by type
+// with their photographers, for the About credits. These are GENERIC category
+// photos (a stand-in floor), never the specific place — the page says so.
+const STOCK_CREDITS = Object.entries(CATEGORY_IMAGES)
+  .filter(([k, v]) => !k.startsWith('_') && Array.isArray(v) && v.length)
+  .map(([type, list]) => ({
+    type,
+    label: type.charAt(0).toUpperCase() + type.slice(1),
+    credits: [...new Set(list.map((x) => x.credit))].join(', '),
+    source: list[0]?.source || 'Pexels',
+  }))
 import { useNav, viewIndex } from './nav.jsx'
 import { lsRemove } from './storage.js'
 import { resetTaste } from './taste.js'
@@ -180,12 +193,27 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone, loc
           </div>
         </section>
 
-        {/* ===== 5 · ABOUT (stub — Phase 4 fills credits + attribution) ===== */}
+        {/* ===== 5 · ABOUT — image credits + source attribution ===== */}
         <section className="st-sec">
           <div className="st-over">About</div>
           <div className="st-card">
             <div className="st-line">Wuzup · Tampa Bay · early build (v0)</div>
-            <div className="st-line st-dim">Credits &amp; source attribution page coming with the public release.</div>
+          </div>
+          {/* PREMIUM A3 honesty: place photos are real (Wikimedia Commons, of the
+              actual place); where we don't have one, a GENERIC category photo stands
+              in — credited here as stock, never claimed to be the specific place. */}
+          <div className="st-over" style={{ marginTop: 16 }}>Image credits</div>
+          <div className="st-card">
+            <div className="st-line st-dim">
+              Place photos are real photos of the actual place (Wikimedia Commons, CC / public
+              domain). Where we don&apos;t have one yet, a generic category photo stands in —
+              clearly not the specific place. Those stock images:
+            </div>
+            {STOCK_CREDITS.map((c) => (
+              <div className="st-line" key={c.type}>
+                {c.label} stock <span className="st-dim">· {c.credits} · {c.source}</span>
+              </div>
+            ))}
           </div>
         </section>
       </div>
