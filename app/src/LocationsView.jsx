@@ -10,7 +10,7 @@
 //
 // Places are a SECOND lazy store (usePlaces): /places.json fetches on first mount
 // of this tab, never at boot, never merged into the events feed. DRAFT copy ⚑ Charles.
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { useNav } from './nav.jsx'
 import { SecHead, SpotCard, IntentTile, RowFeed, imageMode } from './cards.jsx'
 import { GUIDES } from './guides.js'
@@ -56,6 +56,15 @@ export default function LocationsView({ coords }) {
   const { places, status } = usePlaces()
   const saves = useSaves()
   const taste = useTaste()
+  // See-all on Recommended / Worth the drive scrolls to the full Everything list
+  // (never-hide — there's no derived bubble for "recommended", so the full set is
+  // the honest destination).
+  const scrollRef = useRef(null)
+  const evRef = useRef(null)
+  const scrollToEverything = () => {
+    const sc = scrollRef.current
+    if (sc && evRef.current) sc.scrollTo({ top: Math.max(evRef.current.offsetTop - 64, 0), behavior: 'smooth' })
+  }
 
   const all = useMemo(() => (Array.isArray(places) ? placeOrder(places, taste) : []), [places, taste])
   const near = useMemo(() => nearest(all, coords, 12), [all, coords])
@@ -134,7 +143,7 @@ export default function LocationsView({ coords }) {
   }
 
   return (
-    <div className="hot-scroll">
+    <div className="hot-scroll" ref={scrollRef}>
       {/* Stage R (§N screen 6): a CLEAN light header — title + sub + a prominent
           search bar — replaces the cinematic image hero, matching the benchmark's
           scannable top (title → search → activity grid). The search bar is a
@@ -179,8 +188,9 @@ export default function LocationsView({ coords }) {
             {/* SP-L3: "Recommended near you" — carousel of SpotCards, closest with real photos first. */}
             <SecHead
               overline="Worth a visit"
-              title={coords ? 'Recommended near you' : 'Recommended for you'}
+              title="Recommended near you"
               sub={coords ? 'Closest to you right now' : railReady(taste) ? 'Based on what you have tapped' : 'Local favorites to explore'}
+              onSeeAll={scrollToEverything}
             />
             <div className="home-picks">
               {nearSpots.map((p) => (
@@ -197,6 +207,7 @@ export default function LocationsView({ coords }) {
               overline="A bit further out"
               title="Worth the drive"
               sub="Excellent spots a short trip away."
+              onSeeAll={scrollToEverything}
             />
             <div className="home-picks">
               {driveSpots.map((p) => (
@@ -257,7 +268,7 @@ export default function LocationsView({ coords }) {
           </section>
         )}
 
-        <section className="sec sec-ev">
+        <section className="sec sec-ev" ref={evRef}>
           <SecHead
             title={<>Everything <span className="sec-count">· {all.length.toLocaleString('en-US')}</span></>}
             sub="Every place, by your vibe"
