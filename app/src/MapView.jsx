@@ -349,7 +349,7 @@ export default function MapView({ events, anchors, coords, requestCoords }) {
     getLeaflet().then((mod) => {
       if (cancelled || mapRef.current || !elRef.current) return
       L = mod
-      const map = L.map(elRef.current, { zoomControl: false, preferCanvas: true }).setView([27.95, -82.46], 10)
+      const map = L.map(elRef.current, { zoomControl: false, preferCanvas: true }).setView([CITY.center.lat, CITY.center.lng], 10)
       L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,
         attribution: '© OpenStreetMap © CARTO',

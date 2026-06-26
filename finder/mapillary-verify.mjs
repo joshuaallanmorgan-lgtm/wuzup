@@ -22,6 +22,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, copyFileSyn
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import sharp from 'sharp';
+import { imagery as cityImagery } from './cities/index.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -60,15 +61,20 @@ export const TUNE = {
   MIN_HERO_W: 900,      // never let the *source* crop fall below this (else widen, less zoom)
 };
 
-// ---- token (env first, then the plan file; never logged) -------------------
+// ---- token (env ONLY; never hardcoded, never logged) -----------------------
+// Read from MAPILLARY_TOKEN, or from a file named by MLY_PLAN (a local, untracked
+// path holding one `MLY|...` token — used for dev probing without putting the token
+// on a command line). No machine-specific default path (see MULTICITY_IMAGERY_RUNBOOK.md).
 function mapillaryToken() {
   if (process.env.MAPILLARY_TOKEN) return process.env.MAPILLARY_TOKEN;
-  const planPath = process.env.MLY_PLAN || 'C:/Users/daonl/.claude/plans/valiant-bouncing-puffin.md';
-  try {
-    const m = readFileSync(planPath, 'utf8').match(/MLY\|[A-Za-z0-9|]+/);
-    if (m) return m[0];
-  } catch { /* fall through */ }
-  throw new Error('No Mapillary token: set MAPILLARY_TOKEN or MLY_PLAN');
+  const planPath = process.env.MLY_PLAN;
+  if (planPath) {
+    try {
+      const m = readFileSync(planPath, 'utf8').match(/MLY\|[A-Za-z0-9|]+/);
+      if (m) return m[0];
+    } catch { /* fall through to the error */ }
+  }
+  throw new Error('No Mapillary token: set MAPILLARY_TOKEN (or MLY_PLAN to a file containing one)');
 }
 
 // ---- geometry --------------------------------------------------------------
@@ -256,9 +262,10 @@ async function download(url) {
 // auto-orient them — confirmed on Parkside Cafe). We (a) honor any EXIF tag, then
 // (b) apply a SKY heuristic: a street-level frame's TOP rows (sky/roofline) are
 // brighter than its BOTTOM rows (road/sidewalk); if the bottom is MUCH brighter the
-// frame is upside-down → rotate 180°. Threshold conservative — Parkside measured a
-// +123 top→bottom luma gap; the next-most-inverted real frame was only +24.
-const ORIENT_FLIP_THRESHOLD = 60;
+// frame is upside-down → rotate 180°. The threshold default lives in the active city
+// config (⚠️ PER-CITY RECHECK — Tampa: Parkside measured a +123 top→bottom luma gap;
+// the next-most-inverted real frame was only +24); env ORIENT_FLIP_THRESHOLD overrides.
+const ORIENT_FLIP_THRESHOLD = Number(process.env.ORIENT_FLIP_THRESHOLD || cityImagery.orientFlipThreshold);
 async function uprightBuffer(buf) {
   let b = await sharp(buf).rotate().toBuffer(); // honor EXIF orientation if present
   const { data, info } = await sharp(b).removeAlpha().resize(64, 64, { fit: 'fill' }).greyscale().raw().toBuffer({ resolveWithObject: true });

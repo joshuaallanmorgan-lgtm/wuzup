@@ -17,6 +17,7 @@
 import { writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
+import { bbox as TB_BOX, geocodeViewbox } from './cities/index.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(HERE, 'output');
@@ -33,8 +34,7 @@ const SOURCES = JSON.parse(readFileSync(join(HERE, 'sources.json'), 'utf8'));
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// Tampa Bay sanity box: any coordinate outside this is wrong for a local event.
-const TB_BOX = { latMin: 27.3, latMax: 28.6, lngMin: -83.3, lngMax: -81.9 };
+// Tampa Bay sanity box (TB_BOX) now comes from the active city config (cities/).
 const inBox = (lat, lng) =>
   typeof lat === 'number' && typeof lng === 'number' &&
   lat >= TB_BOX.latMin && lat <= TB_BOX.latMax &&
@@ -1631,7 +1631,7 @@ async function main() {
         const q = /\bfl\b|\bflorida\b/i.test(key) ? key : `${key}, Florida`;
         const res = await fetch(
           'https://nominatim.openstreetmap.org/search?format=json&limit=1' +
-          '&viewbox=-83.3,28.6,-81.9,27.3&bounded=1&q=' + encodeURIComponent(q),
+          '&viewbox=' + geocodeViewbox + '&bounded=1&q=' + encodeURIComponent(q),
           { headers: { 'user-agent': 'tampabay-events-finder/0.2 (mvp)' } }
         );
         const j = await res.json();

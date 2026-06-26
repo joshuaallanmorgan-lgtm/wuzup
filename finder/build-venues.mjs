@@ -36,15 +36,16 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { bbox } from './cities/index.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const EVENTS = process.argv[2] || join(HERE, 'output', 'events.json');
 const OUT = join(HERE, 'venues.json');
 
-// Tampa Bay sanity box (same as finder.mjs).
+// Tampa Bay sanity box — from the active city config (cities/).
 const inBox = (lat, lng) =>
   typeof lat === 'number' && typeof lng === 'number' &&
-  lat >= 27.3 && lat <= 28.6 && lng >= -83.3 && lng <= -81.9;
+  lat >= bbox.latMin && lat <= bbox.latMax && lng >= bbox.lngMin && lng <= bbox.lngMax;
 
 // Same normalization as finder.mjs's venueKey (kept in sync by the sim).
 function venueKey(name) {

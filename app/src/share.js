@@ -13,7 +13,7 @@
 // Sprint U-c uses these for "Share this day": shareDayText for the human text,
 // eventsIcs for the multi-VEVENT download. weekend.js's shareText (the whole
 // weekend) is untouched — the Weekend Builder still uses it verbatim.
-import { parseDate, timeOf } from './lib.js'
+import { CITY, parseDate, timeOf } from './lib.js'
 import { DAYPART } from './weekend.js'
 
 // ===== ICS (RFC 5545) =====
@@ -91,7 +91,7 @@ export function vevent(e) {
 // arrays. The CRLF + trailing CRLF formatting matches the old single-event
 // output byte-for-byte when given exactly one body.
 export function wrapIcs(bodies) {
-  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Whats Hot Tampa Bay//EN', 'CALSCALE:GREGORIAN']
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', `PRODID:-//Whats Hot ${CITY.name}//EN`, 'CALSCALE:GREGORIAN']
   for (const b of bodies) lines.push(...b)
   lines.push('END:VCALENDAR')
   return lines.join('\r\n') + '\r\n'

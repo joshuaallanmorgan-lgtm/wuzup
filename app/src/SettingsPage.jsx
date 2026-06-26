@@ -15,7 +15,7 @@
 //
 // ALL COPY IS DRAFT for Charles (inventory in the sprint report).
 import { useMemo, useState } from 'react'
-import { Icon, sourceFamily } from './lib.js'
+import { CITY, Icon, sourceFamily } from './lib.js'
 import { useNav, viewIndex } from './nav.jsx'
 import { lsRemove } from './storage.js'
 import { resetTaste } from './taste.js'
@@ -184,7 +184,7 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone, loc
         <section className="st-sec">
           <div className="st-over">About</div>
           <div className="st-card">
-            <div className="st-line">Wuzup · Tampa Bay · early build (v0)</div>
+            <div className="st-line">Wuzup · {CITY.name} · early build (v0)</div>
             <div className="st-line st-dim">Credits &amp; source attribution page coming with the public release.</div>
           </div>
         </section>

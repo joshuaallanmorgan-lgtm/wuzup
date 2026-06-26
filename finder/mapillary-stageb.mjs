@@ -27,6 +27,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, copyFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { area as cityArea, cafe as cityCafe, imagery as cityImagery } from './cities/index.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -35,10 +36,11 @@ const REVIEW = path.join(CROP_DIR, '_review');
 const PLACE_IMG = path.join(ROOT, 'app', 'public', 'place-img');
 const MAP_CACHE = path.join(ROOT, 'finder', 'cache', 'place-mapillary-images.json');
 
-const CONF_FLOOR = Number(process.env.CONF_FLOOR || 0.4);   // Phase B: 0.5 → 0.4
-const TIERB_MAX_ALIGN = Number(process.env.TIERB_MAX_ALIGN || 25);
-const TIERB_MAX_D = Number(process.env.TIERB_MAX_D || 35);
-const TIERB_MIN_QUALITY = Number(process.env.TIERB_MIN_QUALITY || 0.4);
+// thresholds: config DEFAULTS (per active city), env vars still override at runtime.
+const CONF_FLOOR = Number(process.env.CONF_FLOOR || cityImagery.confFloor);
+const TIERB_MAX_ALIGN = Number(process.env.TIERB_MAX_ALIGN || cityImagery.tierBMaxAlign);
+const TIERB_MAX_D = Number(process.env.TIERB_MAX_D || cityImagery.tierBMaxD);
+const TIERB_MIN_QUALITY = Number(process.env.TIERB_MIN_QUALITY || cityImagery.tierBMinQuality);
 const SHIP = process.argv.includes('--ship');
 
 // ---- name-match (mirrors places-images.mjs, extended + lenient for cafes) ----
@@ -63,14 +65,13 @@ const GENERIC_CAFE = new Set([
   'restaurant', 'food', 'foods', 'creamery', 'parlor',
   'gourmet', 'artisan', 'fresh', 'iced', 'organic', 'premium', 'specialty',
   'handcrafted', 'handmade', 'craft', 'fine', 'local', 'fresh', 'served',
+  ...cityCafe.genericExtra, // per-city local-vocab additions (none for Tampa)
 ]);
-const AREA = new Set(
-  ('saint petersburg pete tampa clearwater dunedin sarasota bradenton brandon riverview ' +
-    'seminole largo gulfport palmetto tarpon springs safety harbor temple terrace treasure ' +
-    'island islands anna maria davis sand key bird ybor pine hernando pinellas hillsborough ' +
-    'manatee indian rocks shores redington madeira grille apollo ruskin oldsmar estates hyde ' +
-    'westshore channelside beach county usa florida fl north south east west dtsp downtown').split(' ')
-);
+// the canonical AREA gazetteer (from the active city config — same source as the
+// Commons geosearch ladder) PLUS the cafe-directional extras for THIS matcher only
+// (north/south/… would change places.json if added to the canonical list, so they
+// live in cafe.areaExtra, not the shared gazetteer).
+const AREA = new Set([...cityArea.split(' '), ...cityCafe.areaExtra]);
 const norm = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
 const phrases = (name, n) => {
   const w = norm(name).split(' ').filter(Boolean);
@@ -126,10 +127,16 @@ const STRONG = new Set(['phrase3', 'phrase2', 'token', 'number']); // vs LENIENT
 // Starbucks pylons), OR a DIFFERENT business is the dominant subject — encoded as
 // rjDominant===false AND a specific OTHER business is named (so a non-coffee food
 // venue like "The Sandwich on Main", whose own sign just isn't a coffee cafe, is
-// NOT false-dropped; only a genuine other-business hero like La Casa's tattoo shop
-// is). Missing rj* fields → eligible (back-compat for un-re-judged cafes).
+// NOT false-dropped; only a genuine other-business hero like La Casa's tattoo shop is).
 const hasBiz = (x) => x != null && !/^(none|null|n\/?a|no|na)$/i.test(String(x).trim());
-const guardFail = (cr) => cr.rjPylon === true || (cr.rjDominant === false && hasBiz(cr.rjOtherBiz));
+// a crop carries a re-judge guard verdict only when BOTH name-blind fields are present.
+const hasGuardSignal = (cr) => typeof cr.rjPylon === 'boolean' && typeof cr.rjDominant === 'boolean';
+// FAIL CLOSED: a crop with NO re-judge signal CANNOT ship. A skipped or incomplete
+// re-judge must DISABLE its crops, not silently disable the pylon + dominant guards —
+// the fail-OPEN bug was the exact failure mode behind the 4 Tampa false positives. The
+// guarantee that every shipped crop was re-verified is enforced again at ship time
+// (the cache records reVerified) and asserted in the smoke harness.
+const guardFail = (cr) => !hasGuardSignal(cr) || cr.rjPylon === true || (cr.rjDominant === false && hasBiz(cr.rjOtherBiz));
 
 // ---- evaluate one cafe across its crops → a tier-A or tier-B ship, or reject --
 // bypassGuards: a force-KEEP cafe (Josh's explicit call) is exempt from the pylon/
@@ -184,24 +191,12 @@ function evalCafe(rec, crops, cropMetaByI, bypassGuards = false) {
   return null;
 }
 
-// Josh's explicit pixel-level calls (2026-06-26), after an independent adversarial
-// re-verification (refute-style) + scout eyeball found 4 false positives the
-// self-review passed. FORCE_DROP guarantees they fall to art-floor even if a guard
-// misjudges; FORCE_KEEP exempts the two confirmed-genuine ships from the new guards
-// (a faint-wordmark Starbucks storefront / a Tier-B cafe can read as "not dominant").
-const FORCE_DROP = new Set([
-  'p|la-casa-de-pane',                          // hero is a tattoo/tobacco shop; cafe faint down the block
-  'p|pascal-s-artisan-bistro-gourmet-coffee',   // matched generic "gourmet coffee"; "ISLANDS" dominates
-  // starbucks-48 REINSTATED (2026-06-26): the pylon guard makes its directory crops
-  // ineligible, and the crop fall-through in evalCafe ships its clean "STARBUCKS
-  // COFFEE" storefront crop instead — the gate fix working as intended.
-  'p|starbucks-78',                             // mall directory PYLON; its only non-pylon crop is a
-                                                // logo-only siren (no legible name text) → stays dropped
-]);
-const FORCE_KEEP = new Set([
-  'p|starbucks-30',                             // real Starbucks draft/nitro storefront (faint wordmark)
-  'p|banyan-coffee-co',                         // Tier B — clear cafe, tree logo corroborates, no conflict
-]);
+// Per-city verified verdict sets from the active city config (Tampa's live in
+// finder/cities/tampa-bay.mjs — Josh's 2026-06-26 adversarial-review pixel calls).
+// FORCE_DROP guarantees a verified-FP falls to art-floor even if a guard misjudges;
+// FORCE_KEEP exempts a confirmed-genuine ship from the new guards.
+const FORCE_DROP = new Set(cityCafe.forceDrop);
+const FORCE_KEEP = new Set(cityCafe.forceKeep);
 
 // ---- load inputs -----------------------------------------------------------
 const transcriptions = JSON.parse(readFileSync(path.join(REVIEW, '_transcriptions.json'), 'utf8'));
@@ -219,9 +214,12 @@ for (const [rid, rec] of Object.entries(map)) {
   let v = evalCafe(rec, tr.crops || [], cropMetaByI, FORCE_KEEP.has(rec.key));
   if (FORCE_DROP.has(rec.key)) v = null; // Josh's verified-FP removal (belt-and-suspenders)
   const chosenMeta = v ? (cropMetaByI[v.cropI] || {}) : {};
+  const chosenCrop = v ? (tr.crops || []).find((c) => c.i === v.cropI) : null;
   const slug = rec.key.replace(/^p\|/, '');
   rows.push({
     rid, key: rec.key, name: rec.name, slug,
+    // the honesty receipt: did the CHOSEN crop carry a re-judge guard verdict? (fail-closed)
+    reVerified: v ? (typeof (chosenCrop || {}).rjPylon === 'boolean' && typeof (chosenCrop || {}).rjDominant === 'boolean') : null,
     nCandidates: man.nCandidates ?? null, nPersp: man.nPersp ?? null, nPano: man.nPano ?? null,
     ship: !!v, tier: v ? v.tier : null, matchKind: v ? v.matchKind : 'none',
     matched: v ? v.matched : null, lenient: v ? !!v.lenient : false,
@@ -263,6 +261,10 @@ const lenientA = tierA.filter((r) => r.lenient);
 // ---- write the human receipt: the place-keyed Mapillary cache + JPEGs --------
 function tierBReceipt(r) { return `cafe storefront — location-confirmed (align ${r.align}°, ${r.d}m), no conflicting business sign`; }
 if (SHIP) {
+  // preserve per-entry `at` (and fetchedAt) across re-ships so a re-run is a minimal
+  // diff (idempotent timestamps); a genuinely new ship gets NOW.
+  const prev = existsSync(MAP_CACHE) ? JSON.parse(readFileSync(MAP_CACHE, 'utf8')) : { byKey: {} };
+  const prevByKey = prev.byKey || {};
   if (existsSync(PLACE_IMG)) rmSync(PLACE_IMG, { recursive: true, force: true });
   mkdirSync(PLACE_IMG, { recursive: true });
   const byKey = {};
@@ -281,10 +283,11 @@ if (SHIP) {
       mapillaryUrl: r.mapillaryUrl,
       tier: r.tier,
       matchKind: r.matchKind,
-      at: NOW,
+      reVerified: r.reVerified === true, // fail-closed honesty receipt (asserted in smoke)
+      at: (prevByKey[r.key] && prevByKey[r.key].at) || NOW,
     };
   }
-  writeFileSync(MAP_CACHE, JSON.stringify({ fetchedAt: NOW, byKey }, null, 2));
+  writeFileSync(MAP_CACHE, JSON.stringify({ fetchedAt: prev.fetchedAt || NOW, byKey }, null, 2));
 }
 
 // ---- reports ---------------------------------------------------------------

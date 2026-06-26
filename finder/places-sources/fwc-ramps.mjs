@@ -4,14 +4,15 @@
 // Latitude/Longitude attribute fields. PLACES_SOURCES.md §1 S5.
 import { pathToFileURL } from 'node:url';
 import { arcgisQuery, ynBool, tidy } from './_arcgis.mjs';
+import { bboxArcgisEnvelope } from '../cities/index.mjs';
 
 export const name = 'FWC Boat Ramps';
 
 const LAYER = 'https://gis.myfwc.com/mapping/rest/services/Open_Data/FWC_Florida_Boat_Ramp_Inventory/MapServer/4';
 const TIMEOUT_MS = 60000; // state self-hosted server
 
-// Same box as finder.mjs TB_BOX, expressed as an ArcGIS envelope.
-const ENVELOPE = JSON.stringify({ xmin: -83.3, ymin: 27.3, xmax: -81.9, ymax: 28.6 });
+// Same box as TB_BOX, expressed as an ArcGIS envelope — from the city config (cities/).
+const ENVELOPE = bboxArcgisEnvelope;
 
 export async function fetchPlaces() {
   const features = await arcgisQuery(LAYER, {

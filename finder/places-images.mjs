@@ -57,6 +57,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { area, qidDeny } from './cities/index.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CACHE_FILE = join(HERE, 'cache', 'wikidata-images.json');
@@ -140,13 +141,8 @@ const titleMatchesName = (fileTitle, toks) => {
 // town to form an area name (beach/island/springs/harbor/key) are here too; a
 // DISTINCTIVE word beside them still makes a strong phrase ("Coquina Beach",
 // "Bonnet Springs"). The bar: precision over coverage.
-const AREA = new Set(
-  ('saint petersburg pete tampa clearwater dunedin sarasota bradenton brandon riverview ' +
-    'seminole largo gulfport palmetto tarpon springs safety harbor temple terrace treasure ' +
-    'island islands anna maria davis sand key bird ybor pine hernando pinellas hillsborough ' +
-    'manatee indian rocks shores redington madeira grille apollo ruskin oldsmar estates hyde ' +
-    'westshore channelside beach county usa florida fl').split(' ')
-);
+// the canonical gazetteer comes from the active city config (cities/) — one source.
+const AREA = new Set(area.split(' '));
 // the N-word phrases of a place name (contiguous), skipping leading/trailing 1-char
 // fragments and (for 2-word) all-generic pairs ("state park") that carry no signal.
 const namePhrases = (name, n) => {
@@ -181,7 +177,7 @@ const nameMatchStrong = (fileTitle, name) => {
 // is now imaged with the Iron Gwazi COASTER that replaced the Gwazi field — an
 // adjacent subject, not the field. P18 stays lenient otherwise (gating it would
 // collateral-drop genuine curated photos like DeSoto Memorial / Weedon Island).
-const QID_DENY = new Set(['Q966471']);
+const QID_DENY = new Set(qidDeny);
 // cheap belt-and-suspenders for the P373 pick: titles that are clearly a non-photo
 // subject (map/logo/sign) OR a weak hero — a closeup/marker (3.7P-2 review P1) or
 // a self-undermining condition shot like "What's left of it" (a drought photo).

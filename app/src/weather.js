@@ -8,9 +8,10 @@
 // cache or null so the UI degrades gracefully to "no weather".
 
 import { lsGet, lsSet } from './storage.js'
+import { CITY } from './lib.js'
 
 const WX_URL =
-  'https://api.open-meteo.com/v1/forecast?latitude=27.95&longitude=-82.46&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FNew_York&forecast_days=16'
+  `https://api.open-meteo.com/v1/forecast?latitude=${CITY.center.lat}&longitude=${CITY.center.lng}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FNew_York&forecast_days=16`
 const CACHE_KEY = 'wx-tampa-v1' // stored as twh:wx-tampa-v1 via storage.js
 const TTL = 6 * 60 * 60 * 1000 // 6h
 const FETCH_TIMEOUT = 10000 // 10s
