@@ -98,8 +98,8 @@
   bottom: 7cqmin;
   display: grid;
   place-items: center;
-  width: clamp(15px, 21cqmin, 34px);
-  height: clamp(15px, 21cqmin, 34px);
+  width: clamp(11px, 21cqmin, 34px);
+  height: clamp(11px, 21cqmin, 34px);
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.15);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16), 0 1cqmin 2cqmin rgba(0, 0, 0, 0.18);
@@ -108,6 +108,12 @@
   filter: drop-shadow(0 0.5cqmin 1cqmin rgba(0, 0, 0, 0.25));
   pointer-events: none;
   user-select: none;
+}
+/* On the smallest tiles (notif 40 / picker 48 / day-suggestion 52 / agenda 58) the
+   chip would dominate, and the surrounding UI already conveys type — so hide it.
+   .imgbox-art is the size container, so this queries the tile's own width. */
+@container (max-width: 70px) {
+  .imgbox-mark { display: none; }
 }
 /* foreground scales with the tile, clamped so the time stays legible on the
    58px agenda thumb and never goes billboard on the full-width feature card */

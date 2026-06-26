@@ -222,8 +222,11 @@ export function CardImg({ e, className = '', children }) {
   const [ok, setOk] = useState(false)
   const [failed, setFailed] = useState(false)
   const emoji = artEmoji(e)
-  // artwork is the TIME, not the status — strip startLabel's "Started " prefix here only
-  const fall = startLabel(e).replace(/^Started /, '') || '★'
+  // the art-floor foreground is the real event TIME only — strip startLabel's "Started "
+  // prefix. Aurora (3.8): the old '★' fallback is GONE — on a place / timeless item it
+  // was the loudest thing on every tile (every park read as "star"), competing with the
+  // generative field. With no time, the aurora field + corner type-chip carry identity.
+  const fall = startLabel(e).replace(/^Started /, '')
   // W4 trust contract: a dead/broken image URL degrades to the category-art
   // FLOOR (the designed hue + emoji), never the browser's broken-image glyph and
   // never a flat dark box. onError flips to art; a real photo never regresses.
@@ -254,7 +257,7 @@ export function CardImg({ e, className = '', children }) {
           <span className="imgbox-mark" aria-hidden>
             {emoji}
           </span>
-          <span className="imgbox-fall">{fall}</span>
+          {fall && <span className="imgbox-fall">{fall}</span>}
         </>
       )}
       {/* PREMIUM A2: bottom scrim on REAL photos so on-image time/heat/dist badges
