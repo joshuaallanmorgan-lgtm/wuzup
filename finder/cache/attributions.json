@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-06-26T05:15:35.645Z",
+  "fetchedAt": "2026-06-26T05:40:05.704Z",
   "byFile": {
     "File:Hurrah Lake - Alafia River State Park.jpg": {
       "file": "File:Hurrah Lake - Alafia River State Park.jpg",
@@ -1186,6 +1186,16 @@
       "sourceFamily": "mapillary-sign",
       "signTextRead": "WHISTLE STOP CAFE",
       "at": "2026-06-25T18:56:56.510Z"
+    },
+    "Mapillary:4013967625346366": {
+      "file": "Mapillary:4013967625346366",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=4013967625346366",
+      "author": "fdot_vl",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "?TARBUCKS CO?FEE",
+      "at": "2026-06-26T05:40:05.702Z"
     }
   }
 }

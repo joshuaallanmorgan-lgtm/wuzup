@@ -192,8 +192,11 @@ function evalCafe(rec, crops, cropMetaByI, bypassGuards = false) {
 const FORCE_DROP = new Set([
   'p|la-casa-de-pane',                          // hero is a tattoo/tobacco shop; cafe faint down the block
   'p|pascal-s-artisan-bistro-gourmet-coffee',   // matched generic "gourmet coffee"; "ISLANDS" dominates
-  'p|starbucks-48',                             // shopping-center directory PYLON, not a storefront
-  'p|starbucks-78',                             // mall directory PYLON, not a storefront
+  // starbucks-48 REINSTATED (2026-06-26): the pylon guard makes its directory crops
+  // ineligible, and the crop fall-through in evalCafe ships its clean "STARBUCKS
+  // COFFEE" storefront crop instead — the gate fix working as intended.
+  'p|starbucks-78',                             // mall directory PYLON; its only non-pylon crop is a
+                                                // logo-only siren (no legible name text) → stays dropped
 ]);
 const FORCE_KEEP = new Set([
   'p|starbucks-30',                             // real Starbucks draft/nitro storefront (faint wordmark)
@@ -305,8 +308,13 @@ md += `coffee"; "ISLANDS" dominates), and \`starbucks-48\` + \`starbucks-78\` (s
 md += `PYLONS, not storefronts). Fix: two name-blind gate fields now enforced on BOTH tiers —\n`;
 md += `**isDirectoryOrPylon** (reject tenant boards) and **cafeIsDominantSubject** (reject when a\n`;
 md += `different business is the hero) — plus descriptor stop-words (gourmet/artisan/fresh/…) so a\n`;
-md += `match can't rest on a generic phrase. The 4 are force-dropped; \`starbucks-30\` + \`banyan-coffee-co\`\n`;
-md += `force-kept (Josh's pixel calls). Lesson: refute-style verification is a STANDING gate, not a one-off.\n\n`;
+md += `match can't rest on a generic phrase. \`la-casa\` + \`pascal's\` dropped; \`starbucks-30\` +\n`;
+md += `\`banyan-coffee-co\` force-kept. A crop FALL-THROUGH (when a guard rejects the top crop, ship\n`;
+md += `the next-best that passes) reinstated **\`starbucks-48\`** on its real "STARBUCKS COFFEE"\n`;
+md += `storefront crop; **\`starbucks-78\`** stays dropped (its only non-pylon crop is a logo-only\n`;
+md += `siren, no legible name). Separately, **\`parkside-cafe\`** was shipping UPSIDE-DOWN (a dashcam\n`;
+md += `frame inverted with no EXIF tag) — fixed with a sky-heuristic orientation check in the crop\n`;
+md += `step. Lesson: refute-style verification is a STANDING gate, not a one-off.\n\n`;
 const tally = {};
 rows.forEach((r) => { if (r.rejectReason) tally[r.rejectReason] = (tally[r.rejectReason] || 0) + 1; });
 md += `### Reject-reason tally (of ${cafesWithCand} with candidates)\n\n`;

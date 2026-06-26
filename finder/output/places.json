@@ -50725,7 +50725,15 @@
         "id": 1768177587
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/starbucks-48.jpg",
+      "imageCredit": {
+        "author": "fdot_vl",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=4013967625346366",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|starbucks-49",

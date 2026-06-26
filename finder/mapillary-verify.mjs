@@ -250,6 +250,27 @@ async function download(url) {
   return Buffer.from(await res.arrayBuffer());
 }
 
+// Correct an upside-down SOURCE frame BEFORE cropping (so the crop framing is also
+// right, not just rotated). Mapillary serves some dashcam frames physically inverted
+// with NO EXIF orientation tag (an upside-down windshield mount; sharp can't
+// auto-orient them — confirmed on Parkside Cafe). We (a) honor any EXIF tag, then
+// (b) apply a SKY heuristic: a street-level frame's TOP rows (sky/roofline) are
+// brighter than its BOTTOM rows (road/sidewalk); if the bottom is MUCH brighter the
+// frame is upside-down → rotate 180°. Threshold conservative — Parkside measured a
+// +123 top→bottom luma gap; the next-most-inverted real frame was only +24.
+const ORIENT_FLIP_THRESHOLD = 60;
+async function uprightBuffer(buf) {
+  let b = await sharp(buf).rotate().toBuffer(); // honor EXIF orientation if present
+  const { data, info } = await sharp(b).removeAlpha().resize(64, 64, { fit: 'fill' }).greyscale().raw().toBuffer({ resolveWithObject: true });
+  const w = info.width;
+  let top = 0, bot = 0;
+  for (let y = 0; y < 10; y++) for (let x = 0; x < w; x++) top += data[y * w + x];
+  for (let y = 54; y < 64; y++) for (let x = 0; x < w; x++) bot += data[y * w + x];
+  const topMean = top / (10 * w), botMean = bot / (10 * w);
+  if (botMean - topMean > ORIENT_FLIP_THRESHOLD) b = await sharp(b).rotate(180).toBuffer();
+  return b;
+}
+
 // ---- per-cafe: gen candidate crops -----------------------------------------
 export async function genCropsForCafe(cafe, token) {
   const imgs = await fetchNearby(cafe, token);
@@ -267,7 +288,8 @@ export async function genCropsForCafe(cafe, token) {
     const cand = pick[i];
     const outPath = path.join(dir, `c${i}.jpg`);
     try {
-      const buf = await download(cand.pano ? (cand.thumb2048 || cand.thumbOrig) : cand.thumb2048);
+      const raw = await download(cand.pano ? (cand.thumb2048 || cand.thumbOrig) : cand.thumb2048);
+      const buf = await uprightBuffer(raw); // fix upside-down dashcam frames before cropping
       const extra = cand.pano ? await cropPano(buf, cand, outPath) : await cropFlat(buf, cand, outPath);
       crops.push({
         i, path: path.relative(ROOT, outPath).replace(/\\/g, '/'),
@@ -353,9 +375,22 @@ if (import.meta.url === `file://${process.argv[1].replace(/\\/g, '/')}` ||
       }
       await sleep(120); // politeness between bbox queries
     }
-    const manifest = { tune: TUNE, generatedAt: new Date().toISOString(), cafes: out };
-    writeFileSync(path.join(CROP_DIR, '_manifest.json'), JSON.stringify(manifest, null, 2));
+    // --merge: re-crop only the passed cafes and UPDATE their entries in the existing
+    // manifest (preserve every other cafe). Used to re-crop a single cafe (e.g. an
+    // orientation fix) without a full 152-cafe regen. Default: overwrite the manifest.
+    const manPath = path.join(CROP_DIR, '_manifest.json');
+    let manifest;
+    if (flags.includes('--merge') && existsSync(manPath)) {
+      manifest = JSON.parse(readFileSync(manPath, 'utf8'));
+      const byKey = new Map(manifest.cafes.map((c) => [c.key, c]));
+      for (const c of out) byKey.set(c.key, c);
+      manifest.cafes = [...byKey.values()];
+      manifest.tune = TUNE;
+    } else {
+      manifest = { tune: TUNE, generatedAt: new Date().toISOString(), cafes: out };
+    }
+    writeFileSync(manPath, JSON.stringify(manifest, null, 2));
     const withCand = out.filter((c) => c.nCandidates > 0).length;
-    process.stderr.write(`\n${out.length} cafes · ${withCand} with candidates · manifest written\n`);
+    process.stderr.write(`\n${out.length} cafes processed · ${withCand} with candidates · manifest ${flags.includes('--merge') ? 'merged' : 'written'}\n`);
   }
 }
