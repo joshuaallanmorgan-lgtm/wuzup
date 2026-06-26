@@ -52,13 +52,17 @@ const GENERIC_CAFE = new Set([
   'roasting', 'roasted', 'roast', 'espresso', 'bakery', 'brew', 'brews', 'brewing',
   'tea', 'co', 'company', 'shop', 'shoppe', 'house', 'bar', 'kitchen', 'eatery',
   'juicery', 'juice', 'kombucha', 'drip', 'grind', 'beans', 'bean', 'donuts', 'donut',
-  // business-CATEGORY / descriptor words — they describe a TYPE, not an identity, so
-  // a sole single-token match on them is unsafe (a beach-town "SURF" sign for an
-  // unrelated surf shop matched "Grove Surf Café"). A distinctive token beside them
-  // still matches; a multi-word phrase still matches.
+  // business-CATEGORY / descriptor words — they describe a TYPE or quality, not an
+  // identity, so a match must NOT rest on them alone (a beach-town "SURF" sign for an
+  // unrelated surf shop matched "Grove Surf Café"; a generic "GOURMET COFFEE" awning
+  // matched "Pascal's Artisan Bistro & Gourmet Coffee"). A distinctive token beside
+  // them still matches; distinctive multi-word names (Indian Shores / Tenth Street
+  // Coffee) keep their distinctive tokens and are unaffected.
   'surf', 'deli', 'market', 'bistro', 'grill', 'grille', 'diner', 'pub', 'tavern',
   'lounge', 'pizzeria', 'pizza', 'taqueria', 'taco', 'tacos', 'sushi', 'grocery',
   'restaurant', 'food', 'foods', 'creamery', 'parlor',
+  'gourmet', 'artisan', 'fresh', 'iced', 'organic', 'premium', 'specialty',
+  'handcrafted', 'handmade', 'craft', 'fine', 'local', 'fresh', 'served',
 ]);
 const AREA = new Set(
   ('saint petersburg pete tampa clearwater dunedin sarasota bradenton brandon riverview ' +
@@ -114,13 +118,30 @@ function matchSign(sign, name) {
 const RANK = { phrase3: 6, phrase2: 5, token: 4, number: 4, tokenPartial: 3, none: 0 };
 const STRONG = new Set(['phrase3', 'phrase2', 'token', 'number']); // vs LENIENT tier
 
+// a crop is INELIGIBLE for EITHER tier (the multi-city lock, 2026-06-26). The two
+// guard signals come from a name-blind re-judge pass and are kept in rj* fields,
+// SEPARATE from the original sign-read so the reviewed matches/confidence are
+// preserved (re-transcribing introduced noise that dropped real ships). A crop fails
+// when it's a multi-tenant DIRECTORY/PYLON that merely LISTS businesses (the 2
+// Starbucks pylons), OR a DIFFERENT business is the dominant subject — encoded as
+// rjDominant===false AND a specific OTHER business is named (so a non-coffee food
+// venue like "The Sandwich on Main", whose own sign just isn't a coffee cafe, is
+// NOT false-dropped; only a genuine other-business hero like La Casa's tattoo shop
+// is). Missing rj* fields → eligible (back-compat for un-re-judged cafes).
+const hasBiz = (x) => x != null && !/^(none|null|n\/?a|no|na)$/i.test(String(x).trim());
+const guardFail = (cr) => cr.rjPylon === true || (cr.rjDominant === false && hasBiz(cr.rjOtherBiz));
+
 // ---- evaluate one cafe across its crops → a tier-A or tier-B ship, or reject --
-function evalCafe(rec, crops, cropMetaByI) {
+// bypassGuards: a force-KEEP cafe (Josh's explicit call) is exempt from the pylon/
+// dominant guards (a faint-wordmark storefront can read as "not dominant").
+function evalCafe(rec, crops, cropMetaByI, bypassGuards = false) {
   const q = (cr) => (cr.imageQuality ?? cr.confidence ?? 0.5);
-  // Tier A candidates: a name-match at/above the confidence floor
+  const eligible = (cr) => bypassGuards || !guardFail(cr);
+  // Tier A candidates: a name-match at/above the confidence floor, on an eligible crop
   const tierA = [];
   for (const cr of crops) {
     if ((cr.confidence ?? 0) < CONF_FLOOR) continue;
+    if (!eligible(cr)) continue;
     let best = { kind: 'none', matched: null, sign: null };
     for (const sg of cr.signsRead || []) {
       const m = matchSign(sg, rec.name);
@@ -140,6 +161,7 @@ function evalCafe(rec, crops, cropMetaByI) {
   // Tier B candidates: clear cafe storefront, no conflicting business, strong geometry
   const tierB = [];
   for (const cr of crops) {
+    if (!eligible(cr)) continue;
     const meta = cropMetaByI[cr.i] || {};
     // a pano is REPROJECTED to face the cafe (yaw = bearingToCafe), so its stored
     // camera-heading align is irrelevant — only distance gates it. A flat frame must
@@ -162,6 +184,22 @@ function evalCafe(rec, crops, cropMetaByI) {
   return null;
 }
 
+// Josh's explicit pixel-level calls (2026-06-26), after an independent adversarial
+// re-verification (refute-style) + scout eyeball found 4 false positives the
+// self-review passed. FORCE_DROP guarantees they fall to art-floor even if a guard
+// misjudges; FORCE_KEEP exempts the two confirmed-genuine ships from the new guards
+// (a faint-wordmark Starbucks storefront / a Tier-B cafe can read as "not dominant").
+const FORCE_DROP = new Set([
+  'p|la-casa-de-pane',                          // hero is a tattoo/tobacco shop; cafe faint down the block
+  'p|pascal-s-artisan-bistro-gourmet-coffee',   // matched generic "gourmet coffee"; "ISLANDS" dominates
+  'p|starbucks-48',                             // shopping-center directory PYLON, not a storefront
+  'p|starbucks-78',                             // mall directory PYLON, not a storefront
+]);
+const FORCE_KEEP = new Set([
+  'p|starbucks-30',                             // real Starbucks draft/nitro storefront (faint wordmark)
+  'p|banyan-coffee-co',                         // Tier B — clear cafe, tree logo corroborates, no conflict
+]);
+
 // ---- load inputs -----------------------------------------------------------
 const transcriptions = JSON.parse(readFileSync(path.join(REVIEW, '_transcriptions.json'), 'utf8'));
 const map = JSON.parse(readFileSync(path.join(REVIEW, '_map.json'), 'utf8'));
@@ -175,7 +213,8 @@ for (const [rid, rec] of Object.entries(map)) {
   const tr = transByRid.get(rid) || { crops: [] };
   const man = manByKey.get(rec.key) || {};
   const cropMetaByI = Object.fromEntries((man.crops || []).map((c) => [c.i, c]));
-  const v = evalCafe(rec, tr.crops || [], cropMetaByI);
+  let v = evalCafe(rec, tr.crops || [], cropMetaByI, FORCE_KEEP.has(rec.key));
+  if (FORCE_DROP.has(rec.key)) v = null; // Josh's verified-FP removal (belt-and-suspenders)
   const chosenMeta = v ? (cropMetaByI[v.cropI] || {}) : {};
   const slug = rec.key.replace(/^p\|/, '');
   rows.push({
@@ -253,10 +292,21 @@ let md = `# Phase B — Mapillary cafe imagery at full scale\n\n`;
 md += `_Generated ${manifest.generatedAt} · CONF_FLOOR ${CONF_FLOOR} · TierB align≤${TIERB_MAX_ALIGN}° d≤${TIERB_MAX_D}m q≥${TIERB_MIN_QUALITY}_\n\n`;
 md += `## Headline\n\n`;
 md += `- **Cafes imaged: ${shipped.length} / ${totalCafes} total cafes (${pct(shipped.length, totalCafes)}%)** · ${shipped.length} / ${cafesWithCand} cafes-with-candidates (${pct(shipped.length, cafesWithCand)}%)\n`;
-md += `- **Tier A (name-match): ${tierA.length}** — of which ${lenientA.length} on a LENIENT match (partial/fuzzy/number)\n`;
+md += `- **Tier A (name-match): ${tierA.length}** — of which ${lenientA.length} on a LENIENT match (occluded prefix/suffix or address-number)\n`;
 md += `- **Tier B (confirmed-location storefront, FLAGGED for review): ${tierB.length}**\n`;
 md += `- Projection was ~10–17% of cafes → actual ${pct(shipped.length, totalCafes)}%\n`;
 md += `- Panos in sample: ${manifest.cafes.reduce((a, c) => a + (c.nPano || 0), 0)}\n\n`;
+md += `### Verification history — NOT "zero FP" on first pass\n\n`;
+md += `The initial Phase-B self-review claimed zero false positives; an independent ADVERSARIAL\n`;
+md += `re-verification (agents instructed to REFUTE each ship) + a scout eyeball then found **4\n`;
+md += `false positives** the self-review had passed: \`la-casa-de-pane\` (a tattoo/tobacco shop is\n`;
+md += `the hero), \`pascal-s-artisan-bistro-gourmet-coffee\` (matched the generic phrase "gourmet\n`;
+md += `coffee"; "ISLANDS" dominates), and \`starbucks-48\` + \`starbucks-78\` (shopping-center DIRECTORY\n`;
+md += `PYLONS, not storefronts). Fix: two name-blind gate fields now enforced on BOTH tiers —\n`;
+md += `**isDirectoryOrPylon** (reject tenant boards) and **cafeIsDominantSubject** (reject when a\n`;
+md += `different business is the hero) — plus descriptor stop-words (gourmet/artisan/fresh/…) so a\n`;
+md += `match can't rest on a generic phrase. The 4 are force-dropped; \`starbucks-30\` + \`banyan-coffee-co\`\n`;
+md += `force-kept (Josh's pixel calls). Lesson: refute-style verification is a STANDING gate, not a one-off.\n\n`;
 const tally = {};
 rows.forEach((r) => { if (r.rejectReason) tally[r.rejectReason] = (tally[r.rejectReason] || 0) + 1; });
 md += `### Reject-reason tally (of ${cafesWithCand} with candidates)\n\n`;

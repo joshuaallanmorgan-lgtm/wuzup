@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-06-25T18:55:29.135Z",
+  "fetchedAt": "2026-06-26T05:15:02.934Z",
   "byKey": {
     "p|banyan-coffee-co": {
       "id": "522934939993817",
@@ -12,7 +12,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=522934939993817",
       "tier": "B",
       "matchKind": "tierB-storefront",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|beangood-coffee": {
       "id": "974016848499650",
@@ -25,7 +25,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=974016848499650",
       "tier": "A",
       "matchKind": "phrase2",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|buddy-brew-coffee": {
       "id": "206701701094933",
@@ -38,7 +38,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=206701701094933",
       "tier": "A",
       "matchKind": "phrase3",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|cafe-1001-and-creative-catering-company": {
       "id": "2776152355980246",
@@ -51,7 +51,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=2776152355980246",
       "tier": "A",
       "matchKind": "phrase3",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|di-coffee-bar": {
       "id": "3993411867382548",
@@ -64,7 +64,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=3993411867382548",
       "tier": "A",
       "matchKind": "phrase3",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|foundation-coffee-company": {
       "id": "484893932562446",
@@ -77,7 +77,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=484893932562446",
       "tier": "A",
       "matchKind": "token",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|grassroots-kava": {
       "id": "1169192823501228",
@@ -90,7 +90,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=1169192823501228",
       "tier": "A",
       "matchKind": "token",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|gypsysouls-coffeehouse-redington": {
       "id": "225871448998975",
@@ -103,7 +103,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=225871448998975",
       "tier": "A",
       "matchKind": "tokenPartial",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|indian-shores-coffee": {
       "id": "1342952362741418",
@@ -116,7 +116,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=1342952362741418",
       "tier": "A",
       "matchKind": "phrase3",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|kahwa-south": {
       "id": "920674348728641",
@@ -129,7 +129,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=920674348728641",
       "tier": "A",
       "matchKind": "token",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|kaleisia-tea-lounge": {
       "id": "1071050807021320",
@@ -142,20 +142,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=1071050807021320",
       "tier": "A",
       "matchKind": "phrase2",
-      "at": "2026-06-25T18:55:29.135Z"
-    },
-    "p|la-casa-de-pane": {
-      "id": "3942791725811800",
-      "image": "/place-img/la-casa-de-pane.jpg",
-      "width": 1280,
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "author": "lvl5",
-      "signTextRead": "Casa del Pane",
-      "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=3942791725811800",
-      "tier": "A",
-      "matchKind": "phrase2",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|madison-avenue-cafe-and-deli": {
       "id": "652353633233497",
@@ -168,7 +155,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=652353633233497",
       "tier": "A",
       "matchKind": "token",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|neighborhood-joe": {
       "id": "218242623086011",
@@ -181,7 +168,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=218242623086011",
       "tier": "A",
       "matchKind": "phrase2",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|nina-s-cafe-on-the-beach": {
       "id": "3257252564502403",
@@ -194,7 +181,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=3257252564502403",
       "tier": "A",
       "matchKind": "phrase3",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|parkside-cafe": {
       "id": "1889082411246868",
@@ -207,20 +194,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=1889082411246868",
       "tier": "A",
       "matchKind": "phrase2",
-      "at": "2026-06-25T18:55:29.135Z"
-    },
-    "p|pascal-s-artisan-bistro-gourmet-coffee": {
-      "id": "194364862423072",
-      "image": "/place-img/pascal-s-artisan-bistro-gourmet-coffee.jpg",
-      "width": 1280,
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "author": "jackdripper",
-      "signTextRead": "GOURMET COFFEE",
-      "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=194364862423072",
-      "tier": "A",
-      "matchKind": "phrase2",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|pineapple-espresso": {
       "id": "2988536004759309",
@@ -233,7 +207,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=2988536004759309",
       "tier": "A",
       "matchKind": "phrase2",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|raining-berries": {
       "id": "456553075449221",
@@ -246,7 +220,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=456553075449221",
       "tier": "A",
       "matchKind": "phrase2",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|starbucks-18": {
       "id": "753205092012301",
@@ -259,7 +233,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=753205092012301",
       "tier": "A",
       "matchKind": "tokenPartial",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|starbucks-22": {
       "id": "158391199514303",
@@ -272,7 +246,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=158391199514303",
       "tier": "A",
       "matchKind": "token",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|starbucks-25": {
       "id": "1224995091291079",
@@ -285,7 +259,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=1224995091291079",
       "tier": "A",
       "matchKind": "token",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|starbucks-29": {
       "id": "1676967175824433",
@@ -298,7 +272,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=1676967175824433",
       "tier": "A",
       "matchKind": "token",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|starbucks-30": {
       "id": "379979213355234",
@@ -311,7 +285,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=379979213355234",
       "tier": "A",
       "matchKind": "token",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|starbucks-37": {
       "id": "936707000397501",
@@ -324,7 +298,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=936707000397501",
       "tier": "A",
       "matchKind": "token",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|starbucks-38": {
       "id": "827550541208634",
@@ -337,7 +311,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=827550541208634",
       "tier": "A",
       "matchKind": "token",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|starbucks-44": {
       "id": "479138580021201",
@@ -350,20 +324,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=479138580021201",
       "tier": "A",
       "matchKind": "token",
-      "at": "2026-06-25T18:55:29.135Z"
-    },
-    "p|starbucks-48": {
-      "id": "1047587892439751",
-      "image": "/place-img/starbucks-48.jpg",
-      "width": 1280,
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "author": "fdot_vl",
-      "signTextRead": "STARBUCKS COFFEE",
-      "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=1047587892439751",
-      "tier": "A",
-      "matchKind": "token",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|starbucks-52": {
       "id": "844951273067945",
@@ -376,7 +337,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=844951273067945",
       "tier": "A",
       "matchKind": "token",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|starbucks-57": {
       "id": "377027563659438",
@@ -389,7 +350,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=377027563659438",
       "tier": "A",
       "matchKind": "token",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|starbucks-7": {
       "id": "1188296658285250",
@@ -402,7 +363,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=1188296658285250",
       "tier": "A",
       "matchKind": "token",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|starbucks-75": {
       "id": "957714605056349",
@@ -415,20 +376,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=957714605056349",
       "tier": "A",
       "matchKind": "token",
-      "at": "2026-06-25T18:55:29.135Z"
-    },
-    "p|starbucks-78": {
-      "id": "1397928013923096",
-      "image": "/place-img/starbucks-78.jpg",
-      "width": 1280,
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "author": "fdot_vl",
-      "signTextRead": "STARBUCKS COFFEE",
-      "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=1397928013923096",
-      "tier": "A",
-      "matchKind": "token",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|swann-avenue-market-cafe": {
       "id": "619259266713896",
@@ -441,7 +389,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=619259266713896",
       "tier": "A",
       "matchKind": "token",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|tenth-street-coffee": {
       "id": "650653606780814",
@@ -454,7 +402,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=650653606780814",
       "tier": "A",
       "matchKind": "phrase2",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|the-bikery": {
       "id": "468856554227142",
@@ -467,7 +415,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=468856554227142",
       "tier": "A",
       "matchKind": "tokenPartial",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|the-sandwich-on-main": {
       "id": "2904712599776057",
@@ -480,7 +428,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=2904712599776057",
       "tier": "A",
       "matchKind": "token",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     },
     "p|whistle-stop-caf": {
       "id": "4309207739089763",
@@ -493,7 +441,7 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=4309207739089763",
       "tier": "A",
       "matchKind": "phrase3",
-      "at": "2026-06-25T18:55:29.135Z"
+      "at": "2026-06-26T05:15:02.934Z"
     }
   }
 }
