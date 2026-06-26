@@ -13,6 +13,7 @@
 import { createContext, memo, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { CATEGORY_EMOJI, CATEGORY_HUES, PLACETYPE_EMOJI, PLACETYPE_HUE } from './categories.js'
+import { auroraVars, medallionHue } from './artseed.js'
 import { Icon, dayLabelLoose, dayLoose, keyOf, makeAnchors, priceLabel, startLabel, timeOf } from './lib.js'
 import { ACTIVITIES } from './places.js'
 import { imageMode } from './imageMode.js'
@@ -160,12 +161,25 @@ export const hueFor = (e) => {
   if (e?.kind === 'place' && PLACETYPE_HUE[e.placeType] != null) return PLACETYPE_HUE[e.placeType]
   return CATEGORY_HUES[e.category] ?? CATEGORY_HUES.other
 }
-// the art-floor watermark emoji — placeType-specific for places (a beach reads
+// the art-floor identity emoji — placeType-specific for places (a beach reads
 // 🏖️, not the generic outdoors 🌳), category emoji otherwise.
 export const artEmoji = (e) => {
   if (e?.kind === 'place' && PLACETYPE_EMOJI[e.placeType]) return PLACETYPE_EMOJI[e.placeType]
   return CATEGORY_EMOJI[e.category] ?? CATEGORY_EMOJI.other
 }
+// Aurora-mesh art floor (deterministic, seeded by the item key): the inline CSS vars
+// for an .imgbox-art element. Memoized by key — the seed math is cheap but a long feed
+// re-renders many tiles, and the values are deterministic so the cache is safe AND
+// keeps the View-Transition morph (card thumb → detail hero) referencing one object.
+const _auroraCache = new Map()
+export const auroraStyle = (e) => {
+  const k = keyOf(e)
+  let v = _auroraCache.get(k)
+  if (!v) { v = auroraVars(k, hueFor(e)); _auroraCache.set(k, v) }
+  return v
+}
+// the featured place-no-photo medallion hue — same per-place jitter as the field base.
+export const medallionVar = (e) => medallionHue(keyOf(e), hueFor(e))
 
 export function PriceChip({ e }) {
   const label = priceLabel(e)
@@ -223,7 +237,7 @@ export function CardImg({ e, className = '', children }) {
     <span
       className={'imgbox ' + className + (showArt ? ' imgbox-art' : '')}
       data-vt
-      style={showArt ? { '--ch': hueFor(e) } : undefined}
+      style={showArt ? auroraStyle(e) : undefined}
     >
       {!showArt ? (
         <img
@@ -349,7 +363,7 @@ export function FeaturedCard({ e, onSelect, onAdd }) {
     <div className={'featc' + (placeNoPhoto ? ' featc-noimg' : '')}>
       <button className="featc-open pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
         {placeNoPhoto ? (
-          <span className="featc-medallion" aria-hidden style={{ '--mh': hueFor(e) }}>
+          <span className="featc-medallion" aria-hidden style={{ '--mh': medallionVar(e) }}>
             {artEmoji(e)}
             {e.hidden && <span className="featc-med-gem" aria-label="Hidden gem">💎</span>}
           </span>

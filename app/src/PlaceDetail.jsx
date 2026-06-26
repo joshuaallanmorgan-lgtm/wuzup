@@ -14,7 +14,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { getLeaflet } from './leaflet-lazy.js'
 import { useNav } from './nav.jsx'
 import { Icon, keyOf } from './lib.js'
-import { SecHead, TonightCard, artEmoji, hueFor, spotChips } from './cards.jsx'
+import { SecHead, TonightCard, artEmoji, auroraStyle, spotChips } from './cards.jsx'
 import { SaveHeart, useSaves } from './saves.js'
 import { dateKey } from './weather.js'
 import { usePlaces, ACTIVITIES } from './places.js'
@@ -312,7 +312,7 @@ export default function PlaceDetail({ e, anchors, wx }) {
         className={'detail-hero' + (heroArt ? ' imgbox-art' : '')}
         style={
           heroArt
-            ? { viewTransitionName: 'evt-hero', '--ch': hueFor(e) }
+            ? { viewTransitionName: 'evt-hero', ...auroraStyle(e) }
             : { viewTransitionName: 'evt-hero', background: '#241c15' }
         }
       >

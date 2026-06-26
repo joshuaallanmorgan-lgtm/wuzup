@@ -477,6 +477,36 @@ test('3.73a: placeType art floor covers every placeType in the data', async () =
   assert.equal(missingEmoji.length, 0, `placeType(s) with no watermark emoji (→ 🌳 wall): ${missingEmoji.join(', ')}`)
 })
 
+// 3.8 Aurora mesh — the no-photo floor is now a per-PLACE generative field seeded by
+// the item key. Invariants that keep it honest + correct: DETERMINISTIC (same key →
+// identical field, which the thumb→hero View-Transition morph relies on), VARIED
+// (different keys → different fields, killing the "coffee wall"), and IN-BAND (every
+// blob hue stays within the place's hue band — a cafe field reads warm, never a
+// random rainbow that would drift toward looking like a photo or a different type).
+test('3.8 aurora art floor: deterministic, varied, and hue-band-bounded', async () => {
+  const { auroraVars, medallionHue } = await import('../app/src/artseed.js')
+  // deterministic: same key + hue → byte-identical vars (call twice)
+  assert.deepEqual(auroraVars('p|kahwa-south', 24), auroraVars('p|kahwa-south', 24), 'same key must yield an identical field')
+  // varied: distinct keys → distinct fields (no two cafes look alike)
+  const a = auroraVars('p|kahwa-south', 24), b = auroraVars('p|buddy-brew-coffee', 24)
+  assert.notDeepEqual(a, b, 'distinct keys must yield distinct fields (the coffee-wall fix)')
+  // in-band: every blob hue within ±34° of the base (base ±12, +22±8, −16±8 → ≤30)
+  for (const key of ['p|kahwa-south', 'p|x', 'p|some-long-slug-here', 'evt:title']) {
+    const v = auroraVars(key, 140)
+    for (const h of ['--ah1', '--ah2', '--ah3']) {
+      assert.ok(Math.abs(v[h] - 140) <= 34, `${key} ${h}=${v[h]} drifted out of the hue band (base 140)`)
+    }
+    // positions/radii are on-frame percentages
+    for (const p of ['--ax1', '--ay1', '--ar1', '--ax2', '--ay2', '--ar2', '--ax3', '--ay3', '--ar3']) {
+      const n = parseFloat(v[p])
+      assert.ok(n >= 0 && n <= 100 && v[p].endsWith('%'), `${key} ${p}=${v[p]} is not an on-frame %`)
+    }
+  }
+  // medallion shares the field's base jitter (deterministic, in-band)
+  assert.equal(medallionHue('p|kahwa-south', 24), medallionHue('p|kahwa-south', 24))
+  assert.ok(Math.abs(medallionHue('p|kahwa-south', 24) - 24) <= 12, 'medallion hue stays within ±12 of base')
+})
+
 // 3.73b — REALITY GUARD: beaches carry no differentiating signal today (every
 // beach has srcCount 1 + zero amenities), so the Spots tab ships an honest beach
 // BROWSE, not a "best beaches" merit ranking — a "ranked by sources & amenities"

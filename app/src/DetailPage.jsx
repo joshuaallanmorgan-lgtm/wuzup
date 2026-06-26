@@ -12,7 +12,7 @@ import { getLeaflet } from './leaflet-lazy.js'
 import { useNav } from './nav.jsx'
 import { DAY, dayKey, hotDesc, Icon, keyOf, parseDate, priceLabel, timeOf } from './lib.js'
 import { eventIcs } from './share.js'
-import { CATEGORY_EMOJI, HeatBadge, SecHead, TonightCard, hueFor } from './cards.jsx'
+import { CATEGORY_EMOJI, HeatBadge, SecHead, TonightCard, auroraStyle, hueFor } from './cards.jsx'
 import { SaveHeart, useSaves } from './saves.js'
 import { whyReasons } from './taste.js'
 import { daypartOf, DAYPART } from './weekend.js'
@@ -387,7 +387,7 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         className={'detail-hero' + (heroArt ? ' imgbox-art' : '')}
         style={
           heroArt
-            ? { viewTransitionName: 'evt-hero', '--ch': hueFor(e) }
+            ? { viewTransitionName: 'evt-hero', ...auroraStyle(e) }
             : { viewTransitionName: 'evt-hero', background: '#241c15' }
         }
       >
