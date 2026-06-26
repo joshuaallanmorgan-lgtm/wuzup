@@ -12,6 +12,16 @@
 //   • Commons GEOSEARCH + name-match (honest-imagery Phase 1) — for the ~97% of
 //     places with coords but no usable Q-id: geotagged Commons files within 500m,
 //     then the SAME name-match HARD GATE turns "near" into "of" (resolveCommonsGeosearch).
+//   • Mapillary "oriented capture" + sign-gate (ladder 3, CAFES) — Commons has no
+//     cafe photos, so for cafes only we mine street-level Mapillary: the OFFLINE
+//     verify harness (finder/mapillary-verify.mjs + mapillary-stageb.mjs) frames
+//     candidate crops aimed at the cafe and a VISION pass reads the storefront sign.
+//     It ships ONLY when the read sign name-matches the cafe (Tier A) OR it is
+//     clearly a cafe storefront with NO conflicting other-business sign at a strong
+//     geometric candidate (Tier B). The sign read IS the name-match (from pixels,
+//     not a file title) → provably that exact cafe. enrich does NO Mapillary network
+//     — it reads place-mapillary-images.json + the self-hosted /place-img/<slug>.jpg.
+//     CC-BY-SA, credited as "Mapillary:<id>" with the signTextRead receipt.
 // Places where all fail keep their category-art (the honest floor — refined in
 // W4's CSS, never faked). NO generic stock (the A3 category-stock floor was rejected).
 //
@@ -55,6 +65,13 @@ const ATTRIB_FILE = join(HERE, 'cache', 'attributions.json');
 // step (the ~97% of places with coords but no usable Q-id), alongside the Q-id
 // cache above. Same shape/TTL; keyed by place.key.
 const GEO_CACHE_FILE = join(HERE, 'cache', 'place-geo-images.json');
+// honest-imagery ladder 3 (Mapillary cafe storefronts): the place-KEYED cache of
+// sign-verified ships the OFFLINE verify harness (finder/mapillary-verify.mjs +
+// mapillary-stageb.mjs) produced — { byKey: { "p|slug": { id, image, license,
+// licenseUrl, author, signTextRead, mapillaryUrl, width, tier, matchKind, at } } }.
+// enrich READS this (+ checks the self-hosted JPEG exists); it never hits Mapillary.
+const MAP_CACHE_FILE = join(HERE, 'cache', 'place-mapillary-images.json');
+const PLACE_IMG_DIR = join(HERE, '..', 'app', 'public', 'place-img');
 // a descriptive User-Agent is required by the Wikimedia API etiquette policy.
 const UA = {
   'User-Agent':
@@ -358,6 +375,11 @@ const loadGeoCache = () => {
   const c = loadJson(GEO_CACHE_FILE, { fetchedAt: null, byKey: {} });
   return c.byKey ? c : { fetchedAt: null, byKey: {} };
 };
+// honest-imagery ladder 3: the Mapillary sign-verified cafe cache, keyed by place.key.
+const loadMapCache = () => {
+  const c = loadJson(MAP_CACHE_FILE, { fetchedAt: null, byKey: {} });
+  return c.byKey ? c : { fetchedAt: null, byKey: {} };
+};
 // normalize a resolver record (or null) into the cached/stored shape + timestamp.
 const storeRec = (r) =>
   r
@@ -379,11 +401,13 @@ const shippable = (rec) => !!(rec && rec.image && creditOk(rec) && (rec.width ==
 export async function enrichPlacesWithImages(places, { live = false, log = () => {} } = {}) {
   const cache = loadCache();
   const geoCache = loadGeoCache();
+  const mapCache = loadMapCache();
   const attrib = loadAttrib();
   const stats = {
     withQid: 0, set: 0, fromCache: 0, fetched: 0, noImage: 0,
     tooSmall: 0, noCredit: 0, viaP18: 0, viaP373: 0,
     geoTried: 0, geoFetched: 0, geoFromCache: 0, viaGeo: 0,
+    viaMapillary: 0, mapMissing: 0,
   };
   let dirty = false; // only rewrite the TRACKED caches when content changed
   let geoDirty = false;
@@ -452,6 +476,39 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
       if (shippable(grec) && nameMatchStrong(grec.fileTitle, p.name)) rec = grec;
     }
 
+    // ── ladder 3: Mapillary sign-verified cafe storefront (cafes only) — only if
+    //    1–2 didn't ship. enrich does NO Mapillary network: the OFFLINE verify
+    //    harness already ran the vision sign-gate + self-hosted the crop. We read
+    //    the place-keyed cache, require the cached ship still fresh AND the local
+    //    JPEG present, then ship the LOCAL path with its CC-BY-SA credit + the
+    //    signTextRead honesty receipt. Self-heals BOTH ways: cafe pruned from the
+    //    cache OR its JPEG deleted → no rec → the place falls to the art floor. ──
+    if (!shippable(rec) && p.placeType === 'cafe' && p.key) {
+      const mc = mapCache.byKey[p.key];
+      const mNewShape = mc && mc.image && 'signTextRead' in mc;
+      const mfresh = mc && mc.at && mNewShape && Date.now() - Date.parse(mc.at) < MAX_CACHE_AGE_MS;
+      if (mfresh) {
+        const slug = p.key.replace(/^p\|/, '');
+        if (existsSync(join(PLACE_IMG_DIR, `${slug}.jpg`))) {
+          rec = {
+            image: `/place-img/${slug}.jpg`, // site-root local path (Vite serves app/public)
+            file: `${slug}.jpg`,
+            fileTitle: `Mapillary:${mc.id}`, // synthetic attributions key (no Commons File:)
+            fileUrl: mc.mapillaryUrl,
+            width: mc.width || THUMB_W,
+            source: 'mapillary-sign',
+            license: mc.license,
+            licenseUrl: mc.licenseUrl,
+            author: mc.author,
+            signTextRead: mc.signTextRead || null,
+            at: mc.at,
+          };
+        } else {
+          stats.mapMissing++; // cached but the JPEG is gone → stays art floor
+        }
+      }
+    }
+
     // ── ship the winning record, or clear ──
     // credit-required + resolution floor: a photo ships ONLY with a SATISFIABLE
     // credit (license, plus an author when CC-BY) at/above the hero floor. Otherwise
@@ -466,10 +523,14 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
         license: rec.license,
         licenseUrl: rec.licenseUrl || null,
         url: fileUrl,
+        // sourceFamily lets the app pick the right host byline when author is null
+        // (Commons vs Mapillary) instead of hardcoding "Wikimedia Commons".
+        sourceFamily: rec.source || null,
       };
       stats.set++;
       if (rec.source === 'wikidata-p373') stats.viaP373++;
       else if (rec.source === 'commons-geosearch') stats.viaGeo++;
+      else if (rec.source === 'mapillary-sign') stats.viaMapillary++;
       else stats.viaP18++;
       if (rec.fileTitle) {
         shippedFiles.add(rec.fileTitle);
@@ -481,12 +542,16 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
           license: rec.license,
           licenseUrl: rec.licenseUrl || null,
           sourceFamily: rec.source || null,
+          // the honesty receipt for a Mapillary ship: the storefront sign text the
+          // vision pass actually read (null for Commons files — their File: title is
+          // the receipt). Null is omitted so Commons ledger entries are unchanged.
+          ...(rec.signTextRead ? { signTextRead: rec.signTextRead } : {}),
           at: (cur && cur.at) || new Date().toISOString(), // stable for idempotency
         };
         if (
           !cur || cur.author !== next.author || cur.license !== next.license ||
           cur.licenseUrl !== next.licenseUrl || cur.sourceFamily !== next.sourceFamily ||
-          cur.fileUrl !== next.fileUrl
+          cur.fileUrl !== next.fileUrl || (cur.signTextRead || null) !== (next.signTextRead || null)
         ) {
           attrib.byFile[rec.fileTitle] = next;
           attribDirty = true;
@@ -547,8 +612,9 @@ async function main() {
     const total = doc.places.length;
     console.log(
       `${path}: ${stats.set}/${total} imaged (${((stats.set / total) * 100).toFixed(1)}%) ` +
-        `— P18 ${stats.viaP18}, P373 ${stats.viaP373}, geosearch ${stats.viaGeo} ` +
+        `— P18 ${stats.viaP18}, P373 ${stats.viaP373}, geosearch ${stats.viaGeo}, mapillary ${stats.viaMapillary} ` +
         `(qid: fetched ${stats.fetched}/cache ${stats.fromCache}; geo: tried ${stats.geoTried}, fetched ${stats.geoFetched}/cache ${stats.geoFromCache}; ` +
+        `mapillary: ${stats.viaMapillary} shipped, ${stats.mapMissing} jpeg-missing; ` +
         `none ${stats.noImage} [too-small ${stats.tooSmall}, no-credit ${stats.noCredit}])`
     );
   }

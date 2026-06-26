@@ -356,14 +356,56 @@ test('W4/Phase1 images: place photos are real of-the-place Commons files + every
   // images non-Q-id places. The honesty guard is now name-match (pipeline) + credit.
   assert.ok(imaged.length >= 20, `only ${imaged.length} places imaged — the image pipeline likely regressed`)
   for (const p of imaged) {
-    // every image is a real Wikimedia Commons file — the ONLY honest of-the-place source.
-    // P18 / P373 / geosearch all resolve to upload.wikimedia.org/.../commons/. NO stock.
-    assert.match(p.image, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, `${p.name}: image is not a Wikimedia Commons URL (${p.image})`)
+    // every image is either a real Wikimedia Commons file (P18 / P373 / geosearch all
+    // resolve to upload.wikimedia.org/.../commons/) OR a self-hosted, sign-verified
+    // Mapillary cafe crop at /place-img/<slug>.jpg (ladder 3). NO generic stock, no
+    // hotlink to a third-party host.
+    const isCommons = /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//.test(p.image)
+    const isLocalCafe = /^\/place-img\/[a-z0-9-]+\.jpg$/.test(p.image)
+    assert.ok(isCommons || isLocalCafe, `${p.name}: image is neither a Commons URL nor a /place-img/ local path (${p.image})`)
     // CREDIT-REQUIRED: every shipped photo carries an inline credit (license; author
-    // when the license is CC-BY) — the legal duty + the honesty record.
+    // when the license is CC-BY/BY-SA) — the legal duty + the honesty record.
     assert.ok(p.imageCredit && p.imageCredit.license, `${p.name}: has an image but no credit (license) — the credit gate must hold on every source`)
     if (/^\s*cc\s*by/i.test(p.imageCredit.license)) {
       assert.ok(p.imageCredit.author, `${p.name}: a CC-BY image must carry an author byline`)
+    }
+  }
+})
+
+// honest-imagery ladder 3 — Mapillary sign-verified cafe storefronts. Every place
+// imaged via a self-hosted /place-img/ crop must: (a) have the local JPEG on disk,
+// (b) carry a CC-BY-SA credit with an author + sourceFamily 'mapillary-sign', and
+// (c) have a matching `Mapillary:<id>` ledger entry with a NON-EMPTY signTextRead
+// (the honesty receipt — the storefront sign text the vision pass actually read).
+test('ladder-3 Mapillary cafes: local file + CC-BY-SA credit + signTextRead receipt', () => {
+  const doc = JSON.parse(readFileSync(APP_PLACES, 'utf8'))
+  const cafes = doc.places.filter((p) => typeof p.image === 'string' && p.image.startsWith('/place-img/'))
+  const ATTRIB = path.join(ROOT, 'finder', 'cache', 'attributions.json')
+  const attrib = existsSync(ATTRIB) ? JSON.parse(readFileSync(ATTRIB, 'utf8')) : { byFile: {} }
+  for (const p of cafes) {
+    const slug = p.image.replace(/^\/place-img\//, '').replace(/\.jpg$/, '')
+    assert.match(slug, /^[a-z0-9-]+$/, `${p.name}: unsafe /place-img slug (${p.image})`)
+    // (a) the self-hosted JPEG actually exists (enrich self-heals if it doesn't)
+    assert.ok(existsSync(path.join(ROOT, 'app', 'public', 'place-img', `${slug}.jpg`)),
+      `${p.name}: /place-img/${slug}.jpg referenced but the file is missing`)
+    // (b) a satisfiable CC-BY-SA credit with an author byline + the source marker
+    assert.ok(p.imageCredit && p.imageCredit.license, `${p.name}: Mapillary image without a credit`)
+    assert.match(p.imageCredit.license, /cc\s*by/i, `${p.name}: Mapillary credit must be a CC-BY(-SA) license`)
+    assert.ok(p.imageCredit.author, `${p.name}: Mapillary (CC-BY-SA) image must carry an author byline`)
+    assert.equal(p.imageCredit.sourceFamily, 'mapillary-sign', `${p.name}: Mapillary credit must mark sourceFamily 'mapillary-sign'`)
+    // (c) the ledger entry keyed by Mapillary:<id> carries the signTextRead receipt
+    const id = (p.imageCredit.url.match(/pKey=(\d+)/) || [])[1]
+    assert.ok(id, `${p.name}: Mapillary credit url has no pKey (${p.imageCredit.url})`)
+    const led = attrib.byFile[`Mapillary:${id}`]
+    assert.ok(led, `${p.name}: no attributions ledger entry for Mapillary:${id}`)
+    assert.ok(led.signTextRead && String(led.signTextRead).trim().length > 0,
+      `${p.name}: Mapillary ledger entry must carry a non-empty signTextRead receipt`)
+  }
+  // every Mapillary ledger entry (even if a place dropped) must keep the receipt shape
+  for (const [k, v] of Object.entries(attrib.byFile)) {
+    if (k.startsWith('Mapillary:')) {
+      assert.equal(v.sourceFamily, 'mapillary-sign', `${k}: ledger sourceFamily must be 'mapillary-sign'`)
+      assert.ok(v.signTextRead && String(v.signTextRead).trim().length > 0, `${k}: ledger entry missing signTextRead`)
     }
   }
 })

@@ -4,3 +4,10 @@ dist/
 # (committing them is the same git-history sleeper W3 already flags for events)
 finder/cache/osm-*.json
 finder/cache/places-*.json
+# Mapillary candidate-gen scratch: ~750 crop JPEGs + the name-blind review set +
+# logs/manifest, all regenerable. The TRACKED outputs of the pipeline are the
+# self-hosted ships in app/public/place-img/ + finder/cache/place-mapillary-images.json.
+finder/cache/mapillary-crops/
+# Phase A/B run reports (point-in-time review artifacts, not shipped system)
+finder/cache/phase*-mapillary-report.md
+finder/cache/phaseB-tierB-review.md

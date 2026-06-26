@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-06-25T15:40:18.863Z",
+  "fetchedAt": "2026-06-26T05:40:05.704Z",
   "byFile": {
     "File:Hurrah Lake - Alafia River State Park.jpg": {
       "file": "File:Hurrah Lake - Alafia River State Park.jpg",
@@ -846,6 +846,356 @@
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
       "sourceFamily": "commons-geosearch",
       "at": "2026-06-25T15:40:18.856Z"
+    },
+    "Mapillary:522934939993817": {
+      "file": "Mapillary:522934939993817",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=522934939993817",
+      "author": "jcox",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "cafe storefront — location-confirmed (align 143°, 22.2m), no conflicting business sign",
+      "at": "2026-06-25T18:56:56.504Z"
+    },
+    "Mapillary:974016848499650": {
+      "file": "Mapillary:974016848499650",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=974016848499650",
+      "author": "allen",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "beangood COFFEE",
+      "at": "2026-06-25T18:56:56.505Z"
+    },
+    "Mapillary:206701701094933": {
+      "file": "Mapillary:206701701094933",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=206701701094933",
+      "author": "jackdripper",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "BUDDY BREW COFFEE",
+      "at": "2026-06-25T18:56:56.505Z"
+    },
+    "Mapillary:2776152355980246": {
+      "file": "Mapillary:2776152355980246",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=2776152355980246",
+      "author": "coleman",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "Café Ten-0-One and Creative Catering Company",
+      "at": "2026-06-25T18:56:56.505Z"
+    },
+    "Mapillary:3993411867382548": {
+      "file": "Mapillary:3993411867382548",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=3993411867382548",
+      "author": "jackdripper",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "Di Coffee Bar",
+      "at": "2026-06-25T18:56:56.505Z"
+    },
+    "Mapillary:484893932562446": {
+      "file": "Mapillary:484893932562446",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=484893932562446",
+      "author": "jackdripper",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "FOUNDATION",
+      "at": "2026-06-25T18:56:56.506Z"
+    },
+    "Mapillary:1169192823501228": {
+      "file": "Mapillary:1169192823501228",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=1169192823501228",
+      "author": "samsamples",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "GRASSROOTS",
+      "at": "2026-06-25T18:56:56.506Z"
+    },
+    "Mapillary:225871448998975": {
+      "file": "Mapillary:225871448998975",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=225871448998975",
+      "author": "fdot_vl",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "GYPSY SOULS",
+      "at": "2026-06-25T18:56:56.506Z"
+    },
+    "Mapillary:1342952362741418": {
+      "file": "Mapillary:1342952362741418",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=1342952362741418",
+      "author": "fdot_vl",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "INDIAN SHORES COFFEE",
+      "at": "2026-06-25T18:56:56.506Z"
+    },
+    "Mapillary:920674348728641": {
+      "file": "Mapillary:920674348728641",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=920674348728641",
+      "author": "samsamples",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "Kahwa",
+      "at": "2026-06-25T18:56:56.506Z"
+    },
+    "Mapillary:1071050807021320": {
+      "file": "Mapillary:1071050807021320",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=1071050807021320",
+      "author": "laye",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "Kaleisia Tea",
+      "at": "2026-06-25T18:56:56.506Z"
+    },
+    "Mapillary:652353633233497": {
+      "file": "Mapillary:652353633233497",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=652353633233497",
+      "author": "networklanman",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "Avenue",
+      "at": "2026-06-25T18:56:56.507Z"
+    },
+    "Mapillary:218242623086011": {
+      "file": "Mapillary:218242623086011",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=218242623086011",
+      "author": "nfgusedautoparts",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "NEIGHBORHOOD JOE Coffee & ar?? & ?????",
+      "at": "2026-06-25T18:56:56.507Z"
+    },
+    "Mapillary:3257252564502403": {
+      "file": "Mapillary:3257252564502403",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=3257252564502403",
+      "author": "fdot_vl",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "Nina's on the Beach Cafe",
+      "at": "2026-06-25T18:56:56.507Z"
+    },
+    "Mapillary:1889082411246868": {
+      "file": "Mapillary:1889082411246868",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=1889082411246868",
+      "author": "lvl5",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "Parkside Cafe",
+      "at": "2026-06-25T18:56:56.507Z"
+    },
+    "Mapillary:2988536004759309": {
+      "file": "Mapillary:2988536004759309",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=2988536004759309",
+      "author": "nfgusedautoparts",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "Pineapple Espresso",
+      "at": "2026-06-25T18:56:56.507Z"
+    },
+    "Mapillary:456553075449221": {
+      "file": "Mapillary:456553075449221",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=456553075449221",
+      "author": "samsamples",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "raining berries",
+      "at": "2026-06-25T18:56:56.507Z"
+    },
+    "Mapillary:753205092012301": {
+      "file": "Mapillary:753205092012301",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=753205092012301",
+      "author": "samsamples",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "?TARBUCKS COFFEE",
+      "at": "2026-06-25T18:56:56.508Z"
+    },
+    "Mapillary:158391199514303": {
+      "file": "Mapillary:158391199514303",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=158391199514303",
+      "author": "fdot_vl",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "STARBUCKS COFFEE",
+      "at": "2026-06-25T18:56:56.508Z"
+    },
+    "Mapillary:1224995091291079": {
+      "file": "Mapillary:1224995091291079",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=1224995091291079",
+      "author": "fdot_vl",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "STARBUCKS COFFEE",
+      "at": "2026-06-25T18:56:56.508Z"
+    },
+    "Mapillary:1676967175824433": {
+      "file": "Mapillary:1676967175824433",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=1676967175824433",
+      "author": "fdot_vl",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "STARBUCKS COFFEE",
+      "at": "2026-06-25T18:56:56.508Z"
+    },
+    "Mapillary:379979213355234": {
+      "file": "Mapillary:379979213355234",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=379979213355234",
+      "author": "lvl5",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "STARBUCKS DRAFT",
+      "at": "2026-06-25T18:56:56.508Z"
+    },
+    "Mapillary:936707000397501": {
+      "file": "Mapillary:936707000397501",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=936707000397501",
+      "author": "fdot_vl",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "STARBUCKS COFFEE",
+      "at": "2026-06-25T18:56:56.508Z"
+    },
+    "Mapillary:827550541208634": {
+      "file": "Mapillary:827550541208634",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=827550541208634",
+      "author": "fdot_vl",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "STARBUCKS COFFEE",
+      "at": "2026-06-25T18:56:56.508Z"
+    },
+    "Mapillary:479138580021201": {
+      "file": "Mapillary:479138580021201",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=479138580021201",
+      "author": "cory_spatialnetworks_com",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "STARBUCKS COFFEE",
+      "at": "2026-06-25T18:56:56.508Z"
+    },
+    "Mapillary:844951273067945": {
+      "file": "Mapillary:844951273067945",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=844951273067945",
+      "author": "fdot_vl",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "STARBUCKS COFFEE",
+      "at": "2026-06-25T18:56:56.508Z"
+    },
+    "Mapillary:377027563659438": {
+      "file": "Mapillary:377027563659438",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=377027563659438",
+      "author": "jackdripper",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "STARBUCKS DRIVE THRU",
+      "at": "2026-06-25T18:56:56.508Z"
+    },
+    "Mapillary:1188296658285250": {
+      "file": "Mapillary:1188296658285250",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=1188296658285250",
+      "author": "jpace",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "STARBUCKS COFFEE",
+      "at": "2026-06-25T18:56:56.508Z"
+    },
+    "Mapillary:957714605056349": {
+      "file": "Mapillary:957714605056349",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=957714605056349",
+      "author": "samsamples",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "STARBUCKS",
+      "at": "2026-06-25T18:56:56.508Z"
+    },
+    "Mapillary:619259266713896": {
+      "file": "Mapillary:619259266713896",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=619259266713896",
+      "author": "PalauanReich",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "SWANN AVE MARKET",
+      "at": "2026-06-25T18:56:56.509Z"
+    },
+    "Mapillary:650653606780814": {
+      "file": "Mapillary:650653606780814",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=650653606780814",
+      "author": "jcox",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "?NTH STREET COFFEE",
+      "at": "2026-06-25T18:56:56.509Z"
+    },
+    "Mapillary:468856554227142": {
+      "file": "Mapillary:468856554227142",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=468856554227142",
+      "author": "nfgusedautoparts",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "THE BIKER?",
+      "at": "2026-06-25T18:56:56.509Z"
+    },
+    "Mapillary:2904712599776057": {
+      "file": "Mapillary:2904712599776057",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=2904712599776057",
+      "author": "cory_spatialnetworks_com",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "Sandwich",
+      "at": "2026-06-25T18:56:56.510Z"
+    },
+    "Mapillary:4309207739089763": {
+      "file": "Mapillary:4309207739089763",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=4309207739089763",
+      "author": "jackdripper",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "WHISTLE STOP CAFE",
+      "at": "2026-06-25T18:56:56.510Z"
+    },
+    "Mapillary:4013967625346366": {
+      "file": "Mapillary:4013967625346366",
+      "fileUrl": "https://www.mapillary.com/app/?focus=photo&pKey=4013967625346366",
+      "author": "fdot_vl",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceFamily": "mapillary-sign",
+      "signTextRead": "?TARBUCKS CO?FEE",
+      "at": "2026-06-26T05:40:05.702Z"
     }
   }
 }

@@ -1116,7 +1116,8 @@
         "author": "Mwanner at en.wikipedia",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
-        "url": "https://commons.wikimedia.org/wiki/File%3AHurrah%20Lake%20-%20Alafia%20River%20State%20Park.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AHurrah%20Lake%20-%20Alafia%20River%20State%20Park.jpg",
+        "sourceFamily": "wikidata-p18"
       },
       "description": "Alafia River State Park is a Florida State Park, located near Picnic in Hillsborough County in central Florida, 17 miles or 27 kilometers southeast of Tampa on County Road 39. Even before it became a park, the area, and particularly Hurrah Lake, was the center of leisure activities since the early 1880s."
     },
@@ -1360,7 +1361,8 @@
         "author": "Michelle Maria",
         "license": "CC BY 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3APine%20Island%20Beach%2C%20Hernando%20County%2C%20Florida%20-%20panoramio%20(1).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3APine%20Island%20Beach%2C%20Hernando%20County%2C%20Florida%20-%20panoramio%20(1).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -2914,7 +2916,8 @@
         "author": "Heditor6",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AInteractive%20Water%20Park%20at%20Ballast%20Point%20Park.JPG"
+        "url": "https://commons.wikimedia.org/wiki/File%3AInteractive%20Water%20Park%20at%20Ballast%20Point%20Park.JPG",
+        "sourceFamily": "wikidata-p18"
       }
     },
     {
@@ -2947,7 +2950,8 @@
         "author": "Trevorrrrvalent",
         "license": "CC BY 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ATampa%20Skyline%20from%20Ballast%20Point%20Park%20April%202024.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ATampa%20Skyline%20from%20Ballast%20Point%20Park%20April%202024.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -3034,7 +3038,8 @@
         "author": "Drew Coffman drewcoffman",
         "license": "CC0",
         "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-        "url": "https://commons.wikimedia.org/wiki/File%3ABandit%20Coffee%20Co.%2C%20Saint%20Petersburg%2C%20United%20States%20(Unsplash).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ABandit%20Coffee%20Co.%2C%20Saint%20Petersburg%2C%20United%20States%20(Unsplash).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -3095,7 +3100,15 @@
         "id": 10248206663
       },
       "hiddenScore": 3,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/banyan-coffee-co.jpg",
+      "imageCredit": {
+        "author": "jcox",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=522934939993817",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|baranoff-oak-park",
@@ -4261,7 +4274,15 @@
         "id": 13376921920
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/beangood-coffee.jpg",
+      "imageCredit": {
+        "author": "allen",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=974016848499650",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|bear-creek-park",
@@ -5005,7 +5026,8 @@
         "author": "Pokemonprime",
         "license": "CC BY 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ABlack%20%26%20Brew%2C%20Lakeland%2C%20Florida.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ABlack%20%26%20Brew%2C%20Lakeland%2C%20Florida.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -5950,7 +5972,8 @@
         "author": "Drew Coffman drewcoffman",
         "license": "CC0",
         "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-        "url": "https://commons.wikimedia.org/wiki/File%3AJohn%20R.%20Bonner%20Nature%20Park%2C%20Largo%2C%20United%20States%20(Unsplash%20aFlmRgsf9X0).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AJohn%20R.%20Bonner%20Nature%20Park%2C%20Largo%2C%20United%20States%20(Unsplash%20aFlmRgsf9X0).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -5979,7 +6002,8 @@
         "author": "Butter142",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ABonnet%20Springs%20Park%20Entrance.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ABonnet%20Springs%20Park%20Entrance.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -6199,7 +6223,8 @@
         "author": "Calmuziclover",
         "license": "CC BY 2.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ABoyd%20Hill%20Nature%20Preserve.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ABoyd%20Hill%20Nature%20Preserve.jpg",
+        "sourceFamily": "wikidata-p18"
       },
       "description": "Boyd Hill Nature Preserve is a 245-acre (99 ha) protected area in Pinellas County, Florida. It is located on the shores of Lake Maggiore in south St. Petersburg and is operated by the city's Parks and Recreation department."
     },
@@ -6380,7 +6405,8 @@
         "author": "The Grid",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ABradenton%20Riverwalk%20Tower%20Plaza.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ABradenton%20Riverwalk%20Tower%20Plaza.jpg",
+        "sourceFamily": "wikidata-p18"
       },
       "description": "Bradenton Riverwalk is a 1.5-mile-long (2.4 km) public green space located along the Manatee River in Bradenton, Florida, between Business US 41 and South Tamiami Trail. The five-acre (2.0 ha) park opened to the public on October 18, 2012 and features a skatepark, 400-seat amphitheater, playgrounds, and a splash pad."
     },
@@ -6704,7 +6730,8 @@
         "author": "Payton Chung from DCA, USA",
         "license": "CC BY 2.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ABro%20Bowl%20at%20Perry%20Harvey%20Sr.%20Park%20-%20Tampa%2C%20Florida.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ABro%20Bowl%20at%20Perry%20Harvey%20Sr.%20Park%20-%20Tampa%2C%20Florida.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -7056,7 +7083,15 @@
         "id": 7290267725
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/buddy-brew-coffee.jpg",
+      "imageCredit": {
+        "author": "jackdripper",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=206701701094933",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|buffalo-creek-park",
@@ -7487,7 +7522,15 @@
         "id": 1950193058
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/cafe-1001-and-creative-catering-company.jpg",
+      "imageCredit": {
+        "author": "coleman",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=2776152355980246",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|cafe-54",
@@ -8709,7 +8752,8 @@
         "author": "Joseph Gage from Yorkville, IL, USA",
         "license": "CC BY-SA 2.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3APainted%20bunting%20at%20Celery%20Fields%2C%20Sarasota%2C%20Florida.%20(53458749069).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3APainted%20bunting%20at%20Celery%20Fields%2C%20Sarasota%2C%20Florida.%20(53458749069).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -8773,7 +8817,8 @@
         "author": "Pokemonprime",
         "license": "CC BY 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ACentennial%20Park%20Station%2C%20Ybor%20City%2C%20Florida.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ACentennial%20Park%20Station%2C%20Ybor%20City%2C%20Florida.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -10630,7 +10675,8 @@
         "author": "Ebyabe",
         "license": "CC BY-SA 2.5",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5",
-        "url": "https://commons.wikimedia.org/wiki/File%3AColt%20Creek%20SP%20road01.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AColt%20Creek%20SP%20road01.jpg",
+        "sourceFamily": "wikidata-p18"
       },
       "description": "Colt Creek State Park is a Florida State Park in Central Florida, 16 miles (26 km) north of Lakeland off of State Road 471. This 5,067-acre park nestled within the Green Swamp Wilderness Area and named after one of the tributaries that flows through the property was opened to the public on January 20, 2007."
     },
@@ -11246,7 +11292,8 @@
         "author": "Gregory Urbano from St. Petersburg, Florida, USA",
         "license": "CC BY 2.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ACoquina%20Beach%20Jetty%20(28091850649).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ACoquina%20Beach%20Jetty%20(28091850649).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -12079,7 +12126,8 @@
         "author": "Roman Eugeniusz",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ATarpon%20Spring%2CFlorida%2CUSA.%20-%20panoramio.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ATarpon%20Spring%2CFlorida%2CUSA.%20-%20panoramio.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -12188,7 +12236,8 @@
         "author": "Calmuziclover",
         "license": "CC BY 2.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ABy%20Crescent%20Lake%2C%20St%20Petersburg%2C%20Florida%20(51132312827).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ABy%20Crescent%20Lake%2C%20St%20Petersburg%2C%20Florida%20(51132312827).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -12275,7 +12324,8 @@
         "author": "DanTD",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ACrews%20Lake%20Dock%20from%20the%20Tower.JPG"
+        "url": "https://commons.wikimedia.org/wiki/File%3ACrews%20Lake%20Dock%20from%20the%20Tower.JPG",
+        "sourceFamily": "wikidata-p373"
       },
       "description": "Crews Lake Wilderness Park is located off Shady Hills Road in Pasco County, Florida. The park includes hiking trails, a short paved bike trail, playground, wooden tower, athletic fields, and the 7+1⁄2 in gauge Central Pasco & Gulf Railroad."
     },
@@ -12484,7 +12534,8 @@
         "author": "Xrzt",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ADouble-crested%20Cormorants%2C%20Crystal%20Beach%2C%20Florida.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ADouble-crested%20Cormorants%2C%20Crystal%20Beach%2C%20Florida.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -12674,7 +12725,8 @@
         "author": "Michelle Maria",
         "license": "CC BY 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ACurtis%20Hixon%20Park%20Tampa%20Florida%20United%20States%20-%20panoramio%20(1).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ACurtis%20Hixon%20Park%20Tampa%20Florida%20United%20States%20-%20panoramio%20(1).jpg",
+        "sourceFamily": "wikidata-p373"
       }
     },
     {
@@ -13647,7 +13699,8 @@
         "author": "Walter",
         "license": "CC BY 2.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ABikini%20modelling%20Del%20Bello%20Park%20pp.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ABikini%20modelling%20Del%20Bello%20Park%20pp.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -14006,7 +14059,8 @@
         "author": "Ebyabe",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ABradenton%20FL%20DeSoto%20Natl%20Mem07.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ABradenton%20FL%20DeSoto%20Natl%20Mem07.jpg",
+        "sourceFamily": "wikidata-p18"
       },
       "description": "De Soto National Memorial is a national memorial located in Manatee County, approximately five miles west of Bradenton, Florida. The national memorial commemorates the 1539 landing of Hernando de Soto and the first extensive organized exploration by Europeans of what is now the southern United States."
     },
@@ -14141,7 +14195,15 @@
         "id": 7185557314
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/di-coffee-bar.jpg",
+      "imageCredit": {
+        "author": "jackdripper",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=3993411867382548",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|diamondback-nature-preserve",
@@ -14499,7 +14561,8 @@
         "author": "Art Anderson",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ADon%20Cesar%20Hotel%20-%20panoramio%20(1).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ADon%20Cesar%20Hotel%20-%20panoramio%20(1).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -15033,7 +15096,8 @@
         "author": "Michel Curi",
         "license": "CC BY 2.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AHammock%20Park%20(15208028960).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AHammock%20Park%20(15208028960).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -15470,7 +15534,8 @@
         "author": "unclemormor",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AEagle%20Lake%20Park%20picnic%20shelter%20-%20panoramio.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AEagle%20Lake%20Park%20picnic%20shelter%20-%20panoramio.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -16088,7 +16153,8 @@
         "author": "Trevorrrrvalent",
         "license": "CC BY 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AEdward%20Medard%20Park%20Lake%20July%202024.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AEdward%20Medard%20Park%20Lake%20July%202024.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -16122,7 +16188,8 @@
         "author": "Trevorrrrvalent",
         "license": "CC BY 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AEdward%20Medard%20Park%20Lake%20July%202024.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AEdward%20Medard%20Park%20Lake%20July%202024.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -16288,7 +16355,8 @@
         "author": "Dlohcierekim's sock",
         "license": "CC BY-SA 2.5",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5",
-        "url": "https://commons.wikimedia.org/wiki/File%3AEgmont%20Key%20lighthouse01.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AEgmont%20Key%20lighthouse01.jpg",
+        "sourceFamily": "wikidata-p18"
       },
       "description": "Egmont Key National Wildlife Refuge and State Park is a National Wildlife Refuge and State Park located on the island of Egmont Key, at the mouth of Tampa Bay. Egmont Key lies southwest of Fort De Soto Park and can only be reached by boat or ferry."
     },
@@ -16322,7 +16390,8 @@
         "author": "Staci McCullough",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AEgmont%20Key%20the%20lighthouse%20from%20the%20beach.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AEgmont%20Key%20the%20lighthouse%20from%20the%20beach.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -16675,7 +16744,8 @@
         "author": "RayScript",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AElva%20Rouse%20Park.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AElva%20Rouse%20Park.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -16778,7 +16848,8 @@
         "author": "Paul Burley",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AEmerson%20Point%20Preserve%20Palmetto%20Florida%202022-7297.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AEmerson%20Point%20Preserve%20Palmetto%20Florida%202022-7297.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -17538,7 +17609,8 @@
         "author": "Patrick Braga",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AFive%20Points%20Roundabout%20in%20Sarasota%2C%20Florida.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AFive%20Points%20Roundabout%20in%20Sarasota%2C%20Florida.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -17575,7 +17647,8 @@
         "author": "RayScript",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AFlora%20Wylie%20Park.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AFlora%20Wylie%20Park.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -17606,7 +17679,8 @@
         "author": "lienyuan lee",
         "license": "CC BY 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AFlorida%20Botanical%20Gardens%20%E4%BD%9B%E7%BE%85%E9%87%8C%E9%81%94%E6%A4%8D%E7%89%A9%E5%9C%92%20-%20panoramio.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AFlorida%20Botanical%20Gardens%20%E4%BD%9B%E7%BE%85%E9%87%8C%E9%81%94%E6%A4%8D%E7%89%A9%E5%9C%92%20-%20panoramio.jpg",
+        "sourceFamily": "wikidata-p373"
       },
       "description": "The Florida Botanical Gardens (FBG) is a 182-acre (74 ha) botanical garden located in Largo, Florida within Pinewood Cultural Park. The gardens showcase a diverse array of flora, fauna, and natural resources."
     },
@@ -17970,7 +18044,8 @@
         "author": "Christopher Hollis",
         "license": "Public domain",
         "licenseUrl": null,
-        "url": "https://commons.wikimedia.org/wiki/File%3ASunset%20on%20North%20Beach%20at%20Fort%20De%20Soto%20Park.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ASunset%20on%20North%20Beach%20at%20Fort%20De%20Soto%20Park.jpg",
+        "sourceFamily": "wikidata-p18"
       },
       "description": "Fort De Soto Park is a county park located south-southwest of St. Petersburg, Florida, operated by Pinellas County. The park consists of five offshore keys, or islands: Madelaine Key, St. Jean Key, St. Christopher Key, Bonne Fortune Key and the main island, Mullet Key."
     },
@@ -18169,7 +18244,8 @@
         "author": "Mykhaylovdimitriy",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AFort%20Hamer%20Bridge.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AFort%20Hamer%20Bridge.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -18203,7 +18279,8 @@
         "author": "Mykhaylovdimitriy",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AFort%20Hamer%20Bridge.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AFort%20Hamer%20Bridge.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -18316,7 +18393,8 @@
         "author": "Walter from Tampa/St Petersburg, Florida",
         "license": "CC BY 2.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AYbor%20City%20(8061548385).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AYbor%20City%20(8061548385).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -18347,7 +18425,15 @@
         "id": 743775272
       },
       "hiddenScore": 3,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/foundation-coffee-company.jpg",
+      "imageCredit": {
+        "author": "jackdripper",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=484893932562446",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|fountain-of-youth-park",
@@ -18479,7 +18565,8 @@
         "author": "Bernard Gagnon",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AFox%20Hollow%20Golf%20Club%2C%20Florida.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AFox%20Hollow%20Golf%20Club%2C%20Florida.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -19424,7 +19511,8 @@
         "author": "Andrew Heneen",
         "license": "CC BY 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AGandy%20Bridge%20from%20Gandy%20Park%20South%2001.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AGandy%20Bridge%20from%20Gandy%20Park%20South%2001.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -20060,7 +20148,8 @@
         "author": "RayScript",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AGizella%20Kopsick%20Palm%20Arboretum.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AGizella%20Kopsick%20Palm%20Arboretum.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -20646,7 +20735,15 @@
         "id": 9056197811
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/grassroots-kava.jpg",
+      "imageCredit": {
+        "author": "samsamples",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=1169192823501228",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|gravity-rail-swing",
@@ -21537,7 +21634,15 @@
         "id": 9135772342
       },
       "hiddenScore": 0,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/gypsysouls-coffeehouse-redington.jpg",
+      "imageCredit": {
+        "author": "fdot_vl",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=225871448998975",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|h-gruber-memorial-playground",
@@ -21780,7 +21885,8 @@
         "author": "Michel Curi",
         "license": "CC BY 2.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AHammock%20Park%20(15208028960).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AHammock%20Park%20(15208028960).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -22606,7 +22712,8 @@
         "author": "Rocarra",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AHouse%20of%20Seven%20Gables%20at%20Heritage%20Village.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AHouse%20of%20Seven%20Gables%20at%20Heritage%20Village.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -23181,7 +23288,8 @@
         "author": "Mwanner at en.wikipedia",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
-        "url": "https://commons.wikimedia.org/wiki/File%3APaddling%20on%20the%20Hillsborough%20River.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3APaddling%20on%20the%20Hillsborough%20River.jpg",
+        "sourceFamily": "wikidata-p18"
       },
       "description": "Hillsborough River State Park is located in the northeast corner of Hillsborough County, Florida near Zephyrhills. It is a popular park due to its proximity to the city of Tampa. It closed in October 2024 due to damage from Hurricane Milton, and re-opened on February 24, 2025."
     },
@@ -23474,7 +23582,8 @@
         "author": "Christopher Hollis",
         "license": "Public domain",
         "licenseUrl": null,
-        "url": "https://commons.wikimedia.org/wiki/File%3AHoneymoon%20Island%20State%20Park%20(Image%202).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AHoneymoon%20Island%20State%20Park%20(Image%202).jpg",
+        "sourceFamily": "wikidata-p18"
       },
       "description": "Honeymoon Island State Park is a Florida State Park located on Honeymoon Island, a barrier island across St. Joseph Sound from Dunedin, Palm Harbor, Ozona, and Crystal Beach. The park is 385 acres (1.6 km2) in land area with 2,400 acres (10 km2) submerged and 4 miles (6 km) of beach."
     },
@@ -24202,7 +24311,8 @@
         "author": "Grendelkhan",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AIndian%20Rocks%20Beach%20Free%20Library.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AIndian%20Rocks%20Beach%20Free%20Library.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -24231,7 +24341,15 @@
         "id": 560132635
       },
       "hiddenScore": 3,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/indian-shores-coffee.jpg",
+      "imageCredit": {
+        "author": "fdot_vl",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=1342952362741418",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|indian-shores-tiki-gardens-beach-access",
@@ -25544,7 +25662,8 @@
         "author": "Geo. Paterson",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AJohn's%20Pass%20new%20bridge%20-%20panoramio.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AJohn's%20Pass%20new%20bridge%20-%20panoramio.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -25716,7 +25835,8 @@
         "author": "Flpubliclibrarian",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AParque%20Amigos%20de%20Jos%C3%A9%20Mart%C3%AD.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AParque%20Amigos%20de%20Jos%C3%A9%20Mart%C3%AD.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -25900,7 +26020,8 @@
         "author": "Josh02 11",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AJungle%20Prada.JPG"
+        "url": "https://commons.wikimedia.org/wiki/File%3AJungle%20Prada.JPG",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -26057,7 +26178,15 @@
         "id": 1758562285
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/kahwa-south.jpg",
+      "imageCredit": {
+        "author": "samsamples",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=920674348728641",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|kaleisia-tea-lounge",
@@ -26084,7 +26213,15 @@
         "id": 821357661
       },
       "hiddenScore": 3,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/kaleisia-tea-lounge.jpg",
+      "imageCredit": {
+        "author": "laye",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=1071050807021320",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|kambridge-park",
@@ -26551,7 +26688,8 @@
         "author": "Ryan Hodnett",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AKen%20Thompson%20Park%20-%20Sarasota%2C%20Florida%202023-01-23%20(01).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AKen%20Thompson%20Park%20-%20Sarasota%2C%20Florida%202023-01-23%20(01).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -26586,7 +26724,8 @@
         "author": "Ryan Hodnett",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AKen%20Thompson%20Park%20-%20Sarasota%2C%20Florida%202023-01-23%20(01).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AKen%20Thompson%20Park%20-%20Sarasota%2C%20Florida%202023-01-23%20(01).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -26620,7 +26759,8 @@
         "author": "Ryan Hodnett",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AKen%20Thompson%20Park%20-%20Sarasota%2C%20Florida%202023-01-23%20(01).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AKen%20Thompson%20Park%20-%20Sarasota%2C%20Florida%202023-01-23%20(01).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -28292,7 +28432,8 @@
         "author": "Timbot4x4",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ALake%20Seminole%20Park%20Scenery.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ALake%20Seminole%20Park%20Scenery.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -29487,7 +29628,8 @@
         "author": "Trish Hartmann from Tampa, Florida, USA",
         "license": "CC BY 2.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ABarred%20Owl%20at%20Lettuce%20Lake%20(12735495095).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ABarred%20Owl%20at%20Lettuce%20Lake%20(12735495095).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -29521,7 +29663,8 @@
         "author": "Trish Hartmann from Tampa, Florida, USA",
         "license": "CC BY 2.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ACypress%20Swamp%20at%20Lettuce%20Lake%20(41155373232).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ACypress%20Swamp%20at%20Lettuce%20Lake%20(41155373232).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -30119,7 +30262,8 @@
         "author": "Ebyabe",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ALittle%20Manatee%20River%20SP%20river01.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ALittle%20Manatee%20River%20SP%20river01.jpg",
+        "sourceFamily": "wikidata-p18"
       },
       "description": "Little Manatee River State Park is a 2,433-acre (985 ha) Florida State Park located 5 miles (8.0 km) south of Sun City, off U.S. Route 301 on Lightfoot Road and along the Little Manatee River. The park was established in 1974 as Little Manatee River State Recreation Area with 663 hectares."
     },
@@ -30609,7 +30753,8 @@
         "author": "Ryan Hodnett",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3APlant%20-%20Longboat%20Key%2C%20Florida%202023-01-24%20(02).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3APlant%20-%20Longboat%20Key%2C%20Florida%202023-01-24%20(02).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -31017,7 +31162,8 @@
         "author": "Trish Hartmann from Tampa, Florida, USA",
         "license": "CC BY 2.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AMorris%20Bridge%20Summer%20Day%20(9433839633).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AMorris%20Bridge%20Summer%20Day%20(9433839633).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -31165,7 +31311,8 @@
         "author": "SkyRose18",
         "license": "CC0",
         "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-        "url": "https://commons.wikimedia.org/wiki/File%3ALowry%20Park%20Zoological%20Garden%20Dedication%20Plaque.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ALowry%20Park%20Zoological%20Garden%20Dedication%20Plaque.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -31663,7 +31810,8 @@
         "author": "LittleT889",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AMacfarlane%20Park%2C%20Tampa.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AMacfarlane%20Park%2C%20Tampa.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -31841,7 +31989,8 @@
         "author": "Paul R. Burley",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AMadira%20Bickel%20Mound%20Site%20Terra%20Ceia%20Florida%202019-2587%2001.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AMadira%20Bickel%20Mound%20Site%20Terra%20Ceia%20Florida%202019-2587%2001.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -31869,7 +32018,15 @@
         "id": 12036821370
       },
       "hiddenScore": 3,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/madison-avenue-cafe-and-deli.jpg",
+      "imageCredit": {
+        "author": "networklanman",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=652353633233497",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|madison-park",
@@ -32194,7 +32351,8 @@
         "author": "Ebyabe",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ABradenton%20FL%20Manatee%20Mineral%20Springs%20marker01.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ABradenton%20FL%20Manatee%20Mineral%20Springs%20marker01.jpg",
+        "sourceFamily": "wikidata-p18"
       },
       "description": "Manatee Mineral Springs Park is a neighborhood park located in Bradenton, Florida. The park is named after a natural spring at the location. In 2006, the park's natural spring was designated a \"Florida Natural Spring\" by the Florida Geological Survey of Natural Springs."
     },
@@ -33853,7 +34011,8 @@
         "author": "Myotus",
         "license": "CC BY 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3A2024-Mirror%20Lake%20Library-back%2C%20St.%20Petersburg%2C%20FL.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3A2024-Mirror%20Lake%20Library-back%2C%20St.%20Petersburg%2C%20FL.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -34466,7 +34625,8 @@
         "author": "Trish Hartmann from Tampa, Florida, USA",
         "license": "CC BY 2.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AMorris%20Bridge%20Summer%20Day%20(9433839633).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AMorris%20Bridge%20Summer%20Day%20(9433839633).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -34919,7 +35079,8 @@
         "author": "Architecttype",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ANathan%20Benderson%20Park%20-%20Finish%20Tower.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ANathan%20Benderson%20Park%20-%20Finish%20Tower.jpg",
+        "sourceFamily": "wikidata-p373"
       },
       "description": "Nathan Benderson Park, previously known as North Metro Park and Cooper Creek Park, is a 600-acre (240 ha) park in the U.S. state of Florida, owned by Sarasota County."
     },
@@ -35207,7 +35368,15 @@
         "id": 7142994667
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/neighborhood-joe.jpg",
+      "imageCredit": {
+        "author": "nfgusedautoparts",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=218242623086011",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|neighborhood-park",
@@ -35592,7 +35761,15 @@
         "id": 3104244388
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/nina-s-cafe-on-the-beach.jpg",
+      "imageCredit": {
+        "author": "fdot_vl",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=3257252564502403",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|no-mow-area",
@@ -36515,7 +36692,8 @@
         "author": "Trish Hartmann from Tampa, Florida, USA",
         "license": "CC BY 2.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AWood%20Stork%20Nest%20with%20Chicks%20(49516852181).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AWood%20Stork%20Nest%20with%20Chicks%20(49516852181).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -38025,7 +38203,8 @@
         "author": "Asit K. Ghosh Thaumaturgist",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ACassiaFistula02%20PalmaSola%20Asit.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ACassiaFistula02%20PalmaSola%20Asit.jpg",
+        "sourceFamily": "wikidata-p18"
       },
       "description": "Palma Sola Botanical Park is a botanical garden located at 9800 17th Avenue N.W. Bradenton, Florida, United States. The park showcases collections of rare palms, fruits, and flowering trees, as well as three lakes, a butterfly garden, gazebo, and pavilion. It is open daily without charge."
     },
@@ -38557,7 +38736,8 @@
         "author": "Trevorrrrvalent",
         "license": "CC BY 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AFishhawk%20Ranch%20Park%20Square%20Plaza%20May%202024.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AFishhawk%20Ranch%20Park%20Square%20Plaza%20May%202024.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -38633,7 +38813,15 @@
         "id": 230856223
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/parkside-cafe.jpg",
+      "imageCredit": {
+        "author": "lvl5",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=1889082411246868",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|pasa-a-grille-beach",
@@ -39274,7 +39462,8 @@
         "author": "Payton Chung from DCA, USA",
         "license": "CC BY 2.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ABro%20Bowl%20at%20Perry%20Harvey%20Sr.%20Park%20-%20Tampa%2C%20Florida.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ABro%20Bowl%20at%20Perry%20Harvey%20Sr.%20Park%20-%20Tampa%2C%20Florida.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -39876,7 +40065,8 @@
         "author": "Jana Taylor",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3APier%2060%20at%20Clearwater%2C%20FL%202016%20-%20panoramio.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3APier%2060%20at%20Clearwater%2C%20FL%202016%20-%20panoramio.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -39960,7 +40150,15 @@
         "id": 535003345
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/pineapple-espresso.jpg",
+      "imageCredit": {
+        "author": "nfgusedautoparts",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=2988536004759309",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|pinebrook-park",
@@ -41808,7 +42006,8 @@
         "author": "Ryan Hodnett",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AQuick%20Point%20Nature%20Preserve%20-%20Longboat%20Key%2C%20Florida%202023-01-24%20(01).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AQuick%20Point%20Nature%20Preserve%20-%20Longboat%20Key%2C%20Florida%202023-01-24%20(01).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -41996,7 +42195,15 @@
         "id": 912774876
       },
       "hiddenScore": 3,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/raining-berries.jpg",
+      "imageCredit": {
+        "author": "samsamples",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=456553075449221",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|ray-s-canoe-hideaway-on-the-manatee-river-small-boats-canoes-kayaks",
@@ -42317,7 +42524,8 @@
         "author": "Gregory Urbano from St. Petersburg, Florida, USA",
         "license": "CC BY 2.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ARedington%20Long%20Pier%20Sunset%20Silhouette%20(28108622979).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ARedington%20Long%20Pier%20Sunset%20Silhouette%20(28108622979).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -42381,7 +42589,8 @@
         "author": "Walter",
         "license": "CC BY 2.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ABikini%20modelling%20Del%20Bello%20Park%20pp.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ABikini%20modelling%20Del%20Bello%20Park%20pp.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -46000,7 +46209,8 @@
         "author": "Ryan Hodnett",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ASarasota%20Bay%20-%20Sarasota%2C%20Florida%202023-01-23%20(02).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ASarasota%20Bay%20-%20Sarasota%2C%20Florida%202023-01-23%20(02).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -46494,7 +46704,8 @@
         "author": "TampAGS, for AGS Media",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ASeminole%20Heights%20Garden%20Center.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ASeminole%20Heights%20Garden%20Center.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -46825,7 +47036,8 @@
         "author": "Lakeland julie",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AControl%20structure%20at%20Se7en%20Wetlands.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AControl%20structure%20at%20Se7en%20Wetlands.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -46927,7 +47139,8 @@
         "author": "TampAGS",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AFort%20Homer%20W.%20Hesterly.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AFort%20Homer%20W.%20Hesterly.jpg",
+        "sourceFamily": "wikidata-p18"
       }
     },
     {
@@ -47380,7 +47593,8 @@
         "author": "Trevorrrrvalent",
         "license": "CC BY 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ASimmons%20Park%20Water%20Tower%20University%20of%20South%20Florida%202024.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ASimmons%20Park%20Water%20Tower%20University%20of%20South%20Florida%202024.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -48004,7 +48218,8 @@
         "author": "Raman Patel",
         "license": "CC BY 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ASnell%20Isle%20Blvd%2C%20St.%20Petersburg%20-%20panoramio.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ASnell%20Isle%20Blvd%2C%20St.%20Petersburg%20-%20panoramio.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -48251,7 +48466,8 @@
         "author": "Seekadventuremedia",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AEckerd%20College%20South%20Beach%20at%20Sunset.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AEckerd%20College%20South%20Beach%20at%20Sunset.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -48330,7 +48546,8 @@
         "author": "Ryan Hodnett",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ASouth%20Lido%20County%20Park%20-%20Sarasota%2C%20Florida%202023-01-22%20(02).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ASouth%20Lido%20County%20Park%20-%20Sarasota%2C%20Florida%202023-01-22%20(02).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -49120,7 +49337,8 @@
         "author": "Allyn Hane",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ASunset%20At%20Crabby%20Bills%20St%20Pete%20Beach%20-%20panoramio.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ASunset%20At%20Crabby%20Bills%20St%20Pete%20Beach%20-%20panoramio.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -49440,7 +49658,15 @@
         "id": 1993115667
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/starbucks-18.jpg",
+      "imageCredit": {
+        "author": "samsamples",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=753205092012301",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|starbucks-19",
@@ -49587,7 +49813,15 @@
         "id": 1723545094
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/starbucks-22.jpg",
+      "imageCredit": {
+        "author": "fdot_vl",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=158391199514303",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|starbucks-23",
@@ -49683,7 +49917,15 @@
         "id": 1948422750
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/starbucks-25.jpg",
+      "imageCredit": {
+        "author": "fdot_vl",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=1224995091291079",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|starbucks-26",
@@ -49807,7 +50049,15 @@
         "id": 1766480494
       },
       "hiddenScore": 3,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/starbucks-29.jpg",
+      "imageCredit": {
+        "author": "fdot_vl",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=1676967175824433",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|starbucks-3",
@@ -49867,7 +50117,15 @@
         "id": 212101775
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/starbucks-30.jpg",
+      "imageCredit": {
+        "author": "lvl5",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=379979213355234",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|starbucks-31",
@@ -50083,7 +50341,15 @@
         "id": 734819773
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/starbucks-37.jpg",
+      "imageCredit": {
+        "author": "fdot_vl",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=936707000397501",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|starbucks-38",
@@ -50114,7 +50380,15 @@
         "id": 4973954343
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/starbucks-38.jpg",
+      "imageCredit": {
+        "author": "fdot_vl",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=827550541208634",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|starbucks-39",
@@ -50323,7 +50597,15 @@
         "id": 1768178102
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/starbucks-44.jpg",
+      "imageCredit": {
+        "author": "cory_spatialnetworks_com",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=479138580021201",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|starbucks-45",
@@ -50443,7 +50725,15 @@
         "id": 1768177587
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/starbucks-48.jpg",
+      "imageCredit": {
+        "author": "fdot_vl",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=4013967625346366",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|starbucks-49",
@@ -50589,7 +50879,15 @@
         "id": 1985007715
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/starbucks-52.jpg",
+      "imageCredit": {
+        "author": "fdot_vl",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=844951273067945",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|starbucks-53",
@@ -50743,7 +51041,15 @@
         "id": 1015967266
       },
       "hiddenScore": 3,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/starbucks-57.jpg",
+      "imageCredit": {
+        "author": "jackdripper",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=377027563659438",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|starbucks-58",
@@ -51157,7 +51463,15 @@
         "id": 497276869
       },
       "hiddenScore": 3,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/starbucks-7.jpg",
+      "imageCredit": {
+        "author": "jpace",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=1188296658285250",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|starbucks-70",
@@ -51332,7 +51646,15 @@
         "id": 792216867
       },
       "hiddenScore": 3,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/starbucks-75.jpg",
+      "imageCredit": {
+        "author": "samsamples",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=957714605056349",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|starbucks-76",
@@ -51930,7 +52252,8 @@
         "author": "LittleT889",
         "license": "CC BY 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ASulphur%20Springs%20Museum%20and%20Heritage%20Center%202.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ASulphur%20Springs%20Museum%20and%20Heritage%20Center%202.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -52225,7 +52548,8 @@
         "author": "Ebyabe",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ASt.%20Petersburg%20FL%20Sunken%20Gardens%20gate01.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ASt.%20Petersburg%20FL%20Sunken%20Gardens%20gate01.jpg",
+        "sourceFamily": "wikidata-p18"
       },
       "description": "The Sunken Gardens are 4 acres of well-established botanical gardens, located in the Historic Old Northeast neighborhood of St. Petersburg, Florida, at 1825 4th Street North. The Gardens have existed for more than a century, and are one of the oldest roadside tourist attractions in the United States."
     },
@@ -52352,7 +52676,8 @@
         "author": "AnonymousUnknown author",
         "license": "CC0",
         "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-        "url": "https://commons.wikimedia.org/wiki/File%3ASunset%20Beach%2C%20Tarpon%20Springs%2C%20United%20States%20(Unsplash).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ASunset%20Beach%2C%20Tarpon%20Springs%2C%20United%20States%20(Unsplash).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -52385,7 +52710,8 @@
         "author": "AnonymousUnknown author",
         "license": "CC0",
         "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-        "url": "https://commons.wikimedia.org/wiki/File%3ASunset%20Beach%2C%20Tarpon%20Springs%2C%20United%20States%20(Unsplash).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ASunset%20Beach%2C%20Tarpon%20Springs%2C%20United%20States%20(Unsplash).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -52423,7 +52749,8 @@
         "author": "Roman Eugeniusz",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ASunset%20Beach%2CTreasure%20Island%2CFlorida%2CUSA.%20-%20panoramio%20(1).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ASunset%20Beach%2CTreasure%20Island%2CFlorida%2CUSA.%20-%20panoramio%20(1).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -52703,7 +53030,8 @@
         "author": "John O'Neill",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3APinellas%20National%20Wildlife%20Refuge%20from%20North%20Sunshine%20Skyway%20rest%20area.JPG"
+        "url": "https://commons.wikimedia.org/wiki/File%3APinellas%20National%20Wildlife%20Refuge%20from%20North%20Sunshine%20Skyway%20rest%20area.JPG",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -52796,7 +53124,8 @@
         "author": "Paul R. Burley",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ASutton%20Park%20Palmetto%20Florida%202019-12017.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ASutton%20Park%20Palmetto%20Florida%202019-12017.jpg",
+        "sourceFamily": "wikidata-p18"
       }
     },
     {
@@ -52821,7 +53150,15 @@
         "id": 1034672828
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/swann-avenue-market-cafe.jpg",
+      "imageCredit": {
+        "author": "PalauanReich",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=619259266713896",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|swann-circle-park",
@@ -53986,7 +54323,15 @@
         "id": 1455051629
       },
       "hiddenScore": 0,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/tenth-street-coffee.jpg",
+      "imageCredit": {
+        "author": "jcox",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=650653606780814",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|terra-ceia-bay-at-highway-19-southbound-paddlecraft-access",
@@ -54135,7 +54480,8 @@
         "author": "Paul R. Burley",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ATerra%20Ceia%20Aquatic%20Preserve%20Manatee%20County%20Florida%202020-2601.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ATerra%20Ceia%20Aquatic%20Preserve%20Manatee%20County%20Florida%202020-2601.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -54311,7 +54657,15 @@
         "id": 6608977777
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/the-bikery.jpg",
+      "imageCredit": {
+        "author": "nfgusedautoparts",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=468856554227142",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|the-blend-coffee-and-cocktails",
@@ -54496,7 +54850,8 @@
         "author": "JGHowes, photographer",
         "license": "Attribution",
         "licenseUrl": null,
-        "url": "https://commons.wikimedia.org/wiki/File%3APalm%20Harbor%20HS%20gym.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3APalm%20Harbor%20HS%20gym.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -54930,7 +55285,15 @@
         "id": 6092923214
       },
       "hiddenScore": 1,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/the-sandwich-on-main.jpg",
+      "imageCredit": {
+        "author": "cory_spatialnetworks_com",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=2904712599776057",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|the-silo-eatery",
@@ -55916,7 +56279,8 @@
         "author": "G1images",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ATreasure%20Island%20Beach.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ATreasure%20Island%20Beach.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -57456,7 +57820,8 @@
         "author": "Calmuziclover",
         "license": "CC BY 2.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AVinoy%20Park.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AVinoy%20Park.jpg",
+        "sourceFamily": "wikidata-p18"
       },
       "description": "Vinoy Park is an 11.6-acre (4.7 ha) park located on the downtown waterfront of St. Petersburg, Florida. Vinoy Park was named after the Vinoy Park Hotel, which was originally called the Vinoy Park when constructed in 1925 and sits adjacent to the park. Vinoy Park is operated by St."
     },
@@ -57571,7 +57936,8 @@
         "author": "TlyleSheph3rd",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ASpring%2C%20Wall%20Springs%20Park.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3ASpring%2C%20Wall%20Springs%20Park.jpg",
+        "sourceFamily": "wikidata-p18"
       },
       "description": "Wall Springs Park is a 210-acre (0.85 km2) park located in Palm Harbor, Florida. The park includes a historical natural spring which was used as a bathing area from the turn of the 20th century until the 1960s. The park is located in Pinellas County, on the Florida Gulf Coast."
     },
@@ -57601,7 +57967,8 @@
         "author": "Dsandii",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AEuphorbia%20cumulicola%201%20-%20Wall%20Springs%20Park%20-%20November%202025.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AEuphorbia%20cumulicola%201%20-%20Wall%20Springs%20Park%20-%20November%202025.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -58373,7 +58740,8 @@
         "author": "Ebyabe",
         "license": "CC BY 2.5",
         "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
-        "url": "https://commons.wikimedia.org/wiki/File%3AWeeden%20Island01.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AWeeden%20Island01.jpg",
+        "sourceFamily": "wikidata-p18"
       },
       "description": "The Weedon Island Preserve is a 3,190-acre natural area situated along the western shore of Tampa Bay and located at 1800 Weedon Drive NE, St. Petersburg, Florida, United States."
     },
@@ -58407,7 +58775,8 @@
         "author": "jesseasmith",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AWeedon%20Island%20preserve%20-%20panoramio%20(1).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AWeedon%20Island%20preserve%20-%20panoramio%20(1).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -58556,7 +58925,8 @@
         "author": "Tupelo the typo fixer",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AWeeki%20Wachee%20Springs%20in%20the%201950s.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AWeeki%20Wachee%20Springs%20in%20the%201950s.jpg",
+        "sourceFamily": "wikidata-p18"
       }
     },
     {
@@ -58738,7 +59108,8 @@
         "author": "Ebyabe",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AWerner-Boyce%20SP%20bldg01.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AWerner-Boyce%20SP%20bldg01.jpg",
+        "sourceFamily": "wikidata-p373"
       },
       "description": "Werner-Boyce Salt Springs State Park is a Florida state park located in Pasco County, Florida near Port Richey, Florida, along the Gulf of Mexico on the Atlantic coastal plain."
     },
@@ -59127,7 +59498,15 @@
         "id": 4225566017
       },
       "hiddenScore": 0,
-      "hidden": false
+      "hidden": false,
+      "image": "/place-img/whistle-stop-caf.jpg",
+      "imageCredit": {
+        "author": "jackdripper",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "url": "https://www.mapillary.com/app/?focus=photo&pKey=4309207739089763",
+        "sourceFamily": "mapillary-sign"
+      }
     },
     {
       "key": "p|whitaker-gateway-park",
@@ -59488,7 +59867,8 @@
         "author": "Trish Hartmann from Tampa, Florida, USA",
         "license": "CC BY 2.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AFlorida%20Jungle%20at%20Dead%20River%20(explored%202-7-20)%20-%20Flickr%20-%20trishhartmann.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AFlorida%20Jungle%20at%20Dead%20River%20(explored%202-7-20)%20-%20Flickr%20-%20trishhartmann.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -59733,7 +60113,8 @@
         "author": "RayScript",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AWilliams%20Park.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AWilliams%20Park.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -59865,7 +60246,8 @@
         "author": "amateur photography by michel",
         "license": "CC BY 2.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AWilliams%20Pier%20-%20Boca%20Ciega%20Bay%201%20-%20GeckoFest%202014.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AWilliams%20Pier%20-%20Boca%20Ciega%20Bay%201%20-%20GeckoFest%202014.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -60554,7 +60936,8 @@
         "author": "Slapp9",
         "license": "CC BY-SA 4.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AWoodmont%20Park.jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AWoodmont%20Park.jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {
@@ -60727,7 +61110,8 @@
         "author": "Walter from Tampa/St Petersburg, Florida",
         "license": "CC BY 2.0",
         "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AYbor%20City%20(8061548385).jpg"
+        "url": "https://commons.wikimedia.org/wiki/File%3AYbor%20City%20(8061548385).jpg",
+        "sourceFamily": "commons-geosearch"
       }
     },
     {

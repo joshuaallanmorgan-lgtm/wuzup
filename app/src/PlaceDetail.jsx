@@ -340,7 +340,11 @@ export default function PlaceDetail({ e, anchors, wx }) {
         {!heroArt && e.imageCredit && (
           <div className="hero-credit">
             <a href={e.imageCredit.url} target="_blank" rel="noreferrer">
-              Photo: {e.imageCredit.author || 'Wikimedia Commons'}
+              {/* author byline; when a license needs no byline (author null) fall
+                  back to the HOST keyed off the credit source — never hardcode
+                  "Wikimedia Commons" (a Mapillary photo would be mis-credited). */}
+              Photo: {e.imageCredit.author
+                || (e.imageCredit.sourceFamily === 'mapillary-sign' ? 'Mapillary' : 'Wikimedia Commons')}
             </a>
             {' · '}
             {e.imageCredit.licenseUrl ? (
