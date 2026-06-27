@@ -1622,7 +1622,7 @@ test('PROFILE_GRIND (final): title + white identity card + pencil + 6 menu cards
   // P5: "Saved" label (was "Saves"); the trio is computed from real stores
   assert.ok(/pf-stats/.test(pv) && /'Saved'/.test(pv), 'P5: the stats trio relabels Saves → Saved')
   // P6: the 6-row menu with descriptions + the right openers (path-safety intact)
-  for (const label of ['My Plans', 'My Saves', 'Taste profile', 'Customize interests', 'Settings & preferences', 'Help & feedback']) {
+  for (const label of ['My Plans', 'My Saves', 'Taste Profile', 'Customize Interests', 'Settings & Preferences', 'Help & Feedback']) {
     assert.ok(pv.includes(label), `P6: Profile menu has the "${label}" row`)
   }
   assert.ok(/pf-row-desc/.test(pv), 'P6: rows carry a description line')

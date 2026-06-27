@@ -1,12 +1,13 @@
-// DetailPage — full-page event detail (z 2000, above tabbar/subpages/Leaflet).
+// DetailPage — full-page event detail (z 2000, above tabbar/subpages).
 // Sprint B "the event's home page": honest when/where rows (end dates, address
 // fallback, maps link), trust + identity signals (buzz/sources, category chip,
-// gem/staff-pick flags, hero heat badge), 130px non-interactive mini-map
-// (tap → Map tab via onFocusMap), event-day weather, utility row (.ics download /
-// directions / share), and a More-like-this rail (swaps the detail via onSelect).
+// gem/staff-pick flags, hero heat badge), event-day weather, utility row
+// (.ics download / directions / share), and a More-like-this rail (swaps the
+// detail via onSelect). The map is parked for v1 (D8): no mini-map — location
+// rides the Directions link out to Google Maps.
 // View Transitions open/close logic lives in nav.js (O6); base detail layout in
 // App.css; Sprint-B styles in detail.css. App keys this component by event, so
-// a rail swap remounts: scroll resets, the mini-map is destroyed + rebuilt.
+// a rail swap remounts and scroll resets.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNav } from './nav.jsx'
 import { DAY, dayKey, hotDesc, Icon, keyOf, parseDate, priceLabel, timeOf } from './lib.js'

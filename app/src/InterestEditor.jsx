@@ -155,7 +155,7 @@ export default function InterestEditor({ from }) {
         </button>
         {/* S1-ST3: titled "Customize interests" to match sheet-b + the Settings
             row that opens it (was "Your interests"). */}
-        <h1 className="pg-head-title">Customize interests</h1>
+        <h1 className="pg-head-title">Customize Interests</h1>
       </header>
 
       <div className="ie-body">

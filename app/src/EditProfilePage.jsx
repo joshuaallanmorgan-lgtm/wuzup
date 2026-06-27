@@ -36,7 +36,7 @@ export default function EditProfilePage() {
         <button className="pg-back" onClick={onClose} aria-label="Back">
           <Icon.chevron />
         </button>
-        <h1 className="pg-head-title">Edit profile</h1>
+        <h1 className="pg-head-title">Edit Profile</h1>
       </header>
       <div className="pg-body ep-body">
         {/* photo — neutral monogram; upload is a stubbed future feature (no fake person) */}

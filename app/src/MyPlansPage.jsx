@@ -142,7 +142,7 @@ export default function MyPlansPage({ events, anchors }) {
           <Icon.chevron />
         </button>
         <h1 className="pg-head-title">
-          My plans{plansCount > 0 && <span className="shelf-count">{plansCount}</span>}
+          My Plans{plansCount > 0 && <span className="shelf-count">{plansCount}</span>}
         </h1>
       </header>
       <div className="pg-body">

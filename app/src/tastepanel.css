@@ -7,8 +7,8 @@
 .tp { background: var(--bg); }
 .tp-body { padding: 4px 0 120px; }
 
-.tp-sec { margin-top: 26px; padding: 0 20px; }
-.tp-sec:first-child { margin-top: 8px; }
+.tp-sec { margin-top: var(--sp-lg); padding: 0 var(--gutter); }
+.tp-sec:first-child { margin-top: var(--sp-xs); }
 .tp-over {
   font-size: 11px;
   font-weight: 800;
@@ -24,8 +24,9 @@
 /* the standing promise — the whole reason this page exists */
 .tp-promise {
   margin-top: 14px;
-  padding: 12px 13px;
-  border: 1px solid var(--line);
+  padding: var(--sp-sm);
+  /* A5/D2: drop the neutral hairline for a soft accent inset on the tinted callout */
+  border: 1px solid rgba(var(--accent-rgb), 0.14);
   border-radius: 14px;
   background: rgba(var(--accent-rgb), 0.06);
   font-size: 12.5px;
@@ -74,17 +75,19 @@
   justify-content: space-between;
   gap: 10px;
   width: 100%;
-  padding: 11px 13px;
-  border: 1px solid var(--line);
+  padding: var(--sp-sm);
+  /* A5/D2: borderless + soft lift, matching the shipped card system (was a --line box) */
+  border: none;
   border-radius: 13px;
   background: var(--card);
+  box-shadow: var(--shadow-1);
   font-family: inherit;
   color: var(--ink);
   text-align: left;
   cursor: pointer;
-  transition: transform var(--dur-micro), border-color var(--dur-micro);
+  transition: transform var(--dur-micro), box-shadow var(--dur-micro);
 }
-.tp-ctl:active { transform: scale(0.985); }
+.tp-ctl:active { transform: scale(0.985); box-shadow: var(--shadow-press); }
 .tp-ctl-cat { font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 7px; }
 
 /* the state pill on the right — the only place color signals more/less */
@@ -100,8 +103,9 @@
 .tp-ctl-state-boost { color: #fff; background: hsl(var(--ph, 200), 65%, 44%); }
 .tp-ctl-state-mute { color: var(--muted); background: var(--bg); border: 1px solid var(--line); text-decoration: line-through; }
 
-/* a boosted row glows faintly in its hue; a muted row sits back */
-.tp-ctl-boost { border-color: hsla(var(--ph, 200), 65%, 44%, 0.5); background: hsla(var(--ph, 200), 70%, 50%, 0.06); }
+/* a boosted row glows faintly in its hue; a muted row sits back. A5: base rows
+   are borderless now, so boost re-introduces a soft hue ring as its emphasis. */
+.tp-ctl-boost { border: 1px solid hsla(var(--ph, 200), 65%, 44%, 0.4); background: hsla(var(--ph, 200), 70%, 50%, 0.06); }
 .tp-ctl-mute { opacity: 0.62; }
 
 .tp-ctl-foot { margin-top: 14px; font-size: 12px; font-weight: 500; color: var(--muted); line-height: 1.5; }

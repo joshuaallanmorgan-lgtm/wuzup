@@ -3,7 +3,7 @@
 // (lib.js), CATEGORY_HUES + CATEGORY_EMOJI (cards.jsx) and the Primer's CATS.
 // Phase 2 (places) adds classes on top of this taxonomy, so one source first.
 //
-// hue = the CARD hue (spine/glow/overline tint + map pin fill) — the values
+// hue = the CARD hue (spine/glow/overline tint) — the values
 // CATEGORY_HUES has always carried. NOTE: the home-screen bubble tiles tint
 // with their own historical hues (lib.js BUBBLES) which deliberately differ
 // from these; unifying them would be a visible change, out of scope for the
@@ -34,7 +34,7 @@ export const CATEGORIES = [
 export const categoryById = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]))
 
 // the derived lookup maps cards.jsx has always exported (it re-export-shims
-// these so MapView/DetailPage/etc. keep importing from cards.jsx unchanged)
+// these so DetailPage/etc. keep importing from cards.jsx unchanged)
 export const CATEGORY_HUES = Object.fromEntries(CATEGORIES.map((c) => [c.id, c.hue]))
 export const CATEGORY_EMOJI = Object.fromEntries(CATEGORIES.map((c) => [c.id, c.emoji]))
 

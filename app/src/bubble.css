@@ -3,16 +3,20 @@
    these classes layer the per-bubble hue tint, the Near-Me locate callout, and the
    round search box on top. --bh (a 0–360 hue number) is set inline on the .pg root. */
 
-/* ===== BubblePage hue-tinted hero band (soft gradient → page bg) ===== */
+/* ===== BubblePage hero band — A5: toward the refs' clean header. The old hue
+   gradient (0.18) washed the whole band in saturated color; softened to a
+   whisper (0.05) so the header reads clean/white with only a hint of the
+   bubble's hue. Identity now lives in the dyed tagline + the LensNav chip. ===== */
 .bub-band {
   padding-bottom: 18px;
   background: linear-gradient(
     180deg,
-    hsla(var(--bh, 200), 70%, 45%, 0.18),
-    hsla(var(--bh, 200), 70%, 45%, 0)
+    hsla(var(--bh, 200), 60%, 45%, 0.05),
+    hsla(var(--bh, 200), 60%, 45%, 0)
   );
 }
-.bub-band-main { padding: 12px 6px 0; }
+/* A5: 6→0 so the title shares the back button's + the feed's 20px left ruler */
+.bub-band-main { padding: 12px 0 0; }
 .bub-title {
   display: flex;
   align-items: center;
@@ -23,7 +27,8 @@
   letter-spacing: -0.5px;
   line-height: 1.1;
 }
-.bub-emoji { flex: 0 0 auto; font-size: 30px; line-height: 1; }
+/* A5: 30→24, a tasteful identity glyph beside the title, not a dominant sticker */
+.bub-emoji { flex: 0 0 auto; font-size: 24px; line-height: 1; }
 /* playful one-liner, dyed in the bubble's hue (darkened for contrast on --bg) */
 .bub-tag { margin-top: 7px; font-size: 13.5px; font-weight: 600; color: hsl(var(--bh, 200), 45%, 32%); }
 /* 3.75: a GuidePage's "Plan a day around this" — dark ink on Sunset Gold (AA) */

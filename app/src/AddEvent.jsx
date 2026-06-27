@@ -159,7 +159,7 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
         <button className="pg-back" onClick={onClose} aria-label="Back">
           <Icon.chevron />
         </button>
-        <h1 className="pg-head-title">Add your own</h1>
+        <h1 className="pg-head-title">Add Your Own</h1>
       </header>
       <div className="pg-body">
         {done ? (

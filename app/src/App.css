@@ -32,7 +32,7 @@
 .page-hot { overflow: hidden; }
 
 /* ===== Stage R: the Home dashboard clean light header (greeting + weather) ===== */
-.home-head { padding: 22px 18px 6px; position: relative; }
+.home-head { padding: 22px var(--gutter) 6px; position: relative; } /* A5: 18→20 so the title shares the body's left ruler */
 /* S1-H1: the small muted page-name overline above the greeting. */
 .home-title {
   margin: 0 0 3px;
@@ -374,27 +374,10 @@
 .empty { padding: 64px 28px; text-align: center; color: var(--muted); line-height: 1.6; }
 .empty-sm { padding: 28px 20px; }
 
-/* ===== map (isolated so Leaflet panes never escape over chrome) ===== */
-.map-wrap { position: relative; height: 100svh; isolation: isolate; }
-.map { position: absolute; inset: 0; }
-.map-note {
-  position: absolute;
-  bottom: 86px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(21, 23, 28, 0.86);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 7px 14px;
-  border-radius: 999px;
-  z-index: 1001;
-  pointer-events: none;
-  backdrop-filter: blur(6px);
-}
-.leaflet-container { font: inherit; background: #aadaff; }
+/* (D8/A5: the map view + its .map-wrap/.map/.map-note chrome are parked for v1
+   along with MapView/leaflet — removed. Place locations route to Google Maps.) */
 
-/* ===== tab bar (above any Leaflet pane: z 1100) ===== */
+/* ===== tab bar ===== */
 .tabbar {
   position: fixed;
   bottom: 0;
@@ -470,7 +453,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: calc(12px + env(safe-area-inset-top)) 14px 12px;
+  padding: calc(12px + env(safe-area-inset-top)) var(--gutter) 12px; /* A5: 14→20, header chrome on the body gutter */
 }
 .pg-head-title { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.3px; } /* PROFILE_GRIND §0: 21px → 26px subpage-title step */
 .pg-back {
@@ -488,12 +471,12 @@
   transition: transform 0.1s;
 }
 .pg-back:active { transform: scale(0.9); }
-.pg-band { padding: calc(12px + env(safe-area-inset-top)) 14px 20px; }
+.pg-band { padding: calc(12px + env(safe-area-inset-top)) var(--gutter) 20px; } /* A5: 14→20, header chrome on the body gutter */
 .pg-band .pg-back { background: rgba(255, 255, 255, 0.75); }
 .pg-count { margin-top: 4px; font-size: 13px; font-weight: 600; color: var(--muted); }
 .pg-body { padding: 4px 0 120px; }
 
-/* ===== full-page event detail (z 2000: above tabbar + subpages + Leaflet) ===== */
+/* ===== full-page event detail (z 2000: above tabbar + subpages) ===== */
 .detail {
   position: fixed;
   top: 0;
@@ -507,7 +490,7 @@
   /* 3.7P-22: app-shell — a scrolling area (.detail-scroll) + a real bottom CTA.
      The CTA used to be position:fixed, but .detail is transformed (centering +
      detailIn/Out), so a fixed descendant is anchored to .detail and SCROLLED with
-     the content, drifting over the mini-map/About (FB-14). Now the CTA is a flex
+     the content, drifting over the About section (FB-14). Now the CTA is a flex
      sibling of the scroll area — a true bottom bar that never overlaps content. */
   display: flex;
   flex-direction: column;

@@ -10,7 +10,7 @@
    prominent search bar — replaces the cinematic image hero to match the
    benchmark's scannable top. ===== */
 .loc-head {
-  padding: 18px 18px 6px;
+  padding: 18px var(--gutter) 6px; /* A5: 18→20 so the title shares the body's left ruler */
 }
 .loc-head-title {
   margin: 0;

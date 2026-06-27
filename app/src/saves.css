@@ -111,14 +111,15 @@
    logbook: it now shows only YOUR shape per day (plans / rest / did-days), not
    what supply is saved. Those orphaned rules are gone with the plumbing.) */
 
-/* agenda day-list rows (compact .card): filled ♥ marker for saved events */
+/* agenda day-list rows (compact .card): filled stroke-heart marker for saved
+   events (A5: the engineered Icon.heartFill, off the raw ♥ glyph) */
 .card-heart {
   flex: 0 0 auto;
   align-self: center;
+  width: 16px;
+  height: 16px;
   color: var(--hot);
-  font-size: 14px;
-  line-height: 1;
-  margin: 0 -4px; /* the card's 13px gaps supply the breathing room */
+  margin: 0 -2px; /* the card's 14px gaps supply the breathing room */
 }
 
 @media (prefers-reduced-motion: reduce) {

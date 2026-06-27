@@ -17,7 +17,7 @@
   line-height: 1.55;
 }
 
-.ie-sec { margin-top: 24px; }
+.ie-sec { margin-top: var(--sp-lg); }
 .ie-over {
   font-size: 11px;
   font-weight: 800;
@@ -27,7 +27,7 @@
 }
 
 /* ===== the chip grid: every category, directly tappable ===== */
-.ie-grid { display: flex; flex-wrap: wrap; gap: 9px; }
+.ie-grid { display: flex; flex-wrap: wrap; gap: var(--sp-xs); }
 .ie-chip {
   display: inline-flex;
   align-items: center;
@@ -35,7 +35,7 @@
   height: 42px;
   padding: 0 14px;
   border-radius: 999px;
-  border: 1.5px solid var(--line);
+  border: 1px solid var(--line); /* A5/D2: 1.5→1px, softer unselected chip ring */
   background: var(--card);
   color: var(--ink);
   font: inherit;
@@ -57,10 +57,12 @@
 /* ===== the question rows ===== */
 .ie-qs { display: flex; flex-direction: column; gap: 10px; }
 .ie-q {
-  padding: 13px 14px 14px;
-  border: 1px solid var(--line);
+  padding: var(--sp-sm);
+  /* A5/D2: borderless + soft lift like the shipped card system (was a --line box) */
+  border: none;
   border-radius: 14px;
   background: var(--card);
+  box-shadow: var(--shadow-1);
 }
 .ie-q-title { font-size: 14px; font-weight: 700; }
 .ie-q-sub { margin-top: 2px; font-size: 12px; font-weight: 500; color: var(--muted); }
@@ -72,7 +74,7 @@
   height: 38px;
   padding: 0 13px;
   border-radius: 999px;
-  border: 1.5px solid var(--line);
+  border: 1px solid var(--line); /* A5/D2: 1.5→1px, softer unselected option ring */
   background: none;
   color: var(--ink);
   font: inherit;

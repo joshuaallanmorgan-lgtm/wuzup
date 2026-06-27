@@ -63,7 +63,7 @@ export default function CalendarPickerPage({ ts, anchors }) {
         <button className="pg-back" onClick={closePage} aria-label="Back">
           <Icon.chevron />
         </button>
-        <h1 className="pg-head-title">Pick a date</h1>
+        <h1 className="pg-head-title">Pick a Date</h1>
       </header>
       <div className="pg-body calpick-body">
         {showGrid && (

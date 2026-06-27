@@ -735,10 +735,10 @@
 .card {
   display: flex;
   align-items: center;
-  gap: 13px;
+  gap: 14px; /* A5: thumb→body gutter, matches the result-card image gap */
   width: calc(100% - 28px);
-  margin: 7px 14px;
-  padding: 9px;
+  margin: var(--sp-xs) 14px;
+  padding: var(--sp-md); /* A5: 9px → 16px, off the cramped tell onto the canonical card padding */
   border: none;
   text-align: left;
   background-color: var(--card);
@@ -756,7 +756,7 @@
 @keyframes cardIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .card:hover { box-shadow: 0 7px 22px rgba(26, 20, 16, 0.12); }
 .card:active { transform: scale(0.97); transition-duration: var(--dur-micro); }
-.card-thumb { flex: 0 0 58px; width: 58px; height: 58px; border-radius: 14px; } /* 3.72: unified to the 14px tile radius */
+.card-thumb { flex: 0 0 64px; width: 64px; height: 64px; border-radius: 14px; } /* A5: 58→64px hero thumb; 14px unified tile radius */
 .card-main { flex: 1; min-width: 0; }
 .card-title {
   font-size: 15px;
