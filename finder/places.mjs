@@ -25,6 +25,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { enrichPlacesWithImages } from './places-images.mjs';
 import { enrichPlacesWithDescriptions } from './places-descriptions.mjs';
+import { bbox as TB_BOX, govOrder as GOV_ORDER, touristCentroids as TOURIST_CENTROIDS } from './cities/index.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(HERE, 'output');
@@ -34,8 +35,7 @@ const SRC_DIR = join(HERE, 'places-sources');
 // ---- shared primitives, copied from finder.mjs (keep in sync) -------------
 const slugify = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-// Tampa Bay sanity box: any coordinate outside this is wrong for a local place.
-const TB_BOX = { latMin: 27.3, latMax: 28.6, lngMin: -83.3, lngMax: -81.9 };
+// Tampa Bay sanity box (TB_BOX) now comes from the active city config (cities/).
 const inBox = (lat, lng) =>
   typeof lat === 'number' && typeof lng === 'number' &&
   lat >= TB_BOX.latMin && lat <= TB_BOX.latMax &&
@@ -135,14 +135,7 @@ const GATE_M = { strong: 2500, fuzzy: 1000 };
 // ===================== source ranking (§3.4) ================================
 // Government beats OSM for hours/amenities/address/url; the order below is
 // richness-ranked for tie-breaks among gov layers.
-const GOV_ORDER = [
-  'Pinellas Park Points',
-  'Tampa Parks',
-  'FDEP State Parks',
-  'FWC Boat Ramps',
-  'SWFWMD Recreation',
-  'Hillsborough County Parks',
-];
+// GOV_ORDER now comes from the active city config (cities/).
 const srcRank = (s) => {
   const i = GOV_ORDER.indexOf(s);
   return i >= 0 ? i : 50; // OSM (and anything unknown) ranks after government
@@ -458,11 +451,7 @@ function mergeCluster(members) {
 // Proxies, all grounded in verified fields. Wiki presence is a HARD exclusion
 // (only the famous places carry wiki tags); the maintained-destination floor
 // keeps "hidden" from meaning "abandoned mud lot".
-const TOURIST_CENTROIDS = [
-  { name: 'St. Pete Pier', lat: 27.7659, lng: -82.6259 },
-  { name: 'Clearwater Beach', lat: 27.9775, lng: -82.8271 },
-  { name: 'downtown Tampa', lat: 27.9477, lng: -82.4584 },
-];
+// TOURIST_CENTROIDS now comes from the active city config (cities/).
 const FAR_FROM_TOURISTS_M = 12875; // 8 miles
 // W7 review: shuffleboard is DENSE in retiree-heavy Pinellas/Manatee neighborhood
 // parks — it's common, not a "hidden" signal, and was flooding the capped shelf.

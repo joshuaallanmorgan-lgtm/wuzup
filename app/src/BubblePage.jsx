@@ -159,7 +159,7 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
                 ? /* the denied list is diversity-ordered (orderDay), not hotScore-
                      desc — don't claim "hottest first" (DRAFT for Charles) */
                   "Couldn't find your location — showing the whole bay instead."
-                : "Tampa Bay is big — narrow it to what's near you."}
+                : `${CITY.name} is big — narrow it to what's near you.`}
             </div>
             <button className="bub-locate-btn" onClick={locate} disabled={locState === 'asking'}>
               {locState === 'asking' ? 'Locating…' : '📍 Use my location'}

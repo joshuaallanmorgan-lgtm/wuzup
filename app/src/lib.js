@@ -40,6 +40,9 @@ export const CITY = {
   // real-photo smoke guard still reads them).
   hero: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Tampa_Skyline_-_Eric_Statzer.jpg/1920px-Tampa_Skyline_-_Eric_Statzer.jpg',
   spotsHero: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Tampa_Bayshore_Blvd_looking_south01.jpg/1920px-Tampa_Bayshore_Blvd_looking_south01.jpg',
+  // city center — the single source for the weather query + the map default view
+  // (consolidated from weather.js + MapView.jsx). A new city changes only this.
+  center: { lat: 27.95, lng: -82.46 },
 }
 export const DAY = 86400000
 

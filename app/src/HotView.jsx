@@ -4,7 +4,7 @@
 // EVENTS_GRIND: Tonight carousel → vertical GemRow "Tonight's best bets" +
 // new "This weekend" section (day-grouped GemRow); both gain honest _why lines.
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { BUBBLES, CAT_BUBBLES, LENS_BUBBLES, NON_GEM_RE, dayLabel, dayLoose, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
+import { BUBBLES, CAT_BUBBLES, CITY, LENS_BUBBLES, NON_GEM_RE, dayLabel, dayLoose, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
 import LensNav from './LensNav.jsx'
 import TasteTuner from './TasteTuner.jsx'
 import { curateFeed, collapseSeries } from './curate.js'
@@ -448,7 +448,7 @@ export default function HotView({ events, anchors, loading }) {
               <SecHead
                 title={
                   <>
-                    More upcoming around Tampa Bay{' '}
+                    More upcoming around {CITY.name}{' '}
                     <span className="sec-count">
                       · {(seeAllEv ? feed.fullCount : feed.curatedCount).toLocaleString('en-US')}
                     </span>

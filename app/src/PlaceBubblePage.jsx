@@ -8,7 +8,7 @@
 // Detail-open + close come from useNav() (the shared detail layer; opening a
 // place records taste/recents generically).
 import { useMemo, useRef } from 'react'
-import { Icon } from './lib.js'
+import { CITY, Icon } from './lib.js'
 import { useNav } from './nav.jsx'
 import { RowFeed } from './cards.jsx'
 import LensNav from './LensNav.jsx'
@@ -70,7 +70,7 @@ export default function PlaceBubblePage({ bubble }) {
             {bubble.label}
           </h1>
           <div className="pg-count">
-            {count.toLocaleString('en-US')} place{count === 1 ? '' : 's'} in Tampa Bay
+            {count.toLocaleString('en-US')} place{count === 1 ? '' : 's'} in {CITY.name}
           </div>
           <div className="bub-tag">{TAGLINES[bubble.id] || 'Picked fresh for you.'}</div>
         </div>

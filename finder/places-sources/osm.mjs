@@ -13,6 +13,7 @@
 import { writeFileSync, readFileSync, existsSync, mkdirSync, statSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
+import { bboxOverpass } from '../cities/index.mjs';
 
 export const name = 'OSM';
 
@@ -23,7 +24,7 @@ const ENDPOINT = 'https://overpass-api.de/api/interpreter';
 // Works but measured 7-weeks-stale and ~90s slow — cold fallback only, logged.
 const FALLBACK_ENDPOINT = 'https://overpass.kumi.systems/api/interpreter';
 const UA = 'TampaBayWeekendApp-places/0.1 (contact: joshuaallanmorgan@gmail.com)';
-const BBOX = '(27.3,-83.3,28.6,-81.9)'; // == finder.mjs TB_BOX
+const BBOX = bboxOverpass; // == TB_BOX, from the active city config (cities/)
 const GAP_MS = 10000;                    // ≥10s between queries — binding
 const BACKOFF_MS = [20000, 40000, 60000]; // 429/504 retry ladder — binding
 

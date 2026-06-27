@@ -31,6 +31,11 @@ import { spawn } from 'node:child_process'
 import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+// city-agnostic: the box + roster anchors come from the active city config, the
+// place/category vocab from the canonical taxonomy (categories.js) — so a new city
+// doesn't fail the build on hard-coded Tampa values.
+import { bbox as CITY_BBOX, rosterBenchmark as CITY_ROSTER } from '../finder/cities/index.mjs'
+import { PLACETYPE_HUE, CATEGORY_HUES } from '../app/src/categories.js'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const APP_EVENTS = path.join(ROOT, 'app', 'public', 'events.json')
@@ -269,9 +274,9 @@ test(`data invariants: full events.json (${fullEvents.length} events)`, () => {
 //     by design, and these invariants hold on whatever it last wrote)
 // ============================================================
 const APP_PLACES = path.join(ROOT, 'app', 'public', 'places.json')
-const TB_BOX = { latMin: 27.3, latMax: 28.6, lngMin: -83.3, lngMax: -81.9 } // == finder TB_BOX
-const PLACE_CATEGORIES = new Set(['music', 'sports', 'theatre', 'comedy', 'art', 'market', 'food', 'outdoors', 'nightlife', 'family', 'community', 'other'])
-const PLACE_TYPES = new Set(['park', 'preserve', 'beach', 'trail', 'dog_park', 'garden', 'pier', 'boat_ramp', 'playground', 'viewpoint', 'courts', 'cafe'])
+const TB_BOX = CITY_BBOX // active city's sanity box (cities/)
+const PLACE_CATEGORIES = new Set(Object.keys(CATEGORY_HUES)) // canonical event-category vocab
+const PLACE_TYPES = new Set(Object.keys(PLACETYPE_HUE))      // canonical placeType vocab
 
 test('places data invariants: schema v1 places.json', () => {
   assert.ok(existsSync(APP_PLACES), `missing ${APP_PLACES} — run "node finder/places.mjs" first; the places layer has no data`)
@@ -328,12 +333,17 @@ test('places data invariants: schema v1 places.json', () => {
 
   // ROSTER BENCHMARKS on the artifact (review HARDENING: the pipeline's bench
   // lines are console-only — a generation regression must fail npm test too)
-  for (const slug of ['honeymoon-island-state-park', 'caladesi-island-state-park', 'weedon-island-preserve', 'davis-islands-beach']) {
-    assert.ok(keys.has('p|' + slug), `roster benchmark missing from generation: ${slug}`)
+  // the roster + the two specific merge guards below are the ACTIVE city's generation
+  // anchors (Tampa's live in finder/cities/tampa-bay.mjs). A city with no roster skips
+  // them — it brings its own once its sources land.
+  if (CITY_ROSTER.length) {
+    for (const slug of CITY_ROSTER) {
+      assert.ok(keys.has('p|' + slug), `roster benchmark missing from generation: ${slug}`)
+    }
+    const fortDeSoto = places.filter((p) => p.key.startsWith('p|fort-de-soto') && p.classes.includes('park'))
+    assert.equal(fortDeSoto.length, 1, `Fort De Soto must be exactly ONE park record (got: ${fortDeSoto.map((p) => p.key).join(', ') || 'none'})`)
+    assert.ok(!keys.has('p|weedon-island-preserve-2'), 'Weedon Island split into two records — the o/e-typo merge regressed')
   }
-  const fortDeSoto = places.filter((p) => p.key.startsWith('p|fort-de-soto') && p.classes.includes('park'))
-  assert.equal(fortDeSoto.length, 1, `Fort De Soto must be exactly ONE park record (got: ${fortDeSoto.map((p) => p.key).join(', ') || 'none'})`)
-  assert.ok(!keys.has('p|weedon-island-preserve-2'), 'Weedon Island split into two records — the o/e-typo merge regressed')
 
   // the finder copy and the app copy must be the same artifact (no drift)
   const FINDER_PLACES = path.join(ROOT, 'finder', 'output', 'places.json')
@@ -407,6 +417,27 @@ test('ladder-3 Mapillary cafes: local file + CC-BY-SA credit + signTextRead rece
       assert.equal(v.sourceFamily, 'mapillary-sign', `${k}: ledger sourceFamily must be 'mapillary-sign'`)
       assert.ok(v.signTextRead && String(v.signTextRead).trim().length > 0, `${k}: ledger entry missing signTextRead`)
     }
+  }
+})
+
+// FAIL-CLOSED honesty lock (multi-city): every SHIPPED Mapillary cafe must carry its
+// re-judge guard verdict (reVerified: true). The Stage-B guard fails closed — a crop
+// with no re-judge signal can't ship — and this asserts that promise survives to the
+// committed cache, so a skipped re-judge can never silently re-open the pylon /
+// dominant-subject guards (the failure mode behind the 4 Tampa false positives).
+test('fail-closed: every shipped Mapillary cafe was re-verified', () => {
+  const MAP_CACHE = path.join(ROOT, 'finder', 'cache', 'place-mapillary-images.json')
+  if (!existsSync(MAP_CACHE)) return // no cafe cache yet (a city before its imagery run)
+  const cache = JSON.parse(readFileSync(MAP_CACHE, 'utf8'))
+  const entries = Object.entries(cache.byKey || {})
+  for (const [key, e] of entries) {
+    assert.equal(e.reVerified, true, `${key}: shipped Mapillary cafe lacks its re-judge guard verdict (reVerified !== true) — fail-closed violated`)
+  }
+  // and every /place-img/ place in the data must have such a (re-verified) cache entry
+  const doc = JSON.parse(readFileSync(APP_PLACES, 'utf8'))
+  for (const p of doc.places.filter((x) => typeof x.image === 'string' && x.image.startsWith('/place-img/'))) {
+    const e = cache.byKey[p.key]
+    assert.ok(e && e.reVerified === true, `${p.name}: imaged from Mapillary but no re-verified cache entry`)
   }
 })
 
