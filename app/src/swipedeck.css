@@ -25,6 +25,14 @@
 .sd-top.grabbed { transition: none; cursor: grabbing; }
 .sd-under1 { z-index: 2; transform: scale(0.95) translateY(16px); opacity: 0.65; }
 .sd-under2 { z-index: 1; transform: scale(0.9) translateY(30px); opacity: 0.35; }
+/* D6 (motion#8): the under-cards RISE as the top card flies out — choreograph their
+   settle over the fly-out window with emphasis easing instead of the fast spring-back,
+   so the stack promotes smoothly rather than snapping. */
+.sd-under1, .sd-under2 {
+  transition:
+    transform var(--dur-emphasis, 400ms) var(--ease-emphasis),
+    opacity var(--dur-emphasis, 400ms) var(--ease-emphasis);
+}
 
 /* ===== flying exit clone (starts where the drag let go: --dx/--dy/--rot) ===== */
 .sd-exit { z-index: 4; pointer-events: none; }

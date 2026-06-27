@@ -422,7 +422,8 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
                 onClick={() => deckApi.current?.up()}
                 aria-label={saved ? 'Already saved — counts as into it' : 'Save it'}
               >
-                ♥
+                {/* D6: the engineered stroke heart (matches SaveHeart app-wide), not a raw ♥ */}
+                {saved ? <Icon.heartFill className="deck-btn-ic" aria-hidden /> : <Icon.heart className="deck-btn-ic" aria-hidden />}
               </button>
               <button
                 className="deck-btn deck-btn-yes pressable"
