@@ -21,7 +21,6 @@ import { daypartOf, DAYPART, fillOrder } from './weekend.js'
 import { dayEntryFor, loadDayPlans, saveDayPlans, withSlot } from './dayplan.js'
 import { SaveHeart, useSaves } from './saves.js'
 import './cards.css'
-import './modes.css'
 
 const PAGE_SIZE = 30
 

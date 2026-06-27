@@ -29,7 +29,7 @@
   max-width: 460px;
   margin: 0 auto;
   background: var(--card);
-  border-radius: 22px 22px 0 0;
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
   box-shadow: var(--shadow-sheet);
   padding: 16px 16px calc(20px + env(safe-area-inset-bottom));
   animation: fltUp var(--dur-page) var(--ease-emphasis);
@@ -52,7 +52,7 @@
 .flt-close {
   width: 28px;
   height: 28px;
-  border-radius: 50%;
+  border-radius: var(--r-circle);
   background: var(--muted-fill);
   border: none;
   cursor: pointer;
@@ -69,10 +69,10 @@
 }
 
 .flt-section-label {
-  font-size: 11px;
-  font-weight: 800;
+  font-size: var(--eyebrow-size); /* A6: the eyebrow contract (was 11/800/0.4px) */
+  font-weight: var(--eyebrow-weight);
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: var(--eyebrow-track);
   color: var(--muted);
   margin-bottom: 8px;
 }
@@ -88,7 +88,7 @@
   align-items: center;
   gap: 5px;
   padding: 7px 14px;
-  border-radius: 20px;
+  border-radius: var(--r-lg);
   background: var(--muted-fill);
   border: 1.5px solid transparent;
   font-size: 13.5px;
@@ -137,7 +137,7 @@
   font-weight: 800;
   letter-spacing: -0.1px;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--r-md);
   padding: 11px 24px;
   cursor: pointer;
 }

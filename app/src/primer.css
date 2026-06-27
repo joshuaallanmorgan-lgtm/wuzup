@@ -70,7 +70,7 @@
 .primer-dot {
   width: 22px;
   height: 4px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: rgba(255, 255, 255, 0.18);
   transition: background var(--dur-fast) var(--ease-out);
 }
@@ -93,7 +93,7 @@
   gap: 7px;
   height: 44px;
   padding: 0 14px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   border: 1.5px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.07);
   color: #fff;
@@ -115,7 +115,7 @@
   margin-top: 26px;
   width: 100%;
   height: 52px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   border: none;
   /* D7 premium CTA recipe: vertical gradient + inset top-sheen + ambient glow */
   background: linear-gradient(180deg, hsl(24 82% 53%), var(--cta));
@@ -137,7 +137,7 @@
   align-items: flex-start;
   gap: 6px;
   padding: 18px 16px;
-  border-radius: 18px;
+  border-radius: var(--r-lg);
   border: 1.5px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.07);
   color: #fff;
@@ -187,7 +187,7 @@
   align-items: center;
   gap: 14px;
   padding: 13px 14px;
-  border-radius: 16px;
+  border-radius: var(--r-lg);
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.06);
 }
@@ -203,7 +203,7 @@
   align-items: center;
   gap: 6px;
   padding: 8px 13px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   border: 1.5px solid var(--accent-2);
   background: rgba(255, 167, 84, 0.18);
   font-size: 14px;
@@ -222,7 +222,7 @@
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   border: 1px solid rgba(255, 255, 255, 0.22);
   background: rgba(255, 255, 255, 0.06);
   color: #ffb066; /* the kicker's Sunset Gold (light) — readable on the dark scrim (3.71) */
@@ -241,7 +241,7 @@
   flex: 0 0 auto;
   margin: 6px 24px calc(16px + env(safe-area-inset-bottom));
   height: 48px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   border: 1px solid rgba(255, 255, 255, 0.22);
   background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(6px);

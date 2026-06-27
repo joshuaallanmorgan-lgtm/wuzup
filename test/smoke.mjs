@@ -1632,7 +1632,7 @@ test('PROFILE_GRIND (final): title + white identity card + pencil + 6 menu cards
   assert.ok(/openInterests\('profile'\)/.test(pv), "Customize interests = openInterests('profile') (back to the tab)")
   // F6: the menu is 6 SEPARATE cards with circular icon discs (final ref)
   assert.ok(/\.pf-menu\s*\{[^}]*gap:/.test(css), 'F6: the menu is separated cards (gap), not one connected card')
-  assert.ok(/\.pf-row-ic\s*\{[^}]*border-radius:\s*50%/.test(css), 'F6: the row icon is a circular disc')
+  assert.ok(/\.pf-row-ic\s*\{[^}]*border-radius:\s*(50%|var\(--r-circle\))/.test(css), 'F6: the row icon is a circular disc')
   assert.ok(/\.pf-row\s*\{[^}]*box-shadow:\s*var\(--shadow-1\)/.test(css), 'F6: each menu row is its own white card (PREMIUM A4: row → --shadow-1)')
   // F7: Recently saved is REMOVED entirely (final MVP ref — no section, no See all)
   assert.ok(!/pf-recent/.test(pv) && !/Recently saved/.test(pv), 'F7: the Recently saved section is gone')

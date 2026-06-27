@@ -100,7 +100,7 @@
   place-items: center;
   width: clamp(11px, 21cqmin, 34px);
   height: clamp(11px, 21cqmin, 34px);
-  border-radius: 50%;
+  border-radius: var(--r-circle);
   background: rgba(255, 255, 255, 0.15);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16), 0 1cqmin 2cqmin rgba(0, 0, 0, 0.18);
   font-size: clamp(9px, 12cqmin, 19px);
@@ -132,7 +132,7 @@
   font-weight: 800;
   line-height: 1;
   padding: 4px 8px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: linear-gradient(135deg, var(--hot), var(--hot-2));
   color: #fff;
   box-shadow: 0 2px 8px rgba(var(--hot-rgb), 0.35); /* was a 255,60,90 transposition of --hot-rgb */
@@ -176,12 +176,10 @@
   text-align: left;
   cursor: pointer;
 }
-.tcard-img { width: 280px; aspect-ratio: var(--ar-card); border-radius: 14px; } /* 3.7P-1: framing token (was 280×157, identical 16:9) */
+.tcard-img { width: 280px; aspect-ratio: var(--ar-card); border-radius: var(--r-md); } /* 3.7P-1: framing token (was 280×157, identical 16:9) */
 .tcard-title {
   margin-top: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.25;
+  /* A6: type comes from the shared --t-card override below (retires the dead 600) */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -193,7 +191,7 @@
   height: 157px;
   scroll-snap-align: start;
   border: 1.5px dashed #d8cfc4;
-  border-radius: 14px;
+  border-radius: var(--r-md);
   background: none;
   font-family: inherit;
   font-size: 14px;
@@ -206,9 +204,9 @@
 /* ===== SpotCard (3.73b): the premium place tile — a discovery, not a row.
    placeType-aware art (3.73a) + a type label + one differentiator + 💎 badge. ===== */
 .spotcard { flex: 0 0 200px; scroll-snap-align: start; border: none; background: none; text-align: left; cursor: pointer; padding: 0; font: inherit; color: inherit; }
-.spotcard-img { display: block; width: 200px; height: 130px; border-radius: 14px; }
+.spotcard-img { display: block; width: 200px; height: 130px; border-radius: var(--r-md); }
 .spotcard-type { margin-top: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.2px; color: var(--muted); } /* PREMIUM A1 (accent restraint): placeType overline off orange */
-.spotcard-title { margin-top: 2px; font-size: 15px; font-weight: 700; line-height: 1.2; letter-spacing: -0.2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.spotcard-title { margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } /* A6: type from the shared --t-card override below */
 .spotcard-meta { margin-top: 3px; font-size: 13px; font-weight: 500; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* 3.7P-13: richer amenity chips — up to 3 icon+label utility chips + distance */
 .spotcard-amen {
@@ -225,7 +223,7 @@
 /* A2: .spot-amen base look now comes from the shared chip primitive (below). */
 .spot-amen-ic { width: 13px; height: 13px; flex: 0 0 auto; }
 .spot-amen-dist { font-weight: 500; }
-.spot-badge { position: absolute; top: 8px; left: 8px; z-index: 1; width: 28px; height: 28px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 14px; background: rgba(26, 20, 16, 0.5); backdrop-filter: blur(4px); }
+.spot-badge { position: absolute; top: 8px; left: 8px; z-index: 1; width: 28px; height: 28px; border-radius: var(--r-pill); display: flex; align-items: center; justify-content: center; font-size: 14px; background: rgba(26, 20, 16, 0.5); backdrop-filter: blur(4px); }
 /* SP-L1: honest "★ Best for" activity line on spot cards (derived from ACTIVITIES predicates, never invented) */
 .spotcard-bestfor { margin-top: 5px; font-size: 11.5px; font-weight: 700; color: var(--muted); letter-spacing: -0.05px; } /* PREMIUM A1 (accent restraint): "★ Best for" off orange */
 
@@ -251,7 +249,7 @@
      below. --ink labels stay AA on white. */
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--r-lg);
   box-shadow: var(--shadow-card);
   text-align: center;
   font-family: inherit;
@@ -267,7 +265,7 @@
   align-items: center;
   justify-content: center;
   font-size: 22px;
-  border-radius: 50%;
+  border-radius: var(--r-circle);
   /* 3.7P-20 review: 86%→80% L (+ ring 78%→70%) so the per-hue tint actually
      separates from the near-white Parchment card (pale hues were near-invisible) */
   background: hsl(var(--ih, 30) 60% 80%);
@@ -306,7 +304,7 @@
   margin: 0 20px;
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--r-lg);
   box-shadow: var(--shadow-card);
   overflow: hidden;
 }
@@ -321,10 +319,11 @@
   text-align: left;
   cursor: pointer;
 }
-/* Stage R: round the image's TOP corners to match the 18px card (1px border →
-   17px inner), so the hero corners read rounded even if overflow:hidden doesn't
-   clip the <img> on a given renderer. */
-.featc-img { display: block; width: 100%; aspect-ratio: var(--ar-card); border-radius: 17px 17px 0 0; }
+/* Stage R: round the image's TOP corners to match the --r-lg card (1px border →
+   1px-inner), so the hero corners read rounded even if overflow:hidden doesn't
+   clip the <img> on a given renderer. A6: calc(--r-lg - 1px) keeps the deliberate
+   inner-nesting the radius snap would otherwise flatten to a full --r-lg. */
+.featc-img { display: block; width: 100%; aspect-ratio: var(--ar-card); border-radius: calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px) 0 0; }
 /* 1-B: the no-photo PLACE variant — a horizontal text-rich card (small tinted
    placeType medallion + name + amenity chips), never a big flat color hero. */
 .featc-noimg .featc-open { display: flex; align-items: flex-start; gap: 14px; padding: 16px 16px 4px; }
@@ -339,7 +338,7 @@
   align-items: center;
   justify-content: center;
   font-size: 26px;
-  border-radius: 15px;
+  border-radius: var(--r-md);
   background: hsl(var(--mh, 28) 68% 92%);
 }
 .featc-med-gem { position: absolute; right: -4px; bottom: -4px; font-size: 15px; }
@@ -349,7 +348,7 @@
 .featc-title {
   font-size: var(--t-card-lg-size); /* PREMIUM A2: the FEATURED card title token */
   font-weight: var(--t-card-lg-weight);
-  line-height: 1.15;
+  line-height: var(--t-card-lg-line); /* A6: parity token (was literal 1.15) */
   letter-spacing: var(--t-card-lg-track);
   color: var(--ink);
   display: -webkit-box;
@@ -366,7 +365,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border-radius: 12px;
+  border-radius: var(--r-md);
   font-family: inherit;
   font-size: 14px;
   font-weight: 800;
@@ -401,7 +400,7 @@
   display: flex;
   height: var(--card-row-h);
   background: var(--card);
-  border-radius: 16px;
+  border-radius: var(--r-lg);
   padding: 14px;
   box-shadow: var(--shadow-card);
 }
@@ -420,7 +419,7 @@
   cursor: pointer;
 }
 /* tall left hero — fixed width, stretches to the full card height (≈ 4:5) */
-.gem-img { flex: 0 0 102px; width: 102px; align-self: stretch; border-radius: 12px; }
+.gem-img { flex: 0 0 102px; width: 102px; align-self: stretch; border-radius: var(--r-md); }
 .gem-main { flex: 1; min-width: 0; display: flex; flex-direction: column; padding-right: 26px; overflow: hidden; }
 .gem-title {
   font-size: var(--t-card-size);
@@ -463,7 +462,7 @@
   height: 30px;
   padding: 0 12px;
   border: 1px solid rgba(var(--cta-rgb), 0.5);
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: rgba(var(--cta-rgb), 0.08);
   color: var(--accent-ink); /* A2 review fix: --cta text on the 8% tint was 4.16:1 (sub-AA); --accent-ink = 4.71:1 */
   font-family: inherit;
@@ -484,15 +483,15 @@
    (area overline + title + meta), distinct from the full-width GemRow row. */
 .nbhd-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; padding: 0 20px; }
 .nbhd-card { min-width: 0; display: flex; flex-direction: column; background: none; border: none; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
-.nbhd-img { position: relative; display: block; width: 100%; aspect-ratio: 3 / 2; border-radius: 14px; }
+.nbhd-img { position: relative; display: block; width: 100%; aspect-ratio: 3 / 2; border-radius: var(--r-md); }
 .nbhd-area { margin-top: 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.1px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* PREMIUM A1 (accent restraint): area overline off orange */
-.nbhd-title { margin-top: 1px; font-size: 14px; font-weight: 700; line-height: 1.25; letter-spacing: -0.2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.nbhd-title { margin-top: 1px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } /* A6: type from the shared --t-card override below */
 .nbhd-meta { margin-top: 2px; font-size: 12px; font-weight: 500; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nbhd-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
 /* E-L2: "Why this fits" — honest derived reason, never fabricated */
 .gem-why { margin-top: 4px; font-size: 11.5px; font-weight: 700; color: var(--muted); letter-spacing: -0.1px; } /* PREMIUM A1 (accent restraint): "Why this fits" off orange */
 /* TOUCHUP P2: shared on-image badge (event time · spot distance) — dark pill, bottom-left */
-.imgbadge { position: absolute; left: 6px; bottom: 6px; z-index: 1; padding: 3px 7px; border-radius: 7px; font-size: 11px; font-weight: 800; letter-spacing: 0.1px; color: #fff; background: rgba(26, 20, 16, 0.6); backdrop-filter: blur(4px); white-space: nowrap; }
+.imgbadge { position: absolute; left: 6px; bottom: 6px; z-index: 1; padding: 3px 7px; border-radius: var(--r-sm); font-size: 11px; font-weight: 800; letter-spacing: 0.1px; color: #fff; background: rgba(26, 20, 16, 0.6); backdrop-filter: blur(4px); white-space: nowrap; }
 .spotcard-dist { left: 8px; bottom: 8px; }
 .gems-more {
   margin: 12px 20px 0;
@@ -522,7 +521,7 @@
   cursor: pointer;
 }
 .fcard-imgwrap { position: relative; display: block; }
-.fcard-img { width: 160px; height: 160px; border-radius: 14px; }
+.fcard-img { width: 160px; height: 160px; border-radius: var(--r-md); }
 .free-badge {
   position: absolute;
   top: 8px;
@@ -532,15 +531,13 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   padding: 4px 8px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: var(--free);
   color: #fff;
 }
 .fcard-title {
   margin-top: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.25;
+  /* A6: type comes from the shared --t-card override below (retires the dead 600) */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -569,8 +566,9 @@
 }
 
 /* ===== Everything / RowFeed — shared chrome only.
-   The three row TREATMENTS (editorial / poster / cinematic) live in modes.css;
-   .row here is just the button reset every treatment builds on. ===== */
+   The old editorial / poster / cinematic row treatments are retired (modes.css
+   deleted in A6); RowFeed renders the kind-aware ResultCard. .row is just the
+   button reset those cards build on. ===== */
 .feed-date {
   padding: 20px 20px 10px;
   font-size: 13px;
@@ -592,7 +590,7 @@
   font-size: 11.5px;
   font-weight: 800;
   padding: 5px 10px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: rgba(var(--accent-rgb), 0.12);
   color: var(--accent-ink);
 }
@@ -639,15 +637,20 @@
   line-height: 1;
   letter-spacing: 0;
   color: var(--ink);
-  background: #f3ede5;
-  border: 1px solid rgba(26, 20, 16, 0.07);
-  border-radius: 999px;
+  background: var(--chip-fill); /* A6: tokenized off #f3ede5 (per-city themeable) */
+  border: 1px solid var(--chip-border); /* A6: tokenized off rgba(26,20,16,0.07) */
+  border-radius: var(--r-pill);
   padding: 4px 9px;
   white-space: nowrap;
 }
 .chip { flex: 0 0 auto; align-self: center; }
 .chip-free { background: rgba(15, 168, 109, 0.12); color: var(--free); border-color: rgba(15, 168, 109, 0.22); }
-.spot-amen-ic { color: inherit; } /* the amenity glyph inherits the chip's ink (was accent) */
+/* A6: the warm-accent variant (absorbs detail's "why this is here" chip). */
+.chip-accent { background: rgba(var(--accent-rgb), 0.10); border-color: rgba(var(--accent-rgb), 0.20); color: var(--ink); }
+.chip-accent .chip-ic { color: var(--accent-ink); }
+/* A6: the canonical 12px stroke-icon slot inside a chip (generalizes .spot-amen-ic). */
+.chip-ic,
+.spot-amen-ic { width: 12px; height: 12px; flex: 0 0 12px; color: inherit; }
 .spotcard-amen { margin-top: 7px; gap: 5px; }
 
 /* (2) CARD-TITLE TOKEN: every STANDARD card title is --t-card (kills the orphan
@@ -745,7 +748,7 @@
   /* Sunlit Coastal Pop (3.71): subliminal paper grain on the card surface */
   background-image: radial-gradient(circle, rgba(26, 20, 16, 0.022) 1px, transparent 1px);
   background-size: 3px 3px;
-  border-radius: 18px;
+  border-radius: var(--r-lg);
   box-shadow: var(--shadow-1); /* PREMIUM A4: agenda card → soft rows level */
   cursor: pointer;
   font: inherit;
@@ -756,13 +759,13 @@
 @keyframes cardIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .card:hover { box-shadow: 0 7px 22px rgba(26, 20, 16, 0.12); }
 .card:active { transform: scale(0.97); transition-duration: var(--dur-micro); }
-.card-thumb { flex: 0 0 64px; width: 64px; height: 64px; border-radius: 14px; } /* A5: 58→64px hero thumb; 14px unified tile radius */
+.card-thumb { flex: 0 0 64px; width: 64px; height: 64px; border-radius: var(--r-md); } /* A5: 58→64px hero thumb; 14px unified tile radius */
 .card-main { flex: 1; min-width: 0; }
 .card-title {
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.22;
-  letter-spacing: -0.2px;
+  font-size: var(--t-card-size); /* A6: the standard card-title token (was literal 15/700/-0.2/1.22) */
+  font-weight: var(--t-card-weight);
+  line-height: var(--t-card-line);
+  letter-spacing: var(--t-card-track);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -801,7 +804,7 @@
   display: flex;
   height: var(--card-row-h);
   background: var(--card);
-  border-radius: 16px;
+  border-radius: var(--r-lg);
   padding: 14px;
   box-shadow: var(--shadow-1); /* PREMIUM A4: soft rows level (matches GemRow) */
   scroll-snap-align: unset;
@@ -820,7 +823,7 @@
   text-align: left;
   cursor: pointer;
 }
-.spotcard--row .spotcard-img { flex: 0 0 102px; width: 102px; height: auto; align-self: stretch; border-radius: 12px; }
+.spotcard--row .spotcard-img { flex: 0 0 102px; width: 102px; height: auto; align-self: stretch; border-radius: var(--r-md); }
 .spotcard--row .spotcard-body { flex: 1; min-width: 0; display: flex; flex-direction: column; padding-right: 26px; overflow: hidden; }
 .spotcard-loc {
   margin-top: 4px;
@@ -846,7 +849,7 @@
   z-index: 3000;
   max-width: 360px;
   padding: 11px 18px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: rgba(26, 20, 16, 0.92);
   color: #fff;
   font-size: 13px;
@@ -883,17 +886,17 @@
   background: linear-gradient(90deg, #ece6dd 25%, #f5f0e9 37%, #ece6dd 63%);
   background-size: 600px 100%;
   animation: skel 1.4s linear infinite;
-  border-radius: 8px;
+  border-radius: var(--r-sm);
 }
 .gem-skel { gap: 14px; pointer-events: none; }
-.gem-skel .skel-img { flex: 0 0 102px; width: 102px; align-self: stretch; border-radius: 12px; }
+.gem-skel .skel-img { flex: 0 0 102px; width: 102px; align-self: stretch; border-radius: var(--r-md); }
 .gem-skel .gem-main { display: flex; flex-direction: column; gap: 9px; padding-top: 6px; padding-right: 0; }
 .skel-line { height: 13px; }
 .skel-title { height: 17px; width: 78%; margin-bottom: 2px; }
 .skel-w70 { width: 70%; }
 .skel-w45 { width: 45%; }
 .skel-chips { display: flex; gap: 6px; margin-top: 4px; }
-.skel-chip { width: 52px; height: 20px; border-radius: 999px; }
+.skel-chip { width: 52px; height: 20px; border-radius: var(--r-pill); }
 
 /* ===== reduced motion (card-scope) ===== */
 @media (prefers-reduced-motion: reduce) {

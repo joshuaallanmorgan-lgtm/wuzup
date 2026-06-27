@@ -57,7 +57,7 @@
   max-height: 470px;
 }
 .ldk-card {
-  border-radius: 22px;
+  border-radius: var(--r-xl);
   border: 1px solid rgba(255, 255, 255, 0.10);
   /* D6: warm gradient surface + inner top-sheen (shared look with the calibration deck) */
   background: linear-gradient(168deg, #2b2118 0%, #221b14 58%, #1b1510 100%);
@@ -79,7 +79,7 @@
   top: 16px;
   z-index: 5;
   padding: 6px 12px;
-  border-radius: 10px;
+  border-radius: var(--r-sm);
   border: 2.5px solid;
   font-size: 15px;
   font-weight: 900;
@@ -98,7 +98,7 @@
 .ldk-btn {
   width: 60px;
   height: 60px;
-  border-radius: 50%;
+  border-radius: var(--r-circle);
   border: 1.5px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
@@ -128,7 +128,7 @@
   margin-top: 30px;
   height: 50px;
   padding: 0 28px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
@@ -147,7 +147,7 @@
    "Deck again" ghost — same tap target, honest about not being fresh. */
 .deckthis {
   border: 1px solid rgba(var(--accent-rgb), 0.35);
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: rgba(var(--accent-rgb), 0.08);
   padding: 6px 12px;
   font-family: inherit;

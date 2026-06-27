@@ -407,7 +407,7 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
                 <div className="d-k">Why this is here</div>
                 <div className="why-chips">
                   {why.map((r) => (
-                    <span className="why-chip" key={r}>
+                    <span className="chip chip-accent why-chip" key={r}>
                       {r}
                     </span>
                   ))}

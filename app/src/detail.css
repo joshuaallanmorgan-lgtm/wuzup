@@ -33,13 +33,10 @@
   gap: 6px;
   margin-top: 5px;
 }
+/* A6: now built on the .chip / .chip-accent primitive; this keeps only the
+   wrap override so multi-word "why" reasons can break instead of nowrapping. */
 .why-chip {
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: rgba(var(--accent-rgb), 0.08);
-  color: var(--ink);
-  font-size: 12px;
-  font-weight: 600;
+  white-space: normal;
   line-height: 1.4;
 }
 
@@ -68,7 +65,7 @@ a.d-row { text-decoration: none; color: inherit; }
 .dd-count {
   margin-left: 6px;
   padding: 1px 7px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: rgba(var(--accent-rgb), 0.1);
   color: var(--accent-ink);
   font-size: 11px;
@@ -92,7 +89,7 @@ a.d-row { text-decoration: none; color: inherit; }
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-md);
   background: var(--card);
   text-align: left;
   font-family: inherit;
@@ -134,7 +131,7 @@ a.d-row { text-decoration: none; color: inherit; }
   justify-content: center;
   gap: 6px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-md);
   background: var(--card);
   color: var(--ink);
   font-family: inherit;
@@ -200,7 +197,7 @@ a.d-row { text-decoration: none; color: inherit; }
   transform: translateX(-50%);
   z-index: 2030;
   padding: 9px 16px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: rgba(21, 23, 28, 0.92);
   color: #fff;
   font-size: 13px;

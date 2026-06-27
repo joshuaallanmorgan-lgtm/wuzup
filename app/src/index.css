@@ -67,6 +67,10 @@
      stays >= 4.5:1. Primary buttons set: background var(--cta); color #fff. */
   --cta: #bb5719;
   --cta-rgb: 187, 87, 25; /* PREMIUM A2: token for the card CTA tint/border (was hardcoded) */
+  /* A6 (components — chip primitive): the warm-sand label-chip surface, tokenized
+     off the old hardcoded #f3ede5 / rgba(26,20,16,0.07) so chips theme per-city. */
+  --chip-fill: #f3ede5; /* warm sand */
+  --chip-border: rgba(26, 20, 16, 0.07); /* hairline warm ink */
 
   /* PREMIUM A2 (typo — card-title sprawl): ONE spec for card titles. --t-card is
      every STANDARD result/tile card title; --t-card-lg is the FEATURED card only.
@@ -78,6 +82,14 @@
   --t-card-lg-size: 19px;
   --t-card-lg-weight: 800;
   --t-card-lg-track: -0.3px;
+  --t-card-lg-line: 1.15; /* A6: parity token so featured titles (.featc-title/.deck-title) drop their literal line-heights */
+  /* A6 (typo — eyebrow/overline): ONE eyebrow contract. 11px / 700 / 0.06em tracking.
+     UPPERCASE is part of the contract but applied at the use-site (text-transform:
+     uppercase) so sentence-case content overlines can adopt the metrics first and
+     flip case under Josh's review. Retires the 5-tracking, mixed-weight overline sprawl. */
+  --eyebrow-size: 11px;
+  --eyebrow-weight: 700;
+  --eyebrow-track: 0.06em;
   /* PREMIUM A2 (D1): the ONE result-card height. Every event + spot card resolves
      to this exact height (tall left image defines it) so feeds never run ragged. */
   --card-row-h: 158px;
@@ -127,6 +139,18 @@
   --ar-card: 16 / 9;
   --ar-detail: 4 / 5;
   --ar-thumb: 1 / 1;
+  /* A6 (components — radius scale): ONE 4-step corner system, replacing ~13 ad-hoc
+     literals (7/8/9/10/11/12/13/14/15/16/17/18/20px). Off-grid values snap to the
+     nearest step; the snap unifies the event + spot thumbs at --r-md and fixes the
+     stray 7px imgbadge. --r-circle (round controls/avatars/dots) + --r-xl (deck
+     cards + bottom-sheet top corners) stay distinct; 2px/6px micro-bars stay literal
+     (below the scale floor). */
+  --r-sm: 10px; /* badges, small buttons, on-image pills */
+  --r-md: 14px; /* thumbs (event + spot), tiles, inputs, most buttons */
+  --r-lg: 18px; /* cards, panels, sheets-as-blocks */
+  --r-pill: 999px; /* fully-rounded pills + chips */
+  --r-circle: 50%; /* true circles — icon buttons, avatars, knobs, dots */
+  --r-xl: 22px; /* deck swipe cards + bottom-sheet top corners */
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
