@@ -11,11 +11,15 @@
 }
 .lens-row {
   display: flex;
-  flex-wrap: wrap; /* still wraps gracefully if a longer set ever needs it */
+  flex-wrap: nowrap; /* D5: ONE line — the Map pill removal (D8) freed the slot */
   gap: 6px; /* 3.7P-19: tighter so the Events lenses + 🔎 fit one row */
+  overflow-x: auto; /* graceful: a longer future set scrolls horizontally, never wraps */
+  scrollbar-width: none; /* keep the row clean — no visible scrollbar */
 }
+.lens-row::-webkit-scrollbar { display: none; }
 .lens-pill {
   display: inline-flex;
+  flex: 0 0 auto; /* D5: pills keep their size; the row scrolls rather than compressing */
   align-items: center;
   min-height: 44px; /* comfortable tap target (a11y) */
   padding: 0 12px; /* 3.7P-19: trimmed from 15px to fit the row on one line */

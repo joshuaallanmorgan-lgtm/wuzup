@@ -12,7 +12,6 @@ import { lsGet, lsSet } from './storage.js'
 import HomeView from './HomeView.jsx'
 import HotView from './HotView.jsx'
 import LocationsView from './LocationsView.jsx'
-import MapView from './MapView.jsx'
 import CalendarView from './CalendarView.jsx'
 import ProfileView from './ProfileView.jsx'
 import MyPlansPage from './MyPlansPage.jsx'
@@ -339,10 +338,8 @@ function Shell() {
             {/* 3.75: a tapped Guide → its GuidePage (derivable intention collection) */}
             {page.type === 'guide' && <GuidePage guide={page.guide} events={norm} anchors={anchors} />}
             {page.type === 'search' && <SearchPage events={norm} anchors={anchors} coords={coords} />}
-            {/* Stage R: Map is a SUB-VIEW now (not a tab) — rendered here in the
-                single-slot subpage, reached from Events/Spots + the detail
-                mini-map (focusMap). MapView reads its active state from page.type. */}
-            {page.type === 'map' && <MapView events={norm} anchors={anchors} coords={coords} requestCoords={requestCoords} />}
+            {/* D8: the Map sub-view is parked for v1 — removed. Events/Spots no longer
+                expose a Map pill; place detail uses the Directions (Google Maps) link. */}
             {page.type === 'add' && (
               <AddEvent anchors={anchors} myEvents={myEvents} onAdd={addMine} presetTs={page.ts} />
             )}

@@ -30,7 +30,6 @@
 // to a function during render"); the semantically identical JSX form passes.
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
-import { keyOf } from './lib.js'
 import { recordSignal } from './taste.js'
 import { recordView } from './recents.js'
 
@@ -365,32 +364,8 @@ export function NavProvider({ children }) {
     }
   }, [vtOpen])
 
-  // ===== detail mini-map tap → close the detail + any subpage, jump to the
-  // Map tab, and hand MapView a focus target ({lat,lng,key}; fresh object
-  // every call so re-focusing the same event re-runs MapView's focus effect) =====
-  const [mapFocus, setMapFocus] = useState(null)
-  // Stage R: Map is a SUB-VIEW now (not a tab). openMap opens it unfocused (the
-  // "Map" affordance on Events/Spots).
-  const openMap = useCallback(() => {
-    clearTimeout(pageTRef.current)
-    setPageClosing(false)
-    setMapFocus(null)
-    setPage({ type: 'map' })
-  }, [])
-  // §O.1 path 5 (REWIRED, Stage R): the detail mini-map tap used to goTo the Map
-  // TAB; Map is now a sub-view, so it opens the {type:'map'} subpage instead. It
-  // still closes the detail, sets a FRESH focus object (re-runs MapView's focus
-  // effect every call), and carries kind so the Spots layer flips for a place.
-  const focusMap = useCallback((e) => {
-    morphElRef.current = null // card name is already cleared post-open; just drop the ref
-    setDetail(null)
-    setClosing(false)
-    setVtOpen(false)
-    clearTimeout(pageTRef.current)
-    setPageClosing(false)
-    setMapFocus({ lat: e.lat, lng: e.lng, key: keyOf(e), kind: e.kind ?? null })
-    setPage({ type: 'map' }) // open the Map sub-view (was a Map-TAB jump pre-Stage-R)
-  }, [])
+  // D8: openMap / focusMap / the mapFocus handoff (the Map sub-view) are parked for
+  // v1 — removed. Place detail routes to Google Maps via its Directions link.
 
   // Escape closes the topmost layer: detail first, then any open subpage
   // (bubble phase — MapView/PickerSheet capture-phase handlers run first)
@@ -419,7 +394,6 @@ export function NavProvider({ children }) {
       openPlaceBubble,
       openGuide,
       openSearch,
-      openMap,
       openAdd,
       openDay,
       openCalendarPicker,
@@ -442,9 +416,6 @@ export function NavProvider({ children }) {
       vtOpen,
       openDetail,
       closeDetail,
-      // detail → map handoff (Map sub-view)
-      mapFocus,
-      focusMap,
     }),
     [
       active,
@@ -458,7 +429,6 @@ export function NavProvider({ children }) {
       openPlaceBubble,
       openGuide,
       openSearch,
-      openMap,
       openAdd,
       openDay,
       openCalendarPicker,
@@ -480,8 +450,6 @@ export function NavProvider({ children }) {
       vtOpen,
       openDetail,
       closeDetail,
-      mapFocus,
-      focusMap,
     ]
   )
 

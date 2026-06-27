@@ -117,15 +117,17 @@
   height: 52px;
   border-radius: 999px;
   border: none;
-  background: var(--cta); /* D.0-R: shared primary-button fill (white text) */
+  /* D7 premium CTA recipe: vertical gradient + inset top-sheen + ambient glow */
+  background: linear-gradient(180deg, hsl(24 82% 53%), var(--cta));
   color: #fff;
   font: inherit;
   font-size: 16px;
   font-weight: 800;
   cursor: pointer;
-  transition: transform var(--dur-micro);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 6px 20px rgba(var(--cta-rgb), 0.34);
+  transition: transform var(--dur-micro), box-shadow var(--dur-fast);
 }
-.primer-next:active { transform: scale(0.98); }
+.primer-next:active { transform: scale(0.98); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 3px 12px rgba(var(--cta-rgb), 0.3); }
 
 /* steps 2–3: big tappable option cards (FMN's rhythm, teal selection) */
 .primer-opts { display: grid; gap: 12px; margin-top: 22px; }
@@ -142,10 +144,14 @@
   font: inherit;
   text-align: left;
   cursor: pointer;
+  /* D7: embossed depth on the dark surface — inset top-sheen + soft drop */
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 12px rgba(0, 0, 0, 0.22);
   transition:
     border-color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out);
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-micro);
 }
+.primer-opt:active { transform: scale(0.99); }
 .primer-opt.sel {
   border-color: var(--accent-2);
   background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.3), rgba(255, 167, 84, 0.22));

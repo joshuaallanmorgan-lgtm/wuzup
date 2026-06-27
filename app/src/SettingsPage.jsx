@@ -16,7 +16,7 @@
 // ALL COPY IS DRAFT for Charles (inventory in the sprint report).
 import { useMemo, useState } from 'react'
 import { CITY, Icon, sourceFamily } from './lib.js'
-import { useNav, viewIndex } from './nav.jsx'
+import { useNav } from './nav.jsx'
 import { lsRemove } from './storage.js'
 import { resetTaste } from './taste.js'
 import Primer from './Primer.jsx'
@@ -35,7 +35,7 @@ const fmtUpdated = (ms) => {
 }
 
 export default function SettingsPage({ events, dataAt, primer, onPrimerDone, locationAllowed, onAllowLocation }) {
-  const { closePage: onClose, openInterests, goTo } = useNav()
+  const { closePage: onClose } = useNav()
   const [retaking, setRetaking] = useState(false)
   const [arming, setArming] = useState(false) // reset's two-step confirm
   const [wiped, setWiped] = useState(false) // honest one-line receipt after a reset
@@ -73,42 +73,17 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone, loc
             (W6 hub); the rows here are demoted/retitled so they don't read as
             verbatim duplicates (⚑W5). ALL COPY DRAFT for Charles. */}
 
-        {/* ===== S1-ST1 · CUSTOMIZE YOUR FEED — the preference controls lead now
-            (sheet-b #4): Customize interests, then Retake primer nested under it.
-            (was the second section; moved above the taste deep-link so the page
-            opens on the controls, like the reference.) ===== */}
+        {/* ===== D7 (A5): the quick primer is the ONLY taste entry in Settings now.
+            "Customize interests" + the "Manage your taste in Profile" deep-link are
+            removed — taste lives in Profile, and interests is reached from there. ===== */}
         <section className="st-sec">
           <div className="st-over">Customize your feed</div>
           <div className="st-rows">
-            <button className="st-row" onClick={() => openInterests('settings')}>
-              <span className="st-row-main">
-                <span className="st-row-title">Customize interests</span>
-                <span className="st-row-sub">Pick categories + the quick ones — live, any time</span>
-              </span>
-              <span className="st-row-go" aria-hidden>→</span>
-            </button>
-            {/* "Rate & refine" (CalibrationDeck) moved to Profile (3.76 clean split) */}
             <button className="st-row" onClick={() => setRetaking(true)}>
               <span className="st-row-main">
                 {/* honest verb: a skipped first-open never "re"-takes */}
                 <span className="st-row-title">{primer?.done ? 'Retake the quick primer' : 'Take the quick primer'}</span>
                 <span className="st-row-sub">3 taps — the first-open questions{primer?.done ? ', again' : ''}</span>
-              </span>
-              <span className="st-row-go" aria-hidden>→</span>
-            </button>
-          </div>
-        </section>
-
-        {/* ===== YOUR TASTE — the quiet deep-link to the canonical taste hub in
-            Profile (3.76 clean split, D-PS1). The reference omits this Wuzup-
-            specific row; kept as an honest pointer (taste lives in Profile now). ===== */}
-        <section className="st-sec">
-          <div className="st-over">Your taste</div>
-          <div className="st-rows">
-            <button className="st-row" onClick={() => { onClose(); goTo(viewIndex('profile')) }}>
-              <span className="st-row-main">
-                <span className="st-row-title">Manage your taste in Profile</span>
-                <span className="st-row-sub">Your vibe, what your feed learned, and the calibration deck — all in one place</span>
               </span>
               <span className="st-row-go" aria-hidden>→</span>
             </button>

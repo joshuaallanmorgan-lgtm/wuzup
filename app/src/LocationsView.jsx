@@ -50,7 +50,7 @@ const SPOT_THEMES = [
 ]
 
 export default function LocationsView({ coords }) {
-  const { openDetail: onSelect, openPlaceBubble, openGuide, openSearch, openMap, openDeck } = useNav()
+  const { openDetail: onSelect, openPlaceBubble, openGuide, openSearch, openDeck } = useNav()
   // FB-03 (3.7P-7): the Spots page shows SPOTS + MIXED guides (Beach day, Free
   // outdoor reset) — the place-domain guides.
   const spotGuides = GUIDES.filter((g) => g.domain === 'spots' || g.domain === 'mixed')
@@ -171,7 +171,6 @@ export default function LocationsView({ coords }) {
         categories={PLACE_CAT_BUBBLES}
         menuLabel="All spots"
         onOpen={openPlaceBubble}
-        onMap={openMap}
       />
 
       <div className="hot-body">

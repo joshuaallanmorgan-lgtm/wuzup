@@ -11,7 +11,6 @@
 //
 // ALL COPY IS DRAFT for Charles.
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { getLeaflet } from './leaflet-lazy.js'
 import { useNav } from './nav.jsx'
 import { Icon, keyOf } from './lib.js'
 import { SecHead, TonightCard, artEmoji, auroraStyle, spotChips } from './cards.jsx'
@@ -83,7 +82,7 @@ function planDays(anchors) {
 }
 
 export default function PlaceDetail({ e, anchors, wx }) {
-  const { closing, vtOpen: vt, closeDetail: onClose, openDetail: onSelect, focusMap: onFocusMap } = useNav()
+  const { closing, vtOpen: vt, closeDetail: onClose, openDetail: onSelect } = useNav()
   const { places } = usePlaces()
   const { has: hasSave, toggle: toggleSave } = useSaves()
   const saved = hasSave(e)
@@ -166,31 +165,8 @@ export default function PlaceDetail({ e, anchors, wx }) {
     return out
   }, [free, e.fee, outdoorish, wx, wxFit, anchors])
 
-  // mini-map: lazy non-interactive Leaflet, destroyed on unmount (DetailPage's
-  // exact pattern — the shared lazy loader keeps Leaflet out of the boot chunk)
-  const mapElRef = useRef(null)
-  useEffect(() => {
-    const el = mapElRef.current
-    if (e.lat == null || e.lng == null || !el) return
-    let cancelled = false
-    let m = null
-    let t = null
-    getLeaflet().then((L) => {
-      if (cancelled || !el.isConnected) return
-      m = L.map(el, {
-        zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false,
-        touchZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false,
-      }).setView([e.lat, e.lng], 14)
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(m)
-      L.circleMarker([e.lat, e.lng], { radius: 8, color: '#fff', weight: 2.5, fillColor: '#ff8c42', fillOpacity: 1, interactive: false }).addTo(m)
-      t = setTimeout(() => m.invalidateSize(), 280)
-    })
-    return () => {
-      cancelled = true
-      clearTimeout(t)
-      if (m) m.remove()
-    }
-  }, [e.lat, e.lng])
+  // D8: the detail mini-map (lazy Leaflet) is parked for v1 — removed. Coordinates
+  // still drive the Directions button (Google Maps), below.
 
   // "More spots like this" — same placeType, nearest by simple coord delta,
   // up to 4 (places only; never crosses into events)
@@ -446,14 +422,7 @@ export default function PlaceDetail({ e, anchors, wx }) {
           </div>
         )}
 
-        {hasCoords && (
-          <div className="mini-map">
-            <div className="mini-map-canvas" ref={mapElRef} />
-            <button className="mini-map-tap" onClick={() => onFocusMap(e)} aria-label="Open in the Map tab">
-              <span className="mini-map-hint">Open in Map ↗</span>
-            </button>
-          </div>
-        )}
+        {/* D8: map parked for v1 — mini-map removed; Directions (Google Maps) stays. */}
 
         {e.description && (
           <div className="detail-about">

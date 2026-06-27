@@ -51,40 +51,8 @@
 a.d-row { text-decoration: none; color: inherit; }
 .d-ext { margin-left: 6px; font-size: 12px; font-weight: 800; color: var(--muted); } /* PREMIUM A1 (accent restraint): the external-link ↗ marker off orange */
 
-/* ===== mini-map (130px, non-interactive Leaflet; whole surface = one tap target) ===== */
-.mini-map {
-  position: relative;
-  isolation: isolate; /* contain Leaflet pane z-indexes inside the snippet */
-  height: 130px;
-  margin-top: 18px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  overflow: hidden;
-  background: #f1ece5;
-}
-.mini-map-canvas { position: absolute; inset: 0; }
-.mini-map-tap {
-  position: absolute;
-  inset: 0;
-  z-index: 1000; /* above every Leaflet pane (max 700) */
-  background: none;
-  border: none;
-  padding: 0;
-  font: inherit;
-  cursor: pointer;
-}
-.mini-map-hint {
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: rgba(21, 23, 28, 0.82);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  backdrop-filter: blur(4px);
-}
+/* D8 (A5): the detail mini-map (non-interactive Leaflet) is parked for v1 — its
+   styles are retired along with MapView. Directions (Google Maps) carries location. */
 
 /* ===== description as readable editorial prose ===== */
 .detail-about { margin-top: 26px; }
