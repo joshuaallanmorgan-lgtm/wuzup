@@ -81,37 +81,15 @@ export default function TastePanel({ from, primer }) {
         <section className="tp-sec">
           <div className="tp-headline">{headline}</div>
           <div className="tp-trust">{trustLine}</div>
-
-          {/* the standing promise — a UI constant, not derived. The whole point. */}
-          <div className="tp-promise">
-            <span aria-hidden>⚖️</span> Taste only nudges the ORDER of your feed. It never hides anything —
-            everything still shows up, just sorted toward what you seem to like.
+          {/* P1: the standing never-hide promise, re-homed from its callout widget
+              into a second trust subheader. This honesty line is load-bearing —
+              keep "reorders the order, never hides anything". */}
+          <div className="tp-trust">
+            Taste only reorders your feed — it never hides anything. Everything still shows up, just sorted toward what you seem to like.
           </div>
 
-          {sum.leans.length > 0 && (
-            <div className="tp-leans" role="list" aria-label="What your feed leans toward">
-              <div className="tp-over">Leaning toward</div>
-              {sum.leans.map((l) => {
-                const c = categoryById[l.id]
-                if (!c) return null
-                return (
-                  <div className="tp-lean" role="listitem" key={l.id}>
-                    <span className="tp-lean-name">
-                      <span aria-hidden>{c.emoji}</span> {c.label}
-                    </span>
-                    <span className="tp-bar" aria-hidden>
-                      {/* relative weight: a fraction of the strongest lean —
-                          honest "more than / less than each other", never a raw score */}
-                      <span
-                        className="tp-bar-fill"
-                        style={{ width: Math.max(6, Math.round(l.weight * 100)) + '%', '--ph': c.hue }}
-                      />
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-          )}
+          {/* P2: the "Leaning toward" relative-weight bars were retired (Josh's
+              taste-sweep). sum.leans still rides the headline; k:5 stays in tasteSummary. */}
 
           <div className="tp-facts">
             {sum.freeLeaning && (

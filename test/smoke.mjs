@@ -2352,6 +2352,17 @@ test('W2: the Calendar tab is a logbook — NO event list / counts / heat on it'
 // + the calibration deck, both 4 taps deep in Settings) get a first-class Profile
 // entry, and the deck's close affordance honors a 'profile' origin so it returns
 // to Profile (not Settings).
+test('V1 B3: Taste Profile sweep — never-hide line re-homed, promise callout + weight bars retired', () => {
+  const tp = readFileSync(path.join(ROOT, 'app', 'src', 'TastePanel.jsx'), 'utf8')
+  const css = readFileSync(path.join(ROOT, 'app', 'src', 'tastepanel.css'), 'utf8')
+  // P1: the LOAD-BEARING never-hide honesty line survives as a tp-trust subheader
+  assert.ok(/never hides anything/.test(tp) && /reorders your feed/.test(tp), 'P1: the never-hide honesty line is preserved (reorders, never hides)')
+  assert.ok(!/tp-promise/.test(tp) && !/\.tp-promise\s*\{/.test(css), 'P1: the .tp-promise callout widget + its CSS rule are gone')
+  // P2: the "Leaning toward" weight bars are gone; sum.leans still rides the headline
+  assert.ok(!/tp-leans/.test(tp) && !/\.tp-leans\s*\{/.test(css) && !/\.tp-bar-fill\s*\{/.test(css), 'P2: the .tp-leans weight-bar block + CSS rules are gone')
+  assert.ok(/sum\.leans/.test(tp), 'P2: sum.leans still feeds the headline (the data is kept, only the bars removed)')
+})
+
 test('W6 → PROFILE_GRIND: Profile surfaces taste via Taste profile (deck stays in Settings)', () => {
   // The taste hub is the "Taste profile" row → openTaste (the TastePanel, where the
   // vibe chips live). PROFILE_GRIND also adds a "Customize interests" row →
