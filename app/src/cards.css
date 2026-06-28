@@ -235,6 +235,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   gap: 10px;
+  padding: 0 var(--gutter); /* M1: the one shared margin fix — Home Quick actions + Spots By-activity/Guides all inherit the body gutter */
   align-items: stretch; /* 3.7P-20 review: equal-height tiles across a row (flush bottoms) */
 }
 .intent-tile {

@@ -1569,12 +1569,15 @@ test('3.7P-23/25 wiring: Home compact sections + clean AA-safe guide tiles', () 
   assert.ok(/By activity"\s+sub=/.test(loc), 'the Spots "By activity" header has a POV sub')
 })
 
-test('3.7P-23b §N Home: "Your next days" stack + warm greeting + weather line', () => {
-  // Stage R nav restructure: the Home dashboard (greeting + Your-next-days +
+test('3.7P-23b §N Home: "Your next days" stack + title header + weather line', () => {
+  // Stage R nav restructure: the Home dashboard (title + Your-next-days +
   // featured pick) is its own HomeView component now (split out of HotView).
+  // V1 H1/H3: the fabricated-name greeting + heroKicker were retired; the header
+  // is the shared .loc-head-title primitive + the weather sub.
   const home = readFileSync(path.join(ROOT, 'app', 'src', 'HomeView.jsx'), 'utf8')
   assert.ok(/<NextDays /.test(home), 'HomeView renders the "Your next days" planning stack')
-  assert.ok(/heroKicker\(new Date\(nowMs\)\)/.test(home), 'the Home greeting is time-of-day (no whenPref)')
+  assert.ok(/loc-head-title">Home</.test(home) && !/heroKicker/.test(home), 'V1 H1/H3: Home uses the shared .loc-head-title primitive; the greeting + heroKicker are retired')
+  assert.ok(/nowMs/.test(home) && /tonightModel\(/.test(home), 'V1 H3: nowMs is KEPT — it still feeds tonightModel (not just the retired greeting)')
   assert.ok(/wxLine/.test(home), 'the Home header shows the real weather line when loaded')
   const nd = readFileSync(path.join(ROOT, 'app', 'src', 'NextDays.jsx'), 'utf8')
   assert.ok(/loadDayPlans/.test(nd) && /dayEntryFor/.test(nd), 'NextDays reads the real day-plan store')
@@ -1646,7 +1649,7 @@ test('PROFILE_GRIND (final): title + white identity card + pencil + 6 menu cards
   const pv = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
   const css = readFileSync(path.join(ROOT, 'app', 'src', 'profile.css'), 'utf8')
   // P1: the page title
-  assert.ok(/pf-title/.test(pv) && />Profile</.test(pv), 'P1: a "Profile" page title')
+  assert.ok(/loc-head-title/.test(pv) && />Profile</.test(pv), 'P1: a "Profile" page title (V1 H1: on the shared .loc-head-title primitive)')
   // P2/P3: WHITE identity card (the old --cta fill is reverted) + monogram avatar
   assert.ok(/pf-id-card/.test(pv), 'P2: the identity card wrapper is present')
   assert.ok(/pf-avatar/.test(pv) && /pf-name/.test(pv) && /pf-loc/.test(pv), 'header = avatar + editable name + city')

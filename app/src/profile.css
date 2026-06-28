@@ -20,10 +20,13 @@
   position: relative;
   padding: calc(16px + env(safe-area-inset-top)) 20px 4px;
 }
+/* H1: scoped title→card gap. The retired .pf-title gave margin-bottom:12px; the
+   shared .loc-head-title primitive is margin:0, so restore it here on Profile only. */
+.pf-head .loc-head-title { margin-bottom: var(--sp-sm); }
 
 /* ===== PROFILE_GRIND: page title + WHITE identity card + 6-row menu ===== */
-/* P1: the page title — big bold ink (Inter, app-wide) */
-.pf-title { margin: 0 0 12px; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: var(--ink); }
+/* P1/H1: the page title is the shared .loc-head-title primitive now (32/800) — the
+   old .pf-title 26/800 rule is retired; .pf-head supplies the spacing below. */
 
 /* P2: the identity card is WHITE (reverts Batch-4's --cta fill to match the ref) —
    it wraps the avatar+name+city+pencil row AND the stats trio as one card. */

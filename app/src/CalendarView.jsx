@@ -249,7 +249,7 @@ export default function CalendarView({ events, anchors, wx }) {
           {/* Stage R: the screen name (benchmark top). The dynamic month
               ("June 2025") lives in the month nav below (.mon-title) — kept there
               rather than duplicated here. */}
-          <h2 className="cal-title">Calendar</h2>
+          <h2 className="loc-head-title">Calendar</h2>
           {/* W6 (⚑U-WKND): the Weekend pill is RETIRED. Planning happens by
               tapping a day (the month grid / day-rail open the richer day
               screen); a redundant calendar entry to the legacy multi-day

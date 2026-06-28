@@ -13,7 +13,8 @@
 /* the title row — title-only since W6 retired the Weekend pill (kept as a flex
    row so a future header slot drops in without reflow) */
 .cal-top-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 0 20px; }
-.cal-title { margin: 0 auto 0 0; font-size: 27px; font-weight: 900; letter-spacing: -0.7px; }
+/* H1: the title is the shared .loc-head-title primitive now (32/800) — the old
+   .cal-title 27/900 rule is retired; .cal-top-row supplies the gutter + flex slot. */
 
 /* (W6: the Weekend pill was retired — planning is per-day; its rule was removed.) */
 

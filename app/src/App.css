@@ -31,17 +31,10 @@
    as the .map-wrap sub-view); the pager is page / page-hot only. */
 .page-hot { overflow: hidden; }
 
-/* ===== Stage R: the Home dashboard clean light header (greeting + weather) ===== */
-.home-head { padding: 22px var(--gutter) 6px; position: relative; } /* A5: 18→20 so the title shares the body's left ruler */
-/* S1-H1: the small muted page-name overline above the greeting. */
-.home-title {
-  margin: 0 0 3px;
-  font-size: var(--eyebrow-size); /* A6: the eyebrow contract (was 12/700/0.08em) */
-  font-weight: var(--eyebrow-weight);
-  letter-spacing: var(--eyebrow-track);
-  text-transform: uppercase;
-  color: var(--muted);
-}
+/* ===== Stage R: the Home dashboard clean light header (title + weather) =====
+   H1/H3: the title is now the shared .loc-head-title primitive (locations.css); the
+   eyebrow .home-title + the .home-greet greeting + .home-wx are retired. */
+.home-head { padding: 22px var(--gutter) 6px; position: relative; }
 /* R-HD1: the Home search disc — light-surface icon button (the .pf-gear family),
    centered against the greeting line, top-right. */
 .home-search {
@@ -61,20 +54,6 @@
   transition: transform 0.12s;
 }
 .home-search:active { transform: scale(0.92); }
-.home-greet {
-  margin: 0;
-  font-size: 30px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.08;
-  color: var(--ink);
-}
-.home-wx {
-  margin-top: 5px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--muted);
-}
 /* H-L2: "View full forecast →" text link below NextDays */
 .home-forecast-link {
   display: block;
