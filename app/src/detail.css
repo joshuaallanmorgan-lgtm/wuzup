@@ -20,8 +20,8 @@
   display: inline-block;
   margin: 0 0 11px 8px;
   text-transform: capitalize;
-  background: hsl(var(--ch) 70% 93%);
-  color: hsl(var(--ch) 55% 27%);
+  background: hsl(var(--ch, 220) 70% 93%);
+  color: hsl(var(--ch, 220) 55% 27%);
 }
 
 /* ===== "Why this is here" (Sprint G3): quiet true-reason chips inside the

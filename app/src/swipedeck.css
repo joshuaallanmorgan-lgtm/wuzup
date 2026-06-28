@@ -30,8 +30,8 @@
    so the stack promotes smoothly rather than snapping. */
 .sd-under1, .sd-under2 {
   transition:
-    transform var(--dur-emphasis, 400ms) var(--ease-emphasis),
-    opacity var(--dur-emphasis, 400ms) var(--ease-emphasis);
+    transform var(--dur-emphasis) var(--ease-emphasis),
+    opacity var(--dur-emphasis) var(--ease-emphasis);
 }
 
 /* ===== flying exit clone (starts where the drag let go: --dx/--dy/--rot) ===== */

@@ -566,9 +566,9 @@
 }
 
 /* ===== Everything / RowFeed — shared chrome only.
-   The old editorial / poster / cinematic row treatments are retired (modes.css
-   deleted in A6); RowFeed renders the kind-aware ResultCard. .row is just the
-   button reset those cards build on. ===== */
+   The old editorial / poster / cinematic row treatments are retired; RowFeed
+   renders the kind-aware ResultCard. .row is just the button reset those cards
+   build on. ===== */
 .feed-date {
   padding: 20px 20px 10px;
   font-size: 13px;
@@ -647,9 +647,7 @@
 .chip-free { background: rgba(15, 168, 109, 0.12); color: var(--free); border-color: rgba(15, 168, 109, 0.22); }
 /* A6: the warm-accent variant (absorbs detail's "why this is here" chip). */
 .chip-accent { background: rgba(var(--accent-rgb), 0.10); border-color: rgba(var(--accent-rgb), 0.20); color: var(--ink); }
-.chip-accent .chip-ic { color: var(--accent-ink); }
-/* A6: the canonical 12px stroke-icon slot inside a chip (generalizes .spot-amen-ic). */
-.chip-ic,
+/* the 12px stroke-icon slot inside a chip */
 .spot-amen-ic { width: 12px; height: 12px; flex: 0 0 12px; color: inherit; }
 .spotcard-amen { margin-top: 7px; gap: 5px; }
 

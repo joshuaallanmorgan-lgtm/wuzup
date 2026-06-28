@@ -1,5 +1,7 @@
 # UI Build Spec — "What's Hot" feed, chips, motion, calendar
 
+> ⚠️ **Palette superseded:** the teal `--accent: #0d9488` named below is historical. The app's tokens + palette are now the warm system in **[DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)** (Stage A6, authority for design primitives). This doc stays the feed/chips/calendar *build* reference; read it for layout, not color tokens.
+
 ## 🏆 TASTING VERDICT (Josh + Charles, 2026-06-10): **EDITORIAL WINS.**
 Editorial is the app's design direction and default. **Fold in** select Poster elements (its density/color energy — e.g. FREE badge overlays, category-hue accents, grid moments where a section is naturally scannable) and keep Cinematic's *vibe* for surfaces that are naturally dark/dramatic (Find My Night already lives there; The Big One; potentially nightlife contexts) — but Cinematic as a whole-feed mode has "tougher applications." Further development continues WITHIN editorial: section displays and naming still need refinement. The 🎨 toggle stays temporarily as a comparison tool; retire it once consolidation lands.
 

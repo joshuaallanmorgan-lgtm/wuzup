@@ -268,7 +268,8 @@ export function CardImg({ e, className = '', children }) {
   )
 }
 
-// compact agenda card (64px thumb) — kept for the Calendar agenda (saved events show their ♥)
+// compact event card (64px thumb, saved events show their ♥). NOTE: currently
+// unrendered — the day agenda moved to DayPage; kept as a compact card variant.
 export function EventCard({ e, onSelect, index = 0 }) {
   const { has } = useSaves()
   const meta = [startLabel(e), e.venue].filter(Boolean).join(' · ')

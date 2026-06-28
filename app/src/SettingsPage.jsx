@@ -63,7 +63,7 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone, loc
         <button className="pg-back" onClick={onClose} aria-label="Back">
           <Icon.chevron />
         </button>
-        <h1 className="pg-head-title">Settings</h1>
+        <h1 className="pg-head-title">Settings &amp; Preferences</h1>
       </header>
 
       <div className="st-body">

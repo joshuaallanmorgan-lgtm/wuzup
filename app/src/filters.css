@@ -1,6 +1,6 @@
 /* FiltersSheet — EVENTS_PHASE2 bottom-sheet, mirrors the Map filter-sheet pattern */
 
-/* mfFade / mfUp are also defined in map.css; identical keyframes, no conflict */
+/* fltFade / fltUp open the sheet (the map's old mfFade/mfUp were retired with map.css, D8) */
 @keyframes fltFade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fltUp   { from { transform: translateY(100%); } to { transform: none; } }
 
@@ -53,7 +53,7 @@
   width: 28px;
   height: 28px;
   border-radius: var(--r-circle);
-  background: var(--muted-fill);
+  background: var(--chip-fill);
   border: none;
   cursor: pointer;
   font-size: 12px;
@@ -89,7 +89,7 @@
   gap: 5px;
   padding: 7px 14px;
   border-radius: var(--r-lg);
-  background: var(--muted-fill);
+  background: var(--chip-fill);
   border: 1.5px solid transparent;
   font-size: 13.5px;
   font-weight: 600;
@@ -111,7 +111,7 @@
   justify-content: space-between;
   margin-top: 4px;
   padding-top: 16px;
-  border-top: 1px solid var(--divider);
+  border-top: 1px solid var(--line);
 }
 
 .flt-reset {
