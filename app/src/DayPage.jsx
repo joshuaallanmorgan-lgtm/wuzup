@@ -87,7 +87,14 @@ export default function DayPage({ ts, events, anchors, wx }) {
   // for one beat, then clears.
   const [justFilled, setJustFilled] = useState(null)
   const fillTRef = useRef(null)
-  useEffect(() => () => clearTimeout(fillTRef.current), [])
+  const doneTRef = useRef(null) // P2: the post-fill "tap-through closes Plan" timer
+  useEffect(
+    () => () => {
+      clearTimeout(fillTRef.current)
+      clearTimeout(doneTRef.current)
+    },
+    []
+  )
   // Plan Phase 2: the planned-item "⋯" menu (flows-1 p4) — Move to a different
   // time / Remove from plan. menuPart = the slot whose ⋯ is open; moveMode flips
   // the menu to the daypart chooser.
@@ -260,6 +267,12 @@ export default function DayPage({ ts, events, anchors, wx }) {
     clearTimeout(fillTRef.current)
     fillTRef.current = setTimeout(() => setJustFilled(null), 460)
     closeSheet()
+    // P2 tap-through: filling a slot via the picker is a complete planning action.
+    // After the fill pops (under the sliding sheet), fully close DayPage back to the
+    // Plan tab so the flow ends cleanly — no manual back tap. (Bulk multi-slot
+    // filling is the DayFillDeck's job; this single pick is "done".)
+    clearTimeout(doneTRef.current)
+    doneTRef.current = setTimeout(() => onClose(), 480)
   }
 
   // ===== share this day (U-c): the entirety of invites v1 — a human text + a
