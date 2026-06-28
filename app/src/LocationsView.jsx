@@ -81,13 +81,13 @@ export default function LocationsView({ coords }) {
   // SpotCard ROW lists (ref-spots-full), so a tighter top set.
   const nearSpots = useMemo(() => {
     const pool = coords && near.length ? near : all
-    return pool.filter((p) => imageMode(p) !== 'none').slice(0, 4)
+    return pool.filter((p) => imageMode(p) !== 'none').slice(0, 3)
   }, [near, all, coords])
 
   // SP-L3: "Worth the drive" = next batch of spots not already shown in nearSpots.
   const driveSpots = useMemo(() => {
     const nearKeys = new Set(nearSpots.map((p) => p.key))
-    return all.filter((p) => !nearKeys.has(p.key) && imageMode(p) !== 'none').slice(0, 4)
+    return all.filter((p) => !nearKeys.has(p.key) && imageMode(p) !== 'none').slice(0, 3)
   }, [all, nearSpots])
 
   // SPOTS_GRIND themed sections — each a curated vertical SpotCard-row list, real
@@ -99,7 +99,7 @@ export default function LocationsView({ coords }) {
         const matched = all.filter(t.match)
         const withPhoto = matched.filter((p) => imageMode(p) !== 'none')
         const pool = withPhoto.length >= 4 ? withPhoto : matched
-        const items = coords ? nearest(pool, coords, 4) : pool.slice(0, 4)
+        const items = coords ? nearest(pool, coords, 3) : pool.slice(0, 3)
         return { t, items, total: matched.length }
       }).filter((s) => s.total >= 3 && s.items.length > 0),
     [all, coords]

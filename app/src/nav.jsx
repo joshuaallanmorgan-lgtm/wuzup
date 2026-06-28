@@ -111,6 +111,11 @@ export function NavProvider({ children }) {
       // via the CSS reset. Reflow restart so re-tapping the same tab replays it.
       const child = p && p.children[i]
       if (child) {
+        // N1: reset scroll to top on tab change (incl. an active re-tap) — both
+        // container shapes: the .page itself, and a .hot-scroll nested inside it.
+        child.scrollTop = 0
+        const hs = child.querySelector('.hot-scroll')
+        if (hs) hs.scrollTop = 0
         child.classList.remove('tab-settle')
         void child.offsetWidth
         child.classList.add('tab-settle')

@@ -1548,7 +1548,7 @@ test('3.7P-39 section-label honesty: job/career fairs are not Hidden Gems', () =
     assert.ok(!re.test(t), 'a real gem is NOT excluded: ' + t)
   }
   const hot = readFileSync(path.join(ROOT, 'app', 'src', 'HotView.jsx'), 'utf8')
-  assert.ok(/hidden-gem'\) && !NON_GEM_RE\.test/.test(hot), 'HotView gates the gem shelf with NON_GEM_RE')
+  assert.ok(!/NON_GEM_RE/.test(hot) && !/Under the radar/.test(hot), 'V1 S1: the HotView Hidden Gems shelf is retired (NON_GEM_RE + the "Under the radar" section gone; gems still gate in finder/taste/curate)')
   const finder = readFileSync(path.join(ROOT, 'finder', 'finder.mjs'), 'utf8')
   assert.ok(/NON_GEM_RE/.test(finder), 'finder.mjs carries the synced NON_GEM_RE exclusion (clean future runs)')
 })

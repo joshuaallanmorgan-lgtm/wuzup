@@ -4,7 +4,7 @@
 // EVENTS_GRIND: Tonight carousel → vertical GemRow "Tonight's best bets" +
 // new "This weekend" section (day-grouped GemRow); both gain honest _why lines.
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { BUBBLES, CAT_BUBBLES, CITY, LENS_BUBBLES, NON_GEM_RE, dayLabel, dayLoose, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
+import { BUBBLES, CAT_BUBBLES, CITY, LENS_BUBBLES, dayLabel, dayLoose, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
 import LensNav from './LensNav.jsx'
 import TasteTuner from './TasteTuner.jsx'
 import { curateFeed, collapseSeries } from './curate.js'
@@ -82,11 +82,6 @@ export default function HotView({ events, anchors, loading }) {
     [watchGuides, upcoming, anchors]
   )
 
-  const gems = useMemo(
-    () => upcoming.filter((e) => e.tags.includes('hidden-gem') && !NON_GEM_RE.test(e.title || '')).sort(hotDesc),
-    [upcoming]
-  )
-
   // TINDER P3: two REAL hot upcoming events for the Tune-your-taste preview cards
   // (the tags illustrate the swipe control — they assert no verdict on these).
   const tuneSamples = useMemo(() => [...upcoming].sort(hotDesc).slice(0, 2), [upcoming])
@@ -160,7 +155,7 @@ export default function HotView({ events, anchors, loading }) {
   const todayWx = wx ? wx[dateKey(anchors.todayTs)] : null
   const tonightTagged = useMemo(() => {
     const nudge = (ev) => tasteNudge(ev, taste)
-    return tonight.items.slice(0, 6).map(({ e }) => ({
+    return tonight.items.slice(0, 3).map(({ e }) => ({
       ...e,
       _why: whyFits(e, { w: todayWx, nudge }),
     }))
@@ -180,7 +175,7 @@ export default function HotView({ events, anchors, loading }) {
       out.push({
         ts,
         label: dow === 5 ? 'Friday' : 'Saturday',
-        evs: evs.slice(0, 6).map((e) => ({ ...e, _why: whyFits(e, { w: wxDay, nudge }) })),
+        evs: evs.slice(0, 3).map((e) => ({ ...e, _why: whyFits(e, { w: wxDay, nudge }) })),
       })
     }
     return out
@@ -193,12 +188,12 @@ export default function HotView({ events, anchors, loading }) {
     return upcoming
       .filter((e) => e._day != null && e._day > anchors.todayTs)
       .sort(hotDesc)
-      .slice(0, 4)
+      .slice(0, 3)
       .map((e) => ({ ...e, _why: whyFits(e, { w: wx ? wx[dateKey(e._day)] : null, nudge }) }))
   }, [upcoming, anchors, wx, taste])
   // "Free & Easy": free upcoming events (the section gates off when there are none).
   const freeEasy = useMemo(
-    () => upcoming.filter((e) => e._free === true || e.isFree === true).sort(hotDesc).slice(0, 4),
+    () => upcoming.filter((e) => e._free === true || e.isFree === true).sort(hotDesc).slice(0, 3),
     [upcoming]
   )
   // "Recurring Series": collapsed series carrying ≥1 more date (genuinely recurring),
@@ -208,7 +203,7 @@ export default function HotView({ events, anchors, loading }) {
       collapseSeries(upcoming)
         .filter((g) => (g._moreDates || 0) > 0)
         .sort((a, b) => (b._moreDates || 0) - (a._moreDates || 0) || hotDesc(a, b))
-        .slice(0, 4),
+        .slice(0, 3),
     [upcoming]
   )
   // "Neighborhood Picks": the best upcoming pick per DISTINCT area (parsed city),
@@ -223,7 +218,7 @@ export default function HotView({ events, anchors, loading }) {
       if (seen.has(key)) continue
       seen.add(key)
       out.push({ ...e, _area: area })
-      if (out.length >= 6) break
+      if (out.length >= 3) break
     }
     return out
   }, [upcoming])
@@ -352,19 +347,9 @@ export default function HotView({ events, anchors, loading }) {
           </section>
         )}
 
-        {gems.length > 0 && (
-          <section className={'sec' + ent(2).className} style={ent(2).style}>
-            <SecHead overline="Under the radar" title="Hidden Gems" sub={`${gems.length} hand-scored find${gems.length === 1 ? '' : 's'}`} />
-            <div className="home-picks">
-              {gems.slice(0, 3).map((e) => (
-                <GemRow key={keyOf(e)} e={e} onSelect={onSelect} />
-              ))}
-            </div>
-            <button className="gems-more" onClick={() => scrollToList(evRef.current)}>
-              Browse everything →
-            </button>
-          </section>
-        )}
+        {/* V1 S1: the dedicated "Hidden Gems" magazine shelf was retired (Josh). The
+            gems are NOT hidden — they still surface in Everything + via the gem tag in
+            the finder/taste/curate readers; only the standalone shelf is gone. */}
 
         {/* EVENTS_GRIND: "Free & Easy" — free upcoming events (gated on existence). */}
         {freeEasy.length >= 2 && (
