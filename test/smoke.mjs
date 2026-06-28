@@ -1622,7 +1622,7 @@ test('PROFILE_GRIND (final): title + white identity card + pencil + 6 menu cards
   // P5: "Saved" label (was "Saves"); the trio is computed from real stores
   assert.ok(/pf-stats/.test(pv) && /'Saved'/.test(pv), 'P5: the stats trio relabels Saves → Saved')
   // P6: the 6-row menu with descriptions + the right openers (path-safety intact)
-  for (const label of ['My Plans', 'My Saves', 'Taste profile', 'Customize interests', 'Settings & preferences', 'Help & feedback']) {
+  for (const label of ['My Plans', 'My Saves', 'Taste Profile', 'Customize Interests', 'Settings & Preferences', 'Help & Feedback']) {
     assert.ok(pv.includes(label), `P6: Profile menu has the "${label}" row`)
   }
   assert.ok(/pf-row-desc/.test(pv), 'P6: rows carry a description line')
@@ -1632,7 +1632,7 @@ test('PROFILE_GRIND (final): title + white identity card + pencil + 6 menu cards
   assert.ok(/openInterests\('profile'\)/.test(pv), "Customize interests = openInterests('profile') (back to the tab)")
   // F6: the menu is 6 SEPARATE cards with circular icon discs (final ref)
   assert.ok(/\.pf-menu\s*\{[^}]*gap:/.test(css), 'F6: the menu is separated cards (gap), not one connected card')
-  assert.ok(/\.pf-row-ic\s*\{[^}]*border-radius:\s*50%/.test(css), 'F6: the row icon is a circular disc')
+  assert.ok(/\.pf-row-ic\s*\{[^}]*border-radius:\s*(50%|var\(--r-circle\))/.test(css), 'F6: the row icon is a circular disc')
   assert.ok(/\.pf-row\s*\{[^}]*box-shadow:\s*var\(--shadow-1\)/.test(css), 'F6: each menu row is its own white card (PREMIUM A4: row → --shadow-1)')
   // F7: Recently saved is REMOVED entirely (final MVP ref — no section, no See all)
   assert.ok(!/pf-recent/.test(pv) && !/Recently saved/.test(pv), 'F7: the Recently saved section is gone')
@@ -1688,20 +1688,8 @@ test('3.7P-24 §N spot detail: Best-for (from activity predicates) + honest Watc
   assert.ok(/check the forecast/.test(pd), 'Watch-out cautions are honest (paid gate + real rainy forecast), not fabricated')
 })
 
-test('3.7P-28 §N Map: in-view decision deck (curated picks + honest count, seam-safe)', () => {
-  const mv = readFileSync(path.join(ROOT, 'app', 'src', 'MapView.jsx'), 'utf8')
-  assert.ok(/map-deck/.test(mv), 'Map renders the in-view decision deck')
-  // count + picks come from ONE live bounds scan (never a static/fabricated list)
-  assert.ok(/for \(const e of withCoords\) if \(b\.contains/.test(mv), 'the deck scans the live map bounds')
-  assert.ok(/setInView\(vis\.length\)/.test(mv) && /setPicks\(/.test(mv), 'one scan feeds both the in-view count and the picks')
-  // D3: picks curated by a REAL signal (event buzz; a hot ring counts double), capped
-  assert.ok(/typeof e\.buzz === 'number'/.test(mv) && /e\.buzz >= 3 \? 5 : 0/.test(mv), 'picks are ranked by real buzz (a hot ring counts double)')
-  assert.ok(/\.slice\(0, 8\)/.test(mv), 'the deck caps its picks (never holds the whole in-view set — never-hide still holds)')
-  // D6 honesty: "Top picks" only when a ranking truly exists, else neutral
-  assert.ok(/ranked \? 'Top picks in this area' : 'In this area'/.test(mv), 'the "Top picks" label is gated by a real ranking (else "In this area")')
-  // a deck pick taps into the SAME pin-preview flow a marker tap uses — not a parallel nav
-  assert.ok(/setSheet\(p\)/.test(mv), 'a deck pick opens the shared PinSheet preview (same flow as a marker tap)')
-})
+// D8 (Stage A5): the Map feature is PARKED for v1 — MapView (and its in-view decision
+// deck) is retired; the file is gone, so its §N test is removed with it.
 
 test('3.7P-39 review: every hidden-gem reader honors NON_GEM_RE (no off-shelf "gem" claim)', () => {
   const taste = readFileSync(path.join(ROOT, 'app', 'src', 'taste.js'), 'utf8')
@@ -1715,39 +1703,34 @@ test('3.7P-39 review: every hidden-gem reader honors NON_GEM_RE (no off-shelf "g
 // nav wiring so the Decision-Layer surface rework cannot silently break one of
 // the §O.1 do-not-break flows. These survive refactors of the surfaces above.
 // ============================================================
-test('Addendum O seam-lock: nav.jsx VT morph + Escape layering + focusMap + openDetail signal', () => {
+test('Addendum O seam-lock: nav.jsx VT morph + Escape layering + openDetail signal', () => {
   const nav = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
   assert.ok(/viewTransitionName = 'evt-hero'/.test(nav), 'card→detail VT morph name is evt-hero')
   assert.ok(/recordSignal\('open', e\)/.test(nav) && /recordView\(e\)/.test(nav), 'openDetail records taste signal + recents view atomically')
   // Escape closes detail BEFORE page (bubble phase; capture-phase sheets run first)
   assert.ok(/if \(detail\) closeDetail\(\)/.test(nav) && /else if \(page && !pageClosing\) closePage\(\)/.test(nav), 'Escape closes detail-before-page')
   assert.ok(nav.indexOf('if (detail) closeDetail') < nav.indexOf('closePage()'), 'detail is closed before page on Escape')
-  // §O.1 path 5 (Stage R REWIRE): Map is a SUB-VIEW now. focusMap closes the
-  // detail, sets a FRESH map focus carrying kind, and OPENS the {type:'map'}
-  // subpage (was goTo(viewIndex('map')) — Map is no longer a tab).
-  assert.ok(/setDetail\(null\)/.test(nav), 'focusMap clears the detail layer')
-  assert.ok(/setMapFocus\(\{ lat: e\.lat, lng: e\.lng, key: keyOf\(e\), kind: e\.kind/.test(nav), 'focusMap sets a fresh {lat,lng,key,kind} focus object')
-  assert.ok(/setPage\(\{ type: 'map' \}\)/.test(nav), 'focusMap opens the Map sub-view (not a tab jump)')
-  assert.ok(!/goTo\(viewIndex\('map'\)\)/.test(nav), 'focusMap no longer jumps to a Map TAB (Map is a sub-view)')
+  // D8: the Map sub-view + focusMap are PARKED for v1 — assert they're gone.
+  assert.ok(!/const focusMap = useCallback/.test(nav), 'focusMap is removed (map parked, D8)')
+  assert.ok(!/setPage\(\{ type: 'map' \}\)/.test(nav), 'nav opens no Map sub-view (map parked, D8)')
 })
 
 // Stage R nav restructure (§P.5): the tab roster is Home · Events · Spots · Plan ·
-// Profile; Map is a sub-view (the {type:'map'} subpage), reached via openMap +
-// focusMap + the LensNav Map pill. IDs stay stable for the seams that key on them.
-test('Stage R nav: roster is home/hot/locations/calendar/profile, Map is a sub-view', () => {
+// Profile. D8 (A5): the Map is PARKED for v1 — no longer a tab AND no longer a
+// sub-view; MapView.jsx is retired. IDs stay stable for the seams that key on them.
+test('Stage R nav: roster is home/hot/locations/calendar/profile, Map is PARKED', () => {
   const nav = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
   for (const id of ['home', 'hot', 'locations', 'calendar', 'profile']) {
     assert.ok(new RegExp(`id: '${id}'`).test(nav), `VIEWS must include the '${id}' tab`)
   }
-  assert.ok(!/\{ id: 'map'/.test(nav), 'Map must NOT be a tab in VIEWS (it is a sub-view)')
+  assert.ok(!/\{ id: 'map'/.test(nav), 'Map must NOT be a tab in VIEWS')
   assert.ok(/id: 'calendar', label: 'Calendar'/.test(nav), "the calendar tab label is 'Calendar' (S1-C1; id stays 'calendar')")
-  assert.ok(/const openMap = useCallback/.test(nav), 'nav exposes openMap (the Map sub-view opener)')
+  // D8: map parked — no opener, no sub-view render, no MapView file.
+  assert.ok(!/const openMap = useCallback/.test(nav), 'openMap is removed (map parked, D8)')
   const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
-  assert.ok(/page\.type === 'map' && <MapView/.test(app), 'App renders MapView in the single-slot subpage (Map sub-view)')
+  assert.ok(!/<MapView/.test(app) && !/page\.type === 'map'/.test(app), 'App renders no Map sub-view (map parked, D8)')
   assert.ok(/<HomeView /.test(app), 'App mounts the new Home dashboard tab')
-  const mv = readFileSync(path.join(ROOT, 'app', 'src', 'MapView.jsx'), 'utf8')
-  assert.ok(/page\?\.type === 'map'/.test(mv), 'MapView reads its active state from the map subpage (not a tab index)')
-  assert.ok(/map-back/.test(mv), 'the Map sub-view has a back affordance')
+  assert.ok(!existsSync(path.join(ROOT, 'app', 'src', 'MapView.jsx')), 'MapView.jsx is retired (map parked, D8)')
 })
 
 test('Addendum O seam-lock: App.jsx detail-after-subpage order + DayPage key + subpage union', () => {

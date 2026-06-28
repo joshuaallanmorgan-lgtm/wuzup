@@ -26,18 +26,18 @@
   gap: 12px;
   margin: 0 20px 16px;
   padding: 12px 14px;
-  border-radius: 14px;
+  border-radius: var(--r-md);
   background: rgba(var(--accent-rgb), 0.09);
 }
 .fc-best-icon { font-size: 24px; flex: 0 0 auto; }
-.fc-best-title { font-size: 13px; font-weight: 800; color: var(--accent-ink); letter-spacing: -0.1px; }
+.fc-best-title { font-size: 13px; font-weight: 800; color: var(--ink); letter-spacing: -0.1px; } /* A6 accent restraint: headline off orange (value, not a label) */
 .fc-best-sub { margin-top: 1px; font-size: 13px; font-weight: 550; color: var(--muted); }
 /* 7-day list header */
 .fc-list-head {
   padding: 4px 20px 8px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.4px;
+  font-size: var(--eyebrow-size); /* A6: the eyebrow contract (was 11/800/0.4px) */
+  font-weight: var(--eyebrow-weight);
+  letter-spacing: var(--eyebrow-track);
   text-transform: uppercase;
   color: var(--muted);
 }

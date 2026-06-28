@@ -12,7 +12,6 @@ import { lsGet, lsSet } from './storage.js'
 import HomeView from './HomeView.jsx'
 import HotView from './HotView.jsx'
 import LocationsView from './LocationsView.jsx'
-import MapView from './MapView.jsx'
 import CalendarView from './CalendarView.jsx'
 import ProfileView from './ProfileView.jsx'
 import MyPlansPage from './MyPlansPage.jsx'
@@ -277,17 +276,15 @@ function Shell() {
     <WxContext.Provider value={wx}>
       <div className="app">
         {/* O1 lazy mounting: every section SHELL renders (scroll-snap needs all
-            N page widths) but children mount on FIRST VISIT only — Events is
-            the boot tab (eager); Map/Calendar/Profile mount when first reached
-            (tap, swipe, or focusMap). Mounted-once tabs STAY mounted so their
-            state (Leaflet map, calendar selection) survives tab hops.
+            N page widths) but children mount on FIRST VISIT only — Home is
+            the boot tab (eager); the rest mount when first reached (tap or
+            swipe). Mounted-once tabs STAY mounted so their state (calendar
+            selection, etc.) survives tab hops.
             Adding a tab = one VIEWS entry (nav.jsx) + one section here. */}
         <div className="pager" ref={attachPager} onScroll={onPagerScroll} inert={inertAll}>
           {/* Stage R nav restructure (§P.5): Home · Events · Spots · Plan · Profile.
               Home is the boot tab (index 0, eager); the rest mount on first visit.
-              Map is NO LONGER a pager section — it is the {type:'map'} sub-view
-              (rendered in the subpage slot below, reached from Events/Spots + the
-              detail mini-map). */}
+              The map is parked for v1 (D8) — no Map tab and no {type:'map'} sub-view. */}
           <section className="page page-hot">
             <HomeView events={norm} anchors={anchors} wx={wx} />
           </section>
@@ -339,10 +336,8 @@ function Shell() {
             {/* 3.75: a tapped Guide → its GuidePage (derivable intention collection) */}
             {page.type === 'guide' && <GuidePage guide={page.guide} events={norm} anchors={anchors} />}
             {page.type === 'search' && <SearchPage events={norm} anchors={anchors} coords={coords} />}
-            {/* Stage R: Map is a SUB-VIEW now (not a tab) — rendered here in the
-                single-slot subpage, reached from Events/Spots + the detail
-                mini-map (focusMap). MapView reads its active state from page.type. */}
-            {page.type === 'map' && <MapView events={norm} anchors={anchors} coords={coords} requestCoords={requestCoords} />}
+            {/* D8: the Map sub-view is parked for v1 — removed. Events/Spots no longer
+                expose a Map pill; place detail uses the Directions (Google Maps) link. */}
             {page.type === 'add' && (
               <AddEvent anchors={anchors} myEvents={myEvents} onAdd={addMine} presetTs={page.ts} />
             )}

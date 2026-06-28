@@ -12,7 +12,7 @@
 .ae-form { padding: 4px 20px 28px; }
 .ae-field { margin-top: 18px; }
 /* 3.76c: a calm What/When/Where/Details group header in the add-your-own form */
-.ae-group { margin: 22px 0 2px; font-size: 12px; font-weight: 800; letter-spacing: 0.2px; color: var(--accent-ink); }
+.ae-group { margin: 22px 0 2px; font-size: 12px; font-weight: 800; letter-spacing: 0.2px; color: var(--muted); } /* A6 accent restraint: group header off orange */
 .ae-group:first-child { margin-top: 4px; }
 .ae-label {
   display: block;
@@ -28,7 +28,7 @@
   height: 44px;
   padding: 0 14px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-md);
   background: var(--card);
   font: inherit;
   font-size: 15px;
@@ -53,7 +53,7 @@ textarea.ae-input { height: auto; min-height: 96px; padding: 11px 14px; resize: 
   height: 36px;
   padding: 0 13px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: var(--card);
   color: var(--ink);
   font-family: inherit;
@@ -74,7 +74,7 @@ textarea.ae-input { height: auto; min-height: 96px; padding: 11px 14px; resize: 
   width: 52px;
   height: 30px;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: #d8dbe1;
   cursor: pointer;
   position: relative;
@@ -87,7 +87,7 @@ textarea.ae-input { height: auto; min-height: 96px; padding: 11px 14px; resize: 
   left: 3px;
   width: 24px;
   height: 24px;
-  border-radius: 50%;
+  border-radius: var(--r-circle);
   background: #fff;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
   transition: transform var(--dur-fast) var(--ease-out);
@@ -114,7 +114,7 @@ textarea.ae-input { height: auto; min-height: 96px; padding: 11px 14px; resize: 
   height: 50px;
   margin-top: 26px;
   border: none;
-  border-radius: 14px;
+  border-radius: var(--r-md);
   background: var(--cta); /* D.0-R: shared primary-button fill (white text) */
   color: #fff;
   font-family: inherit;

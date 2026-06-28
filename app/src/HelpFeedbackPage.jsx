@@ -23,7 +23,7 @@ export default function HelpFeedbackPage() {
         <button className="pg-back" onClick={onClose} aria-label="Back">
           <Icon.chevron />
         </button>
-        <h1 className="pg-head-title">Help &amp; feedback</h1>
+        <h1 className="pg-head-title">Help &amp; Feedback</h1>
       </header>
       <div className="pg-body">
         <div className="hf-hero" aria-hidden>

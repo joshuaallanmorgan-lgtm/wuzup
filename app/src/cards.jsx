@@ -21,7 +21,6 @@ import { daypartOf, DAYPART, fillOrder } from './weekend.js'
 import { dayEntryFor, loadDayPlans, saveDayPlans, withSlot } from './dayplan.js'
 import { SaveHeart, useSaves } from './saves.js'
 import './cards.css'
-import './modes.css'
 
 const PAGE_SIZE = 30
 
@@ -149,7 +148,7 @@ export const WxContext = createContext(null)
 // one hue per category (spine, glow, overline tint) + one emoji per category
 // (imgbox-art watermark for events without an image). Both maps now DERIVE
 // from the canonical registry (categories.js, Sprint O audit prep #7) and are
-// re-exported here as shims so MapView/DetailPage/etc. keep importing from
+// re-exported here as shims so DetailPage/etc. keep importing from
 // cards.jsx unchanged — values verified identical to the old literals.
 export { CATEGORY_EMOJI, CATEGORY_HUES } from './categories.js'
 // 3.7P-36: re-export the imageMode gate so card consumers (DecisionCard/P42,
@@ -269,7 +268,8 @@ export function CardImg({ e, className = '', children }) {
   )
 }
 
-// compact 58px card — kept for the Calendar agenda (saved events show their ♥)
+// compact event card (64px thumb, saved events show their ♥). NOTE: currently
+// unrendered — the day agenda moved to DayPage; kept as a compact card variant.
 export function EventCard({ e, onSelect, index = 0 }) {
   const { has } = useSaves()
   const meta = [startLabel(e), e.venue].filter(Boolean).join(' · ')
@@ -281,7 +281,7 @@ export function EventCard({ e, onSelect, index = 0 }) {
         <div className={'card-meta' + startedCls(meta)}>{meta || 'Tap for details'}</div>
         <SponsoredTag e={e} />
       </div>
-      {has(e) && <span className="card-heart" aria-hidden>♥</span>}
+      {has(e) && <Icon.heartFill className="card-heart" aria-hidden />}
       <HeatBadge e={e} />
       <PriceChip e={e} />
     </button>

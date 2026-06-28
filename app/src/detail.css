@@ -20,8 +20,8 @@
   display: inline-block;
   margin: 0 0 11px 8px;
   text-transform: capitalize;
-  background: hsl(var(--ch) 70% 93%);
-  color: hsl(var(--ch) 55% 27%);
+  background: hsl(var(--ch, 220) 70% 93%);
+  color: hsl(var(--ch, 220) 55% 27%);
 }
 
 /* ===== "Why this is here" (Sprint G3): quiet true-reason chips inside the
@@ -33,13 +33,10 @@
   gap: 6px;
   margin-top: 5px;
 }
+/* A6: now built on the .chip / .chip-accent primitive; this keeps only the
+   wrap override so multi-word "why" reasons can break instead of nowrapping. */
 .why-chip {
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: rgba(var(--accent-rgb), 0.08);
-  color: var(--ink);
-  font-size: 12px;
-  font-weight: 600;
+  white-space: normal;
   line-height: 1.4;
 }
 
@@ -51,40 +48,8 @@
 a.d-row { text-decoration: none; color: inherit; }
 .d-ext { margin-left: 6px; font-size: 12px; font-weight: 800; color: var(--muted); } /* PREMIUM A1 (accent restraint): the external-link ↗ marker off orange */
 
-/* ===== mini-map (130px, non-interactive Leaflet; whole surface = one tap target) ===== */
-.mini-map {
-  position: relative;
-  isolation: isolate; /* contain Leaflet pane z-indexes inside the snippet */
-  height: 130px;
-  margin-top: 18px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  overflow: hidden;
-  background: #f1ece5;
-}
-.mini-map-canvas { position: absolute; inset: 0; }
-.mini-map-tap {
-  position: absolute;
-  inset: 0;
-  z-index: 1000; /* above every Leaflet pane (max 700) */
-  background: none;
-  border: none;
-  padding: 0;
-  font: inherit;
-  cursor: pointer;
-}
-.mini-map-hint {
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: rgba(21, 23, 28, 0.82);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  backdrop-filter: blur(4px);
-}
+/* D8 (A5): the detail mini-map (non-interactive Leaflet) is parked for v1 — its
+   styles are retired along with MapView. Directions (Google Maps) carries location. */
 
 /* ===== description as readable editorial prose ===== */
 .detail-about { margin-top: 26px; }
@@ -100,7 +65,7 @@ a.d-row { text-decoration: none; color: inherit; }
 .dd-count {
   margin-left: 6px;
   padding: 1px 7px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: rgba(var(--accent-rgb), 0.1);
   color: var(--accent-ink);
   font-size: 11px;
@@ -124,7 +89,7 @@ a.d-row { text-decoration: none; color: inherit; }
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-md);
   background: var(--card);
   text-align: left;
   font-family: inherit;
@@ -166,7 +131,7 @@ a.d-row { text-decoration: none; color: inherit; }
   justify-content: center;
   gap: 6px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-md);
   background: var(--card);
   color: var(--ink);
   font-family: inherit;
@@ -232,7 +197,7 @@ a.d-row { text-decoration: none; color: inherit; }
   transform: translateX(-50%);
   z-index: 2030;
   padding: 9px 16px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: rgba(21, 23, 28, 0.92);
   color: #fff;
   font-size: 13px;

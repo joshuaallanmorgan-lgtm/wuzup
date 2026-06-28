@@ -441,7 +441,7 @@ export default function DayPage({ ts, events, anchors, wx }) {
           <Icon.chevron />
         </button>
         {/* S1-D2: constant title; the date moves into the day selector below. */}
-        <h1 className="pg-head-title">Plan your day</h1>
+        <h1 className="pg-head-title">Plan Your Day</h1>
       </header>
       <div className="pg-body dpg-body">
         {/* Plan Phase 1 (ref-plan.png): the tappable day selector — the label +

@@ -3,9 +3,8 @@
    the NavProvider component (same precedent as cards.jsx / Primer.jsx — the rule
    only affects dev-time Fast Refresh granularity, not runtime behavior). */
 // nav.jsx — the navigation context (Sprint O6). Owns EVERYTHING about "where
-// the user is": the active tab + goTo, the subpage union, the detail
-// open/close (View-Transition morph included) and the detail→Map focus
-// handoff. App.jsx keeps the DATA (events/norm/anchors/wx/myEvents/coords/
+// the user is": the active tab + goTo, the subpage union, and the detail
+// open/close (View-Transition morph included). App.jsx keeps the DATA (events/norm/anchors/wx/myEvents/coords/
 // primer); components reach navigation via useNav() instead of
 // 5-deep callback prop-drilling. ZERO behavior change — the logic below moved
 // here verbatim from App.jsx; the smoke harness + a hand pass guard it.
@@ -21,16 +20,15 @@
 //     so only the detail hero owns the name in the NEW one; closeDetail
 //     reverses it. Reduced motion / no-VT browsers get the slide-up fallback.
 //   · Escape layering: this module's window listener is BUBBLE-phase, so the
-//     capture-phase handlers in MapView (pin sheet) and PickerSheet (the day
-//     planner's slot picker) always win first; within here, detail closes before subpage.
+//     capture-phase handler in PickerSheet (the day planner's slot picker)
+//     always wins first; within here, detail closes before subpage.
 //   · openDetail/closeDetail/open*/closePage are useCallback-stable so
-//     consumers (MapView's marker effect especially) never re-run on identity.
+//     consumers never re-run on identity.
 // NOTE: .jsx, not .js — react-hooks/refs hard-errors the createElement form of
 // the provider (a ref callback inside an argument object reads as "ref passed
 // to a function during render"); the semantically identical JSX form passes.
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
-import { keyOf } from './lib.js'
 import { recordSignal } from './taste.js'
 import { recordView } from './recents.js'
 
@@ -40,7 +38,7 @@ import { recordView } from './recents.js'
 // it) but wears the "Events" label — ⚑O1 placeholder pending Charles.
 // Adding the fifth (Locations, Sprint S) = ONE entry here + ONE lazy-mounted
 // <section> in App.jsx's pager — everything else (tab bar, lazy mounting,
-// pager CSS, dice/🎨 gates, Escape, focusMap) derives. Icon.locations is
+// pager CSS, dice/🎨 gates, Escape) derives. Icon.locations is
 // already drawn (lib.js) and waiting. DRIVER'S-SEAT CALL: it enters when it
 // has content, not as a dead tab (MASTER_PLAN2 §O1).
 // Sprint S: the fifth tab landed. Locations ('Spots' — ⚑O1 placeholder, Charles
@@ -52,10 +50,10 @@ import { recordView } from './recents.js'
 // Profile. IDS STAY STABLE for the seams that key on them — 'hot' (Events
 // browse), 'locations' (Spots), 'calendar' (now labelled "Plan"), 'profile'.
 // 'home' is the NEW dashboard tab (greeting + Your-next-days + featured pick),
-// split out of the old Events/hot tab. MAP IS NO LONGER A TAB — it is a sub-view
-// (the {type:'map'} subpage) reached from Events/Spots + the detail mini-map
-// (focusMap opens the sub-view, not a tab). Indices stay derived (nothing
-// hardcodes a position); MapView reads its active state from page.type now.
+// split out of the old Events/hot tab. THE MAP IS PARKED FOR v1 (Stage A5 / D8):
+// there is no Map tab and no {type:'map'} sub-view — place locations route out
+// to Google Maps via the detail Directions link. Indices stay derived (nothing
+// hardcodes a position).
 export const VIEWS = [
   { id: 'home', label: 'Home' },
   { id: 'hot', label: 'Events' },
@@ -365,35 +363,11 @@ export function NavProvider({ children }) {
     }
   }, [vtOpen])
 
-  // ===== detail mini-map tap → close the detail + any subpage, jump to the
-  // Map tab, and hand MapView a focus target ({lat,lng,key}; fresh object
-  // every call so re-focusing the same event re-runs MapView's focus effect) =====
-  const [mapFocus, setMapFocus] = useState(null)
-  // Stage R: Map is a SUB-VIEW now (not a tab). openMap opens it unfocused (the
-  // "Map" affordance on Events/Spots).
-  const openMap = useCallback(() => {
-    clearTimeout(pageTRef.current)
-    setPageClosing(false)
-    setMapFocus(null)
-    setPage({ type: 'map' })
-  }, [])
-  // §O.1 path 5 (REWIRED, Stage R): the detail mini-map tap used to goTo the Map
-  // TAB; Map is now a sub-view, so it opens the {type:'map'} subpage instead. It
-  // still closes the detail, sets a FRESH focus object (re-runs MapView's focus
-  // effect every call), and carries kind so the Spots layer flips for a place.
-  const focusMap = useCallback((e) => {
-    morphElRef.current = null // card name is already cleared post-open; just drop the ref
-    setDetail(null)
-    setClosing(false)
-    setVtOpen(false)
-    clearTimeout(pageTRef.current)
-    setPageClosing(false)
-    setMapFocus({ lat: e.lat, lng: e.lng, key: keyOf(e), kind: e.kind ?? null })
-    setPage({ type: 'map' }) // open the Map sub-view (was a Map-TAB jump pre-Stage-R)
-  }, [])
+  // D8: openMap / focusMap / the mapFocus handoff (the Map sub-view) are parked for
+  // v1 — removed. Place detail routes to Google Maps via its Directions link.
 
   // Escape closes the topmost layer: detail first, then any open subpage
-  // (bubble phase — MapView/PickerSheet capture-phase handlers run first)
+  // (bubble phase — PickerSheet's capture-phase handler runs first)
   useEffect(() => {
     const onKey = (ev) => {
       if (ev.key !== 'Escape') return
@@ -419,7 +393,6 @@ export function NavProvider({ children }) {
       openPlaceBubble,
       openGuide,
       openSearch,
-      openMap,
       openAdd,
       openDay,
       openCalendarPicker,
@@ -442,9 +415,6 @@ export function NavProvider({ children }) {
       vtOpen,
       openDetail,
       closeDetail,
-      // detail → map handoff (Map sub-view)
-      mapFocus,
-      focusMap,
     }),
     [
       active,
@@ -458,7 +428,6 @@ export function NavProvider({ children }) {
       openPlaceBubble,
       openGuide,
       openSearch,
-      openMap,
       openAdd,
       openDay,
       openCalendarPicker,
@@ -480,8 +449,6 @@ export function NavProvider({ children }) {
       vtOpen,
       openDetail,
       closeDetail,
-      mapFocus,
-      focusMap,
     ]
   )
 

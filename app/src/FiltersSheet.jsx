@@ -1,7 +1,8 @@
 // FiltersSheet — EVENTS_PHASE2: bottom-up filter panel (When · Price · Category).
 // Opened via openEvFilters() → {type:'evfilters'} subpage. "Show results" replaces
 // the page with the matching BubblePage; "Reset" clears all selections.
-// Reuses the Map filter-sheet CSS pattern (mfUp/mfFade animations from map.css).
+// Uses its own fltUp/fltFade sheet animations (filters.css); the map's old
+// mfUp/mfFade were retired with map.css (D8).
 import { useState } from 'react'
 import { BUBBLES, CAT_BUBBLES, LENS_BUBBLES, TOMORROW_BUBBLE } from './lib.js'
 import { useNav } from './nav.jsx'

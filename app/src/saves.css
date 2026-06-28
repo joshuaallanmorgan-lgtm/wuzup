@@ -12,7 +12,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  border-radius: var(--r-circle);
   background: rgba(21, 23, 28, 0.42);
   backdrop-filter: blur(4px);
   color: #fff;
@@ -81,7 +81,7 @@
   vertical-align: 3px;
   margin-left: 8px;
   padding: 2px 9px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: rgba(var(--accent-rgb), 0.12);
   color: var(--accent-ink);
   font-size: 13px;
@@ -99,7 +99,7 @@
   font-weight: 800;
   letter-spacing: 0.2px;
   padding: 4px 8px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: rgba(21, 23, 28, 0.72);
   color: #fff;
   pointer-events: none;
@@ -111,14 +111,15 @@
    logbook: it now shows only YOUR shape per day (plans / rest / did-days), not
    what supply is saved. Those orphaned rules are gone with the plumbing.) */
 
-/* agenda day-list rows (compact .card): filled ♥ marker for saved events */
+/* agenda day-list rows (compact .card): filled stroke-heart marker for saved
+   events (A5: the engineered Icon.heartFill, off the raw ♥ glyph) */
 .card-heart {
   flex: 0 0 auto;
   align-self: center;
+  width: 16px;
+  height: 16px;
   color: var(--hot);
-  font-size: 14px;
-  line-height: 1;
-  margin: 0 -4px; /* the card's 13px gaps supply the breathing room */
+  margin: 0 -2px; /* the card's 14px gaps supply the breathing room */
 }
 
 @media (prefers-reduced-motion: reduce) {

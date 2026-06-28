@@ -16,7 +16,7 @@
 import { useEffect, useRef, useState } from 'react'
 import './topnav.css'
 
-export default function LensNav({ lenses = [], categories = [], menuLabel = 'All categories', navLabel = 'Browse', activeId = null, onOpen, onAdd, onSearch, onMap, onFilter }) {
+export default function LensNav({ lenses = [], categories = [], menuLabel = 'All categories', navLabel = 'Browse', activeId = null, onOpen, onAdd, onSearch, onFilter }) {
   const [open, setOpen] = useState(false)
   const [closing, setClosing] = useState(false)
   const tRef = useRef(null)
@@ -84,7 +84,7 @@ export default function LensNav({ lenses = [], categories = [], menuLabel = 'All
   return (
     <>
       <nav className="lensbar" aria-label={navLabel}>
-        {(lenses.length > 0 || onSearch || onMap) && (
+        {(lenses.length > 0 || onSearch) && (
           <div className="lens-row">
             {lenses.map((b) => (
               <button
@@ -103,15 +103,12 @@ export default function LensNav({ lenses = [], categories = [], menuLabel = 'All
                 <span aria-hidden>🔎</span>
               </button>
             )}
-            {/* Stage R: Map is a SUB-VIEW now — reach it from within Events/Spots */}
-            {onMap && (
-              <button className="lens-pill lens-map pressable" onClick={onMap} aria-label="Open the map" title="Open the map">
-                <span aria-hidden>🗺️</span> Map
-              </button>
-            )}
+            {/* D8: the Map pill is parked for v1 — removed (frees a slot so the lens
+                row fits one line, D5). Place detail uses the Directions link instead. */}
+            {/* D5: icon-only (like search) so the lens set fits one line without scroll */}
             {onFilter && (
               <button className="lens-pill lens-filter pressable" onClick={onFilter} aria-label="Filter events" title="Filter events">
-                <span aria-hidden>🎚️</span> Filter
+                <span aria-hidden>🎚️</span>
               </button>
             )}
           </div>

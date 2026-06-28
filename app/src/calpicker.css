@@ -8,9 +8,9 @@
 .calpick-list { display: flex; flex-direction: column; gap: 8px; }
 .calpick-listhead {
   margin: 14px 2px 2px;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.4px;
+  font-size: var(--eyebrow-size); /* A6: the eyebrow contract (was 12/800/0.4px) */
+  font-weight: var(--eyebrow-weight);
+  letter-spacing: var(--eyebrow-track);
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -21,7 +21,7 @@
   width: 100%;
   padding: 13px 14px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--r-md);
   background: var(--card);
   text-align: left;
   font-family: inherit;
@@ -49,7 +49,7 @@
   margin-bottom: 8px;
   padding: 12px 12px 14px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--r-lg);
   background: var(--card);
   box-shadow: var(--shadow-card);
 }
@@ -67,7 +67,7 @@
   align-items: center;
   justify-content: center;
   border: 1px solid var(--line);
-  border-radius: 50%;
+  border-radius: var(--r-circle);
   background: none;
   color: var(--ink);
   font-size: 18px;
@@ -94,7 +94,7 @@
   align-items: center;
   justify-content: center;
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--r-sm);
   background: none;
   font-family: inherit;
   font-size: 14px;

@@ -301,7 +301,8 @@ export default function DayFillDeck({ lens, events, anchors, coords }) {
                 onClick={() => deckApi.current?.up()}
                 aria-label={isSaved ? 'Already on your list' : 'Save for later'}
               >
-                ♥
+                {/* D6: engineered stroke heart (matches SaveHeart app-wide) */}
+                {isSaved ? <Icon.heartFill className="ldk-btn-ic" aria-hidden /> : <Icon.heart className="ldk-btn-ic" aria-hidden />}
               </button>
               <button
                 className="ldk-btn ldk-btn-slot pressable"

@@ -319,7 +319,7 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
           <button className="pg-back" onClick={onClose} aria-label="Close">
             <Icon.chevron />
           </button>
-          <h1 className="pg-head-title">Dial it in</h1>
+          <h1 className="pg-head-title">Dial It In</h1>
         </header>
         <div className="pg-body deck-body">
           <div className="deck-done">
@@ -356,7 +356,7 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
         <button className="pg-back" onClick={onClose} aria-label="Close">
           <Icon.chevron />
         </button>
-        <h1 className="pg-head-title">Dial it in</h1>
+        <h1 className="pg-head-title">Dial It In</h1>
         {phase === 'rate' && (
           <div className="deck-counthead" aria-hidden>
             {Math.min(rated + 1, deck.length)}/{deck.length}
@@ -422,7 +422,8 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
                 onClick={() => deckApi.current?.up()}
                 aria-label={saved ? 'Already saved — counts as into it' : 'Save it'}
               >
-                ♥
+                {/* D6: the engineered stroke heart (matches SaveHeart app-wide), not a raw ♥ */}
+                {saved ? <Icon.heartFill className="deck-btn-ic" aria-hidden /> : <Icon.heart className="deck-btn-ic" aria-hidden />}
               </button>
               <button
                 className="deck-btn deck-btn-yes pressable"
@@ -466,7 +467,7 @@ export function PlacesDeck({ onClose, closeLabel = 'Done' }) {
         <button className="pg-back" onClick={onClose} aria-label="Close">
           <Icon.chevron />
         </button>
-        <h1 className="pg-head-title">Dial it in</h1>
+        <h1 className="pg-head-title">Dial It In</h1>
       </header>
       <div className="pg-body deck-body">
         <div className="deck-empty">

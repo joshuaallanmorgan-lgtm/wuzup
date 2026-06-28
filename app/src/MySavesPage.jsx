@@ -31,7 +31,7 @@ export default function MySavesPage({ events, anchors }) {
           <Icon.chevron />
         </button>
         <h1 className="pg-head-title">
-          My saves{shelf.length > 0 && <span className="shelf-count">{shelf.length}</span>}
+          My Saves{shelf.length > 0 && <span className="shelf-count">{shelf.length}</span>}
         </h1>
       </header>
 

@@ -223,7 +223,8 @@ export default function LensDeck({ lens, events, anchors }) {
                 onClick={() => deckApi.current?.right()}
                 aria-label={saved ? 'Already on your list' : 'Save to your list'}
               >
-                ♥
+                {/* D6: engineered stroke heart (matches SaveHeart app-wide) */}
+                {saved ? <Icon.heartFill className="ldk-btn-ic" aria-hidden /> : <Icon.heart className="ldk-btn-ic" aria-hidden />}
               </button>
             </div>
           </>

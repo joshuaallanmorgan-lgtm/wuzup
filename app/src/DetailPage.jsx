@@ -1,14 +1,14 @@
-// DetailPage — full-page event detail (z 2000, above tabbar/subpages/Leaflet).
+// DetailPage — full-page event detail (z 2000, above tabbar/subpages).
 // Sprint B "the event's home page": honest when/where rows (end dates, address
 // fallback, maps link), trust + identity signals (buzz/sources, category chip,
-// gem/staff-pick flags, hero heat badge), 130px non-interactive mini-map
-// (tap → Map tab via onFocusMap), event-day weather, utility row (.ics download /
-// directions / share), and a More-like-this rail (swaps the detail via onSelect).
+// gem/staff-pick flags, hero heat badge), event-day weather, utility row
+// (.ics download / directions / share), and a More-like-this rail (swaps the
+// detail via onSelect). The map is parked for v1 (D8): no mini-map — location
+// rides the Directions link out to Google Maps.
 // View Transitions open/close logic lives in nav.js (O6); base detail layout in
 // App.css; Sprint-B styles in detail.css. App keys this component by event, so
-// a rail swap remounts: scroll resets, the mini-map is destroyed + rebuilt.
+// a rail swap remounts and scroll resets.
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { getLeaflet } from './leaflet-lazy.js'
 import { useNav } from './nav.jsx'
 import { DAY, dayKey, hotDesc, Icon, keyOf, parseDate, priceLabel, timeOf } from './lib.js'
 import { eventIcs } from './share.js'
@@ -70,7 +70,7 @@ const GENERIC_TAGS = new Set(['tonight', 'weekend', 'one-off', 'recurring', 'ong
 
 export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, onRestoreMine }) {
   // navigation via useNav (O6): close/swap/map-handoff + the open-state flags
-  const { closing, vtOpen: vt, closeDetail: onClose, openDetail: onSelect, focusMap: onFocusMap } = useNav()
+  const { closing, vtOpen: vt, closeDetail: onClose, openDetail: onSelect } = useNav()
   // ===== WHEN: end-date honesty (multi-day ranges, same-day time ranges, ongoing) =====
   let when
   const DAY_MS = 86400000
@@ -148,50 +148,8 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
   // a real photo that loads → image hero; no image OR a broken URL → art hero
   const heroArt = !e.image || heroFailed
 
-  // ===== mini-map: lazy non-interactive Leaflet, DESTROYED on unmount.
-  // Leaflet itself arrives via the shared lazy loader (leaflet-lazy.js) — the
-  // first map of the session awaits the chunk, later ones resolve instantly.
-  // unmount-before-resolve: the cancelled flag stops creation; el.isConnected
-  // covers the keyed remount where the old node is already out of the DOM. =====
-  const mapElRef = useRef(null)
-  useEffect(() => {
-    const el = mapElRef.current
-    if (e.lat == null || e.lng == null || !el) return
-    let cancelled = false
-    let m = null
-    let t = null
-    getLeaflet().then((L) => {
-      if (cancelled || !el.isConnected) return
-      m = L.map(el, {
-        zoomControl: false,
-        attributionControl: false,
-        dragging: false,
-        scrollWheelZoom: false,
-        touchZoom: false,
-        doubleClickZoom: false,
-        boxZoom: false,
-        keyboard: false,
-      }).setView([e.lat, e.lng], 14)
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19,
-      }).addTo(m)
-      L.circleMarker([e.lat, e.lng], {
-        radius: 8,
-        color: '#fff',
-        weight: 2.5,
-        fillColor: '#ff8c42',
-        fillOpacity: 1,
-        interactive: false,
-      }).addTo(m)
-      // detail mounts mid open-animation; one size sanity pass after it settles
-      t = setTimeout(() => m.invalidateSize(), 280)
-    })
-    return () => {
-      cancelled = true
-      clearTimeout(t)
-      if (m) m.remove() // tears down panes, layers and ALL listeners — no leaks on close
-    }
-  }, [e.lat, e.lng])
+  // D8: the detail mini-map (lazy Leaflet) is parked for v1 — removed. Coordinates
+  // still drive the Directions button (Google Maps), below.
 
   // ===== More like this: same category first, then nearby-in-time same-vibe; hot first =====
   const similar = useMemo(() => {
@@ -449,7 +407,7 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
                 <div className="d-k">Why this is here</div>
                 <div className="why-chips">
                   {why.map((r) => (
-                    <span className="why-chip" key={r}>
+                    <span className="chip chip-accent why-chip" key={r}>
                       {r}
                     </span>
                   ))}
@@ -493,14 +451,8 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
             </div>
           </div>
         )}
-        {hasCoords && (
-          <div className="mini-map">
-            <div className="mini-map-canvas" ref={mapElRef} />
-            <button className="mini-map-tap" onClick={() => onFocusMap(e)} aria-label="Open in the Map tab">
-              <span className="mini-map-hint">Open in Map ↗</span>
-            </button>
-          </div>
-        )}
+        {/* D8: map parked for v1 — the mini-map is removed; the Directions util
+            button below already routes to Google Maps. */}
         {e.description && (
           <div className="detail-about">
             <div className="d-k">About</div>

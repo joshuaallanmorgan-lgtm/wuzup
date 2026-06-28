@@ -48,7 +48,7 @@
   flex: 0 0 auto;
   width: 40px;
   height: 40px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -56,7 +56,7 @@
   background: rgba(var(--accent-rgb), 0.09);
 }
 /* saved-event items show the event's real photo (CardImg art-floor when none) */
-.notif-thumb { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 12px; overflow: hidden; }
+.notif-thumb { flex: 0 0 auto; width: 40px; height: 40px; border-radius: var(--r-md); overflow: hidden; }
 .notif-item-main { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .notif-item-title {
   font-size: 14.5px;

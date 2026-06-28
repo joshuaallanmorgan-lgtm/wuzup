@@ -39,7 +39,7 @@ const cityOf = (addr) => {
 }
 
 export default function HotView({ events, anchors, loading }) {
-  const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, openMap: onOpenMap, openGuide, openEvFilters, openDeck } = useNav()
+  const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, openGuide, openEvFilters, openDeck } = useNav()
   const wx = useContext(WxContext) // access weather without prop threading
   const scrollRef = useRef(null)
   const evRef = useRef(null)
@@ -251,7 +251,6 @@ export default function HotView({ events, anchors, loading }) {
         menuLabel="All categories"
         onOpen={onOpenBubble}
         onAdd={onOpenAdd}
-        onMap={onOpenMap}
         onFilter={openEvFilters}
       />
 

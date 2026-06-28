@@ -77,10 +77,10 @@ export default function ProfileView({ anchors }) {
   const rows = [
     { id: 'plans', Ic: PlansIc, label: 'My Plans', desc: 'Your day plans and upcoming itineraries', onClick: openMyPlans },
     { id: 'saves', Ic: BookmarkIc, label: 'My Saves', desc: 'Spots, events, and guides you saved', onClick: openMySaves },
-    { id: 'taste', Ic: HeartIc, label: 'Taste profile', desc: 'Tell us what you like and improve your picks', onClick: () => openTaste() },
-    { id: 'interests', Ic: TuneIc, label: 'Customize interests', desc: 'Choose topics you love and get better recs', onClick: () => openInterests('profile') },
-    { id: 'settings', Ic: CogIc, label: 'Settings & preferences', desc: 'Account, notifications, privacy, and more', onClick: openSettings },
-    { id: 'help', Ic: HelpIc, label: 'Help & feedback', desc: 'Get help or share your thoughts', onClick: openHelpFeedback },
+    { id: 'taste', Ic: HeartIc, label: 'Taste Profile', desc: 'Tell us what you like and improve your picks', onClick: () => openTaste() },
+    { id: 'interests', Ic: TuneIc, label: 'Customize Interests', desc: 'Choose topics you love and get better recs', onClick: () => openInterests('profile') },
+    { id: 'settings', Ic: CogIc, label: 'Settings & Preferences', desc: 'Account, notifications, privacy, and more', onClick: openSettings },
+    { id: 'help', Ic: HelpIc, label: 'Help & Feedback', desc: 'Get help or share your thoughts', onClick: openHelpFeedback },
   ]
 
   return (
