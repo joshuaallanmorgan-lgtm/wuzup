@@ -3,7 +3,7 @@
 // Reuses saves.js (shelfItems + groupShelfByTime) + GemRow; back → Profile tab.
 import { useMemo, useState } from 'react'
 import { Icon, keyOf } from './lib.js'
-import { useNav } from './nav.jsx'
+import { useNav, viewIndex } from './nav.jsx'
 import { GemRow } from './cards.jsx'
 import { shelfItems, groupShelfByTime, useSaves } from './saves.js'
 import './profile.css'
@@ -11,7 +11,7 @@ import './profile.css'
 const FILTERS = ['All', 'Upcoming', 'Past']
 
 export default function MySavesPage({ events, anchors }) {
-  const { closePage: onClose, openDetail: onSelect } = useNav()
+  const { closePage: onClose, openDetail: onSelect, goTo } = useNav()
   const { list: savedList } = useSaves()
   const shelf = useMemo(() => shelfItems(savedList, events, anchors), [savedList, events, anchors])
   const [filter, setFilter] = useState('All')
@@ -71,6 +71,12 @@ export default function MySavesPage({ events, anchors }) {
               : filter === 'Upcoming'
                 ? 'No upcoming saves.'
                 : 'No past saves.'}
+            {shelf.length === 0 && (
+              /* B1: a premium way forward when there's nothing saved (DRAFT copy ⚑ Charles) */
+              <button className="empty-cta" onClick={() => { onClose(); goTo(viewIndex('hot')) }}>
+                Explore events
+              </button>
+            )}
           </div>
         )}
       </div>

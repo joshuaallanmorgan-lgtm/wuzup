@@ -1491,7 +1491,9 @@ test('PREMIUM A4: elevation scale + motion (depth tokens, press, btn-primary, ad
   // press answer: shadow tightens on :active
   assert.ok(/\.gem:active,[\s\S]*?box-shadow:\s*var\(--shadow-press\)/.test(cardsCss), 'cards tighten the shadow on :active (--shadow-press)')
   // shared primary-button recipe on the laggard CTAs
-  assert.ok(/\.btn-primary,[\s\S]*?\.tune-cta,\s*\.ms-tab-sel\s*\{[\s\S]*?inset 0 1px 0 rgba\(255, 255, 255/.test(appCss), 'the shared .btn-primary glow+sheen recipe covers the laggard CTAs')
+  assert.ok(/\.btn-primary,[\s\S]*?\.ms-tab-sel\s*\{[\s\S]*?inset 0 1px 0 rgba\(255, 255, 255/.test(appCss), 'the shared .btn-primary glow+sheen recipe covers the laggard CTAs')
+  // V1 B1: the shared empty-state CTA joins the recipe (D.0-R-safe --cta fill + the --accent-rgb glow)
+  assert.ok(/\.empty-cta,/.test(appCss) && /\.empty-cta \{[\s\S]*?background: var\(--cta\)/.test(appCss), 'V1 B1: the .empty-cta joins the premium recipe with a D.0-R-safe --cta fill')
   // hero vignette gained a radial layer
   assert.ok(/\.detail-hero-grad\s*\{[\s\S]*?radial-gradient/.test(appCss), 'the detail hero scrim layers a radial vignette')
 

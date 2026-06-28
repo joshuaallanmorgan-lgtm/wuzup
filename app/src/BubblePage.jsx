@@ -173,6 +173,8 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
             {EMPTIES[bubble.id] || `No ${bubble.label.toLowerCase()} listed right now.`}
             <br />
             New events land every time the finder runs — check back soon.
+            {/* B1: a premium way back to the full feed (DRAFT copy ⚑ Charles) */}
+            <button className="empty-cta" onClick={onClose}>See all events</button>
           </div>
         )}
       </div>

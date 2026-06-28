@@ -204,10 +204,28 @@
 .loc-plan-add,
 .flt-submit,
 .tune-cta,
+.empty-cta,
 .ms-tab-sel {
   box-shadow: 0 4px 14px rgba(var(--accent-rgb), 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   transition: transform var(--dur-micro), box-shadow var(--dur-micro);
 }
+/* B1: the shared empty-state CTA — solid --cta fill + white text (D.0-R-safe),
+   the recipe's --accent-rgb glow above; gives bare empty states a premium exit. */
+.empty-cta {
+  display: block;
+  width: fit-content;
+  margin: 16px auto 0; /* own line, centered in the empty state */
+  padding: 11px 20px;
+  border: none;
+  border-radius: var(--r-md);
+  background: var(--cta);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.empty-cta:active { transform: scale(0.98); }
 .btn-primary:active,
 .featc-add:active,
 .ep-save:active,
@@ -215,6 +233,7 @@
 .loc-plan-add:not(:disabled):active,
 .flt-submit:active,
 .tune-cta:active,
+.empty-cta:active,
 .ms-tab-sel:active {
   box-shadow: 0 2px 7px rgba(var(--accent-rgb), 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
@@ -656,4 +675,5 @@
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) { animation: none !important; }
+  .empty-cta:active { transform: none; } /* B1: kill the press-scale under reduced motion */
 }

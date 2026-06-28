@@ -8,7 +8,7 @@ import { BUBBLES, CAT_BUBBLES, CITY, LENS_BUBBLES, NON_GEM_RE, dayLabel, dayLoos
 import LensNav from './LensNav.jsx'
 import TasteTuner from './TasteTuner.jsx'
 import { curateFeed, collapseSeries } from './curate.js'
-import { useNav } from './nav.jsx'
+import { useNav, viewIndex } from './nav.jsx'
 import { CardImg, GemRow, IntentTile, ResultCard, RowFeed, SecHead, SkeletonRow, TonightCard, WxContext, featuredChips } from './cards.jsx'
 import { GUIDES, useGuides, watchGuideActive, resolveWatchGuide } from './guides.js'
 import { SaveHeart, shelfItems, useSaves } from './saves.js'
@@ -39,7 +39,7 @@ const cityOf = (addr) => {
 }
 
 export default function HotView({ events, anchors, loading }) {
-  const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, openGuide, openEvFilters, openDeck } = useNav()
+  const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, openGuide, openEvFilters, openDeck, goTo } = useNav()
   const wx = useContext(WxContext) // access weather without prop threading
   const scrollRef = useRef(null)
   const evRef = useRef(null)
@@ -476,7 +476,11 @@ export default function HotView({ events, anchors, loading }) {
           </section>
         )}
         {!loading && upcoming.length === 0 && (
-          <div className="empty">Nothing here right now — check back soon.</div>
+          <div className="empty">
+            Nothing here right now — check back soon.
+            {/* B1: places are always here — a premium hop to Spots (DRAFT copy ⚑ Charles) */}
+            <button className="empty-cta" onClick={() => goTo(viewIndex('locations'))}>Browse spots</button>
+          </div>
         )}
       </div>
     </div>
