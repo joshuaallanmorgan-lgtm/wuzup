@@ -17,7 +17,7 @@ import { GUIDES } from './guides.js'
 const FREE_BUBBLE = BUBBLES.find((b) => b.id === 'free')
 const NATURE_ACT = ACTIVITIES.find((a) => a.id === 'act-trails')
 const MARKETS_GUIDE = GUIDES.find((g) => g.id === 'markets')
-const SPORTS_BARS_ACT = ACTIVITIES.find((a) => a.id === 'act-sports-bars')
+const SPORTS_BARS_GUIDE = GUIDES.find((g) => g.id === 'sports-bars')
 
 // a warm time-of-day greeting — no fabricated name; the weather line carries the
 // real forecast. Pure(now).
@@ -113,8 +113,8 @@ export default function HomeView({ events, anchors, wx }) {
             {MARKETS_GUIDE && (
               <IntentTile emoji="🛍️" label="Markets" pov="Fresh finds, local makers" hue={45} onClick={() => openGuide(MARKETS_GUIDE)} />
             )}
-            {SPORTS_BARS_ACT && (
-              <IntentTile emoji="📺" label="Sports bars" pov="Catch the game tonight" hue={210} onClick={() => openPlaceBubble(SPORTS_BARS_ACT)} />
+            {SPORTS_BARS_GUIDE && (
+              <IntentTile emoji="📺" label="Sports bars" pov="Catch the game tonight" hue={210} onClick={() => openGuide(SPORTS_BARS_GUIDE)} />
             )}
           </div>
         </section>

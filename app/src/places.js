@@ -116,10 +116,6 @@ export const ACTIVITIES = [
   { id: 'act-family', emoji: '🛝', label: 'Family & play', hue: 80, match: (p) => p.placeType === 'playground' || hasClass(p, 'playground') || ['playground', 'splash-pad'].some((a) => hasAmenity(p, a)) },
   { id: 'act-dog', emoji: '🐕', label: 'Dog-friendly', hue: 50, match: (p) => p.placeType === 'dog_park' || hasClass(p, 'dog_park') || ['dog-park', 'dog-beach', 'dogs-allowed'].some((a) => hasAmenity(p, a)) },
   { id: 'act-views', emoji: '🌅', label: 'Scenic views', hue: 25, match: (p) => p.placeType === 'viewpoint' || p.placeType === 'pier' || hasClass(p, 'pier') || ['viewpoint-deck', 'boardwalk'].some((a) => hasAmenity(p, a)) },
-  // Stage B: sports-bars recast from an events Guide to a place ACTIVITY (per the
-  // FLOWS spec). Pure predicate over existing fields; matches sports bars once bar
-  // data lands — places.json is parks/outdoors today, so this is empty for now.
-  { id: 'act-sports-bars', emoji: '📺', label: 'Sports bars', hue: 210, match: (p) => p.placeType === 'bar' || hasClass(p, 'bar') || hasClass(p, 'sports_bar') || ['sports-bar', 'live-sports', 'big-screen'].some((a) => hasAmenity(p, a)) },
   // S1-SP1: the catch-all "Parks & green space" tile was removed (8 tiles, not 9).
   // Plain parks/gardens with no routing amenity still reach the user via Everything,
   // search, and the map (never-hide holds) — they just no longer get a dedicated tile.
