@@ -441,9 +441,11 @@ export default function HotView({ events, anchors, loading }) {
                 sub={seeAllEv ? 'Every event, recurring series grouped' : 'The picks — quality first'}
               />
             </div>
-            {/* T1 (Batch 5): the PRIMARY never-hide door is now the swipe deck — find
-                AND tune by swiping the full pool (re-deal loop keeps it reachable).
-                Copy DRAFT ⚑ Charles. */}
+            {/* T1 (Batch 5): the swipe deck is the primary find-AND-tune door. Its
+                CUMULATIVE re-deal walk (deckdeal.js: each "Deal again" excludes everything
+                already served and walks FORWARD through the catalog, covering the whole
+                pool before wrapping) is what makes "Swipe all N" literally true — not a
+                shallow top-N carousel. Copy DRAFT ⚑ Charles. */}
             <button
               type="button"
               className="ev-seeall pressable"
@@ -451,8 +453,9 @@ export default function HotView({ events, anchors, loading }) {
             >
               Swipe all {feed.fullEventCount.toLocaleString('en-US')} events →
             </button>
-            {/* the KEPT in-feed fallback (Josh's call) — a quieter expand that reaches
-                the SAME complete set (feed.full) for reduced-motion / list-first users. */}
+            {/* BINDING NEVER-HIDE PATH — do NOT remove or gate this (ROADMAP §1.1, Josh's
+                call). The in-feed expand is the no-swipe / reduced-motion guarantee: it
+                reaches the SAME complete set (seeAllEv → feed.full) unconditionally. */}
             <button
               type="button"
               className="ev-seeall-list pressable"

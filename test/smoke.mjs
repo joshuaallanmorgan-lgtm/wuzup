@@ -37,6 +37,7 @@ import { fileURLToPath } from 'node:url'
 // doesn't fail the build on hard-coded Tampa values.
 import { bbox as CITY_BBOX, rosterBenchmark as CITY_ROSTER } from '../finder/cities/index.mjs'
 import { PLACETYPE_HUE, CATEGORY_HUES } from '../app/src/categories.js'
+import * as deckdeal from '../app/src/deckdeal.js'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const APP_EVENTS = path.join(ROOT, 'app', 'public', 'events.json')
@@ -2510,11 +2511,51 @@ test('V1 B5 / T1: Events see-all = the deck (primary never-hide door) + in-feed 
   // the PRIMARY full-width .ev-seeall pill now opens the swipe deck (the find-AND-tune door)
   assert.ok(/className="ev-seeall pressable"[\s\S]{0,200}openDeck\(\{ kind: 'events', origin: 'events' \}\)/.test(hot), 'T1: the primary See-all (.ev-seeall) opens the events deck via openDeck')
   // the in-feed fallback is RETAINED (Josh's call): the seeAllEv expand still reaches feed.full
-  assert.ok(/setSeeAllEv\(\(v\) => !v\)/.test(hot) && /seeAllEv \? feed\.full : feed\.curated/.test(hot), 'T1: the in-feed "full list" fallback (seeAllEv → feed.full) is kept')
+  assert.ok(/ev-seeall-list/.test(hot) && /setSeeAllEv\(\(v\) => !v\)/.test(hot) && /seeAllEv \? feed\.full : feed\.curated/.test(hot), 'T1: the in-feed "full list" fallback (.ev-seeall-list → seeAllEv → feed.full) is present + reaches the complete set')
+  assert.ok(/BINDING NEVER-HIDE PATH/.test(hot), 'the in-feed fallback is marked a BINDING never-hide path (guards against silent removal)')
   // the BLOCKER: the deck done screen has a reachable, non-dead-ending re-deal loop
   const deck = readFileSync(path.join(ROOT, 'app', 'src', 'CalibrationDeck.jsx'), 'utf8')
   assert.ok(/const dealAgain = \(\) =>/.test(deck) && /onClick=\{dealAgain\}/.test(deck), 'BLOCKER: the deck done screen has a reachable "Deal again" re-deal loop')
-  assert.ok(/setDeck\(next\)/.test(deck) && /exclude: new Set\(loadLastDeal/.test(deck), 'BLOCKER: "Deal again" re-deals the NEXT batch (excludes the just-rated via deck-last-v1)')
+  assert.ok(/seenRef\.current/.test(deck) && /nextEventsBatch\(events, anchors, seenRef\.current/.test(deck), 'BLOCKER: "Deal again" walks the catalog via the cumulative seen-set (nextEventsBatch), not a FIFO-only top-N re-deal')
+})
+
+test('V1 B5 coverage (scout re-sim): the cumulative re-deal loop reaches EVERY event, not a top-N carousel', () => {
+  // >45 events across real registry categories — the OLD FIFO(30)-over-hotDesc re-deal
+  // cycled only the top ~45, so this assertion would have FAILED on it. This is the
+  // sufficiency proof the Batch-5 test was missing (it only checked dealAgain existed).
+  const COV_CATS = ['music', 'food', 'outdoors', 'art', 'comedy', 'sports']
+  const catalog = Array.from({ length: 60 }, (_, i) =>
+    N(
+      ev({
+        title: 'Cov ' + i,
+        start: `2026-06-${String(12 + (i % 16)).padStart(2, '0')}T${String(9 + (i % 12)).padStart(2, '0')}:00:00`,
+        source: 'Src' + i,
+        sources: ['Src' + i],
+        category: COV_CATS[i % COV_CATS.length],
+        hotScore: 100 - i,
+      }),
+      AN
+    )
+  )
+  const seen = new Set()
+  const served = new Set()
+  const bound = Math.ceil(catalog.length / deckdeal.DECK_SIZE) + 1
+  let deals = 0
+  while (served.size < catalog.length && deals < 100) {
+    const batch = deckdeal.nextEventsBatch(catalog, AN, seen, { rng: () => 0.5 })
+    assert.ok(batch.length > 0, 'a re-deal never produces an empty/stuck batch while events remain')
+    for (const e of batch) served.add(lib.keyOf(e))
+    deals++
+  }
+  assert.equal(served.size, catalog.length, `the re-deal loop must serve EVERY event (covered ${served.size}/${catalog.length} in ${deals} deals)`)
+  assert.ok(deals <= bound, `full coverage within ~ceil(N/15) deals (took ${deals}, bound ${bound}) — proves a forward walk, not a fixed carousel`)
+  // WRAPS, never dead-ends: after full coverage the next deal re-serves from the top
+  const wrap = deckdeal.nextEventsBatch(catalog, AN, seen, { rng: () => 0.5 })
+  assert.ok(wrap.length > 0, 'after full coverage the loop wraps (re-deals from the top), never dead-ends')
+  // short-remainder edge: a near-exhausted pool deals the remainder, not an empty deck
+  const seen2 = new Set(catalog.slice(0, catalog.length - 4).map((e) => lib.keyOf(e)))
+  const rem = deckdeal.nextEventsBatch(catalog, AN, seen2, { rng: () => 0.5 })
+  assert.ok(rem.length > 0 && rem.length <= deckdeal.DECK_SIZE, `<15 unseen → deals the short remainder (${rem.length}), never empty/stuck`)
 })
 
 // W3 wiring — HotView must read curateFeed and ship the See-all escape (the

@@ -1,7 +1,3 @@
-/* eslint-disable react-refresh/only-export-components --
-   dealDeck (the pure sampler) is pinned to this file so the deck's stratified
-   draw is Node-sim-able next to the component that owns it (same precedent as
-   cards.jsx / Primer.jsx — dev-time Fast Refresh granularity only). */
 // CalibrationDeck — Sprint P3: the SANCTIONED swipe surface ("Rate 15 — we'll
 // dial you in"). A full-screen card stack of taste-spanning upcoming events,
 // opened from Profile → Settings (the settings agent owns the wiring; this
@@ -23,14 +19,14 @@
 // reads are unchanged. pushFmnSeen moved to fmnseen.js (shared with LensDeck,
 // same FIFO/cap-40 write contract).
 //
-// THE SAMPLER (dealDeck, pure + rng-injectable for Node sims): stratified,
-// NOT top-N — one hottest event per registry category (all 12, empty
-// categories skipped), remainder filled with high-hotScore picks capped at 2
-// per category, then shuffled. Always real events; SPONSORED IS EXCLUDED — a
-// paid placement must not harvest taste calibration. A re-deal excludes
-// events rated in recent deals ('deck-last-v1', FIFO cap 30 ≈ the last two
-// full decks); if that exclusion would empty a tiny dataset entirely, the
-// deal falls back to the full pool — re-rating old events beats a dead deck.
+// THE SAMPLER + the CUMULATIVE re-deal WALK live in deckdeal.js now (pure +
+// Node-importable so the never-hide COVERAGE proof is testable). dealDeck is
+// stratified — one hottest event per registry category, remainder filled
+// (≤2/category), shuffled; SPONSORED IS EXCLUDED (a paid placement must not harvest
+// taste calibration). The INITIAL deal excludes the persisted FIFO ('deck-last-v1',
+// cap 30) for cross-session freshness; each "Deal again" excludes (FIFO ∪ an
+// in-memory cumulative SEEN set) via nextEventsBatch, so it WALKS FORWARD through
+// the whole catalog (not a top-N carousel) and wraps when exhausted — never dead-ends.
 //
 // VERDICTS (each = exactly ONE taste signal, never two):
 //   right / ✓  "into it"    → recordCalibration('yes') (+3 category)
@@ -51,8 +47,8 @@
 //
 // ALL COPY IS DRAFT for Charles (inventory in the sprint report).
 import { useMemo, useRef, useState } from 'react'
-import { CATEGORIES, categoryById } from './categories.js'
-import { Icon, dayLoose, hotDesc, keyOf, timeOf } from './lib.js'
+import { categoryById } from './categories.js'
+import { Icon, dayLoose, keyOf, timeOf } from './lib.js'
 import { lsGet, lsSet } from './storage.js'
 import { pushFmnSeen } from './fmnseen.js'
 import { CardImg, PriceChip, SponsoredTag, placeTypeLabel, spotChips, hueFor, artEmoji } from './cards.jsx'
@@ -60,10 +56,8 @@ import { useSaves } from './saves.js'
 import { usePlaces } from './places.js'
 import { getProfile, recordCalibration, topCategories } from './taste.js'
 import SwipeDeck from './SwipeDeck.jsx'
+import { DECK_SIZE, dealDeck, dealPlaceDeck, nextEventsBatch, nextPlacesBatch } from './deckdeal.js'
 import './deck.css'
-
-export const DECK_SIZE = 15
-const FILL_CAT_CAP = 2 // remainder fill: at most 2 of any category in a deal
 
 // ===== re-deal memory: keys rated in recent deals (FIFO, cap 30 ≈ two full
 // decks). Kind-scoped so the Events + Spots Tinder decks keep INDEPENDENT
@@ -81,113 +75,6 @@ function loadLastDeal(kind) {
 function pushLastDeal(kind, key) {
   const kept = loadLastDeal(kind).filter((k) => k !== key)
   lsSet(lastKeyFor(kind), JSON.stringify(kept.concat(key).slice(-LAST_CAP))) // guarded in storage.js
-}
-
-// ===== THE SAMPLER — pure, rng-injectable (Node sims pass a seeded rng).
-// Stratify first (one hottest per registry category — taste-SPANNING, the
-// whole point: a top-N deal would only re-ask about what's already winning),
-// then fill with high-hotScore diverse picks (≤2/category), then shuffle so
-// the deal order doesn't telegraph the category walk. =====
-export function dealDeck(events, anchors, { exclude = new Set(), size = DECK_SIZE, rng = Math.random } = {}) {
-  const upcoming = events.filter(
-    (e) => e._day != null && (e._endDay ?? e._day) >= anchors.todayTs && e.sponsored !== true
-  )
-  let pool = upcoming.filter((e) => !exclude.has(keyOf(e)))
-  if (!pool.length) pool = upcoming // tiny-dataset fallback: re-rating beats a dead deck
-  const byCat = new Map()
-  for (const e of pool) {
-    const list = byCat.get(e.category)
-    if (list) list.push(e)
-    else byCat.set(e.category, [e])
-  }
-  for (const list of byCat.values()) list.sort(hotDesc)
-  const picked = []
-  const taken = new Set()
-  for (const { id } of CATEGORIES) {
-    // never SOLICIT a rating on the 'other' junk-drawer: a 'yes' there would
-    // nudge a heterogeneous pile of unrelated events (the fill pass may still
-    // include one organically, but the deck doesn't ask for it on purpose)
-    if (id === 'other') continue
-    const list = byCat.get(id)
-    if (list && list.length && picked.length < size) {
-      picked.push(list[0])
-      taken.add(keyOf(list[0]))
-    }
-  }
-  const rest = pool.filter((e) => !taken.has(keyOf(e))).sort(hotDesc)
-  const catCount = {}
-  for (const e of picked) catCount[e.category] = (catCount[e.category] || 0) + 1
-  for (const e of rest) {
-    if (picked.length >= size) break
-    if ((catCount[e.category] || 0) >= FILL_CAT_CAP) continue
-    picked.push(e)
-    taken.add(keyOf(e))
-    catCount[e.category] = (catCount[e.category] || 0) + 1
-  }
-  if (picked.length < size) {
-    // diversity cap left slots open (lopsided pool) — relax it rather than under-deal
-    for (const e of rest) {
-      if (picked.length >= size) break
-      if (!taken.has(keyOf(e))) {
-        picked.push(e)
-        taken.add(keyOf(e))
-      }
-    }
-  }
-  for (let i = picked.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1))
-    ;[picked[i], picked[j]] = [picked[j], picked[i]]
-  }
-  return picked
-}
-
-// THE PLACES SAMPLER (Tinder Spots deck): same stratify→fill→shuffle shape as
-// dealDeck, but PLACES have no date/sponsored — so the pool is every place, and
-// the stratum is PLACETYPE (beach/park/trail/cafe/pier/…) for a VARIED deck (a
-// top-N would deal 15 parks). corroboration (srcCount) is the place "hotness".
-// Each rating still feeds the shared CATEGORY taste model via recordCalibration
-// (a beach/park nudge 'outdoors', a cafe nudges 'food', a court 'sports', …).
-export function dealPlaceDeck(places, { exclude = new Set(), size = DECK_SIZE, rng = Math.random } = {}) {
-  let pool = (places || []).filter((p) => !exclude.has(keyOf(p)))
-  if (!pool.length) pool = places || [] // tiny-pool fallback: re-rating beats a dead deck
-  const byType = new Map()
-  for (const p of pool) {
-    const t = p.placeType || 'spot'
-    const list = byType.get(t)
-    if (list) list.push(p)
-    else byType.set(t, [p])
-  }
-  const srcDesc = (a, b) => (b.srcCount || 0) - (a.srcCount || 0)
-  for (const list of byType.values()) list.sort(srcDesc)
-  const picked = []
-  const taken = new Set()
-  for (const list of byType.values()) {
-    if (picked.length >= size) break
-    picked.push(list[0])
-    taken.add(keyOf(list[0]))
-  }
-  const rest = pool.filter((p) => !taken.has(keyOf(p))).sort(srcDesc)
-  const typeCount = {}
-  for (const p of picked) typeCount[p.placeType] = (typeCount[p.placeType] || 0) + 1
-  for (const p of rest) {
-    if (picked.length >= size) break
-    if ((typeCount[p.placeType] || 0) >= FILL_CAT_CAP) continue
-    picked.push(p)
-    taken.add(keyOf(p))
-    typeCount[p.placeType] = (typeCount[p.placeType] || 0) + 1
-  }
-  for (const p of rest) {
-    if (picked.length >= size) break
-    if (!taken.has(keyOf(p))) {
-      picked.push(p)
-      taken.add(keyOf(p))
-    }
-  }
-  for (let i = picked.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1))
-    ;[picked[i], picked[j]] = [picked[j], picked[i]]
-  }
-  return picked
 }
 
 const prefersReduced = () =>
@@ -269,6 +156,13 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
       ? dealPlaceDeck(places, { exclude: new Set(loadLastDeal('places')) })
       : dealDeck(events, anchors, { exclude: new Set(loadLastDeal('events')) })
   )
+  // BATCH 5 COVERAGE FIX: the in-memory cumulative seen set. The persisted FIFO above only
+  // freshens the INITIAL deal cross-session; `seen` accumulates EVERY served key, so each
+  // "Deal again" excludes (persisted ∪ seen) and walks FORWARD through the whole catalog
+  // (~ceil(pool/15) deals), wrapping when exhausted — never a shallow top-N carousel.
+  // Seeded from the initial deck via a guarded lazy ref (StrictMode-safe: no render mutation).
+  const seenRef = useRef(null)
+  if (seenRef.current === null) seenRef.current = new Set(deck.map((x) => keyOf(x)))
   // BATCH 5: re-deal counter — keys SwipeDeck so a "Deal again" remounts it with the
   // next batch (its derived index resets in lockstep with into/nope below).
   const [dealNum, setDealNum] = useState(0)
@@ -302,15 +196,15 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
     setInto((n) => n + 1)
   }
 
-  // BATCH 5 (the never-hide blocker): re-deal the NEXT batch from the done screen so
-  // the deck never dead-ends — every rated card is already in deck-last-v1, so the new
-  // deal excludes them and surfaces fresh picks; continuing to swipe walks the pool.
-  // (The complete set is also always one tap away via the kept in-feed "See all N"
-  // fallback + curate.js's count-preserving full/fullEventCount proof.)
+  // BATCH 5 (the never-hide door): re-deal the NEXT batch from the done screen so the deck
+  // never dead-ends. nextEventsBatch excludes (persisted-FIFO ∪ the cumulative seen set) and
+  // walks FORWARD through the catalog — serving genuinely NEW events each tap until the whole
+  // pool is covered, then wrapping. (The complete set is also always one tap away via the
+  // kept in-feed "See all N" fallback + curate.js's count-preserving proof.)
   const dealAgain = () => {
     const next = isPlaces
-      ? dealPlaceDeck(places, { exclude: new Set(loadLastDeal('places')) })
-      : dealDeck(events, anchors, { exclude: new Set(loadLastDeal('events')) })
+      ? nextPlacesBatch(places, seenRef.current, { persisted: loadLastDeal('places') })
+      : nextEventsBatch(events, anchors, seenRef.current, { persisted: loadLastDeal('events') })
     setDeck(next)
     setInto(0)
     setNope(0)
