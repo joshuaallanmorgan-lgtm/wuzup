@@ -441,15 +441,25 @@ export default function HotView({ events, anchors, loading }) {
                 sub={seeAllEv ? 'Every event, recurring series grouped' : 'The picks — quality first'}
               />
             </div>
+            {/* T1 (Batch 5): the PRIMARY never-hide door is now the swipe deck — find
+                AND tune by swiping the full pool (re-deal loop keeps it reachable).
+                Copy DRAFT ⚑ Charles. */}
             <button
               type="button"
               className="ev-seeall pressable"
+              onClick={() => openDeck({ kind: 'events', origin: 'events' })}
+            >
+              Swipe all {feed.fullEventCount.toLocaleString('en-US')} events →
+            </button>
+            {/* the KEPT in-feed fallback (Josh's call) — a quieter expand that reaches
+                the SAME complete set (feed.full) for reduced-motion / list-first users. */}
+            <button
+              type="button"
+              className="ev-seeall-list pressable"
               onClick={() => setSeeAllEv((v) => !v)}
               aria-expanded={seeAllEv}
             >
-              {seeAllEv
-                ? '← Show the picks'
-                : `See all ${feed.fullEventCount.toLocaleString('en-US')} events →`}
+              {seeAllEv ? '← Show the picks' : 'Or browse the full list here ↓'}
             </button>
             <RowFeed
               sections={evSections}

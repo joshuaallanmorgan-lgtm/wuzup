@@ -1490,8 +1490,13 @@ test('PREMIUM A4: elevation scale + motion (depth tokens, press, btn-primary, ad
   assert.ok(/\.featc\s*\{\s*box-shadow:\s*var\(--shadow-3\)/.test(cardsCss), 'featured card → --shadow-3')
   // press answer: shadow tightens on :active
   assert.ok(/\.gem:active,[\s\S]*?box-shadow:\s*var\(--shadow-press\)/.test(cardsCss), 'cards tighten the shadow on :active (--shadow-press)')
-  // shared primary-button recipe on the laggard CTAs
-  assert.ok(/\.btn-primary,[\s\S]*?\.ms-tab-sel\s*\{[\s\S]*?inset 0 1px 0 rgba\(255, 255, 255/.test(appCss), 'the shared .btn-primary glow+sheen recipe covers the laggard CTAs')
+  // shared primary-button recipe — EXPLICIT per-CTA membership (not order-dependent
+  // bracketing) so dropping ANY laggard CTA from the recipe selector list fails again
+  const recipeBlock = (appCss.match(/\.btn-primary[\s\S]*?box-shadow: 0 4px 14px[^}]*\}/) || [''])[0]
+  assert.ok(/inset 0 1px 0 rgba\(255, 255, 255/.test(recipeBlock), 'the shared glow+sheen recipe block exists (inset top-sheen)')
+  for (const cls of ['.btn-primary', '.featc-add', '.ep-save', '.pf-ask-yes', '.loc-plan-add', '.flt-submit', '.tune-cta', '.empty-cta', '.ms-tab-sel']) {
+    assert.ok(new RegExp(cls.replace('.', '\\.') + '\\s*[,{]').test(recipeBlock), `the premium-button recipe must cover ${cls} (drop it and this fails)`)
+  }
   // V1 B1: the shared empty-state CTA joins the recipe (D.0-R-safe --cta fill + the --accent-rgb glow)
   assert.ok(/\.empty-cta,/.test(appCss) && /\.empty-cta \{[\s\S]*?background: var\(--cta\)/.test(appCss), 'V1 B1: the .empty-cta joins the premium recipe with a D.0-R-safe --cta fill')
   // hero vignette gained a radial layer
@@ -1548,7 +1553,7 @@ test('3.7P-39 section-label honesty: job/career fairs are not Hidden Gems', () =
     assert.ok(!re.test(t), 'a real gem is NOT excluded: ' + t)
   }
   const hot = readFileSync(path.join(ROOT, 'app', 'src', 'HotView.jsx'), 'utf8')
-  assert.ok(!/NON_GEM_RE/.test(hot) && !/Under the radar/.test(hot), 'V1 S1: the HotView Hidden Gems shelf is retired (NON_GEM_RE + the "Under the radar" section gone; gems still gate in finder/taste/curate)')
+  assert.ok(!/NON_GEM_RE/.test(hot) && !/Under the radar/.test(hot), 'V1 S1: HotView carries no gem shelf — no NON_GEM_RE, no "Under the radar" section')
   const finder = readFileSync(path.join(ROOT, 'finder', 'finder.mjs'), 'utf8')
   assert.ok(/NON_GEM_RE/.test(finder), 'finder.mjs carries the synced NON_GEM_RE exclusion (clean future runs)')
 })
@@ -2498,6 +2503,18 @@ test('W3 curate: real dataset — feed is shorter, collapse de-spams, See-all co
   for (const s of feed.full) for (const g of s.items) fullIds.add(lib.keyOf(g) + '|' + g._clamp)
   for (const s of feed.curated) for (const g of s.items)
     assert.ok(fullIds.has(lib.keyOf(g) + '|' + g._clamp), 'every curated group exists in full (curated ⊆ full)')
+})
+
+test('V1 B5 / T1: Events see-all = the deck (primary never-hide door) + in-feed fallback + re-deal loop', () => {
+  const hot = readFileSync(path.join(ROOT, 'app', 'src', 'HotView.jsx'), 'utf8')
+  // the PRIMARY full-width .ev-seeall pill now opens the swipe deck (the find-AND-tune door)
+  assert.ok(/className="ev-seeall pressable"[\s\S]{0,200}openDeck\(\{ kind: 'events', origin: 'events' \}\)/.test(hot), 'T1: the primary See-all (.ev-seeall) opens the events deck via openDeck')
+  // the in-feed fallback is RETAINED (Josh's call): the seeAllEv expand still reaches feed.full
+  assert.ok(/setSeeAllEv\(\(v\) => !v\)/.test(hot) && /seeAllEv \? feed\.full : feed\.curated/.test(hot), 'T1: the in-feed "full list" fallback (seeAllEv → feed.full) is kept')
+  // the BLOCKER: the deck done screen has a reachable, non-dead-ending re-deal loop
+  const deck = readFileSync(path.join(ROOT, 'app', 'src', 'CalibrationDeck.jsx'), 'utf8')
+  assert.ok(/const dealAgain = \(\) =>/.test(deck) && /onClick=\{dealAgain\}/.test(deck), 'BLOCKER: the deck done screen has a reachable "Deal again" re-deal loop')
+  assert.ok(/setDeck\(next\)/.test(deck) && /exclude: new Set\(loadLastDeal/.test(deck), 'BLOCKER: "Deal again" re-deals the NEXT batch (excludes the just-rated via deck-last-v1)')
 })
 
 // W3 wiring — HotView must read curateFeed and ship the See-all escape (the

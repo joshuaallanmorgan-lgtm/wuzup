@@ -103,7 +103,7 @@
 /* Stage 2 Deep Sweep: the retired 220px image-hero block was removed — none of
    .hero / .hero-img / heroKenBurns / .hero-kb / .hero-dim / .hero-grad /
    .hero-text / .hero-kicker / .hero-city / .hero-sub / .hero-brand(-dot) is
-   applied in any JSX (the Home greeting is .home-greet; detail uses .detail-hero*). */
+   applied in any JSX (the Home header is the shared .loc-head-title now; detail uses .detail-hero*). */
 
 /* (3.7P-6 FB-07: the hero 🔎 search button was retired — search moved into the
    lens row beside "Near Me", styled .lens-search in topnav.css.) */
@@ -350,6 +350,21 @@
   border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
   border-radius: var(--r-md);
   padding: 10px 14px;
+  cursor: pointer;
+  text-align: center;
+}
+/* T1 (Batch 5): the quieter in-feed "full list" fallback under the deck pill. */
+.ev-seeall-list {
+  display: block;
+  width: calc(100% - 40px);
+  margin: -6px 20px 14px;
+  padding: 4px 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
   cursor: pointer;
   text-align: center;
 }

@@ -264,11 +264,14 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
   // ONE deal per mount (deliberately not a useMemo on [events]: App rebuilds
   // `norm` identities on anchor refreshes / my-event edits, and a re-deal
   // mid-rating would reshuffle the stack under the user's thumb)
-  const [deck] = useState(() =>
+  const [deck, setDeck] = useState(() =>
     isPlaces
       ? dealPlaceDeck(places, { exclude: new Set(loadLastDeal('places')) })
       : dealDeck(events, anchors, { exclude: new Set(loadLastDeal('events')) })
   )
+  // BATCH 5: re-deal counter — keys SwipeDeck so a "Deal again" remounts it with the
+  // next batch (its derived index resets in lockstep with into/nope below).
+  const [dealNum, setDealNum] = useState(0)
   const [beforeTop] = useState(() => topCategories(getProfile(), 3)) // the honest "before"
   const [into, setInto] = useState(0) // 'yes' + 'save' verdicts
   const [nope, setNope] = useState(0)
@@ -297,6 +300,22 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
     else recordCalibration('yes', e) // save on an already-saved card
     pushLastDeal(kind, keyOf(e))
     setInto((n) => n + 1)
+  }
+
+  // BATCH 5 (the never-hide blocker): re-deal the NEXT batch from the done screen so
+  // the deck never dead-ends — every rated card is already in deck-last-v1, so the new
+  // deal excludes them and surfaces fresh picks; continuing to swipe walks the pool.
+  // (The complete set is also always one tap away via the kept in-feed "See all N"
+  // fallback + curate.js's count-preserving full/fullEventCount proof.)
+  const dealAgain = () => {
+    const next = isPlaces
+      ? dealPlaceDeck(places, { exclude: new Set(loadLastDeal('places')) })
+      : dealDeck(events, anchors, { exclude: new Set(loadLastDeal('events')) })
+    setDeck(next)
+    setInto(0)
+    setNope(0)
+    setDealNum((n) => n + 1) // remounts SwipeDeck → its derived index resets to 0 (== rated)
+    setPhase(next.length ? 'rate' : 'empty')
   }
 
   // "Done early" keeps what it learned — verdicts were recorded as they
@@ -341,7 +360,12 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
                 )}
               </div>
             )}
-            <button className="deck-done-btn pressable" onClick={onClose}>
+            {/* BATCH 5: "Deal again" keeps the catalog reachable — the done screen no
+                longer dead-ends. Close is the quiet secondary. (Copy DRAFT ⚑ Charles.) */}
+            <button className="deck-done-btn pressable" onClick={dealAgain}>
+              Deal another {DECK_SIZE}
+            </button>
+            <button className="deck-early" onClick={onClose}>
               {closeLabel}
             </button>
           </div>
@@ -385,6 +409,7 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
             </div>
 
             <SwipeDeck
+              key={dealNum}
               cards={deck}
               keyFor={keyOf}
               classPrefix="deck"
