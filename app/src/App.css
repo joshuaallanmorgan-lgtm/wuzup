@@ -31,17 +31,10 @@
    as the .map-wrap sub-view); the pager is page / page-hot only. */
 .page-hot { overflow: hidden; }
 
-/* ===== Stage R: the Home dashboard clean light header (greeting + weather) ===== */
-.home-head { padding: 22px var(--gutter) 6px; position: relative; } /* A5: 18→20 so the title shares the body's left ruler */
-/* S1-H1: the small muted page-name overline above the greeting. */
-.home-title {
-  margin: 0 0 3px;
-  font-size: var(--eyebrow-size); /* A6: the eyebrow contract (was 12/700/0.08em) */
-  font-weight: var(--eyebrow-weight);
-  letter-spacing: var(--eyebrow-track);
-  text-transform: uppercase;
-  color: var(--muted);
-}
+/* ===== Stage R: the Home dashboard clean light header (title + weather) =====
+   H1/H3: the title is now the shared .loc-head-title primitive (locations.css); the
+   eyebrow .home-title + the .home-greet greeting + .home-wx are retired. */
+.home-head { padding: 22px var(--gutter) 6px; position: relative; }
 /* R-HD1: the Home search disc — light-surface icon button (the .pf-gear family),
    centered against the greeting line, top-right. */
 .home-search {
@@ -61,20 +54,6 @@
   transition: transform 0.12s;
 }
 .home-search:active { transform: scale(0.92); }
-.home-greet {
-  margin: 0;
-  font-size: 30px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.08;
-  color: var(--ink);
-}
-.home-wx {
-  margin-top: 5px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--muted);
-}
 /* H-L2: "View full forecast →" text link below NextDays */
 .home-forecast-link {
   display: block;
@@ -124,7 +103,7 @@
 /* Stage 2 Deep Sweep: the retired 220px image-hero block was removed — none of
    .hero / .hero-img / heroKenBurns / .hero-kb / .hero-dim / .hero-grad /
    .hero-text / .hero-kicker / .hero-city / .hero-sub / .hero-brand(-dot) is
-   applied in any JSX (the Home greeting is .home-greet; detail uses .detail-hero*). */
+   applied in any JSX (the Home header is the shared .loc-head-title now; detail uses .detail-hero*). */
 
 /* (3.7P-6 FB-07: the hero 🔎 search button was retired — search moved into the
    lens row beside "Near Me", styled .lens-search in topnav.css.) */
@@ -225,10 +204,28 @@
 .loc-plan-add,
 .flt-submit,
 .tune-cta,
+.empty-cta,
 .ms-tab-sel {
   box-shadow: 0 4px 14px rgba(var(--accent-rgb), 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   transition: transform var(--dur-micro), box-shadow var(--dur-micro);
 }
+/* B1: the shared empty-state CTA — solid --cta fill + white text (D.0-R-safe),
+   the recipe's --accent-rgb glow above; gives bare empty states a premium exit. */
+.empty-cta {
+  display: block;
+  width: fit-content;
+  margin: 16px auto 0; /* own line, centered in the empty state */
+  padding: 11px 20px;
+  border: none;
+  border-radius: var(--r-md);
+  background: var(--cta);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.empty-cta:active { transform: scale(0.98); }
 .btn-primary:active,
 .featc-add:active,
 .ep-save:active,
@@ -236,6 +233,7 @@
 .loc-plan-add:not(:disabled):active,
 .flt-submit:active,
 .tune-cta:active,
+.empty-cta:active,
 .ms-tab-sel:active {
   box-shadow: 0 2px 7px rgba(var(--accent-rgb), 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
@@ -352,6 +350,21 @@
   border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
   border-radius: var(--r-md);
   padding: 10px 14px;
+  cursor: pointer;
+  text-align: center;
+}
+/* T1 (Batch 5): the quieter in-feed "full list" fallback under the deck pill. */
+.ev-seeall-list {
+  display: block;
+  width: calc(100% - 40px);
+  margin: -6px 20px 14px;
+  padding: 4px 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
   cursor: pointer;
   text-align: center;
 }
@@ -677,4 +690,5 @@
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) { animation: none !important; }
+  .empty-cta:active { transform: none; } /* B1: kill the press-scale under reduced motion */
 }

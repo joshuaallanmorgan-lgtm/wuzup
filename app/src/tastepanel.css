@@ -21,46 +21,8 @@
 .tp-headline { font-size: 18px; font-weight: 800; letter-spacing: -0.2px; line-height: 1.25; }
 .tp-trust { margin-top: 6px; font-size: 13px; font-weight: 500; color: var(--muted); line-height: 1.5; }
 
-/* the standing promise — the whole reason this page exists */
-.tp-promise {
-  margin-top: 14px;
-  padding: var(--sp-sm);
-  /* A5/D2: drop the neutral hairline for a soft accent inset on the tinted callout */
-  border: 1px solid rgba(var(--accent-rgb), 0.14);
-  border-radius: var(--r-md);
-  background: rgba(var(--accent-rgb), 0.06);
-  font-size: 12.5px;
-  font-weight: 600;
-  line-height: 1.5;
-  color: var(--ink);
-}
-
-/* relative-weight bars */
-.tp-leans { margin-top: 18px; }
-.tp-lean { display: flex; align-items: center; gap: 10px; margin-top: 9px; }
-.tp-lean-name {
-  flex: 0 0 38%;
-  min-width: 0;
-  font-size: 13px;
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.tp-bar {
-  flex: 1;
-  height: 9px;
-  border-radius: var(--r-pill);
-  background: var(--line);
-  overflow: hidden;
-}
-.tp-bar-fill {
-  display: block;
-  height: 100%;
-  border-radius: var(--r-pill);
-  background: hsl(var(--ph, 200), 70%, 48%);
-  transition: width var(--dur-page, 0.3s) ease;
-}
+/* P1/P2: the .tp-promise callout + the .tp-leans "Leaning toward" weight bars
+   were retired (Josh's taste-sweep); the never-hide line is a .tp-trust line now. */
 
 .tp-facts { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
 .tp-fact { font-size: 13px; font-weight: 600; line-height: 1.4; }
@@ -113,5 +75,4 @@
 @media (prefers-reduced-motion: reduce) {
   .tp-ctl { transition: none; }
   .tp-ctl:active { transform: none; }
-  .tp-bar-fill { transition: none; }
 }

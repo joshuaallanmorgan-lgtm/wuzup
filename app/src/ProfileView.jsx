@@ -87,7 +87,7 @@ export default function ProfileView({ anchors }) {
     <div className="pf-scroll">
       <header className="pf-head">
         {/* P1: the page title — big bold ink, mirrors the app's heading family */}
-        <h1 className="pf-title">Profile</h1>
+        <h1 className="loc-head-title">Profile</h1>
 
         {/* P2/P3/P4: the WHITE identity card — avatar · editable name · city · an
             edit pencil — with the honest stats trio inside the same card. */}

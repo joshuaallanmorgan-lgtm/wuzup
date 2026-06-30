@@ -5,6 +5,66 @@
 > Maintained by the plan-scout; the builder executes punch lists derived from it.
 >
 > _Created 2026-06-17, at the close of Stage R (the visual rework)._
+> _Doc map + naming spine = [INDEX.md](INDEX.md). Idea intake (v1/v2) = [BACKLOG.md](BACKLOG.md). Maintained by the project cop._
+
+---
+
+## ▶ CURRENT ROAD TO V1 (2026-06-25 — post UI overnight-grind)
+
+The **UI overnight-grind (Stage 1 / Reference Finish) is DONE** and merged to `main` (`c96971c`): Plan
+section (P0 daypart migration → P1 DayPage → P2 flows), card+filter consolidation + fidelity polish,
+Events-full (+4 sections), Spots-full (themed sections + chips), the **cafe data source** (332 real OSM
+cafes → real Coffee & Hang), and **Tinder** ("Tune your taste" on Events + Spots). The big structure +
+content is built and matches the mockups' **content** — but not yet their **premium feel.**
+
+**What's left to v1 is FEEL → cleanup → expansion → ship, in this order:**
+
+### Stage A — PREMIUM-FEEL PASS ◀ IN PROGRESS — imagery (A3) ✅ shipped · A5 next (the headline)
+Driven by **[`PREMIUM_PUNCH.md`](PREMIUM_PUNCH.md)** (Josh's playtest notes ∪ a 7-lens diagnostic —
+typography/spacing/color/depth/imagery/motion/components — merged, deduped, ranked, **8 LOCKED owner
+decisions** at the top). **Four non-negotiables are deliberately bent for this pass: imagery · depth ·
+motion · richer content** (new policy re-codified in PREMIUM_PUNCH §2; honesty bar still holds — nothing
+fake presented as real). Sub-phases:
+- ✅ **A1 Quick wins** (PREMIUM_PUNCH §3) — tabular numerals · card padding 10→16 · gutter unify · warm bg ·
+  warm floating tab bar · carousel shadows · press feedback · section-title bump · accent restraint · chip
+  primitive. Mostly token edits → immediate visible lift.
+- ✅ **A2 Card system rework** — D1 uniform size · D2 lower contrast · D3 full title · D4 heart top-right ·
+  tall left image · real CTA button · stroke-icon family (retire emoji controls).
+- ✅ **A3 Place imagery — DONE** (honesty-first; the old "curated stock + per-placeType sets, ≥80% coverage"
+  target was REJECTED + reverted). Shipped in 3 merged PRs: (1) **Mapillary sign-verified** cafe storefronts
+  (35/332 — ship ONLY when a storefront sign name-matches; real-of-the-place, CC-BY-SA credited); (2) the
+  **Aurora art floor** — a per-place deterministic generative gradient field (seeded by `place.key`) for the
+  ~89% with no photo, breaking the per-type "wall"; (3) the **multi-city imagery lock** — city-agnostic
+  pipeline + fail-closed honesty guards + a committed per-city runbook. Coverage is precision-first (~6% real
+  photos, but 100% a premium floor) — never fake-presented-as-real.
+- ✅ **A4 Depth + motion systems** — the 3-step shadow scale + the motion policy (skeletons, the Add-to-plan
+  animation, deck polish).
+- ◀ **A5 Per-screen + decisions** *(NEXT)* — Settings (D7 row removals + premium primer) · Map (D8 park → Google Maps)
+  · Tinder deck match (D6) · one-line filter chips (D5) · Plan/Calendar · Taste/Interests · header pattern +
+  Title Case · BubblePage chrome (FLOWS §1 folded in).
+- **A6 Codify the new contracts** into `index.css` + the design-system docs.
+
+*(Status caveat: A3 is independently verified done. **A1/A2/A4 are marked done per the overnight grind, but PREMIUM_PUNCH §0's D1–D8 decision boxes are all still unticked** — so A5 opens with a quick render-vs-§0 reconcile to confirm what's actually shipped before Stage A formally closes.)*
+
+Gate: reads **premium** against the north-star, top-to-bottom.
+
+### Stage B — Patch sprint
+Josh's accumulated micro-tweaks + tracked cleanups (Guides mid-page on Events, the P2 tap-through to fully
+close Plan, the pre-existing flaky smoke test).
+
+### Stage C — Deep Sweep *(was Stage 2)* — dead-code / dedup / perf / bundle / a11y / final token + card-variant consolidation.
+
+### Stage D — Multi-City *(was Stage 3)* — per-city event/place data (new source modules) · a city switcher · per-city copy/theming. The big pre-ship expansion. **Imagery already pre-banked (2026-06-26 multi-city lock):** the finder's region is now ONE city config (no longer a hard-coded Tampa bbox) and the Mapillary + Aurora pipeline runs for any city with all honesty guards baked in — so Stage D's remaining work is the data sources + switcher + theming, NOT the imagery.
+
+### Stage E — V1 Ship *(was Stage 4)* — holistic pass (full app vs all refs + the premium bar) · final contract/honesty audit (post-bending) · perf/build hardening → ship. Then v2 (the parked map, etc.).
+
+*(This re-sequences the original §2 — Premium + Patches now precede Deep Sweep. The Stage definitions for Deep Sweep / Multi-City / v1 Ship below still hold.)*
+
+---
+
+## Naming (the one spine — old numbers are retired)
+
+Forward work is named by **Stage** (see §2). The old **"Phase 4" = Stage 4 (v1 Ship)**; the old **"3.77 / 3.78" = Stage 3 (Multi-City)**; the **`*_GRIND` / `*_PHASE2`** screen docs are the **Stage 1** per-screen pass. Everything earlier (Sprints A–Y · Waves · Phases 1–3 · 3.5 / 3.6 · 3.71–3.76 · 3.7P-*) is **shipped history** — see [INDEX.md](INDEX.md).
 
 ---
 
@@ -38,6 +98,13 @@ These are load-bearing and survive every stage. Any change requires explicit Jos
 1. **Honesty contract (never-hide).** Curation-by-quality + see-all; taste **reorders, never filters**;
    no fake data; real-photo-of-the-actual-place or category-art floor (no type-photos); sources
    disclosed; sponsored / added-by-you labeled.
+   - **Amended 2026-06-28 (Josh + Charles re-adaptation; recorded sign-off — §1 requires it):** the default feed is a
+     **curated magazine**; the **complete, taste-tuned set lives behind the Tinder swipe** (the primary find-AND-tune door)
+     **and/or a scrollable see-all fallback.** **Reachability is binding** — every event must stay surfaceable: the deck must
+     offer a **non-dead-ending re-deal loop** (or a link to the full list), and a **button/scroll fallback** to the complete set
+     must exist for reduced-motion users. Sponsored is excluded from the deck for **honesty** (not taste). `curate.js`'s
+     count-preserving `full`/`fullEventCount` is retained as the never-hide proof.
+     _Shipped 2026-06-30 (Stage B Batch 5): the Events see-all relocated to the deck (openDeck {kind:'events'}) as the primary find-and-tune door, with the in-feed "See all N" expand RETAINED as a binding fallback (Josh's call). The deck re-deal loop was then HARDENED after the scout's coverage sim caught a shallow top-~45 carousel (FIFO-30 over a deterministic sort): it now uses a CUMULATIVE in-memory seen-set (deckdeal.js `nextEventsBatch`) that walks the whole catalog forward (~⌈N/15⌉ deals) before wrapping, with a Node coverage test proving every event is served. All three binding reachability conditions hold: cumulative re-deal walk · in-feed fallback · curate.js count-preserving full/fullEventCount proof._
 2. **D.0-R primary-button system.** One shared treatment = **`--cta #bb5719` fill + white text**
    (white-on-`#bb5719` ≈ 4.68:1, passes AA). White is **forbidden** on the light gold `--accent #ff8c42`.
    `--accent-ink #b35418` for accent-text-on-light.
@@ -71,6 +138,7 @@ self-reported data; the zero-is-silence ban was **lifted** to allow this).
 | **1** | **Reference Finish** | Aggressive patch, until Josh says stop | Josh's screen-by-screen visual sign-off |
 | **1.5** | **Build-up** | New development + new references (deferred from the finish) | Per-feature; runs alongside/after Stage 1 |
 | **2** | **Deep Sweep** | Disciplined, verify-everything | Green gate + path sweep + no P1/P2 bugs |
+| **2.5** | **Premium Polish ("Lamination")** | Feel, not structure | Type/spacing/motion/icons elevated; micro-QA clean |
 | **3** | **Multi-City** | Refactor + prove | Two cities live + clean |
 | **4** | **v1 Ship** | Harden + release | Shippability gate passes; beta out |
 | **v2** | **Backlog** | Post-v1 | — |
@@ -79,6 +147,8 @@ self-reported data; the zero-is-silence ban was **lifted** to allow this).
 
 Goal: **match the reference down to the pixel** on every surface, and bring the un-referenced surfaces
 into the same visual language so nothing reads as orphaned.
+
+> **Now running as a per-screen pass** (the work happening tonight): the `*_GRIND` (landing pixel-match) + `*_PHASE2` (its flow destinations) docs, screen by screen — **Profile → Home → Events → Spots → Plan**. Fidelity/wiring cleanup in [TOUCHUP_PUNCHLIST.md](TOUCHUP_PUNCHLIST.md). **Plan/DayPage is deferred** (path-risky daypart store migration — held for an awake session). All screens tracked in [INDEX.md](INDEX.md).
 
 - **1a — Pixel-match the 11 referenced screens.** The recursive loop we've been running:
   Josh eyeballs a fresh build → scout produces a file:line punch list → builder fixes → repeat.
@@ -112,6 +182,13 @@ Runs alongside or after Stage 1; each item gets scoped when we reach it.
 Goal: clean up what the fast UI work left underneath, so we harden the single-city app **once** rather
 than per-city.
 
+> **Re-run after the grind:** the per-screen Stage-1 rebuild has landed a lot of new code since the early Deep Sweep — this stage must run again against the current tree, not be assumed done.
+
+- **Tier 0 — Orphan inventory (do FIRST; preserve before you delete):** inventory the sections + logic
+  that are **built but no longer shown** by the UI (e.g. the by-activity / by-category logic hidden or cut
+  during the grind). For each: **re-use now**, **note to revisit later** (→ [BACKLOG.md](BACKLOG.md)), or
+  **intentionally retired** (Dice / Find-My-Night — stay gone). Do not let the dead-CSS/de-dup tiers below
+  silently delete reusable feature logic.
 - **Tier 1 — Dead CSS (zero risk):** remove `.loc-hero*` (locations.css), `.sec-overline` (App.css,
   never fires post-flip), and other retired rules; verify removed classes are gone.
 - **Tier 2 — Path re-verification (§O do-not-break):** `openDetail` `[data-vt]` morph targets; `focusMap`
@@ -124,7 +201,19 @@ than per-city.
 - **Bug hunt + a11y basics + honesty re-audit**, then **Tier 4 test gate:** `npm test` + clean build
   (no orphan-CSS warnings) + a ~30-min scripted live QA run of the core flows.
 
+### Stage 2.5 — Premium Polish ("Lamination")  *(feel, not structure — added 2026-06-22 per Josh)*
+
+Structure is locked by here. This pass makes the app **feel premium without changing the layout** — the "lamination" coat over a finished frame:
+- **Type & spacing** — elevate every text style and rhythm from "correct" to "premium."
+- **Motion** — purposeful transitions + micro-interactions.
+- **Iconography** — refine icons / little glyphs / menu affordances for consistency and polish.
+- **Micro-QA** — hunt visual glitches: clipped or half-hidden buttons, awkward placements, off spacing, anything that reads cheap.
+
+No structural or flow changes — same screens, better finish. Distinct from Stage 2's *code* hygiene; this is *visual feel*. Runs before Multi-City so the second city inherits the laminated version.
+
 ### Stage 3 — Multi-City
+
+> **= the old "3.77 (geo-refactor) / 3.78 (city #2)".** Config-ready: city #2 = **SF & East Bay** (`id sf-east-bay`; bbox 37.68–38.00 N / −122.53 to −122.00 W; CA State Parks dropped on license; adapters osm / ebrpd-parks / sf-parks / dedupe). **Keep Tampa byte-identical** and fix the Eastern-timezone hardcode. Full build packet = [PHASE_3.7.md](PHASE_3.7.md) Addendum I / §15.
 
 - **3a — Geo-refactor:** de-hardcode Tampa Bay; introduce a city model + selector; parameterize the
   ~12 touch points (bbox + timezone per city). No forking.
@@ -136,8 +225,12 @@ than per-city.
 
 - Attribution page (per-source, per-city — the X3 requirement), PWA + deploy + brand polish, final
   a11y + dark-mode pass, the §B.5 shippability gate, beta release.
+- **Full path-trace bug hunt:** walk every navigable path in the app and confirm it works; backend
+  cleanup; no P1/P2 bugs. (Re-runs the Stage 2 sweep against the shipped build.)
 
 ### v2 Backlog (explicitly post-v1)
+
+> Tracked + triaged in [BACKLOG.md](BACKLOG.md); specs developed early in `/planning/v2/`.
 
 Evidence layer (P9 + scoring), more cities (NYC / Austin / Seattle / Puerto Rico), deeper gamification,
 expanded dayparts, event series, user photos, NL-search expansion, community features, offline mode.

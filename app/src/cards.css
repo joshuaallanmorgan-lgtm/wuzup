@@ -235,6 +235,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   gap: 10px;
+  padding: 0 var(--gutter); /* M1: the one shared margin fix — Home Quick actions + Spots By-activity/Guides all inherit the body gutter */
   align-items: stretch; /* 3.7P-20 review: equal-height tiles across a row (flush bottoms) */
 }
 .intent-tile {
@@ -493,19 +494,7 @@
 /* TOUCHUP P2: shared on-image badge (event time · spot distance) — dark pill, bottom-left */
 .imgbadge { position: absolute; left: 6px; bottom: 6px; z-index: 1; padding: 3px 7px; border-radius: var(--r-sm); font-size: 11px; font-weight: 800; letter-spacing: 0.1px; color: #fff; background: rgba(26, 20, 16, 0.6); backdrop-filter: blur(4px); white-space: nowrap; }
 .spotcard-dist { left: 8px; bottom: 8px; }
-.gems-more {
-  margin: 12px 20px 0;
-  padding: 0;
-  background: none;
-  border: none;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--accent-ink);
-  cursor: pointer;
-  transition: transform var(--dur-fast) var(--ease-out); /* ≤120ms press answer */
-}
-.gems-more:active { transform: scale(0.97); transition-duration: var(--dur-micro); }
+/* V1 S1: .gems-more retired with the Hidden Gems shelf (its only consumer). */
 
 /* ===== Free This Week (160×160 squares) ===== */
 .fcard {
@@ -904,7 +893,6 @@
   .carousel-stagger > *,
   .card { animation: none !important; }
   .pressable:active,
-  .gems-more:active,
   .card:active { transform: none; }
   /* PREMIUM A4: no blur-up / button-morph / skeleton-shimmer motion */
   .imgbox-img { transform: none; filter: none; transition: opacity var(--dur-fast) ease; }

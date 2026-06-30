@@ -44,7 +44,9 @@
 /* 3.7P-19: the search pill is now ICON-ONLY (no "Search" text), sitting to the
    RIGHT of the lenses so the whole lens row fits one line. A fixed 44px circle,
    accent-tinted so it reads as the search ENTRY (not an empty filter chip). */
-.lens-search {
+/* F1: search + filter are a matched 44px accent-tinted icon pair */
+.lens-search,
+.lens-filter {
   width: 44px;
   padding: 0;
   justify-content: center;
@@ -53,6 +55,7 @@
   color: var(--accent-ink);
   font-size: 16px;
 }
+.lens-filter svg { width: 18px; height: 18px; }
 /* the full-width menu bar — calm, but its LABEL stays --ink so the one door to
    the whole taxonomy reads as tappable, not skimmed past (N1 review). */
 .lens-more {

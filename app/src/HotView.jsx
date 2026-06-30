@@ -4,11 +4,11 @@
 // EVENTS_GRIND: Tonight carousel → vertical GemRow "Tonight's best bets" +
 // new "This weekend" section (day-grouped GemRow); both gain honest _why lines.
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { BUBBLES, CAT_BUBBLES, CITY, LENS_BUBBLES, NON_GEM_RE, dayLabel, dayLoose, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
+import { BUBBLES, CAT_BUBBLES, CITY, LENS_BUBBLES, dayLabel, dayLoose, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
 import LensNav from './LensNav.jsx'
 import TasteTuner from './TasteTuner.jsx'
 import { curateFeed, collapseSeries } from './curate.js'
-import { useNav } from './nav.jsx'
+import { useNav, viewIndex } from './nav.jsx'
 import { CardImg, GemRow, IntentTile, ResultCard, RowFeed, SecHead, SkeletonRow, TonightCard, WxContext, featuredChips } from './cards.jsx'
 import { GUIDES, useGuides, watchGuideActive, resolveWatchGuide } from './guides.js'
 import { SaveHeart, shelfItems, useSaves } from './saves.js'
@@ -39,7 +39,7 @@ const cityOf = (addr) => {
 }
 
 export default function HotView({ events, anchors, loading }) {
-  const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, openGuide, openEvFilters, openDeck } = useNav()
+  const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, openGuide, openEvFilters, openDeck, goTo } = useNav()
   const wx = useContext(WxContext) // access weather without prop threading
   const scrollRef = useRef(null)
   const evRef = useRef(null)
@@ -80,11 +80,6 @@ export default function HotView({ events, anchors, loading }) {
   const activeWatch = useMemo(
     () => (watchGuides || []).filter((g) => watchGuideActive(g, anchors.todayTs) && resolveWatchGuide(g, upcoming).length > 0),
     [watchGuides, upcoming, anchors]
-  )
-
-  const gems = useMemo(
-    () => upcoming.filter((e) => e.tags.includes('hidden-gem') && !NON_GEM_RE.test(e.title || '')).sort(hotDesc),
-    [upcoming]
   )
 
   // TINDER P3: two REAL hot upcoming events for the Tune-your-taste preview cards
@@ -160,7 +155,7 @@ export default function HotView({ events, anchors, loading }) {
   const todayWx = wx ? wx[dateKey(anchors.todayTs)] : null
   const tonightTagged = useMemo(() => {
     const nudge = (ev) => tasteNudge(ev, taste)
-    return tonight.items.slice(0, 6).map(({ e }) => ({
+    return tonight.items.slice(0, 3).map(({ e }) => ({
       ...e,
       _why: whyFits(e, { w: todayWx, nudge }),
     }))
@@ -180,7 +175,7 @@ export default function HotView({ events, anchors, loading }) {
       out.push({
         ts,
         label: dow === 5 ? 'Friday' : 'Saturday',
-        evs: evs.slice(0, 6).map((e) => ({ ...e, _why: whyFits(e, { w: wxDay, nudge }) })),
+        evs: evs.slice(0, 3).map((e) => ({ ...e, _why: whyFits(e, { w: wxDay, nudge }) })),
       })
     }
     return out
@@ -193,12 +188,12 @@ export default function HotView({ events, anchors, loading }) {
     return upcoming
       .filter((e) => e._day != null && e._day > anchors.todayTs)
       .sort(hotDesc)
-      .slice(0, 4)
+      .slice(0, 3)
       .map((e) => ({ ...e, _why: whyFits(e, { w: wx ? wx[dateKey(e._day)] : null, nudge }) }))
   }, [upcoming, anchors, wx, taste])
   // "Free & Easy": free upcoming events (the section gates off when there are none).
   const freeEasy = useMemo(
-    () => upcoming.filter((e) => e._free === true || e.isFree === true).sort(hotDesc).slice(0, 4),
+    () => upcoming.filter((e) => e._free === true || e.isFree === true).sort(hotDesc).slice(0, 3),
     [upcoming]
   )
   // "Recurring Series": collapsed series carrying ≥1 more date (genuinely recurring),
@@ -208,7 +203,7 @@ export default function HotView({ events, anchors, loading }) {
       collapseSeries(upcoming)
         .filter((g) => (g._moreDates || 0) > 0)
         .sort((a, b) => (b._moreDates || 0) - (a._moreDates || 0) || hotDesc(a, b))
-        .slice(0, 4),
+        .slice(0, 3),
     [upcoming]
   )
   // "Neighborhood Picks": the best upcoming pick per DISTINCT area (parsed city),
@@ -223,7 +218,7 @@ export default function HotView({ events, anchors, loading }) {
       if (seen.has(key)) continue
       seen.add(key)
       out.push({ ...e, _area: area })
-      if (out.length >= 6) break
+      if (out.length >= 3) break
     }
     return out
   }, [upcoming])
@@ -352,19 +347,9 @@ export default function HotView({ events, anchors, loading }) {
           </section>
         )}
 
-        {gems.length > 0 && (
-          <section className={'sec' + ent(2).className} style={ent(2).style}>
-            <SecHead overline="Under the radar" title="Hidden Gems" sub={`${gems.length} hand-scored find${gems.length === 1 ? '' : 's'}`} />
-            <div className="home-picks">
-              {gems.slice(0, 3).map((e) => (
-                <GemRow key={keyOf(e)} e={e} onSelect={onSelect} />
-              ))}
-            </div>
-            <button className="gems-more" onClick={() => scrollToList(evRef.current)}>
-              Browse everything →
-            </button>
-          </section>
-        )}
+        {/* V1 S1: the dedicated "Hidden Gems" magazine shelf was retired (Josh). The
+            gems are NOT hidden — they still surface in Everything + via the gem tag in
+            the finder/taste/curate readers; only the standalone shelf is gone. */}
 
         {/* EVENTS_GRIND: "Free & Easy" — free upcoming events (gated on existence). */}
         {freeEasy.length >= 2 && (
@@ -456,15 +441,28 @@ export default function HotView({ events, anchors, loading }) {
                 sub={seeAllEv ? 'Every event, recurring series grouped' : 'The picks — quality first'}
               />
             </div>
+            {/* T1 (Batch 5): the swipe deck is the primary find-AND-tune door. Its
+                CUMULATIVE re-deal walk (deckdeal.js: each "Deal again" excludes everything
+                already served and walks FORWARD through the catalog, covering the whole
+                pool before wrapping) is what makes "Swipe all N" literally true — not a
+                shallow top-N carousel. Copy DRAFT ⚑ Charles. */}
             <button
               type="button"
               className="ev-seeall pressable"
+              onClick={() => openDeck({ kind: 'events', origin: 'events' })}
+            >
+              Swipe all {feed.fullEventCount.toLocaleString('en-US')} events →
+            </button>
+            {/* BINDING NEVER-HIDE PATH — do NOT remove or gate this (ROADMAP §1.1, Josh's
+                call). The in-feed expand is the no-swipe / reduced-motion guarantee: it
+                reaches the SAME complete set (seeAllEv → feed.full) unconditionally. */}
+            <button
+              type="button"
+              className="ev-seeall-list pressable"
               onClick={() => setSeeAllEv((v) => !v)}
               aria-expanded={seeAllEv}
             >
-              {seeAllEv
-                ? '← Show the picks'
-                : `See all ${feed.fullEventCount.toLocaleString('en-US')} events →`}
+              {seeAllEv ? '← Show the picks' : 'Or browse the full list here ↓'}
             </button>
             <RowFeed
               sections={evSections}
@@ -476,7 +474,11 @@ export default function HotView({ events, anchors, loading }) {
           </section>
         )}
         {!loading && upcoming.length === 0 && (
-          <div className="empty">Nothing here right now — check back soon.</div>
+          <div className="empty">
+            Nothing here right now — check back soon.
+            {/* B1: places are always here — a premium hop to Spots (DRAFT copy ⚑ Charles) */}
+            <button className="empty-cta" onClick={() => goTo(viewIndex('locations'))}>Browse spots</button>
+          </div>
         )}
       </div>
     </div>

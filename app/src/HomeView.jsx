@@ -19,13 +19,6 @@ const NATURE_ACT = ACTIVITIES.find((a) => a.id === 'act-trails')
 const MARKETS_GUIDE = GUIDES.find((g) => g.id === 'markets')
 const SPORTS_BARS_GUIDE = GUIDES.find((g) => g.id === 'sports-bars')
 
-// a warm time-of-day greeting — no fabricated name; the weather line carries the
-// real forecast. Pure(now).
-function heroKicker(now) {
-  const h = now.getHours()
-  return h < 5 ? 'Still up' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
-}
-
 export default function HomeView({ events, anchors, wx }) {
   const { openDetail: onSelect, openNotifications, openForecast, openBubble, openPlaceBubble, openGuide } = useNav()
 
@@ -66,9 +59,10 @@ export default function HomeView({ events, anchors, wx }) {
   return (
     <div className="hot-scroll">
       <header className="home-head">
-        <h2 className="home-title">Home</h2>
-        <h1 className="home-greet">{heroKicker(new Date(nowMs))}</h1>
-        <div className="home-wx">{wxLine}</div>
+        {/* H1/H3: the title is the shared .loc-head primitive (32/800), the weather
+            line its muted sub — the greeting was retired (no fabricated name). */}
+        <h1 className="loc-head-title">Home</h1>
+        <div className="loc-head-sub">{wxLine}</div>
         {/* H-L1: bell → notifications (replaces the search disc) */}
         <button className="home-search pressable" onClick={openNotifications} aria-label="Notifications">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

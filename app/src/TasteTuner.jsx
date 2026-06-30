@@ -90,10 +90,13 @@ export default function TasteTuner({ kind = 'events', samples = [], onTune }) {
       </button>
       <div className="tune-main">
         <div className="tune-copy">
-          <h2 className="tune-title">Tune your taste</h2>
-          <p className="tune-sub">Swipe on a few {noun} to help us show you more of what you love.</p>
+          {/* T2 (Batch 5): reframed backup→primary — the deck is now the main
+              find-AND-tune door. The "12" was a bug (the deck deals 15 = DECK_SIZE);
+              the CTA is open-ended now. Copy is a PLACEHOLDER ⚑ Charles. */}
+          <h2 className="tune-title">Find your night by swiping</h2>
+          <p className="tune-sub">Keep what you like, skip what you don’t — your {noun} feed tunes as you swipe.</p>
           <button type="button" className="tune-cta pressable" onClick={tune}>
-            Swipe 12 quick picks
+            Start swiping
           </button>
         </div>
         {hasPreview && (

@@ -111,8 +111,9 @@ export const GUIDES = [
     domain: 'events',
     plannable: false,
     needsPlaces: false,
-    // honest "catch the game" cut: real sports-watch events (a sports-bar PLACES
-    // activity isn't possible — places.js is all parks/beaches/trails, no bars).
+    // honest "catch the game" cut: real sports-watch events. (A sports-bar PLACES
+    // activity is the right end state but only once real bar data is sourced —
+    // see BACKLOG. places.json is parks/beaches/trails today, no bars.)
     select: ({ events }) =>
       (events || []).filter(
         (e) => (e.category === 'sports' || e.category === 'nightlife') && GAMEWATCH_RE.test(`${e.title || ''} ${e.description || ''}`)
