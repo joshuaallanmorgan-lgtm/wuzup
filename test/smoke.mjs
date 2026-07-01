@@ -824,6 +824,37 @@ test('N1 wiring: HotView + LocationsView render LensNav, the loud strip is gone'
   assert.ok(/moreRef\.current\?\.focus\(\)/.test(ln), 'focus must return to the trigger on close (WCAG 2.4.3)')
 })
 
+// Stage C · C3 — real AA compliance + the missing keyboard/motion affordances.
+test('Stage C C3 a11y: contrast fixes, reduced-motion gates, dialog focus, roving tabs, form errors', () => {
+  const read = (f) => readFileSync(path.join(ROOT, 'app', 'src', f), 'utf8')
+  // (1) the 3 audited AA contrast failures now use AA-safe warm values
+  assert.ok(/\.deckthis\s*\{[^}]*color:\s*var\(--accent-ink\)/s.test(read('lensdeck.css')), '.deckthis text must be --accent-ink (AA), was --accent (2.07:1)')
+  const cc = read('cards.css')
+  assert.ok(/\.free-badge\s*\{[^}]*background:\s*#0b8256/s.test(cc), '.free-badge fill must be AA-darkened sage #0b8256')
+  assert.ok(/\.chip-free\s*\{[^}]*color:\s*#097045/s.test(cc), '.chip-free text must be AA-darkened sage #097045')
+  // (2) prefers-reduced-motion gates on the two entrance-animation files that lacked them
+  for (const f of ['filters.css', 'locations.css']) {
+    assert.ok(/@media \(prefers-reduced-motion: reduce\)/.test(read(f)), `${f} must gate its entrance animation behind prefers-reduced-motion`)
+  }
+  // (3) dialog focus management (focus-in + Tab-trap [+ return]) mirrors LensNav/DetailPage
+  const dp = read('DayPage.jsx')
+  assert.ok(/aria-modal="true"/.test(dp) && /ref=\{menuRef\}/.test(dp) && /onKeyDown=\{menuTrap\}/.test(dp), 'the DayPage ⋯ menu must be a focus-trapped modal dialog')
+  assert.ok(/menuBtnRef\.current/.test(dp) && /btn\?\.focus\(\)/.test(dp), 'the DayPage menu must return focus to the ⋯ trigger on dismiss (WCAG 2.4.3)')
+  const pr = read('Primer.jsx')
+  assert.ok(/ref=\{dialogRef\}/.test(pr) && /onKeyDown=\{trap\}/.test(pr) && /\}, \[step\]\)/.test(pr), 'the Primer modal must trap Tab and move focus in on each step')
+  // (4) roving tabindex + arrow-key nav on the two tablists (shared helper, no dup)
+  assert.ok(/export function tablistArrowKey/.test(read('lib.js')), 'the shared tablistArrowKey helper must exist in lib.js')
+  for (const f of ['MySavesPage.jsx', 'PickerSheet.jsx']) {
+    const src = read(f)
+    assert.ok(/tablistArrowKey/.test(src) && /tabIndex=\{/.test(src), `${f} tablist must use roving tabindex + tablistArrowKey`)
+  }
+  // (5) AddEvent field errors are associated with their inputs for screen readers
+  const ae = read('AddEvent.jsx')
+  for (const id of ['ae-title-err', 'ae-date-err', 'ae-price-err', 'ae-link-err']) {
+    assert.ok(new RegExp(`id="${id}"`).test(ae) && new RegExp(`aria-describedby=\\{errors\\.\\w+ \\? '${id}'`).test(ae), `AddEvent must wire aria-describedby -> ${id}`)
+  }
+})
+
 // Phase 3.6 N5 — ambitious onboarding. First-open teaches the 5-tab IA (skippable)
 // and finishes with a taste SNAPSHOT whose copy is honest (taste reorders, never
 // hides — the old "head start" line wrongly implied filtering).

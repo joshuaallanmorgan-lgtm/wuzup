@@ -1,8 +1,8 @@
 // MySavesPage — PROFILE_PHASE2 polish: filter tabs (All / Upcoming / Past) +
 // time-grouped rows (Upcoming · Yesterday · Earlier this week · Saved earlier).
 // Reuses saves.js (shelfItems + groupShelfByTime) + GemRow; back → Profile tab.
-import { useMemo, useState } from 'react'
-import { Icon, keyOf } from './lib.js'
+import { useMemo, useRef, useState } from 'react'
+import { Icon, keyOf, tablistArrowKey } from './lib.js'
 import { useNav, viewIndex } from './nav.jsx'
 import { GemRow } from './cards.jsx'
 import { shelfItems, groupShelfByTime, useSaves } from './saves.js'
@@ -15,6 +15,7 @@ export default function MySavesPage({ events, anchors }) {
   const { list: savedList } = useSaves()
   const shelf = useMemo(() => shelfItems(savedList, events, anchors), [savedList, events, anchors])
   const [filter, setFilter] = useState('All')
+  const tabRefs = useRef([])
 
   const filtered = useMemo(() => {
     if (filter === 'Upcoming') return shelf.filter((x) => !x.past)
@@ -36,13 +37,16 @@ export default function MySavesPage({ events, anchors }) {
       </header>
 
       <div className="ms-tabs" role="tablist" aria-label="Filter saves">
-        {FILTERS.map((f) => (
+        {FILTERS.map((f, i) => (
           <button
             key={f}
+            ref={(el) => (tabRefs.current[i] = el)}
             role="tab"
             aria-selected={filter === f}
+            tabIndex={filter === f ? 0 : -1}
             className={'ms-tab' + (filter === f ? ' ms-tab-sel' : '')}
             onClick={() => setFilter(f)}
+            onKeyDown={(ev) => tablistArrowKey(ev, FILTERS, FILTERS.indexOf(filter), setFilter, tabRefs)}
           >
             {f}
           </button>

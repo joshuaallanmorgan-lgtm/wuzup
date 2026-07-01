@@ -93,7 +93,10 @@ export default function DayPage({ ts, events, anchors, wx }) {
   // the menu to the daypart chooser.
   const [menuPart, setMenuPart] = useState(null)
   const [moveMode, setMoveMode] = useState(false)
-  const openMenu = (part) => {
+  const menuBtnRef = useRef(null) // the ⋯ trigger that opened the menu — focus returns here
+  const menuRef = useRef(null) // the dialog container (focus-in + Tab-trap)
+  const openMenu = (part, btn) => {
+    menuBtnRef.current = btn || null
     setMenuPart(part)
     setMoveMode(false)
   }
@@ -101,15 +104,46 @@ export default function DayPage({ ts, events, anchors, wx }) {
     setMenuPart(null)
     setMoveMode(false)
   }
+  // user-dismiss (scrim / Cancel): close AND return focus to the ⋯ trigger (WCAG
+  // 2.4.3). Remove/Move keep closeMenu — they destroy/move the slot, so the trigger
+  // unmounts and there is nothing to return focus to.
+  const dismissMenu = () => {
+    const btn = menuBtnRef.current
+    closeMenu()
+    btn?.focus()
+  }
+  // focus-in: drop focus onto the first action when the menu opens or swaps modes
+  useEffect(() => {
+    if (!menuPart) return
+    const first = menuRef.current?.querySelector('.dpg-menu-item:not(:disabled)')
+    ;(first || menuRef.current)?.focus()
+  }, [menuPart, moveMode])
+  // Tab-trap inside the open menu (mirrors the LensNav / DetailPage dialogs)
+  const menuTrap = (ev) => {
+    if (ev.key !== 'Tab') return
+    const items = menuRef.current?.querySelectorAll('button:not(:disabled)')
+    if (!items || !items.length) return
+    const first = items[0]
+    const last = items[items.length - 1]
+    if (ev.shiftKey && document.activeElement === first) {
+      ev.preventDefault()
+      last.focus()
+    } else if (!ev.shiftKey && document.activeElement === last) {
+      ev.preventDefault()
+      first.focus()
+    }
+  }
   // capture-phase Escape closes the menu BEFORE nav's window listener closes the
-  // whole DayPage (the PickerSheet pattern)
+  // whole DayPage (the PickerSheet pattern); returns focus to the ⋯ trigger
   useEffect(() => {
     if (!menuPart) return
     const onKey = (ev) => {
       if (ev.key !== 'Escape') return
       ev.stopPropagation()
+      const btn = menuBtnRef.current
       setMenuPart(null)
       setMoveMode(false)
+      btn?.focus()
     }
     window.addEventListener('keydown', onKey, true)
     return () => window.removeEventListener('keydown', onKey, true)
@@ -415,7 +449,7 @@ export default function DayPage({ ts, events, anchors, wx }) {
               </span>
             </button>
             {/* Plan Phase 2 (flows-1 p4): the ⋯ opens the move/remove menu */}
-            <button className="dpg-more" onClick={() => openMenu(part)} aria-label={`Options for ${e.title}`}>
+            <button className="dpg-more" onClick={(ev) => openMenu(part, ev.currentTarget)} aria-haspopup="dialog" aria-expanded={menuPart === part} aria-label={`Options for ${e.title}`}>
               ⋯
             </button>
           </div>
@@ -560,8 +594,8 @@ export default function DayPage({ ts, events, anchors, wx }) {
       )}
       {/* Plan Phase 2 (flows-1 p4): the planned-item action menu */}
       {menuPart && (
-        <div className="dpg-menu-wrap" onClick={closeMenu}>
-          <div className="dpg-menu" role="dialog" aria-label="Plan item options" onClick={(ev) => ev.stopPropagation()}>
+        <div className="dpg-menu-wrap" onClick={dismissMenu}>
+          <div className="dpg-menu" role="dialog" aria-modal="true" aria-label="Plan item options" ref={menuRef} tabIndex={-1} onKeyDown={menuTrap} onClick={(ev) => ev.stopPropagation()}>
             {!moveMode ? (
               <>
                 <div className="dpg-menu-title">{resolveSlot(entry.slots[menuPart])?.title || DAYPART[menuPart].label}</div>
@@ -583,7 +617,7 @@ export default function DayPage({ ts, events, anchors, wx }) {
                 ))}
               </>
             )}
-            <button className="dpg-menu-cancel" onClick={closeMenu}>
+            <button className="dpg-menu-cancel" onClick={dismissMenu}>
               Cancel
             </button>
           </div>

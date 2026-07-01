@@ -421,3 +421,11 @@
 }
 .loc-plan-add:not(:disabled):active { transform: scale(0.99); }
 .loc-plan-add:disabled { opacity: 0.45; cursor: default; }
+
+/* ===== reduced motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .loc-plan-sheet { animation: none !important; }
+  .loc-plan-cta:active,
+  .detail-share:active,
+  .loc-plan-add:not(:disabled):active { transform: none; }
+}

@@ -155,7 +155,7 @@
   font-weight: 700;
   letter-spacing: 0;
   text-transform: none;
-  color: var(--accent);
+  color: var(--accent-ink); /* C3 a11y: was --accent (2.07:1 on cream) — --accent-ink clears AA 4.5:1 */
   cursor: pointer;
   white-space: nowrap;
 }

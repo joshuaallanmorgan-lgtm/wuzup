@@ -141,3 +141,9 @@
   padding: 11px 24px;
   cursor: pointer;
 }
+
+/* ===== reduced motion: sheet/scrim appear in place ===== */
+@media (prefers-reduced-motion: reduce) {
+  .flt-scrim,
+  .flt-sheet { animation: none !important; }
+}

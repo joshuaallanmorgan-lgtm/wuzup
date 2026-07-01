@@ -13,8 +13,8 @@
 //   noSaves  — true when the user has NO saves at all (the ♥ hint)
 //   closing  — plays the slide-down exit animation
 //   onPick(e) / onClose()
-import { useEffect, useState } from 'react'
-import { keyOf, timeOf } from './lib.js'
+import { useEffect, useRef, useState } from 'react'
+import { keyOf, timeOf, tablistArrowKey } from './lib.js'
 import { CardImg, SponsoredTag } from './cards.jsx'
 import { daypartOf, DAYPART } from './weekend.js'
 import './weekend.css'
@@ -22,6 +22,7 @@ import './weekend.css'
 export default function PickerSheet({ part, dayLabel, model, noSaves, closing, onPick, onClose }) {
   // default to whichever group has something; prefer Suggested (the ref default)
   const [tab, setTab] = useState(model.suggestions.length === 0 && model.saved.length > 0 ? 'saved' : 'suggested')
+  const tabRefs = useRef([])
 
   // Escape closes the sheet BEFORE App's window listener can close the whole
   // page (capture phase runs first; stopPropagation keeps the page up)
@@ -78,20 +79,26 @@ export default function PickerSheet({ part, dayLabel, model, noSaves, closing, o
           </button>
         </div>
         {/* Suggested / Saved tabs (flows-1 p3) */}
-        <div className="wkb-tabs" role="tablist">
+        <div className="wkb-tabs" role="tablist" aria-label="Picker source">
           <button
+            ref={(el) => (tabRefs.current[0] = el)}
             className={'wkb-tab' + (tab === 'suggested' ? ' on' : '')}
             role="tab"
             aria-selected={tab === 'suggested'}
+            tabIndex={tab === 'suggested' ? 0 : -1}
             onClick={() => setTab('suggested')}
+            onKeyDown={(ev) => tablistArrowKey(ev, ['suggested', 'saved'], tab === 'suggested' ? 0 : 1, setTab, tabRefs)}
           >
             Suggested
           </button>
           <button
+            ref={(el) => (tabRefs.current[1] = el)}
             className={'wkb-tab' + (tab === 'saved' ? ' on' : '')}
             role="tab"
             aria-selected={tab === 'saved'}
+            tabIndex={tab === 'saved' ? 0 : -1}
             onClick={() => setTab('saved')}
+            onKeyDown={(ev) => tablistArrowKey(ev, ['suggested', 'saved'], tab === 'suggested' ? 0 : 1, setTab, tabRefs)}
           >
             Saved{model.saved.length ? ` (${model.saved.length})` : ''}
           </button>

@@ -185,8 +185,9 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
                 value={f.title}
                 onChange={set('title')}
                 aria-invalid={!!errors.title}
+                aria-describedby={errors.title ? 'ae-title-err' : undefined}
               />
-              {errors.title && <div className="ae-err">{errors.title}</div>}
+              {errors.title && <div className="ae-err" id="ae-title-err">{errors.title}</div>}
             </div>
             <div className="ae-group">When</div>
             <div className="ae-2col">
@@ -202,8 +203,9 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
                   value={f.date}
                   onChange={set('date')}
                   aria-invalid={!!errors.date}
+                  aria-describedby={errors.date ? 'ae-date-err' : undefined}
                 />
-                {errors.date && <div className="ae-err">{errors.date}</div>}
+                {errors.date && <div className="ae-err" id="ae-date-err">{errors.date}</div>}
               </div>
               <div className="ae-field">
                 <label className="ae-label" htmlFor="ae-time">
@@ -294,9 +296,10 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
                     value={f.price}
                     onChange={set('price')}
                     aria-invalid={!!errors.price}
+                    aria-describedby={errors.price ? 'ae-price-err' : undefined}
                   />
                 </div>
-                {errors.price && <div className="ae-err">{errors.price}</div>}
+                {errors.price && <div className="ae-err" id="ae-price-err">{errors.price}</div>}
               </div>
             )}
             <div className="ae-field">
@@ -312,8 +315,9 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
                 value={f.link}
                 onChange={set('link')}
                 aria-invalid={!!errors.link}
+                aria-describedby={errors.link ? 'ae-link-err' : undefined}
               />
-              {errors.link && <div className="ae-err">{errors.link}</div>}
+              {errors.link && <div className="ae-err" id="ae-link-err">{errors.link}</div>}
             </div>
             <div className="ae-field">
               <label className="ae-label" htmlFor="ae-desc">

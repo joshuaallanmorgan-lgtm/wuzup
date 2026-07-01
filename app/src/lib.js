@@ -418,6 +418,23 @@ export function dayLoose(e) {
   return e._ongoing ? 'Ongoing' : dayLabelLoose(e)
 }
 
+// WAI-ARIA tabs keyboard nav (roving tabindex): Arrow/Home/End move BOTH selection
+// and focus on an automatic-activation tablist. Caller passes the ordered values,
+// the current index, a value-setter, and a ref holding the tab-button elements.
+// Shared so the two tablists (MySaves filter, PickerSheet source) don't diverge.
+export function tablistArrowKey(ev, order, currentIndex, setByValue, tabRefs) {
+  const last = order.length - 1
+  let next
+  if (ev.key === 'ArrowRight' || ev.key === 'ArrowDown') next = currentIndex >= last ? 0 : currentIndex + 1
+  else if (ev.key === 'ArrowLeft' || ev.key === 'ArrowUp') next = currentIndex <= 0 ? last : currentIndex - 1
+  else if (ev.key === 'Home') next = 0
+  else if (ev.key === 'End') next = last
+  else return
+  ev.preventDefault()
+  setByValue(order[next])
+  tabRefs.current?.[next]?.focus()
+}
+
 // --- icons (createElement, since this is a .js file) ---
 export const Icon = {
   // Home tab (Stage R nav restructure) — a house, same 2.1 stroke voice as the
