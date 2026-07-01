@@ -828,7 +828,7 @@ test('N1 wiring: HotView + LocationsView render LensNav, the loud strip is gone'
 test('Stage C C3 a11y: contrast fixes, reduced-motion gates, dialog focus, roving tabs, form errors', () => {
   const read = (f) => readFileSync(path.join(ROOT, 'app', 'src', f), 'utf8')
   // (1) the 3 audited AA contrast failures now use AA-safe warm values
-  assert.ok(/\.deckthis\s*\{[^}]*color:\s*var\(--accent-ink\)/s.test(read('lensdeck.css')), '.deckthis text must be --accent-ink (AA), was --accent (2.07:1)')
+  assert.ok(/\.deckthis\s*\{[^}]*color:\s*#a54d12/s.test(read('lensdeck.css')), '.deckthis text must be #a54d12 — clears AA 4.5:1 on the composited 8% pill fill (--accent-ink was only 4.48:1 there)')
   const cc = read('cards.css')
   assert.ok(/\.free-badge\s*\{[^}]*background:\s*#0b8256/s.test(cc), '.free-badge fill must be AA-darkened sage #0b8256')
   assert.ok(/\.chip-free\s*\{[^}]*color:\s*#097045/s.test(cc), '.chip-free text must be AA-darkened sage #097045')
