@@ -135,13 +135,3 @@ export function rhythmSummary(didSet, restTsList, anchors) {
     lastRhythmTs,
   }
 }
-
-// soft, non-streak companion: "you've shown up N days this month" — a gentler %
-// than the hard streak. Caller keeps it zero-is-silence (render only when > 0).
-export function rhythmThisMonth(didSet, restTsList, monthStartTs, nextMonthStartTs) {
-  let logged = 0
-  for (const ts of rhythmDays(didSet, restTsList)) {
-    if (ts >= monthStartTs && ts < nextMonthStartTs) logged++
-  }
-  return logged
-}

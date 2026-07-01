@@ -105,12 +105,6 @@
   pointer-events: none;
 }
 
-/* (W2: the Calendar's saved-event dots — both the month-cell .mcell .save-dot
-   and the date-rail .date-pill .save-dot — were a SUPPLY signal (which days
-   hold a saved event). They were removed when the Calendar became the personal
-   logbook: it now shows only YOUR shape per day (plans / rest / did-days), not
-   what supply is saved. Those orphaned rules are gone with the plumbing.) */
-
 /* agenda day-list rows (compact .card): filled stroke-heart marker for saved
    events (A5: the engineered Icon.heartFill, off the raw ♥ glyph) */
 .card-heart {

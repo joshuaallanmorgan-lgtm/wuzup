@@ -192,8 +192,8 @@ a { color: inherit; }
    (digit glyphs only; non-numeric label text is unaffected). */
 .num,
 .pf-stat-num, .cal-stat-num, .sec-count, .pg-count,
-.imgbadge, .spotcard-dist, .row-dist, .chip,
-.gem-when, .spotcard-facts, .tcard-meta, .spotcard-meta, .nbhd-meta, .fcard-meta {
+.imgbadge, .spotcard-dist, .chip,
+.gem-when, .spotcard-facts, .tcard-meta, .spotcard-meta, .nbhd-meta {
   font-variant-numeric: tabular-nums;
 }
 

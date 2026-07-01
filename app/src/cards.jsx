@@ -268,26 +268,6 @@ export function CardImg({ e, className = '', children }) {
   )
 }
 
-// compact event card (64px thumb, saved events show their ♥). NOTE: currently
-// unrendered — the day agenda moved to DayPage; kept as a compact card variant.
-export function EventCard({ e, onSelect, index = 0 }) {
-  const { has } = useSaves()
-  const meta = [startLabel(e), e.venue].filter(Boolean).join(' · ')
-  return (
-    <button className="card" style={{ animationDelay: Math.min(index, 12) * 22 + 'ms' }} onClick={(ev) => onSelect(e, ev.currentTarget)}>
-      <CardImg e={e} className="card-thumb" />
-      <div className="card-main">
-        <div className="card-title">{e.title}</div>
-        <div className={'card-meta' + startedCls(meta)}>{meta || 'Tap for details'}</div>
-        <SponsoredTag e={e} />
-      </div>
-      {has(e) && <Icon.heartFill className="card-heart" aria-hidden />}
-      <HeatBadge e={e} />
-      <PriceChip e={e} />
-    </button>
-  )
-}
-
 export function SecHead({ overline, title, sub, onSeeAll }) {
   return (
     <div className="sec-head">
@@ -475,23 +455,6 @@ export function GemRow({ e, onSelect }) {
   )
 }
 
-export function FreeCard({ e, onSelect }) {
-  return (
-    <button className="fcard pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
-      <span className="fcard-imgwrap">
-        <CardImg e={e} className="fcard-img">
-          <SaveHeart e={e} />
-          <HeatBadge e={e} />
-        </CardImg>
-        <span className="free-badge">FREE</span>
-      </span>
-      <div className="fcard-title">{e.title}</div>
-      <div className="fcard-meta">{dayLoose(e) || ''}</div>
-      <SponsoredTag e={e} />
-    </button>
-  )
-}
-
 // SpotCard (3.73b) — the premium PLACE tile. Reuses the placeType-aware art floor
 // (3.73a) + SaveHeart, but speaks PLACE: a placeType label, one decision-useful
 // differentiator + distance (no vanity counts), and the 💎 hidden-gem badge. Used
@@ -643,15 +606,6 @@ export function IntentTile({ emoji, label, pov, hue, onClick }) {
       </span>
       <span className="intent-tile-label">{label}</span>
       {pov && <span className="intent-tile-pov">{pov}</span>}
-    </button>
-  )
-}
-
-// dashed "See all →" end-cap for carousels (square variant for the 160px free cards)
-export function EndCap({ square, onClick, children = 'See all →' }) {
-  return (
-    <button className={'endcap pressable' + (square ? ' endcap-sq' : '')} onClick={onClick}>
-      {children}
     </button>
   )
 }

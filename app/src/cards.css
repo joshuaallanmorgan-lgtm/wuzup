@@ -1,5 +1,5 @@
 /* cards.css — styles for everything exported by cards.jsx:
-   pressable, imgbox, badges, chips, carousels (tcard/fcard/endcap),
+   pressable, imgbox, badges, chips, carousels (tcard),
    FeaturedCard, gems, Everything rows + RowFeed, compact .card. */
 
 /* ===== shared press state: every tappable card ===== */
@@ -143,7 +143,7 @@
 
 /* ===== sponsored disclosure (tiny, muted, never hidden) ===== */
 .sp-label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.02em; }
-.tcard .sp-label, .gem .sp-label, .fcard .sp-label { display: block; margin-top: 2px; }
+.tcard .sp-label, .gem .sp-label { display: block; margin-top: 2px; }
 .card .sp-label { display: block; margin-top: 2px; }
 
 /* "Started 7:00 PM …" metas (event already underway) read quieter — class is a
@@ -186,20 +186,6 @@
   overflow: hidden;
 }
 .tcard-meta { margin-top: 2px; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.endcap {
-  flex: 0 0 120px;
-  height: 157px;
-  scroll-snap-align: start;
-  border: 1.5px dashed #d8cfc4;
-  border-radius: var(--r-md);
-  background: none;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--accent-ink);
-  cursor: pointer;
-}
-.endcap-sq { height: 160px; }
 
 /* ===== SpotCard (3.73b): the premium place tile — a discovery, not a row.
    placeType-aware art (3.73a) + a type label + one differentiator + 💎 badge. ===== */
@@ -222,7 +208,6 @@
 }
 /* A2: .spot-amen base look now comes from the shared chip primitive (below). */
 .spot-amen-ic { width: 13px; height: 13px; flex: 0 0 auto; }
-.spot-amen-dist { font-weight: 500; }
 .spot-badge { position: absolute; top: 8px; left: 8px; z-index: 1; width: 28px; height: 28px; border-radius: var(--r-pill); display: flex; align-items: center; justify-content: center; font-size: 14px; background: rgba(26, 20, 16, 0.5); backdrop-filter: blur(4px); }
 /* SP-L1: honest "★ Best for" activity line on spot cards (derived from ACTIVITIES predicates, never invented) */
 .spotcard-bestfor { margin-top: 5px; font-size: 11.5px; font-weight: 700; color: var(--muted); letter-spacing: -0.05px; } /* PREMIUM A1 (accent restraint): "★ Best for" off orange */
@@ -494,23 +479,6 @@
 /* TOUCHUP P2: shared on-image badge (event time · spot distance) — dark pill, bottom-left */
 .imgbadge { position: absolute; left: 6px; bottom: 6px; z-index: 1; padding: 3px 7px; border-radius: var(--r-sm); font-size: 11px; font-weight: 800; letter-spacing: 0.1px; color: #fff; background: rgba(26, 20, 16, 0.6); backdrop-filter: blur(4px); white-space: nowrap; }
 .spotcard-dist { left: 8px; bottom: 8px; }
-/* V1 S1: .gems-more retired with the Hidden Gems shelf (its only consumer). */
-
-/* ===== Free This Week (160×160 squares) ===== */
-.fcard {
-  flex: 0 0 160px;
-  width: 160px;
-  scroll-snap-align: start;
-  background: none;
-  border: none;
-  padding: 0;
-  font: inherit;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.fcard-imgwrap { position: relative; display: block; }
-.fcard-img { width: 160px; height: 160px; border-radius: var(--r-md); }
 .free-badge {
   position: absolute;
   top: 8px;
@@ -524,15 +492,6 @@
   background: var(--free);
   color: #fff;
 }
-.fcard-title {
-  margin-top: 8px;
-  /* A6: type comes from the shared --t-card override below (retires the dead 600) */
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.fcard-meta { margin-top: 2px; font-size: 12.5px; color: var(--muted); }
 
 /* PREMIUM A1 (depth#1): standalone carousel/grid image tiles were dead-flat on the
    cream (only a 6% inset hairline). A soft layered drop lifts them off the canvas;
@@ -541,14 +500,12 @@
    .spotcard--row thumb) already sit on an elevated --card surface, so they stay flat
    to avoid doubled elevation. */
 .tcard-img,
-.fcard-img,
 .nbhd-img,
 .spotcard .spotcard-img {
   box-shadow: 0 1px 2px rgba(26, 20, 16, 0.06), 0 4px 14px rgba(26, 20, 16, 0.06);
   transition: box-shadow var(--dur-fast) var(--ease-out);
 }
 .tcard:active .tcard-img,
-.fcard:active .fcard-img,
 .nbhd-card:active .nbhd-img,
 .spotcard:active .spotcard-img {
   box-shadow: 0 2px 5px rgba(26, 20, 16, 0.09), 0 9px 24px rgba(26, 20, 16, 0.11);
@@ -574,14 +531,6 @@
   color: inherit;
   text-align: left;
   cursor: pointer;
-}
-.row-dist {
-  font-size: 11.5px;
-  font-weight: 800;
-  padding: 5px 10px;
-  border-radius: var(--r-pill);
-  background: rgba(var(--accent-rgb), 0.12);
-  color: var(--accent-ink);
 }
 .feed-sentinel { height: 1px; }
 .feed-end { padding: 26px 20px 10px; text-align: center; font-size: 13px; font-weight: 600; color: var(--muted); }
@@ -643,7 +592,6 @@
 /* (2) CARD-TITLE TOKEN: every STANDARD card title is --t-card (kills the orphan
    600/750 weights on tcard/fcard/row); .gem-title sets it inline. */
 .tcard-title,
-.fcard-title,
 .nbhd-title,
 .spotcard-title {
   font-size: var(--t-card-size);
@@ -692,8 +640,7 @@
 }
 .gem-img .img-scrim,
 .spotcard-img .img-scrim,
-.tcard-img .img-scrim,
-.fcard-img .img-scrim { display: block; }
+.tcard-img .img-scrim { display: block; }
 
 /* ============================================================================
    PREMIUM A4 — DEPTH: assign the elevation scale by importance + a press answer.
@@ -710,7 +657,6 @@
 .intent-tile { transition: transform var(--dur-micro), box-shadow var(--dur-micro) var(--ease-out); }
 /* carousel image tiles → the same soft rows level (was an A1 literal) */
 .tcard-img,
-.fcard-img,
 .nbhd-img,
 .spotcard .spotcard-img { box-shadow: var(--shadow-1); }
 /* press answer: tighten the shadow one step (the :active propagates from the inner
@@ -766,8 +712,7 @@
 /* ===========================================================================
    CARD_LOCK (Phase 0) — the canonical result feed + the SpotCard row form.
    RowFeed now renders the kind-aware ResultCard (GemRow event / SpotCard place)
-   in a .feed--cards container, spaced like the landing .home-picks. The dense
-   .feed--compact (CompactRow) + editorial .feed--editorial (Row) feeds are retired.
+   in a .feed--cards container, spaced like the landing .home-picks.
    =========================================================================== */
 .feed--cards { display: flex; flex-direction: column; gap: 12px; padding: 0 var(--gutter); } /* PREMIUM A1 (spacing#2): 16→20px so the result feed shares the body gutter (no mid-scroll flip) */
 /* day-group headers keep the editorial hairline divider, aligned to the cards */
