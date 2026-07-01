@@ -598,7 +598,6 @@ async function main() {
     if (p.fee) out.fee = p.fee;
     if (p.hours) out.hours = p.hours;
     if (p.url) out.url = p.url;
-    if (p.phone) out.phone = p.phone;
     if (p.designation) out.designation = p.designation;
     if (p.operator) out.operator = p.operator;
     out.sources = p.sources;
@@ -606,7 +605,6 @@ async function main() {
     // variant spellings survive for refresh-time re-matching and Sprint S
     // save-keys ("Weeden" stays findable after the official spelling won)
     if (p._aliases && p._aliases.length > 1) out.aliases = p._aliases;
-    if (p.osm) out.osm = p.osm;
     if (p.wikidata) out.wikidata = p.wikidata;
     out.hiddenScore = p._hiddenScore;
     out.hidden = hiddenSet.has(p);
