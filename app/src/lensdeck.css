@@ -95,20 +95,38 @@
 .ldk-stamp-open { left: 50%; top: auto; bottom: 18px; transform: translateX(-50%) rotate(-3deg); color: var(--accent-on-dark); border-color: var(--accent-on-dark); opacity: var(--keep, 0); }
 
 /* ===== always-visible button fallbacks (✕ pass · ↗ open · ♥ keep) ===== */
-.ldk-actions { display: flex; justify-content: center; gap: 20px; padding: 18px 0 4px; }
+/* WS2 #9: bottom padding grew 4→26px to make room for the absolute labels */
+.ldk-actions { display: flex; justify-content: center; gap: 20px; padding: 18px 0 26px; }
 .ldk-btn {
+  position: relative; /* WS2 #9: anchors the label below the circle */
   width: 60px;
   height: 60px;
   border-radius: var(--r-circle);
   border: 1.5px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
+  font-family: inherit; /* WS2 #9: the label must speak the app face, not the UA button font */
   font-size: 24px;
   line-height: 1;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+/* WS2 #9: visible verdict labels under the circles (copy DRAFT ⚑ Charles).
+   Absolute so the verified 60px circle geometry is untouched; quiet-label
+   voice (--t-micro / 700 / 0.55-white — the kicker-sub family, deck.css twin). */
+.ldk-btn-label {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: 0.1px;
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+  pointer-events: none;
 }
 .ldk-btn-pass { color: rgba(255, 255, 255, 0.75); }
 .ldk-btn-open { color: var(--accent-on-dark); border-color: rgba(var(--accent-on-dark-rgb), 0.45); }

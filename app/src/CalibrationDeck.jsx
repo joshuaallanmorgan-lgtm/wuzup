@@ -337,6 +337,10 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
               onDone={() => setPhase('done')}
             />
 
+            {/* WS2 #9: visible labels under the circles (glyph-only buttons made
+                first-time users hesitate). Copy DRAFT ⚑ Charles; label text is
+                contained in each aria-label (WCAG 2.5.3 label-in-name). Button
+                ORDER untouched — reordering is a Josh call. */}
             <div className="deck-actions">
               <button
                 className="deck-btn deck-btn-no pressable"
@@ -344,6 +348,7 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
                 aria-label="Not for me"
               >
                 ✕
+                <span className="deck-btn-label">Not for me</span>
               </button>
               <button
                 className={'deck-btn deck-btn-save pressable' + (saved ? ' is-saved' : '')}
@@ -352,6 +357,7 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
               >
                 {/* D6: the engineered stroke heart (matches SaveHeart app-wide), not a raw ♥ */}
                 {saved ? <Icon.heartFill className="deck-btn-ic" aria-hidden /> : <Icon.heart className="deck-btn-ic" aria-hidden />}
+                <span className="deck-btn-label">Save</span>
               </button>
               <button
                 className="deck-btn deck-btn-yes pressable"
@@ -359,6 +365,7 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
                 aria-label="Into it"
               >
                 ✓
+                <span className="deck-btn-label">Into it</span>
               </button>
             </div>
 
