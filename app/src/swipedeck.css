@@ -36,6 +36,19 @@
 
 /* ===== flying exit clone (starts where the drag let go: --dx/--dy/--rot) ===== */
 .sd-exit { z-index: 4; pointer-events: none; }
+/* WS2 #1: the exit clone re-mounts CardImg from scratch, so cards.css's
+   blur-up (.imgbox-img sits at opacity 0 / scale(1.04) / blur(8px) until the
+   fresh <img> fires onLoad → .on) re-played cream→blur→sharp MID-FLIGHT on
+   every swipe. The photo was literally on screen a frame ago — the clone must
+   fly out fully rendered. 3-class specificity (0,3,0) outranks .imgbox-img.on
+   (0,2,0) and the reduced-motion .imgbox-img override (media queries add no
+   specificity) whatever the bundle order — no !important needed. */
+.sd-exit .imgbox .imgbox-img {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  transition: none;
+}
 .sd-exit-right { animation: sdFlyRight 400ms var(--ease-out) both; }
 .sd-exit-left { animation: sdFlyLeft 400ms var(--ease-out) both; }
 .sd-exit-up { animation: sdFlyUp 400ms var(--ease-out) both; }
