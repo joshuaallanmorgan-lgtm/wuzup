@@ -334,20 +334,22 @@
   },
   {
     "canonicalName": "The BayCare Sound",
-    "aliases": [],
-    "lat": 27.9681,
-    "lng": -82.778966,
+    "aliases": [
+      "The BayCare Sound - Coachman Park",
+      "The Baycare Sound at Coachman Park"
+    ],
+    "lat": 27.96804,
+    "lng": -82.80233,
     "address": "255 Drew Street, Clearwater, FL 33755"
   },
   {
     "canonicalName": "Coachman Park",
     "aliases": [
-      "The BayCare Sound - Coachman Park",
-      "The Baycare Sound at Coachman Park"
+      "301 Drew St"
     ],
     "lat": 27.968029,
     "lng": -82.803131,
-    "address": "255 Drew Street, Clearwater, FL 33755, Clearwater, FL"
+    "address": "301 Drew St, Clearwater, FL 33755"
   },
   {
     "canonicalName": "The Body Electric Yoga Company",
