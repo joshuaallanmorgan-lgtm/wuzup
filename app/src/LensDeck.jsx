@@ -108,6 +108,18 @@ export default function LensDeck({ lens, events, anchors }) {
   const top = deck[idx]
   const saved = top ? has(top) : false
 
+  // WS2 #7: keyboard swipes — ←/→/↑ mirror the buttons through the SAME
+  // commit paths (deckApi; ↑ = peek here, matching the kicker copy). Page-root
+  // handler hears keys bubbling from the focused buttons; the z-2000 detail
+  // layer is a sibling, so a peeked-open detail never leaks arrows back into
+  // the deck. Rate-phase-only + no ev.repeat (see CalibrationDeck).
+  const onDeckKey = (ev) => {
+    if (phase !== 'rate' || ev.repeat || !deckApi.current) return
+    if (ev.key === 'ArrowLeft') { ev.preventDefault(); deckApi.current.left() }
+    else if (ev.key === 'ArrowRight') { ev.preventDefault(); deckApi.current.right() }
+    else if (ev.key === 'ArrowUp') { ev.preventDefault(); deckApi.current.up() }
+  }
+
   // ===== end card — the honest stopping cue (NO --reward, by contract) =====
   if (phase === 'done') {
     return (
@@ -137,7 +149,7 @@ export default function LensDeck({ lens, events, anchors }) {
   }
 
   return (
-    <div className="pg ldk" style={hue != null ? { '--lh': hue } : undefined}>
+    <div className="pg ldk" style={hue != null ? { '--lh': hue } : undefined} onKeyDown={onDeckKey}>
       <header className="pg-head ldk-head">
         <button className="pg-back" onClick={back} aria-label="Back">
           <Icon.chevron />

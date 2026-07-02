@@ -214,6 +214,19 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
   // SwipeDeck unmounts with the stack, clearing its own pending done timer.
   const finishEarly = () => setPhase('done')
 
+  // WS2 #7: keyboard swipes — ←/→/↑ mirror the buttons through the SAME
+  // commit paths (deckApi). Attached to the page root so it hears keys
+  // bubbling from the focused buttons; the z-2000 detail layer is a SIBLING
+  // of the subpage, so an open detail never leaks arrows into the deck.
+  // Guards: rate phase only (deckApi closures go stale once SwipeDeck
+  // unmounts) and no ev.repeat (a held key must not machine-gun verdicts).
+  const onDeckKey = (ev) => {
+    if (phase !== 'rate' || ev.repeat || !deckApi.current) return
+    if (ev.key === 'ArrowLeft') { ev.preventDefault(); deckApi.current.left() }
+    else if (ev.key === 'ArrowRight') { ev.preventDefault(); deckApi.current.right() }
+    else if (ev.key === 'ArrowUp') { ev.preventDefault(); deckApi.current.up() }
+  }
+
   const top = deck[rated]
   const saved = top ? has(top) : false
 
@@ -265,7 +278,7 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
   }
 
   return (
-    <div className="pg deck">
+    <div className="pg deck" onKeyDown={onDeckKey}>
       <header className="pg-head deck-head">
         <button className="pg-back" onClick={onClose} aria-label="Close">
           <Icon.chevron />

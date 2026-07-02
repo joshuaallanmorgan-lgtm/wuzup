@@ -2660,6 +2660,20 @@ test('WS2 deck physics: flights inherit momentum within clamps + the SwipeDeck s
   assert.ok(/dragRef\.current = null \/\/ one verdict per gesture/.test(sd), 'one-verdict-per-gesture: dragRef nulls BEFORE the commit')
 })
 
+// WS2 #7 — the decks' keyboard gesture path (JSX can't import into Node, so
+// grep the contract): both consumers wire ←/→/↑ to the SAME deckApi commit
+// paths as the buttons, gated to the rate phase (stale-closure guard) and
+// dropping key repeats (no machine-gun verdicts from a held arrow).
+test('WS2 deck a11y: arrow-key swipes ride the button commit paths on both decks', () => {
+  for (const f of ['CalibrationDeck.jsx', 'LensDeck.jsx']) {
+    const src = readFileSync(path.join(ROOT, 'app', 'src', f), 'utf8')
+    assert.ok(/onKeyDown=\{onDeckKey\}/.test(src), `${f} attaches the arrow-key handler to the deck page root`)
+    assert.ok(/phase !== 'rate' \|\| ev\.repeat/.test(src), `${f} guards the handler to the rate phase and drops key repeats`)
+    for (const [key, api] of [['ArrowLeft', 'left'], ['ArrowRight', 'right'], ['ArrowUp', 'up']])
+      assert.ok(new RegExp(`ev\\.key === '${key}'[\\s\\S]{0,80}deckApi\\.current\\.${api}\\(\\)`).test(src), `${f}: ${key} commits via deckApi.${api}() (the button path)`)
+  }
+})
+
 // W3 wiring — HotView must read curateFeed and ship the See-all escape (the
 // view can't import into Node: JSX + CSS), so grep the contract.
 test('W3 wiring: HotView curates Everything + keeps a See-all escape to all events', () => {
