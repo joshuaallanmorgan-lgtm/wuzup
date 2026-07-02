@@ -13,7 +13,7 @@
   background:
     radial-gradient(120% 55% at 10% -8%, hsla(var(--lh), 70%, 45%, 0.30), transparent 62%),
     radial-gradient(110% 60% at 110% 106%, hsla(var(--lh), 60%, 50%, 0.14), transparent 60%),
-    linear-gradient(168deg, #1c160f 0%, #1b1712 55%, #181109 100%);
+    var(--deck-bg); /* C5: the shared deck-family base layer (index.css) */
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -59,8 +59,9 @@
 .ldk-card {
   border-radius: var(--r-xl);
   border: 1px solid rgba(255, 255, 255, 0.10);
-  /* D6: warm gradient surface + inner top-sheen (shared look with the calibration deck) */
-  background: linear-gradient(168deg, #2b2118 0%, #221b14 58%, #1b1510 100%);
+  /* D6: warm gradient surface + inner top-sheen (shared look with the calibration
+     deck — C5: literally shared now, the stops live in --deck-card, index.css) */
+  background: var(--deck-card);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 /* D6: layered shadow on the top/exit card — tight contact + soft ambient + inner sheen */

@@ -103,6 +103,16 @@
   --muted-rgb: 107, 97, 87;
   --skel-lo: #ece6dd; /* skeleton shimmer base (warm) */
   --skel-hi: #f5f0e9; /* skeleton shimmer band */
+  /* Stage C5 (deck-family dark chrome): the ONE source for the two surface
+     gradients deck.css + lensdeck.css duplicated declaration-for-declaration
+     (that skin had already drifted once elsewhere — the 25/24px done-titles,
+     which stay AS-IS by decree). Minted at the exact shipped stops, so the
+     site swaps are pixel-inert. --deck-bg is the bottom LAYER of each deck's
+     ambiance stack — the hue-tinted radials above it (accent vs --lh) stay
+     per-consumer by design; aesthetics stay in consumer files (swipedeck.css
+     contract), only the VALUES live here. */
+  --deck-bg: linear-gradient(168deg, #1c160f 0%, #1b1712 55%, #181109 100%);
+  --deck-card: linear-gradient(168deg, #2b2118 0%, #221b14 58%, #1b1510 100%);
   /* Stage C4 (typo — the secondary-text scale, MINTED here; mass adoption happens in
      the Cohesion Pass re-rhythm where off-scale sizes visibly snap to these steps):
      body 15 / meta 13 / meta-sm 12 / micro 11. Card titles keep --t-card-*. */
