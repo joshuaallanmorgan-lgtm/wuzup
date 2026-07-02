@@ -1573,6 +1573,18 @@ async function main() {
     console.log('  ⚠️  finder/venues.json missing — venue canonicalization skipped (run finder/build-venues.mjs)');
   }
 
+  // Address-as-venue naming, PRE-merge pass (WS1 dedup fix): venue identity
+  // must resolve BEFORE fuzzyMerge or the venue-equality rules can't see it —
+  // VSPC's "535 4th Ave N" never merged with City-of-St-Pete's "The Coliseum"
+  // even on identical titles (an address venue shares zero name tokens, which
+  // VETOES the title-only merge). Rename address-y venues from named twins at
+  // the same address core now; a second pass after geocoding (below) catches
+  // records whose rename needs coords that only exist post-geocode.
+  const preNames = nameAddressVenues(all);
+  if (preNames.renamed || preNames.trimmed) {
+    console.log(`  🏷️  address-venues (pre-merge): ${preNames.renamed} renamed from named siblings, ${preNames.trimmed} de-tailed`);
+  }
+
   // Fuzzy cross-source merge: duplicate listings of the same real-world event
   // collapse into one record whose `buzz` = number of distinct source families.
   const rawCount = all.length;
@@ -1708,12 +1720,14 @@ async function main() {
   }
   if (geocoded2) console.log(`  📍 geocoded ${geocoded2} more via venue-name fallback queries`);
 
-  // Address-as-venue naming (fixer): "10165 McKinley Dr" on a visible card IS
-  // Busch Gardens when a named sibling shares the address/coords; renames are
-  // data-internal, the rest at least lose their ", City, Florida, USA" tails.
+  // Address-as-venue naming, POST-geocode pass (fixer): "10165 McKinley Dr" on
+  // a visible card IS Busch Gardens when a named sibling shares the address /
+  // coords; renames are data-internal, the rest at least lose their ", City,
+  // Florida, USA" tails. (Most renames now happen in the pre-merge pass above;
+  // this one catches records whose only link to a named twin is geocoded coords.)
   const venueNames = nameAddressVenues(events);
   if (venueNames.renamed || venueNames.trimmed) {
-    console.log(`  🏷️  address-venues: ${venueNames.renamed} renamed from named siblings, ${venueNames.trimmed} de-tailed`);
+    console.log(`  🏷️  address-venues (post-geocode): ${venueNames.renamed} renamed from named siblings, ${venueNames.trimmed} de-tailed`);
   }
 
   // Recurring detection, then tags / hot score / category per event.
