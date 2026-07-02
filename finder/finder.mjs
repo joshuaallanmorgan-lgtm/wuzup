@@ -235,6 +235,63 @@ function smartTitleCase(t) {
     .join(' ');
 }
 
+// De-shout CAPS RUNS inside otherwise-mixed titles (WS1 fix 4): the whole-
+// title gate above misses "Ink & Lace; THE FASHION EVENT". A run = >= 3
+// uppercase words (>= 2 letters each); connector tokens without real letters
+// ("&", "//", "5K") ride along inside a run without counting or breaking it,
+// so "SUMMER LOCK & KEY SINGLES PARTY" is one shout, not two 2-word bursts.
+// Within a run: allowlisted acronyms (TITLE_KEEP_CAPS) and 2-letter INITIALS
+// (AJ, MC — anything not a common word) survive; small words lowercase
+// mid-run; everything else title-cases. Lone caps words (a stylized
+// "TOLEREW") and 2-word bursts are stylization, not shouting — untouched.
+// Stylized LOWERCASE names are never touched (only uppercase runs qualify).
+const TITLE_TWO_LETTER_WORDS = new Set(['me', 'be', 'my', 'we', 'he', 'it', 'is', 'do', 'go', 'no', 'so', 'up', 'st', 'mr', 'ms', 'dr']);
+function deShoutCapsRuns(t) {
+  const words = t.split(' ');
+  const letters = (w) => w.replace(/[^a-zA-Z]/g, '');
+  const isCaps = (w) => {
+    const l = letters(w);
+    return l.length >= 2 && l === l.toUpperCase();
+  };
+  const isTransparent = (w) => {
+    const l = letters(w);
+    return l.length <= 1 && l === l.toUpperCase();
+  };
+  let i = 0;
+  while (i < words.length) {
+    if (!isCaps(words[i])) { i++; continue; }
+    let j = i;
+    let capsCount = 0;
+    let lastCaps = i;
+    while (j < words.length && (isCaps(words[j]) || isTransparent(words[j]))) {
+      if (isCaps(words[j])) { capsCount++; lastCaps = j; }
+      j++;
+    }
+    if (capsCount >= 3) {
+      for (let k = i; k <= lastCaps; k++) {
+        if (!isCaps(words[k])) continue; // transparent riders keep their case
+        const core = words[k].replace(/[^\w&+']/g, '');
+        if (TITLE_KEEP_CAPS.has(core.toUpperCase())) continue;
+        const coreLower = core.toLowerCase();
+        const small = TITLE_SMALL_WORDS.has(coreLower);
+        // 2-letter caps that are NOT common words read as initials — keep
+        if (letters(words[k]).length <= 2 && !small && !TITLE_TWO_LETTER_WORDS.has(coreLower)) continue;
+        const lower = words[k].toLowerCase();
+        const prevEndsPunct = k > 0 && /[;:|/–—-]$/.test(words[k - 1]);
+        if (small && k !== i && !prevEndsPunct && k > 0 && k < words.length - 1) {
+          words[k] = lower; // mid-run small word: "for the final time"
+        } else {
+          // capitalize the first LETTER even behind punctuation ("(just" →
+          // "(Just"), and after -/. ("power-up" → "Power-Up")
+          words[k] = lower.replace(/(^[^a-z]*|[-/.])([a-z])/g, (m, p, c) => p + c.toUpperCase());
+        }
+      }
+    }
+    i = j;
+  }
+  return words.join(' ');
+}
+
 function cleanEventTitle(raw) {
   let t = String(raw || '');
   t = t.replace(/^\s*TBD\s+at\s+/i, ''); // "TBD at Tampa Bay Lightning — ..." placeholder prefix
@@ -245,6 +302,7 @@ function cleanEventTitle(raw) {
   t = t.replace(TITLE_CITY_SUFFIX_RE, ''); // "KBONG & JOHNNY COSMIC - ST PETE"
   t = t.replace(/\s*[-–—]\s*artist\s*$/i, ''); // aggregator's "Ye - Artist" type suffix
   t = smartTitleCase(t.trim());
+  t = deShoutCapsRuns(t); // caps runs inside mixed titles (whole-title gate above)
   for (const [re, fix] of TITLE_FIXES) t = t.replace(re, fix);
   t = t.trim();
   return t.length >= 2 ? t : String(raw || '');
