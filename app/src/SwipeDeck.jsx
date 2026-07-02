@@ -62,11 +62,13 @@
 // pointer handlers are never attached — buttons only, crossfade exits.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
+  ROT_FACTOR,
   SPRING,
   SWIPE_X,
   SWIPE_Y,
   flightMs,
   gestureVerdict,
+  grabRotation,
   releaseVelocity,
   springStep,
 } from './deckgesture.js'
@@ -124,6 +126,8 @@ export default function SwipeDeck({
     if (!el) return
     el.classList.remove('grabbed', 'settling')
     el.style.transform = ''
+    el.style.removeProperty('transform-origin')
+    el.style.removeProperty('will-change') // jank guard is gesture-scoped, never permanent (WS2 #4)
     el.style.removeProperty('--like')
     el.style.removeProperty('--nope')
     el.style.removeProperty('--keep')
@@ -135,7 +139,7 @@ export default function SwipeDeck({
     el.style.setProperty('--keep', String(Math.min(Math.max(-dy / SWIPE_Y, 0), 1)))
   }
 
-  const commit = (dir, { dx = 0, dy = 0, speed = 0 } = {}) => {
+  const commit = (dir, { dx = 0, dy = 0, speed = 0, rotF = ROT_FACTOR, origin } = {}) => {
     const card = cards[idx]
     if (!card) return
     // multi-touch corner: a button-commit mid-drag would advance the deck and
@@ -154,7 +158,10 @@ export default function SwipeDeck({
     const ms = reduced ? 220 : flightMs(speed)
     const flyX = Math.max(-140, Math.min(140, dx * 1.4))
     const flyY = Math.max(-160, Math.min(160, dy * 1.6 - 24))
-    setExit({ card, dir, dx, dy, rot: dx * 0.05, ms, flyX, flyY })
+    // WS2 #4: the exit clone keeps the drag's grab-point pivot + clamped
+    // rotation so the live-card → clone handoff is pose-exact (button
+    // commits: no travel, no origin — the defaults are a no-op)
+    setExit({ card, dir, dx, dy, rot: grabRotation(dx, rotF), ms, flyX, flyY, origin })
     clearTimeout(exitTRef.current)
     exitTRef.current = setTimeout(() => setExit(null), ms + 40)
     const next = idx + 1
@@ -208,7 +215,7 @@ export default function SwipeDeck({
         clearDragStyles()
         return
       }
-      el.style.transform = `translate(${x}px, ${y}px) rotate(${x * 0.05}deg)`
+      el.style.transform = `translate(${x}px, ${y}px) rotate(${grabRotation(x, d.rotF)}deg)`
       setTravelVars(el, x, y)
       springRef.current = { raf: requestAnimationFrame(tick), x, y }
     }
@@ -232,19 +239,31 @@ export default function SwipeDeck({
     const ox = s ? s.x : 0
     const oy = s ? s.y : 0
     cancelSpring()
+    const el = cardRef.current
+    // WS2 #4: the card pivots around the GRAB POINT — a top-half grab rotates
+    // WITH the drag, a bottom-half grab against it (real cards swing around
+    // where you hold them); rotation is clamped in grabRotation. The
+    // will-change hint is gesture-scoped: set here, removed in
+    // clearDragStyles — never a permanent compositing tax on the stack.
+    const r = el.getBoundingClientRect()
+    const rotF = ev.clientY < r.top + r.height / 2 ? ROT_FACTOR : -ROT_FACTOR
+    const origin = `${Math.round(ev.clientX - r.left)}px ${Math.round(ev.clientY - r.top)}px`
     dragRef.current = {
       id: ev.pointerId,
       x0: ev.clientX - ox,
       y0: ev.clientY - oy,
       dx: ox,
       dy: oy,
+      rotF,
+      origin,
       // trailing pointer history for the release-velocity read (WS2 #3)
       samples: [{ t: ev.timeStamp, x: ev.clientX, y: ev.clientY }],
     }
-    const el = cardRef.current
     el.classList.remove('settling')
     el.classList.add('grabbed')
-    if (ox || oy) el.style.transform = `translate(${ox}px, ${oy}px) rotate(${ox * 0.05}deg)`
+    el.style.transformOrigin = origin
+    el.style.willChange = 'transform'
+    if (ox || oy) el.style.transform = `translate(${ox}px, ${oy}px) rotate(${grabRotation(ox, rotF)}deg)`
     ev.currentTarget.setPointerCapture(ev.pointerId)
   }
   const onMove = (ev) => {
@@ -256,7 +275,7 @@ export default function SwipeDeck({
     if (d.samples.length > 12) d.samples.splice(0, d.samples.length - 12) // ≥ SAMPLE_WINDOW of history at 120Hz
     const el = cardRef.current
     if (!el) return
-    el.style.transform = `translate(${d.dx}px, ${d.dy}px) rotate(${d.dx * 0.05}deg)`
+    el.style.transform = `translate(${d.dx}px, ${d.dy}px) rotate(${grabRotation(d.dx, d.rotF)}deg)`
     // verdict stamps fade in with travel (consumer CSS reads these vars)
     setTravelVars(el, d.dx, d.dy)
   }
@@ -267,7 +286,7 @@ export default function SwipeDeck({
     d.samples.push({ t: ev.timeStamp, x: ev.clientX, y: ev.clientY }) // the release point closes the window
     const { vx, vy } = releaseVelocity(d.samples)
     const v = gestureVerdict(d.dx, d.dy, vx, vy)
-    const opts = { dx: d.dx, dy: d.dy, speed: Math.hypot(vx, vy) }
+    const opts = { dx: d.dx, dy: d.dy, speed: Math.hypot(vx, vy), rotF: d.rotF, origin: d.origin }
     if (v === 'up') {
       if (upMode === 'peek') {
         peek() // opening a detail must not cost the card — spring it home
@@ -305,6 +324,7 @@ export default function SwipeDeck({
         <div
           className={cls('card') + ' ' + cls('exit') + ' ' + cls('exit-' + exit.dir)}
           style={{
+            transformOrigin: exit.origin, /* grab-point pivot rides the handoff (WS2 #4; undefined = center for button commits) */
             '--dx': exit.dx + 'px',
             '--dy': exit.dy + 'px',
             '--rot': exit.rot + 'deg',
