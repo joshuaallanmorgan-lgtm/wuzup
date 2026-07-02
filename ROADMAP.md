@@ -144,7 +144,7 @@ These are load-bearing and survive every stage. Any change requires explicit Jos
    `--free #0fa86d`. **Inter everywhere** (Kumbh Sans retired `7dc0b2a`, Josh's call; self-hosted as
    of Stage C) + paper-grain. `DESIGN_SYSTEM.md` remains the design-primitive authority.
    - **Dark immersive theme (binding, decided 2026-06-17):** onboarding (Primer) + the 3 decks
-     (Calibration / Lens / DayFill) use a deliberate **dark ambiance** (warm-dark `#1b1712`, gold kicker
+     (Calibration / Lens — DayFill was deleted in Stage C C5, unreachable) use a deliberate **dark ambiance** (warm-dark `#1b1712`, gold kicker
      `#ffb066`, white text, reward-violet `#d966f5` finish beats) as a focus/ceremony contrast to the
      light browse app. **Keep it.** REFERENCE II (`sheet-a.png`) renders these light — that's a
      generation artifact, **not** the target; those panels are **layout/content reference only**, never
@@ -349,7 +349,7 @@ Stage 1 → Stage 2 (Deep Sweep).** (Note: screenshots wedge in this env; verifi
 Calendar, Profile, + the design-system / cards panels.
 
 **Need a NEW "same-vibe" reference image (the distinct interaction paradigms — do these first):**
-Primer (onboarding), the 3 swipeable decks (CalibrationDeck, LensDeck, DayFillDeck), and the
+Primer (onboarding), the swipeable decks (CalibrationDeck, LensDeck — DayFillDeck deleted, C5), and the
 empty / error / loading states.
 
 **Can be derived from the existing reference (write a spec, no new image):** Settings + sub-sections
@@ -418,6 +418,6 @@ All 24 carry Stage R styling. ✅ = has a benchmark image to match; ⚠ = styled
 ✅ HomeView · HotView (Events) · LocationsView (Spots) · CalendarView · ProfileView · MapView ·
 DetailPage · PlaceDetail · SearchPage · (cards/design-system)
 
-⚠ Primer · CalibrationDeck · LensDeck · DayFillDeck · empty/error/loading states · SettingsPage ·
+⚠ Primer · CalibrationDeck · LensDeck · ~~DayFillDeck~~ (deleted, C5) · empty/error/loading states · SettingsPage ·
 InterestEditor · TastePanel · MyPlansPage · MySavesPage · PinSheet · NextDays · DayPage ·
 BubblePage / PlaceBubblePage / GuidePage

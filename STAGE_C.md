@@ -31,9 +31,9 @@ From the recovered kickoff, scoped to *inert*:
 - Cold-slate/cool-relic stragglers that are *pure token swaps at identical values* (e.g. `bubble.css:118` old `--line`).
 - New `--danger` — collapse the 3 error reds (`#dc2626`/`#b91c1c` addevent.css, `#b3261e` day.css) onto one value. *(Judgment: pick the warmest of the three; visually near-inert; flag in the commit.)*
 - Tokenize the skeleton-shimmer grays (`cards.css:818`) + the slot-verdict green (`dayfill.css` — moot if C5 deletes dayfill first; sequence C5's delete before this item or skip).
-- Map near-dupe warm-ink shadows onto the `--shadow-1/2/3` scale where values are within rounding (`App.css:251,283,407`, `locations.css:170`).
-- Eyebrow-token adoption on stragglers already matching the contract's rendered look.
-- **Type/spacing: mint-only in C4.** Mint the secondary-text type scale + extend `--sp` usage by swapping literals that already sit ON scale values (~60 sites). The visible re-rhythm (snapping 33 ad-hoc sizes / half-pixel sizes onto the scale) is **Cohesion Pass work** — it changes pixels and is out of Stage C's inert charter.
+- ⏸ Map near-dupe warm-ink shadows onto the `--shadow-1/2/3` scale — **SKIPPED as NOT-inert** (recon showed the 4 literals genuinely differ from the token values; swapping would change pixels → Cohesion Pass).
+- ⏸ Eyebrow-token adoption on stragglers — **DEFERRED into Cohesion ruling-7 work** (the casing ruling rewrites the whole eyebrow landscape; adopting twice is churn).
+- **Type/spacing: mint-only in C4** ✅ (scale minted `--t-body/meta/meta-sm/micro`). ⏸ The ~60 same-value `--sp`/type swaps **DEFERRED to the Cohesion Pass re-rhythm** — mass same-value swaps today would be churn the re-rhythm rewrites next week. The visible re-rhythm (snapping 33 ad-hoc sizes / half-pixel sizes onto the scale) was always Cohesion Pass work.
 - Tokenize the C3 a11y literals as named tokens (`--free-ink #097045`, `--free-fill-strong #0b8256`, keep `.deckthis` `#a54d12` — smoke.mjs pins it and no compliant alternative exists on the composited pill).
 
 ## C4.5 — Inter self-host (Josh ruling #1)
