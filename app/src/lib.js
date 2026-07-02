@@ -18,7 +18,7 @@ export const CITY = {
   name: 'Tampa Bay',
   heroes: [
     {
-      url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Tampa_Skyline_-_Eric_Statzer.jpg/1920px-Tampa_Skyline_-_Eric_Statzer.jpg',
+      url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Tampa_Skyline_-_Eric_Statzer.jpg/960px-Tampa_Skyline_-_Eric_Statzer.jpg',
       credit: 'Eric Statzer',
       license: 'CC BY-SA 4.0',
       licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0',
@@ -28,7 +28,7 @@ export const CITY = {
   // W4: the Spots (Locations) tab hero — Bayshore Boulevard, Tampa Bay's waterfront.
   spotsHeroes: [
     {
-      url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Tampa_Bayshore_Blvd_looking_south01.jpg/1920px-Tampa_Bayshore_Blvd_looking_south01.jpg',
+      url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Tampa_Bayshore_Blvd_looking_south01.jpg/960px-Tampa_Bayshore_Blvd_looking_south01.jpg',
       credit: 'Ebyabe',
       license: 'CC BY 2.5',
       licenseUrl: 'https://creativecommons.org/licenses/by/2.5',
@@ -38,8 +38,8 @@ export const CITY = {
   // back-compat scalar aliases — the Primer onboarding reuses CITY.hero as its bg;
   // they mirror heroes[0]/spotsHeroes[0].url (kept as plain strings so the W4
   // real-photo smoke guard still reads them).
-  hero: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Tampa_Skyline_-_Eric_Statzer.jpg/1920px-Tampa_Skyline_-_Eric_Statzer.jpg',
-  spotsHero: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Tampa_Bayshore_Blvd_looking_south01.jpg/1920px-Tampa_Bayshore_Blvd_looking_south01.jpg',
+  hero: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Tampa_Skyline_-_Eric_Statzer.jpg/960px-Tampa_Skyline_-_Eric_Statzer.jpg',
+  spotsHero: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Tampa_Bayshore_Blvd_looking_south01.jpg/960px-Tampa_Bayshore_Blvd_looking_south01.jpg',
   // city center — the single source for the weather query + the map default view
   // (consolidated from weather.js + MapView.jsx). A new city changes only this.
   center: { lat: 27.95, lng: -82.46 },

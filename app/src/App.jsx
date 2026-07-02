@@ -35,7 +35,6 @@ import InterestEditor from './InterestEditor.jsx'
 import TastePanel from './TastePanel.jsx'
 import CalibrationDeck, { PlacesDeck } from './CalibrationDeck.jsx'
 import LensDeck from './LensDeck.jsx'
-import DayFillDeck from './DayFillDeck.jsx'
 import './App.css'
 
 function TabBar({ active, onTab, inert }) {
@@ -399,13 +398,9 @@ function Shell() {
             {/* Sprint Q2: the finite "Deck this" mode — opened ONLY by the
                 explicit 🃏 entry buttons (HotView day-headers, bubble pages);
                 its back/finish affordances return to where the user came from.
-                Sprint U-b: the SAME lensdeck slot also serves the day-fill deck
-                (lens.kind:'dayfill', the 🃏 "Fill this day" on DayPage) — a
-                different verdict set (slot/pass/save), so a distinct component */}
-            {page.type === 'lensdeck' && page.lens.kind === 'dayfill' && (
-              <DayFillDeck lens={page.lens} events={norm} anchors={anchors} coords={coords} />
-            )}
-            {page.type === 'lensdeck' && page.lens.kind !== 'dayfill' && (
+                (C5: the Sprint U-b day-fill variant that shared this slot was
+                deleted — unreachable since S1-D4 removed its only opener.) */}
+            {page.type === 'lensdeck' && (
               <LensDeck lens={page.lens} events={norm} anchors={anchors} />
             )}
           </div>

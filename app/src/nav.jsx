@@ -183,8 +183,8 @@ export function NavProvider({ children }) {
     setPage({ type: 'guide', guide })
   }, [])
   // Phase 3.5: openNight + the {type:'night'} Find-My-Night subpage retired
-  // (Josh: remove the dice). fmnseen.js stays — the Deck + day-fill decks still
-  // use it; recordSignal('fmn') in taste.js is now caller-less (left as a seam).
+  // (Josh: remove the dice). C5: fmnseen.js deleted too — its writes had no
+  // reader; recordSignal('fmn') in taste.js is now caller-less (left as a seam).
   // Sprint U-c: openAdd takes an optional day timestamp. From the day screen's
   // "+ add your own" path it carries `ts` (a number) so AddEvent pre-fills that
   // date AND auto-slots the new event into that day on submit (daypartOf
@@ -335,13 +335,18 @@ export function NavProvider({ children }) {
     if (supportsVT() && el) {
       morphElRef.current = el
       el.style.viewTransitionName = 'evt-hero' // old snapshot: the card image owns the name
-      document.startViewTransition(() => {
+      const t = document.startViewTransition(() => {
         el.style.viewTransitionName = '' // new snapshot: only the detail hero owns it
         flushSync(() => {
           setVtOpen(true)
           setDetail(e)
         })
       })
+      // C5: an aborted transition (tab hidden mid-flight, UA skip, a second open
+      // interrupting) REJECTS `ready` — unhandled, that's an uncaught exception on
+      // real user paths. The morph just skips; the update callback (name handoff +
+      // state) runs either way, so swallowing is the complete handling.
+      t.ready.catch(() => {})
     } else {
       morphElRef.current = null
       setVtOpen(false)
@@ -355,7 +360,10 @@ export function NavProvider({ children }) {
         flushSync(() => setDetail(null))
         if (el && el.isConnected) el.style.viewTransitionName = 'evt-hero'
       })
-      t.finished.finally(() => {
+      t.ready.catch(() => {}) // C5: aborts reject `ready` — expected, never uncaught
+      // C5: catch BEFORE finally — a rejected `finished` (update-callback throw)
+      // would otherwise re-surface as a second unhandled rejection after cleanup.
+      t.finished.catch(() => {}).finally(() => {
         if (el) el.style.viewTransitionName = ''
         morphElRef.current = null
       })

@@ -513,8 +513,8 @@ test('W4 wiring: real heroes + place-detail photo + degrade-to-art + passthrough
   // never the browser broken-image glyph — CardImg + the deck place face wire onError
   const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
   assert.match(cards, /onError/, 'CardImg must handle onError so a dead image degrades to category-art, not a broken glyph')
-  const dfk = readFileSync(path.join(ROOT, 'app', 'src', 'DayFillDeck.jsx'), 'utf8')
-  assert.match(dfk, /onError/, 'the day-fill place face must handle onError (no broken-image glyph)')
+  // (the old DayFillDeck place-face onError assert died with the component — C5;
+  // every surviving deck face renders through CardImg, guarded above)
   // normalizePlace must carry image through (it spreads ...raw — this is a guard).
   // Local import so this test also runs in isolation (--test-name-pattern).
   const placesLocal = await import('../app/src/places.js')
@@ -920,14 +920,21 @@ test('N5b re-entry: Profile save→plan pull (Calendar pull retired in 3.7P-17)'
   assert.ok(/shelfItems/.test(saves) && /openDetail/.test(saves), 'the save→plan loop stays reachable via My saves (tap a save → detail → add to day)')
 })
 
-// S1-D4 — the FillDay swipe deck was removed from the day screen (Plan-your-day
-// rework). The DayFillDeck component (incl. its prominent hero variant) stays in
-// the tree for later reuse; the DayPage just no longer renders it.
-test('S1-D4: the FillDay swipe deck is removed from DayPage (logic kept for reuse)', () => {
-  const dfk = readFileSync(path.join(ROOT, 'app', 'src', 'DayFillDeck.jsx'), 'utf8')
-  assert.ok(/prominent/.test(dfk) && /dfk-entry-hero/.test(dfk), 'DayFillDeck keeps its prominent hero variant (reusable later)')
-  const dp = readFileSync(path.join(ROOT, 'app', 'src', 'DayPage.jsx'), 'utf8')
-  assert.ok(!/FillDayButton/.test(dp), 'DayPage no longer renders the FillDay deck (S1-D4)')
+// S1-D4 → C5 — the FillDay swipe deck: first removed from the day screen (S1-D4,
+// "logic kept for reuse"), then DELETED outright in Stage C C5 — it sat unreachable
+// for 8+ days (no FillDayButton renderer anywhere) and the fmn-seen store it wrote
+// had no reader since the dice died in Phase 3.5. Git history preserves the reuse
+// option; the tree stays honest about what actually ships.
+test('C5: the dead DayFillDeck + fmnseen are fully deleted (no dangling refs)', () => {
+  for (const f of ['DayFillDeck.jsx', 'dayfill.js', 'dayfill.css', 'fmnseen.js']) {
+    assert.ok(!existsSync(path.join(ROOT, 'app', 'src', f)), `${f} must be deleted (C5)`)
+  }
+  const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
+  assert.ok(!/DayFillDeck|dayfill/.test(app), 'App.jsx carries no day-fill route residue')
+  for (const f of ['CalibrationDeck.jsx', 'LensDeck.jsx', 'DayPage.jsx']) {
+    const src = readFileSync(path.join(ROOT, 'app', 'src', f), 'utf8')
+    assert.ok(!/pushFmnSeen|fmnseen/.test(src), `${f} must not reference the deleted fmnseen store`)
+  }
 })
 
 // ============================================================
@@ -965,7 +972,6 @@ const taste = await import('../app/src/taste.js')
 const share = await import('../app/src/share.js')
 const placesMod = await import('../app/src/places.js')
 const searchMod = await import('../app/src/search.js')
-const dayfill = await import('../app/src/dayfill.js')
 const curate = await import('../app/src/curate.js')
 
 // dayplan.js is JSX/CSS-free (its only imports are storage.js + weekend.js,
@@ -2037,70 +2043,8 @@ test('places.js: placesForBrief matches affinity, no surprise park, never a date
   assert.equal(placesMod.placesForBrief(list, outdoors, null, 1).length, 1, 'max caps the fallback count')
 })
 
-test('dayfill.js: dealDayFill = fits-day events + places tail, count-preserving, deduped', () => {
-  const ts = new Date(2026, 5, 13).getTime() // Sat Jun 13
-  const events = [
-    N(ev({ title: 'Sat show', start: '2026-06-13T20:00:00', category: 'music', hotScore: 80 }), AN),
-    N(ev({ title: 'Exhibit', start: '2026-06-10', end: '2026-06-30', category: 'art', hotScore: 60 }), AN), // span covers Sat
-    N(ev({ title: 'Mon thing', start: '2026-06-15', category: 'food', hotScore: 90 }), AN), // does NOT cover Sat
-    N(ev({ title: 'Ended', start: '2026-06-01', category: 'music', hotScore: 99 }), AN), // already over
-  ]
-  const places = [pl({ slug: 'beach', name: 'Beach', srcCount: 3 }), pl({ slug: 'park', name: 'Park', srcCount: 1 })]
-  const deck = dayfill.dealDayFill(events, places, ts, AN, null)
-  const titles = deck.map((c) => c.title)
-  // only the two fits-Saturday events make it, then the two places tail
-  assert.ok(titles.includes('Sat show') && titles.includes('Exhibit'), 'fits-day events are in the deck')
-  assert.ok(!titles.includes('Mon thing'), 'an event whose span misses the day is excluded')
-  assert.ok(!titles.includes('Ended'), 'an already-ended run is excluded')
-  // events come BEFORE places (a dated thing for the day outranks an evergreen):
-  // once a place appears, every later card is a place too (a clean tail).
-  const firstPlaceIdx = deck.findIndex((c) => c.kind === 'place')
-  if (firstPlaceIdx !== -1) {
-    assert.ok(
-      deck.slice(firstPlaceIdx).every((c) => c.kind === 'place'),
-      'events lead and places form an unbroken tail'
-    )
-    assert.ok(
-      deck.slice(0, firstPlaceIdx).every((c) => c.kind !== 'place'),
-      'no place appears before the tail'
-    )
-  }
-  // the places tail is corroboration-ordered (srcCount 3 > 1)
-  const placeCards = deck.filter((c) => c.kind === 'place')
-  assert.equal(placeCards.length, 2, 'both places ride the tail')
-  assert.equal(placeCards[0].key, 'p|beach', 'places tail is srcCount-desc')
-  // events-only path (no places) works and is finite
-  const evOnly = dayfill.dealDayFill(events, null, ts, AN, null)
-  assert.equal(evOnly.length, 2, 'events-only deck = the 2 fits-day events')
-  // dedup: a duplicate event key never doubles
-  const dup = dayfill.dealDayFill(events.concat(events[0]), [], ts, AN, null)
-  assert.equal(new Set(dup.map(lib.keyOf)).size, dup.length, 'dealDayFill output is key-unique')
-  // the lens id keys on the day ts (session fatigue guard + back nav)
-  assert.equal(dayfill.dayFillIdOf({ dayTs: ts }), 'fill|' + ts, 'dayFillIdOf keys on the day ts')
-})
-
-// Sprint T review must-fix: the day-fill deck is a CURATED SHORTLIST, not the
-// whole catalog. dealDayFill caps at DECK_TARGET, places only fill the room
-// events leave (a rich day gets no place tail), and the cap holds against a
-// huge place list (the prod bug: the entire ~1,830-place DB bolted onto every
-// deck). The old test used 2 places and never exercised this.
-test('dayfill.js: deck is capped at DECK_TARGET, places only round out a thin day', () => {
-  const ts = new Date(2026, 5, 13).getTime() // Sat Jun 13
-  const TARGET = dayfill.DECK_TARGET
-  assert.ok(typeof TARGET === 'number' && TARGET >= 8 && TARGET <= 30, 'DECK_TARGET is a sane shortlist size')
-  // 30 always-there places, ZERO events for the day → deck = exactly TARGET places (the catalog never floods in)
-  const manyPlaces = Array.from({ length: 30 }, (_, i) => pl({ slug: 'p' + i, name: 'Place ' + String(i).padStart(2, '0'), srcCount: (i % 3) + 1 }))
-  const thinDeck = dayfill.dealDayFill([], manyPlaces, ts, AN, null)
-  assert.equal(thinDeck.length, TARGET, `a zero-event day caps the place tail at DECK_TARGET (${TARGET}), got ${thinDeck.length}`)
-  assert.ok(thinDeck.every((c) => c.kind === 'place'), 'a zero-event day deck is all places')
-  // a RICH event day (>= TARGET fits-day events) gets NO place tail
-  const manyEvents = Array.from({ length: TARGET + 5 }, (_, i) =>
-    N(ev({ title: 'Ev ' + i, url: 'u' + i, start: '2026-06-13T19:00:00', category: 'music', hotScore: 50 + i }), AN)
-  )
-  const richDeck = dayfill.dealDayFill(manyEvents, manyPlaces, ts, AN, null)
-  assert.equal(richDeck.length, TARGET, `a rich day is capped at DECK_TARGET, got ${richDeck.length}`)
-  assert.ok(richDeck.every((c) => c.kind !== 'place'), 'a rich event day gets NO place tail — the catalog never bolts on')
-})
+// (C5: the two dayfill.js dealer tests died with the deleted dead deck —
+//  see the 'C5: the dead DayFillDeck + fmnseen are fully deleted' guard.)
 
 // ============================================================
 // Sprint U-d — the TWO-BEAT LOOP + the GENTLE LEDGER (CALENDAR_BRIEF Model C,
