@@ -555,7 +555,12 @@ function sameEvent(a, b) {
   // in the longer (≥3 significant tokens), and at most ONE venue present —
   // both-venued pairs must match on venue above ("Art After Dark" really does
   // run at two museums on the same night).
-  if (a.hr != null && a.hr === b.hr && (!a.vTokens.size || !b.vTokens.size)) {
+  // Date-only pairs (BOTH sides hourless — WS1 dedup 1c): requiring equal
+  // hours meant two unclocked listings of one renamed event could never
+  // qualify; the shared calendar day (this whole comparison is same-day by
+  // construction) is the time evidence such pairs have.
+  const hrMatch = a.hr != null ? a.hr === b.hr : b.hr == null;
+  if (hrMatch && (!a.vTokens.size || !b.vTokens.size)) {
     const [small, big] = a.sTokens.size <= b.sTokens.size ? [a.sTokens, b.sTokens] : [b.sTokens, a.sTokens];
     if (small.size >= 3) {
       let inter = 0;
