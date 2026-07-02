@@ -17,8 +17,8 @@
 | C3 — a11y (real AA) | `3391483` + fixup `b0dc9ca` | ✅ committed |
 | **Scout Checkpoint 1** | — | ✅ **PASSED 2026-07-01T02:13Z** — independent re-derivation of all 3 AA ratios on composited surfaces (4.84 / 5.33 / 4.84), zero dangling refs, byte-identical places.json mirrors, gate 95/95. Verdict: *"Green-lit to continue to C4 + C5."* (The verdict was orphaned in the dead Architect session; recovered + actioned under the takeover.) |
 | Step 0 (takeover housekeeping) | `aebc6c9` + doc sync | ✅ landed on this branch |
-| C4 — token consolidation | — | ◀ next |
-| C4.5 — Inter self-host | — | queued (Josh ruling #1, 2026-07-01) |
+| C4 — token consolidation | `ba4ed30` | ✅ committed (inert-verified via live computed-style probes) |
+| C4.5 — Inter self-host | `4122f5e` | ✅ committed (Josh ruling #1; variable weights live-verified, GF link gone, favicon restored ⚑ Charles) |
 | C5 — dedup + fold-ins | `e06ab6e` `6c4cca5` `bf626ad` + tail `647c59b`→`3192d0c` | ✅ committed (BottomSheet scaffold deliberately deferred — too much collateral for an inert pass) |
 | **Scout Checkpoint 2** | — | independent REFUTE pass → then PR |
 
@@ -47,7 +47,7 @@ Inter **variable** woff2 (latin subset) → `app/public/fonts/`; one `@font-face
 - ✅ `dd6c7e1` Promote the inline nbhd-card into a `cards.jsx` component.
 - ✅ `efebf0e` Collapse FiltersSheet's 3 chip-group blocks into a map.
 - ✅ `e06ab6e` **DELETE the dead DayFillDeck** (`DayFillDeck.jsx` + `dayfill.js` + `dayfill.css` + the `App.jsx:405` route branch + the pinned `dealDayFill` smoke tests + `fmnseen.js` write-only orphan + its 3 write sites). *Supersedes the kickoff's "fold FillFace into PlaceDeckFace" — the whole surface is unreachable (no `FillDayButton` renderer since `a665936`); git history preserves the reuse option.* ~700 lines.
-- Extract a shared BottomSheet scaffold (scrim + head + close).
+- ⏸ Extract a shared BottomSheet scaffold (scrim + head + close) — **DEFERRED** (assessed during C5: too much collateral for an inert pass; candidates re-open in the Cohesion Pass if the sheet work there wants it).
 - ✅ `3192d0c` ⚠️ **HIGH-RISK: deck.css/lensdeck.css dark-chrome dedup** (~81% duplicate declarations, already drifted 25px/24px). Must be behavior-inert; **re-run the deck coverage sim** (the never-hide proof) after.
 - ✅ `6c4cca5` `manualChunks` split of the 428 KB boot bundle (decks/subpages are natural seams).
 - ✅ `bf626ad` The C1-deferred `.card*` CSS surgical pass (entangled with live `.card-toast` + `--card*` tokens — scout ruled it into C5).
