@@ -596,6 +596,18 @@ function mergeCluster(members) {
   const anyTimed = starts.find((s) => startHourOf(s) !== null);
   const start = saneTimed || dateOnly || anyTimed || starts[0] || null;
 
+  // End: keep the LATEST end among members (max endedAtMs — WS1 dedup 1d).
+  // pickFirst let the first-listed member's same-day end CLIP a sibling's
+  // published multi-day span (PAVA: City's "7/18 17:00" end beat VSPC's
+  // 7/19, so the exhibit fold below could never see the 2-day run).
+  let end = null;
+  let endAt = -Infinity;
+  for (const m of members) {
+    if (m.end == null) continue;
+    const t = endedAtMs({ start: m.start, end: m.end });
+    if (!isNaN(t) && t > endAt) { endAt = t; end = m.end; }
+  }
+
   let description = null;
   for (const m of members) {
     if (m.description && (!description || m.description.length > description.length)) {
@@ -624,7 +636,7 @@ function mergeCluster(members) {
   return {
     title: pickFirst(members, 'title'),
     start,
-    end: pickFirst(members, 'end'),
+    end,
     venue: pickFirst(members, 'venue'),
     address: pickFirst(members, 'address'),
     price,
@@ -735,8 +747,20 @@ function stemmedTokens(title) {
   return new Set([...titleTokens(title)].map(stemToken));
 }
 
-const EXHIBIT_SPAN_MIN_DAYS = 14;   // multi-week = an exhibit-style run
+// Span in INCLUSIVE calendar days (WS1 dedup 1d): a Sat–Sun art show is a
+// 2-day run. The old exclusive arithmetic + MIN 14 meant 2–13-day runs never
+// cross-day folded, so a weekend show shipped once per occurrence record
+// (PAVA Cool Art Show shipped 3x).
+const EXHIBIT_SPAN_MIN_DAYS = 2;    // >= a full weekend counts as a run
 const EXHIBIT_SPAN_MAX_DAYS = 270;  // longer = permanent installation, not a run
+// Short runs (< 2 weeks) from a SINGLE family are as likely an aggregator's
+// series listing (AllEvents publishes "Rays vs. Guardians" as one 7/23–7/25
+// span umbrella-ing three real games) as a true run — they only umbrella when
+// 2+ families corroborate the span. Multi-week spans keep the old behavior
+// (REALM: a single-family ILB exhibit record is a legitimate umbrella).
+const EXHIBIT_SHORT_SPAN_DAYS = 14;
+// Head-to-head events are per-game listings, never exhibit runs.
+const EXHIBIT_NEVER_RUN_RE = /\bvs\.?\b/i;
 const EXHIBIT_TITLE_JACCARD = 0.6;
 
 export function dedupeOngoingOccurrences(events) {
@@ -745,13 +769,24 @@ export function dedupeOngoingOccurrences(events) {
     const sd = dayOf(e.start);
     const ed = dayOf(e.end);
     if (!sd || !ed) continue;
-    const span = (startMs(ed) - startMs(sd)) / 86400e3;
+    const span = (startMs(ed) - startMs(sd)) / 86400e3 + 1; // inclusive days
     if (span >= EXHIBIT_SPAN_MIN_DAYS && span <= EXHIBIT_SPAN_MAX_DAYS) {
+      if (EXHIBIT_NEVER_RUN_RE.test(e.title || '')) continue;
+      const fams = new Set((e.sources || []).map(familyOf).filter(Boolean));
+      const multiFam = fams.size >= 2;
+      if (span < EXHIBIT_SHORT_SPAN_DAYS && !multiFam) continue;
       ongoing.push({
         e, sd, ed,
         tokens: stemmedTokens(e.title),
         vTokens: venueMergeTokens(e.venue),
-        fams: new Set((e.sources || []).map(familyOf).filter(Boolean)),
+        fams,
+        // Frozen at build (not updated by folds): a run record ALREADY
+        // corroborated by 2+ families may absorb repeat occurrences from a
+        // family it carries — PAVA's 7/19 City record repeats a City+VSPC
+        // merged span. Single-family umbrellas keep the strict
+        // must-add-a-family rule (a publisher's own repeats are often
+        // deliberate separate sessions).
+        multiFam,
       });
     }
   }
@@ -761,15 +796,19 @@ export function dedupeOngoingOccurrences(events) {
   let folded = 0;
   for (const e of events) {
     const day = dayOf(e.start);
-    if (!day || e.end || drop.has(e)) continue; // single-day records only
+    // Single-day records only — no end, or an end on the SAME calendar day
+    // (civic calendars publish "10:00–16:00" occurrence records; the end
+    // being same-day doesn't make them less of an occurrence).
+    const endDay = e.end ? dayOf(e.end) : null;
+    if (!day || (endDay && endDay !== day) || drop.has(e)) continue;
     for (const o of ongoing) {
       if (o.e === e || drop.has(o.e)) continue;
       if (day < o.sd || day > o.ed) continue; // must fall inside the run
-      // Cross-source only: the occurrence must add a family the ongoing
-      // record doesn't already carry (same-family repeats are a different
-      // problem and are left alone — conservative by design).
+      // Family guard: the occurrence must add a family the ongoing record
+      // doesn't already carry — unless the run is independently corroborated
+      // (multiFam, frozen at build) — conservative by design.
       const eFams = (e.sources || []).map(familyOf).filter(Boolean);
-      if (!eFams.length || !eFams.some((f) => !o.fams.has(f))) continue;
+      if (!eFams.length || (!eFams.some((f) => !o.fams.has(f)) && !o.multiFam)) continue;
       if (jaccard(stemmedTokens(e.title), o.tokens) < EXHIBIT_TITLE_JACCARD) continue;
       // Venue guard: when both name a venue they must share a non-generic
       // token — otherwise it's a same-name run at a different place.
