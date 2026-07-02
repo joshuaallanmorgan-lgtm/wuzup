@@ -1630,7 +1630,7 @@ test('3.7P-23b §N Home: "Your next days" stack + title header + weather line', 
   const home = readFileSync(path.join(ROOT, 'app', 'src', 'HomeView.jsx'), 'utf8')
   assert.ok(/<NextDays /.test(home), 'HomeView renders the "Your next days" planning stack')
   assert.ok(/loc-head-title">\{greeting\}</.test(home) && !/heroKicker/.test(home), 'R10: Home title = the honest time-of-day greeting on the shared primitive; heroKicker stays retired')
-  assert.ok(/Good morning/.test(home) && !/Alex/.test(home), 'R10: the greeting is name-free (no fabricated identity — the H3 honesty bar holds)')
+  assert.ok(/Good morning/.test(home) && !/Good (morning|afternoon|evening)['"`]?\s*\+|Good (morning|afternoon|evening), /.test(home), 'R10: the greeting is name-free — no "Good morning, <name>" form and no name concatenation (the H3 honesty bar holds; comments may cite the history)')
   assert.ok(/nowMs/.test(home) && /tonightModel\(/.test(home), 'V1 H3: nowMs is KEPT — it still feeds tonightModel (not just the retired greeting)')
   assert.ok(/wxLine/.test(home), 'the Home header shows the real weather line when loaded')
   const nd = readFileSync(path.join(ROOT, 'app', 'src', 'NextDays.jsx'), 'utf8')
