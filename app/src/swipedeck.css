@@ -23,6 +23,9 @@
 }
 .sd-top { z-index: 3; cursor: grab; }
 .sd-top.grabbed { transition: none; cursor: grabbing; }
+/* WS2 #3: while the rAF snap-back spring drives the transform, the old
+   200ms tween must not fight it (the spring IS the settle now) */
+.sd-top.settling { transition: none; }
 .sd-under1 { z-index: 2; transform: scale(0.95) translateY(16px); opacity: 0.65; }
 .sd-under2 { z-index: 1; transform: scale(0.9) translateY(30px); opacity: 0.35; }
 /* D6 (motion#8): the under-cards RISE as the top card flies out — choreograph their
@@ -49,20 +52,25 @@
   filter: none;
   transition: none;
 }
-.sd-exit-right { animation: sdFlyRight 400ms var(--ease-out) both; }
-.sd-exit-left { animation: sdFlyLeft 400ms var(--ease-out) both; }
-.sd-exit-up { animation: sdFlyUp 400ms var(--ease-out) both; }
+/* WS2 #3: flights inherit release momentum — SwipeDeck sets --fly-ms from
+   flightMs(release speed) (clamped [240,400]; the fixed 400ms was the
+   momentum-dead tell) and --flyx/--flyy so the end pose CONTINUES the release
+   line instead of every card exiting on the same rail. Defaults keep the
+   shipped button-commit flight. */
+.sd-exit-right { animation: sdFlyRight var(--fly-ms, 400ms) var(--ease-out) both; }
+.sd-exit-left { animation: sdFlyLeft var(--fly-ms, 400ms) var(--ease-out) both; }
+.sd-exit-up { animation: sdFlyUp var(--fly-ms, 400ms) var(--ease-out) both; }
 @keyframes sdFlyRight {
   from { transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg)); opacity: 1; }
-  to { transform: translate(130%, -8%) rotate(18deg); opacity: 0; }
+  to { transform: translate(130%, var(--flyy, -8%)) rotate(18deg); opacity: 0; }
 }
 @keyframes sdFlyLeft {
   from { transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg)); opacity: 1; }
-  to { transform: translate(-130%, -8%) rotate(-18deg); opacity: 0; }
+  to { transform: translate(-130%, var(--flyy, -8%)) rotate(-18deg); opacity: 0; }
 }
 @keyframes sdFlyUp {
   from { transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg)); opacity: 1; }
-  to { transform: translate(0, -120%) rotate(-4deg); opacity: 0; }
+  to { transform: translate(var(--flyx, 0px), -120%) rotate(-4deg); opacity: 0; }
 }
 
 /* ===== reduced motion: gestures are detached in JS (buttons only — they are
