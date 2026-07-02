@@ -860,16 +860,41 @@ export function dedupeBareEchoes(events) {
   return { events: events.filter((e) => !drop.has(e)), folded };
 }
 
+// ---- merge-key title (WS1 dedup 1b) -----------------------------------------
+// Suffixes that dilute the Jaccard title gate WITHOUT identifying the event:
+// a trailing " at <venue>" (only when it names the record's OWN venue — "Art
+// After Dark at MFA" keeps its venue tokens if the record's venue is a
+// different museum) and an aggregator's ": Tampa Bay" / ", Tampa Bay" region
+// tag. Stripped for MERGE KEYS ONLY — the display title is never altered.
+// Removing venue tokens from the key also stops a venue's own name inside two
+// DIFFERENT same-venue titles from bridging them to a false J >= 0.5.
+const MERGE_REGION_TAG_RE = /\s*[:,]\s*tampa bay\s*$/i;
+function mergeTitleOf(title, venue) {
+  let t = String(title || '').replace(MERGE_REGION_TAG_RE, '');
+  // greedy prefix = split at the LAST " at " ("An Evening at the Museum at MFA")
+  const m = t.match(/^(.{3,})\s+at\s+(?:the\s+)?(.{3,60})$/i);
+  if (m && venue) {
+    const suffixKey = venueKey(m[2]);
+    const ownKey = venueKey(venue);
+    if (suffixKey && ownKey &&
+        (suffixKey === ownKey || suffixKey.includes(ownKey) || ownKey.includes(suffixKey))) {
+      t = m[1];
+    }
+  }
+  return t;
+}
+
 // Cluster all raw listings by calendar day, then greedily merge matches.
 function fuzzyMerge(all) {
   const byDay = new Map();
   for (const e of all) {
     const day = dayOf(e.start) || 'tbd';
     if (!byDay.has(day)) byDay.set(day, []);
+    const mergeTitle = mergeTitleOf(e.title, e.venue);
     byDay.get(day).push({
       ...e,
-      tokens: titleTokens(e.title),
-      sTokens: stemmedTokens(e.title),
+      tokens: titleTokens(mergeTitle),
+      sTokens: stemmedTokens(mergeTitle),
       nVenue: normVenue(e.venue),
       fam: familyOf(e.source),
       vTokens: venueMergeTokens(e.venue),
