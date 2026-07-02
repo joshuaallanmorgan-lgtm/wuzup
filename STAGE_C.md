@@ -19,7 +19,7 @@
 | Step 0 (takeover housekeeping) | `aebc6c9` + doc sync | ✅ landed on this branch |
 | C4 — token consolidation | — | ◀ next |
 | C4.5 — Inter self-host | — | queued (Josh ruling #1, 2026-07-01) |
-| C5 — dedup + fold-ins | — | queued |
+| C5 — dedup + fold-ins | `e06ab6e` `6c4cca5` `bf626ad` + tail `647c59b`→`3192d0c` | ✅ committed (BottomSheet scaffold deliberately deferred — too much collateral for an inert pass) |
 | **Scout Checkpoint 2** | — | independent REFUTE pass → then PR |
 
 ## C4 — Token consolidation (swaps must be inert)
@@ -42,17 +42,17 @@ Inter **variable** woff2 (latin subset) → `app/public/fonts/`; one `@font-face
 
 ## C5 — Dedup / consolidation (most care — some high-risk)
 
-- chip-lg + chip-dark primitive migrations (DESIGN_SYSTEM §5's own deferred list: `.loc-tag-chip`, `.loc-amen-chip`, `.deck-chip`, `.dpg-chip` + strays `.srch-recent-chip`, `.detail-catchip`).
-- Symmetric slide-down close on the Filters + loc-plan sheets (they slam shut today; motion tokens exist).
-- Promote the inline nbhd-card into a `cards.jsx` component.
-- Collapse FiltersSheet's 3 chip-group blocks into a map.
-- **DELETE the dead DayFillDeck** (`DayFillDeck.jsx` + `dayfill.js` + `dayfill.css` + the `App.jsx:405` route branch + the pinned `dealDayFill` smoke tests + `fmnseen.js` write-only orphan + its 3 write sites). *Supersedes the kickoff's "fold FillFace into PlaceDeckFace" — the whole surface is unreachable (no `FillDayButton` renderer since `a665936`); git history preserves the reuse option.* ~700 lines.
+- ✅ `647c59b` chip-lg + chip-dark primitive migrations (DESIGN_SYSTEM §5's own deferred list: `.loc-tag-chip`, `.loc-amen-chip`, `.deck-chip`, `.dpg-chip` + strays `.srch-recent-chip`, `.detail-catchip`).
+- ✅ `84f019a` Symmetric slide-down close on the Filters + loc-plan sheets (they slam shut today; motion tokens exist).
+- ✅ `dd6c7e1` Promote the inline nbhd-card into a `cards.jsx` component.
+- ✅ `efebf0e` Collapse FiltersSheet's 3 chip-group blocks into a map.
+- ✅ `e06ab6e` **DELETE the dead DayFillDeck** (`DayFillDeck.jsx` + `dayfill.js` + `dayfill.css` + the `App.jsx:405` route branch + the pinned `dealDayFill` smoke tests + `fmnseen.js` write-only orphan + its 3 write sites). *Supersedes the kickoff's "fold FillFace into PlaceDeckFace" — the whole surface is unreachable (no `FillDayButton` renderer since `a665936`); git history preserves the reuse option.* ~700 lines.
 - Extract a shared BottomSheet scaffold (scrim + head + close).
-- ⚠️ **HIGH-RISK: deck.css/lensdeck.css dark-chrome dedup** (~81% duplicate declarations, already drifted 25px/24px). Must be behavior-inert; **re-run the deck coverage sim** (the never-hide proof) after.
-- `manualChunks` split of the 428 KB boot bundle (decks/subpages are natural seams).
-- The C1-deferred `.card*` CSS surgical pass (entangled with live `.card-toast` + `--card*` tokens — scout ruled it into C5).
-- Harden the pre-existing flaky `W3 curate` smoke test (`smoke.mjs:2510`).
-- **Fold-ins from the 2026-07-01 research sweep** (hardening-class, in charter): the unhandled
+- ✅ `3192d0c` ⚠️ **HIGH-RISK: deck.css/lensdeck.css dark-chrome dedup** (~81% duplicate declarations, already drifted 25px/24px). Must be behavior-inert; **re-run the deck coverage sim** (the never-hide proof) after.
+- ✅ `6c4cca5` `manualChunks` split of the 428 KB boot bundle (decks/subpages are natural seams).
+- ✅ `bf626ad` The C1-deferred `.card*` CSS surgical pass (entangled with live `.card-toast` + `--card*` tokens — scout ruled it into C5).
+- ✅ `6c4cca5` Harden the pre-existing flaky `W3 curate` smoke test (`smoke.mjs:2510`).
+- ✅ `e06ab6e` **Fold-ins from the 2026-07-01 research sweep** (hardening-class, in charter): the unhandled
   view-transition `ready` rejection guard (`nav.jsx:338` capture + `.catch()`; `nav.jsx:354-361` add
   `ready.catch` + chain cleanup via `finished.catch().finally()`); the hardcoded 1920px hero thumbs →
   960px (`lib.js:41-42` — one-token, ~1.1 MB saved at boot).
