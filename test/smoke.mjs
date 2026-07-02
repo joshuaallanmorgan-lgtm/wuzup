@@ -38,6 +38,7 @@ import { fileURLToPath } from 'node:url'
 import { bbox as CITY_BBOX, rosterBenchmark as CITY_ROSTER } from '../finder/cities/index.mjs'
 import { PLACETYPE_HUE, CATEGORY_HUES } from '../app/src/categories.js'
 import * as deckdeal from '../app/src/deckdeal.js'
+import * as gesture from '../app/src/deckgesture.js'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const APP_EVENTS = path.join(ROOT, 'app', 'public', 'events.json')
@@ -2555,6 +2556,129 @@ test('V1 B5 coverage (scout re-sim): the cumulative re-deal loop reaches EVERY e
   const seen2 = new Set(catalog.slice(0, catalog.length - 4).map((e) => lib.keyOf(e)))
   const rem = deckdeal.nextEventsBatch(catalog, AN, seen2, { rng: () => 0.5 })
   assert.ok(rem.length > 0 && rem.length <= deckdeal.DECK_SIZE, `<15 unseen → deals the short remainder (${rem.length}), never empty/stuck`)
+})
+
+// ============================================================
+// WS2 DECK PHYSICS (cohesion/deck-physics) — the PURE gesture math, simmed.
+// deckgesture.js is the Node seam (SwipeDeck.jsx re-exports gestureVerdict so
+// consumers keep one import); these sims prove the velocity upgrade PRESERVED
+// every verified distance behavior while fixing the flick-snaps-back tell.
+// ============================================================
+test('WS2 deck physics: gestureVerdict — distance unchanged, flicks commit, direction agreement, one verdict', () => {
+  const g = gesture.gestureVerdict
+  // legacy 2-arg calls (the verified Sprint-P behavior) — byte-identical outcomes
+  assert.equal(g(85, 0), 'right', 'slow drag past SWIPE_X commits right')
+  assert.equal(g(-85, 0), 'left', 'slow drag past -SWIPE_X commits left')
+  assert.equal(g(10, -95), 'up', 'upward travel past SWIPE_Y (dominating dx) commits up')
+  assert.equal(g(79, 0), null, 'under threshold with no velocity snaps back')
+  assert.equal(g(100, -120), 'up', 'up DOMINATES when both would qualify (priority preserved)')
+  assert.equal(g(100, -95), 'right', 'up travel that does not dominate dx falls to horizontal')
+  // slow drags past distance still commit WITH velocity args present
+  assert.equal(g(90, 5, 0.05, 0), 'right', 'slow deliberate drag past distance commits regardless of speed')
+  // the WS2 upgrade: a hard flick UNDER the distance threshold commits
+  assert.equal(g(40, 2, 0.9, 0), 'right', 'a 0.9 px/ms flick at 40px travel commits (was the #1 cheap tell)')
+  assert.equal(g(-40, -2, -0.9, 0.02), 'left', 'flick left commits under distance')
+  assert.equal(g(-4, -40, 0.05, -0.9), 'up', 'flick up commits under distance')
+  // sub-threshold slow releases still snap back
+  assert.equal(g(40, 0, 0.3, 0), null, 'sub-threshold travel + sub-flick speed snaps back')
+  assert.equal(g(-30, -40, -0.2, -0.3), null, 'slow diagonal wobble snaps back')
+  // direction agreement: velocity one way + net travel the other = wobble, never a verdict
+  assert.equal(g(-40, 0, 0.9, 0), null, 'rightward flick velocity with net-LEFT travel must not commit')
+  assert.equal(g(10, 0, 2, 0), null, 'micro-travel under FLICK_TRAVEL can never flick-commit')
+  // an up-flick must DOMINATE horizontally too — fast diagonals go horizontal
+  assert.equal(g(60, -30, 0.9, -0.7), 'right', 'diagonal flick with |vx|>|vy| commits horizontal, not up')
+  // ONE verdict per release, across the whole input space (the invariant's pure half;
+  // the component half — dragRef nulls before commit — is source-locked below)
+  const OUT = [null, 'left', 'right', 'up']
+  for (let dx = -200; dx <= 200; dx += 8)
+    for (let dy = -200; dy <= 200; dy += 8)
+      for (const [vx, vy] of [[0, 0], [0.8, 0], [-0.8, 0], [0, -0.8], [0.5, -0.7]])
+        assert.ok(OUT.includes(g(dx, dy, vx, vy)), `verdict domain holds at ${dx},${dy},${vx},${vy}`)
+})
+
+test('WS2 deck physics: releaseVelocity — trailing window, hold-then-release stall, noise floor', () => {
+  const S = (rows) => rows.map(([t, x, y]) => ({ t, x, y }))
+  // a steady 0.75 px/ms rightward flick reads back exactly
+  const fl = gesture.releaseVelocity(S([[0, 0, 0], [16, 12, 0], [32, 24, 0], [48, 36, 0], [64, 48, 0]]))
+  assert.ok(Math.abs(fl.vx - 0.75) < 0.001 && Math.abs(fl.vy) < 0.001, `steady flick reads 0.75 px/ms (got ${fl.vx})`)
+  // only the trailing SAMPLE_WINDOW counts: early slow travel can't dilute a late flick
+  const late = gesture.releaseVelocity(S([[0, 0, 0], [200, 10, 0], [216, 26, 0], [232, 42, 0]]))
+  assert.ok(late.vx > 0.9, `windowed velocity ignores stale samples (got ${late.vx})`)
+  // drag fast then HOLD then release: must read ~0, not the stale flick
+  const hold = gesture.releaseVelocity(S([[0, 0, 0], [16, 30, 0], [32, 60, 0], [400, 60, 0]]))
+  assert.equal(hold.vx, 0, 'a hold before release kills the stale velocity (no ghost commits)')
+  // degenerate inputs never throw, never invent motion
+  assert.deepEqual(gesture.releaseVelocity(S([[0, 0, 0]])), { vx: 0, vy: 0 })
+  assert.deepEqual(gesture.releaseVelocity([]), { vx: 0, vy: 0 })
+  assert.deepEqual(gesture.releaseVelocity(S([[0, 0, 0], [4, 30, 0]])), { vx: 0, vy: 0 }, 'a sub-frame pair is too noisy to trust')
+})
+
+test('WS2 deck physics: the snap-back spring settles fast, one small overshoot, never diverges', () => {
+  // release just under threshold (79px out), finger still moving OUTWARD at 0.3 px/ms
+  let x = 79
+  let v = 300
+  let overshoot = 0
+  let crossings = 0
+  let prevSign = 1
+  let t = 0
+  while (t < 2000) {
+    const s = gesture.springStep(x, v, 16.7)
+    x = s.x
+    v = s.v
+    t += 16.7
+    const sign = Math.sign(x)
+    if (sign !== 0 && sign !== prevSign) {
+      crossings++
+      prevSign = sign
+    }
+    if (sign === -1) overshoot = Math.max(overshoot, -x)
+    if (Math.abs(x) < gesture.SPRING.restDist && Math.abs(v) < gesture.SPRING.restSpeed) break
+  }
+  assert.ok(t < 700, `spring settles under 700ms (took ${t.toFixed(0)}ms)`)
+  assert.ok(crossings >= 1, 'the settle has a real overshoot (spring feel, not a tween)')
+  assert.ok(overshoot > 0.5 && overshoot < 12, `overshoot is visible but small (got ${overshoot.toFixed(1)}px)`)
+  // dropped frames can't explode the integration (dt clamps at 32ms inside springStep)
+  let x2 = 79
+  let v2 = 0
+  for (let i = 0; i < 60; i++) {
+    const s = gesture.springStep(x2, v2, 200) // pathological 200ms frames
+    x2 = s.x
+    v2 = s.v
+    assert.ok(Math.abs(x2) <= 100, `integration stays bounded on huge frames (|x|=${Math.abs(x2).toFixed(1)})`)
+  }
+})
+
+test('WS2 deck physics: flights inherit momentum within clamps + the SwipeDeck seam holds', () => {
+  assert.equal(gesture.flightMs(0), 400, 'a button commit (speed 0) keeps the shipped 400ms flight')
+  assert.equal(gesture.flightMs(3), 240, 'flights floor at 240ms however hard the flick')
+  assert.equal(gesture.flightMs(99), 240, 'speed clamps before scaling')
+  let prev = gesture.flightMs(0)
+  for (let s = 0.2; s <= 3.01; s += 0.2) {
+    const ms = gesture.flightMs(s)
+    assert.ok(ms <= prev, 'a faster release never yields a slower flight')
+    assert.ok(ms >= 240 && ms <= 400, `flight stays inside [240,400]ms (got ${ms})`)
+    prev = ms
+  }
+  // seam-lock: consumers and sims must share ONE math — SwipeDeck re-exports it,
+  // and the one-verdict-per-gesture nulling survives the velocity rework
+  const sd = readFileSync(path.join(ROOT, 'app', 'src', 'SwipeDeck.jsx'), 'utf8')
+  assert.ok(/from '\.\/deckgesture\.js'/.test(sd), 'SwipeDeck imports the pure math (one source of truth)')
+  assert.ok(/export \{ gestureVerdict \}/.test(sd), 'SwipeDeck still exports gestureVerdict (consumer seam unchanged)')
+  assert.ok(/dragRef\.current = null \/\/ one verdict per gesture/.test(sd), 'one-verdict-per-gesture: dragRef nulls BEFORE the commit')
+})
+
+// WS2 #7 — the decks' keyboard gesture path (JSX can't import into Node, so
+// grep the contract): both consumers wire ←/→/↑ to the SAME deckApi commit
+// paths as the buttons, gated to the rate phase (stale-closure guard) and
+// dropping key repeats (no machine-gun verdicts from a held arrow).
+test('WS2 deck a11y: arrow-key swipes ride the button commit paths on both decks', () => {
+  for (const f of ['CalibrationDeck.jsx', 'LensDeck.jsx']) {
+    const src = readFileSync(path.join(ROOT, 'app', 'src', f), 'utf8')
+    assert.ok(/onKeyDown=\{onDeckKey\}/.test(src), `${f} attaches the arrow-key handler to the deck page root`)
+    assert.ok(/phase !== 'rate' \|\| ev\.repeat/.test(src), `${f} guards the handler to the rate phase and drops key repeats`)
+    for (const [key, api] of [['ArrowLeft', 'left'], ['ArrowRight', 'right'], ['ArrowUp', 'up']])
+      assert.ok(new RegExp(`ev\\.key === '${key}'[\\s\\S]{0,80}deckApi\\.current\\.${api}\\(\\)`).test(src), `${f}: ${key} commits via deckApi.${api}() (the button path)`)
+  }
 })
 
 // W3 wiring — HotView must read curateFeed and ship the See-all escape (the

@@ -108,6 +108,18 @@ export default function LensDeck({ lens, events, anchors }) {
   const top = deck[idx]
   const saved = top ? has(top) : false
 
+  // WS2 #7: keyboard swipes — ←/→/↑ mirror the buttons through the SAME
+  // commit paths (deckApi; ↑ = peek here, matching the kicker copy). Page-root
+  // handler hears keys bubbling from the focused buttons; the z-2000 detail
+  // layer is a sibling, so a peeked-open detail never leaks arrows back into
+  // the deck. Rate-phase-only + no ev.repeat (see CalibrationDeck).
+  const onDeckKey = (ev) => {
+    if (phase !== 'rate' || ev.repeat || !deckApi.current) return
+    if (ev.key === 'ArrowLeft') { ev.preventDefault(); deckApi.current.left() }
+    else if (ev.key === 'ArrowRight') { ev.preventDefault(); deckApi.current.right() }
+    else if (ev.key === 'ArrowUp') { ev.preventDefault(); deckApi.current.up() }
+  }
+
   // ===== end card — the honest stopping cue (NO --reward, by contract) =====
   if (phase === 'done') {
     return (
@@ -137,7 +149,7 @@ export default function LensDeck({ lens, events, anchors }) {
   }
 
   return (
-    <div className="pg ldk" style={hue != null ? { '--lh': hue } : undefined}>
+    <div className="pg ldk" style={hue != null ? { '--lh': hue } : undefined} onKeyDown={onDeckKey}>
       <header className="pg-head ldk-head">
         <button className="pg-back" onClick={back} aria-label="Back">
           <Icon.chevron />
@@ -200,6 +212,11 @@ export default function LensDeck({ lens, events, anchors }) {
               onDone={() => setPhase('done')}
             />
 
+            {/* WS2 #9: visible labels under the circles (copy DRAFT ⚑ Charles;
+                label text contained in each aria-label per WCAG 2.5.3 — the
+                keep button's aria-labels gained a leading "Keep" for that).
+                Button ORDER untouched — it differs from Calibration's
+                pass-save-yes, and reordering is a Josh call. */}
             <div className="ldk-actions">
               <button
                 className="ldk-btn ldk-btn-pass pressable"
@@ -207,6 +224,7 @@ export default function LensDeck({ lens, events, anchors }) {
                 aria-label="Pass"
               >
                 ✕
+                <span className="ldk-btn-label">Pass</span>
               </button>
               <button
                 className="ldk-btn ldk-btn-open pressable"
@@ -214,14 +232,16 @@ export default function LensDeck({ lens, events, anchors }) {
                 aria-label="Open details"
               >
                 ↗
+                <span className="ldk-btn-label">Open</span>
               </button>
               <button
                 className={'ldk-btn ldk-btn-keep pressable' + (saved ? ' is-saved' : '')}
                 onClick={() => deckApi.current?.right()}
-                aria-label={saved ? 'Already on your list' : 'Save to your list'}
+                aria-label={saved ? 'Keep — already on your list' : 'Keep it — saves to your list'}
               >
                 {/* D6: engineered stroke heart (matches SaveHeart app-wide) */}
                 {saved ? <Icon.heartFill className="ldk-btn-ic" aria-hidden /> : <Icon.heart className="ldk-btn-ic" aria-hidden />}
+                <span className="ldk-btn-label">Keep</span>
               </button>
             </div>
           </>

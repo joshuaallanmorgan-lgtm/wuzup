@@ -23,8 +23,14 @@
 }
 .sd-top { z-index: 3; cursor: grab; }
 .sd-top.grabbed { transition: none; cursor: grabbing; }
-.sd-under1 { z-index: 2; transform: scale(0.95) translateY(16px); opacity: 0.65; }
-.sd-under2 { z-index: 1; transform: scale(0.9) translateY(30px); opacity: 0.35; }
+/* WS2 #3: while the rAF snap-back spring drives the transform, the old
+   200ms tween must not fight it (the spring IS the settle now) */
+.sd-top.settling { transition: none; }
+/* WS2 #6: under-cards peek at the TOP (negative translateY — the reference
+   decks stack upward; they peeked from the bottom). D6 promotion still
+   reads: the next card steps DOWN + grows into the top slot. */
+.sd-under1 { z-index: 2; transform: scale(0.95) translateY(-16px); opacity: 0.65; }
+.sd-under2 { z-index: 1; transform: scale(0.9) translateY(-30px); opacity: 0.35; }
 /* D6 (motion#8): the under-cards RISE as the top card flies out — choreograph their
    settle over the fly-out window with emphasis easing instead of the fast spring-back,
    so the stack promotes smoothly rather than snapping. */
@@ -34,22 +40,62 @@
     opacity var(--dur-emphasis) var(--ease-emphasis);
 }
 
+/* ===== WS2 #5: deal-in choreography — the stack DEALS on mount + re-deal
+   (the product language is all "deal"; it appeared fully-formed). Back card
+   first, top card last, each dropping ~12-18px into its rest pose over
+   260ms with a 70ms stagger (≈400ms total: a settle, not a casino; ≤3 cards
+   ever visible). Keyframes specify only `from` — the `to` side interpolates
+   to each card's UNDERLYING rest transform/opacity, so the under-card
+   geometry stays single-source above. SwipeDeck drops .sd-dealing after
+   420ms (or on first grab); reduced motion never sets it, and the guard in
+   the media block below kills it besides. ===== */
+.sd-dealing .sd-under2 { animation: sdDealUnder2 260ms var(--ease-emphasis) 0ms backwards; }
+.sd-dealing .sd-under1 { animation: sdDealUnder1 260ms var(--ease-emphasis) 70ms backwards; }
+.sd-dealing .sd-top { animation: sdDealTop 260ms var(--ease-emphasis) 140ms backwards; }
+@keyframes sdDealTop {
+  from { transform: translateY(-18px) rotate(-1.5deg); opacity: 0; }
+}
+@keyframes sdDealUnder1 {
+  from { transform: scale(0.95) translateY(-28px); opacity: 0; } /* rest −16px (WS2 #6) minus a 12px drop */
+}
+@keyframes sdDealUnder2 {
+  from { transform: scale(0.9) translateY(-42px); opacity: 0; } /* rest −30px (WS2 #6) minus a 12px drop */
+}
+
 /* ===== flying exit clone (starts where the drag let go: --dx/--dy/--rot) ===== */
 .sd-exit { z-index: 4; pointer-events: none; }
-.sd-exit-right { animation: sdFlyRight 400ms var(--ease-out) both; }
-.sd-exit-left { animation: sdFlyLeft 400ms var(--ease-out) both; }
-.sd-exit-up { animation: sdFlyUp 400ms var(--ease-out) both; }
+/* WS2 #1: the exit clone re-mounts CardImg from scratch, so cards.css's
+   blur-up (.imgbox-img sits at opacity 0 / scale(1.04) / blur(8px) until the
+   fresh <img> fires onLoad → .on) re-played cream→blur→sharp MID-FLIGHT on
+   every swipe. The photo was literally on screen a frame ago — the clone must
+   fly out fully rendered. 3-class specificity (0,3,0) outranks .imgbox-img.on
+   (0,2,0) and the reduced-motion .imgbox-img override (media queries add no
+   specificity) whatever the bundle order — no !important needed. */
+.sd-exit .imgbox .imgbox-img {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  transition: none;
+}
+/* WS2 #3: flights inherit release momentum — SwipeDeck sets --fly-ms from
+   flightMs(release speed) (clamped [240,400]; the fixed 400ms was the
+   momentum-dead tell) and --flyx/--flyy so the end pose CONTINUES the release
+   line instead of every card exiting on the same rail. Defaults keep the
+   shipped button-commit flight. */
+.sd-exit-right { animation: sdFlyRight var(--fly-ms, 400ms) var(--ease-out) both; }
+.sd-exit-left { animation: sdFlyLeft var(--fly-ms, 400ms) var(--ease-out) both; }
+.sd-exit-up { animation: sdFlyUp var(--fly-ms, 400ms) var(--ease-out) both; }
 @keyframes sdFlyRight {
   from { transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg)); opacity: 1; }
-  to { transform: translate(130%, -8%) rotate(18deg); opacity: 0; }
+  to { transform: translate(130%, var(--flyy, -8%)) rotate(18deg); opacity: 0; }
 }
 @keyframes sdFlyLeft {
   from { transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg)); opacity: 1; }
-  to { transform: translate(-130%, -8%) rotate(-18deg); opacity: 0; }
+  to { transform: translate(-130%, var(--flyy, -8%)) rotate(-18deg); opacity: 0; }
 }
 @keyframes sdFlyUp {
   from { transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg)); opacity: 1; }
-  to { transform: translate(0, -120%) rotate(-4deg); opacity: 0; }
+  to { transform: translate(var(--flyx, 0px), -120%) rotate(-4deg); opacity: 0; }
 }
 
 /* ===== reduced motion: gestures are detached in JS (buttons only — they are
@@ -57,6 +103,11 @@
    flying ===== */
 @media (prefers-reduced-motion: reduce) {
   .sd-card { transition: none; }
+  /* deal-in never arms under reduced motion (JS state starts false) — this
+     is the belt-and-braces kill for the three dealt tiers */
+  .sd-dealing .sd-top,
+  .sd-dealing .sd-under1,
+  .sd-dealing .sd-under2 { animation: none; }
   .sd-exit-right,
   .sd-exit-left,
   .sd-exit-up { animation: sdFadeOut 200ms ease both; }
