@@ -1,6 +1,6 @@
 /* cards.css — styles for everything exported by cards.jsx:
    pressable, imgbox, badges, chips, carousels (tcard),
-   FeaturedCard, gems, Everything rows + RowFeed, compact .card. */
+   FeaturedCard, gems, Everything rows + RowFeed. (compact .card deleted, C5) */
 
 /* ===== shared press state: every tappable card ===== */
 .pressable { transition: transform var(--dur-fast) var(--ease-out); }
@@ -138,13 +138,10 @@
   box-shadow: 0 2px 8px rgba(var(--hot-rgb), 0.35); /* was a 255,60,90 transposition of --hot-rgb */
 }
 .gem-img .heat-badge { top: 4px; right: 4px; padding: 3px 6px; font-size: 10px; }
-/* agenda card: badge sits in the row (58px thumb is too small), editorial-rail style */
-.card > .heat-badge { position: static; flex: 0 0 auto; align-self: center; }
 
 /* ===== sponsored disclosure (tiny, muted, never hidden) ===== */
 .sp-label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.02em; }
 .tcard .sp-label, .gem .sp-label { display: block; margin-top: 2px; }
-.card .sp-label { display: block; margin-top: 2px; }
 
 /* "Started 7:00 PM …" metas (event already underway) read quieter — class is a
    presentational hook set when the meta string leads with lib's startLabel */
@@ -652,7 +649,6 @@
    ============================================================================ */
 .gem,
 .spotcard--row { box-shadow: var(--shadow-1); transition: box-shadow var(--dur-micro) var(--ease-out); }
-.card { box-shadow: var(--shadow-1); } /* agenda card keeps its own transform+shadow transition */
 .featc { box-shadow: var(--shadow-3); transition: box-shadow var(--dur-micro) var(--ease-out); }
 .intent-tile { transition: transform var(--dur-micro), box-shadow var(--dur-micro) var(--ease-out); }
 /* carousel image tiles → the same soft rows level (was an A1 literal) */
@@ -664,47 +660,12 @@
 .gem:active,
 .spotcard--row:active,
 .featc:active,
-.intent-tile:active,
-.card:active { box-shadow: var(--shadow-press); }
+.intent-tile:active { box-shadow: var(--shadow-press); }
 
-/* ===== compact event card (calendar agenda) ===== */
-.card {
-  display: flex;
-  align-items: center;
-  gap: 14px; /* A5: thumb→body gutter, matches the result-card image gap */
-  width: calc(100% - 28px);
-  margin: var(--sp-xs) 14px;
-  padding: var(--sp-md); /* A5: 9px → 16px, off the cramped tell onto the canonical card padding */
-  border: none;
-  text-align: left;
-  background-color: var(--card);
-  /* Sunlit Coastal Pop (3.71): subliminal paper grain on the card surface */
-  background-image: radial-gradient(circle, rgba(26, 20, 16, 0.022) 1px, transparent 1px);
-  background-size: 3px 3px;
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-1); /* PREMIUM A4: agenda card → soft rows level */
-  cursor: pointer;
-  font: inherit;
-  color: inherit;
-  transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast);
-  animation: cardIn 0.42s both var(--ease-out);
-}
-@keyframes cardIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-.card:hover { box-shadow: 0 7px 22px rgba(26, 20, 16, 0.12); }
-.card:active { transform: scale(0.97); transition-duration: var(--dur-micro); }
-.card-thumb { flex: 0 0 64px; width: 64px; height: 64px; border-radius: var(--r-md); } /* A5: 58→64px hero thumb; 14px unified tile radius */
-.card-main { flex: 1; min-width: 0; }
-.card-title {
-  font-size: var(--t-card-size); /* A6: the standard card-title token (was literal 15/700/-0.2/1.22) */
-  font-weight: var(--t-card-weight);
-  line-height: var(--t-card-line);
-  letter-spacing: var(--t-card-track);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.card-meta { font-size: 12.5px; color: var(--muted); margin-top: 3px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* (the compact "calendar agenda" .card family — .card/.card-thumb/.card-main/
+   .card-title/.card-meta/cardIn — was deleted in C5: its last JSX renderer left
+   with the Calendar agenda rework; C1 deferred the delete as "entangled" but the
+   entanglement was only the LIVE .card-toast + --card* tokens, which stay.) */
 
 /* (display-mode control fully retired in Q2a — pill in P1, segmented row +
    the modes themselves here; editorial is the app) */
@@ -835,10 +796,8 @@
   .feed-stagger .row,
   .feed--cards.feed-stagger > .gem,
   .feed--cards.feed-stagger > .spotcard,
-  .carousel-stagger > *,
-  .card { animation: none !important; }
-  .pressable:active,
-  .card:active { transform: none; }
+  .carousel-stagger > * { animation: none !important; }
+  .pressable:active { transform: none; }
   /* PREMIUM A4: no blur-up / button-morph / skeleton-shimmer motion */
   .imgbox-img { transform: none; filter: none; transition: opacity var(--dur-fast) ease; }
   .gem-add.is-added,

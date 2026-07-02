@@ -105,16 +105,7 @@
   pointer-events: none;
 }
 
-/* agenda day-list rows (compact .card): filled stroke-heart marker for saved
-   events (A5: the engineered Icon.heartFill, off the raw ♥ glyph) */
-.card-heart {
-  flex: 0 0 auto;
-  align-self: center;
-  width: 16px;
-  height: 16px;
-  color: var(--hot);
-  margin: 0 -2px; /* the card's 14px gaps supply the breathing room */
-}
+/* (.card-heart died in C5 with the compact agenda .card family — no JSX renderer) */
 
 @media (prefers-reduced-motion: reduce) {
   .save-ic.pop { animation: none !important; }
