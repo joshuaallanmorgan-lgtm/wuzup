@@ -326,10 +326,12 @@
   font-family: inherit;
   font-size: 14px;
   font-weight: 600;
-  color: var(--muted); /* PREMIUM A1 (color#4 accent restraint): the per-section inline
-                          "See all" is navigation chrome (chevron carries the affordance),
-                          not a primary action — demoted off orange. The full-width
-                          never-hide .ev-seeall pill KEEPS accent. */
+  color: var(--accent-ink); /* Cohesion ruling 2026-07-01 #2 (Josh): back to the refs'
+                               orange — every reference sheet paints section See-alls
+                               in brand orange; the A1 muted demotion is reversed.
+                               --accent-ink is the AA-safe orange TEXT ink (4.92:1 on
+                               the ruling-5 bg). The full-width never-hide .ev-seeall
+                               pill keeps its own accent treatment, unchanged. */
   background: none;
   border: none;
   padding: 0 0 2px;
