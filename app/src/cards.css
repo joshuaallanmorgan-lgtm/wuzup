@@ -489,7 +489,7 @@
   letter-spacing: 0.04em;
   padding: 4px 8px;
   border-radius: var(--r-pill);
-  background: #0b8256; /* C3 a11y: darker Tropical Sage — white-on-fill clears AA 4.5:1 (was var(--free) 3.07:1); token stays for text uses */
+  background: var(--free-fill-strong); /* C3 a11y: darker Tropical Sage — white-on-fill clears AA 4.5:1 (was var(--free) 3.07:1); token stays for text uses */
   color: #fff;
 }
 
@@ -582,7 +582,7 @@
   white-space: nowrap;
 }
 .chip { flex: 0 0 auto; align-self: center; }
-.chip-free { background: rgba(15, 168, 109, 0.12); color: #097045; border-color: rgba(15, 168, 109, 0.22); } /* C3 a11y: darker sage text clears AA 4.5:1 on the tint (was var(--free) 2.66:1) */
+.chip-free { background: rgba(15, 168, 109, 0.12); color: var(--free-ink); border-color: rgba(15, 168, 109, 0.22); } /* C3 a11y: darker sage text clears AA 4.5:1 on the tint (was var(--free) 2.66:1) */
 /* A6: the warm-accent variant (absorbs detail's "why this is here" chip). */
 .chip-accent { background: rgba(var(--accent-rgb), 0.10); border-color: rgba(var(--accent-rgb), 0.20); color: var(--ink); }
 /* the 12px stroke-icon slot inside a chip */
@@ -815,7 +815,7 @@
 }
 .skel {
   display: block;
-  background: linear-gradient(90deg, #ece6dd 25%, #f5f0e9 37%, #ece6dd 63%);
+  background: linear-gradient(90deg, var(--skel-lo) 25%, var(--skel-hi) 37%, var(--skel-lo) 63%);
   background-size: 600px 100%;
   animation: skel 1.4s linear infinite;
   border-radius: var(--r-sm);

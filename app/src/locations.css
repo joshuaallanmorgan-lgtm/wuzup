@@ -398,7 +398,7 @@
 }
 .loc-plan-slot.on {
   border-color: var(--cta);
-  background: rgba(187, 87, 25, 0.06);
+  background: rgba(var(--cta-rgb), 0.06);
 }
 .loc-plan-slot.on .loc-plan-slot-label {
   color: var(--cta);

@@ -827,11 +827,18 @@ test('N1 wiring: HotView + LocationsView render LensNav, the loud strip is gone'
 // Stage C · C3 — real AA compliance + the missing keyboard/motion affordances.
 test('Stage C C3 a11y: contrast fixes, reduced-motion gates, dialog focus, roving tabs, form errors', () => {
   const read = (f) => readFileSync(path.join(ROOT, 'app', 'src', f), 'utf8')
-  // (1) the 3 audited AA contrast failures now use AA-safe warm values
-  assert.ok(/\.deckthis\s*\{[^}]*color:\s*#a54d12/s.test(read('lensdeck.css')), '.deckthis text must be #a54d12 — clears AA 4.5:1 on the composited 8% pill fill (--accent-ink was only 4.48:1 there)')
+  // (1) the 3 audited AA contrast failures now use AA-safe warm values.
+  //     C4 tokenized the literals — the AA hexes stay PINNED at the token definition
+  //     (index.css), and each site must consume the matching var (both halves asserted
+  //     so neither the value nor the wiring can silently drift).
+  const ic = read('index.css')
+  assert.ok(/--accent-ink-strong:\s*#a54d12/.test(ic), 'index.css must pin --accent-ink-strong at #a54d12 — clears AA 4.5:1 on the composited 8% pill fill (--accent-ink was only 4.48:1 there)')
+  assert.ok(/--free-fill-strong:\s*#0b8256/.test(ic), 'index.css must pin --free-fill-strong at AA-darkened sage #0b8256')
+  assert.ok(/--free-ink:\s*#097045/.test(ic), 'index.css must pin --free-ink at AA-darkened sage #097045')
+  assert.ok(/\.deckthis\s*\{[^}]*color:\s*var\(--accent-ink-strong\)/s.test(read('lensdeck.css')), '.deckthis text must consume var(--accent-ink-strong)')
   const cc = read('cards.css')
-  assert.ok(/\.free-badge\s*\{[^}]*background:\s*#0b8256/s.test(cc), '.free-badge fill must be AA-darkened sage #0b8256')
-  assert.ok(/\.chip-free\s*\{[^}]*color:\s*#097045/s.test(cc), '.chip-free text must be AA-darkened sage #097045')
+  assert.ok(/\.free-badge\s*\{[^}]*background:\s*var\(--free-fill-strong\)/s.test(cc), '.free-badge fill must consume var(--free-fill-strong)')
+  assert.ok(/\.chip-free\s*\{[^}]*color:\s*var\(--free-ink\)/s.test(cc), '.chip-free text must consume var(--free-ink)')
   // (2) prefers-reduced-motion gates on the two entrance-animation files that lacked them
   for (const f of ['filters.css', 'locations.css']) {
     assert.ok(/@media \(prefers-reduced-motion: reduce\)/.test(read(f)), `${f} must gate its entrance animation behind prefers-reduced-motion`)

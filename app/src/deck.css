@@ -107,7 +107,7 @@
 .deck-extra .chip { background: rgba(255, 255, 255, 0.12); color: rgba(255, 255, 255, 0.85); }
 .deck-extra .chip-free { background: rgba(10, 157, 110, 0.28); color: #6fe3b6; }
 .deck-extra .sp-label { color: rgba(255, 255, 255, 0.55); }
-.deck-extra .sp-label.my-label { color: #ffb066; } /* Sunset Gold (light) — AA on dark (3.71, was teal) */
+.deck-extra .sp-label.my-label { color: var(--accent-on-dark); } /* Sunset Gold (light) — AA on dark (3.71, was teal) */
 /* TINDER Spots deck: honest amenity chips on the dark place card */
 .deck-amen { flex-wrap: wrap; gap: 6px; }
 .deck-chip {
@@ -139,7 +139,7 @@
   opacity: 0;
   background: rgba(0, 0, 0, 0.35);
 }
-.deck-stamp-yes { left: 14px; transform: rotate(-10deg); color: #ffb066; border-color: #ffb066; opacity: var(--like, 0); }
+.deck-stamp-yes { left: 14px; transform: rotate(-10deg); color: var(--accent-on-dark); border-color: var(--accent-on-dark); opacity: var(--like, 0); }
 .deck-stamp-no { right: 14px; transform: rotate(10deg); color: rgba(255, 255, 255, 0.85); border-color: rgba(255, 255, 255, 0.7); opacity: var(--nope, 0); }
 /* the save stamp wears the heart's sanctioned --hot (I2 save-heart exception) */
 .deck-stamp-save { left: 50%; top: auto; bottom: 18px; transform: translateX(-50%) rotate(-3deg); color: var(--hot); border-color: var(--hot); opacity: var(--keep, 0); }
@@ -168,7 +168,7 @@
 /* the heart button is the save affordance — the sanctioned --hot heart */
 .deck-btn-save { color: var(--hot); border-color: rgba(var(--hot-rgb), 0.45); }
 .deck-btn-save.is-saved { background: rgba(var(--hot-rgb), 0.18); }
-.deck-btn-yes { color: #ffb066; border-color: rgba(255, 176, 102, 0.45); }
+.deck-btn-yes { color: var(--accent-on-dark); border-color: rgba(var(--accent-on-dark-rgb), 0.45); }
 
 /* ===== progress dots + early exit ===== */
 .deck-progress {

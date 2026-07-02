@@ -198,7 +198,7 @@ a.d-row { text-decoration: none; color: inherit; }
   z-index: 2030;
   padding: 9px 16px;
   border-radius: var(--r-pill);
-  background: rgba(21, 23, 28, 0.92);
+  background: rgba(var(--ink-rgb), 0.92);
   color: #fff;
   font-size: 13px;
   font-weight: 700;

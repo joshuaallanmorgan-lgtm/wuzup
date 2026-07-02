@@ -35,8 +35,8 @@
 .calpick-row-chev { flex: 0 0 auto; display: flex; color: var(--muted); }
 /* the selected date — soft orange wash + --cta ink (matches the ref) */
 .calpick-row.is-cur {
-  border-color: rgba(187, 87, 25, 0.4);
-  background: rgba(187, 87, 25, 0.07);
+  border-color: rgba(var(--cta-rgb), 0.4);
+  background: rgba(var(--cta-rgb), 0.07);
 }
 .calpick-row.is-cur .calpick-row-ic,
 .calpick-row.is-cur .calpick-row-label { color: var(--cta); }
@@ -111,4 +111,4 @@
   font-weight: 800;
   box-shadow: none;
 }
-.calpick-cell:not(.is-cur):not(.is-past):active { background: rgba(187, 87, 25, 0.1); }
+.calpick-cell:not(.is-cur):not(.is-past):active { background: rgba(var(--cta-rgb), 0.1); }

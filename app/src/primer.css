@@ -63,7 +63,7 @@
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.2px; /* 3.7P-1: de-capped to size+weight (was uppercase strings + 0.14em) */
-  color: #ffb066; /* Sunset Gold (light) — readable on the dark scrim (3.71, was teal) */
+  color: var(--accent-on-dark); /* Sunset Gold (light) — readable on the dark scrim (3.71, was teal) */
 }
 .primer-note { margin-top: 6px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.62); }
 .primer-dots { display: flex; gap: 6px; margin-top: 14px; }
@@ -225,7 +225,7 @@
   border-radius: var(--r-pill);
   border: 1px solid rgba(255, 255, 255, 0.22);
   background: rgba(255, 255, 255, 0.06);
-  color: #ffb066; /* the kicker's Sunset Gold (light) — readable on the dark scrim (3.71) */
+  color: var(--accent-on-dark); /* the kicker's Sunset Gold (light) — readable on the dark scrim (3.71) */
   font: inherit;
   font-size: 14.5px;
   font-weight: 700;

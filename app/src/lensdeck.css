@@ -91,7 +91,7 @@
 /* the keep stamp wears the heart's sanctioned --hot (I2 save-heart exception) */
 .ldk-stamp-keep { left: 14px; transform: rotate(-10deg); color: var(--hot); border-color: var(--hot); opacity: var(--like, 0); }
 .ldk-stamp-pass { right: 14px; transform: rotate(10deg); color: rgba(255, 255, 255, 0.85); border-color: rgba(255, 255, 255, 0.7); opacity: var(--nope, 0); }
-.ldk-stamp-open { left: 50%; top: auto; bottom: 18px; transform: translateX(-50%) rotate(-3deg); color: #ffb066; border-color: #ffb066; opacity: var(--keep, 0); }
+.ldk-stamp-open { left: 50%; top: auto; bottom: 18px; transform: translateX(-50%) rotate(-3deg); color: var(--accent-on-dark); border-color: var(--accent-on-dark); opacity: var(--keep, 0); }
 
 /* ===== always-visible button fallbacks (✕ pass · ↗ open · ♥ keep) ===== */
 .ldk-actions { display: flex; justify-content: center; gap: 20px; padding: 18px 0 4px; }
@@ -110,7 +110,7 @@
   justify-content: center;
 }
 .ldk-btn-pass { color: rgba(255, 255, 255, 0.75); }
-.ldk-btn-open { color: #ffb066; border-color: rgba(255, 176, 102, 0.45); }
+.ldk-btn-open { color: var(--accent-on-dark); border-color: rgba(var(--accent-on-dark-rgb), 0.45); }
 /* the heart button is the save affordance — the sanctioned --hot heart */
 .ldk-btn-keep { color: var(--hot); border-color: rgba(var(--hot-rgb), 0.45); }
 .ldk-btn-keep.is-saved { background: rgba(var(--hot-rgb), 0.18); }
@@ -155,7 +155,7 @@
   font-weight: 700;
   letter-spacing: 0;
   text-transform: none;
-  color: #a54d12; /* C3 a11y: was --accent (2.07:1). Text sits on the 8% accent PILL FILL, not bare cream — #a54d12 (a hair deeper than --accent-ink) clears AA 4.5:1 on that composited fill over --bg (4.84:1); --accent-ink alone was 4.48:1 there */
+  color: var(--accent-ink-strong); /* C3 a11y: was --accent (2.07:1). Text sits on the 8% accent PILL FILL, not bare cream — #a54d12 (a hair deeper than --accent-ink) clears AA 4.5:1 on that composited fill over --bg (4.84:1); --accent-ink alone was 4.48:1 there */
   cursor: pointer;
   white-space: nowrap;
 }

@@ -13,7 +13,7 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--r-circle);
-  background: rgba(21, 23, 28, 0.42);
+  background: rgba(var(--ink-rgb), 0.42);
   backdrop-filter: blur(4px);
   color: #fff;
   font-size: 15px;
@@ -70,7 +70,7 @@
   font-size: 19px;
   top: calc(16px + env(safe-area-inset-top));
   right: 16px;
-  background: rgba(21, 23, 28, 0.5);
+  background: rgba(var(--ink-rgb), 0.5);
 }
 .detail-hero .save-btn ~ .heat-badge { right: 64px; } /* 16 + 38 + 10 gap */
 
@@ -100,7 +100,7 @@
   letter-spacing: 0.2px;
   padding: 4px 8px;
   border-radius: var(--r-pill);
-  background: rgba(21, 23, 28, 0.72);
+  background: rgba(var(--ink-rgb), 0.72);
   color: #fff;
   pointer-events: none;
 }
