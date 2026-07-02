@@ -19,7 +19,13 @@
 //   renderCard    — (card) => node: the card face
 //   stamps        — optional node rendered inside the TOP card while gestures
 //                   are live; opacity wired via --like/--nope/--keep CSS vars
-//                   (0..1 with drag travel). Hidden under reduced motion.
+//                   (0..1 with drag travel). WS2 #2: ALSO rendered inside the
+//                   flying exit clone with the committed verdict's var snapped
+//                   to 1, so the stamp rides the flight (gesture AND button
+//                   commits). Drag-driven stamps stay detached under reduced
+//                   motion (no gestures there), but the exit-clone stamp shows
+//                   statically during the crossfade — verdict feedback those
+//                   users never had.
 //   apiRef        — a useRef the consumer passes in; SwipeDeck writes
 //                   { left(), right(), up() } into it (inside an effect —
 //                   the react-hooks/refs-clean handoff; nav.jsx precedent for
@@ -206,10 +212,24 @@ export default function SwipeDeck({
       {exit && (
         <div
           className={cls('card') + ' ' + cls('exit') + ' ' + cls('exit-' + exit.dir)}
-          style={{ '--dx': exit.dx + 'px', '--dy': exit.dy + 'px', '--rot': exit.rot + 'deg' }}
+          style={{
+            '--dx': exit.dx + 'px',
+            '--dy': exit.dy + 'px',
+            '--rot': exit.rot + 'deg',
+            /* WS2 #2: the committed verdict's stamp rides the exit at full
+               opacity — the consumer's stamp CSS reads these same vars, so
+               snapping the matching one to 1 lights it with zero consumer
+               changes. Covers BUTTON commits too (they never showed a stamp),
+               and under reduced motion the crossfading clone now carries the
+               verdict statically — those users previously got zero feedback. */
+            '--like': exit.dir === 'right' ? 1 : 0,
+            '--nope': exit.dir === 'left' ? 1 : 0,
+            '--keep': exit.dir === 'up' ? 1 : 0,
+          }}
           aria-hidden
         >
           {renderCard(exit.card)}
+          {stamps}
         </div>
       )}
     </div>
