@@ -1,5 +1,8 @@
 # Long-Term Concerns & Active Monitors
 
+> 📥 **MOVED — this is now the [BACKLOG.md](BACKLOG.md) intake.** Submit and track v1/v2 ideas there; v2 specs get developed in `/planning/v2/`.
+> The items below have been triaged into BACKLOG.md (tagged v1 / v2 / parked). Kept here for history and detail. Do not add new items here — add them to [BACKLOG.md](BACKLOG.md).
+
 Living backlog of things deliberately **out of scope for the MVP** but important later.
 Nothing here blocks the MVP. We log it so we don't lose it. Add freely.
 

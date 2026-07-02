@@ -1,4 +1,10 @@
 # PHASE 3.7 — Patching · Premium Product Polish · Smart Groups · Planning UX
+
+> ⚠️ **SUPERSEDED as the plan-of-record (Gen 4 naming: 3.71–3.78, polish waves 3.7P-*, addenda A–P).**
+> Most of this shipped. This is where "**3.77 / 3.78**" came from — in the live scheme that is **Stage 3 — Multi-City**.
+> **One live thing still lives here:** the config-ready multi-city build packet (Addendum I / §15 — SF & East Bay corridor). Its key facts are lifted into [ROADMAP.md](ROADMAP.md) Stage 3; this doc remains the detailed source.
+> Current master plan = [ROADMAP.md](ROADMAP.md) · full doc map = [INDEX.md](INDEX.md) · idea intake = [BACKLOG.md](BACKLOG.md).
+
 _2026-06-15 · Scouted read-only against the live code (no app code touched). Branch: master-plan-2. This is the PLAN ONLY — another builder executes it AFTER Phase 3.6 lands. Same contract as every phase: each patch → build → adversarial review → hand-verify → `npm test` → live-verify → push. **No fake data; never-hide holds; taste reorders, never filters.**_
 
 > **Scope note for the executing builder:** Phase 3.6 (the big premium pass — quiet top-nav N1 shipped `378ebd3`, then N2 type/spacing/motion, N3 copy/Charles, N4 Settings, N5 onboarding) is the foundation 3.7 sits on. **Do not start 3.7 until 3.6's tokens, LensNav, premium voice, and Settings have landed** — 3.7 builds on them and would thrash if run in parallel. Where 3.7 touches a surface 3.6 already changed (top nav, Settings, copy), 3.7 *extends*, never *re-does*.

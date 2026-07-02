@@ -44,6 +44,7 @@ All forward work is named by **Stage**. The old Phase/Sprint/3.7x numbers are **
 | [BACKLOG.md](BACKLOG.md) | v1/v2 idea intake + triage. |
 | [STAGE1_PUNCHLIST.md](STAGE1_PUNCHLIST.md) | Stage 1 fidelity punch list (8 batches). |
 | [TOUCHUP_PUNCHLIST.md](TOUCHUP_PUNCHLIST.md) | Overnight-grind fidelity/wiring fixes (current branch). |
+| [V1_PUNCHLIST.md](V1_PUNCHLIST.md) | **Pre-v1 patch list (Josh+Charles review, 2026-06-28)** — 6 batches, code-grounded; Batch 5 = the never-hide contract change. |
 | [PROFILE_GRIND.md](PROFILE_GRIND.md) · [PROFILE_PHASE2.md](PROFILE_PHASE2.md) | Profile landing + 8 sub-screens (active). |
 | [HOME_GRIND.md](HOME_GRIND.md) · [HOME_PHASE2.md](HOME_PHASE2.md) | Home landing + 7 destinations (done). |
 | [EVENTS_GRIND.md](EVENTS_GRIND.md) · [EVENTS_PHASE2.md](EVENTS_PHASE2.md) | Events landing + flow destinations (done). |

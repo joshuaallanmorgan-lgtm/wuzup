@@ -1,4 +1,7 @@
 # PHASE 3.5 — Cleanup & polish before Phase 4
+
+> ⚠️ **SUPERSEDED — HISTORICAL (Gen 4 naming: Phase 3.5, W1–W8).** Shipped. Do not plan or execute from this doc.
+> Current master plan = [ROADMAP.md](ROADMAP.md) · full doc map = [INDEX.md](INDEX.md) · idea intake = [BACKLOG.md](BACKLOG.md). Retained for history only.
 _2026-06-15 · Josh's playtest feedback, scouted (workflow wh95x5f3j) + ratified. Branch: master-plan-2. Same contract: each workstream → build → adversarial review → hand-verify → npm test → push. No fake data; never-hide holds (curation-by-quality with "see all" ≠ taste-filtering)._
 
 ## Ratified decisions (Josh, 2026-06-15)
