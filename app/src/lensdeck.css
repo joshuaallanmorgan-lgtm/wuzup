@@ -156,7 +156,7 @@
   font-weight: 700;
   letter-spacing: 0;
   text-transform: none;
-  color: var(--accent-ink-strong); /* C3 a11y: was --accent (2.07:1). Text sits on the 8% accent PILL FILL, not bare cream — #a54d12 (a hair deeper than --accent-ink) clears AA 4.5:1 on that composited fill over --bg (4.84:1); --accent-ink alone was 4.48:1 there */
+  color: var(--accent-ink-strong); /* C3 a11y: was --accent (2.07:1). Text sits on the 8% accent PILL FILL, not bare cream — #a54d12 (a hair deeper than --accent-ink) clears AA 4.5:1 on that composited fill over --bg (5.01:1 on the ruling-5 #faf6f1); --accent-ink alone was 4.48:1 there */
   cursor: pointer;
   white-space: nowrap;
 }

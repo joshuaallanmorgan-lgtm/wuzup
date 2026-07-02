@@ -21,9 +21,9 @@
      (~2.2:1). --accent-ink is the AA-safe deep-sunset companion for accent TEXT
      on light surfaces (#b35418 ≈ 4.7:1 on --bg). ⚑ Charles: both hexes tunable;
      keep the AA gap (3.71 review fix — was the systemic teal-as-text issue). */
-  --accent-ink: #ad5116; /* PREMIUM A1: nudged 1 step deeper (was #b35418) so accent
-                            TEXT clears AA on the warmed --bg #f6f2ec (#b35418 fell to
-                            4.49:1 there; #ad5116 ≈ 4.75:1 on bg, 5.21:1 on --card). */
+  --accent-ink: #ad5116; /* PREMIUM A1: nudged 1 step deeper (was #b35418) for AA
+                            accent TEXT. On the ruling-5 lightened --bg #faf6f1:
+                            4.92:1 on bg, 5.21:1 on --card. */
   /* hot palette: RESERVED for hot-ness semantics only (Hot tab active, flame/heat
      badges, The Big One overline, Surprise-me dice, calendar heat shading) —
      plus ONE sanctioned exception: filled save-hearts. A red heart is a
@@ -61,14 +61,18 @@
   --free: #0fa86d; /* Tropical Sage — free badges (was #0a9d6e) */
   --ink: #1a1410; /* Sun-baked Clay — warm charcoal (was #15171c) */
   --muted: #6b6157; /* Warm Taupe — secondary text (PREMIUM A1: 1 step deeper, was
-                       #756b61, for a comfortable 5.42:1 on the warmed --bg + retires
-                       the per-spot AA patches). */
+                       #756b61; 5.62:1 on the ruling-5 --bg #faf6f1 — comfortable,
+                       and it retired the per-spot AA patches). */
   --line: #ede8e2; /* Sandy Whisper — warm divider (was #eceef1) */
   --card: #fefdfb; /* Parchment — creamy premium surface (was #ffffff) */
-  --bg: #f6f2ec; /* PREMIUM A1 (color#1): warmed + darkened ONE real step (was
-                    #fcfbf9) so --card (#fefdfb) lifts as a distinct surface — the
-                    figure/ground jump from "flat" to "premium-warm". AA re-verified:
-                    --muted 5.42:1, --accent-ink 4.75:1, --ink 16.4:1 all clear. */
+  --bg: #faf6f1; /* Cohesion ruling 2026-07-01 #5 (Josh): lightened back toward the
+                    refs' airy near-white band (they print #fcfbf9; A1 had darkened
+                    to #f6f2ec for card-lift). #faf6f1 is the midpoint — most of the
+                    refs' brightness, a whisper of figure/ground left; the A4 shadow
+                    scale now carries card separation. One more step to #fcfbf9 is
+                    available if Josh's eyeball wants it. AA re-verified (every ink
+                    GAINS on the lighter ground): --muted 5.62:1, --accent-ink
+                    4.92:1, --ink ~17:1, .deckthis composited pill 5.01:1. */
   /* Stage R (D.0-R, binding): the ONE shared PRIMARY-BUTTON fill. White text on
      this warm orange passes WCAG AA with white text — which matches the benchmark's
      white-on-warm buttons WITHOUT violating D.0 (white is still forbidden on the
