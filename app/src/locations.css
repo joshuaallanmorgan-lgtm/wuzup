@@ -297,6 +297,13 @@
     transform: translateY(0);
   }
 }
+/* C5: symmetric close (the wkb/tn .closing mechanism, PREMIUM A4 motion#13) —
+   the sheet slides back down on the fast beat and the scrim fades with it;
+   the host unmounts after (240ms timeout, 0 under reduced motion). */
+.loc-plan-wrap.closing .loc-scrim { animation: loc-scrim-out var(--dur-fast) var(--ease-inout) forwards; }
+.loc-plan-wrap.closing .loc-plan-sheet { animation: loc-sheet-down var(--dur-fast) var(--ease-inout) forwards; }
+@keyframes loc-scrim-out { to { opacity: 0; } }
+@keyframes loc-sheet-down { to { transform: translateY(100%); } }
 .loc-sheet-head {
   display: flex;
   align-items: center;
@@ -420,7 +427,9 @@
 
 /* ===== reduced motion ===== */
 @media (prefers-reduced-motion: reduce) {
-  .loc-plan-sheet { animation: none !important; }
+  .loc-plan-sheet,
+  .loc-plan-wrap.closing .loc-scrim,
+  .loc-plan-wrap.closing .loc-plan-sheet { animation: none !important; }
   .loc-plan-cta:active,
   .detail-share:active,
   .loc-plan-add:not(:disabled):active { transform: none; }

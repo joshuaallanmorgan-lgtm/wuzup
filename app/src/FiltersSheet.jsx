@@ -15,7 +15,9 @@ const WHEN_BUBBLES = [TONIGHT_BUBBLE, TOMORROW_BUBBLE, WEEKEND_BUBBLE].filter(Bo
 const FREE_BUBBLE = BUBBLES.find((b) => b.id === 'free')
 
 export default function FiltersSheet() {
-  const { closePage, openBubble } = useNav()
+  // C5: pageClosing is nav's 400ms unmount window — riding it gives the sheet a
+  // symmetric slide-down/fade-out close (filters.css .closing) with no own timer
+  const { closePage, openBubble, pageClosing } = useNav()
   const [when, setWhen] = useState(null)
   const [price, setPrice] = useState(null)
   const [cat, setCat] = useState(null)
@@ -38,7 +40,7 @@ export default function FiltersSheet() {
   }
 
   return (
-    <div className="flt-wrap" role="dialog" aria-modal="true" aria-label="Filter events">
+    <div className={'flt-wrap' + (pageClosing ? ' closing' : '')} role="dialog" aria-modal="true" aria-label="Filter events">
       <button className="flt-scrim" onClick={closePage} aria-label="Close filters" />
       <div className="flt-sheet">
         <div className="flt-head">
