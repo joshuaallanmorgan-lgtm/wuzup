@@ -117,17 +117,15 @@
   gap: 8px;
   margin: 0 0 16px;
 }
+/* C5: shared chip-lg geometry (6×11 pill, ink, nowrap) lives in cards.css;
+   only this chip's own fill/ink-size/icon-gap stay here */
 .loc-tag-chip {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   font-size: 12.5px;
   font-weight: 600;
-  color: var(--ink);
   background: rgba(var(--accent-rgb), 0.1);
-  border-radius: var(--r-pill);
-  padding: 6px 11px;
-  white-space: nowrap;
 }
 .loc-tag-ic {
   width: 14px;
@@ -258,14 +256,12 @@
   flex-wrap: wrap;
   gap: 8px;
 }
+/* C5: shared chip-lg geometry lives in cards.css; fill/border/ink-size stay here
+   (13px + hairline vs the tag chip's 12.5/600 accent tint — a real difference) */
 .loc-amen-chip {
   font-size: 13px;
-  color: var(--ink);
   background: var(--bg);
   border: 1px solid var(--line);
-  border-radius: var(--r-pill);
-  padding: 6px 11px;
-  white-space: nowrap;
 }
 
 /* ===== Make-this-my-plan sheet (self-contained; no weekend.css coupling) ===== */

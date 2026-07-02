@@ -121,7 +121,7 @@ export function PlaceDeckFace({ e }) {
             {chips.map((c, i) => {
               const Glyph = Icon[c.icon]
               return (
-                <span className="deck-chip" key={i}>
+                <span className="chip-dark" key={i}>
                   {Glyph && <Glyph className="deck-chip-ic" aria-hidden />}
                   {c.label}
                 </span>

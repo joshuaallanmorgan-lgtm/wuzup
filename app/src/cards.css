@@ -585,6 +585,35 @@
 /* the 12px stroke-icon slot inside a chip */
 .spot-amen-ic { width: 12px; height: 12px; flex: 0 0 12px; color: inherit; }
 .spotcard-amen { margin-top: 7px; gap: 5px; }
+/* C5: chip-lg — the LARGER label pill (place detail's tag/amenity chips). Shared
+   geometry only (6×11 pill, ink, nowrap): the two consumers genuinely differ in
+   fill/border/ink-size (12.5/600 accent-tint vs 13px bg-fill hairline), so those
+   stay per-class in locations.css. No display here: .loc-amen-chip renders an
+   inner <span> + a meaningful whitespace text node that inline-flex would swallow. */
+.chip-lg,
+.loc-tag-chip,
+.loc-amen-chip {
+  color: var(--ink);
+  border-radius: var(--r-pill);
+  padding: 6px 11px;
+  white-space: nowrap;
+}
+/* C5: chip-dark — the deck-family chip on dark card surfaces (moved 1:1 from
+   deck.css's .deck-chip; both decks render it via the shared DeckFace). A SIBLING
+   primitive, deliberately NOT .chip + overrides: it differs from the base in box
+   (3×9 padding, no hairline border vs 4×9 + 1px) and inherits line-height. */
+.chip-dark {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
 
 /* (2) CARD-TITLE TOKEN: every STANDARD card title is --t-card (kills the orphan
    600/750 weights on tcard/fcard/row); .gem-title sets it inline. */
