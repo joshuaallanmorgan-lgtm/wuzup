@@ -403,7 +403,7 @@
 }
 /* tall left hero — fixed width, stretches to the full card height (≈ 4:5) */
 .gem-img { flex: 0 0 102px; width: 102px; align-self: stretch; border-radius: var(--r-md); }
-.gem-main { flex: 1; min-width: 0; display: flex; flex-direction: column; padding-right: 26px; overflow: hidden; }
+.gem-main { flex: 1; min-width: 0; display: flex; flex-direction: column; padding-right: 46px; overflow: hidden; } /* ruling #3: reserve for the 38px circled heart (was 26px for the bare stroke) */
 .gem-title {
   font-size: var(--t-card-size);
   font-weight: var(--t-card-weight);
@@ -746,7 +746,7 @@
   cursor: pointer;
 }
 .spotcard--row .spotcard-img { flex: 0 0 102px; width: 102px; height: auto; align-self: stretch; border-radius: var(--r-md); }
-.spotcard--row .spotcard-body { flex: 1; min-width: 0; display: flex; flex-direction: column; padding-right: 26px; overflow: hidden; }
+.spotcard--row .spotcard-body { flex: 1; min-width: 0; display: flex; flex-direction: column; padding-right: 46px; overflow: hidden; } /* ruling #3: reserve for the 38px circled heart */
 .spotcard-loc {
   margin-top: 4px;
   display: flex;
