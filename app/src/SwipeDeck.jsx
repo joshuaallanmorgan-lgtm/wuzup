@@ -103,6 +103,18 @@ export default function SwipeDeck({
   const cardRef = useRef(null) // the live top card element (drag transform target)
   const dragRef = useRef(null) // { id, x0, y0, dx, dy, samples } during a pointer drag
   const springRef = useRef(null) // { raf, x, y } while the snap-back spring drives the top card
+  // WS2 #5: deal-in — the product language is all "deal", so the stack DEALS
+  // instead of appearing fully-formed. One-shot per mount; Calibration
+  // re-deals remount SwipeDeck via key, so mount AND re-deal both play it.
+  // The class drops after the ~400ms choreography (or on first grab, so a
+  // fast hand never fights the entrance animation for the transform);
+  // reduced motion never deals (state starts false — instant stack).
+  const [dealing, setDealing] = useState(() => !reduced && cards.length > 0)
+  useEffect(() => {
+    if (!dealing) return
+    const t = setTimeout(() => setDealing(false), 420)
+    return () => clearTimeout(t)
+  }, [dealing])
   useEffect(
     () => () => {
       clearTimeout(exitTRef.current)
@@ -233,6 +245,7 @@ export default function SwipeDeck({
   // (clearDragStyles lives above commit — both need it)
   const onDown = (ev) => {
     if (dragRef.current || !cardRef.current) return
+    if (dealing) setDealing(false) // a grab interrupts the deal-in — the drag owns the transform
     // catch a springing card where it IS: adopt the spring's live offset into
     // the new drag's origin so the card never teleports under the finger
     const s = springRef.current
@@ -305,7 +318,7 @@ export default function SwipeDeck({
   const visible = cards.slice(idx, idx + 3)
 
   return (
-    <div className={cls('stack')}>
+    <div className={cls('stack') + (dealing ? ' sd-dealing' : '')}>
       {visible.map((c, i) => (
         <div
           key={keyFor(c)}

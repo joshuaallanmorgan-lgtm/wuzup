@@ -37,6 +37,28 @@
     opacity var(--dur-emphasis) var(--ease-emphasis);
 }
 
+/* ===== WS2 #5: deal-in choreography — the stack DEALS on mount + re-deal
+   (the product language is all "deal"; it appeared fully-formed). Back card
+   first, top card last, each dropping ~12-18px into its rest pose over
+   260ms with a 70ms stagger (≈400ms total: a settle, not a casino; ≤3 cards
+   ever visible). Keyframes specify only `from` — the `to` side interpolates
+   to each card's UNDERLYING rest transform/opacity, so the under-card
+   geometry stays single-source above. SwipeDeck drops .sd-dealing after
+   420ms (or on first grab); reduced motion never sets it, and the guard in
+   the media block below kills it besides. ===== */
+.sd-dealing .sd-under2 { animation: sdDealUnder2 260ms var(--ease-emphasis) 0ms backwards; }
+.sd-dealing .sd-under1 { animation: sdDealUnder1 260ms var(--ease-emphasis) 70ms backwards; }
+.sd-dealing .sd-top { animation: sdDealTop 260ms var(--ease-emphasis) 140ms backwards; }
+@keyframes sdDealTop {
+  from { transform: translateY(-18px) rotate(-1.5deg); opacity: 0; }
+}
+@keyframes sdDealUnder1 {
+  from { transform: scale(0.95) translateY(4px); opacity: 0; }
+}
+@keyframes sdDealUnder2 {
+  from { transform: scale(0.9) translateY(18px); opacity: 0; }
+}
+
 /* ===== flying exit clone (starts where the drag let go: --dx/--dy/--rot) ===== */
 .sd-exit { z-index: 4; pointer-events: none; }
 /* WS2 #1: the exit clone re-mounts CardImg from scratch, so cards.css's
@@ -78,6 +100,11 @@
    flying ===== */
 @media (prefers-reduced-motion: reduce) {
   .sd-card { transition: none; }
+  /* deal-in never arms under reduced motion (JS state starts false) — this
+     is the belt-and-braces kill for the three dealt tiers */
+  .sd-dealing .sd-top,
+  .sd-dealing .sd-under1,
+  .sd-dealing .sd-under2 { animation: none; }
   .sd-exit-right,
   .sd-exit-left,
   .sd-exit-up { animation: sdFadeOut 200ms ease both; }
