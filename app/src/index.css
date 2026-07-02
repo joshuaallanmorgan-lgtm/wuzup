@@ -1,3 +1,15 @@
+/* Inter, self-hosted (Stage C4.5, Josh ruling 2026-07-01 #1). ONE variable face
+   covers 100-900 — required because the app uses non-standard weights 550/650/750
+   that static per-weight files can't render. Latin subset only (the app ships no
+   non-latin copy); replaces the render-blocking Google Fonts link (index.html). */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/inter-var-latin.woff2') format('woff2');
+}
+
 :root {
   /* Sunset Gold brand signature (Sunlit Coastal Pop) — interactive elements,
      links, overlines, selected states, calendar selection. FILLS/borders/marks
