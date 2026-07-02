@@ -9,7 +9,13 @@
 
 ---
 
-## ▶ CURRENT ROAD TO V1 (2026-06-25 — post UI overnight-grind)
+## ▶ CURRENT ROAD TO V1 (2026-07-01 — Fable 5 takeover; Stage C in flight)
+
+> **Takeover note (2026-07-01):** Fable 5 resumed leadership (single-session driver's seat — see §4).
+> Josh's mandate: the idea phase is over; **cohesion over punch lists** — the exit test for all
+> remaining visual work is *"reads as ONE designed app."* Josh's 10 adjudication rulings are
+> recorded in §5. Stage C granular plan = [STAGE_C.md](STAGE_C.md). A **Cohesion Pass** (the old
+> Stage 2.5 "Lamination," re-scoped) is inserted between C and D — see below.
 
 The **UI overnight-grind (Stage 1 / Reference Finish) is DONE** and merged to `main` (`c96971c`): Plan
 section (P0 daypart migration → P1 DayPage → P2 flows), card+filter consolidation + fidelity polish,
@@ -19,7 +25,7 @@ content is built and matches the mockups' **content** — but not yet their **pr
 
 **What's left to v1 is FEEL → cleanup → expansion → ship, in this order:**
 
-### Stage A — PREMIUM-FEEL PASS ◀ IN PROGRESS — imagery (A3) ✅ shipped · A5 next (the headline)
+### Stage A — PREMIUM-FEEL PASS ✅ DONE (merged to main via PR #4, 2026-06-28)
 Driven by **[`PREMIUM_PUNCH.md`](PREMIUM_PUNCH.md)** (Josh's playtest notes ∪ a 7-lens diagnostic —
 typography/spacing/color/depth/imagery/motion/components — merged, deduped, ranked, **8 LOCKED owner
 decisions** at the top). **Four non-negotiables are deliberately bent for this pass: imagery · depth ·
@@ -39,20 +45,41 @@ fake presented as real). Sub-phases:
   photos, but 100% a premium floor) — never fake-presented-as-real.
 - ✅ **A4 Depth + motion systems** — the 3-step shadow scale + the motion policy (skeletons, the Add-to-plan
   animation, deck polish).
-- ◀ **A5 Per-screen + decisions** *(NEXT)* — Settings (D7 row removals + premium primer) · Map (D8 park → Google Maps)
-  · Tinder deck match (D6) · one-line filter chips (D5) · Plan/Calendar · Taste/Interests · header pattern +
-  Title Case · BubblePage chrome (FLOWS §1 folded in).
-- **A6 Codify the new contracts** into `index.css` + the design-system docs.
+- ✅ **A5 Per-screen + decisions** — Settings (D7) · Map parked (D8) · Tinder deck match (D6) · one-line
+  filter chips (D5) · per-screen polish (`3818453`→`5f21cdc`, 2026-06-27).
+- ✅ **A6 Codify the new contracts** into `index.css` + [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) (`b9e613a`, 2026-06-27).
 
-*(Status caveat: A3 is independently verified done. **A1/A2/A4 are marked done per the overnight grind, but PREMIUM_PUNCH §0's D1–D8 decision boxes are all still unticked** — so A5 opens with a quick render-vs-§0 reconcile to confirm what's actually shipped before Stage A formally closes.)*
+Gate: reads **premium** against the north-star, top-to-bottom. *(Gate NOT yet fully met — Josh's
+standing verdict is that premium feel still lags the references; that gap is now the **Cohesion
+Pass**'s charter rather than a reopened Stage A. Full diagnosis: 5 layers, data quality first —
+see §5 rulings 2026-07-01.)*
 
-Gate: reads **premium** against the north-star, top-to-bottom.
+### Stage B — Patch sprint ✅ DONE (merged via PR #5, 2026-06-30)
+[V1_PUNCHLIST.md](V1_PUNCHLIST.md) Batches 1–5 (Josh+Charles 06-28 review) incl. Tinder-as-primary +
+the cumulative seen-set deck-coverage fix (`f69e51e` — the never-hide reachability proof).
 
-### Stage B — Patch sprint
-Josh's accumulated micro-tweaks + tracked cleanups (Guides mid-page on Events, the P2 tap-through to fully
-close Plan, the pre-existing flaky smoke test).
+### Stage C — Deep Sweep ◀ IN PROGRESS *(was Stage 2)* — dead-code / dedup / perf / bundle / a11y / final token + card-variant consolidation.
+Branch `stage-c/deep-sweep`. C1 (dead code) · C2 (perf) · C3 (a11y) committed + independently
+scout-verified 2026-07-01; C4 (inert token consolidation) + C5 (dedup) remain. **Granular
+plan-of-record = [STAGE_C.md](STAGE_C.md)** (recovered from the 06-30 kickoff — execution plans now
+live in repo docs, never only in session prompts). Exits as ONE Stage-C PR.
 
-### Stage C — Deep Sweep *(was Stage 2)* — dead-code / dedup / perf / bundle / a11y / final token + card-variant consolidation.
+### Stage C.5 — COHESION PASS *(new 2026-07-01 — the old Stage 2.5 "Lamination," re-scoped under the takeover mandate)*
+The premium gap, attacked as **four whole-cloth passes** instead of per-screen punch lists. Exit
+test: *a stranger believes one team designed this* — Josh's eyeball closes it. Workstreams, in order:
+1. **Data quality** — fresh finder run (dissolves the 21-day-stale snapshot = ~73% of the visible rot);
+   venue canonicalization BEFORE the dedup merge; image source-ranking (official artwork > aggregator
+   banners); the category-rule patches (comedy/fireworks/yoga); title wrap/clamp on card + hero surfaces.
+2. **App feel** — back-button/URL integration (nav.jsx); image loading states everywhere; deck physics
+   (velocity commit, spring settle, stamp-carried exits); DetailPage light-title rebuild to PlaceDetail
+   parity.
+3. **One visual language** — the §5 ruling batch (orange See-all · circled heart · "Plan" tab · lightened
+   canvas · name-free greeting); the type/spacing re-rhythm onto the C4-minted scales; cool-relic purge;
+   the deferred accent-restraint sweep; emoji-out-of-chrome (identity emoji stays); eyebrow casing per
+   the Fable ruling (§5.7).
+4. **Aurora re-derivation** — the `imageMode !== 'none'` photo-filter bug; photo-first ordering
+   (count-preserving); the promised `icon` text-forward row form for photoless places; shorter photoless
+   detail heroes; warmer hue bands; a targeted honest-photo pass on the ~30–60 marquee top-rail places.
 
 ### Stage D — Multi-City *(was Stage 3)* — per-city event/place data (new source modules) · a city switcher · per-city copy/theming. The big pre-ship expansion. **Imagery already pre-banked (2026-06-26 multi-city lock):** the finder's region is now ONE city config (no longer a hard-coded Tampa bbox) and the Mapillary + Aurora pipeline runs for any city with all honesty guards baked in — so Stage D's remaining work is the data sources + switcher + theming, NOT the imagery.
 
@@ -108,10 +135,14 @@ These are load-bearing and survive every stage. Any change requires explicit Jos
 2. **D.0-R primary-button system.** One shared treatment = **`--cta #bb5719` fill + white text**
    (white-on-`#bb5719` ≈ 4.68:1, passes AA). White is **forbidden** on the light gold `--accent #ff8c42`.
    `--accent-ink #b35418` for accent-text-on-light.
-3. **"Sunlit Coastal Pop" tokens (current values):** `--bg #fcfbf9` · `--card #fefdfb` · `--ink #1a1410`
-   · `--muted #756b61` · `--line #ede8e2` · `--accent #ff8c42` · `--accent-2 #ffa754` ·
-   `--cta #bb5719` · `--accent-ink #b35418` · `--hot #ff3b5f` · `--reward #d966f5` · `--free #0fa86d`.
-   Kumbh Sans titles + Inter body + paper-grain.
+3. **"Sunlit Coastal Pop" tokens (current values — amended 2026-07-01, Josh ack'd; the old line had
+   drifted stale on 4 counts):** `--bg #f6f2ec` *(A1 warm-step; per Josh ruling 2026-07-01 this
+   lightens toward the refs' `#fcfbf9`/`#faf6f1` band in the Cohesion Pass — AA re-verified safe)* ·
+   `--card #fefdfb` · `--ink #1a1410` · `--muted #6b6157` · `--line #ede8e2` · `--accent #ff8c42` ·
+   `--accent-2 #ffa754` · `--cta #bb5719` *(ruling: NO re-chroma — ratified by the late reference
+   sheets' own swatch strip)* · `--accent-ink #ad5116` · `--hot #ff3b5f` · `--reward #d966f5` ·
+   `--free #0fa86d`. **Inter everywhere** (Kumbh Sans retired `7dc0b2a`, Josh's call; self-hosted as
+   of Stage C) + paper-grain. `DESIGN_SYSTEM.md` remains the design-primitive authority.
    - **Dark immersive theme (binding, decided 2026-06-17):** onboarding (Primer) + the 3 decks
      (Calibration / Lens / DayFill) use a deliberate **dark ambiance** (warm-dark `#1b1712`, gold kicker
      `#ffb066`, white text, reward-violet `#d966f5` finish beats) as a focus/ceremony contrast to the
@@ -327,22 +358,47 @@ NextDays, DayPage, Bubble / Guide pages, HotView filter UI, Map layers/legend.
 
 ---
 
-## 4. Roles & loop
+## 4. Roles & loop *(rewritten 2026-07-01 — the Fable takeover process)*
 
-- **Josh (PM + the visual gate).** Eyeballs fresh builds; his sign-off is the Stage 1 exit. Final
-  call on scope, the v1/v2 line, and brand.
-- **Scout (this Claude).** Plan-side only — owns this doc, turns Josh's eyeball feedback + reference
-  comparisons into precise file:line punch lists, verifies builder output against the benchmark, guards
-  the contracts and the §O paths. Does not write app code.
-- **Builder (separate session).** Executes punch lists; one commit per patch; aggressive in Stage 1,
-  disciplined in Stage 2.
+- **Josh (PM + the visual gate).** Ratifies ⚑ flags, eyeballs passes, final call on scope/brand/v1-v2.
+  His eyeball remains the only final visual gate.
+- **Charles (creative).** Brand/copy calls; all ⚑ Charles copy drafts.
+- **Fable 5 (driver's seat — one session).** Plans, builds, AND verifies: proposes finished opinionated
+  passes, executes them, and gates them with **independent sub-agent REFUTE/SIMULATE passes** before any
+  PR or "verified" claim. Pauses only at ⚑ flags, destructive/outward actions, and pass sign-offs.
+  The old Architect/Builder split is retired as separate sessions but **kept as functions** — plan-then-
+  execute-then-adversarially-verify, with checkpoints, inside one session.
 
-**The loop:** Josh eyeballs → scout punch-lists (deduped, path-safe, file:line) → builder fixes a batch
-→ Josh re-looks → repeat to sign-off.
+**Kept verbatim from the proven process:** one commit per patch · lint/build/test/live-verify gate on
+every commit · revert-by-patch, never amend · the §O path-safety checklist after surface changes ·
+read the actual reference PNGs · SIMULATE behavioral/coverage claims (the 45/453 deck lesson) ·
+independent adversarial REFUTE pass before every PR · execution plans live in repo docs, not session
+prompts.
+
+**The loop:** Fable proposes a pass (scope + ⚑ flags) → builds it gated commit-by-commit →
+self-runs the adversarial verify → Josh eyeballs → sign-off or notes → next pass.
 
 ---
 
-## 5. Decisions (resolved 2026-06-17)
+## 5. Decisions
+
+### Resolved 2026-07-01 (Josh's takeover adjudication — the 10 rulings)
+
+1. **Inter self-host: YES** — variable woff2 (latin) → `app/public/fonts`, drop the Google Fonts link. *(Lands in Stage C.)*
+2. **Section "See all" → reference ORANGE** — reverses the PREMIUM A1 muted demotion; use an AA-safe accent ink. *(Cohesion Pass.)*
+3. **Card heart → reference CIRCLED button** — ~40px white circle, hairline border, orange stroke heart; position stays top-right (D4 position stands). *(Cohesion Pass; card-canon change, propagates app-wide.)*
+4. **4th tab = "Plan"** — reverses the 06-17 "Calendar" rename; update `nav.jsx:61`, the stale `nav.jsx:49` comment, and the `smoke.mjs` label pin. *(The deeper planner-as-tab-root question stays open — Fable proposes a design during the Cohesion Pass app-feel workstream.)*
+5. **Canvas LIGHTENS toward the refs** — `--bg #f6f2ec` → the `#faf6f1`–`#fcfbf9` band; AA-verified safe everywhere; card-lift shifts onto the shadow scale. *(Cohesion Pass.)*
+6. **CTA: NO change** — `--cta #bb5719` stands (D.0-R untouched; the refs' own late swatch strip prints it; bright `#EE6A18`-class fails white-text AA).
+7. **Eyebrow casing: delegated to Fable** — ruling: UPPERCASE eyebrows for metadata labels (the DESIGN_SYSTEM contract + the refs' list rows); sentence case stays for authored/editorial lines (why-lines, featured date eyebrows).
+8. **Deck violet finish beat: KEEP** — TINDER.md:18 amended; the §1.3 dark-theme contract already sanctioned it.
+9. **City #2 = SF & East Bay: RECONFIRMED** — the 06-26 "undecided" memory entry was a context-loss artifact, not a Josh decision; the 06-16 resolution + Addendum I packet stand.
+10. **Name-free time-of-day greeting on Home: APPROVED** — "Saturday morning in Tampa Bay" style; no fabricated name (honesty contract holds). *(Cohesion Pass.)*
+
+Also resolved: the **Cohesion Pass** is inserted between Stage C and Stage D (see §CURRENT); the
+single-session Fable process replaces the two-session Architect/Builder split (§4).
+
+### Resolved 2026-06-17
 
 - **Stage order** — **Deep Sweep (2) before Multi-City (3).** Clean the mess once, not per-city.
 - **v1/v2 line** — **v1 = Tampa + SF/East Bay + ship polish; v2 = evidence layer, other cities, deeper

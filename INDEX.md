@@ -2,34 +2,35 @@
 
 > **What this is:** the single map of every planning doc, so we never again wonder "which plan is real?"
 > **The one master plan = [ROADMAP.md](ROADMAP.md).** **Idea intake = [BACKLOG.md](BACKLOG.md).** Everything else is execution detail, durable reference, or history.
-> Maintained by the project cop. _Established 2026-06-22._
+> Maintained by the project cop. _Established 2026-06-22 · re-synced 2026-07-01 (Fable 5 takeover)._
 
 ---
 
-## The one naming spine (Stages — use these words only)
+## The one naming spine (lettered Stages — use these words only)
 
-All forward work is named by **Stage**. The old Phase/Sprint/3.7x numbers are **retired to history** (kept on disk, banner-ed, not executed from).
+All forward work is named by **lettered Stage** (ROADMAP's A–E road). The old numbered Stages (R/1/1.5/2/2.5/3/4) and all Phase/Sprint/3.7x numbers are **retired to history** (kept on disk, banner-ed, not executed from).
 
 | Stage | Name | What it is | Status |
 |---|---|---|---|
-| **R** | Visual rework | "Sunlit Coastal Pop" skin on all 24 surfaces | ✅ done |
-| **1** | **Reference Finish** | Pixel-match every screen to its reference — **incl. the current per-screen `*_GRIND`/`*_PHASE2` pass** | 🔨 **current** |
-| **1.5** | Build-up | Deferred dev + new reference art (lower homepage, guides content, per-location images) | ⏳ next |
-| **2** | Deep Sweep | Dead-CSS / de-dup / path re-verify / QA gate | ◑ mostly done early |
-| **3** | Multi-City | Geo-refactor + add city #2 (**= the old "3.77 / 3.78"**) | 📋 specced, not built |
-| **4** | v1 Ship | Deploy, PWA, attribution, a11y + dark mode, beta (**= the old "Phase 4"**) | ⏳ |
-| **v2** | Backlog | Everything post-launch | → [BACKLOG.md](BACKLOG.md) |
+| **A** | Premium-feel pass | PREMIUM_PUNCH D1–D8 + A1–A6 token/primitive codification | ✅ merged (PR #4) |
+| **B** | Patch sprint | V1_PUNCHLIST Batches 1–5 + the never-hide deck-coverage fix | ✅ merged (PR #5) |
+| **C** | Deep Sweep | dead-code / perf / a11y / inert tokens / dedup — [STAGE_C.md](STAGE_C.md) | 🔨 **current** (C1–C3 ✅ + verified; C4/C5 next; branch `stage-c/deep-sweep`) |
+| **C.5** | **Cohesion Pass** | the premium gap as 4 whole-cloth passes (data quality · app feel · one visual language · Aurora re-derivation) — ROADMAP §CURRENT | ⏳ next |
+| **D** | Multi-City | geo-refactor + city #2 = **SF & East Bay (reconfirmed 2026-07-01)**; imagery pre-banked | 📋 specced (PHASE_3.7 Addendum I) |
+| **E** | v1 Ship | holistic pass vs all refs · honesty audit · PWA/deploy/attribution · beta | ⏳ |
+| **v2** | Backlog | everything post-launch | → [BACKLOG.md](BACKLOG.md) |
 
-**Where we are right now:** tail of **Stage 1** — the per-screen reference grind on branch `ui-overnight-grind` (Profile/Home/Events landings done, Spots in progress, Plan/DayPage deferred = path-risky store migration), plus the `TOUCHUP_PUNCHLIST` fidelity pass.
+**Where we are right now:** mid **Stage C** on branch `stage-c/deep-sweep` — C1 (dead code) / C2 (perf) / C3 (a11y) committed and independently verified; C4 (inert tokens) + C5 (dedup) remain, then one Stage-C PR. **Fable 5 resumed leadership 2026-07-01** (single-session driver's seat; Josh's 10 adjudication rulings recorded in ROADMAP §5).
 
 ## Dead-vocabulary crosswalk
 
 | You might still say… | It actually means |
 |---|---|
-| "Phase 4" | **Stage 4 — v1 Ship** |
-| "3.77" | **Stage 3 — Multi-City** (geo-refactor) |
-| "3.78" | **Stage 3 — Multi-City** (city #2 = SF & East Bay) |
-| "the GRIND / PHASE2 work" | **Stage 1 — Reference Finish** (per-screen pass) |
+| "Stage R / Stage 1 / the GRIND / PHASE2 work" | shipped history (the reference-finish era, pre-Stage-A) |
+| "Stage 2" (numbered) | **Stage C — Deep Sweep** |
+| "Stage 2.5 / Lamination / premium polish" | **Stage C.5 — Cohesion Pass** |
+| "Stage 3" / "3.77" / "3.78" | **Stage D — Multi-City** |
+| "Stage 4" / "Phase 4" | **Stage E — v1 Ship** |
 | Sprints A–Y · Waves 1–4 · Phases 1–3 · 3.5 / 3.6 · 3.71–3.76 · 3.7P-* | **shipped — history** |
 
 ---
@@ -39,48 +40,48 @@ All forward work is named by **Stage**. The old Phase/Sprint/3.7x numbers are **
 ### 🟢 LIVE — the plan + current execution
 | Doc | Purpose |
 |---|---|
-| **[ROADMAP.md](ROADMAP.md)** | ⭐ The master plan. The Stage spine, binding contracts, current status. **Authority.** |
+| **[ROADMAP.md](ROADMAP.md)** | ⭐ The master plan. The Stage spine, binding contracts (§1), the 2026-07-01 rulings (§5), the takeover process (§4). **Authority.** |
 | [INDEX.md](INDEX.md) | This map. |
-| [BACKLOG.md](BACKLOG.md) | v1/v2 idea intake + triage. |
-| [STAGE1_PUNCHLIST.md](STAGE1_PUNCHLIST.md) | Stage 1 fidelity punch list (8 batches). |
-| [TOUCHUP_PUNCHLIST.md](TOUCHUP_PUNCHLIST.md) | Overnight-grind fidelity/wiring fixes (current branch). |
-| [V1_PUNCHLIST.md](V1_PUNCHLIST.md) | **Pre-v1 patch list (Josh+Charles review, 2026-06-28)** — 6 batches, code-grounded; Batch 5 = the never-hide contract change. |
-| [PROFILE_GRIND.md](PROFILE_GRIND.md) · [PROFILE_PHASE2.md](PROFILE_PHASE2.md) | Profile landing + 8 sub-screens (active). |
-| [HOME_GRIND.md](HOME_GRIND.md) · [HOME_PHASE2.md](HOME_PHASE2.md) | Home landing + 7 destinations (done). |
-| [EVENTS_GRIND.md](EVENTS_GRIND.md) · [EVENTS_PHASE2.md](EVENTS_PHASE2.md) | Events landing + flow destinations (done). |
-| [SPOTS_GRIND.md](SPOTS_GRIND.md) · [SPOTS_PHASE2.md](SPOTS_PHASE2.md) | Spots landing + flow destinations (active). |
-| [PLAN_GRIND.md](PLAN_GRIND.md) · [PLAN_PHASE2.md](PLAN_PHASE2.md) | DayPage 3-daypart + flows — **deferred** (path-risky store migration). |
-| [TINDER.md](TINDER.md) | "Tune your taste" swipe module on Events + Spots (queued, v1). |
+| [BACKLOG.md](BACKLOG.md) | v1/v2 idea intake + triage (incl. the still-empty Tier-0 orphan inventory table — populate during C5). |
+| **[STAGE_C.md](STAGE_C.md)** | Stage C execution plan-of-record (recovered kickoff + checkpoint status). |
 
 ### 🔵 REFERENCE — durable specs (consult, don't execute)
 | Doc | Purpose |
 |---|---|
-| [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) | ⭐ The locked design-system canon (Stage A6): warm palette, the 4 bent-rules policy + honesty bar, the token primitives (elevation/radius/chip/eyebrow/type), motion policy, emoji-for-identity-only, the D1–D8 decisions. **Authority for design primitives.** |
-| [UI_SPEC.md](UI_SPEC.md) | Hot-feed / chips / motion / calendar build spec (layered rounds). _Palette superseded by DESIGN_SYSTEM.md (warm, not the old teal `--accent`)._ |
-| [CALENDAR_BRIEF.md](CALENDAR_BRIEF.md) | "Your Calendar" Model C design brief + the 12-item anti-gamification ban list. |
+| [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) | ⭐ The locked design-system canon (Stage A6): warm palette, bent-rules policy + honesty bar, token primitives, motion policy, D1–D8. **Authority for design primitives.** |
+| [CARD_LOCK.md](CARD_LOCK.md) | The one canonical left-image editorial card (locked; scoped to the vertical list card only — the deck face is NOT locked). |
+| [TINDER.md](TINDER.md) | The swipe module + decks spec (finish-beat line amended 2026-07-01 per ruling 8). |
+| [MULTICITY_IMAGERY_RUNBOOK.md](MULTICITY_IMAGERY_RUNBOOK.md) | Per-city imagery operator runbook (manual REFUTE gate is a standing requirement). |
+| [UI_SPEC.md](UI_SPEC.md) | Hot-feed / chips / motion spec. _Palette superseded by DESIGN_SYSTEM.md._ |
+| [CALENDAR_BRIEF.md](CALENDAR_BRIEF.md) | "Your Calendar" Model C design brief + the anti-gamification ban list. |
 | [DATA_SOURCES.md](DATA_SOURCES.md) | Verified **event** data sources for the finder. |
 | [PLACES_SOURCES.md](PLACES_SOURCES.md) | **Places/spots** data-source plan (OSM + gov ArcGIS). |
 | [REFRESH.md](REFRESH.md) | Operator runbook for refreshing events data. |
-| [README-TEST.md](README-TEST.md) | The `npm test` smoke harness (5 blocks). |
+| [README-TEST.md](README-TEST.md) | The `npm test` smoke harness. |
 
 ### ⚪ HISTORICAL — superseded, banner-ed, kept for history
 | Doc | Was | Why kept |
 |---|---|---|
 | [PLAN.md](PLAN.md) | Gen 1 — Sprints A–F | First day-3 plan. |
-| [MASTER_PLAN.md](MASTER_PLAN.md) | Gen 2 — Waves / Sprints G–N | |
-| [MASTER_PLAN2.md](MASTER_PLAN2.md) | Gen 3 — Phases 1–4 / Sprints O–Y | Source of "Phase 4"; rich as-built log. |
-| [PHASE_3.5.md](PHASE_3.5.md) | Gen 4 — Phase 3.5 (W1–W8) | |
-| [PHASE_3.6.md](PHASE_3.6.md) | Gen 4 — Phase 3.6 (N1–N5) | |
-| [PHASE_3.7.md](PHASE_3.7.md) | Gen 4 — 3.71–3.78 + addenda | **Still holds the live multi-city build packet** (Addendum I → lifted into ROADMAP Stage 3). |
+| [MASTER_PLAN.md](MASTER_PLAN.md) | Gen 2 — Waves / Sprints G–N | North-star prose. |
+| [MASTER_PLAN2.md](MASTER_PLAN2.md) | Gen 3 — Phases 1–4 / Sprints O–Y | Rich as-built log. |
+| [PHASE_3.5.md](PHASE_3.5.md) · [PHASE_3.6.md](PHASE_3.6.md) | Gen 4 — shipped | |
+| [PHASE_3.7.md](PHASE_3.7.md) | Gen 4 — 3.71–3.78 + addenda | **Still holds the live Stage-D build packet** (Addendum I / §15). |
 | [W5_W8_PROPOSAL.md](W5_W8_PROPOSAL.md) | Gen 4 satellite | Ratified into 3.6. |
-| [LONG_TERM.md](LONG_TERM.md) | the old backlog | Triaged into [BACKLOG.md](BACKLOG.md). |
+| [LONG_TERM.md](LONG_TERM.md) | the old backlog | Triaged into BACKLOG. |
+| [PREMIUM_PUNCH.md](PREMIUM_PUNCH.md) | Stage A source doc | §0 D1–D8 record; §2 promoted into DESIGN_SYSTEM. ⚠️ §1's checkboxes under-report ship-state (~11 shipped items unticked) — trust §0's reconciliation + render checks, not §1 boxes. |
+| [V1_PUNCHLIST.md](V1_PUNCHLIST.md) | Stage B execution doc | Shipped (PR #5); the house execution style exemplar. |
+| [STAGE1_PUNCHLIST.md](STAGE1_PUNCHLIST.md) · [TOUCHUP_PUNCHLIST.md](TOUCHUP_PUNCHLIST.md) | Stage-1-era punch lists | Shipped. |
+| `*_GRIND.md` · `*_PHASE2.md` (Profile/Home/Events/Spots/Plan) | Stage-1-era per-screen pass | Shipped; record which reference each screen was matched against. |
+| [FLOWS_GRIND.md](FLOWS_GRIND.md) · [EVENTS_GRIND.md](EVENTS_GRIND.md) etc. | (same family) | |
 
-_Not planning docs: `app/README.md`, `finder/output/{events,places}.md` (generated data digests)._
+_Not planning docs: `app/README.md`, `finder/output/{events,places}.md` (generated data digests), `/planning/v2/` (v2 spec workshop — [planning/v2/README.md](planning/v2/README.md))._
 
 ---
 
 ## House rules (project-cop conventions)
-1. **One spine.** New work is named by Stage. Don't invent a new numbering scheme — extend the Stage model or add to BACKLOG.
+1. **One spine.** New work is named by lettered Stage. Don't invent a new numbering scheme — extend the Stage model or add to BACKLOG.
 2. **ROADMAP is the only plan-of-record.** If a doc and ROADMAP disagree, ROADMAP wins. Superseded docs get a banner, never silent deletion.
 3. **Ideas go to BACKLOG**, tagged `v1` or `v2`. v2 ideas worth developing get a spec in `/planning/v2/` — built in parallel, never polluting the v1 plan.
-4. **This chat (project cop) edits markdown + folders only — never app code.**
+4. **Execution plans live in repo docs** (STAGE_C.md-style), never only in session prompts — a stage's granular plan must survive any session's death.
+5. **Doc edits ship with the work.** Status headers (this file + ROADMAP §CURRENT) update in the same commit that changes the status.

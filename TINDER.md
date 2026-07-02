@@ -15,7 +15,7 @@ Pixel-match `tinder.png`:
 - **Events module → opens the Events Tinder; Spots module → opens the Spots Tinder.**
 
 ## 2. The swipe decks (dark immersive — reuse the deck look)
-- **Events Tinder = the existing `CalibrationDeck`** (kind `'events'`). Verify its dark face/stamps/buttons vs `sheet-a` calibration; update if out of date. Pool = stratified `dealDeck` (one hottest per category + diverse high-hotScore). Verdicts: right = into-it (+taste), left = not-for-me (−, floored), up = save. Honest finish tally (kept/passed), no reward animation.
+- **Events Tinder = the existing `CalibrationDeck`** (kind `'events'`). Verify its dark face/stamps/buttons vs `sheet-a` calibration; update if out of date. Pool = stratified `dealDeck` (one hottest per category + diverse high-hotScore). Verdicts: right = into-it (+taste), left = not-for-me (−, floored), up = save. Honest finish tally (kept/passed); **the pre-existing sanctioned violet finish beat STAYS** (ROADMAP §1.3 dark-theme contract; Josh ruling 2026-07-01 — "no reward animation" here means add no NEW reward, not strip the sanctioned #6 beat). LensDeck/DayFill stay reward-free.
 - **Spots Tinder = NEW** — parameterize CalibrationDeck to kind `'places'` (or a sibling `PlacesTinderDeck`): swipe place cards (image + placeType label + title + amenity chips, **no date**); same verdicts; honest finish tally.
 
 ## 3. Backend — a separate Events + Spots Tinder (the path-careful part)
