@@ -58,7 +58,9 @@ export const VIEWS = [
   { id: 'home', label: 'Home' },
   { id: 'hot', label: 'Events' },
   { id: 'locations', label: 'Spots' },
-  { id: 'calendar', label: 'Calendar' },
+  { id: 'calendar', label: 'Plan' }, /* ruling 2026-07-01 #4: back to the refs' "Plan"
+                                        (reverses S1-C1's Calendar rename); id stays
+                                        'calendar' for every seam that keys on it */
   { id: 'profile', label: 'Profile' },
 ]
 export const viewIndex = (id) => VIEWS.findIndex((v) => v.id === id)

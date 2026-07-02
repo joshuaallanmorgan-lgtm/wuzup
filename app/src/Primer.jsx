@@ -100,11 +100,15 @@ const WHEN = [
 // the user think the first time they open it"). Skippable (Continue advances to
 // the taste questions; the global Skip exits entirely). Emoji-as-icon, one calm
 // line each. DRAFT copy for Charles.
+/* Cohesion fix: the tour now matches the REAL roster — it advertised a Map tab
+   (parked for v1, D8) and omitted Home entirely, so first-run copy was factually
+   wrong about the app's own structure. Labels track nav.jsx VIEWS (ruling #4:
+   the 4th tab reads "Plan"). Lines stay DRAFT ⚑ Charles. */
 const TOUR = [
+  { emoji: '🏠', label: 'Home', line: 'Your day at a glance — weather, plans, picks' },
   { emoji: '🎉', label: 'Events', line: "What's on — tonight, this weekend, by vibe" },
   { emoji: '📍', label: 'Spots', line: 'Places always here — beaches, parks, courts' },
-  { emoji: '🗺️', label: 'Map', line: 'Everything around you, on one map' },
-  { emoji: '🗓️', label: 'Calendar', line: 'Build a day; look back on your nights' },
+  { emoji: '🗓️', label: 'Plan', line: 'Build a day; look back on your nights' },
   { emoji: '👤', label: 'Profile', line: 'Your taste, your saves, your plans' },
 ]
 

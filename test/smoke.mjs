@@ -1821,7 +1821,7 @@ test('Stage R nav: roster is home/hot/locations/calendar/profile, Map is PARKED'
     assert.ok(new RegExp(`id: '${id}'`).test(nav), `VIEWS must include the '${id}' tab`)
   }
   assert.ok(!/\{ id: 'map'/.test(nav), 'Map must NOT be a tab in VIEWS')
-  assert.ok(/id: 'calendar', label: 'Calendar'/.test(nav), "the calendar tab label is 'Calendar' (S1-C1; id stays 'calendar')")
+  assert.ok(/id: 'calendar', label: 'Plan'/.test(nav), "the 4th tab is labelled 'Plan' (ruling 2026-07-01 #4, reversing S1-C1; id stays 'calendar')")
   // D8: map parked — no opener, no sub-view render, no MapView file.
   assert.ok(!/const openMap = useCallback/.test(nav), 'openMap is removed (map parked, D8)')
   const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
