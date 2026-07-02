@@ -455,6 +455,31 @@ export function GemRow({ e, onSelect }) {
   )
 }
 
+// NbhdCard — the "Neighborhood Picks" 2-up tile (EVENTS_GRIND; C5: promoted 1:1
+// from HotView's inline map body — markup/classes unchanged, pure move). Expects
+// e._area, the parsed neighborhood label (HotView only renders the section when
+// the areas were confidently readable — the honesty guard lives at the call site).
+export function NbhdCard({ e, onSelect }) {
+  const chips = featuredChips(e)
+  return (
+    <button className="nbhd-card pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
+      <CardImg e={e} className="nbhd-img">
+        <SaveHeart e={e} />
+      </CardImg>
+      <div className="nbhd-area">📍 {e._area}</div>
+      <div className="nbhd-title">{e.title}</div>
+      <div className="nbhd-meta">{[dayLoose(e), e.venue].filter(Boolean).join(' · ')}</div>
+      {chips.length > 0 && (
+        <div className="nbhd-chips">
+          {chips.map((c, i) => (
+            <span className="gem-chip" key={i}>{c}</span>
+          ))}
+        </div>
+      )}
+    </button>
+  )
+}
+
 // SpotCard (3.73b) — the premium PLACE tile. Reuses the placeType-aware art floor
 // (3.73a) + SaveHeart, but speaks PLACE: a placeType label, one decision-useful
 // differentiator + distance (no vanity counts), and the 💎 hidden-gem badge. Used
