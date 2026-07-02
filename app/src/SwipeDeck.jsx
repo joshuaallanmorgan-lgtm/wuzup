@@ -97,8 +97,16 @@ export default function SwipeDeck({
 }) {
   const reduced = useMemo(() => prefersReduced(), [])
   const [idx, setIdx] = useState(0)
-  const [exit, setExit] = useState(null) // { card, dir, dx, dy, rot, ms, flyX, flyY } — the flying clone
-  const exitTRef = useRef(null)
+  // WS2 #8: flying clones are a QUEUE (was a single slot, so a rapid second
+  // commit teleport-vanished the previous card's flight). Capped at 3 — past
+  // 3 spam-commits inside one flight window the eldest clone just drops, and
+  // each clone clears itself by seq. Chosen over blocking commits: blocking
+  // would lag rapid triage, and the queue keeps one-verdict-per-card
+  // trivially provable (the verdict callback + idx advance in commit are
+  // untouched; exits are render-only cosmetics).
+  const [exits, setExits] = useState([]) // [{ card, dir, dx, dy, rot, ms, flyX, flyY, origin, seq }]
+  const seqRef = useRef(0)
+  const exitTimersRef = useRef(new Map()) // seq → timeout id
   const doneTRef = useRef(null)
   const cardRef = useRef(null) // the live top card element (drag transform target)
   const dragRef = useRef(null) // { id, x0, y0, dx, dy, samples } during a pointer drag
@@ -117,7 +125,7 @@ export default function SwipeDeck({
   }, [dealing])
   useEffect(
     () => () => {
-      clearTimeout(exitTRef.current)
+      for (const t of exitTimersRef.current.values()) clearTimeout(t)
       clearTimeout(doneTRef.current)
       if (springRef.current) cancelAnimationFrame(springRef.current.raf)
     },
@@ -172,10 +180,16 @@ export default function SwipeDeck({
     const flyY = Math.max(-160, Math.min(160, dy * 1.6 - 24))
     // WS2 #4: the exit clone keeps the drag's grab-point pivot + clamped
     // rotation so the live-card → clone handoff is pose-exact (button
-    // commits: no travel, no origin — the defaults are a no-op)
-    setExit({ card, dir, dx, dy, rot: grabRotation(dx, rotF), ms, flyX, flyY, origin })
-    clearTimeout(exitTRef.current)
-    exitTRef.current = setTimeout(() => setExit(null), ms + 40)
+    // commits: no travel, no origin — the defaults are a no-op).
+    // WS2 #8: appended to the queue; this clone removes ITSELF by seq when
+    // its flight ends, so overlapping flights never clear each other.
+    const seq = ++seqRef.current
+    setExits((xs) => xs.concat({ card, dir, dx, dy, rot: grabRotation(dx, rotF), ms, flyX, flyY, origin, seq }).slice(-3))
+    const flightT = setTimeout(() => {
+      exitTimersRef.current.delete(seq)
+      setExits((xs) => xs.filter((x) => x.seq !== seq))
+    }, ms + 40)
+    exitTimersRef.current.set(seq, flightT)
     const next = idx + 1
     setIdx(next)
     if (next >= cards.length) {
@@ -333,8 +347,9 @@ export default function SwipeDeck({
           {i === 0 && !reduced && stamps}
         </div>
       ))}
-      {exit && (
+      {exits.map((exit) => (
         <div
+          key={exit.seq}
           className={cls('card') + ' ' + cls('exit') + ' ' + cls('exit-' + exit.dir)}
           style={{
             transformOrigin: exit.origin, /* grab-point pivot rides the handoff (WS2 #4; undefined = center for button commits) */
@@ -362,7 +377,7 @@ export default function SwipeDeck({
           {renderCard(exit.card)}
           {stamps}
         </div>
-      )}
+      ))}
     </div>
   )
 }
