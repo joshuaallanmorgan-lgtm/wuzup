@@ -250,6 +250,29 @@ function cleanEventTitle(raw) {
   return t.length >= 2 ? t : String(raw || '');
 }
 
+// ---- venue-boilerplate descriptions (WS1 fix 3b) ----------------------------
+// AllEvents attaches the VENUE's welcome blurb as the event description
+// ("Welcome to the Funny Bone Comedy Club in Tampa, Florida, where
+// laughter..."). It's not a description of the event — and its wording fed
+// the music rule wrong keywords (a comedy headliner shipped as music). Null
+// it at ingest when the name right after "Welcome to (the)" is the record's
+// OWN venue. Real descriptions that merely open with "Welcome to the 17th
+// annual ..." (not the venue) are untouched.
+const BOILERPLATE_WELCOME_RE = /^welcome to (?:the )?(.{3,70}?)(?:\s+in\s+|\s+where\s+|[,!.])/i;
+function isVenueBoilerplate(e) {
+  if (!e.description || !e.venue) return false;
+  const m = e.description.match(BOILERPLATE_WELCOME_RE);
+  if (!m) return false;
+  const dTokens = titleTokens(m[1]);
+  const vTokens = titleTokens(e.venue);
+  if (!dTokens.size || !vTokens.size) return false;
+  let shared = 0;
+  for (const t of dTokens) if (vTokens.has(t)) shared++;
+  // enough overlap that the blurb is naming THIS venue ("Funny Bone Comedy
+  // Club" vs venue "Funny Bone - Tampa" shares funny+bone)
+  return shared >= Math.min(2, Math.min(dTokens.size, vTokens.size));
+}
+
 function normalize(node, sourceName) {
   const { venue, address } = venueAddress(node.location);
   const { price, currency, isFree } = priceInfo(node.offers);
@@ -1027,14 +1050,19 @@ const MUSIC_VENUE_RE = /jannus live|orpheum|crowbar|the ritz|floridian social/i;
 // can't steal an event from a confident rule.
 const CATEGORY_RULES = [
   ['theatre', /\bopera\b|\bboh[eèé]me\b|\bballets?\b|\bfringe\b|\bdramatic play\b|\bplaywrights?\b/i],
+  // Comedy ABOVE music (WS1 fix 3b): touring stand-ups' listings carry
+  // music-y language (\btour\b, headliner talk) that stole them for music —
+  // "The Get Right Comedy Tour" must land comedy. Stage-comedy titles
+  // ("The Comedy of Errors", "musical comedy") are protected by the
+  // unless-style theatre veto inside categorize (see COMEDY_STAGE_RE).
+  ['comedy', /\bcomedy\b|\bstand-?up\b|\bimprov\b|\bcomedians?\b/i],
   ['music', /\bconcerts?\b|\bconciertos?\b|\bbands?\b|\bdj\b|\btour\b|\borchestra\b|\bsymphony\b|\blive music\b|\balbum\b|\btribute\b|\bunplugged\b|\bacoustic\b|\blive at\b|\bkaraoke\b|\bopen mic\b|\bjazz\b|\bblues\b|\bsongwriters?\b|\bhip.?hop\b|\bvinyl\b|\bgreatest hits\b/i],
   ['sports', /\bvs\.?\b|\bgame\b|\bmatch day\b|\bgrand prix\b|\braces?\b|\broller derby\b|\bwrestling\b|\bpickleball\b/i],
   ['theatre', /\btheatre\b|\btheater\b|\bmusicals?\b|\bbroadway\b|\bcabaret\b/i],
-  ['comedy', /\bcomedy\b|\bstand-?up\b|\bimprov\b|\bcomedians?\b/i],
   ['art', /\barts?\b|\bgallery\b|\bmuseum\b|\bexhibits?\b|\bexhibitions?\b|\bmurals?\b|\bcrafts?\b|\bpottery\b|\bpainting\b|\bfilms?\b|\bscreenings?\b|\bcinema\b|\bfashion\b|\brunway\b/i],
   ['market', /\bmarkets?\b|\bflea\b|\bfairs?\b|\bbazaar\b|\bexpo\b|\bvendors?\b|\bbridal\b|\bboat show\b|\btrain show\b|\bshow (?:&|and) sale\b/i],
   ['food', /\bfood\b|\bbrunch\b|\bdinner\b|\btastings?\b|\bbeer\b|\bwine\b|\bcocktails?\b|\btacos?\b|\bbbq\b|\bculinary\b|\bchefs?\b|\bbrewfests?\b/i],
-  ['outdoors', /\bparks?\b|\bbeach\b|\bkayak\b|\bhikes?\b|\brun club\b|\b5k\b|\boutdoor\b|\bgardens?\b|\bnature\b|\btrails?\b|\byoga\b|\bpaddles?\b|\bpaddleboard\w*\b|\bfishing\b|\bdragon boats?\b|\bpilates\b|\bbarre\b|\bon the lawn\b|\bwho walk\b|\bwalk (?:&|and) talk\b/i],
+  ['outdoors', /\bparks?\b|\bbeach\b|\bkayak\b|\bhikes?\b|\brun club\b|\b5k\b|\boutdoor\b|\bgardens?\b|\bnature\b|\btrails?\b|\bpaddles?\b|\bpaddleboard\w*\b|\bfishing\b|\bdragon boats?\b|\bpilates\b|\bbarre\b|\bon the lawn\b|\bwho walk\b|\bwalk (?:&|and) talk\b/i],
   ['nightlife', /\bparty\b|\bclub night\b|\bburlesque\b|\bball\b|\brave\b|\bnightlife\b|\bdrag\b|\btrivia\b|\bbingo\b|\bbar crawls?\b|\bpub crawls?\b|\bspeed dating\b|\bsingles\b|\bhappy hour\b|\b(?:latin|salsa|disco|80s|90s) nights?\b|\bjuke joints?\b|\baxe throwing\b|\bthirsty thursday\b/i],
   ['family', /\bfamily\b|\bkids?\b|\bchildren\b|\btoddlers?\b|\bteens?\b|\bstory ?time\b|\b(?:father|daddy)[\s-]+daughter\b|\bmother[\s-]+son\b|\bfather[’']?s day\b|\bmother[’']?s day\b|\bback[\s-]+to[\s-]+school\b|\bvbs\b|\bvacation bible school\b/i],
   ['community', /\bmeetup\b|\bworkshops?\b|\bclass(?:es)?\b|\bclubs?\b|\blibrary\b|\bnetworking\b|\bvolunteer\b|\bseminar\b|\blectures?\b|\bbooks?\b|\bgrand opening\b|\bconferences?\b|\bauthor\b|\bfundraisers?\b|\breceptions?\b|\bmixers?\b|\bpuzzles?\b|\bgame nights?\b|\bjuneteenth\b|\bpride\b(?!\s+(?:and|&)\s+prejudice)|pridetopia|\bsummits?\b|\bsymposiums?\b|\bforums?\b|\binfo(?:rmation)? sessions?\b|\btown halls?\b|\bawareness\b|\bsupport (?:group|meeting)s?\b|\brecycling\b|\bchemical collection\b|\bcollection events?\b|\bsandbags?\b|\bclean-?ups?\b|\bcoffee (?:&|and) conversation\b|\bmingle\b|\bsocialize\b|\bentrepreneurs?\b|\bbusiness\b|\bfireside chats?\b|\blunch (?:&|and) learn\b|\bceu\b|\bwebinars?\b|\breal estate\b|\bnonprofits?\b|\bcareers?\b|\bemployers?\b|\bempower\w*\b|\bwellness\b|\breiki\b|\bsound bath\b|\btarot\b|\bheart disease\b|\bcancer\b|\bhealth\b|\bstaying safe\b|\bsafety\b|\binspections?\b|\bcyber\w*\b|\banniversar\w*\b|\bpups?\b|\bdog grooming\b|\bpaws\b|\badoptions?\b|\bstorytell\w*\b|\bcandidate forums?\b|\bcosplay\b|\bcon?ventions?\b|\bmeet (?:&|and) greet\b/i],
@@ -1073,6 +1101,16 @@ const STRONG_TITLE_RULES = [
   // nature programming — a sea-turtle conservation ride-along carried a
   // native "Sports & Recreation" tag
   ['outdoors', /\bsea turtles?\b|\bbirdwatch\w*\b|\bnature preserve\b|\bwildlife\b/i],
+  // fireworks shows (WS1 fix 3c): NO fireworks rule existed, so VSPC's
+  // Largo 4th of July Fireworks landed food (food-truck mentions) and
+  // Treasure Island's landed market (vendor mentions). A fireworks show is
+  // an outdoor civic event; a "Fireworks Night" THEME at a ballgame stays
+  // sports (the unless-guard).
+  ['outdoors', /\bfireworks?\b/i, /\bvs\.?\b/i],
+  // library film programming (WS1 fix 3, census-named): "Watch Wednesday:
+  // Night at the Museum (PG)" — the movie's own title tripped the art
+  // rule's \bmuseum\b; the series is a daytime family screening.
+  ['family', /\bwatch wednesday\b/i],
 ];
 // title+description rules of the same rank ("Written by X … Directed by Y" is
 // playbill language — "American Stage: The Hot Wing King" carried native art).
@@ -1087,7 +1125,23 @@ const STRONG_TEXT_RULES = [
 
 // Touring stand-ups whose shows are listed title-only ("Jo Koy") at concert
 // venues — without this they'd take the concert-venue prior and land music.
-const KNOWN_COMEDIANS_RE = /\bjo koy\b|\bbert kreischer\b|\bnate bargatze\b|\bsebastian maniscalco\b|\bkatt williams\b|\bmatt rife\b|\btom segura\b|\bbill burr\b|\bgabriel iglesias\b|\bjeff dunham\b|\bnikki glaser\b|\btheo von\b|\bshane gillis\b|\bkevin hart\b|\bjim gaffigan\b|\btrevor noah\b|\bjohn mulaney\b|\bali wong\b|\btaylor tomlinson\b|\bleanne morgan\b/i;
+const KNOWN_COMEDIANS_RE = /\bjo koy\b|\bbert kreischer\b|\bnate bargatze\b|\bsebastian maniscalco\b|\bkatt williams\b|\bmatt rife\b|\btom segura\b|\bbill burr\b|\bgabriel iglesias\b|\bjeff dunham\b|\bnikki glaser\b|\btheo von\b|\bshane gillis\b|\bkevin hart\b|\bjim gaffigan\b|\btrevor noah\b|\bjohn mulaney\b|\bali wong\b|\btaylor tomlinson\b|\bleanne morgan\b|\bmarlon wayans\b|\bchristopher titus\b/i;
+
+// Comedy-club venues host comedy (WS1 fix 3a). Checked BEFORE native source
+// categories — stronger than a venue "prior" because the aggregators'
+// native tags are the very defect here (VTB natively files Funny Bone
+// headliners under music); what a comedy club programs IS comedy.
+const COMEDY_VENUE_RE = /funny bone|side splitters|comedy club|\bimprov\b/i;
+
+// Stage-comedy phrasing must NOT take the comedy rule now that it outranks
+// music — "The Comedy of Errors" and a "musical comedy" are theatre.
+const COMEDY_STAGE_RE = /\bcomedy of errors\b|\bmusical comedy\b|\bromantic comedy\b/i;
+
+// Yoga is a SETTING call, not a category (WS1 fix 3d): 13 library chair-yoga
+// sessions shipped "outdoors" via the unconditional \byoga\b rule. Outdoor
+// setting evidence => outdoors; otherwise it's a wellness class => community.
+const YOGA_RE = /\byoga\b/i;
+const OUTDOOR_SETTING_RE = /\bparks?\b|\bbeach\b|\bpier\b|\blawn\b|\bgardens?\b|\bwaterfront\b|\boutdoors?\b|\bsunrise\b|\bsunset\b|\brooftop\b|\bpoolside\b|\bvines\b|\bfarms?\b|\btrails?\b/i;
 
 // Concert rooms/sheds/arenas: an event here that matched NO text rule is a
 // concert in practice (sports/comedy/family shows at these venues carry their
@@ -1100,7 +1154,9 @@ const VENUE_TYPE_PRIORS = [
   ['theatre', /theat(?:re|er)|playhouse/i],
   ['community', /librar|\bbooks\b|bookstore|\bchurch\b/i],
   ['art', /museum/i],
-  ['nightlife', /\blounge\b/i],
+  // nightclub prior (WS1 fix 3a): a text-ruleless event at a night club
+  // (the Status Night Club class) is a night out, not 'other'
+  ['nightlife', /\bnight ?club\b|\blounge\b/i],
 ];
 
 // Source-level category priors, applied only when no text/venue rule matched.
@@ -1127,6 +1183,9 @@ export function categorize(e) {
   for (const [cat, re] of STRONG_TEXT_RULES) {
     if (re.test(text)) return cat;
   }
+  // Comedy-club venue: outranks native tags too — the aggregators' native
+  // categories are the documented defect at these venues (see COMEDY_VENUE_RE).
+  if (COMEDY_VENUE_RE.test(e.venue || '')) return 'comedy';
   // Native category from a source module's API — respect it, don't re-derive.
   // 'other' carries no information, so the text classifier still gets a shot.
   if (e.category && e.category !== 'other' && KNOWN_CATEGORIES.has(e.category)) {
@@ -1134,7 +1193,13 @@ export function categorize(e) {
   }
   if (MUSIC_VENUE_RE.test(e.venue || '')) return 'music';
   for (const [cat, re] of CATEGORY_RULES) {
+    if (cat === 'comedy' && COMEDY_STAGE_RE.test(text)) continue; // stage comedy → theatre rules below
     if (re.test(text)) return cat;
+    // Yoga decides AT the outdoors slot (same precedence \byoga\b had):
+    // outdoor setting in venue/text => outdoors, else wellness => community.
+    if (cat === 'outdoors' && YOGA_RE.test(text)) {
+      return OUTDOOR_SETTING_RE.test(`${e.venue || ''} ${text}`) ? 'outdoors' : 'community';
+    }
   }
   // Text gave nothing — fall through the documented priors, specific → broad.
   if (KNOWN_COMEDIANS_RE.test(e.title || '')) return 'comedy';
@@ -1644,6 +1709,17 @@ async function main() {
   }
   if (titlesCleaned) console.log(`  ✏️  cleaned ${titlesCleaned} junk titles (caps/suffixes/colons)`);
 
+  // Venue-boilerplate descriptions are not descriptions (WS1 fix 3b) — null
+  // them BEFORE merging so mergeCluster picks a sibling's real text instead.
+  let boilerplateNulled = 0;
+  for (const e of all) {
+    if (isVenueBoilerplate(e)) {
+      e.description = null;
+      boilerplateNulled++;
+    }
+  }
+  if (boilerplateNulled) console.log(`  🧽 nulled ${boilerplateNulled} venue-boilerplate description(s) ("Welcome to the <venue>...")`);
+
   // Venue canonicalization (L4): rewrite alias spellings + jittery coords to
   // the committed canonical identity BEFORE merging, so venue-equality rules
   // see one venue as one venue.
@@ -1698,6 +1774,20 @@ async function main() {
   if (schedDropped.length) {
     events = events.filter((e) => !SCHEDULE_PAGE_RE.test(e.title || ''));
     console.log(`  🗂️  dropped ${schedDropped.length} schedule-page listing(s): ${schedDropped.map((e) => `"${e.title}"`).join(', ')}`);
+  }
+
+  // Univ.-of-Tampa academic-calendar rows are not events (WS1 fix 3e):
+  // "Classes begin for Summer 2nd 6 Weeks", "No classes - Holiday for 4th of
+  // July". Title guard scoped to the UT family so a real event that happens
+  // to open with these words elsewhere is untouched.
+  const UT_CALENDAR_RE = /^classes (?:begin|end)\b|^no classes\b/i;
+  const utDropped = events.filter((e) =>
+    UT_CALENDAR_RE.test(e.title || '') &&
+    (e.sources || [e.source]).some((s) => familyOf(s) === 'Univ. of Tampa'));
+  if (utDropped.length) {
+    const utSet = new Set(utDropped);
+    events = events.filter((e) => !utSet.has(e));
+    console.log(`  🎓 dropped ${utDropped.length} UT academic-calendar row(s): ${utDropped.map((e) => `"${e.title}"`).join(', ')}`);
   }
 
   // Keep upcoming events, sorted soonest first. An event stays until it has
