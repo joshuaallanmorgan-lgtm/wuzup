@@ -1624,11 +1624,13 @@ test('3.7P-23/25 wiring: Home compact sections + clean AA-safe guide tiles', () 
 test('3.7P-23b §N Home: "Your next days" stack + title header + weather line', () => {
   // Stage R nav restructure: the Home dashboard (title + Your-next-days +
   // featured pick) is its own HomeView component now (split out of HotView).
-  // V1 H1/H3: the fabricated-name greeting + heroKicker were retired; the header
-  // is the shared .loc-head-title primitive + the weather sub.
+  // V1 H1/H3 → Cohesion R10: the FABRICATED-NAME greeting + heroKicker stay
+  // retired, but ruling 2026-07-01 #10 restored an honest name-free time-of-day
+  // greeting on the shared .loc-head-title primitive (+ the weather sub).
   const home = readFileSync(path.join(ROOT, 'app', 'src', 'HomeView.jsx'), 'utf8')
   assert.ok(/<NextDays /.test(home), 'HomeView renders the "Your next days" planning stack')
-  assert.ok(/loc-head-title">Home</.test(home) && !/heroKicker/.test(home), 'V1 H1/H3: Home uses the shared .loc-head-title primitive; the greeting + heroKicker are retired')
+  assert.ok(/loc-head-title">\{greeting\}</.test(home) && !/heroKicker/.test(home), 'R10: Home title = the honest time-of-day greeting on the shared primitive; heroKicker stays retired')
+  assert.ok(/Good morning/.test(home) && !/Alex/.test(home), 'R10: the greeting is name-free (no fabricated identity — the H3 honesty bar holds)')
   assert.ok(/nowMs/.test(home) && /tonightModel\(/.test(home), 'V1 H3: nowMs is KEPT — it still feeds tonightModel (not just the retired greeting)')
   assert.ok(/wxLine/.test(home), 'the Home header shows the real weather line when loaded')
   const nd = readFileSync(path.join(ROOT, 'app', 'src', 'NextDays.jsx'), 'utf8')
