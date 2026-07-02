@@ -1,4 +1,8 @@
 # MASTER PLAN 2 — From "great prototype" to "an app people actually use"
+
+> ⚠️ **SUPERSEDED — HISTORICAL (Gen 3 naming: Phases 1–4 / Sprints O–Y).** Do not plan or execute from this doc.
+> This is where "**Phase 4**" came from — in the live scheme that is **Stage 4 — v1 Ship**. See [ROADMAP.md](ROADMAP.md).
+> Current master plan = [ROADMAP.md](ROADMAP.md) · full doc map = [INDEX.md](INDEX.md) · idea intake = [BACKLOG.md](BACKLOG.md). Retained for history only.
 _v1 · 2026-06-11 · Fable driving, Josh + Charles supporting. Picks up immediately after Sprint N._
 _Supersedes MASTER_PLAN.md as the active roadmap (that document closes when N ships; its "NEXT INITIATIVES" section is absorbed here). Branch: autonomous-dev-pt2. Execution contract unchanged: each sprint = multi-agent workflow → adversarial review → Fable hand-verification → `npm test` (from Sprint M) → push. Concise updates; pause only at ⚑ flags._
 

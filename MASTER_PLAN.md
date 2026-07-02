@@ -1,4 +1,7 @@
 # MASTER PLAN — from "impressive prototype" to "the app we'd actually release"
+
+> ⚠️ **SUPERSEDED — HISTORICAL (Gen 2 naming: Waves 1–4 / Sprints G–N).** Do not plan or execute from this doc.
+> Current master plan = [ROADMAP.md](ROADMAP.md) · full doc map = [INDEX.md](INDEX.md) · idea intake = [BACKLOG.md](BACKLOG.md). Retained for history only.
 _v1 · 2026-06-10, day 3 part 2 · Fable driving, Josh+Charles supporting. Branch: autonomous-dev-pt2._
 _This supersedes PLAN.md (day-3, executed) as the active roadmap. Sprint F (deploy) parked by Josh._
 

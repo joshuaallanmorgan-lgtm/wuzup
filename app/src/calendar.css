@@ -213,7 +213,7 @@
   margin-left: -4px;
   border-radius: var(--r-circle);
   /* a crescent: inset shadow offset across a transparent circle */
-  box-shadow: inset 2.5px -1.5px 0 0 rgba(107, 114, 128, 0.65);
+  box-shadow: inset 2.5px -1.5px 0 0 rgba(var(--muted-rgb), 0.65);
   z-index: 1;
   pointer-events: none;
 }

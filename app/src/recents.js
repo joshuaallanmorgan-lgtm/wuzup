@@ -80,13 +80,3 @@ export function recordView(e) {
 export function useRecents() {
   return useSyncExternalStore(subscribe, getSnap)
 }
-
-// test hatches for the Node sims (not used by the app)
-export function _peekRecents() {
-  return { keys: [...keys], session: [...session] }
-}
-export function _resetRecents() {
-  keys = []
-  session = []
-  rebuild()
-}

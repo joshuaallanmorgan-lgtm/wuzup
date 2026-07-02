@@ -1,3 +1,15 @@
+/* Inter, self-hosted (Stage C4.5, Josh ruling 2026-07-01 #1). ONE variable face
+   covers 100-900 — required because the app uses non-standard weights 550/650/750
+   that static per-weight files can't render. Latin subset only (the app ships no
+   non-latin copy); replaces the render-blocking Google Fonts link (index.html). */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/inter-var-latin.woff2') format('woff2');
+}
+
 :root {
   /* Sunset Gold brand signature (Sunlit Coastal Pop) — interactive elements,
      links, overlines, selected states, calendar selection. FILLS/borders/marks
@@ -71,6 +83,43 @@
      off the old hardcoded #f3ede5 / rgba(26,20,16,0.07) so chips theme per-city. */
   --chip-fill: #f3ede5; /* warm sand */
   --chip-border: rgba(26, 20, 16, 0.07); /* hairline warm ink */
+  /* Stage C4 (token consolidation): named tokens for values that had gone literal.
+     Minted AT their existing shipped values — the site swaps are visually inert. */
+  --accent-on-dark: #ffb066; /* Sunset Gold (light) — accent TEXT/strokes on the dark
+                                deck/primer surfaces (AA on dark; was 9 literals across
+                                deck.css/lensdeck.css/primer.css) */
+  --accent-on-dark-rgb: 255, 176, 102;
+  --accent-ink-strong: #a54d12; /* C3's deepened accent ink — clears AA 4.5:1 even on
+                                   composited 8%-accent tint pills (4.84:1) where
+                                   --accent-ink falls to 4.48:1. smoke.mjs pins this hex. */
+  --free-ink: #097045; /* C3: sage TEXT on light tints (.chip-free) — ~4.9:1. Pinned. */
+  --free-fill-strong: #0b8256; /* C3: sage FILL carrying white text (4.84:1). Pinned. */
+  --danger: #b3261e; /* the ONE error red (C4: collapsed #dc2626/#b91c1c/#b3261e — the
+                        two Tailwind reds were cool-palette relics, and #dc2626 error
+                        text was actually BELOW AA on --bg at 4.33:1). #b3261e: 5.86:1
+                        on --bg, 6.43:1 on --card, 6.54:1 under white. */
+  --ink-rgb: 26, 20, 16; /* warm-ink rgb for scrims/overlays — retires the cool
+                            rgba(21,23,28,…) pre-warm-palette relic family */
+  --muted-rgb: 107, 97, 87;
+  --skel-lo: #ece6dd; /* skeleton shimmer base (warm) */
+  --skel-hi: #f5f0e9; /* skeleton shimmer band */
+  /* Stage C5 (deck-family dark chrome): the ONE source for the two surface
+     gradients deck.css + lensdeck.css duplicated declaration-for-declaration
+     (that skin had already drifted once elsewhere — the 25/24px done-titles,
+     which stay AS-IS by decree). Minted at the exact shipped stops, so the
+     site swaps are pixel-inert. --deck-bg is the bottom LAYER of each deck's
+     ambiance stack — the hue-tinted radials above it (accent vs --lh) stay
+     per-consumer by design; aesthetics stay in consumer files (swipedeck.css
+     contract), only the VALUES live here. */
+  --deck-bg: linear-gradient(168deg, #1c160f 0%, #1b1712 55%, #181109 100%);
+  --deck-card: linear-gradient(168deg, #2b2118 0%, #221b14 58%, #1b1510 100%);
+  /* Stage C4 (typo — the secondary-text scale, MINTED here; mass adoption happens in
+     the Cohesion Pass re-rhythm where off-scale sizes visibly snap to these steps):
+     body 15 / meta 13 / meta-sm 12 / micro 11. Card titles keep --t-card-*. */
+  --t-body: 15px;
+  --t-meta: 13px;
+  --t-meta-sm: 12px;
+  --t-micro: 11px;
 
   /* PREMIUM A2 (typo — card-title sprawl): ONE spec for card titles. --t-card is
      every STANDARD result/tile card title; --t-card-lg is the FEATURED card only.
@@ -192,8 +241,8 @@ a { color: inherit; }
    (digit glyphs only; non-numeric label text is unaffected). */
 .num,
 .pf-stat-num, .cal-stat-num, .sec-count, .pg-count,
-.imgbadge, .spotcard-dist, .row-dist, .chip,
-.gem-when, .spotcard-facts, .tcard-meta, .spotcard-meta, .nbhd-meta, .fcard-meta {
+.imgbadge, .spotcard-dist, .chip,
+.gem-when, .spotcard-facts, .tcard-meta, .spotcard-meta, .nbhd-meta {
   font-variant-numeric: tabular-nums;
 }
 

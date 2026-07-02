@@ -3,6 +3,14 @@
 /* fltFade / fltUp open the sheet (the map's old mfFade/mfUp were retired with map.css, D8) */
 @keyframes fltFade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fltUp   { from { transform: translateY(100%); } to { transform: none; } }
+/* C5: symmetric close (the wkb/tn .closing mechanism, PREMIUM A4 motion#13) —
+   nav's closePage flips pageClosing for its 400ms unmount window; inside it the
+   sheet drops + the scrim fades on the fast beat instead of only sliding out
+   with the page. */
+.flt-wrap.closing .flt-scrim { animation: fltFadeOut var(--dur-fast) var(--ease-inout) forwards; }
+.flt-wrap.closing .flt-sheet { animation: fltDown var(--dur-fast) var(--ease-inout) forwards; }
+@keyframes fltFadeOut { to { opacity: 0; } }
+@keyframes fltDown { to { transform: translateY(100%); } }
 
 .flt-wrap {
   position: fixed;
@@ -140,4 +148,12 @@
   border-radius: var(--r-md);
   padding: 11px 24px;
   cursor: pointer;
+}
+
+/* ===== reduced motion: sheet/scrim appear (and leave) in place ===== */
+@media (prefers-reduced-motion: reduce) {
+  .flt-scrim,
+  .flt-sheet,
+  .flt-wrap.closing .flt-scrim,
+  .flt-wrap.closing .flt-sheet { animation: none !important; }
 }

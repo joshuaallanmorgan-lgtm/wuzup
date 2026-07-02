@@ -234,10 +234,24 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
   // a real open slot — and stays disabled only when every slot is taken).
   const naturalPart = natural === 'any' ? 'morning' : natural
   const sel = selPart && !filled[selPart] ? selPart : !filled[naturalPart] ? naturalPart : PARTS.find((p) => !filled[p]) || null
+  // C5: symmetric close (the tn/wkb .closing mechanism) — play the slide-down
+  // (locations.css), then unmount + restore focus; instant under reduced motion.
+  const [planClosing, setPlanClosing] = useState(false)
+  const planTRef = useRef(null)
+  useEffect(() => () => clearTimeout(planTRef.current), [])
   const closePlan = () => {
-    setPlanning(false)
-    setSelPart(null)
-    planBtnRef.current?.focus() // WCAG 2.4.3: focus returns to the trigger
+    setPlanClosing(true)
+    clearTimeout(planTRef.current)
+    const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    planTRef.current = setTimeout(
+      () => {
+        setPlanning(false)
+        setPlanClosing(false)
+        setSelPart(null)
+        planBtnRef.current?.focus() // WCAG 2.4.3: focus returns to the trigger
+      },
+      reduced ? 0 : 240
+    )
   }
   const addToPlan = (part) => {
     if (curDay == null) return
@@ -519,7 +533,7 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
           shared .loc-plan-* sheet (PlaceDetail's bridge); a single-day event shows
           its day as a label, a multi-day/ongoing run shows a day picker. */}
       {planning && (
-        <div className="loc-plan-wrap">
+        <div className={'loc-plan-wrap' + (planClosing ? ' closing' : '')}>
           <button className="loc-scrim" onClick={closePlan} aria-label="Close" />
           <div className="loc-plan-sheet" role="dialog" aria-modal="true" aria-label="Add to a day" tabIndex={-1} ref={planSheetRef} onKeyDown={planTrap}>
             <div className="loc-sheet-head">

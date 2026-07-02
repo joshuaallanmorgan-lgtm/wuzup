@@ -122,6 +122,7 @@ export default function Primer({ onDone, onDeck, reentry = false }) {
   // set the moment {done, when} is persisted (first-open finish): from then
   // on every exit path hands THIS state back and writes nothing further
   const doneRef = useRef(null)
+  const dialogRef = useRef(null) // the modal container (focus-in + Tab-trap)
   const reduced = useMemo(() => prefersReduced(), [])
   useEffect(() => () => clearTimeout(tRef.current), [])
 
@@ -166,6 +167,29 @@ export default function Primer({ onDone, onDeck, reentry = false }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // focus-in: move focus into the dialog on open and on each step change (each step
+  // swaps its buttons); Tab is trapped by `trap` so focus can't leave the modal. No
+  // focus-return — the first-open flow has no launcher element to restore to.
+  useEffect(() => {
+    const first = dialogRef.current?.querySelector('button:not(:disabled)')
+    ;(first || dialogRef.current)?.focus()
+  }, [step])
+  // Tab-trap (mirrors the LensNav / DetailPage dialogs)
+  const trap = (ev) => {
+    if (ev.key !== 'Tab') return
+    const items = dialogRef.current?.querySelectorAll('button:not(:disabled)')
+    if (!items || !items.length) return
+    const first = items[0]
+    const last = items[items.length - 1]
+    if (ev.shiftKey && document.activeElement === first) {
+      ev.preventDefault()
+      last.focus()
+    } else if (!ev.shiftKey && document.activeElement === last) {
+      ev.preventDefault()
+      first.focus()
+    }
+  }
+
   const finish = (whenV) => {
     recordPrimer({ cats, freeLeaning: free === true })
     const s = { done: true, when: whenV, v: 1 }
@@ -201,7 +225,7 @@ export default function Primer({ onDone, onDeck, reentry = false }) {
   const hasMix = mixCats.length > 0 || free === true || !!whenChip
 
   return (
-    <div className={'primer' + (leaving ? ' primer-leaving' : '')} role="dialog" aria-modal="true" aria-label="Quick taste setup">
+    <div className={'primer' + (leaving ? ' primer-leaving' : '')} role="dialog" aria-modal="true" aria-label="Quick taste setup" ref={dialogRef} tabIndex={-1} onKeyDown={trap}>
       <div className="primer-bg" style={{ backgroundImage: `url(${CITY.hero})` }} />
       <div className="primer-scrim" />
       <div className="primer-body">

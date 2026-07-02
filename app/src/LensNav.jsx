@@ -16,7 +16,7 @@
 import { useEffect, useRef, useState } from 'react'
 import './topnav.css'
 
-export default function LensNav({ lenses = [], categories = [], menuLabel = 'All categories', navLabel = 'Browse', activeId = null, onOpen, onAdd, onSearch, onFilter }) {
+export default function LensNav({ lenses = [], categories = [], menuLabel = 'All categories', navLabel = 'Browse', activeId = null, onOpen, onAdd, onFilter }) {
   const [open, setOpen] = useState(false)
   const [closing, setClosing] = useState(false)
   const tRef = useRef(null)
@@ -84,7 +84,7 @@ export default function LensNav({ lenses = [], categories = [], menuLabel = 'All
   return (
     <>
       <nav className="lensbar" aria-label={navLabel}>
-        {(lenses.length > 0 || onSearch) && (
+        {lenses.length > 0 && (
           <div className="lens-row">
             {lenses.map((b) => (
               <button
@@ -96,13 +96,6 @@ export default function LensNav({ lenses = [], categories = [], menuLabel = 'All
                 {b.label}
               </button>
             ))}
-            {/* FB-07 → 3.7P-19: search is an ICON-ONLY pill to the RIGHT of the
-                lenses (incl. "Near me"), so the whole lens row fits one line. */}
-            {onSearch && (
-              <button className="lens-pill lens-search pressable" onClick={onSearch} aria-label="Search events" title="Search events">
-                <span aria-hidden>🔎</span>
-              </button>
-            )}
             {/* D8: the Map pill is parked for v1 — removed (frees a slot so the lens
                 row fits one line, D5). Place detail uses the Directions link instead. */}
             {/* D5: icon-only (like search) so the lens set fits one line without scroll */}

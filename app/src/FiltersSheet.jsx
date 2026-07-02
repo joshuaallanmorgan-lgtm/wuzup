@@ -15,7 +15,9 @@ const WHEN_BUBBLES = [TONIGHT_BUBBLE, TOMORROW_BUBBLE, WEEKEND_BUBBLE].filter(Bo
 const FREE_BUBBLE = BUBBLES.find((b) => b.id === 'free')
 
 export default function FiltersSheet() {
-  const { closePage, openBubble } = useNav()
+  // C5: pageClosing is nav's 400ms unmount window — riding it gives the sheet a
+  // symmetric slide-down/fade-out close (filters.css .closing) with no own timer
+  const { closePage, openBubble, pageClosing } = useNav()
   const [when, setWhen] = useState(null)
   const [price, setPrice] = useState(null)
   const [cat, setCat] = useState(null)
@@ -37,8 +39,17 @@ export default function FiltersSheet() {
     else closePage()
   }
 
+  // C5: the three chip-group sections were copy-paste blocks of one shape —
+  // render them from config instead. Same DOM: a Price pick toggles on
+  // b.id === 'free', exactly the old hardcoded literal.
+  const sections = [
+    { label: 'When', bubbles: WHEN_BUBBLES, value: when, set: setWhen },
+    { label: 'Price', bubbles: [FREE_BUBBLE], value: price, set: setPrice },
+    { label: 'Category', bubbles: CAT_BUBBLES, value: cat, set: setCat },
+  ]
+
   return (
-    <div className="flt-wrap" role="dialog" aria-modal="true" aria-label="Filter events">
+    <div className={'flt-wrap' + (pageClosing ? ' closing' : '')} role="dialog" aria-modal="true" aria-label="Filter events">
       <button className="flt-scrim" onClick={closePage} aria-label="Close filters" />
       <div className="flt-sheet">
         <div className="flt-head">
@@ -46,47 +57,22 @@ export default function FiltersSheet() {
           <button className="flt-close pressable" onClick={closePage} aria-label="Close">✕</button>
         </div>
 
-        <div className="flt-section">
-          <div className="flt-section-label">When</div>
-          <div className="flt-chips">
-            {WHEN_BUBBLES.map((b) => (
-              <button
-                key={b.id}
-                className={'flt-chip pressable' + (when === b.id ? ' flt-chip--on' : '')}
-                onClick={() => setWhen(when === b.id ? null : b.id)}
-              >
-                <span aria-hidden>{b.emoji}</span> {b.label}
-              </button>
-            ))}
+        {sections.map(({ label, bubbles, value, set }) => (
+          <div className="flt-section" key={label}>
+            <div className="flt-section-label">{label}</div>
+            <div className="flt-chips">
+              {bubbles.map((b) => (
+                <button
+                  key={b.id}
+                  className={'flt-chip pressable' + (value === b.id ? ' flt-chip--on' : '')}
+                  onClick={() => set(value === b.id ? null : b.id)}
+                >
+                  <span aria-hidden>{b.emoji}</span> {b.label}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-
-        <div className="flt-section">
-          <div className="flt-section-label">Price</div>
-          <div className="flt-chips">
-            <button
-              className={'flt-chip pressable' + (price === 'free' ? ' flt-chip--on' : '')}
-              onClick={() => setPrice(price === 'free' ? null : 'free')}
-            >
-              <span aria-hidden>{FREE_BUBBLE.emoji}</span> Free
-            </button>
-          </div>
-        </div>
-
-        <div className="flt-section">
-          <div className="flt-section-label">Category</div>
-          <div className="flt-chips">
-            {CAT_BUBBLES.map((b) => (
-              <button
-                key={b.id}
-                className={'flt-chip pressable' + (cat === b.id ? ' flt-chip--on' : '')}
-                onClick={() => setCat(cat === b.id ? null : b.id)}
-              >
-                <span aria-hidden>{b.emoji}</span> {b.label}
-              </button>
-            ))}
-          </div>
-        </div>
+        ))}
 
         <div className="flt-footer">
           <button className="flt-reset pressable" onClick={handleReset} disabled={!anySelected}>

@@ -80,8 +80,10 @@ One `.chip` — hairline warm pill, `11.5px/600` ink, `4×9` padding, `--r-pill`
 
 - `.chip-free` — sage tint (free badges)
 - `.chip-accent` — warm accent tint (e.g. detail "why this is here")
+- `.chip-lg` — the LARGER label pill (`6×11` padding, ink, nowrap) — shared geometry only; consumers keep their own fill/border/ink-size (Stage C C5)
+- `.chip-dark` — the deck-family chip on dark card surfaces (`3×9` white-on-glass, no hairline) — a sibling primitive, not `.chip` + overrides (Stage C C5)
 
-`.gem-chip`/`.featc-chip`/`.spot-amen` are aliases on the primitive. _Deferred migrations (different size/dark surface, not yet collapsed): `.dpg-chip`, `.loc-tag-chip`/`.loc-amen-chip` (→ a `.chip-lg`), `.deck-chip` (→ a `.chip-dark`)._ Interactive pills (`.flt-chip`, `.ie-chip`, `.primer-chip`, `.lens-pill`) are **controls, not label chips** — they stay distinct by design.
+`.gem-chip`/`.featc-chip`/`.spot-amen` are aliases on the primitive; `.loc-tag-chip`/`.loc-amen-chip` alias onto `.chip-lg`'s shared geometry (their fills/ink-sizes genuinely differ — 12.5/600 accent tint vs 13px bg-fill hairline — and stay per-class); the decks' amenity chip is `.chip-dark` outright (the old `.deck-chip` class is gone; its icon slot `.deck-chip-ic` stays in deck.css). _Still deferred, with reasons (C5 audit): `.dpg-chip` (11px ink, `2×9`, `--line` fill — matches no variant's rendered pixels; an alias would need more overrides than it saves), `.srch-recent-chip` (a structural run-button+✕ wrapper on `.srch-sug-btn`, not a label chip), `.detail-catchip` (already rides `.chip` as a hue-tint modifier)._ Interactive pills (`.flt-chip`, `.ie-chip`, `.primer-chip`, `.lens-pill`) are **controls, not label chips** — they stay distinct by design.
 
 ---
 

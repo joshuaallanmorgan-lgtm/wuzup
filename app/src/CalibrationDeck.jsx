@@ -16,8 +16,8 @@
 // stamps, buttons, dots and the finish beat render here unchanged. The card
 // index is DERIVED (idx ≡ into + nope — every commit increments exactly one
 // tally and SwipeDeck's idx in lockstep), so progress/counthead/top-card
-// reads are unchanged. pushFmnSeen moved to fmnseen.js (shared with LensDeck,
-// same FIFO/cap-40 write contract).
+// reads are unchanged. (C5: the fmn-seen write-mirror was deleted — FindMyNight
+// is long gone and nothing ever read the key; rejections leave no seen-residue.)
 //
 // THE SAMPLER + the CUMULATIVE re-deal WALK live in deckdeal.js now (pure +
 // Node-importable so the never-hide COVERAGE proof is testable). dealDeck is
@@ -30,11 +30,9 @@
 //
 // VERDICTS (each = exactly ONE taste signal, never two):
 //   right / ✓  "into it"    → recordCalibration('yes') (+3 category)
-//   left  / ✕  "not for me" → recordCalibration('no')  (−1, floor 0 — P4) and
-//              the key joins 'fmn-seen-v1' so Find My Night won't re-pitch
-//              what was JUST rejected. DELIBERATE ASYMMETRY: only 'no'
-//              verdicts push to fmn-seen — an "into it" SHOULD stay pitchable
-//              (de-prioritizing things the user liked would be self-defeat).
+//   left  / ✕  "not for me" → recordCalibration('no')  (−1, floor 0 — P4).
+//              Ordering only — nothing is ever hidden. (C5: the old fmn-seen
+//              push died with FindMyNight; only the last-deal FIFO persists.)
 //   up    / ♥  save         → toggleSave (the existing save seam records the
 //              +3, so a save is never double-counted); counts as "into it"
 //              in the tally. Already-saved card? recordCalibration('yes')
@@ -50,7 +48,6 @@ import { useMemo, useRef, useState } from 'react'
 import { categoryById } from './categories.js'
 import { Icon, dayLoose, keyOf, timeOf } from './lib.js'
 import { lsGet, lsSet } from './storage.js'
-import { pushFmnSeen } from './fmnseen.js'
 import { CardImg, PriceChip, SponsoredTag, placeTypeLabel, spotChips, hueFor, artEmoji } from './cards.jsx'
 import { useSaves } from './saves.js'
 import { usePlaces } from './places.js'
@@ -124,7 +121,7 @@ export function PlaceDeckFace({ e }) {
             {chips.map((c, i) => {
               const Glyph = Icon[c.icon]
               return (
-                <span className="deck-chip" key={i}>
+                <span className="chip-dark" key={i}>
                   {Glyph && <Glyph className="deck-chip-ic" aria-hidden />}
                   {c.label}
                 </span>
@@ -179,7 +176,6 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
   const rated = into + nope
   const verdictNo = (e) => {
     recordCalibration('no', e) // −1 category, floored at 0 (P4)
-    if (!isPlaces) pushFmnSeen(keyOf(e)) // rejections only; FMN is events-only (places never re-pitch there)
     pushLastDeal(kind, keyOf(e))
     setNope((n) => n + 1)
   }

@@ -1,4 +1,7 @@
 # PHASE 3.6 — The big premium pass (app-wide)
+
+> ⚠️ **SUPERSEDED — HISTORICAL (Gen 4 naming: Phase 3.6, N1–N5).** Shipped. Do not plan or execute from this doc.
+> Current master plan = [ROADMAP.md](ROADMAP.md) · full doc map = [INDEX.md](INDEX.md) · idea intake = [BACKLOG.md](BACKLOG.md). Retained for history only.
 _2026-06-15 · Josh ratified the W5/W8 proposal + raised the bar: 3.6 is its own large phase — a top-to-bottom premium pass on the WHOLE app, including a rethink of the top navigation. Branch: master-plan-2. Same contract: each workstream → build → adversarial review → hand-verify → npm test → live-verify → push. No fake data; never-hide holds._
 
 Supersedes the W5/W8 scope in [W5_W8_PROPOSAL.md](W5_W8_PROPOSAL.md) — that proposal is ratified and folds in here, expanded.

@@ -13,7 +13,7 @@
   background:
     radial-gradient(120% 55% at 10% -8%, hsla(var(--lh), 70%, 45%, 0.30), transparent 62%),
     radial-gradient(110% 60% at 110% 106%, hsla(var(--lh), 60%, 50%, 0.14), transparent 60%),
-    linear-gradient(168deg, #1c160f 0%, #1b1712 55%, #181109 100%);
+    var(--deck-bg); /* C5: the shared deck-family base layer (index.css) */
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -59,8 +59,9 @@
 .ldk-card {
   border-radius: var(--r-xl);
   border: 1px solid rgba(255, 255, 255, 0.10);
-  /* D6: warm gradient surface + inner top-sheen (shared look with the calibration deck) */
-  background: linear-gradient(168deg, #2b2118 0%, #221b14 58%, #1b1510 100%);
+  /* D6: warm gradient surface + inner top-sheen (shared look with the calibration
+     deck — C5: literally shared now, the stops live in --deck-card, index.css) */
+  background: var(--deck-card);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 /* D6: layered shadow on the top/exit card — tight contact + soft ambient + inner sheen */
@@ -91,7 +92,7 @@
 /* the keep stamp wears the heart's sanctioned --hot (I2 save-heart exception) */
 .ldk-stamp-keep { left: 14px; transform: rotate(-10deg); color: var(--hot); border-color: var(--hot); opacity: var(--like, 0); }
 .ldk-stamp-pass { right: 14px; transform: rotate(10deg); color: rgba(255, 255, 255, 0.85); border-color: rgba(255, 255, 255, 0.7); opacity: var(--nope, 0); }
-.ldk-stamp-open { left: 50%; top: auto; bottom: 18px; transform: translateX(-50%) rotate(-3deg); color: #ffb066; border-color: #ffb066; opacity: var(--keep, 0); }
+.ldk-stamp-open { left: 50%; top: auto; bottom: 18px; transform: translateX(-50%) rotate(-3deg); color: var(--accent-on-dark); border-color: var(--accent-on-dark); opacity: var(--keep, 0); }
 
 /* ===== always-visible button fallbacks (✕ pass · ↗ open · ♥ keep) ===== */
 .ldk-actions { display: flex; justify-content: center; gap: 20px; padding: 18px 0 4px; }
@@ -110,7 +111,7 @@
   justify-content: center;
 }
 .ldk-btn-pass { color: rgba(255, 255, 255, 0.75); }
-.ldk-btn-open { color: #ffb066; border-color: rgba(255, 176, 102, 0.45); }
+.ldk-btn-open { color: var(--accent-on-dark); border-color: rgba(var(--accent-on-dark-rgb), 0.45); }
 /* the heart button is the save affordance — the sanctioned --hot heart */
 .ldk-btn-keep { color: var(--hot); border-color: rgba(var(--hot-rgb), 0.45); }
 .ldk-btn-keep.is-saved { background: rgba(var(--hot-rgb), 0.18); }
@@ -155,7 +156,7 @@
   font-weight: 700;
   letter-spacing: 0;
   text-transform: none;
-  color: var(--accent);
+  color: var(--accent-ink-strong); /* C3 a11y: was --accent (2.07:1). Text sits on the 8% accent PILL FILL, not bare cream — #a54d12 (a hair deeper than --accent-ink) clears AA 4.5:1 on that composited fill over --bg (4.84:1); --accent-ink alone was 4.48:1 there */
   cursor: pointer;
   white-space: nowrap;
 }

@@ -7,7 +7,7 @@
 // 3.7P-8 (FB-10) retired the Weekend Builder VIEW and dropped weekend history.
 // What remains here is the SHARED cast still used across the live app:
 //   · daypartOf / fitsDay / fitsSlot / pickerModel / whyFits / wxMood
-//     — used by DayPage, PickerSheet, AddEvent, DayFillDeck, CalendarView, guides;
+//     — used by DayPage, PickerSheet, AddEvent, CalendarView, guides;
 //   · PLAN_KEY / planFor / DAY_IDS / SLOT_IDS / weekendDays / emptyPlan
 //     — the one-shot 'weekend-plan-v1' → 'day-plans-v1' migration's support cast
 //       (dayplan.migrateWeekendPlan is the ONLY remaining reader of PLAN_KEY).
@@ -71,7 +71,7 @@ const PART_ORDER = DAYPARTS.map((d) => d.id)
 // remaining parts in canonical order — so a one-tap add lands in the right slot
 // and only falls back when that slot is taken (never clobbers). 'any' (places /
 // date-only) → morning-first, the day's start (matching the picker default).
-// Shared by every daypart-routing writer (AddEvent / DayFillDeck) so they can't
+// Shared by every daypart-routing writer (AddEvent) so they can't
 // drift apart.
 export function fillOrder(e) {
   const p = daypartOf(e)

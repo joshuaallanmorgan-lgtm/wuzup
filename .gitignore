@@ -11,3 +11,6 @@ finder/cache/mapillary-crops/
 # Phase A/B run reports (point-in-time review artifacts, not shipped system)
 finder/cache/phase*-mapillary-report.md
 finder/cache/phaseB-tierB-review.md
+# reference/_* = derived measurement crops of the reference sheets (Stage A2 spacing
+# extraction etc.) — regenerable by cropping the committed sheets; keep untracked
+reference/_*

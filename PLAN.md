@@ -1,4 +1,7 @@
 # Sprint Plan — "Everything Catches Up to the Data"
+
+> ⚠️ **SUPERSEDED — HISTORICAL (Gen 1 naming: Sprints A–F).** Do not plan or execute from this doc.
+> Current master plan = [ROADMAP.md](ROADMAP.md) · full doc map = [INDEX.md](INDEX.md) · idea intake = [BACKLOG.md](BACKLOG.md). Retained for history only.
 _v1 · 2026-06-10 · drafted solo-Josh day 3. Audit-patched, then executed._
 
 ## ✅ EXECUTION STATUS (end of day 3, all adversarially reviewed + live-verified)

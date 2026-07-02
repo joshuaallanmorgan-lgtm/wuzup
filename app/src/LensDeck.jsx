@@ -15,10 +15,9 @@
 //              no recordSignal here, ever). An ALREADY-saved card stays saved
 //              (no toggle → no un-save, no second signal) and still counts
 //              as kept in the tally.
-//   left  / ✕  pass  → recordCalibration('no') (−1 category, floored at 0)
-//              AND pushFmnSeen (fmnseen.js — the shared FIFO/cap-40 mirror of
-//              FindMyNight's contract) so FMN rerolls respect the rejection.
-//              A pass affects ORDERING ONLY — nothing is ever hidden.
+//   left  / ✕  pass  → recordCalibration('no') (−1 category, floored at 0).
+//              A pass affects ORDERING ONLY — nothing is ever hidden. (C5:
+//              the fmn-seen write-mirror was deleted with FindMyNight.)
 //   up    / ↗  open  → openDetail (nav.jsx's seam records the 'open' +1 and
 //              the recents view). PEEK semantics: the card stays in the deck
 //              (SwipeDeck upMode="peek") — looking closer must not cost the
@@ -41,7 +40,6 @@ import { Icon, dayLabel, keyOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { useSaves } from './saves.js'
 import { recordCalibration, tasteNudge } from './taste.js'
-import { pushFmnSeen } from './fmnseen.js'
 import { dealLens, lensIdOf } from './lensdeal.js'
 import SwipeDeck from './SwipeDeck.jsx'
 import { DeckFace } from './CalibrationDeck.jsx'
@@ -103,7 +101,6 @@ export default function LensDeck({ lens, events, anchors }) {
   }
   const passIt = (e) => {
     recordCalibration('no', e) // −1 category, floored at 0 — ordering only
-    pushFmnSeen(keyOf(e)) // FMN rerolls respect the pass
     setPassed((n) => n + 1)
   }
   const openIt = (e) => openDetail(e) // nav's seam records the open + recents

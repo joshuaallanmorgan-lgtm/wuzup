@@ -13,7 +13,7 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--r-circle);
-  background: rgba(21, 23, 28, 0.42);
+  background: rgba(var(--ink-rgb), 0.42);
   backdrop-filter: blur(4px);
   color: #fff;
   font-size: 15px;
@@ -70,7 +70,7 @@
   font-size: 19px;
   top: calc(16px + env(safe-area-inset-top));
   right: 16px;
-  background: rgba(21, 23, 28, 0.5);
+  background: rgba(var(--ink-rgb), 0.5);
 }
 .detail-hero .save-btn ~ .heat-badge { right: 64px; } /* 16 + 38 + 10 gap */
 
@@ -100,27 +100,12 @@
   letter-spacing: 0.2px;
   padding: 4px 8px;
   border-radius: var(--r-pill);
-  background: rgba(21, 23, 28, 0.72);
+  background: rgba(var(--ink-rgb), 0.72);
   color: #fff;
   pointer-events: none;
 }
 
-/* (W2: the Calendar's saved-event dots — both the month-cell .mcell .save-dot
-   and the date-rail .date-pill .save-dot — were a SUPPLY signal (which days
-   hold a saved event). They were removed when the Calendar became the personal
-   logbook: it now shows only YOUR shape per day (plans / rest / did-days), not
-   what supply is saved. Those orphaned rules are gone with the plumbing.) */
-
-/* agenda day-list rows (compact .card): filled stroke-heart marker for saved
-   events (A5: the engineered Icon.heartFill, off the raw ♥ glyph) */
-.card-heart {
-  flex: 0 0 auto;
-  align-self: center;
-  width: 16px;
-  height: 16px;
-  color: var(--hot);
-  margin: 0 -2px; /* the card's 14px gaps supply the breathing room */
-}
+/* (.card-heart died in C5 with the compact agenda .card family — no JSX renderer) */
 
 @media (prefers-reduced-motion: reduce) {
   .save-ic.pop { animation: none !important; }

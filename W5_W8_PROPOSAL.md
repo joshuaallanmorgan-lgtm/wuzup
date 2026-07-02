@@ -1,4 +1,7 @@
 # W5 + W8 — the capstone proposal (premium · Settings · onboarding)
+
+> ⚠️ **SUPERSEDED — HISTORICAL (Gen 4 satellite: ratified into Phase 3.6).** Decisions made; work shipped. Do not execute from this doc.
+> Current master plan = [ROADMAP.md](ROADMAP.md) · full doc map = [INDEX.md](INDEX.md) · idea intake = [BACKLOG.md](BACKLOG.md). Retained for history only.
 _2026-06-15 · for Josh + Charles to react to. Scouted (workflow whhz90thg) against the real code; every example is a real string at a real file:line._
 
 **How to use this doc:** this is a *proposal*, not a plan-of-record. Strike, rewrite, or redirect anything. The **⚑ DECISIONS** blocks are the choices I need from you two before I build. Copy rewrites are **DRAFT starting points** — Charles owns the final voice; they're here so there's something concrete to react to rather than a blank page.

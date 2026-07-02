@@ -191,7 +191,7 @@
   font-size: 14px;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(187, 87, 25, 0.28);
+  box-shadow: 0 2px 8px rgba(var(--cta-rgb), 0.28);
 }
 
 /* PREMIUM A4 (depth#11): the shared PRIMARY-BUTTON recipe — promote the .featc-add
@@ -658,7 +658,7 @@
   max-width: min(436px, calc(100vw - 24px));
   padding: 7px 4px 7px 14px;
   border-radius: var(--r-pill);
-  background: rgba(21, 23, 28, 0.82);
+  background: rgba(var(--ink-rgb), 0.82);
   color: #fff;
   font-size: 12px;
   font-weight: 600;
@@ -670,7 +670,7 @@
   flex: none;
   border: none;
   background: none;
-  color: #aab0ba;
+  color: #a89e92; /* C4: warm gray, matches the A1 tab fix (was cold #aab0ba slate) */
   font: inherit;
   font-weight: 800;
   padding: 2px 10px;

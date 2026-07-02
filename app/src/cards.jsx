@@ -268,26 +268,6 @@ export function CardImg({ e, className = '', children }) {
   )
 }
 
-// compact event card (64px thumb, saved events show their ♥). NOTE: currently
-// unrendered — the day agenda moved to DayPage; kept as a compact card variant.
-export function EventCard({ e, onSelect, index = 0 }) {
-  const { has } = useSaves()
-  const meta = [startLabel(e), e.venue].filter(Boolean).join(' · ')
-  return (
-    <button className="card" style={{ animationDelay: Math.min(index, 12) * 22 + 'ms' }} onClick={(ev) => onSelect(e, ev.currentTarget)}>
-      <CardImg e={e} className="card-thumb" />
-      <div className="card-main">
-        <div className="card-title">{e.title}</div>
-        <div className={'card-meta' + startedCls(meta)}>{meta || 'Tap for details'}</div>
-        <SponsoredTag e={e} />
-      </div>
-      {has(e) && <Icon.heartFill className="card-heart" aria-hidden />}
-      <HeatBadge e={e} />
-      <PriceChip e={e} />
-    </button>
-  )
-}
-
 export function SecHead({ overline, title, sub, onSeeAll }) {
   return (
     <div className="sec-head">
@@ -475,19 +455,27 @@ export function GemRow({ e, onSelect }) {
   )
 }
 
-export function FreeCard({ e, onSelect }) {
+// NbhdCard — the "Neighborhood Picks" 2-up tile (EVENTS_GRIND; C5: promoted 1:1
+// from HotView's inline map body — markup/classes unchanged, pure move). Expects
+// e._area, the parsed neighborhood label (HotView only renders the section when
+// the areas were confidently readable — the honesty guard lives at the call site).
+export function NbhdCard({ e, onSelect }) {
+  const chips = featuredChips(e)
   return (
-    <button className="fcard pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
-      <span className="fcard-imgwrap">
-        <CardImg e={e} className="fcard-img">
-          <SaveHeart e={e} />
-          <HeatBadge e={e} />
-        </CardImg>
-        <span className="free-badge">FREE</span>
-      </span>
-      <div className="fcard-title">{e.title}</div>
-      <div className="fcard-meta">{dayLoose(e) || ''}</div>
-      <SponsoredTag e={e} />
+    <button className="nbhd-card pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
+      <CardImg e={e} className="nbhd-img">
+        <SaveHeart e={e} />
+      </CardImg>
+      <div className="nbhd-area">📍 {e._area}</div>
+      <div className="nbhd-title">{e.title}</div>
+      <div className="nbhd-meta">{[dayLoose(e), e.venue].filter(Boolean).join(' · ')}</div>
+      {chips.length > 0 && (
+        <div className="nbhd-chips">
+          {chips.map((c, i) => (
+            <span className="gem-chip" key={i}>{c}</span>
+          ))}
+        </div>
+      )}
     </button>
   )
 }
@@ -643,15 +631,6 @@ export function IntentTile({ emoji, label, pov, hue, onClick }) {
       </span>
       <span className="intent-tile-label">{label}</span>
       {pov && <span className="intent-tile-pov">{pov}</span>}
-    </button>
-  )
-}
-
-// dashed "See all →" end-cap for carousels (square variant for the 160px free cards)
-export function EndCap({ square, onClick, children = 'See all →' }) {
-  return (
-    <button className={'endcap pressable' + (square ? ' endcap-sq' : '')} onClick={onClick}>
-      {children}
     </button>
   )
 }

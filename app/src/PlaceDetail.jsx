@@ -233,10 +233,24 @@ export default function PlaceDetail({ e, anchors, wx }) {
   // the effective selected daypart: the user's pick when free, else morning (the
   // 'any' default), else the first free slot
   const sel = selPart && !filled[selPart] ? selPart : !filled.morning ? 'morning' : PARTS.find((p) => !filled[p]) || null
+  // C5: symmetric close (the tn/wkb .closing mechanism) — play the slide-down
+  // (locations.css), then unmount + restore focus; instant under reduced motion.
+  const [planClosing, setPlanClosing] = useState(false)
+  const planTRef = useRef(null)
+  useEffect(() => () => clearTimeout(planTRef.current), [])
   const closePlanning = () => {
-    setPlanning(false)
-    setSelPart(null)
-    planCtaRef.current?.focus() // WCAG 2.4.3: focus returns to the trigger
+    setPlanClosing(true)
+    clearTimeout(planTRef.current)
+    const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    planTRef.current = setTimeout(
+      () => {
+        setPlanning(false)
+        setPlanClosing(false)
+        setSelPart(null)
+        planCtaRef.current?.focus() // WCAG 2.4.3: focus returns to the trigger
+      },
+      reduced ? 0 : 240
+    )
   }
 
   const addToPlan = (part) => {
@@ -479,7 +493,7 @@ export default function PlaceDetail({ e, anchors, wx }) {
 
       {/* Make-this-my-plan sheet */}
       {planning && (
-        <div className="loc-plan-wrap">
+        <div className={'loc-plan-wrap' + (planClosing ? ' closing' : '')}>
           <button className="loc-scrim" onClick={closePlanning} aria-label="Close" />
           <div className="loc-plan-sheet" role="dialog" aria-modal="true" aria-label="Add to a day" tabIndex={-1} ref={planSheetRef} onKeyDown={planTrap}>
             <div className="loc-sheet-head">
