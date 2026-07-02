@@ -576,6 +576,39 @@ function pickFirst(members, key) {
   return null;
 }
 
+// ===================== image source ranking (WS1 fix 2) =====================
+// pickFirst(members,'image') = insertion order, and AllEvents loads before the
+// official sources — its auto-generated banner CDN beat official CVB artwork
+// on 14 merged events (Marlon Wayans wore an allevents banner over Visit
+// Tampa Bay's real poster). Rank by host: official/organizer CDNs (CVB sites,
+// simpleview asset CDN, Eventbrite organizer uploads, library/gov hosts) >
+// anything else > *.allevents.in banners. A cluster with ANY non-allevents
+// image never ships the allevents one (rank 0 loses every comparison).
+const IMG_AGGREGATOR_HOST_RE = /(?:^|\.)allevents\.in$/i;
+const IMG_OFFICIAL_HOST_RE = /(?:^|\.)(?:visitstpeteclearwater\.com|simpleviewinc\.com|visittampabay\.com|evbuc\.com|eventbrite\.com|libnet\.info|ilovetheburg\.com|wmnf\.org|cltampa\.com)$|\.gov$/i;
+
+function imageRank(url) {
+  if (!url) return -1;
+  let host = '';
+  try { host = new URL(url).hostname.toLowerCase(); } catch { return 0; }
+  if (IMG_AGGREGATOR_HOST_RE.test(host)) return 0;
+  if (IMG_OFFICIAL_HOST_RE.test(host)) return 2;
+  return 1;
+}
+
+// Highest-ranked image in the cluster; insertion order breaks ties (so the
+// pre-ranking behavior is preserved whenever no aggregator banner competes).
+function pickImage(members) {
+  let best = null;
+  let bestRank = -1;
+  for (const m of members) {
+    if (m.image == null) continue;
+    const r = imageRank(m.image);
+    if (r > bestRank) { best = m.image; bestRank = r; }
+  }
+  return best;
+}
+
 // Merge a cluster of duplicate listings into one record, keeping the richest
 // value for every field. sources[] keeps every detailed listing name; buzz
 // counts distinct source FAMILIES (real cross-publisher consensus).
@@ -645,7 +678,7 @@ function mergeCluster(members) {
     lat,
     lng,
     url: pickFirst(members, 'url'),
-    image: pickFirst(members, 'image'),
+    image: pickImage(members),
     description,
     source: sources[0] || null,   // primary source (v1 back-compat)
     sources,                      // every source that listed it (detailed names)
@@ -822,7 +855,10 @@ export function dedupeOngoingOccurrences(events) {
       t.sources = [...new Set([...(t.sources || []), ...(e.sources || [])])];
       t.buzz = [...new Set(t.sources.map(familyOf).filter(Boolean))].length;
       for (const f of eFams) o.fams.add(f);
-      if (!t.image && e.image) t.image = e.image;
+      // adopt the occurrence's image when the run has none OR the occurrence's
+      // is better-ranked (never keep an aggregator banner over real artwork —
+      // both are real member images, so this stays within the honesty contract)
+      if (e.image && imageRank(e.image) > imageRank(t.image)) t.image = e.image;
       if (!t.url && e.url) t.url = e.url;
       if (e.description && (!t.description || e.description.length > t.description.length)) {
         t.description = e.description;
@@ -889,7 +925,9 @@ export function dedupeBareEchoes(events) {
       const t = r.e;
       t.sources = [...new Set([...(t.sources || []), ...(e.sources || [])])];
       t.buzz = [...new Set(t.sources.map(familyOf).filter(Boolean))].length;
-      if (!t.image && e.image) t.image = e.image;
+      // same ranked adoption as the exhibit fold: fill, or upgrade an
+      // aggregator banner with the echo's better-ranked real image
+      if (e.image && imageRank(e.image) > imageRank(t.image)) t.image = e.image;
       if (!t.url && e.url) t.url = e.url;
       if (typeof e.price === 'number' && !isNaN(e.price) && (t.price === null || e.price < t.price)) {
         t.price = e.price;
