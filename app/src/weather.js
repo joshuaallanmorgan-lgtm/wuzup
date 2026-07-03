@@ -1,20 +1,40 @@
-// weather.js — Open-Meteo 16-day daily forecast for Tampa Bay (free, no key).
+// weather.js — Open-Meteo 16-day daily forecast for the active city (free, no key).
 // getForecast() resolves to { 'YYYY-MM-DD': { emoji, hi, lo, rain } } or null.
 //   emoji: WMO weather_code mapped to a condition emoji
 //   hi:    daily max temperature, converted to °F (API returns °C), rounded
 //   lo:    daily min temperature, °F (TOUCHUP P2 — additive; older callers ignore it)
 //   rain:  precipitation_probability_max (0–100) or null
-// Cached in localStorage ('wx-tampa-v1', 6h TTL); on fetch failure serves stale
-// cache or null so the UI degrades gracefully to "no weather".
+// Cached in localStorage ('wx-<cityId>-v1', 6h TTL); on fetch failure serves
+// stale cache or null so the UI degrades gracefully to "no weather".
 
-import { lsGet, lsSet } from './storage.js'
+import { lsGet, lsSet, lsRemove } from './storage.js'
 import { CITY, Icon } from './lib.js'
 
+// query location + timezone come from the city config (D4) — for Tampa the URL
+// is byte-identical to the old hardcoded one (America/New_York encodes the same).
 const WX_URL =
-  `https://api.open-meteo.com/v1/forecast?latitude=${CITY.center.lat}&longitude=${CITY.center.lng}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FNew_York&forecast_days=16`
-const CACHE_KEY = 'wx-tampa-v1' // stored as twh:wx-tampa-v1 via storage.js
+  `https://api.open-meteo.com/v1/forecast?latitude=${CITY.center.lat}&longitude=${CITY.center.lng}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=${encodeURIComponent(CITY.tz)}&forecast_days=16`
+const CACHE_KEY = `wx-${CITY.id}-v1` // stored as twh:wx-<cityId>-v1 via storage.js
 const TTL = 6 * 60 * 60 * 1000 // 6h
 const FETCH_TIMEOUT = 10000 // 10s
+
+// D4 one-shot key migration: the cache lived under 'wx-tampa-v1' before the key
+// was city-parameterized ('wx-tampa-bay-v1' for the reference city). Same
+// pattern as storage.js's prefix migration (which has already module-evaluated —
+// we import it): copy old → new only when the new key is absent (an
+// already-migrated value never gets clobbered), then remove the old key.
+// Idempotent; a fresh install finds nothing and no-ops. Chained migrations
+// still work: an ancient unprefixed 'wx-tampa-v1' first becomes
+// 'twh:wx-tampa-v1' in storage.js (it stays on that LEGACY_KEYS list), then
+// lands here. Cache payload shape + TTL are unchanged — only the key moved.
+const LEGACY_WX_KEY = 'wx-tampa-v1'
+if (CACHE_KEY !== LEGACY_WX_KEY) {
+  const old = lsGet(LEGACY_WX_KEY)
+  if (old !== null) {
+    if (lsGet(CACHE_KEY) === null) lsSet(CACHE_KEY, old)
+    lsRemove(LEGACY_WX_KEY)
+  }
+}
 
 // WMO weather_code → emoji (unknown codes → null, day simply shows no weather)
 export function wmoEmoji(code) {

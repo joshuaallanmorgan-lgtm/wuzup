@@ -5,14 +5,14 @@
 // No hourly strip — the forecast feed is daily-only, and we never fabricate data.
 // No forecast at all = honest empty state.
 import { useMemo } from 'react'
-import { CITY, Icon } from './lib.js'
+import { CITY, fmtLocale, Icon } from './lib.js'
 import { useNav } from './nav.jsx'
 import { CONDITION, dateKey } from './weather.js'
 import './forecast.css'
 
 const DAY_MS = 86400000
 const fmtDate = (ts) =>
-  new Date(ts).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
+  new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'long', month: 'short', day: 'numeric' })
 
 // outdoor-friendliness rank per condition emoji (higher = better day to be outside)
 const OUTDOOR_RANK = { '☀️': 6, '⛅': 5, '☁️': 4, '🌫️': 3, '🌦️': 2, '🌧️': 1, '❄️': 1, '⛈️': 0 }

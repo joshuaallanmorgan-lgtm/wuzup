@@ -26,7 +26,7 @@
 // the day screen); WB stays reachable from Profile. ALL NEW COPY IS DRAFT for
 // Charles (inventory in the sprint report).
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { keyOf } from './lib.js'
+import { fmtLocale, keyOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { useBeenThere } from './saves.js'
 import { fitsDay, DAYPART } from './weekend.js'
@@ -102,7 +102,7 @@ export default function CalendarView({ events, anchors, wx }) {
   const month = new Date(base.getFullYear(), base.getMonth() + monthOff, 1)
   const monthStartTs = month.getTime()
   const nextMonthStartTs = new Date(month.getFullYear(), month.getMonth() + 1, 1).getTime()
-  const monthName = month.toLocaleDateString('en-US', { month: 'long' })
+  const monthName = month.toLocaleDateString(fmtLocale, { month: 'long' })
 
   // FB-13 (3.7P-3): the calm this-month rhythm strip — a few glanceable FACTS
   // from existing data only. NO streak, NO counting-up juice (that's 3.7P-4); each
@@ -163,7 +163,7 @@ export default function CalendarView({ events, anchors, wx }) {
   }, [events, placeList])
 
   // ===== the month canvas =====
-  const monthTitle = month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  const monthTitle = month.toLocaleDateString(fmtLocale, { month: 'long', year: 'numeric' })
   // R-C2: the picker offers this month + the next 12 (future-only, matching the
   // prev/next clamp) so a selection can never push monthOff out of grid range.
   const monthOptions = useMemo(() => {
@@ -171,7 +171,7 @@ export default function CalendarView({ events, anchors, wx }) {
     const out = []
     for (let o = 0; o <= 12; o++) {
       const m = new Date(b.getFullYear(), b.getMonth() + o, 1)
-      out.push({ off: o, label: m.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) })
+      out.push({ off: o, label: m.toLocaleDateString(fmtLocale, { month: 'long', year: 'numeric' }) })
     }
     return out
   }, [anchors.todayTs])
@@ -218,7 +218,7 @@ export default function CalendarView({ events, anchors, wx }) {
   const selRest = restDays.has(sel)
   const selWent = dids.has(sel)
   const selPast = sel < anchors.todayTs
-  const selTitle = new Date(sel).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+  const selTitle = new Date(sel).toLocaleDateString(fmtLocale, { weekday: 'long', month: 'long', day: 'numeric' })
 
   // ===== 3.7P-17: the inline day panel (selected day → bottom panel) =====
   // resolve a slot key → live event/place (a place fits any day; a date-gated

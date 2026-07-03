@@ -31,6 +31,9 @@ const LEGACY_KEYS = [
   'weekend-history-v1',
   'been-there-v1',
   'fmn-seen-v1',
+  // stays listed even though the wx key is city-parameterized now (D4): an
+  // ancient unprefixed cache first becomes twh:wx-tampa-v1 here, then
+  // weather.js's own one-shot migration renames it to twh:wx-<cityId>-v1.
   'wx-tampa-v1',
 ]
 

@@ -11,6 +11,7 @@
 // Places are a SECOND lazy store (usePlaces): /places.json fetches on first mount
 // of this tab, never at boot, never merged into the events feed. DRAFT copy ⚑ Charles.
 import { useMemo, useRef } from 'react'
+import { fmtLocale } from './lib.js'
 import { useNav } from './nav.jsx'
 import { SecHead, SpotCard, IntentTile, RowFeed, SkeletonRow, photoFirst } from './cards.jsx'
 import { GUIDES } from './guides.js'
@@ -295,7 +296,7 @@ export default function LocationsView({ coords }) {
 
         <section className="sec sec-ev" ref={evRef}>
           <SecHead
-            title={<>Everything <span className="sec-count">· {all.length.toLocaleString('en-US')}</span></>}
+            title={<>Everything <span className="sec-count">· {all.length.toLocaleString(fmtLocale)}</span></>}
             sub="Every place, by your vibe"
           />
           {/* CARD_LOCK: the place list now renders the canonical SpotCard rows

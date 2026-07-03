@@ -6,12 +6,12 @@
 // planning the past, the Calendar rule). The grid math mirrors CalendarView's.
 // ALL COPY IS DRAFT for Charles.
 import { useMemo, useState } from 'react'
-import { Icon } from './lib.js'
+import { fmtLocale, Icon } from './lib.js'
 import { useNav } from './nav.jsx'
 import './calpicker.css'
 
-const wdShort = (ts) => new Date(ts).toLocaleDateString('en-US', { weekday: 'short' })
-const monthDayOf = (ts) => new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+const wdShort = (ts) => new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'short' })
+const monthDayOf = (ts) => new Date(ts).toLocaleDateString(fmtLocale, { month: 'short', day: 'numeric' })
 const DOW = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
 // a small calendar glyph for the quick-list rows (matches the day-selector icon)
@@ -51,7 +51,7 @@ export default function CalendarPickerPage({ ts, anchors }) {
     for (let d = 1; d <= daysInMonth; d++) out.push(new Date(month.getFullYear(), month.getMonth(), d).getTime())
     return out
   }, [month])
-  const monthLabel = month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  const monthLabel = month.toLocaleDateString(fmtLocale, { month: 'long', year: 'numeric' })
 
   const pick = (t) => {
     if (t >= anchors.todayTs) openDay(t) // openDay replaces this page (single-slot union)

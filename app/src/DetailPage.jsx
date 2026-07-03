@@ -10,7 +10,7 @@
 // a rail swap remounts and scroll resets.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNav } from './nav.jsx'
-import { DAY, dayKey, hotDesc, Icon, keyOf, parseDate, priceLabel, timeOf } from './lib.js'
+import { DAY, dayKey, fmtLocale, hotDesc, Icon, keyOf, parseDate, priceLabel, timeOf } from './lib.js'
 import { eventIcs } from './share.js'
 import { CATEGORY_EMOJI, HeatBadge, SecHead, TonightCard, auroraStyle, hueFor } from './cards.jsx'
 import { SaveHeart, useSaves } from './saves.js'
@@ -36,7 +36,7 @@ function timeRange(start, end) {
 
 // short "Fri, Jun 12" for ranges (long-form dayKey stays on single days)
 const fmtShort = (ts) =>
-  new Date(ts).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+  new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'short', month: 'short', day: 'numeric' })
 
 // 3.7P-34 — the days an event can be planned onto: each day of its run that is
 // today-or-later, capped at two weeks. A single-day event yields exactly its own
@@ -55,7 +55,7 @@ function eventPlanDays(e, anchors) {
   for (let i = 0; i < 14; i++) {
     const ts = new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() + i).getTime()
     if (ts > end) break
-    out.push({ ts, label: ts === anchors.todayTs ? 'Today' : ts === anchors.tomorrowTs ? 'Tomorrow' : new Date(ts).toLocaleDateString('en-US', { weekday: 'long' }) })
+    out.push({ ts, label: ts === anchors.todayTs ? 'Today' : ts === anchors.tomorrowTs ? 'Tomorrow' : new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'long' }) })
   }
   return out
 }

@@ -8,7 +8,9 @@
          The Google Fonts link + preconnects were removed in Stage C4.5 (render-blocking,
          third-party dep; Josh ruling 2026-07-01 #1). -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>Wuzup · Tampa Bay</title>
+    <!-- %CITY_NAME% is replaced at build/dev time from app/src/city.js (the
+         cityTitle plugin in vite.config.js) — one source of truth, D4. -->
+    <title>Wuzup · %CITY_NAME%</title>
   </head>
   <body>
     <div id="root"></div>

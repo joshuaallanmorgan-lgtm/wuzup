@@ -15,7 +15,7 @@
 //
 // ALL COPY IS DRAFT for Charles (inventory in the sprint report).
 import { useMemo, useState } from 'react'
-import { CITY, Icon, sourceFamily } from './lib.js'
+import { CITY, fmtLocale, Icon, sourceFamily } from './lib.js'
 import { useNav } from './nav.jsx'
 import { lsRemove } from './storage.js'
 import { resetTaste } from './taste.js'
@@ -28,9 +28,9 @@ import './settings.css'
 const fmtUpdated = (ms) => {
   const day =
     Date.now() - ms <= 6 * 24 * 3600 * 1000
-      ? new Date(ms).toLocaleDateString('en-US', { weekday: 'long' })
-      : new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-  const time = new Date(ms).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+      ? new Date(ms).toLocaleDateString(fmtLocale, { weekday: 'long' })
+      : new Date(ms).toLocaleDateString(fmtLocale, { month: 'short', day: 'numeric' })
+  const time = new Date(ms).toLocaleTimeString(fmtLocale, { hour: 'numeric', minute: '2-digit' })
   return `${day} · ${time}`
 }
 
