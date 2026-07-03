@@ -135,8 +135,8 @@
   color: var(--accent-ink);
 }
 .pf-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.pf-row-label { font-size: 15px; font-weight: 700; letter-spacing: -0.2px; color: var(--ink); }
-.pf-row-desc { font-size: 12.5px; font-weight: 500; color: var(--muted); line-height: 1.3; }
+.pf-row-label { font-size: var(--t-body); font-weight: 700; letter-spacing: -0.2px; color: var(--ink); }
+.pf-row-desc { font-size: var(--t-meta); font-weight: 500; color: var(--muted); line-height: 1.3; }
 .pf-row-go { flex: 0 0 auto; display: flex; color: var(--muted); }
 .pf-row-go svg { display: block; }
 
@@ -175,7 +175,7 @@
   padding: 22px 18px;
   border: 1.5px dashed var(--line);
   border-radius: var(--r-lg);
-  font-size: 13.5px;
+  font-size: var(--t-meta);
   font-weight: 500;
   color: var(--muted);
   line-height: 1.55;
@@ -190,7 +190,7 @@
    plans subpage (the rest of the old .pf-hist* weekend-history card is swept). ===== */
 .pf-hist-label {
   margin: 18px 20px 8px;
-  font-size: 11px;
+  font-size: var(--eyebrow-size);
   font-weight: 800;
   letter-spacing: 0.2px;
   color: var(--muted);
@@ -207,11 +207,11 @@
   border-radius: var(--r-md);
   background: var(--card);
 }
-.pf-dayh-date { flex: 0 0 auto; font-size: 12px; font-weight: 700; color: var(--muted); }
+.pf-dayh-date { flex: 0 0 auto; font-size: var(--t-meta-sm); font-weight: 700; color: var(--muted); }
 .pf-dayh-what {
   flex: 1;
   min-width: 0;
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
@@ -222,7 +222,7 @@
 .pf-dayh-went { border-color: rgba(var(--accent-rgb), 0.35); }
 .pf-dayh-went-tag {
   flex: 0 0 auto;
-  font-size: 11px;
+  font-size: var(--t-micro);
   font-weight: 800;
   color: var(--accent-ink);
   letter-spacing: -0.1px;
@@ -243,15 +243,15 @@
 /* a calm factual line (breadth-framed), never a score; hidden entirely at 0 */
 .pf-ledger-line {
   margin: 0 20px 12px;
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 600;
   color: var(--muted);
 }
 /* 3.7P-4: the longer-arc rhythm line — a calm record beside the ledger; the count
    reads in ink (the flame is the only warmth), never a violet badge. */
-.pf-rhythm { margin: 0 20px 12px; font-size: 13px; font-weight: 700; color: var(--ink); }
+.pf-rhythm { margin: 0 20px 12px; font-size: var(--t-meta); font-weight: 700; color: var(--ink); }
 /* 3.76b: Plans → Reality — this month's plans vs follow-through (no score/guilt) */
-.pf-reality { margin: 2px 20px 12px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.pf-reality { margin: 2px 20px 12px; font-size: var(--t-meta); font-weight: 600; color: var(--muted); }
 .pf-reality-n { color: var(--ink); font-weight: 800; }
 .pf-reality-went { color: var(--accent-ink); }
 /* variety firsts: a small fixed set of breadth stamps, never a volume tracker */
@@ -262,7 +262,7 @@
   gap: 5px;
   padding: 6px 11px;
   border-radius: var(--r-pill);
-  font-size: 12px;
+  font-size: var(--t-meta-sm);
   font-weight: 700;
   color: var(--accent-ink);
   background: rgba(var(--accent-rgb), 0.08);
@@ -278,13 +278,13 @@
   background: var(--card);
 }
 .pf-ask-q {
-  font-size: 11px;
+  font-size: var(--t-micro);
   font-weight: 800;
   letter-spacing: 0.2px;
   color: var(--accent-ink);
 }
-.pf-ask-title { margin-top: 4px; font-size: 14.5px; font-weight: 700; line-height: 1.3; }
-.pf-ask-meta { margin-top: 2px; font-size: 12px; font-weight: 500; color: var(--muted); }
+.pf-ask-title { margin-top: 4px; font-size: 14px; font-weight: 700; line-height: 1.3; }
+.pf-ask-meta { margin-top: 2px; font-size: var(--t-meta-sm); font-weight: 500; color: var(--muted); }
 .pf-ask-btns { display: flex; gap: 8px; margin-top: 11px; }
 .pf-ask-yes,
 .pf-ask-no {
@@ -292,7 +292,7 @@
   padding: 9px 10px;
   border-radius: var(--r-sm);
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 800;
   cursor: pointer;
   transition: transform var(--dur-micro);
@@ -329,7 +329,7 @@
   padding: 12px 6px;
 }
 .pf-stat-num { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -0.5px; }
-.pf-stat-lab { font-size: 11.5px; font-weight: 600; color: var(--muted); }
+.pf-stat-lab { font-size: var(--t-micro); font-weight: 600; color: var(--muted); }
 
 /* ===== PROFILE_PHASE2: net-new drill-in screens (append-only) ===== */
 /* Edit Profile (.ep-*) — the pencil's destination; a pinned Save bar at the bottom */
@@ -346,31 +346,31 @@
 .ep-photo-edit {
   display: inline-flex; align-items: center; gap: 8px;
   border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--card);
-  color: var(--muted); font: inherit; font-size: 13px; font-weight: 700;
+  color: var(--muted); font: inherit; font-size: var(--t-meta); font-weight: 700;
   padding: 8px 13px; cursor: not-allowed;
 }
 .ep-soon {
-  font-size: 10.5px; font-weight: 800; color: var(--accent-ink);
+  font-size: 10px; font-weight: 800; color: var(--accent-ink);
   background: rgba(var(--accent-rgb), 0.12); border-radius: var(--r-pill); padding: 2px 8px;
 }
 .ep-field { display: flex; flex-direction: column; gap: 6px; }
-.ep-label { font-size: 12px; font-weight: 700; letter-spacing: 0.02em; color: var(--muted); }
+.ep-label { font-size: var(--t-meta-sm); font-weight: 700; letter-spacing: 0.02em; color: var(--muted); }
 .ep-input {
   width: 100%; box-sizing: border-box;
   border: 1px solid var(--line); border-radius: var(--r-md); background: var(--card);
-  padding: 12px 14px; font: inherit; font-size: 15px; color: var(--ink); outline: none;
+  padding: 12px 14px; font: inherit; font-size: var(--t-body); color: var(--ink); outline: none;
 }
 .ep-input:focus { border-color: rgba(var(--accent-rgb), 0.5); }
 .ep-input-ro { color: var(--muted); background: var(--bg); }
 .ep-label-row { display: flex; align-items: baseline; justify-content: space-between; }
 .ep-optional { font-weight: 600; color: var(--muted); opacity: 0.8; }
-.ep-count { font-size: 11px; font-weight: 600; color: var(--muted); }
+.ep-count { font-size: var(--t-micro); font-weight: 600; color: var(--muted); }
 .ep-textarea { min-height: 76px; resize: none; line-height: 1.45; font: inherit; }
-.ep-sec-label { margin-top: 6px; font-size: 12px; font-weight: 800; letter-spacing: 0.02em; color: var(--muted); }
+.ep-sec-label { margin-top: 6px; font-size: var(--t-meta-sm); font-weight: 800; letter-spacing: 0.02em; color: var(--muted); }
 .ep-pref {
   display: flex; align-items: center; justify-content: space-between;
   padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--r-md);
-  background: var(--card); font-size: 14.5px; font-weight: 600; color: var(--ink);
+  background: var(--card); font-size: 14px; font-weight: 600; color: var(--ink);
 }
 .ep-pref-v { color: var(--muted); font-weight: 700; }
 /* TOUCHUP P2: tappable preference row (Interests → editor) */
@@ -394,7 +394,7 @@
   flex: 1; padding: 9px 10px;
   border: 1.5px solid var(--line); border-radius: var(--r-pill);
   background: var(--card); color: var(--muted);
-  font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+  font: inherit; font-size: var(--t-meta); font-weight: 700; cursor: pointer;
   transition: border-color var(--dur-fast), color var(--dur-fast), background var(--dur-fast);
 }
 .ms-tab-sel {
@@ -404,7 +404,7 @@
 .ms-group:first-child { margin-top: 10px; }
 .ms-group-label {
   margin: 0 20px 8px;
-  font-size: 12px; font-weight: 700; letter-spacing: 0.2px;
+  font-size: var(--t-meta-sm); font-weight: 700; letter-spacing: 0.2px;
   color: var(--muted);
 }
 
@@ -414,5 +414,5 @@
   background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.18), rgba(var(--accent-rgb), 0.06));
 }
 .hf-hero-title { font-size: 18px; font-weight: 800; color: var(--ink); }
-.hf-hero-sub { margin-top: 6px; font-size: 13px; font-weight: 500; line-height: 1.4; color: var(--muted); }
+.hf-hero-sub { margin-top: 6px; font-size: var(--t-meta); font-weight: 500; line-height: 1.4; color: var(--muted); }
 .hf-row { text-decoration: none; }

@@ -16,7 +16,7 @@
   background: rgba(var(--ink-rgb), 0.42);
   backdrop-filter: blur(4px);
   color: #fff;
-  font-size: 15px;
+  font-size: var(--t-body);
   line-height: 1;
   cursor: pointer;
   user-select: none;
@@ -90,7 +90,7 @@
   border-radius: var(--r-pill);
   background: rgba(var(--accent-rgb), 0.12);
   color: var(--accent-ink);
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 800;
 }
 /* carousel wrapper around a reused TonightCard (div ≠ flex item styles) */

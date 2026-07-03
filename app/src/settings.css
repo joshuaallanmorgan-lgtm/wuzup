@@ -12,7 +12,7 @@
 .st-sec { margin-top: var(--sp-lg); padding: 0 20px; }
 .st-sec:first-child { margin-top: var(--sp-xs); }
 .st-over {
-  font-size: 11px;
+  font-size: var(--eyebrow-size);
   font-weight: 800;
   letter-spacing: 0.2px;
   color: var(--muted); /* A6 accent restraint: section overline off orange */
@@ -33,7 +33,7 @@
 /* Stage 2 sweep: the read-only taste-summary block (.st-taste-line / .st-chips /
    .st-chip) was removed — Settings links to the taste hub in Profile now (3.76
    split), it no longer mirrors the chips inline. */
-.st-wiped { margin-top: 10px; font-size: 12.5px; font-weight: 600; color: var(--free); }
+.st-wiped { margin-top: 10px; font-size: var(--t-meta); font-weight: 600; color: var(--free); }
 
 /* ===== action rows ===== */
 .st-rows { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
@@ -55,7 +55,7 @@
 .st-row:active { transform: scale(0.98); }
 .st-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .st-row-title { font-size: 14px; font-weight: 700; }
-.st-row-sub { font-size: 12px; font-weight: 500; color: var(--muted); }
+.st-row-sub { font-size: var(--t-meta-sm); font-weight: 500; color: var(--muted); }
 .st-row-go { font-size: 16px; font-weight: 800; color: var(--accent-ink); }
 /* 3.7P-21: the "Allow location" switch — a real on/off (gold when on) */
 .st-switch {
@@ -91,7 +91,7 @@
   border-radius: var(--r-md);
   background: var(--card);
 }
-.st-confirm-q { font-size: 13px; font-weight: 600; line-height: 1.5; }
+.st-confirm-q { font-size: var(--t-meta); font-weight: 600; line-height: 1.5; }
 .st-confirm-btns { display: flex; gap: 8px; margin-top: 11px; }
 .st-confirm-yes,
 .st-confirm-no {
@@ -99,7 +99,7 @@
   padding: 9px 10px;
   border-radius: var(--r-sm);
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 800;
   cursor: pointer;
   transition: transform var(--dur-micro);

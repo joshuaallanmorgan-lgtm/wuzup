@@ -64,7 +64,7 @@
   background: var(--chip-fill);
   border: none;
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--t-meta-sm);
   color: var(--muted);
   display: flex;
   align-items: center;
@@ -99,7 +99,7 @@
   border-radius: var(--r-lg);
   background: var(--chip-fill);
   border: 1.5px solid transparent;
-  font-size: 13.5px;
+  font-size: var(--t-meta);
   font-weight: 600;
   color: var(--ink);
   cursor: pointer;

@@ -29,7 +29,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
 import { lookup as dnsLookup } from 'node:dns/promises'
-import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 // city-agnostic: the box + roster anchors come from the active city config, the
@@ -2848,4 +2848,23 @@ test('W3 never-hide: DetailPage renders rep._series as openable per-instance row
   // the actual open path (every instance, not just the rep, becomes tappable)
   assert.ok(/_series\.map\(/.test(detailSrc), 'DetailPage must map over _series (one row per instance)')
   assert.ok(/onClick=\{\(\)\s*=>\s*onSelect\(inst/.test(detailSrc), 'each instance row must open THAT instance via onSelect(inst, …)')
+})
+
+// ============================================================
+// Cohesion type snap — the re-rhythm tripwires. (1) HALF-PIXEL font sizes are
+// BANNED: the 58-strong 11.5/12.5/13.5/14.5 sprawl was the measured "different
+// hands" tell, and it snapped onto the C4 scale (--t-body/--t-meta/--t-meta-sm/
+// --t-micro). A new n.5px font-size re-opens the wobble — fail loud. (2) The
+// orphan 650/750 weights stay retired (600/700 are the sanctioned steps; 550 is
+// the one deliberate mid-weight, forecast.css). Values only — selectors are free.
+// ============================================================
+test('Cohesion type snap: no half-pixel font sizes, no 650/750 weights (app CSS)', () => {
+  const dir = path.join(ROOT, 'app', 'src')
+  for (const f of readdirSync(dir).filter((f) => f.endsWith('.css'))) {
+    const css = readFileSync(path.join(dir, f), 'utf8')
+    const halves = css.match(/font-size:\s*\d+\.5px/g) || []
+    assert.equal(halves.length, 0, `${f} re-introduces a half-pixel font-size (${halves[0] || ''}) — snap it onto the C4 type scale`)
+    const orphans = css.match(/font-weight:\s*[67]50\b/g) || []
+    assert.equal(orphans.length, 0, `${f} re-introduces an orphan ${orphans[0] || ''} — use 600/700 (550 is the only sanctioned mid-weight)`)
+  }
 })

@@ -41,7 +41,7 @@
 }
 .loc-search-ic {
   flex: none;
-  font-size: 15px;
+  font-size: var(--t-body);
 }
 .loc-search-ph {
   font-size: 14px;
@@ -123,7 +123,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 12.5px;
+  font-size: var(--t-meta);
   font-weight: 600;
   background: rgba(var(--accent-rgb), 0.1);
 }
@@ -179,7 +179,7 @@
   background: var(--card);
   color: var(--ink);
   font: inherit;
-  font-size: 15px;
+  font-size: var(--t-body);
   font-weight: 700;
   cursor: pointer;
 }
@@ -222,7 +222,7 @@
   background: rgba(var(--accent-rgb), 0.1);
 }
 .loc-bestfor-label {
-  font-size: 11.5px;
+  font-size: var(--t-micro);
   font-weight: 600;
   line-height: 1.2;
   color: var(--ink);
@@ -259,7 +259,7 @@
 /* C5: shared chip-lg geometry lives in cards.css; fill/border/ink-size stay here
    (13px + hairline vs the tag chip's 12.5/600 accent tint — a real difference) */
 .loc-amen-chip {
-  font-size: 13px;
+  font-size: var(--t-meta);
   background: var(--bg);
   border: 1px solid var(--line);
 }
@@ -326,7 +326,7 @@
   padding: 4px;
 }
 .loc-note {
-  font-size: 13px;
+  font-size: var(--t-meta);
   color: var(--muted);
   padding: 8px 2px;
 }
@@ -340,7 +340,7 @@
 }
 .loc-plan-day {
   flex: 0 0 auto;
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 600;
   color: var(--ink);
   background: var(--bg);
@@ -383,19 +383,19 @@
   font-size: 24px;
 }
 .loc-plan-slot-label {
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 600;
   color: var(--ink);
 }
 .loc-plan-slot-taken {
-  font-size: 11px;
+  font-size: var(--t-micro);
   color: var(--muted);
 }
 /* Plan Phase 2 (flows-2 p2): "Choose a time" label + the selected daypart + the
    primary "Add to day" confirm (D.0-R: --cta fill, white text). */
 .loc-plan-choose {
   margin-bottom: 9px;
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 700;
   color: var(--muted);
 }
@@ -416,7 +416,7 @@
   background: var(--cta);
   color: #fff;
   font-family: inherit;
-  font-size: 15px;
+  font-size: var(--t-body);
   font-weight: 700;
   letter-spacing: -0.2px;
   cursor: pointer;

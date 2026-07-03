@@ -28,7 +28,7 @@
 .cal-stat-num { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.05; color: var(--ink); }
 /* 1-A: on the clean light header the rhythm labels read as muted sublabels (like
    every other tab), no longer the gold-tuned dark-ink alpha. */
-.cal-stat-lab { font-size: 11px; font-weight: 700; letter-spacing: 0.2px; color: var(--muted); }
+.cal-stat-lab { font-size: var(--t-micro); font-weight: 700; letter-spacing: 0.2px; color: var(--muted); }
 /* 3.7P-4: the rhythm/streak chip — the gamification headline, a calm flame + the
    count in ink (NOT violet — violet is reserved for the transient increment beat). */
 .cal-stat-streak .cal-stat-num { display: inline-flex; align-items: center; gap: 3px; }
@@ -38,7 +38,7 @@
 .day-header {
   margin: 0;
   padding: 16px 20px 8px;
-  font-size: 12px;
+  font-size: var(--t-meta-sm);
   font-weight: 800;
   letter-spacing: 0.2px;
   color: var(--muted);
@@ -71,7 +71,7 @@
   cursor: pointer;
 }
 .mon-pick:active { transform: scale(0.97); }
-.mon-caret { font-size: 11px; color: var(--cta); transition: transform 0.15s; } /* S1-C5: accent caret */
+.mon-caret { font-size: var(--t-micro); color: var(--cta); transition: transform 0.15s; } /* S1-C5: accent caret */
 .mon-caret.open { transform: rotate(180deg); }
 .mon-picker-scrim { position: fixed; inset: 0; z-index: 40; border: none; background: transparent; cursor: default; }
 .mon-picker {
@@ -118,7 +118,7 @@
   background: var(--card);
   color: var(--ink);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 800;
   cursor: pointer;
 }
@@ -126,7 +126,7 @@
   transform: scale(0.95);
 }
 .mgrid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 0 12px; }
-.mdow { text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); padding: 8px 0 4px; }
+.mdow { text-align: center; font-size: var(--t-micro); font-weight: 700; color: var(--muted); padding: 8px 0 4px; }
 .mcell-blank { height: 56px; }
 .mcell {
   position: relative;
@@ -161,7 +161,7 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--r-circle);
-  font-size: 15px;
+  font-size: var(--t-body);
   font-weight: 600;
   transition: background var(--dur-fast), color var(--dur-fast);
 }
@@ -182,7 +182,7 @@
   position: absolute;
   top: 6px;
   right: 8px;
-  font-size: 11px;
+  font-size: var(--t-micro);
   font-weight: 900;
   line-height: 1;
   color: var(--accent-ink);
@@ -228,7 +228,7 @@
 .cal-sel { padding: 14px 16px 0; }
 .cal-sel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .cal-sel .cal-day { margin: 0; }
-.cal-sel-went { flex: 0 0 auto; font-size: 12.5px; font-weight: 800; color: var(--accent-ink); }
+.cal-sel-went { flex: 0 0 auto; font-size: var(--t-meta); font-weight: 800; color: var(--accent-ink); }
 .cal-sel-rest { margin-top: 8px; font-size: 14px; font-weight: 600; color: var(--muted); }
 .cal-sel-slots { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
 .cal-sel-slot {
@@ -240,7 +240,7 @@
   border-radius: var(--r-md);
 }
 .cal-sel-slot.filled { background: var(--bg); }
-.cal-sel-when { flex: 0 0 auto; font-size: 12px; font-weight: 800; letter-spacing: 0.2px; color: var(--muted); }
+.cal-sel-when { flex: 0 0 auto; font-size: var(--t-meta-sm); font-weight: 800; letter-spacing: 0.2px; color: var(--muted); }
 .cal-sel-what {
   flex: 1;
   min-width: 0;
@@ -251,7 +251,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.cal-sel-open { flex: 1; font-size: 13px; font-weight: 600; color: var(--muted); }
+.cal-sel-open { flex: 1; font-size: var(--t-meta); font-weight: 600; color: var(--muted); }
 .cal-sel-x {
   flex: 0 0 auto;
   width: 26px;
@@ -260,7 +260,7 @@
   border-radius: var(--r-circle);
   background: none;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--t-meta-sm);
   cursor: pointer;
   transition: color var(--dur-fast);
 }
@@ -295,7 +295,7 @@
 
 /* ===== 3.7P-40 (§N screen 8): date-state legend + "Upcoming" day-card stack ===== */
 .cal-legend { display: flex; flex-wrap: wrap; gap: 14px; padding: 12px 20px 4px; }
-.cal-leg { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; color: var(--muted); }
+.cal-leg { display: inline-flex; align-items: center; gap: 5px; font-size: var(--t-micro); font-weight: 600; color: var(--muted); }
 .cal-leg-dot { width: 10px; height: 10px; border-radius: var(--r-circle); box-shadow: inset 0 0 0 2px var(--accent); }
 .cal-leg-bar { width: 12px; height: 3px; border-radius: 2px; background: var(--accent); }
 .cal-leg-chk { color: var(--ink); font-weight: 800; }

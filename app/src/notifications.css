@@ -16,7 +16,7 @@
 }
 .notif-empty-title {
   font-size: 18px;
-  font-weight: 750;
+  font-weight: 700;
   color: var(--ink);
   margin-bottom: 8px;
   letter-spacing: -0.15px;
@@ -59,7 +59,7 @@
 .notif-thumb { flex: 0 0 auto; width: 40px; height: 40px; border-radius: var(--r-md); overflow: hidden; }
 .notif-item-main { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .notif-item-title {
-  font-size: 14.5px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--ink);
   letter-spacing: -0.15px;
@@ -67,4 +67,4 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.notif-item-sub { font-size: 12.5px; font-weight: 500; color: var(--muted); }
+.notif-item-sub { font-size: var(--t-meta); font-weight: 500; color: var(--muted); }

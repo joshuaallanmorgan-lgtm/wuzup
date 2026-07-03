@@ -49,7 +49,7 @@
   justify-content: center;
   color: #fff;
   font-weight: 800;
-  font-size: 13px;
+  font-size: var(--t-meta);
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
 
@@ -130,7 +130,7 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 11px;
+  font-size: var(--t-micro);
   font-weight: 800;
   line-height: 1;
   padding: 4px 8px;
@@ -142,7 +142,7 @@
 .gem-img .heat-badge { top: 4px; right: 4px; padding: 3px 6px; font-size: 10px; }
 
 /* ===== sponsored disclosure (tiny, muted, never hidden) ===== */
-.sp-label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.02em; }
+.sp-label { font-size: var(--t-micro); font-weight: 600; color: var(--muted); letter-spacing: 0.02em; }
 .tcard .sp-label, .gem .sp-label { display: block; margin-top: 2px; }
 
 /* "Started 7:00 PM …" metas (event already underway) read quieter — class is a
@@ -184,15 +184,15 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.tcard-meta { margin-top: 2px; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tcard-meta { margin-top: 2px; font-size: var(--t-meta); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ===== SpotCard (3.73b): the premium place tile — a discovery, not a row.
    placeType-aware art (3.73a) + a type label + one differentiator + 💎 badge. ===== */
 .spotcard { flex: 0 0 200px; scroll-snap-align: start; border: none; background: none; text-align: left; cursor: pointer; padding: 0; font: inherit; color: inherit; }
 .spotcard-img { display: block; width: 200px; height: 130px; border-radius: var(--r-md); }
-.spotcard-type { margin-top: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.2px; color: var(--muted); } /* PREMIUM A1 (accent restraint): placeType overline off orange */
+.spotcard-type { margin-top: 8px; font-size: var(--eyebrow-size); font-weight: 700; letter-spacing: 0.2px; color: var(--muted); } /* PREMIUM A1 (accent restraint): placeType overline off orange */
 .spotcard-title { margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } /* A6: type from the shared --t-card override below */
-.spotcard-meta { margin-top: 3px; font-size: 13px; font-weight: 500; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spotcard-meta { margin-top: 3px; font-size: var(--t-meta); font-weight: 500; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* 3.7P-13: richer amenity chips — up to 3 icon+label utility chips + distance */
 .spotcard-amen {
   margin-top: 5px;
@@ -200,7 +200,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 9px;
-  font-size: 11.5px;
+  font-size: var(--t-micro);
   font-weight: 600;
   color: var(--muted);
   line-height: 1.3;
@@ -209,7 +209,7 @@
 .spot-amen-ic { width: 13px; height: 13px; flex: 0 0 auto; }
 .spot-badge { position: absolute; top: 8px; left: 8px; z-index: 1; width: 28px; height: 28px; border-radius: var(--r-pill); display: flex; align-items: center; justify-content: center; font-size: 14px; background: rgba(26, 20, 16, 0.5); backdrop-filter: blur(4px); }
 /* SP-L1: honest "★ Best for" activity line on spot cards (derived from ACTIVITIES predicates, never invented) */
-.spotcard-bestfor { margin-top: 5px; font-size: 11.5px; font-weight: 700; color: var(--muted); letter-spacing: -0.05px; } /* PREMIUM A1 (accent restraint): "★ Best for" off orange */
+.spotcard-bestfor { margin-top: 5px; font-size: var(--t-micro); font-weight: 700; color: var(--muted); letter-spacing: -0.05px; } /* PREMIUM A1 (accent restraint): "★ Best for" off orange */
 
 /* ===== 3.7P-20: the shared INTENT widget (IntentTile) — ONE format for Events
    Guides, Spots Activities, and Spots Guides, laid out as an ALL-VISIBLE grid
@@ -259,7 +259,7 @@
 /* 3.7P-20 review: clamp the label (2 lines) so a long one ("Parks & green space",
    "Free outdoor reset") doesn't tower over a short one ("Beaches") in the grid */
 .intent-tile-label {
-  font-size: 12px;
+  font-size: var(--t-meta-sm);
   font-weight: 700;
   color: var(--ink);
   line-height: 1.2;
@@ -270,7 +270,7 @@
   overflow: hidden;
 }
 .intent-tile-pov {
-  font-size: 11px;
+  font-size: var(--t-micro);
   font-weight: 500;
   /* 3.7P-25 review: --muted (#756b61) dropped below AA (4.0–4.4:1) over the new
      per-hue gradient's dark stop; this warmer-dark gray clears ≥4.5:1 across every
@@ -326,10 +326,10 @@
   border-radius: var(--r-md);
   background: hsl(var(--mh, 28) 68% 92%);
 }
-.featc-med-gem { position: absolute; right: -4px; bottom: -4px; font-size: 15px; }
+.featc-med-gem { position: absolute; right: -4px; bottom: -4px; font-size: var(--t-body); }
 .featc-open .free-badge { top: 10px; left: 10px; }
 .featc-body { display: flex; flex-direction: column; gap: 6px; padding: 13px 15px 4px; }
-.featc-meta { font-size: 13px; font-weight: 600; color: var(--muted); }
+.featc-meta { font-size: var(--t-meta); font-weight: 600; color: var(--muted); }
 .featc-title {
   font-size: var(--t-card-lg-size); /* PREMIUM A2: the FEATURED card title token */
   font-weight: var(--t-card-lg-weight);
@@ -423,14 +423,14 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 12.5px;
+  font-size: var(--t-meta);
   font-weight: 600;
   color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.gem-when { margin-top: 2px; font-size: 12.5px; font-weight: 500; color: var(--muted); }
+.gem-when { margin-top: 2px; font-size: var(--t-meta); font-weight: 500; color: var(--muted); }
 /* the canonical chip set (category / Free / buzz, ≤3) — the shared chip primitive */
 .gem-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
 /* PREMIUM A2: a REAL "Add to plan / Add to day" button pinned bottom-right (was an
@@ -451,7 +451,7 @@
   background: rgba(var(--cta-rgb), 0.08);
   color: var(--accent-ink); /* A2 review fix: --cta text on the 8% tint was 4.16:1 (sub-AA); --accent-ink = 4.71:1 */
   font-family: inherit;
-  font-size: 12.5px;
+  font-size: var(--t-meta);
   font-weight: 700;
   line-height: 1;
   white-space: nowrap;
@@ -462,28 +462,28 @@
 .spotcard-add:active { transform: scale(0.96); }
 /* cross-day on-image badge: stacked DAY over TIME (Sat / 7:00 PM) */
 .gem-time-stack { display: flex; flex-direction: column; align-items: center; line-height: 1.05; padding-top: 4px; padding-bottom: 4px; }
-.gem-time-day { font-size: 8.5px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; }
+.gem-time-day { font-size: 8px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; }
 
 /* EVENTS_GRIND: "Neighborhood Picks" — a 2-up grid of compact image-top tiles
    (area overline + title + meta), distinct from the full-width GemRow row. */
 .nbhd-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; padding: 0 20px; }
 .nbhd-card { min-width: 0; display: flex; flex-direction: column; background: none; border: none; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
 .nbhd-img { position: relative; display: block; width: 100%; aspect-ratio: 3 / 2; border-radius: var(--r-md); }
-.nbhd-area { margin-top: 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.1px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* PREMIUM A1 (accent restraint): area overline off orange */
+.nbhd-area { margin-top: 8px; font-size: var(--eyebrow-size); font-weight: 800; letter-spacing: 0.1px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* PREMIUM A1 (accent restraint): area overline off orange */
 .nbhd-title { margin-top: 1px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } /* A6: type from the shared --t-card override below */
-.nbhd-meta { margin-top: 2px; font-size: 12px; font-weight: 500; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nbhd-meta { margin-top: 2px; font-size: var(--t-meta-sm); font-weight: 500; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nbhd-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
 /* E-L2: "Why this fits" — honest derived reason, never fabricated */
-.gem-why { margin-top: 4px; font-size: 11.5px; font-weight: 700; color: var(--muted); letter-spacing: -0.1px; } /* PREMIUM A1 (accent restraint): "Why this fits" off orange */
+.gem-why { margin-top: 4px; font-size: var(--t-micro); font-weight: 700; color: var(--muted); letter-spacing: -0.1px; } /* PREMIUM A1 (accent restraint): "Why this fits" off orange */
 /* TOUCHUP P2: shared on-image badge (event time · spot distance) — dark pill, bottom-left */
-.imgbadge { position: absolute; left: 6px; bottom: 6px; z-index: 1; padding: 3px 7px; border-radius: var(--r-sm); font-size: 11px; font-weight: 800; letter-spacing: 0.1px; color: #fff; background: rgba(26, 20, 16, 0.6); backdrop-filter: blur(4px); white-space: nowrap; }
+.imgbadge { position: absolute; left: 6px; bottom: 6px; z-index: 1; padding: 3px 7px; border-radius: var(--r-sm); font-size: var(--t-micro); font-weight: 800; letter-spacing: 0.1px; color: #fff; background: rgba(26, 20, 16, 0.6); backdrop-filter: blur(4px); white-space: nowrap; }
 .spotcard-dist { left: 8px; bottom: 8px; }
 .free-badge {
   position: absolute;
   top: 8px;
   left: 8px;
   z-index: 1;
-  font-size: 11px;
+  font-size: var(--t-micro);
   font-weight: 700;
   letter-spacing: 0.04em;
   padding: 4px 8px;
@@ -516,7 +516,7 @@
    build on. ===== */
 .feed-date {
   padding: 20px 20px 10px;
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 700;
   letter-spacing: 0.2px;
   color: var(--muted);
@@ -532,7 +532,7 @@
   cursor: pointer;
 }
 .feed-sentinel { height: 1px; }
-.feed-end { padding: 26px 20px 10px; text-align: center; font-size: 13px; font-weight: 600; color: var(--muted); }
+.feed-end { padding: 26px 20px 10px; text-align: center; font-size: var(--t-meta); font-weight: 600; color: var(--muted); }
 
 /* one-shot staggered rise when a page swaps its list in (RowFeed stagger prop) */
 @keyframes rowIn {
@@ -569,7 +569,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 11.5px;
+  font-size: var(--t-micro);
   font-weight: 600;
   line-height: 1;
   letter-spacing: 0;
@@ -612,7 +612,7 @@
   border-radius: var(--r-pill);
   background: rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.85);
-  font-size: 11.5px;
+  font-size: var(--t-micro);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -638,7 +638,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 11.5px;
+  font-size: var(--t-micro);
   font-weight: 700;
   color: var(--muted);
   letter-spacing: 0;
@@ -716,7 +716,7 @@
 .feed--cards.feed-stagger > .spotcard { animation: rowIn var(--dur-fast) var(--ease-out) both; }
 
 /* honest collapsed-series stamp on the universal GemRow (was Row/CompactRow only) */
-.gem-series { margin-top: 4px; font-size: 11.5px; font-weight: 700; color: var(--muted); letter-spacing: 0.01em; } /* PREMIUM A1 (accent restraint): series stamp off orange */
+.gem-series { margin-top: 4px; font-size: var(--t-micro); font-weight: 700; color: var(--muted); letter-spacing: 0.01em; } /* PREMIUM A1 (accent restraint): series stamp off orange */
 
 /* PREMIUM A2 (D1–D4): the SpotCard ROW form — IDENTICAL anatomy + height to GemRow
    (one uniform card across the mixed result feed): tall left image, full-width
@@ -780,14 +780,14 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 12.5px;
+  font-size: var(--t-meta);
   font-weight: 600;
   color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.spotcard-facts { margin-top: 2px; font-size: 12.5px; font-weight: 500; color: var(--muted); }
+.spotcard-facts { margin-top: 2px; font-size: var(--t-meta); font-weight: 500; color: var(--muted); }
 
 /* the module toast that the self-contained card actions (Add to plan / Add to day)
    fire — floats above the bottom nav, auto-dismisses. */
@@ -802,7 +802,7 @@
   border-radius: var(--r-pill);
   background: rgba(26, 20, 16, 0.92);
   color: #fff;
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 700;
   letter-spacing: -0.1px;
   box-shadow: var(--shadow-2);

@@ -31,7 +31,7 @@
 }
 .ldk-counthead {
   margin-left: auto;
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 800;
   color: rgba(255, 255, 255, 0.55);
   font-variant-numeric: tabular-nums;
@@ -48,7 +48,7 @@
 /* ===== kicker — the count-exact header claim ("18 for Friday") ===== */
 .ldk-kicker { padding: 4px 4px 14px; }
 .ldk-kicker-title { font-size: 22px; font-weight: 900; letter-spacing: -0.4px; }
-.ldk-kicker-sub { margin-top: 4px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.55); }
+.ldk-kicker-sub { margin-top: 4px; font-size: var(--t-meta); font-weight: 600; color: rgba(255, 255, 255, 0.55); }
 
 /* ===== stack sizing + the dark card look (mechanics in swipedeck.css) ===== */
 .ldk-stack {
@@ -82,7 +82,7 @@
   padding: 6px 12px;
   border-radius: var(--r-sm);
   border: 2.5px solid;
-  font-size: 15px;
+  font-size: var(--t-body);
   font-weight: 900;
   letter-spacing: 0.2px;
   pointer-events: none;
@@ -142,7 +142,7 @@
 }
 .ldk-done-emoji { font-size: 44px; line-height: 1; }
 .ldk-done-title { margin: 16px auto 6px; max-width: 320px; font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #fff; }
-.ldk-done-sub { font-size: 13.5px; font-weight: 600; color: rgba(255, 255, 255, 0.6); }
+.ldk-done-sub { font-size: var(--t-meta); font-weight: 600; color: rgba(255, 255, 255, 0.6); }
 .ldk-done-btn {
   margin-top: 30px;
   height: 50px;
@@ -152,7 +152,7 @@
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
   font: inherit;
-  font-size: 15px;
+  font-size: var(--t-body);
   font-weight: 800;
   cursor: pointer;
 }
@@ -170,7 +170,7 @@
   background: rgba(var(--accent-rgb), 0.08);
   padding: 6px 12px;
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--t-meta-sm);
   font-weight: 700;
   letter-spacing: 0;
   text-transform: none;

@@ -10,7 +10,7 @@
 .tp-sec { margin-top: var(--sp-lg); padding: 0 var(--gutter); }
 .tp-sec:first-child { margin-top: var(--sp-xs); }
 .tp-over {
-  font-size: 11px;
+  font-size: var(--eyebrow-size);
   font-weight: 800;
   letter-spacing: 0.2px;
   color: var(--muted); /* A6 accent restraint: section overline off orange */
@@ -19,17 +19,17 @@
 
 /* ===== V2: the read-out ===== */
 .tp-headline { font-size: 18px; font-weight: 800; letter-spacing: -0.2px; line-height: 1.25; }
-.tp-trust { margin-top: 6px; font-size: 13px; font-weight: 500; color: var(--muted); line-height: 1.5; }
+.tp-trust { margin-top: 6px; font-size: var(--t-meta); font-weight: 500; color: var(--muted); line-height: 1.5; }
 
 /* P1/P2: the .tp-promise callout + the .tp-leans "Leaning toward" weight bars
    were retired (Josh's taste-sweep); the never-hide line is a .tp-trust line now. */
 
 .tp-facts { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
-.tp-fact { font-size: 13px; font-weight: 600; line-height: 1.4; }
+.tp-fact { font-size: var(--t-meta); font-weight: 600; line-height: 1.4; }
 .tp-fact-dim { color: var(--muted); font-weight: 500; }
 
 /* ===== V3: explicit control ===== */
-.tp-ctl-note { font-size: 12.5px; font-weight: 500; color: var(--muted); line-height: 1.5; margin: 0 0 12px; }
+.tp-ctl-note { font-size: var(--t-meta); font-weight: 500; color: var(--muted); line-height: 1.5; margin: 0 0 12px; }
 .tp-ctl-grid { display: flex; flex-direction: column; gap: 8px; }
 .tp-ctl {
   display: flex;
@@ -57,7 +57,7 @@
   flex: 0 0 auto;
   padding: 4px 11px;
   border-radius: var(--r-pill);
-  font-size: 12px;
+  font-size: var(--t-meta-sm);
   font-weight: 800;
   letter-spacing: 0.01em;
 }
@@ -70,7 +70,7 @@
 .tp-ctl-boost { border: 1px solid hsla(var(--ph, 200), 65%, 44%, 0.4); background: hsla(var(--ph, 200), 70%, 50%, 0.06); }
 .tp-ctl-mute { opacity: 0.62; }
 
-.tp-ctl-foot { margin-top: 14px; font-size: 12px; font-weight: 500; color: var(--muted); line-height: 1.5; }
+.tp-ctl-foot { margin-top: 14px; font-size: var(--t-meta-sm); font-weight: 500; color: var(--muted); line-height: 1.5; }
 
 @media (prefers-reduced-motion: reduce) {
   .tp-ctl { transition: none; }
