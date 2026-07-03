@@ -26,7 +26,7 @@
 // labeled-section RowFeeds; never-hide holds — every matching event and place
 // is shown, ordering is taste-neutral.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Icon, milesBetween } from './lib.js'
+import { fmtLocale, Icon, milesBetween } from './lib.js'
 import { useNav } from './nav.jsx'
 import { IntentTile, RowFeed, SecHead } from './cards.jsx'
 import { CATEGORIES } from './categories.js'
@@ -210,7 +210,7 @@ export default function SearchPage({ events, anchors, coords }) {
         {hasQ && total > 0 && (
           <>
             <div className="srch-count">
-              {total.toLocaleString('en-US')} result{total === 1 ? '' : 's'} for “{dq.trim()}”
+              {total.toLocaleString(fmtLocale)} result{total === 1 ? '' : 's'} for “{dq.trim()}”
             </div>
             {/* 3.7P-41 → Stage R (§N screen 9): result-type tabs scope the union —
                 All · Events · Spots · Guides. Only tabs that have results are
@@ -331,7 +331,7 @@ export default function SearchPage({ events, anchors, coords }) {
               </div>
             )}
             <div className={'empty' + (recents.length ? ' empty-sm' : '')}>
-              {events.length.toLocaleString('en-US')} events. One search bar. 🔎
+              {events.length.toLocaleString(fmtLocale)} events. One search bar. 🔎
               <br />
               Try one of these:
               <div className="srch-sug">

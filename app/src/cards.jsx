@@ -14,7 +14,7 @@ import { createContext, memo, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { CATEGORY_EMOJI, CATEGORY_HUES, PLACETYPE_EMOJI, PLACETYPE_HUE } from './categories.js'
 import { auroraVars, medallionHue } from './artseed.js'
-import { Icon, dayLabelLoose, dayLoose, keyOf, makeAnchors, priceLabel, startLabel, timeOf } from './lib.js'
+import { Icon, dayLabelLoose, dayLoose, fmtLocale, keyOf, makeAnchors, priceLabel, startLabel, timeOf } from './lib.js'
 import { ACTIVITIES } from './places.js'
 import { imageMode, photoFirst } from './imageMode.js'
 import { daypartOf, DAYPART, fillOrder } from './weekend.js'
@@ -64,7 +64,7 @@ function addToPlan(e) {
     return false
   }
   saveDayPlans(withSlot(map, dayTs, target, keyOf(e)))
-  const when = dayTs === anchors.todayTs ? 'today' : new Date(dayTs).toLocaleDateString('en-US', { weekday: 'long' })
+  const when = dayTs === anchors.todayTs ? 'today' : new Date(dayTs).toLocaleDateString(fmtLocale, { weekday: 'long' })
   cardToast(`${DAYPART[target].emoji} Added to ${when} ${DAYPART[target].label.toLowerCase()}`)
   return true // PREMIUM A4: lets the Add button morph to its "✓ Added" confirmation
 }
@@ -399,7 +399,7 @@ export function GemRow({ e, onSelect }) {
   const timeRange =
     e.kind !== 'place' && !e._ongoing ? [timeOf(e.start), e.end ? timeOf(e.end) : null].filter(Boolean).join(' – ') : null
   const dayShort =
-    time && e._day != null && e._day !== startOfTodayMs() ? new Date(e._day).toLocaleDateString('en-US', { weekday: 'short' }) : null
+    time && e._day != null && e._day !== startOfTodayMs() ? new Date(e._day).toLocaleDateString(fmtLocale, { weekday: 'short' }) : null
   const chips = featuredChips(e)
   const when = [dayLoose(e), timeRange].filter(Boolean).join(' · ')
   // CARD_LOCK: a COLLAPSED recurring series wears its honest "+ N more …" stamp

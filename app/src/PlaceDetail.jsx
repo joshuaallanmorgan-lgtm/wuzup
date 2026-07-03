@@ -12,7 +12,7 @@
 // ALL COPY IS DRAFT for Charles.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNav } from './nav.jsx'
-import { Icon, keyOf } from './lib.js'
+import { fmtLocale, Icon, keyOf } from './lib.js'
 import { SecHead, TonightCard, artEmoji, auroraStyle, spotChips } from './cards.jsx'
 import { SaveHeart, useSaves } from './saves.js'
 import { dateKey } from './weather.js'
@@ -67,7 +67,7 @@ const AMENITY_LABELS = {
 }
 const amenityChip = (a) => AMENITY_LABELS[a] || ['•', a.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())]
 
-const wdLong = (ts) => new Date(ts).toLocaleDateString('en-US', { weekday: 'long' })
+const wdLong = (ts) => new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'long' })
 
 // upcoming days for the Make-this-my-plan picker: today + the next 13 days
 // (two weeks of horizon — the same supply window the day screen plans into).

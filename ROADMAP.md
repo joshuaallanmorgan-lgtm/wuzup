@@ -9,7 +9,7 @@
 
 ---
 
-## ▶ CURRENT ROAD TO V1 (2026-07-02 — Cohesion Pass complete, at PR)
+## ▶ CURRENT ROAD TO V1 (2026-07-02 — Stage D Multi-City ◀ CURRENT)
 
 > **Takeover note (2026-07-01):** Fable 5 resumed leadership (single-session driver's seat — see §4).
 > Josh's mandate: the idea phase is over; **cohesion over punch lists** — the exit test for all
@@ -63,7 +63,7 @@ Dead-code / perf / a11y / inert token consolidation / dedup — full history + c
 **[STAGE_C.md](STAGE_C.md)** (the recovered kickoff; execution plans now live in repo docs, never
 only in session prompts).
 
-### Stage C.5 — COHESION PASS ◀ IN PROGRESS *(branch `cohesion/pass`; the old Stage 2.5 "Lamination," re-scoped under the takeover mandate)*
+### Stage C.5 — COHESION PASS ✅ DONE (merged via PR #7, 2026-07-02) *(branch `cohesion/pass`; the old Stage 2.5 "Lamination," re-scoped under the takeover mandate)*
 The premium gap, attacked as **four whole-cloth passes** instead of per-screen punch lists. Exit
 test: *a stranger believes one team designed this* — Josh's eyeball closes it.
 **Live status (2026-07-02): ALL FOUR WORKSTREAMS MERGED** — the §5 ruling batch · back-button
@@ -86,7 +86,7 @@ stage. Workstreams as planned:
    (count-preserving); the promised `icon` text-forward row form for photoless places; shorter photoless
    detail heroes; warmer hue bands; a targeted honest-photo pass on the ~30–60 marquee top-rail places.
 
-### Stage D — Multi-City *(was Stage 3)* — **granular plan-of-record = [STAGE_D.md](STAGE_D.md)** (city #2 = SF & East Bay, reconfirmed ruling #9; one open ⚑D-DEP deployment-model call) — per-city event/place data (new source modules) · a city switcher · per-city copy/theming. The big pre-ship expansion. **Imagery already pre-banked (2026-06-26 multi-city lock):** the finder's region is now ONE city config (no longer a hard-coded Tampa bbox) and the Mapillary + Aurora pipeline runs for any city with all honesty guards baked in — so Stage D's remaining work is the data sources + switcher + theming, NOT the imagery.
+### Stage D — Multi-City *(was Stage 3)* — **granular plan-of-record = [STAGE_D.md](STAGE_D.md)** (city #2 = SF & East Bay, ruling #9; ⚑D-DEP RESOLVED: one deployment per city, build-time selection — switcher is v2) — per-city event/place data (new source modules) · per-city config/copy/theming · multi-tenant artifacts. The big pre-ship expansion. **Imagery already pre-banked (2026-06-26 multi-city lock):** the finder's region is now ONE city config (no longer a hard-coded Tampa bbox) and the Mapillary + Aurora pipeline runs for any city with all honesty guards baked in — so Stage D's remaining work is the data sources + per-city config/copy (no switcher — D-DEP), NOT the imagery.
 
 ### Stage E — V1 Ship *(was Stage 4)* — holistic pass (full app vs all refs + the premium bar) · final contract/honesty audit (post-bending) · perf/build hardening → ship. Then v2 (the parked map, etc.).
 
@@ -402,6 +402,13 @@ self-runs the adversarial verify → Josh eyeballs → sign-off or notes → nex
 
 Also resolved: the **Cohesion Pass** is inserted between Stage C and Stage D (see §CURRENT); the
 single-session Fable process replaces the two-session Architect/Builder split (§4).
+
+### Resolved 2026-07-02 (post-Cohesion)
+
+11. **⚑D-DEP — ONE DEPLOYMENT PER CITY** (build-time city selection; in-app switcher = v2). Binding
+    for Stage D's artifact layout + app config — details in [STAGE_D.md](STAGE_D.md).
+12. **PR #7 (Cohesion Pass) merged** — Stage C.5 closed pending the dial-sheet items riding as
+    ⚑ flags in code (Josh's eyeball notes + Charles's copy/art passes can land as follow-ups).
 
 ### Resolved 2026-06-17
 

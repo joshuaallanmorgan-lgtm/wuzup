@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "refresh": "node finder/finder.mjs",
+    "deploy-city": "node finder/deploy.mjs",
     "test": "node --test test/smoke.mjs"
   },
   "keywords": [],

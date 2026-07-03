@@ -16,11 +16,11 @@ All forward work is named by **lettered Stage** (ROADMAP's A–E road). The old 
 | **B** | Patch sprint | V1_PUNCHLIST Batches 1–5 + the never-hide deck-coverage fix | ✅ merged (PR #5) |
 | **C** | Deep Sweep | dead-code / perf / a11y / inert tokens / dedup — [STAGE_C.md](STAGE_C.md) | ✅ merged (PR #6) |
 | **C.5** | **Cohesion Pass** | the premium gap as 4 whole-cloth passes (data quality · app feel · one visual language · Aurora re-derivation) — ROADMAP §CURRENT | 🔨 **current** (branch `cohesion/pass`; rulings + back-button + deck physics ✅; finder/Aurora/Detail in flight) |
-| **D** | Multi-City | geo-refactor + city #2 = **SF & East Bay (reconfirmed 2026-07-01)**; imagery pre-banked | 📋 specced (PHASE_3.7 Addendum I) |
+| **D** | Multi-City | geo-refactor + city #2 = **SF & East Bay (reconfirmed 2026-07-01)**; imagery pre-banked | 🔨 **current** (branch stage-d/multicity: D1/D2/D4 landed, D3 configs+adapters landed; remaining = SF events source modules + the supervised imagery run) |
 | **E** | v1 Ship | holistic pass vs all refs · honesty audit · PWA/deploy/attribution · beta | ⏳ |
 | **v2** | Backlog | everything post-launch | → [BACKLOG.md](BACKLOG.md) |
 
-**Where we are right now:** the **Cohesion Pass (Stage C.5) is COMPLETE on branch `cohesion/pass`** — all four workstreams merged + 5-lens REFUTE-verified — awaiting Josh's eyeball via the Cohesion PR. Stage C merged earlier (PR #6). Next: Stage D Multi-City ([STAGE_D.md](STAGE_D.md)). **Fable 5 resumed leadership 2026-07-01** (single-session driver's seat; Josh's 10 rulings in ROADMAP §5).
+**Where we are right now:** the Cohesion Pass is **MERGED (PR #7)**; **Stage D Multi-City is CURRENT** on branch `stage-d/multicity` ([STAGE_D.md](STAGE_D.md)) — the D-DEP ruling (one deployment per city) is executed; remaining = the SF events source modules + the supervised imagery runbook run. **Fable 5 resumed leadership 2026-07-01** (single-session driver's seat; Josh's 10 rulings in ROADMAP §5).
 
 ## Dead-vocabulary crosswalk
 
@@ -44,7 +44,7 @@ All forward work is named by **lettered Stage** (ROADMAP's A–E road). The old 
 | [INDEX.md](INDEX.md) | This map. |
 | [BACKLOG.md](BACKLOG.md) | v1/v2 idea intake + triage (incl. the still-empty Tier-0 orphan inventory table — populate during C5). |
 | **[STAGE_C.md](STAGE_C.md)** | Stage C execution plan-of-record (recovered kickoff + checkpoint status; shipped via PR #6). |
-| **[STAGE_D.md](STAGE_D.md)** | Stage D Multi-City execution plan-of-record (Addendum I packet + the 2026-07-01 pipeline forensics; ⚑D-DEP open). |
+| **[STAGE_D.md](STAGE_D.md)** | Stage D Multi-City execution plan-of-record (Addendum I packet + the 2026-07-01 pipeline forensics; ⚑D-DEP RESOLVED: one deployment per city). |
 
 ### 🔵 REFERENCE — durable specs (consult, don't execute)
 | Doc | Purpose |

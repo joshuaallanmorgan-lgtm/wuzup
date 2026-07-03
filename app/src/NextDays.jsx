@@ -5,14 +5,14 @@
 // 16-day forecast) + the day-plan store — so every line is true (no fabricated
 // "ideas"). Reused on Calendar by P40 later.
 import { useMemo } from 'react'
-import { Icon } from './lib.js'
+import { fmtLocale, Icon } from './lib.js'
 import { useNav } from './nav.jsx'
 import { loadDayPlans, dayEntryFor, hasContent, emptyDay, PARTS } from './dayplan.js'
 import { dateKey, CONDITION, WX_GLYPH } from './weather.js'
 import { wxMood } from './weekend.js'
 import './nextdays.css'
 
-const weekday = (ts) => new Date(ts).toLocaleDateString('en-US', { weekday: 'long' })
+const weekday = (ts) => new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'long' })
 
 export default function NextDays({ anchors, wx, rev }) {
   const { openDay, page } = useNav()

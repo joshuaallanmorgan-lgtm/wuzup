@@ -10,6 +10,12 @@
 // reproduces the same places.json. The derived strings are computed from `bbox` so a
 // new city only edits the box once.
 
+// IANA zone — ALL wall-clock derivation in the events pipeline (day boundaries,
+// offset stamping, weekend windows, junk-hour checks) routes through this.
+// Offsets incl. DST come from Intl at runtime, never hardcoded ("every SF event
+// stamped 7 hours early" is the bug class this prevents).
+export const tz = 'America/New_York';
+
 // sanity box — any coordinate outside this is wrong for a local place/event.
 export const bbox = { latMin: 27.3, latMax: 28.6, lngMin: -83.3, lngMax: -81.9 };
 // the box in each source's required wire format (byte-identical to the literals the
@@ -17,6 +23,20 @@ export const bbox = { latMin: 27.3, latMax: 28.6, lngMin: -83.3, lngMax: -81.9 }
 export const bboxOverpass = `(${bbox.latMin},${bbox.lngMin},${bbox.latMax},${bbox.lngMax})`;
 export const bboxArcgisEnvelope = JSON.stringify({ xmin: bbox.lngMin, ymin: bbox.latMin, xmax: bbox.lngMax, ymax: bbox.latMax });
 export const geocodeViewbox = `${bbox.lngMin},${bbox.latMax},${bbox.lngMax},${bbox.latMin}`;
+
+// geocoding (Nominatim) — the query-building city facts for the EVENTS pipeline.
+// `region` is appended to bare address keys and anchors the venue-name fallback
+// query; `regionRe` detects keys that already carry it; `cityRe` (capture group
+// required) extracts a locality hint from a listing's address; `fallbackLocality`
+// stands in when the address names no known locality; `junkKeyWords` are city
+// words that are junk as WHOLE geocode cache keys (purged on load).
+export const geocode = {
+  region: 'Florida',
+  regionRe: /\bfl\b|\bflorida\b/i,
+  cityRe: /(tampa|st\.?\s*petersburg|st\.?\s*pete(?:\s+beach)?|clearwater|dunedin|largo|gulfport|safety harbor|palm harbor|tarpon springs|pinellas park|wesley chapel|brandon|ybor city)/i,
+  fallbackLocality: 'Tampa Bay',
+  junkKeyWords: ['tampa', 'florida'],
+};
 
 // government source ranking — richness-ranked tie-breaks among gov layers (§3.4).
 export const govOrder = [

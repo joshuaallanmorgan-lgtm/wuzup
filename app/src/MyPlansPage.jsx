@@ -9,7 +9,7 @@
 // mount so counts stay live; each openDay replaces this subpage (single-slot),
 // back → the Profile tab. DRAFT copy — ⚑ Charles.
 import { useMemo } from 'react'
-import { Icon, dayLoose, keyOf, normalize, rawOf } from './lib.js'
+import { Icon, dayLoose, fmtLocale, keyOf, normalize, rawOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { GemRow, SponsoredTag } from './cards.jsx'
 import { DAYPART } from './weekend.js'
@@ -29,7 +29,7 @@ import { usePlaces, isPlaceKey } from './places.js'
 import './profile.css'
 
 const fmtShort = (ts) =>
-  new Date(ts).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+  new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'short', month: 'short', day: 'numeric' })
 
 export default function MyPlansPage({ events, anchors }) {
   const { closePage: onClose, openDetail: onSelect, openDay } = useNav()
@@ -93,7 +93,7 @@ export default function MyPlansPage({ events, anchors }) {
     return new Date(d.getFullYear(), d.getMonth() + 1, 1).getTime()
   }, [monthStart])
   const daysOut = daysOutInMonth(dids, monthStart, nextMonthStart)
-  const monthName = new Date(anchors.todayTs).toLocaleDateString('en-US', { month: 'long' })
+  const monthName = new Date(anchors.todayTs).toLocaleDateString(fmtLocale, { month: 'long' })
   const firsts = useMemo(() => varietyFirsts(been), [been])
   const monthReality = useMemo(
     () => computeMonthReality(loadDayHistory(), dids, monthStart, nextMonthStart),

@@ -11,8 +11,9 @@
 //     bare Wikidata description ("park in Polk County, Florida") is near-noise,
 //     so we do not fabricate a blurb from it — no description beats a generic one.
 //
-// Cached in finder/cache/wikidata-descriptions.json (TRACKED, idempotent — a
-// warm/offline run leaves it byte-identical). PLACES_LIVE=1 forces a refresh.
+// Cached in finder/cache/<cityId>/wikidata-descriptions.json (TRACKED, per-city,
+// idempotent — a warm/offline run leaves it byte-identical). PLACES_LIVE=1
+// forces a refresh.
 //
 // Importable (places.mjs calls enrichPlacesWithDescriptions before writing) and
 // runnable standalone (node finder/places-descriptions.mjs — patches the
@@ -20,12 +21,14 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PRODUCT_UA } from './ua.mjs';
+import { cityId } from './cities/index.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const CACHE_FILE = join(HERE, 'cache', 'wikidata-descriptions.json');
+const CACHE_FILE = join(HERE, 'cache', cityId, 'wikidata-descriptions.json');
+// city-neutral product UA (Wikimedia etiquette) + this caller's purpose token.
 const UA = {
-  'User-Agent':
-    'TampaBayWhatsOn/1.0 (Tampa Bay events+places discovery app; https://github.com/joshuaallanmorgan-lgtm/cj) place-description-enrichment',
+  'User-Agent': `${PRODUCT_UA} place-description-enrichment`,
 };
 const MAX_CACHE_AGE_MS = 30 * 24 * 3600e3; // descriptions change very rarely — 30d
 const MAX_LEN = 320; // a tidy blurb, not the whole article — trim at a sentence end
@@ -147,10 +150,9 @@ export async function enrichPlacesWithDescriptions(places, { live = false, log =
 // ---- standalone: backfill the existing places.json copies in place ----------
 async function main() {
   const live = process.env.PLACES_LIVE === '1';
-  const targets = [
-    join(HERE, 'output', 'places.json'),
-    join(HERE, '..', 'app', 'public', 'places.json'),
-  ].filter((p) => existsSync(p));
+  // D1: only the per-city finder artifact is patched — app/public/places.json
+  // is deploy.mjs's territory (re-run `npm run deploy-city` after a backfill).
+  const targets = [join(HERE, 'output', cityId, 'places.json')].filter((p) => existsSync(p));
   if (!targets.length) {
     console.error('no places.json found (run finder/places.mjs first)');
     process.exit(1);

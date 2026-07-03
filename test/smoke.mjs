@@ -5,8 +5,8 @@
 //   1. finder fast-mode  — spawns SKIP_RENDER=1 SKIP_EXTRA=1 node finder/finder.mjs,
 //      asserts exit 0, parses the benchmark block, ✅-asserts every benchmark
 //      that is meaningful without the skipped sources, schema-validates 20
-//      random events from the fast output. The three files the finder writes
-//      (finder/output/events.json, events.md, app/public/events.json) are
+//      random events from the fast output. The files the finder writes
+//      (finder/output/<cityId>/events.json + events.md — D1 multi-tenant) are
 //      backed up in memory first and ALWAYS restored (finally) — a test run
 //      must never leave the app pointing at the small fast-mode dataset.
 //   2. data invariants    — on the CURRENT full app/public/events.json, captured
@@ -35,15 +35,16 @@ import { fileURLToPath } from 'node:url'
 // city-agnostic: the box + roster anchors come from the active city config, the
 // place/category vocab from the canonical taxonomy (categories.js) — so a new city
 // doesn't fail the build on hard-coded Tampa values.
-import { bbox as CITY_BBOX, rosterBenchmark as CITY_ROSTER } from '../finder/cities/index.mjs'
+import { bbox as CITY_BBOX, rosterBenchmark as CITY_ROSTER, cityId as CITY_ID } from '../finder/cities/index.mjs'
 import { PLACETYPE_HUE, CATEGORY_HUES } from '../app/src/categories.js'
 import * as deckdeal from '../app/src/deckdeal.js'
 import * as gesture from '../app/src/deckgesture.js'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const APP_EVENTS = path.join(ROOT, 'app', 'public', 'events.json')
-const FINDER_JSON = path.join(ROOT, 'finder', 'output', 'events.json')
-const FINDER_MD = path.join(ROOT, 'finder', 'output', 'events.md')
+// D1 multi-tenant artifacts: the finder writes finder/output/<cityId>/…
+const FINDER_JSON = path.join(ROOT, 'finder', 'output', CITY_ID, 'events.json')
+const FINDER_MD = path.join(ROOT, 'finder', 'output', CITY_ID, 'events.md')
 
 // ---------- capture the CURRENT full dataset BEFORE anything can mutate it ----------
 assert.ok(existsSync(APP_EVENTS), `missing ${APP_EVENTS} — run "npm run refresh" first; the app has no data`)
@@ -175,10 +176,14 @@ test('finder fast-mode: exit 0, benchmarks green, output schema-valid', { timeou
   // committed source caches (Cohesion REFUTE finding: the fast-mode run
   // refreshes cache TTL/ordering fields, so a green `npm test` used to leave
   // a dirty tree and contributors smuggled cache churn into commits).
+  // D1: caches are per-city dirs (finder/cache/<cityId>/…) — walk recursively so
+  // every city's committed caches are protected, not just a flat top level.
   const cacheDir = path.join(ROOT, 'finder', 'cache')
-  const cacheFiles = existsSync(cacheDir)
-    ? readdirSync(cacheDir).filter((f) => f.endsWith('.json')).map((f) => path.join(cacheDir, f))
-    : []
+  const walkJson = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((d) => {
+    const p = path.join(dir, d.name)
+    return d.isDirectory() ? walkJson(p) : d.name.endsWith('.json') ? [p] : []
+  })
+  const cacheFiles = existsSync(cacheDir) ? walkJson(cacheDir) : []
   const backups = [APP_EVENTS, FINDER_JSON, FINDER_MD, ...cacheFiles]
     .filter((f) => existsSync(f))
     .map((f) => [f, readFileSync(f)])
@@ -241,7 +246,7 @@ test('finder fast-mode: exit 0, benchmarks green, output schema-valid', { timeou
 
     // --- fast output exists and schema-validates: 20 random spot checks ---
     const fast = JSON.parse(readFileSync(FINDER_JSON, 'utf8'))
-    assert.ok(Array.isArray(fast) && fast.length > 0, 'finder/output/events.json is not a non-empty array')
+    assert.ok(Array.isArray(fast) && fast.length > 0, `finder/output/${CITY_ID}/events.json is not a non-empty array`)
     const picked = []
     const count = Math.min(20, fast.length)
     // deterministic, evenly-spaced spot-check indices (was Math.random — flaky: a
@@ -384,23 +389,30 @@ test('places data invariants: schema v1 places.json', () => {
 
   // ROSTER BENCHMARKS on the artifact (review HARDENING: the pipeline's bench
   // lines are console-only — a generation regression must fail npm test too)
-  // the roster + the two specific merge guards below are the ACTIVE city's generation
-  // anchors (Tampa's live in finder/cities/tampa-bay.mjs). A city with no roster skips
-  // them — it brings its own once its sources land.
+  // the roster is the ACTIVE city's generation anchors (Tampa's live in
+  // finder/cities/tampa-bay.mjs). A city with no roster skips them — it brings
+  // its own once its sources land.
   if (CITY_ROSTER.length) {
     for (const slug of CITY_ROSTER) {
       assert.ok(keys.has('p|' + slug), `roster benchmark missing from generation: ${slug}`)
     }
+  }
+  // the two Tampa-LITERAL merge guards are pinned regressions of Tampa's own
+  // generation (Fort De Soto dupe-record class, the Weedon o/e-typo split) —
+  // scoped to the tampa-bay config id so a rostered city #2 passes npm test
+  // without inheriting another city's place names (Stage D D2).
+  if (CITY_ID === 'tampa-bay') {
     const fortDeSoto = places.filter((p) => p.key.startsWith('p|fort-de-soto') && p.classes.includes('park'))
     assert.equal(fortDeSoto.length, 1, `Fort De Soto must be exactly ONE park record (got: ${fortDeSoto.map((p) => p.key).join(', ') || 'none'})`)
     assert.ok(!keys.has('p|weedon-island-preserve-2'), 'Weedon Island split into two records — the o/e-typo merge regressed')
   }
 
-  // the finder copy and the app copy must be the same artifact (no drift)
-  const FINDER_PLACES = path.join(ROOT, 'finder', 'output', 'places.json')
-  assert.ok(existsSync(FINDER_PLACES), 'finder/output/places.json missing while the app copy exists')
+  // the finder copy and the app copy must be the same artifact (no drift).
+  // D1: the finder copy lives at finder/output/<cityId>/.
+  const FINDER_PLACES = path.join(ROOT, 'finder', 'output', CITY_ID, 'places.json')
+  assert.ok(existsSync(FINDER_PLACES), `finder/output/${CITY_ID}/places.json missing while the app copy exists`)
   assert.equal(readFileSync(FINDER_PLACES, 'utf8'), readFileSync(APP_PLACES, 'utf8'),
-    'finder/output/places.json and app/public/places.json drifted — re-run node finder/places.mjs')
+    `finder/output/${CITY_ID}/places.json and app/public/places.json drifted — re-run node finder/places.mjs`)
 })
 
 // Phase 3.5 W4 — HONEST IMAGES. A place photo is ONLY ever a verified photo OF
@@ -441,14 +453,18 @@ test('W4/Phase1 images: place photos are real of-the-place Commons files + every
 test('ladder-3 Mapillary cafes: local file + CC-BY-SA credit + signTextRead receipt', () => {
   const doc = JSON.parse(readFileSync(APP_PLACES, 'utf8'))
   const cafes = doc.places.filter((p) => typeof p.image === 'string' && p.image.startsWith('/place-img/'))
-  const ATTRIB = path.join(ROOT, 'finder', 'cache', 'attributions.json')
+  const ATTRIB = path.join(ROOT, 'finder', 'cache', CITY_ID, 'attributions.json') // D1: per-city ledger
   const attrib = existsSync(ATTRIB) ? JSON.parse(readFileSync(ATTRIB, 'utf8')) : { byFile: {} }
   for (const p of cafes) {
     const slug = p.image.replace(/^\/place-img\//, '').replace(/\.jpg$/, '')
     assert.match(slug, /^[a-z0-9-]+$/, `${p.name}: unsafe /place-img slug (${p.image})`)
     // (a) the self-hosted JPEG actually exists (enrich self-heals if it doesn't)
+    // — BOTH copies: the deployed file the app serves AND the per-city artifact
+    // deploy.mjs copies from (D1: the artifact set is the source of truth)
     assert.ok(existsSync(path.join(ROOT, 'app', 'public', 'place-img', `${slug}.jpg`)),
-      `${p.name}: /place-img/${slug}.jpg referenced but the file is missing`)
+      `${p.name}: /place-img/${slug}.jpg referenced but the deployed file is missing`)
+    assert.ok(existsSync(path.join(ROOT, 'finder', 'output', CITY_ID, 'place-img', `${slug}.jpg`)),
+      `${p.name}: finder/output/${CITY_ID}/place-img/${slug}.jpg missing — the per-city artifact set drifted from the deployment`)
     // (b) a satisfiable CC-BY-SA credit with an author byline + the source marker
     assert.ok(p.imageCredit && p.imageCredit.license, `${p.name}: Mapillary image without a credit`)
     assert.match(p.imageCredit.license, /cc\s*by/i, `${p.name}: Mapillary credit must be a CC-BY(-SA) license`)
@@ -477,7 +493,7 @@ test('ladder-3 Mapillary cafes: local file + CC-BY-SA credit + signTextRead rece
 // committed cache, so a skipped re-judge can never silently re-open the pylon /
 // dominant-subject guards (the failure mode behind the 4 Tampa false positives).
 test('fail-closed: every shipped Mapillary cafe was re-verified', () => {
-  const MAP_CACHE = path.join(ROOT, 'finder', 'cache', 'place-mapillary-images.json')
+  const MAP_CACHE = path.join(ROOT, 'finder', 'cache', CITY_ID, 'place-mapillary-images.json') // D1: per-city
   if (!existsSync(MAP_CACHE)) return // no cafe cache yet (a city before its imagery run)
   const cache = JSON.parse(readFileSync(MAP_CACHE, 'utf8'))
   const entries = Object.entries(cache.byKey || {})
@@ -492,22 +508,74 @@ test('fail-closed: every shipped Mapillary cafe was re-verified', () => {
   }
 })
 
+// Stage D · D1 — the deploy seam. app/public data artifacts are written ONLY by
+// finder/deploy.mjs (`npm run deploy-city`), which copies exactly ONE city's set
+// from finder/output/<cityId>/. Guards: the deploy step exists, an artifact-less
+// city is refused LOUDLY (a CITY=sf-east-bay run can never blank Tampa's
+// deployment), and the legacy un-namespaced output paths stay dead.
+test('D1 deploy seam: deploy.mjs exists + refuses an artifact-less city + legacy paths gone', { timeout: 60_000 }, async () => {
+  assert.ok(existsSync(path.join(ROOT, 'finder', 'deploy.mjs')), 'finder/deploy.mjs must exist (the ONE writer of app/public data artifacts)')
+  const pkg = JSON.parse(readFileSync(path.join(ROOT, 'package.json'), 'utf8'))
+  assert.equal(pkg.scripts['deploy-city'], 'node finder/deploy.mjs', 'the deploy-city npm script must run the deploy step')
+  // a REGISTERED city with no generated artifacts must be refused loudly — and
+  // the refusal must not have touched the deployed files (byte-check one).
+  const guidesBefore = readFileSync(path.join(ROOT, 'app', 'public', 'guides.json'))
+  const res = await runNode('finder/deploy.mjs', { CITY: 'sf-east-bay' })
+  assert.notEqual(res.code, 0, `deploying a city with no artifacts must exit non-zero (got ${res.code}):\n${tail(res.out)}`)
+  assert.match(res.out, /REFUSING/, 'the refusal must be loud and name the problem')
+  assert.deepEqual(readFileSync(path.join(ROOT, 'app', 'public', 'guides.json')), guidesBefore,
+    'a refused deploy must leave the deployed artifacts untouched')
+  // the legacy un-namespaced output files must not exist (and no writer recreates
+  // them — the finder fast-mode run in test 1 would have, if a write path survived)
+  for (const f of ['events.json', 'events.md', 'places.json', 'places.md', 'guides.json', 'place-img']) {
+    assert.ok(!existsSync(path.join(ROOT, 'finder', 'output', f)), `legacy un-namespaced finder/output/${f} must not exist (outputs are per-city now)`)
+  }
+  // the per-city artifact set is COMPLETE for the reference city (deploy's contract)
+  for (const f of ['events.json', 'places.json', 'guides.json', 'place-img']) {
+    assert.ok(existsSync(path.join(ROOT, 'finder', 'output', CITY_ID, f)), `finder/output/${CITY_ID}/${f} missing — the deployable set is incomplete`)
+  }
+})
+
+// D1 — the app/public write monopoly. deploy.mjs is the ONLY finder module that
+// may construct an app/public path: the finder writing the app directly is exactly
+// how a CITY=<other> run damaged the deployed city (stageb's rmSync of
+// app/public/place-img was THE Tampa-deleting hazard). Source-grep over every
+// finder .mjs/.js (output/ + cache/ data dirs skipped): no quoted 'app','public'
+// join and no 'app/public' string literal outside deploy.mjs.
+test('D1: only deploy.mjs constructs an app/public path', () => {
+  const walk = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((d) => {
+    if (['output', 'cache', 'node_modules'].includes(d.name)) return []
+    const p = path.join(dir, d.name)
+    return d.isDirectory() ? walk(p) : /\.(mjs|js)$/.test(d.name) ? [p] : []
+  })
+  const offenders = []
+  for (const f of walk(path.join(ROOT, 'finder'))) {
+    if (path.basename(f) === 'deploy.mjs') continue
+    const src = readFileSync(f, 'utf8')
+    if (/['"`]app['"`]\s*,\s*['"`]public['"`]/.test(src) || /['"`]app\/public/.test(src)) offenders.push(path.relative(ROOT, f))
+  }
+  assert.deepEqual(offenders, [],
+    `finder module(s) construct an app/public path — only finder/deploy.mjs may touch the deployed artifacts: ${offenders.join(', ')}`)
+})
+
 // W4 wiring — the two heroes are real photos, the place detail renders its photo
 // with a category-art fallback, dead URLs never paint a broken glyph, and
 // normalizePlace carries `image` through (JSX/CSS can't import into Node).
 test('W4 wiring: real heroes + place-detail photo + degrade-to-art + passthrough', async () => {
-  // both city heroes are real https photos (Events skyline + Spots waterfront)
-  const lib = readFileSync(path.join(ROOT, 'app', 'src', 'lib.js'), 'utf8')
-  assert.match(lib, /hero:\s*'https:\/\/upload\.wikimedia\.org\//, 'CITY.hero must be a real Commons photo')
-  assert.match(lib, /spotsHero:\s*'https:\/\/upload\.wikimedia\.org\//, 'CITY.spotsHero must be a real Commons photo (not a CSS placeholder)')
+  // both city heroes are real https photos (Events skyline + Spots waterfront).
+  // Stage D4: the CITY object (heroes + credits) moved lib.js → city.js — these
+  // source-text pins follow the object; lib.js re-exports CITY so importers held.
+  const cityCfg = readFileSync(path.join(ROOT, 'app', 'src', 'city.js'), 'utf8')
+  assert.match(cityCfg, /hero:\s*'https:\/\/upload\.wikimedia\.org\//, 'CITY.hero must be a real Commons photo')
+  assert.match(cityCfg, /spotsHero:\s*'https:\/\/upload\.wikimedia\.org\//, 'CITY.spotsHero must be a real Commons photo (not a CSS placeholder)')
   // 3.7P-6: hero art is also an array (swipe-ready) — every entry a real Commons
   // photo WITH a recorded license (for the ⚑X3 attribution page).
-  assert.match(lib, /heroes:\s*\[/, 'CITY.heroes[] must exist (3.7P-6 swipe-ready hero array)')
-  assert.match(lib, /url:\s*'https:\/\/upload\.wikimedia\.org\//, 'CITY.heroes entries must carry a real Commons url')
-  assert.match(lib, /license:\s*'(CC |Public domain)/, 'CITY.heroes entries must record a license for the attribution page')
+  assert.match(cityCfg, /heroes:\s*\[/, 'CITY.heroes[] must exist (3.7P-6 swipe-ready hero array)')
+  assert.match(cityCfg, /url:\s*'https:\/\/upload\.wikimedia\.org\//, 'CITY.heroes entries must carry a real Commons url')
+  assert.match(cityCfg, /license:\s*'(CC |Public domain)/, 'CITY.heroes entries must record a license for the attribution page')
   // Stage R: the Spots tab now uses a CLEAN light header + a search bar (the
   // cinematic image hero was removed to match the benchmark). The Spots hero
-  // PHOTO data (CITY.spotsHero) stays in lib.js for the attribution page (asserted
+  // PHOTO data (CITY.spotsHero) stays in city.js for the attribution page (asserted
   // above); it is simply no longer rendered as a Spots hero.
   const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
   assert.match(loc, /loc-head-title/, 'LocationsView uses the clean light header (Stage R: no image hero)')
@@ -528,6 +596,64 @@ test('W4 wiring: real heroes + place-detail photo + degrade-to-art + passthrough
   const placesLocal = await import('../app/src/places.js')
   const place = placesLocal.normalizePlace({ key: 'p|x', name: 'X', lat: 28, lng: -82, image: 'https://upload.wikimedia.org/wikipedia/commons/x.jpg' })
   assert.equal(place.image, 'https://upload.wikimedia.org/wikipedia/commons/x.jpg', 'normalizePlace must pass the image field through to the card/detail seams')
+})
+
+// D4 — the app-side city seam (Stage D, D-DEP: one deployment per city, city
+// chosen at BUILD time via VITE_CITY). Pins the extraction so it can't drift:
+// city.js is THE config, lib.js re-exports it, the app config mirrors the
+// finder config's identity WITHOUT importing it (this test IS the sync), the
+// hero credits survived the move, and the de-Tampa'd literals stay de-Tampa'd.
+test('D4 city seam: city.js config + lib re-export + finder mirror + no stray Tampa/locale/wx literals', async () => {
+  // 1. city.js exists and resolves the reference city by default
+  const cityMod = await import('../app/src/city.js')
+  const libMod = await import('../app/src/lib.js')
+  assert.equal(cityMod.CITY.id, 'tampa-bay', 'default (no VITE_CITY) build must resolve the tampa-bay reference config')
+  // 2. lib.js re-exports the SAME object — importers and the seam can't fork
+  assert.equal(libMod.CITY, cityMod.CITY, 'lib.js must re-export city.js CITY (same object, not a copy)')
+  assert.equal(libMod.fmtLocale, cityMod.CITY.locale, 'fmtLocale must BE the config locale')
+  // 3. app config mirrors the finder config identity (no cross-layer import —
+  //    the app stays finder-free; this assertion is the only tie)
+  const finder = await import('../finder/cities/index.mjs')
+  assert.equal(cityMod.CITY.id, finder.meta.id, 'app city id must mirror finder meta.id')
+  assert.equal(cityMod.CITY.name, finder.meta.name, 'app city name must mirror finder meta.name')
+  assert.deepEqual(cityMod.CITY.center, finder.meta.center, 'app city center must mirror finder meta.center')
+  // 4. the honesty contract survived the lib.js → city.js move: every hero
+  //    entry keeps its full credit block, and the W4 scalar aliases still
+  //    mirror entry [0] (the Primer bg + attribution page depend on them)
+  for (const list of ['heroes', 'spotsHeroes']) {
+    for (const h of cityMod.CITY[list]) {
+      for (const field of ['url', 'credit', 'license', 'licenseUrl', 'page']) {
+        assert.ok(typeof h[field] === 'string' && h[field], `CITY.${list} entry must keep its ${field} (credits must not drop in the move)`)
+      }
+    }
+  }
+  assert.equal(cityMod.CITY.hero, cityMod.CITY.heroes[0].url, 'CITY.hero alias must mirror heroes[0].url')
+  assert.equal(cityMod.CITY.spotsHero, cityMod.CITY.spotsHeroes[0].url, 'CITY.spotsHero alias must mirror spotsHeroes[0].url')
+  // 5. literal sweeps over app/src (flat *.js/*.jsx — assets/ has no code):
+  //    - 'wx-tampa-v1' only on the two migration paths (weather.js one-shot,
+  //      storage.js LEGACY_KEYS)
+  //    - 'en-US' only as city.js's own config value (everything else must ride
+  //      the fmtLocale seam)
+  const SRC = path.join(ROOT, 'app', 'src')
+  const srcFiles = readdirSync(SRC).filter((f) => /\.(js|jsx)$/.test(f))
+  for (const f of srcFiles) {
+    const text = readFileSync(path.join(SRC, f), 'utf8')
+    if (!['weather.js', 'storage.js'].includes(f)) {
+      assert.ok(!text.includes('wx-tampa-v1'), `${f}: bare 'wx-tampa-v1' literal outside the migration path (use wx-\${CITY.id}-v1)`)
+    }
+    if (f !== 'city.js') {
+      assert.ok(!text.includes("'en-US'"), `${f}: hardcoded 'en-US' — route it through fmtLocale (lib.js / city.js)`)
+    }
+  }
+  // 6. the copy-swept user-facing surfaces stay Tampa-free (scoped to the swept
+  //    files so a code comment elsewhere can't flake this; city.js is the one
+  //    place the city's own words live)
+  for (const f of ['BubblePage.jsx', 'PlaceBubblePage.jsx', 'AddEvent.jsx', 'guides.js', 'Primer.jsx']) {
+    assert.ok(!readFileSync(path.join(SRC, f), 'utf8').includes('Tampa'), `${f}: hardcoded 'Tampa' — interpolate CITY.name / CITY.shortName`)
+  }
+  const indexHtml = readFileSync(path.join(ROOT, 'app', 'index.html'), 'utf8')
+  assert.ok(!indexHtml.includes('Tampa'), 'index.html: the title must use the %CITY_NAME% token (cityTitle plugin), not a hardcoded city')
+  assert.ok(indexHtml.includes('%CITY_NAME%'), 'index.html: the %CITY_NAME% token must exist for the cityTitle plugin to fill')
 })
 
 // HONEST IMAGERY (A3 backout) — place imagery is REAL-OF-THE-PLACE ONLY. The
@@ -2889,4 +3015,34 @@ test('Cohesion type snap: no half-pixel font sizes, no 650/750 weights (app CSS)
     const orphans = css.match(/font-weight:\s*[67]50\b/g) || []
     assert.equal(orphans.length, 0, `${f} re-introduces an orphan ${orphans[0] || ''} — use 600/700 (550 is the only sanctioned mid-weight)`)
   }
+})
+
+// Stage D data-tail (e): "About this event" is Eventbrite PAGE CHROME, not
+// description text — cleanDescription strips it at ingest. Pinned as a unit
+// fixture because the fix is invisible to cache-fallback warm runs (module
+// caches hold already-normalized events); the shipped Pinellas solid-waste
+// tour record heals on the next live refresh.
+test('finder ingest: cleanDescription strips leading Eventbrite "About this event" chrome', async () => {
+  const { cleanDescription } = await import('../finder/finder.mjs')
+  // the shipped artifact, verbatim prefix shape
+  assert.equal(
+    cleanDescription('About this event There’s no such place as away! Join us to find out what happens to your garbage.'),
+    'There’s no such place as away! Join us to find out what happens to your garbage.',
+    'the chrome prefix must be stripped at ingest'
+  )
+  // separator variants glue the heading on with punctuation
+  assert.equal(cleanDescription('About this event: Doors at 7.'), 'Doors at 7.')
+  // chrome-only description -> no description (null beats an empty husk)
+  assert.equal(cleanDescription('About this event'), null)
+  // NOT a prefix -> untouched (never rewrite mid-text mentions)
+  assert.equal(
+    cleanDescription('Curious about this event? Come along.'),
+    'Curious about this event? Come along.',
+    'mid-text mentions must never be rewritten'
+  )
+  // the strip runs BEFORE the 200-char cap, so real text fills the blurb
+  const long = 'About this event ' + 'x'.repeat(250)
+  const out = cleanDescription(long)
+  assert.equal(out.length, 200, 'cap applies to the DE-CHROMED text')
+  assert.ok(out.startsWith('xxx'), 'recovered characters are real text, not chrome')
 })

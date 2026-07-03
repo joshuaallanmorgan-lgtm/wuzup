@@ -5,9 +5,17 @@
 // a module here + setting CITY=<id>. The active city's place/event SOURCE modules are
 // a separate concern (out of scope for the imagery lock).
 import * as tampaBay from './tampa-bay.mjs';
+import * as sfEastBay from './sf-east-bay.mjs';
 
 const CITIES = {
   'tampa-bay': tampaBay,
+  // Stage D3: registered. D1 (multi-tenant artifacts) LANDED — a
+  // CITY=sf-east-bay run writes ONLY finder/{output,cache}/sf-east-bay/ and
+  // cannot touch Tampa's artifacts or the deployment (app/public changes only
+  // via finder/deploy.mjs, which refuses an artifact-less city). The EVENTS
+  // pipeline stays GATED by missing INPUTS (no sf source modules; sources.json/
+  // venues.json are Tampa's) — the tz/geocode seams ARE wired (sf-east-bay.mjs).
+  'sf-east-bay': sfEastBay,
 };
 
 const id = process.env.CITY || 'tampa-bay';
@@ -18,6 +26,6 @@ if (!mod) {
 
 export const cityId = id;
 export const {
-  bbox, bboxOverpass, bboxArcgisEnvelope, geocodeViewbox,
+  tz, bbox, bboxOverpass, bboxArcgisEnvelope, geocodeViewbox, geocode,
   govOrder, touristCentroids, area, qidDeny, cafe, imagery, rosterBenchmark, meta,
 } = mod;

@@ -14,19 +14,24 @@ The 2026-06-26 imagery lock made the PLACES/imagery pipeline city-agnostic — t
 product's data — is entirely Tampa-bound**, and the artifact store is single-tenant. Stage D is a
 data-engineering stage, not a config flip.
 
-## D1 — Multi-tenant artifacts (do FIRST — running city #2 today would OVERWRITE Tampa)
+## D1 — Multi-tenant artifacts ✅ LANDED (stage-d/multicity; a city-#2 run can no longer touch Tampa)
 
-- Namespace every output path per city: `finder/output/<cityId>/…`, `app/public/<cityId>/…` (or a
-  build-time selector — decide the deployment model first, see ⚑D-DEP below).
-- Fix the cache-key collision class: `place-geo-images.json` / `place-mapillary-images.json` key on
-  `p|slug` — another city's `p|starbucks-30` collides. Prefix keys or split caches per city.
-- `mapillary-stageb.mjs --ship` does `rmSync(PLACE_IMG)` — running city #2 **deletes Tampa's 35
-  self-hosted crops**. Make the ship dir per-city.
-- Regression bar: after D1, a Tampa run produces byte-identical outputs at the new paths.
+All landed and adversarially verified: outputs at `finder/output/<cityId>/…` (Tampa git-mv'd,
+100% renames); ALL caches per-city at `finder/cache/<cityId>/…`; `finder/deploy.mjs` +
+`npm run deploy-city` is the ONLY writer of `app/public/` (validates then copies; refuses
+missing/corrupt sets; smoke-guarded write monopoly); `--ship` writes only its city's
+`place-img/`; the attribution ledger is per-city (a foreign run can no longer erase Tampa's
+credits); **event-source inputs are per-city too** (`finder/cities/<cityId>.sources.json` +
+`<cityId>.venues.json` — the REFUTE's F1/F2: without this, an SF events run ingested Tampa's
+sources and labeled them SF; finder.mjs now REFUSES an events run for a manifest-less city).
+Regression bar met: warm-run byte-identity + deploy-loop clean + dry SF-paths-only proof.
 
-## D2 — Events pipeline de-Tampa (the big one)
+## D2 — Events pipeline de-Tampa ✅ SEAMS LANDED (remaining = the per-city SOURCE MODULES themselves)
 
-Verified hardcodes (2026-07-01 forensics):
+The tz/geocode/UA seams are in the city configs (byte-identical Tampa proof via
+`finder/warm-preload.mjs`, the committed frozen-clock harness); smoke's Tampa guards are
+city-scoped. What remains is WRITING the SF source modules (STAGE_D_SF_EVENTS.md, ~4–4.5
+builder-days). The original forensics, for the record:
 - **ET timezone math** (`finder.mjs:293` UTC offsets) — "every SF event stamped 7 hours early" is a
   shipped-data corruption bug for any non-Eastern city. City config gains a `tz`; all day/time
   derivation goes through it.
@@ -38,7 +43,15 @@ Verified hardcodes (2026-07-01 forensics):
 - `smoke.mjs:~386` runs Tampa-literal merge guards (Fort De Soto === 1) whenever a roster exists —
   **any rostered city #2 fails `npm test`**. Scope the guards to `CITY === 'tampa-bay'`.
 
-## D3 — SF & East Bay build (the Addendum I packet, verified endpoints table at PHASE_3.7 §I.5a)
+## D3 — SF & East Bay build — CONFIGS + PLACE ADAPTERS ✅ LANDED · events modules + imagery run REMAIN
+
+Landed: every packet endpoint live-verified to 100% (STAGE_D_SF_ENDPOINTS.md — two rescued, one
+confirmed dead), `finder/cities/sf-east-bay.mjs` (credited Commons heroes; AREA gazetteer ships
+EMPTY + fail-closed BAN with 90 UNREVIEWED candidates staged), EBRPD/SF-parks adapters city-gated
++ sample-verified, GGNRA 10-unit editorial seed, the events scouting report (STAGE_D_SF_EVENTS.md).
+**⚑ JOSH:** Mt. Diablo's summit (lng −121.914) sits OUTSIDE the ratified bbox east edge (−122.00) —
+fine as the city HERO, but it cannot generate as a spot unless the box widens to ~−121.88. One-line
+config call. The original packet, for the record:
 
 - Config: `id sf-east-bay`; bbox 37.68–38.00 N / −122.53 to −122.00 W; tz America/Los_Angeles;
   heroes Golden Gate + Mt. Diablo (Commons, credited); **CA State Parks DROPPED on license**.
@@ -53,15 +66,19 @@ Verified hardcodes (2026-07-01 forensics):
   eyeball are STANDING requirements (~150 vision-gate candidates, ~11% cafe yield expected).
   `orientFlipThreshold=60` was tuned on Tampa dashcams — per-city recheck flagged in config.
 
-## D4 — App-side city model
+## D4 — App-side city model ✅ LANDED
 
-- `CITY` (lib.js) → a per-city config module; `wx-tampa-v1` storage key → `wx-{cityId}-v1` (with
-  one-shot migration); data fetch URLs parameterized; the ~10 `en-US`/locale literals behind one
-  `fmt` helper; Tampa copy in guides/taglines → config.
-- ⚑ **D-DEP (Josh, before D1 lands):** deployment model — one origin per city (config at build) vs
-  an in-app city switcher (runtime). The packet's D-MC4 said "can defer"; D1's path scheme and D4's
-  fetch scheme both depend on it. Recommendation: **build-time city selection for v1** (simplest,
-  matches "Tampa = reference config"), switcher = v2.
+`app/src/city.js` (build-time `VITE_CITY` registry, fail-closed on unknown ids; lib.js re-exports
+so importers were untouched); wx key migrated per-city (chained legacy path); `fmtLocale` covers
+all 33 locale literals; Tampa copy interpolated incl. the `%CITY_NAME%` tab title. City #2
+app-side = add a `CITIES` entry (NOT yet present for sf-east-bay — deliberate: a
+`VITE_CITY=sf-east-bay` build fails closed until its data exists) + build with the env var.
+- ✅ **D-DEP RESOLVED (Josh, 2026-07-02): ONE DEPLOYMENT PER CITY** — build-time city selection.
+  Consequences now binding for D1/D4: the finder namespaces outputs per city
+  (`finder/output/<cityId>/…`) and the DEPLOY step copies ONE city's artifacts into `app/public/`
+  (each deployment ships exactly one city's data at the same URLs the app already fetches — the app
+  needs no fetch-path changes); the app's `CITY` config resolves at build time (env/config module,
+  Tampa default); the in-app switcher is v2 ([BACKLOG](BACKLOG.md)).
 
 ## Exit gate
 

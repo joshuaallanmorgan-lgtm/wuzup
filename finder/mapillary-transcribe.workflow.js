@@ -8,12 +8,14 @@
 //
 // It is BOTH passes in one: the initial transcription AND the re-judge — the schema
 // carries every field Stage B needs. Run it once per city against the anonymized
-// review set (finder/cache/mapillary-crops/_review/rNNN/) that `mapillary-verify.mjs
-// --anon` produced. NAME-BLIND by construction: agents see only opaque rNNN dirs, so
-// they cannot prime an illegible sign into the expected cafe name.
+// review set (finder/cache/<cityId>/mapillary-crops/_review/rNNN/) that
+// `mapillary-verify.mjs --anon` produced. NAME-BLIND by construction: agents see
+// only opaque rNNN dirs, so they cannot prime an illegible sign into the expected
+// cafe name.
 //
-// args: a count N (→ r001..rNNN) OR an explicit array of rids (e.g. ["r004","r006"]).
-//   Pass it as an actual JSON value to the Workflow tool, not a stringified one.
+// args: a count N (→ r001..rNNN) OR an explicit array of rids (e.g. ["r004","r006"])
+//   OR an object { city, n | rids } — D1: caches are per-city, so pass the city id
+//   when it isn't tampa-bay. Pass an actual JSON value, not a stringified one.
 
 export const meta = {
   name: 'mapillary-transcribe',
@@ -46,9 +48,9 @@ const SCHEMA = {
   required: ['crops'],
 }
 
-const PROMPT = (rid) => `You are transcribing + classifying street-level storefront photos for an automated index. NAME-BLIND: you are NOT told which business this is about.
+const PROMPT = (rid, city) => `You are transcribing + classifying street-level storefront photos for an automated index. NAME-BLIND: you are NOT told which business this is about.
 
-STEP 1: Glob "finder/cache/mapillary-crops/_review/${rid}/c*.jpg" to list the 1-6 images.
+STEP 1: Glob "finder/cache/${city}/mapillary-crops/_review/${rid}/c*.jpg" to list the 1-6 images.
 STEP 2: Read each image.
 STEP 3: Report one crops[] entry per image (i = the N in cN.jpg).
 
@@ -64,11 +66,14 @@ Per image:
 
 phase('Transcribe')
 const a = Array.isArray(args) ? args : (typeof args === 'string' ? JSON.parse(args) : args)
-const rids = Array.isArray(a)
-  ? a
-  : Array.from({ length: Number(a) }, (_, k) => 'r' + String(k + 1).padStart(3, '0'))
+const isObj = a && typeof a === 'object' && !Array.isArray(a)
+const city = (isObj && a.city) || 'tampa-bay' // D1: per-city cache dir
+const spec = isObj ? (a.rids ?? a.n) : a
+const rids = Array.isArray(spec)
+  ? spec
+  : Array.from({ length: Number(spec) }, (_, k) => 'r' + String(k + 1).padStart(3, '0'))
 const results = await parallel(rids.map((rid) => () =>
-  agent(PROMPT(rid), { label: `transcribe:${rid}`, phase: 'Transcribe', schema: SCHEMA })
+  agent(PROMPT(rid, city), { label: `transcribe:${rid}`, phase: 'Transcribe', schema: SCHEMA })
     .then((r) => ({ rid, crops: (r && r.crops) || [] }))
     .catch(() => ({ rid, crops: [], error: true }))
 ))

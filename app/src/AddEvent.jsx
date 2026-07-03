@@ -8,7 +8,7 @@
 // confusable with sourced data. Footer exports my-events as JSON — the seed of
 // the future submission pipeline (PLAN.md Sprint C).
 import { useEffect, useRef, useState } from 'react'
-import { BUBBLES, dayTs, Icon, keyOf, MY_SOURCE } from './lib.js'
+import { BUBBLES, CITY, dayTs, Icon, keyOf, MY_SOURCE } from './lib.js'
 import { useNav } from './nav.jsx'
 import { recordSignal } from './taste.js'
 import { fillOrder } from './weekend.js'
@@ -238,7 +238,7 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
                 className="ae-input"
                 type="text"
                 maxLength={160}
-                placeholder="123 Bay St, Tampa"
+                placeholder={`123 Bay St, ${CITY.shortName}`}
                 value={f.address}
                 onChange={set('address')}
               />

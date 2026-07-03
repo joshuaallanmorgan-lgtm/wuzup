@@ -4,46 +4,14 @@ import { createElement as h } from 'react'
 import { categoryById } from './categories.js'
 import { lsGet, lsSet } from './storage.js'
 
-// Per-city hero art is a future, multi-city feature; hardcoded to Tampa for now.
-// 3.7P-6: hero art is an ARRAY now — cinematic + swipe-READY. One curated entry
-// each today (a single hero with a Ken-Burns zoom; FB-06's "slight zoom in/out").
-// The multi-photo crossfade turns ON when ≥3 hero-QUALITY Tampa images are
-// curated (Charles — a taste call, deferred). Each entry carries its license/
-// credit for the ⚑X3 attribution page: these two were hand-picked in W4 and never
-// went through the finder's attributions.json, so their credits are recorded here
-// (resolved live from Commons). Honesty: a city-mood hero must be a REAL licensed
-// Tampa photo (the no-type-photos rule governs a PLACE photo of itself, not the
-// city hero) — both are real Tampa Commons photos.
-export const CITY = {
-  name: 'Tampa Bay',
-  heroes: [
-    {
-      url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Tampa_Skyline_-_Eric_Statzer.jpg/960px-Tampa_Skyline_-_Eric_Statzer.jpg',
-      credit: 'Eric Statzer',
-      license: 'CC BY-SA 4.0',
-      licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0',
-      page: 'https://commons.wikimedia.org/wiki/File:Tampa_Skyline_-_Eric_Statzer.jpg',
-    },
-  ],
-  // W4: the Spots (Locations) tab hero — Bayshore Boulevard, Tampa Bay's waterfront.
-  spotsHeroes: [
-    {
-      url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Tampa_Bayshore_Blvd_looking_south01.jpg/960px-Tampa_Bayshore_Blvd_looking_south01.jpg',
-      credit: 'Ebyabe',
-      license: 'CC BY 2.5',
-      licenseUrl: 'https://creativecommons.org/licenses/by/2.5',
-      page: 'https://commons.wikimedia.org/wiki/File:Tampa_Bayshore_Blvd_looking_south01.jpg',
-    },
-  ],
-  // back-compat scalar aliases — the Primer onboarding reuses CITY.hero as its bg;
-  // they mirror heroes[0]/spotsHeroes[0].url (kept as plain strings so the W4
-  // real-photo smoke guard still reads them).
-  hero: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Tampa_Skyline_-_Eric_Statzer.jpg/960px-Tampa_Skyline_-_Eric_Statzer.jpg',
-  spotsHero: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Tampa_Bayshore_Blvd_looking_south01.jpg/960px-Tampa_Bayshore_Blvd_looking_south01.jpg',
-  // city center — the single source for the weather query + the map default view
-  // (consolidated from weather.js + MapView.jsx). A new city changes only this.
-  center: { lat: 27.95, lng: -82.46 },
-}
+// Stage D4: the CITY config (identity, center, heroes + credits) moved wholesale
+// to city.js — the build-time per-city module (D-DEP: one deployment per city).
+// Re-exported here so the ~24 existing `import { CITY } from './lib.js'` sites
+// stay untouched; new city-shaped code may import './city.js' directly.
+// fmtLocale (D4 §3) rides along: the one formatting-locale constant every
+// toLocale* call site uses instead of a hardcoded locale literal.
+import { CITY, fmtLocale } from './city.js'
+export { CITY, fmtLocale }
 export const DAY = 86400000
 
 // bubble destinations: every bubble opens a full BubblePage (round-3).
@@ -203,17 +171,17 @@ export function dayTs(iso) {
 }
 export function dayKey(iso) {
   const d = parseDate(iso)
-  return d ? d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : null
+  return d ? d.toLocaleDateString(fmtLocale, { weekday: 'long', month: 'long', day: 'numeric' }) : null
 }
 export function timeOf(iso) {
   if (!iso || !/T\d/.test(iso)) return ''
   const d = new Date(iso)
-  return isNaN(d) ? '' : d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  return isNaN(d) ? '' : d.toLocaleTimeString(fmtLocale, { hour: 'numeric', minute: '2-digit' })
 }
 export function dayLabel(ts, anchors) {
   if (ts === anchors.todayTs) return 'Today'
   if (ts === anchors.tomorrowTs) return 'Tomorrow'
-  return new Date(ts).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+  return new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'short', month: 'short', day: 'numeric' })
 }
 export function priceLabel(e) {
   if (e.isFree === true) return 'Free'
@@ -412,7 +380,7 @@ export function tonightModel(upcoming, anchors, now = new Date()) {
   return { items, late, futureN: futureTimed.length, tomorrowN: tomorrow.length }
 }
 export function dayLabelLoose(e) {
-  return e._day != null ? new Date(e._day).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : null
+  return e._day != null ? new Date(e._day).toLocaleDateString(fmtLocale, { weekday: 'short', month: 'short', day: 'numeric' }) : null
 }
 export function dayLoose(e) {
   return e._ongoing ? 'Ongoing' : dayLabelLoose(e)

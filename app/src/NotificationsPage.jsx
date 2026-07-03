@@ -6,7 +6,7 @@
 //   • a weekend roundup (a true count of this weekend's listings)
 // If none of those produce anything, the honest "all caught up" empty state shows.
 import { useMemo } from 'react'
-import { BUBBLES, CITY, Icon, keyOf } from './lib.js'
+import { BUBBLES, CITY, fmtLocale, Icon, keyOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { CardImg } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
@@ -21,7 +21,7 @@ const relDay = (ts, todayTs) => {
   const d = Math.round((ts - todayTs) / DAY_MS)
   if (d <= 0) return 'today'
   if (d === 1) return 'tomorrow'
-  return new Date(ts).toLocaleDateString('en-US', { weekday: 'long' })
+  return new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'long' })
 }
 
 export default function NotificationsPage({ events = [], anchors, wx }) {
@@ -76,7 +76,7 @@ export default function NotificationsPage({ events = [], anchors, wx }) {
         id: 'weekend',
         icon: '🎉',
         title: `This weekend in ${CITY.name}`,
-        sub: `${weekendCount.toLocaleString('en-US')} events on — take a look`,
+        sub: `${weekendCount.toLocaleString(fmtLocale)} events on — take a look`,
         onClick: () => openBubble(WEEKEND_BUBBLE),
       })
     }

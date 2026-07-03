@@ -41,8 +41,9 @@
 //  hosts, no license, ToS-cache breach. wikimedia_commons is ABSENT in the Tampa
 //  OSM data, so its plumbing rides into the multi-city patch where it has data.)
 //
-// Caching: results live in finder/cache/wikidata-images.json (TRACKED) keyed by
-// Q-id; per-image credits live in finder/cache/attributions.json (TRACKED) keyed
+// Caching: results live in finder/cache/<cityId>/wikidata-images.json (TRACKED,
+// per-city) keyed by Q-id; per-image credits live in
+// finder/cache/<cityId>/attributions.json (TRACKED, per-city) keyed
 // by the Commons "File:" title — the machine-readable backing for the Settings →
 // About source-attribution page (⚑X3) AND the CC-BY/BY-SA legal duty, rendered
 // with NO live network call. Both caches are idempotent (only rewritten when
@@ -57,26 +58,32 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { area, qidDeny } from './cities/index.mjs';
+import { area, qidDeny, cityId } from './cities/index.mjs';
+import { PRODUCT_UA } from './ua.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const CACHE_FILE = join(HERE, 'cache', 'wikidata-images.json');
-const ATTRIB_FILE = join(HERE, 'cache', 'attributions.json');
+// D1: the slug/file-keyed image caches are COLLISION-PRONE across cities
+// (`p|starbucks-30` exists everywhere; the attribution ledger prunes to the
+// current run's ships) — all four live under finder/cache/<cityId>/.
+const CACHE_FILE = join(HERE, 'cache', cityId, 'wikidata-images.json');
+const ATTRIB_FILE = join(HERE, 'cache', cityId, 'attributions.json');
 // honest-imagery Phase 1: the place-KEYED cache for the Commons GEOSEARCH ladder
 // step (the ~97% of places with coords but no usable Q-id), alongside the Q-id
 // cache above. Same shape/TTL; keyed by place.key.
-const GEO_CACHE_FILE = join(HERE, 'cache', 'place-geo-images.json');
+const GEO_CACHE_FILE = join(HERE, 'cache', cityId, 'place-geo-images.json');
 // honest-imagery ladder 3 (Mapillary cafe storefronts): the place-KEYED cache of
 // sign-verified ships the OFFLINE verify harness (finder/mapillary-verify.mjs +
 // mapillary-stageb.mjs) produced — { byKey: { "p|slug": { id, image, license,
 // licenseUrl, author, signTextRead, mapillaryUrl, width, tier, matchKind, at } } }.
 // enrich READS this (+ checks the self-hosted JPEG exists); it never hits Mapillary.
-const MAP_CACHE_FILE = join(HERE, 'cache', 'place-mapillary-images.json');
-const PLACE_IMG_DIR = join(HERE, '..', 'app', 'public', 'place-img');
-// a descriptive User-Agent is required by the Wikimedia API etiquette policy.
+const MAP_CACHE_FILE = join(HERE, 'cache', cityId, 'place-mapillary-images.json');
+// D1: the self-hosted crops live in the per-city artifact set; deploy.mjs
+// ships them to app/public/place-img/ (the URL the app fetches is unchanged).
+const PLACE_IMG_DIR = join(HERE, 'output', cityId, 'place-img');
+// a descriptive User-Agent is required by the Wikimedia API etiquette policy —
+// the shared, city-neutral product identity + this caller's purpose token.
 const UA = {
-  'User-Agent':
-    'TampaBayWhatsOn/1.0 (Tampa Bay events+places discovery app; https://github.com/joshuaallanmorgan-lgtm/cj) place-image-enrichment',
+  'User-Agent': `${PRODUCT_UA} place-image-enrichment`,
 };
 const THUMB_W = 1280; // crisp on a retina 460px hero, still light (~one image)
 // the place-detail hero is ~42svh full-bleed → ~920px physical on a 460px retina
@@ -487,7 +494,7 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
         const slug = p.key.replace(/^p\|/, '');
         if (existsSync(join(PLACE_IMG_DIR, `${slug}.jpg`))) {
           rec = {
-            image: `/place-img/${slug}.jpg`, // site-root local path (Vite serves app/public)
+            image: `/place-img/${slug}.jpg`, // site-root local path (deploy.mjs ships the dir into app/public)
             file: `${slug}.jpg`,
             fileTitle: `Mapillary:${mc.id}`, // synthetic attributions key (no Commons File:)
             fileUrl: mc.mapillaryUrl,
@@ -589,10 +596,9 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
 // ---- standalone: backfill the existing places.json copies in place ----------
 async function main() {
   const live = process.env.PLACES_LIVE === '1';
-  const targets = [
-    join(HERE, 'output', 'places.json'),
-    join(HERE, '..', 'app', 'public', 'places.json'),
-  ].filter((p) => existsSync(p));
+  // D1: only the per-city finder artifact is patched — app/public/places.json
+  // is deploy.mjs's territory (re-run `npm run deploy-city` after a backfill).
+  const targets = [join(HERE, 'output', cityId, 'places.json')].filter((p) => existsSync(p));
   if (!targets.length) {
     console.error('no places.json found (run finder/places.mjs first)');
     process.exit(1);
