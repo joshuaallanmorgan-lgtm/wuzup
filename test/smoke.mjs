@@ -496,18 +496,20 @@ test('fail-closed: every shipped Mapillary cafe was re-verified', () => {
 // with a category-art fallback, dead URLs never paint a broken glyph, and
 // normalizePlace carries `image` through (JSX/CSS can't import into Node).
 test('W4 wiring: real heroes + place-detail photo + degrade-to-art + passthrough', async () => {
-  // both city heroes are real https photos (Events skyline + Spots waterfront)
-  const lib = readFileSync(path.join(ROOT, 'app', 'src', 'lib.js'), 'utf8')
-  assert.match(lib, /hero:\s*'https:\/\/upload\.wikimedia\.org\//, 'CITY.hero must be a real Commons photo')
-  assert.match(lib, /spotsHero:\s*'https:\/\/upload\.wikimedia\.org\//, 'CITY.spotsHero must be a real Commons photo (not a CSS placeholder)')
+  // both city heroes are real https photos (Events skyline + Spots waterfront).
+  // Stage D4: the CITY object (heroes + credits) moved lib.js → city.js — these
+  // source-text pins follow the object; lib.js re-exports CITY so importers held.
+  const cityCfg = readFileSync(path.join(ROOT, 'app', 'src', 'city.js'), 'utf8')
+  assert.match(cityCfg, /hero:\s*'https:\/\/upload\.wikimedia\.org\//, 'CITY.hero must be a real Commons photo')
+  assert.match(cityCfg, /spotsHero:\s*'https:\/\/upload\.wikimedia\.org\//, 'CITY.spotsHero must be a real Commons photo (not a CSS placeholder)')
   // 3.7P-6: hero art is also an array (swipe-ready) — every entry a real Commons
   // photo WITH a recorded license (for the ⚑X3 attribution page).
-  assert.match(lib, /heroes:\s*\[/, 'CITY.heroes[] must exist (3.7P-6 swipe-ready hero array)')
-  assert.match(lib, /url:\s*'https:\/\/upload\.wikimedia\.org\//, 'CITY.heroes entries must carry a real Commons url')
-  assert.match(lib, /license:\s*'(CC |Public domain)/, 'CITY.heroes entries must record a license for the attribution page')
+  assert.match(cityCfg, /heroes:\s*\[/, 'CITY.heroes[] must exist (3.7P-6 swipe-ready hero array)')
+  assert.match(cityCfg, /url:\s*'https:\/\/upload\.wikimedia\.org\//, 'CITY.heroes entries must carry a real Commons url')
+  assert.match(cityCfg, /license:\s*'(CC |Public domain)/, 'CITY.heroes entries must record a license for the attribution page')
   // Stage R: the Spots tab now uses a CLEAN light header + a search bar (the
   // cinematic image hero was removed to match the benchmark). The Spots hero
-  // PHOTO data (CITY.spotsHero) stays in lib.js for the attribution page (asserted
+  // PHOTO data (CITY.spotsHero) stays in city.js for the attribution page (asserted
   // above); it is simply no longer rendered as a Spots hero.
   const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
   assert.match(loc, /loc-head-title/, 'LocationsView uses the clean light header (Stage R: no image hero)')
