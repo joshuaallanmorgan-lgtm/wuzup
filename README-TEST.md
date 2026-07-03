@@ -17,13 +17,15 @@ dependencies — `node:test` + `node:assert` only (Node 20+; repo runs 24).
 ## Notes & gotchas
 
 - **Your data files are safe.** Block 1 backs up `app/public/events.json`,
-  `finder/output/events.json` and `events.md` in memory and restores them in a
+  `finder/output/<cityId>/events.json` and `events.md` (D1: outputs are
+  per-city) plus every committed cache in memory and restores them in a
   `finally` — and then asserts the restore was byte-for-byte. A test run never
   leaves the app pointing at the small fast-mode dataset.
 - **Network:** block 1 hits the live static sources (falling back to
-  `finder/cache/` per source) and may geocode a few new venues via Nominatim
-  (~1 req/s). First run after a long gap can be slower. The finder refreshes
-  its own `finder/cache/*.json` — that churn is by design, not harness damage.
+  `finder/cache/<cityId>/` per source) and may geocode a few new venues via
+  Nominatim (~1 req/s). First run after a long gap can be slower. The finder
+  refreshes its own `finder/cache/<cityId>/*.json` — that churn is by design,
+  not harness damage (and the backup/restore above undoes it).
 - **buzz ≥ 2 is asserted at ≥ 1, not its ✅ threshold (3),** because
   cross-family merges mostly come from the render/extra sources that fast mode
   skips. 0 means the merge mechanism itself broke. Full-run threshold stays
@@ -35,7 +37,7 @@ dependencies — `node:test` + `node:assert` only (Node 20+; repo runs 24).
   clock: the invariant is "the finder never *writes* an already-over event".
   Events that ended since the last refresh are the stale-data banner's job
   (App.jsx), not a data bug. The generation time is parsed from
-  `finder/output/events.md`'s `_Generated …_` stamp (file mtime is useless —
+  `finder/output/<cityId>/events.md`'s `_Generated …_` stamp (file mtime is useless —
   any restore, including this harness's own, rewrites identical content with
   a fresh mtime); it applies only while the app copy and finder output are
   byte-identical, with a loud mtime fallback otherwise.
