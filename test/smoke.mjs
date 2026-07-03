@@ -679,11 +679,26 @@ test('3.75b: watch guides resolve to real keyword matches + honor the window', a
     assert.ok(g.window && Number.isFinite(Date.parse(g.window.start)) && Number.isFinite(Date.parse(g.window.end)), `watch guide ${g.id}: unparseable window`)
     assert.ok(Array.isArray(g.keywords) && g.keywords.length > 0, `watch guide ${g.id}: empty keywords`)
   }
-  // resolves against the REAL events store by keyword — honest, real listings only
+  // Resolver correctness is pinned on a FIXTURE (deterministic — live watch-
+  // party listings rotate out of the aggregators as a tournament progresses,
+  // so "the shipped data has >= 1 world-cup event" was a data-availability
+  // assumption, not a code invariant; it broke on the 2026-07-02 refresh when
+  // sources dropped the finished group-stage parties. A 0-match guide
+  // no-shows honestly in the app — that behavior is the contract.)
+  const fixture = [
+    { title: 'World Cup USA Watch Party', start: '2026-07-04', venue: 'Bar X' },
+    { title: 'Watch FIFA finals on the lawn', start: '2026-07-05', venue: 'Park' },
+    { title: 'Trivia Night', start: '2026-07-04', venue: 'Bar X' },
+    { title: 'World Cup USA Watch Party', start: '2026-07-04', venue: 'Bar X' }, // dupe — must dedupe
+  ]
+  const fHits = resolveWatchGuide(wc, fixture)
+  assert.equal(fHits.length, 2, `resolver must match exactly the keyword events (deduped) — got ${fHits.length}`)
+  assert.ok(!fHits.some((e) => e.title === 'Trivia Night'), 'resolver matched a non-keyword event (fabricating)')
+  // and against the REAL events store: whatever it matches must really carry
+  // a keyword — 0 hits is honest when the sources list none.
   const evDoc = JSON.parse(readFileSync(path.join(ROOT, 'app', 'public', 'events.json'), 'utf8'))
   const events = Array.isArray(evDoc) ? evDoc : evDoc.events || []
   const hits = resolveWatchGuide(wc, events)
-  assert.ok(hits.length > 0, 'world-cup watch guide matched 0 live events — keyword resolver or the data regressed')
   assert.ok(
     hits.every((e) => {
       const hay = ((e.title || '') + ' ' + (e.description || '') + ' ' + (e.venue || '')).toLowerCase()
