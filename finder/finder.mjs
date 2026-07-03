@@ -526,7 +526,12 @@ function normVenue(venue) {
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, ' ')
     .replace(/\s+/g, ' ')
-    .trim();
+    .trim()
+    // "Saint" ↔ "St." is the same word published two ways ("Saint Petersburg
+    // Museum of History" vs "St. Petersburg Museum of History" split the
+    // venue-equality merge — the trolley-tour July-4 dupe class). Folded at
+    // the MERGE-KEY layer only; display strings are never rewritten here.
+    .replace(/\bsaint\b/g, 'st');
 }
 
 function jaccard(a, b) {
@@ -592,7 +597,8 @@ const VENUE_MERGE_GENERIC = new Set(['library', 'branch', 'regional', 'public', 
 
 function venueMergeTokens(venue) {
   const out = new Set();
-  for (const t of titleTokens(venue)) if (!VENUE_MERGE_GENERIC.has(t)) out.add(t);
+  // 'saint' folds to 'st' so the two spellings share a token (see normVenue).
+  for (const t of titleTokens(venue)) if (!VENUE_MERGE_GENERIC.has(t)) out.add(t === 'saint' ? 'st' : t);
   return out;
 }
 
@@ -806,7 +812,10 @@ function mergeCluster(members) {
 const VENUES_FILE = join(HERE, 'venues.json');
 
 // Aggressive-normalize a venue name into a lookup key: fold diacritics
-// (Dalí → dali), lowercase, strip punctuation, drop a leading "the".
+// (Dalí → dali), lowercase, strip punctuation, drop a leading "the", fold
+// "saint" → "st" (a "Saint X" listing must hit a table row spelled "St. X" —
+// same identity fold as normVenue; the canonical DISPLAY name comes from the
+// table row, never from this key).
 function venueKey(name) {
   return String(name || '')
     .normalize('NFD').replace(/[̀-ͯ]/g, '')
@@ -814,7 +823,8 @@ function venueKey(name) {
     .replace(/[^a-z0-9\s]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
-    .replace(/^the /, '');
+    .replace(/^the /, '')
+    .replace(/\bsaint\b/g, 'st');
 }
 
 function loadVenueTable() {
