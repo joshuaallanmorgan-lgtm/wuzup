@@ -153,9 +153,10 @@
   justify-content: space-between;
 }
 .srch-recents-title {
-  font-size: var(--t-meta-sm);
-  font-weight: 700;
-  letter-spacing: 0.2px;
+  font-size: var(--eyebrow-size); /* Cohesion ruling #7: list-group metadata eyebrow (was 12/700 sentence) */
+  font-weight: var(--eyebrow-weight);
+  letter-spacing: var(--eyebrow-track);
+  text-transform: uppercase;
   color: var(--muted);
 }
 /* the quiet clear control: plain muted text, no chrome */

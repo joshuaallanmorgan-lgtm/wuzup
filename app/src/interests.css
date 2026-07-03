@@ -20,8 +20,9 @@
 .ie-sec { margin-top: var(--sp-lg); }
 .ie-over {
   font-size: var(--eyebrow-size);
-  font-weight: 800;
-  letter-spacing: 0.2px;
+  font-weight: var(--eyebrow-weight);
+  letter-spacing: var(--eyebrow-track);
+  text-transform: uppercase; /* Cohesion ruling #7: category group headers are metadata (UPPERCASE) */
   color: var(--muted); /* A6 accent restraint: section overline off orange */
   margin-bottom: 10px;
 }

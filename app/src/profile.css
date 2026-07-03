@@ -191,8 +191,9 @@
 .pf-hist-label {
   margin: 18px var(--gutter) var(--sp-xs);
   font-size: var(--eyebrow-size);
-  font-weight: 800;
-  letter-spacing: 0.2px;
+  font-weight: var(--eyebrow-weight);
+  letter-spacing: var(--eyebrow-track);
+  text-transform: uppercase; /* Cohesion ruling #7: metadata eyebrow (UPPERCASE) */
   color: var(--muted);
 }
 /* ===== U-a: past DAYS from day-history-v1 — one quiet row per day
@@ -404,7 +405,10 @@
 .ms-group:first-child { margin-top: 10px; }
 .ms-group-label {
   margin: 0 var(--gutter) var(--sp-xs);
-  font-size: var(--t-meta-sm); font-weight: 700; letter-spacing: 0.2px;
+  font-size: var(--eyebrow-size); /* Cohesion ruling #7: metadata eyebrow, full A6 contract (was 12/700/0.2px sentence) */
+  font-weight: var(--eyebrow-weight);
+  letter-spacing: var(--eyebrow-track);
+  text-transform: uppercase;
   color: var(--muted);
 }
 

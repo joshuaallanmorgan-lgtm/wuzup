@@ -91,7 +91,11 @@ One `.chip` — hairline warm pill, `--t-micro (11px)/600` ink (Cohesion type sn
 
 One contract: `--eyebrow-size 11px` · `--eyebrow-weight 700` · `--eyebrow-track 0.06em` · **UPPERCASE** (applied at the use-site).
 
-Applied in A6 to the already-uppercase section-label family (`.home-title`, `.weekend-day-label`, `.flt-section-label`, `.fc-list-head`, `.calpick-listhead`). **Deferred for Josh's sign-off:** the sentence-case *content* overlines (`.spotcard-type` "Coffee shop", `.nbhd-area`, `.d-k` "When/Where", `.pf-hist-label`, `.ms-group-label`) — adopting the contract flips their authored content to ALL-CAPS, an editorial-voice change.
+Applied in A6 to the already-uppercase section-label family (`.home-title`, `.weekend-day-label`, `.flt-section-label`, `.fc-list-head`, `.calpick-listhead`).
+
+**RESOLVED (Cohesion Pass, ruling 2026-07-01 #7 — delegated to Fable, executed WS3):**
+- **METADATA eyebrows = full contract + UPPERCASE** — labels that name a type/category/group of content: `.spotcard-type` ("COFFEE SHOP"), `.nbhd-area`, `.d-k` (When/Where/Price/About/What's here…), `.pf-hist-label` (Past days/Been there), `.ms-group-label` (Upcoming/Yesterday/…), `.st-over` (Settings groups), `.ie-over` (Interest groups), `.srch-recents-title` (Recent).
+- **EDITORIAL/authored lines stay sentence case** — anything with a voice: why-lines (`.gem-why`, the "Why this fits" card), the detail date eyebrow (`.detail-eyebrow`, deliberately 14px accent — not an 11px overline), guide/section subtitles, `.tp-over` "Tune it yourself", `.recap-over` "Before you go", `.pf-ask-q` "Did you make it?", `.ae-group` (mixed authored form groups), form field labels (`.ae-label`, `.ep-label`).
 
 ---
 

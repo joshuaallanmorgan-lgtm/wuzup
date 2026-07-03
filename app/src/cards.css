@@ -190,7 +190,7 @@
    placeType-aware art (3.73a) + a type label + one differentiator + 💎 badge. ===== */
 .spotcard { flex: 0 0 200px; scroll-snap-align: start; border: none; background: none; text-align: left; cursor: pointer; padding: 0; font: inherit; color: inherit; }
 .spotcard-img { display: block; width: 200px; height: 130px; border-radius: var(--r-md); }
-.spotcard-type { margin-top: var(--sp-xs); font-size: var(--eyebrow-size); font-weight: 700; letter-spacing: 0.2px; color: var(--muted); } /* PREMIUM A1 (accent restraint): placeType overline off orange */
+.spotcard-type { margin-top: var(--sp-xs); font-size: var(--eyebrow-size); font-weight: var(--eyebrow-weight); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--muted); } /* PREMIUM A1: off orange · Cohesion ruling #7: metadata eyebrow, full A6 contract (UPPERCASE) */
 .spotcard-title { margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } /* A6: type from the shared --t-card override below */
 .spotcard-meta { margin-top: 3px; font-size: var(--t-meta); font-weight: 500; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* 3.7P-13: richer amenity chips — up to 3 icon+label utility chips + distance */
@@ -469,7 +469,7 @@
 .nbhd-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-md) var(--sp-sm); padding: 0 var(--gutter); }
 .nbhd-card { min-width: 0; display: flex; flex-direction: column; background: none; border: none; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
 .nbhd-img { position: relative; display: block; width: 100%; aspect-ratio: 3 / 2; border-radius: var(--r-md); }
-.nbhd-area { margin-top: var(--sp-xs); font-size: var(--eyebrow-size); font-weight: 800; letter-spacing: 0.1px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* PREMIUM A1 (accent restraint): area overline off orange */
+.nbhd-area { margin-top: var(--sp-xs); font-size: var(--eyebrow-size); font-weight: var(--eyebrow-weight); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* PREMIUM A1: off orange · Cohesion ruling #7: metadata eyebrow, full A6 contract (UPPERCASE) */
 .nbhd-title { margin-top: 1px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } /* A6: type from the shared --t-card override below */
 .nbhd-meta { margin-top: 2px; font-size: var(--t-meta-sm); font-weight: 500; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nbhd-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }

@@ -13,8 +13,9 @@
 .st-sec:first-child { margin-top: var(--sp-xs); }
 .st-over {
   font-size: var(--eyebrow-size);
-  font-weight: 800;
-  letter-spacing: 0.2px;
+  font-weight: var(--eyebrow-weight);
+  letter-spacing: var(--eyebrow-track);
+  text-transform: uppercase; /* Cohesion ruling #7: settings group headers are metadata (UPPERCASE) */
   color: var(--muted); /* A6 accent restraint: section overline off orange */
   margin-bottom: 10px;
 }
