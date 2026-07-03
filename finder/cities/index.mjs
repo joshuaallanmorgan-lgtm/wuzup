@@ -5,9 +5,15 @@
 // a module here + setting CITY=<id>. The active city's place/event SOURCE modules are
 // a separate concern (out of scope for the imagery lock).
 import * as tampaBay from './tampa-bay.mjs';
+import * as sfEastBay from './sf-east-bay.mjs';
 
 const CITIES = {
   'tampa-bay': tampaBay,
+  // Stage D3: registered but NOT runnable until D1 (multi-tenant artifacts) +
+  // D2 (events de-Tampa) land — running the pipeline with CITY=sf-east-bay
+  // today would OVERWRITE Tampa's outputs (see finder/cities/sf-east-bay.mjs
+  // header + STAGE_D.md D1).
+  'sf-east-bay': sfEastBay,
 };
 
 const id = process.env.CITY || 'tampa-bay';
