@@ -20,12 +20,13 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PRODUCT_UA } from './ua.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CACHE_FILE = join(HERE, 'cache', 'wikidata-descriptions.json');
+// city-neutral product UA (Wikimedia etiquette) + this caller's purpose token.
 const UA = {
-  'User-Agent':
-    'TampaBayWhatsOn/1.0 (Tampa Bay events+places discovery app; https://github.com/joshuaallanmorgan-lgtm/cj) place-description-enrichment',
+  'User-Agent': `${PRODUCT_UA} place-description-enrichment`,
 };
 const MAX_CACHE_AGE_MS = 30 * 24 * 3600e3; // descriptions change very rarely — 30d
 const MAX_LEN = 320; // a tidy blurb, not the whole article — trim at a sentence end

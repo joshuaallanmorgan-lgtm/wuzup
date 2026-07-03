@@ -18,6 +18,7 @@ import { writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync } from 
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { bbox as TB_BOX, geocodeViewbox, tz as CITY_TZ, geocode as CITY_GEO } from './cities/index.mjs';
+import { PRODUCT_UA } from './ua.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(HERE, 'output');
@@ -1929,7 +1930,7 @@ async function main() {
         const res = await fetch(
           'https://nominatim.openstreetmap.org/search?format=json&limit=1' +
           '&viewbox=' + geocodeViewbox + '&bounded=1&q=' + encodeURIComponent(q),
-          { headers: { 'user-agent': 'tampabay-events-finder/0.2 (mvp)' } }
+          { headers: { 'user-agent': `${PRODUCT_UA} geocode` } }
         );
         const j = await res.json();
         const hit = j && j[0] ? { lat: parseFloat(j[0].lat), lng: parseFloat(j[0].lon) } : null;
