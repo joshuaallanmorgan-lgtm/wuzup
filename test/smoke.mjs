@@ -5,8 +5,8 @@
 //   1. finder fast-mode  — spawns SKIP_RENDER=1 SKIP_EXTRA=1 node finder/finder.mjs,
 //      asserts exit 0, parses the benchmark block, ✅-asserts every benchmark
 //      that is meaningful without the skipped sources, schema-validates 20
-//      random events from the fast output. The three files the finder writes
-//      (finder/output/events.json, events.md, app/public/events.json) are
+//      random events from the fast output. The files the finder writes
+//      (finder/output/<cityId>/events.json + events.md — D1 multi-tenant) are
 //      backed up in memory first and ALWAYS restored (finally) — a test run
 //      must never leave the app pointing at the small fast-mode dataset.
 //   2. data invariants    — on the CURRENT full app/public/events.json, captured
@@ -42,8 +42,9 @@ import * as gesture from '../app/src/deckgesture.js'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const APP_EVENTS = path.join(ROOT, 'app', 'public', 'events.json')
-const FINDER_JSON = path.join(ROOT, 'finder', 'output', 'events.json')
-const FINDER_MD = path.join(ROOT, 'finder', 'output', 'events.md')
+// D1 multi-tenant artifacts: the finder writes finder/output/<cityId>/…
+const FINDER_JSON = path.join(ROOT, 'finder', 'output', CITY_ID, 'events.json')
+const FINDER_MD = path.join(ROOT, 'finder', 'output', CITY_ID, 'events.md')
 
 // ---------- capture the CURRENT full dataset BEFORE anything can mutate it ----------
 assert.ok(existsSync(APP_EVENTS), `missing ${APP_EVENTS} — run "npm run refresh" first; the app has no data`)
@@ -241,7 +242,7 @@ test('finder fast-mode: exit 0, benchmarks green, output schema-valid', { timeou
 
     // --- fast output exists and schema-validates: 20 random spot checks ---
     const fast = JSON.parse(readFileSync(FINDER_JSON, 'utf8'))
-    assert.ok(Array.isArray(fast) && fast.length > 0, 'finder/output/events.json is not a non-empty array')
+    assert.ok(Array.isArray(fast) && fast.length > 0, `finder/output/${CITY_ID}/events.json is not a non-empty array`)
     const picked = []
     const count = Math.min(20, fast.length)
     // deterministic, evenly-spaced spot-check indices (was Math.random — flaky: a
@@ -402,11 +403,12 @@ test('places data invariants: schema v1 places.json', () => {
     assert.ok(!keys.has('p|weedon-island-preserve-2'), 'Weedon Island split into two records — the o/e-typo merge regressed')
   }
 
-  // the finder copy and the app copy must be the same artifact (no drift)
-  const FINDER_PLACES = path.join(ROOT, 'finder', 'output', 'places.json')
-  assert.ok(existsSync(FINDER_PLACES), 'finder/output/places.json missing while the app copy exists')
+  // the finder copy and the app copy must be the same artifact (no drift).
+  // D1: the finder copy lives at finder/output/<cityId>/.
+  const FINDER_PLACES = path.join(ROOT, 'finder', 'output', CITY_ID, 'places.json')
+  assert.ok(existsSync(FINDER_PLACES), `finder/output/${CITY_ID}/places.json missing while the app copy exists`)
   assert.equal(readFileSync(FINDER_PLACES, 'utf8'), readFileSync(APP_PLACES, 'utf8'),
-    'finder/output/places.json and app/public/places.json drifted — re-run node finder/places.mjs')
+    `finder/output/${CITY_ID}/places.json and app/public/places.json drifted — re-run node finder/places.mjs`)
 })
 
 // Phase 3.5 W4 — HONEST IMAGES. A place photo is ONLY ever a verified photo OF

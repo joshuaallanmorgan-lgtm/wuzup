@@ -5,9 +5,9 @@
 // layers for truth — hours, amenity booleans, fees, descriptions — and OSM
 // Overpass for breadth), merges duplicates across sources with a
 // grid-blocked, edit-tolerant name + spatial-gate clusterer, scores a capped
-// hidden-spots shelf, and writes finder/output/places.json + places.md and
-// the app's copy (app/public/places.json — the second lazy fetch; NEVER
-// concatenated into the events norm).
+// hidden-spots shelf, and writes finder/output/<cityId>/places.json +
+// places.md and the app's copy (app/public/places.json — the second lazy
+// fetch; NEVER concatenated into the events norm).
 //
 // Structural clone of finder.mjs's loader/cache/benchmark conventions; the
 // build spec is PLACES_SOURCES.md (schema §2, merge rules §3, benchmarks §4,
@@ -25,10 +25,12 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { enrichPlacesWithImages } from './places-images.mjs';
 import { enrichPlacesWithDescriptions } from './places-descriptions.mjs';
-import { bbox as TB_BOX, govOrder as GOV_ORDER, touristCentroids as TOURIST_CENTROIDS } from './cities/index.mjs';
+import { bbox as TB_BOX, govOrder as GOV_ORDER, touristCentroids as TOURIST_CENTROIDS, cityId } from './cities/index.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const OUT = join(HERE, 'output');
+// D1 multi-tenant artifacts: outputs are namespaced per city (a CITY=<other>
+// run can never touch another city's snapshot).
+const OUT = join(HERE, 'output', cityId);
 const CACHE = join(HERE, 'cache');
 const SRC_DIR = join(HERE, 'places-sources');
 
@@ -733,8 +735,8 @@ async function main() {
   bench(weedonHits.length === 1, `roster "Weedon Island Preserve" merged to exactly ONE record: ${weedonHits.length} (${weedonHits.map((h) => h.key).join(', ')})`);
 
   console.log('──────────────────────────────────────────');
-  console.log('  Wrote: finder/output/places.json  (structured, schema v1)');
-  console.log('  Wrote: finder/output/places.md    (readable + hidden shelf for the eyeball pass)');
+  console.log(`  Wrote: finder/output/${cityId}/places.json  (structured, schema v1)`);
+  console.log(`  Wrote: finder/output/${cityId}/places.md    (readable + hidden shelf for the eyeball pass)`);
   console.log('  Wrote: app/public/places.json     (second lazy fetch — Sprint S consumes it)');
   console.log('');
 }

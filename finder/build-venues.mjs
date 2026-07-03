@@ -1,9 +1,9 @@
 // build-venues.mjs — generate finder/venues.json, the canonical venue table.
 //
 // Usage:  node finder/build-venues.mjs [eventsJsonPath]
-//         (eventsJsonPath defaults to finder/output/events.json)
+//         (eventsJsonPath defaults to finder/output/<cityId>/events.json)
 //
-// Reads the latest pipeline output (finder/output/events.json) and clusters
+// Reads the latest pipeline output (finder/output/<cityId>/events.json) and clusters
 // venue spellings into canonical identities:
 //   { canonicalName, aliases[], lat, lng, address }
 //
@@ -36,10 +36,10 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { bbox } from './cities/index.mjs';
+import { bbox, cityId } from './cities/index.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const EVENTS = process.argv[2] || join(HERE, 'output', 'events.json');
+const EVENTS = process.argv[2] || join(HERE, 'output', cityId, 'events.json');
 const OUT = join(HERE, 'venues.json');
 
 // Tampa Bay sanity box — from the active city config (cities/).

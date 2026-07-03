@@ -21,6 +21,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PRODUCT_UA } from './ua.mjs';
+import { cityId } from './cities/index.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CACHE_FILE = join(HERE, 'cache', 'wikidata-descriptions.json');
@@ -149,7 +150,7 @@ export async function enrichPlacesWithDescriptions(places, { live = false, log =
 async function main() {
   const live = process.env.PLACES_LIVE === '1';
   const targets = [
-    join(HERE, 'output', 'places.json'),
+    join(HERE, 'output', cityId, 'places.json'),
     join(HERE, '..', 'app', 'public', 'places.json'),
   ].filter((p) => existsSync(p));
   if (!targets.length) {

@@ -5,7 +5,8 @@
 // optionally pulls render-scraped sources (render.mjs — Creative Loafing etc.),
 // loads every self-contained source module in finder/sources/*.mjs,
 // fuzzy-merges duplicates across sources into a "buzz" signal, tags and scores
-// every event, and writes the result to output/ (and the app's public folder).
+// every event, and writes the result to output/<cityId>/ (D1 multi-tenant
+// artifacts — see STAGE_D.md).
 //
 // Why this approach: JSON-LD is a web standard, so extraction is robust and free —
 // no AI, no paid APIs, no fragile per-site scraping. Re-runnable any time.
@@ -17,11 +18,13 @@
 import { writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
-import { bbox as TB_BOX, geocodeViewbox, tz as CITY_TZ, geocode as CITY_GEO } from './cities/index.mjs';
+import { bbox as TB_BOX, geocodeViewbox, tz as CITY_TZ, geocode as CITY_GEO, cityId } from './cities/index.mjs';
 import { PRODUCT_UA } from './ua.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const OUT = join(HERE, 'output');
+// D1 multi-tenant artifacts: every output is namespaced per city so a
+// CITY=<other> run can never touch another city's snapshot.
+const OUT = join(HERE, 'output', cityId);
 const CACHE = join(HERE, 'cache');
 const GEO = join(CACHE, 'geocode.json');
 
@@ -2314,8 +2317,8 @@ async function main() {
     }
   }
   console.log('──────────────────────────────────────────');
-  console.log(`  Wrote: finder/output/events.json  (structured)`);
-  console.log(`  Wrote: finder/output/events.md    (readable)`);
+  console.log(`  Wrote: finder/output/${cityId}/events.json  (structured)`);
+  console.log(`  Wrote: finder/output/${cityId}/events.md    (readable)`);
   console.log('');
 }
 

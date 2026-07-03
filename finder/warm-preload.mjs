@@ -4,7 +4,7 @@
 // house rule: "Tampa output must stay BYTE-IDENTICAL through every refactor").
 // Re-runs the events pipeline entirely from the COMMITTED caches, with:
 //   • Date frozen at the committed snapshot's generation instant (the
-//     "_Generated …_" stamp in finder/output/events.md), so the alive filter,
+//     "_Generated …_" stamp in finder/output/<cityId>/events.md), so the alive filter,
 //     tonight/weekend tags and hot-score recency reproduce exactly;
 //   • global fetch KILLED — every live pull fails, so every source takes its
 //     per-source cache fallback (finder/cache/*.json) and no cache is rewritten;
@@ -15,8 +15,8 @@
 // Vars:  WARM_FROZEN_AT=<ISO instant> overrides the frozen clock.
 //        SKIP_IMGCHECK is forced (the image audit is console-only + network).
 //
-// NOTE: the run still writes finder/output/events.{json,md}, the app copy
-// (app/public/events.json) and may rewrite finder/cache/geocode.json (the
+// NOTE: the run still writes finder/output/<cityId>/events.{json,md}, the app
+// copy (app/public/events.json) and may rewrite finder/cache/geocode.json (the
 // null-entry purge). Copy the outputs aside for comparison, then restore:
 //   git checkout -- finder/output app/public/events.json finder/cache
 //
