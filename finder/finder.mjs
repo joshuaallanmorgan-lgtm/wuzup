@@ -639,12 +639,21 @@ function sameEvent(a, b) {
     if (!a.nVenue && !b.nVenue) return titleMatch;
     return titleMatch && venueMatch;
   }
+  // Span guard (Stage D data-tail b, extends the WS1 1d tiered family guard):
+  // when exactly one side SPANS multiple calendar days, venue-level identity is
+  // not enough — a spanning record only folds onto a dated sibling when the
+  // TITLES agree beyond family level (the strong gates below). VSPC's
+  // "Clearwater Threshers 4th of July Weekend Firework Shows" (a 7/3→7/4 span
+  // at BayCare Ballpark) umbrella'd onto the 7/3 GAME record through one
+  // shared family-level token ("Threshers"), and the max-end merge then
+  // shipped the game claiming it ends 7/4.
+  const spanMismatch = a.spans !== b.spans;
   // Cross-family. Venue+day equality ALONE is not identity: it merged a
   // Scorpions tribute with a same-day afternoon tea at one brewery into a
   // chimera card (Wild Rover, 2026-06-13 — tribute title, tea description).
   // A venue merge also needs a shared significant title token, or both
   // records clocking the SAME start hour.
-  if (venueMatch) {
+  if (venueMatch && !spanMismatch) {
     let shared = 0;
     for (const t of a.tokens) if (b.tokens.has(t)) shared++;
     if (shared > 0) return true;
@@ -1082,12 +1091,14 @@ function mergeTitleOf(title, venue) {
 }
 
 // Cluster all raw listings by calendar day, then greedily merge matches.
-function fuzzyMerge(all) {
+// Exported for the offline sim harness (sim-exhibit-dedupe.mjs).
+export function fuzzyMerge(all) {
   const byDay = new Map();
   for (const e of all) {
     const day = dayOf(e.start) || 'tbd';
     if (!byDay.has(day)) byDay.set(day, []);
     const mergeTitle = mergeTitleOf(e.title, e.venue);
+    const endDay = dayOf(e.end);
     byDay.get(day).push({
       ...e,
       tokens: titleTokens(mergeTitle),
@@ -1096,6 +1107,8 @@ function fuzzyMerge(all) {
       fam: familyOf(e.source),
       vTokens: venueMergeTokens(e.venue),
       hr: startHourOf(e.start),
+      // multi-calendar-day span flag for the sameEvent span guard
+      spans: !!(day !== 'tbd' && endDay && endDay > day),
     });
   }
   const merged = [];
