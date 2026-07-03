@@ -9,10 +9,12 @@ import * as sfEastBay from './sf-east-bay.mjs';
 
 const CITIES = {
   'tampa-bay': tampaBay,
-  // Stage D3: registered but NOT runnable until D1 (multi-tenant artifacts) +
-  // D2 (events de-Tampa) land — running the pipeline with CITY=sf-east-bay
-  // today would OVERWRITE Tampa's outputs (see finder/cities/sf-east-bay.mjs
-  // header + STAGE_D.md D1).
+  // Stage D3: registered. D1 (multi-tenant artifacts) LANDED — a
+  // CITY=sf-east-bay run writes ONLY finder/{output,cache}/sf-east-bay/ and
+  // cannot touch Tampa's artifacts or the deployment (app/public changes only
+  // via finder/deploy.mjs, which refuses an artifact-less city). The EVENTS
+  // pipeline stays D2-gated: this config has no `tz`/`geocode` wiring yet, so
+  // an events run fails closed at module load (see sf-east-bay.mjs header).
   'sf-east-bay': sfEastBay,
 };
 

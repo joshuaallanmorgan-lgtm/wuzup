@@ -6,13 +6,14 @@
 // North Bay). Cloned from the tampa-bay.mjs reference shape; every endpoint +
 // hero below was live-verified 2026-07-03 (STAGE_D_SF_ENDPOINTS.md).
 //
-// ⚠️ NOT RUNNABLE YET — D1/D2 GATE. Selecting CITY=sf-east-bay before the
-// multi-tenant artifact layout (STAGE_D.md D1) lands would OVERWRITE Tampa's
-// outputs (finder/output/*, app/public/*, the slug-keyed image caches, and
-// mapillary --ship rmSync's Tampa's self-hosted crops). The events pipeline is
-// also still Tampa-bound (D2: ET timezone math, Tampa geocode string). This
-// config exists so D3's adapters + the imagery runbook have their one source of
-// per-city truth the moment D1/D2 merge.
+// ✅ D1 LANDED (multi-tenant artifacts): a CITY=sf-east-bay run is SAFE for
+// Tampa — every output/cache path is namespaced (finder/output/sf-east-bay/,
+// finder/cache/sf-east-bay/), mapillary --ship clears only this city's
+// place-img dir, and app/public changes only via finder/deploy.mjs (which
+// refuses to deploy this city until its artifact set exists).
+// ⚠️ EVENTS still D2-GATED: this config exports `timezone` but not the `tz` +
+// `geocode` shape finder.mjs consumes, so an events run FAILS CLOSED at module
+// load (nothing written). The PLACES side runs (its adapters land in D3).
 
 // sanity box — any coordinate outside this is wrong for a local place/event.
 // Ratified by Josh 2026-06-16 (PHASE_3.7.md §I.5): SF through the East Bay to
