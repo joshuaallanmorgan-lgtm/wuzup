@@ -532,6 +532,64 @@ test('W4 wiring: real heroes + place-detail photo + degrade-to-art + passthrough
   assert.equal(place.image, 'https://upload.wikimedia.org/wikipedia/commons/x.jpg', 'normalizePlace must pass the image field through to the card/detail seams')
 })
 
+// D4 — the app-side city seam (Stage D, D-DEP: one deployment per city, city
+// chosen at BUILD time via VITE_CITY). Pins the extraction so it can't drift:
+// city.js is THE config, lib.js re-exports it, the app config mirrors the
+// finder config's identity WITHOUT importing it (this test IS the sync), the
+// hero credits survived the move, and the de-Tampa'd literals stay de-Tampa'd.
+test('D4 city seam: city.js config + lib re-export + finder mirror + no stray Tampa/locale/wx literals', async () => {
+  // 1. city.js exists and resolves the reference city by default
+  const cityMod = await import('../app/src/city.js')
+  const libMod = await import('../app/src/lib.js')
+  assert.equal(cityMod.CITY.id, 'tampa-bay', 'default (no VITE_CITY) build must resolve the tampa-bay reference config')
+  // 2. lib.js re-exports the SAME object — importers and the seam can't fork
+  assert.equal(libMod.CITY, cityMod.CITY, 'lib.js must re-export city.js CITY (same object, not a copy)')
+  assert.equal(libMod.fmtLocale, cityMod.CITY.locale, 'fmtLocale must BE the config locale')
+  // 3. app config mirrors the finder config identity (no cross-layer import —
+  //    the app stays finder-free; this assertion is the only tie)
+  const finder = await import('../finder/cities/index.mjs')
+  assert.equal(cityMod.CITY.id, finder.meta.id, 'app city id must mirror finder meta.id')
+  assert.equal(cityMod.CITY.name, finder.meta.name, 'app city name must mirror finder meta.name')
+  assert.deepEqual(cityMod.CITY.center, finder.meta.center, 'app city center must mirror finder meta.center')
+  // 4. the honesty contract survived the lib.js → city.js move: every hero
+  //    entry keeps its full credit block, and the W4 scalar aliases still
+  //    mirror entry [0] (the Primer bg + attribution page depend on them)
+  for (const list of ['heroes', 'spotsHeroes']) {
+    for (const h of cityMod.CITY[list]) {
+      for (const field of ['url', 'credit', 'license', 'licenseUrl', 'page']) {
+        assert.ok(typeof h[field] === 'string' && h[field], `CITY.${list} entry must keep its ${field} (credits must not drop in the move)`)
+      }
+    }
+  }
+  assert.equal(cityMod.CITY.hero, cityMod.CITY.heroes[0].url, 'CITY.hero alias must mirror heroes[0].url')
+  assert.equal(cityMod.CITY.spotsHero, cityMod.CITY.spotsHeroes[0].url, 'CITY.spotsHero alias must mirror spotsHeroes[0].url')
+  // 5. literal sweeps over app/src (flat *.js/*.jsx — assets/ has no code):
+  //    - 'wx-tampa-v1' only on the two migration paths (weather.js one-shot,
+  //      storage.js LEGACY_KEYS)
+  //    - 'en-US' only as city.js's own config value (everything else must ride
+  //      the fmtLocale seam)
+  const SRC = path.join(ROOT, 'app', 'src')
+  const srcFiles = readdirSync(SRC).filter((f) => /\.(js|jsx)$/.test(f))
+  for (const f of srcFiles) {
+    const text = readFileSync(path.join(SRC, f), 'utf8')
+    if (!['weather.js', 'storage.js'].includes(f)) {
+      assert.ok(!text.includes('wx-tampa-v1'), `${f}: bare 'wx-tampa-v1' literal outside the migration path (use wx-\${CITY.id}-v1)`)
+    }
+    if (f !== 'city.js') {
+      assert.ok(!text.includes("'en-US'"), `${f}: hardcoded 'en-US' — route it through fmtLocale (lib.js / city.js)`)
+    }
+  }
+  // 6. the copy-swept user-facing surfaces stay Tampa-free (scoped to the swept
+  //    files so a code comment elsewhere can't flake this; city.js is the one
+  //    place the city's own words live)
+  for (const f of ['BubblePage.jsx', 'PlaceBubblePage.jsx', 'AddEvent.jsx', 'guides.js', 'Primer.jsx']) {
+    assert.ok(!readFileSync(path.join(SRC, f), 'utf8').includes('Tampa'), `${f}: hardcoded 'Tampa' — interpolate CITY.name / CITY.shortName`)
+  }
+  const indexHtml = readFileSync(path.join(ROOT, 'app', 'index.html'), 'utf8')
+  assert.ok(!indexHtml.includes('Tampa'), 'index.html: the title must use the %CITY_NAME% token (cityTitle plugin), not a hardcoded city')
+  assert.ok(indexHtml.includes('%CITY_NAME%'), 'index.html: the %CITY_NAME% token must exist for the cityTitle plugin to fill')
+})
+
 // HONEST IMAGERY (A3 backout) — place imagery is REAL-OF-THE-PLACE ONLY. The
 // rejected A3 curated category-STOCK floor (a generic Pexels photo per placeType)
 // is backed out and must NOT return: a generic photo on a specific place reads as
