@@ -1,10 +1,11 @@
 // sim-exhibit-dedupe.mjs — Sprint L3 simulation of the ongoing-exhibit
 // cross-day dedupe, with the REAL "REALM Exhibition" records from the
-// 2026-06-10 dataset plus negative controls.
+// 2026-06-10 dataset plus negative controls. Stage D data-tail extends it
+// with the same-day SPAN-GUARD cases (fuzzyMerge — the Threshers artifact).
 //
 // Run:  node finder/sim-exhibit-dedupe.mjs   (exit 0 = all checks pass)
 
-import { dedupeOngoingOccurrences } from './finder.mjs';
+import { dedupeOngoingOccurrences, fuzzyMerge } from './finder.mjs';
 
 const mk = (o) => ({
   title: null, start: null, end: null, venue: null, address: null,
@@ -150,5 +151,71 @@ check('single-family repeat NOT folded', events.includes(singleFamRepeat));
 check('aggregator series span kept (not an umbrella)', events.includes(seriesSpan));
 check('real game NOT folded into the series span', events.includes(realGame));
 check('output size 10 (12 in, 2 folded)', events.length === 10);
+
+// ---- Stage D data-tail (b): the same-day SPAN GUARD in fuzzyMerge ----------
+// The Threshers July-4 artifact: VSPC published "Clearwater Threshers 4th of
+// July Weekend Firework Shows" as one 7/3→7/4 SPAN (address-as-venue, renamed
+// to BayCare Ballpark pre-merge), and the same-day merge umbrella'd it onto
+// the 7/3 GAME record via venue + ONE shared family-level token ("Threshers");
+// the max-end merge then shipped the game claiming it ends 7/4. A spanning
+// record may only merge with a dated sibling when the TITLES agree beyond
+// family level. Raw listings below are verbatim from the committed caches
+// (fireworks shown post the pre-merge address→venue rename).
+
+const gameJul3 = mk({
+  title: 'Clearwater Threshers vs. Fort Myers Mighty Mussels',
+  start: '2026-07-03T18:30:00-04:00',
+  end: '2026-07-03T20:30:00-04:00',
+  venue: 'BayCare Ballpark',
+  sources: ['Tampa Bay Events'],
+  description: 'Tampa Events lists ticket options for Clearwater Threshers vs. Fort Myers Mighty Mussels at BayCare Ballpark.',
+});
+const celebrationJul3 = mk({
+  // date-only, NO span — the celebration IS the game evening; it still merges.
+  title: 'Independence Day Celebration at Clearwater Threshers',
+  start: '2026-07-03',
+  venue: 'BayCare Ballpark',
+  sources: ['AllEvents'],
+});
+const fireworksSpan = mk({
+  // the 7/3→7/4 SPAN — must NOT umbrella the game (family-level tokens only).
+  title: 'Clearwater Threshers 4th of July Weekend Firework Shows',
+  start: '2026-07-03',
+  end: '2026-07-04',
+  venue: 'BayCare Ballpark',
+  sources: ['Visit St. Pete/Clearwater'],
+  description: 'Join the Clearwater Threshers 4th of July weekend at BayCare Ballpark on July 3 and 4th.',
+});
+// positive control — the PAVA class the max-end merge exists FOR: a span
+// record and a dated sibling whose titles fully agree still merge, and the
+// merged record keeps the span's later end.
+const pavaCityDated = mk({
+  title: 'PAVA Cool Art Show',
+  start: '2026-07-18T10:00:00',
+  end: '2026-07-18T17:00:00',
+  venue: 'The Coliseum',
+  sources: ['City of St. Petersburg'],
+  description: 'Annual juried art show.',
+});
+const pavaVspcSpan = mk({
+  title: 'PAVA Cool Art Show',
+  start: '2026-07-18',
+  end: '2026-07-19',
+  venue: 'The Coliseum',
+  sources: ['Visit St. Pete/Clearwater'],
+});
+
+const spanMerged = fuzzyMerge([gameJul3, celebrationJul3, fireworksSpan, pavaCityDated, pavaVspcSpan]);
+const spanGame = spanMerged.find((e) => /vs\./.test(e.title));
+const spanFireworks = spanMerged.find((e) => /Firework/.test(e.title));
+const spanPava = spanMerged.find((e) => /PAVA/.test(e.title));
+
+check('span guard: 5 raw listings -> 3 records (game+celebration, fireworks, PAVA)', spanMerged.length === 3);
+check('span guard: fireworks span ships as its OWN record', !!spanFireworks);
+check('span guard: fireworks record keeps its true 7/4 span end', spanFireworks?.end === '2026-07-04');
+check('span guard: the game does NOT inherit the span end (the shipped artifact)', spanGame?.end === '2026-07-03T20:30:00-04:00');
+check('span guard: dated celebration still merges into the game (buzz 2)', spanGame?.buzz === 2 && (spanGame?.sources || []).includes('AllEvents'));
+check('span guard: PAVA control — full-title span x dated still merges', spanMerged.filter((e) => /PAVA/.test(e.title)).length === 1);
+check('span guard: PAVA control — merged record keeps the max end (7/19)', spanPava?.end === '2026-07-19' && spanPava?.buzz === 2);
 
 process.exit(failures ? 1 : 0);

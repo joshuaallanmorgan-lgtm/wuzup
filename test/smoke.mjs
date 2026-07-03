@@ -35,7 +35,7 @@ import { fileURLToPath } from 'node:url'
 // city-agnostic: the box + roster anchors come from the active city config, the
 // place/category vocab from the canonical taxonomy (categories.js) — so a new city
 // doesn't fail the build on hard-coded Tampa values.
-import { bbox as CITY_BBOX, rosterBenchmark as CITY_ROSTER } from '../finder/cities/index.mjs'
+import { bbox as CITY_BBOX, rosterBenchmark as CITY_ROSTER, cityId as CITY_ID } from '../finder/cities/index.mjs'
 import { PLACETYPE_HUE, CATEGORY_HUES } from '../app/src/categories.js'
 import * as deckdeal from '../app/src/deckdeal.js'
 import * as gesture from '../app/src/deckgesture.js'
@@ -384,13 +384,19 @@ test('places data invariants: schema v1 places.json', () => {
 
   // ROSTER BENCHMARKS on the artifact (review HARDENING: the pipeline's bench
   // lines are console-only — a generation regression must fail npm test too)
-  // the roster + the two specific merge guards below are the ACTIVE city's generation
-  // anchors (Tampa's live in finder/cities/tampa-bay.mjs). A city with no roster skips
-  // them — it brings its own once its sources land.
+  // the roster is the ACTIVE city's generation anchors (Tampa's live in
+  // finder/cities/tampa-bay.mjs). A city with no roster skips them — it brings
+  // its own once its sources land.
   if (CITY_ROSTER.length) {
     for (const slug of CITY_ROSTER) {
       assert.ok(keys.has('p|' + slug), `roster benchmark missing from generation: ${slug}`)
     }
+  }
+  // the two Tampa-LITERAL merge guards are pinned regressions of Tampa's own
+  // generation (Fort De Soto dupe-record class, the Weedon o/e-typo split) —
+  // scoped to the tampa-bay config id so a rostered city #2 passes npm test
+  // without inheriting another city's place names (Stage D D2).
+  if (CITY_ID === 'tampa-bay') {
     const fortDeSoto = places.filter((p) => p.key.startsWith('p|fort-de-soto') && p.classes.includes('park'))
     assert.equal(fortDeSoto.length, 1, `Fort De Soto must be exactly ONE park record (got: ${fortDeSoto.map((p) => p.key).join(', ') || 'none'})`)
     assert.ok(!keys.has('p|weedon-island-preserve-2'), 'Weedon Island split into two records — the o/e-typo merge regressed')
@@ -2949,4 +2955,34 @@ test('Cohesion type snap: no half-pixel font sizes, no 650/750 weights (app CSS)
     const orphans = css.match(/font-weight:\s*[67]50\b/g) || []
     assert.equal(orphans.length, 0, `${f} re-introduces an orphan ${orphans[0] || ''} — use 600/700 (550 is the only sanctioned mid-weight)`)
   }
+})
+
+// Stage D data-tail (e): "About this event" is Eventbrite PAGE CHROME, not
+// description text — cleanDescription strips it at ingest. Pinned as a unit
+// fixture because the fix is invisible to cache-fallback warm runs (module
+// caches hold already-normalized events); the shipped Pinellas solid-waste
+// tour record heals on the next live refresh.
+test('finder ingest: cleanDescription strips leading Eventbrite "About this event" chrome', async () => {
+  const { cleanDescription } = await import('../finder/finder.mjs')
+  // the shipped artifact, verbatim prefix shape
+  assert.equal(
+    cleanDescription('About this event There’s no such place as away! Join us to find out what happens to your garbage.'),
+    'There’s no such place as away! Join us to find out what happens to your garbage.',
+    'the chrome prefix must be stripped at ingest'
+  )
+  // separator variants glue the heading on with punctuation
+  assert.equal(cleanDescription('About this event: Doors at 7.'), 'Doors at 7.')
+  // chrome-only description -> no description (null beats an empty husk)
+  assert.equal(cleanDescription('About this event'), null)
+  // NOT a prefix -> untouched (never rewrite mid-text mentions)
+  assert.equal(
+    cleanDescription('Curious about this event? Come along.'),
+    'Curious about this event? Come along.',
+    'mid-text mentions must never be rewritten'
+  )
+  // the strip runs BEFORE the 200-char cap, so real text fills the blurb
+  const long = 'About this event ' + 'x'.repeat(250)
+  const out = cleanDescription(long)
+  assert.equal(out.length, 200, 'cap applies to the DE-CHROMED text')
+  assert.ok(out.startsWith('xxx'), 'recovered characters are real text, not chrome')
 })

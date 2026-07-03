@@ -58,6 +58,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { area, qidDeny } from './cities/index.mjs';
+import { PRODUCT_UA } from './ua.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CACHE_FILE = join(HERE, 'cache', 'wikidata-images.json');
@@ -73,10 +74,10 @@ const GEO_CACHE_FILE = join(HERE, 'cache', 'place-geo-images.json');
 // enrich READS this (+ checks the self-hosted JPEG exists); it never hits Mapillary.
 const MAP_CACHE_FILE = join(HERE, 'cache', 'place-mapillary-images.json');
 const PLACE_IMG_DIR = join(HERE, '..', 'app', 'public', 'place-img');
-// a descriptive User-Agent is required by the Wikimedia API etiquette policy.
+// a descriptive User-Agent is required by the Wikimedia API etiquette policy —
+// the shared, city-neutral product identity + this caller's purpose token.
 const UA = {
-  'User-Agent':
-    'TampaBayWhatsOn/1.0 (Tampa Bay events+places discovery app; https://github.com/joshuaallanmorgan-lgtm/cj) place-image-enrichment',
+  'User-Agent': `${PRODUCT_UA} place-image-enrichment`,
 };
 const THUMB_W = 1280; // crisp on a retina 460px hero, still light (~one image)
 // the place-detail hero is ~42svh full-bleed → ~920px physical on a 460px retina

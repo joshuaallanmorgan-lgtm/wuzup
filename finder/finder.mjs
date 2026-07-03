@@ -17,7 +17,8 @@
 import { writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
-import { bbox as TB_BOX, geocodeViewbox } from './cities/index.mjs';
+import { bbox as TB_BOX, geocodeViewbox, tz as CITY_TZ, geocode as CITY_GEO } from './cities/index.mjs';
+import { PRODUCT_UA } from './ua.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(HERE, 'output');
@@ -189,8 +190,18 @@ function cleanText(s) {
   return out || null;
 }
 
-function cleanDescription(desc) {
+// Exported for the smoke harness — the chrome-strip below is an INGEST-time
+// fix, invisible to cache-fallback warm runs (module caches hold already-
+// normalized events), so the mechanism is pinned as a unit fixture instead.
+export function cleanDescription(desc) {
   let t = cleanText(desc);
+  if (!t) return null;
+  // Eventbrite page chrome: a scraped description can open with the page's
+  // own section HEADING glued to the real text — "About this event There's
+  // no such place as away!..." (Stage D data-tail e). Chrome, not
+  // description: strip the prefix at ingest, BEFORE the length cap, so the
+  // trimmed blurb recovers those characters of real text.
+  t = t.replace(/^about this event\s*[:\-–—]?\s*/i, '');
   if (!t) return null;
   if (t.length > 200) t = t.slice(0, 197) + '...';
   return t;
@@ -369,25 +380,45 @@ function isOnlineOnly(e) {
   return /OnlineEventAttendanceMode/i.test(String(e.attendanceMode || ''));
 }
 
-// ===================== Eastern-time helpers =====================
+// ===================== city-local time helpers =====================
+// The active city's IANA zone (cities/<id>.mjs `tz`) drives every wall-clock
+// derivation below. Offsets — including DST — come from Intl at runtime, so a
+// non-Eastern city #2 can't inherit Tampa's clock ("every SF event stamped
+// 7 hours early" is the bug class this seam closes).
 
-// UTC offset ('-04:00' / '-05:00') in effect in Tampa around a local datetime.
-function easternOffsetFor(isoLocal) {
-  const probe = new Date(String(isoLocal).slice(0, 10) + 'T12:00:00Z');
+// UTC offset string ('-04:00' / '-05:00' / ...) in effect in the city at an instant.
+function cityOffsetAt(instant) {
   const part = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/New_York', timeZoneName: 'longOffset',
-  }).formatToParts(probe).find((p) => p.type === 'timeZoneName');
+    timeZone: CITY_TZ, timeZoneName: 'longOffset',
+  }).formatToParts(instant).find((p) => p.type === 'timeZoneName');
   const m = /GMT([+-]\d{2}:\d{2})/.exec(part?.value || '');
-  return m ? m[1] : '-04:00';
+  return m ? m[1] : '+00:00';
 }
 
-// 'YYYY-MM-DDTHH:MM[:SS]' with no zone → append the Eastern offset so the
+// UTC offset in effect in the city around a local datetime (probed at noon UTC
+// of its calendar day — away from the 2 a.m. DST switch hours).
+function cityOffsetFor(isoLocal) {
+  return cityOffsetAt(new Date(String(isoLocal).slice(0, 10) + 'T12:00:00Z'));
+}
+
+// 'YYYY-MM-DDTHH:MM[:SS]' with no zone → append the city offset so the
 // timestamp is unambiguous off this machine. Anything else passes through.
-function withEasternOffset(s) {
+function withCityOffset(s) {
   if (typeof s !== 'string') return s || null;
   const m = s.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})(:\d{2})?$/);
   if (!m) return s;
-  return `${m[1]}${m[2] || ':00'}${easternOffsetFor(s)}`;
+  return `${m[1]}${m[2] || ':00'}${cityOffsetFor(s)}`;
+}
+
+// Epoch ms of midnight (city wall clock) on a 'YYYY-MM-DD' day. The noon-probe
+// offset is re-checked at the constructed instant, so a midnight that sits on
+// the other side of a DST switch resolves to the offset actually in effect —
+// matching what local-midnight `new Date(y, m-1, d)` produced on an in-zone
+// machine (the pre-seam behavior this replaces).
+function cityMidnightMs(dayStr) {
+  const guess = Date.parse(`${dayStr}T00:00:00${cityOffsetFor(dayStr)}`);
+  const actual = cityOffsetAt(new Date(guess));
+  return Date.parse(`${dayStr}T00:00:00${actual}`);
 }
 
 // --- map a render.mjs event ({title,start,end,venue,address,price,isFree,url,
@@ -399,8 +430,8 @@ function normalizeRenderEvent(r) {
   if (typeof price !== 'number' || isNaN(price)) price = null;
   return {
     title: cleanText(r.title),
-    start: withEasternOffset(r.start),
-    end: withEasternOffset(r.end),
+    start: withCityOffset(r.start),
+    end: withCityOffset(r.end),
     venue: cleanText(r.venue),
     address: cleanText(r.address),
     price,
@@ -505,7 +536,12 @@ function normVenue(venue) {
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, ' ')
     .replace(/\s+/g, ' ')
-    .trim();
+    .trim()
+    // "Saint" ↔ "St." is the same word published two ways ("Saint Petersburg
+    // Museum of History" vs "St. Petersburg Museum of History" split the
+    // venue-equality merge — the trolley-tour July-4 dupe class). Folded at
+    // the MERGE-KEY layer only; display strings are never rewritten here.
+    .replace(/\bsaint\b/g, 'st');
 }
 
 function jaccard(a, b) {
@@ -531,33 +567,36 @@ function dayOf(start) {
   return isNaN(d) ? null : localDayStr(d);
 }
 
+// 'YYYY-MM-DD' of a Date instant on the CITY's wall clock (en-CA formats
+// ISO-style). Formatter cached — this runs several times per event.
+const CITY_DAY_FMT = new Intl.DateTimeFormat('en-CA', {
+  timeZone: CITY_TZ, year: 'numeric', month: '2-digit', day: '2-digit',
+});
 function localDayStr(d) {
-  const p = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  return CITY_DAY_FMT.format(d);
 }
 
-// Parse an event start into epoch ms; date-only strings become LOCAL midnight
-// (Date.parse would treat them as UTC and shift the day in Tampa).
+// Parse an event start into epoch ms; date-only strings become CITY midnight
+// (Date.parse would treat them as UTC and shift the day), and zoneless timed
+// stamps get the city offset (they'd parse machine-local otherwise).
 function startMs(start) {
   const s = String(start || '');
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-    const [y, m, d] = s.split('-').map(Number);
-    return new Date(y, m - 1, d).getTime();
-  }
-  return Date.parse(s);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return cityMidnightMs(s);
+  return Date.parse(withCityOffset(s));
 }
 
 // Epoch ms at which an event is FULLY ENDED. Date-only stamps (end if present,
-// else start) end at local end-of-day; a timed end is taken literally; a timed
+// else start) end at city end-of-day; a timed end is taken literally; a timed
 // start with no end gets a 3-hour assumed duration. NaN if unparseable.
 const ASSUMED_DURATION_MS = 3 * 3600 * 1000;
 function endedAtMs(e) {
   const s = String(e.end || e.start || '');
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
     const [y, m, d] = s.split('-').map(Number);
-    return new Date(y, m - 1, d + 1).getTime();
+    const next = new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10);
+    return cityMidnightMs(next);
   }
-  const t = Date.parse(s);
+  const t = Date.parse(withCityOffset(s));
   if (isNaN(t)) return NaN;
   return e.end ? t : t + ASSUMED_DURATION_MS;
 }
@@ -568,7 +607,8 @@ const VENUE_MERGE_GENERIC = new Set(['library', 'branch', 'regional', 'public', 
 
 function venueMergeTokens(venue) {
   const out = new Set();
-  for (const t of titleTokens(venue)) if (!VENUE_MERGE_GENERIC.has(t)) out.add(t);
+  // 'saint' folds to 'st' so the two spellings share a token (see normVenue).
+  for (const t of titleTokens(venue)) if (!VENUE_MERGE_GENERIC.has(t)) out.add(t === 'saint' ? 'st' : t);
   return out;
 }
 
@@ -609,12 +649,21 @@ function sameEvent(a, b) {
     if (!a.nVenue && !b.nVenue) return titleMatch;
     return titleMatch && venueMatch;
   }
+  // Span guard (Stage D data-tail b, extends the WS1 1d tiered family guard):
+  // when exactly one side SPANS multiple calendar days, venue-level identity is
+  // not enough — a spanning record only folds onto a dated sibling when the
+  // TITLES agree beyond family level (the strong gates below). VSPC's
+  // "Clearwater Threshers 4th of July Weekend Firework Shows" (a 7/3→7/4 span
+  // at BayCare Ballpark) umbrella'd onto the 7/3 GAME record through one
+  // shared family-level token ("Threshers"), and the max-end merge then
+  // shipped the game claiming it ends 7/4.
+  const spanMismatch = a.spans !== b.spans;
   // Cross-family. Venue+day equality ALONE is not identity: it merged a
   // Scorpions tribute with a same-day afternoon tea at one brewery into a
   // chimera card (Wild Rover, 2026-06-13 — tribute title, tea description).
   // A venue merge also needs a shared significant title token, or both
   // records clocking the SAME start hour.
-  if (venueMatch) {
+  if (venueMatch && !spanMismatch) {
     let shared = 0;
     for (const t of a.tokens) if (b.tokens.has(t)) shared++;
     if (shared > 0) return true;
@@ -782,7 +831,10 @@ function mergeCluster(members) {
 const VENUES_FILE = join(HERE, 'venues.json');
 
 // Aggressive-normalize a venue name into a lookup key: fold diacritics
-// (Dalí → dali), lowercase, strip punctuation, drop a leading "the".
+// (Dalí → dali), lowercase, strip punctuation, drop a leading "the", fold
+// "saint" → "st" (a "Saint X" listing must hit a table row spelled "St. X" —
+// same identity fold as normVenue; the canonical DISPLAY name comes from the
+// table row, never from this key).
 function venueKey(name) {
   return String(name || '')
     .normalize('NFD').replace(/[̀-ͯ]/g, '')
@@ -790,7 +842,8 @@ function venueKey(name) {
     .replace(/[^a-z0-9\s]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
-    .replace(/^the /, '');
+    .replace(/^the /, '')
+    .replace(/\bsaint\b/g, 'st');
 }
 
 function loadVenueTable() {
@@ -1048,12 +1101,14 @@ function mergeTitleOf(title, venue) {
 }
 
 // Cluster all raw listings by calendar day, then greedily merge matches.
-function fuzzyMerge(all) {
+// Exported for the offline sim harness (sim-exhibit-dedupe.mjs).
+export function fuzzyMerge(all) {
   const byDay = new Map();
   for (const e of all) {
     const day = dayOf(e.start) || 'tbd';
     if (!byDay.has(day)) byDay.set(day, []);
     const mergeTitle = mergeTitleOf(e.title, e.venue);
+    const endDay = dayOf(e.end);
     byDay.get(day).push({
       ...e,
       tokens: titleTokens(mergeTitle),
@@ -1062,6 +1117,8 @@ function fuzzyMerge(all) {
       fam: familyOf(e.source),
       vTokens: venueMergeTokens(e.venue),
       hr: startHourOf(e.start),
+      // multi-calendar-day span flag for the sameEvent span guard
+      spans: !!(day !== 'tbd' && endDay && endDay > day),
     });
   }
   const merged = [];
@@ -1082,17 +1139,19 @@ function fuzzyMerge(all) {
 const BIG_TICKET_RE = /rays|buccaneers|lightning|rowdies|amalie arena|raymond james|tropicana/i;
 
 // Dates of the current/upcoming weekend (Fri/Sat/Sun). If today IS the weekend,
-// it's this weekend; otherwise the next one.
+// it's this weekend; otherwise the next one. "Today" is the CITY's calendar
+// day; day arithmetic runs in UTC on that literal date (weekday-of-a-date is
+// timezone-free once the city day is fixed).
 function weekendDays(now) {
-  const dow = now.getDay(); // 0=Sun .. 6=Sat
+  const [y, m, d] = localDayStr(now).split('-').map(Number);
+  const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay(); // 0=Sun .. 6=Sat
   let toFri;
   if (dow === 0) toFri = -2;        // Sunday → weekend started Friday
   else if (dow === 6) toFri = -1;   // Saturday → started yesterday
   else toFri = 5 - dow;             // Mon-Fri → this coming Friday (0 on Friday)
   const days = new Set();
   for (let i = 0; i < 3; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + toFri + i);
-    days.add(localDayStr(d));
+    days.add(new Date(Date.UTC(y, m - 1, d + toFri + i)).toISOString().slice(0, 10));
   }
   return days;
 }
@@ -1106,6 +1165,8 @@ const MUSIC_VENUE_RE = /jannus live|orpheum|crowbar|the ritz|floridian social/i;
 // WEAK rules sit at the END (below community): they only fire when nothing
 // stronger matched, so a soft signal ("w/ special guests", a brewery mention)
 // can't steal an event from a confident rule.
+// Entries are [cat, re, unless?] — an `unless` regex vetoes just that rule
+// (same shape as STRONG_TITLE_RULES), letting a later rule claim the event.
 const CATEGORY_RULES = [
   ['theatre', /\bopera\b|\bboh[eèé]me\b|\bballets?\b|\bfringe\b|\bdramatic play\b|\bplaywrights?\b/i],
   // Comedy ABOVE music (WS1 fix 3b): touring stand-ups' listings carry
@@ -1115,20 +1176,31 @@ const CATEGORY_RULES = [
   // unless-style theatre veto inside categorize (see COMEDY_STAGE_RE).
   ['comedy', /\bcomedy\b|\bstand-?up\b|\bimprov\b|\bcomedians?\b/i],
   ['music', /\bconcerts?\b|\bconciertos?\b|\bbands?\b|\bdj\b|\btour\b|\borchestra\b|\bsymphony\b|\blive music\b|\balbum\b|\btribute\b|\bunplugged\b|\bacoustic\b|\blive at\b|\bkaraoke\b|\bopen mic\b|\bjazz\b|\bblues\b|\bsongwriters?\b|\bhip.?hop\b|\bvinyl\b|\bgreatest hits\b/i],
+  // A movie screening is a screening even when the FILM's title carries sports
+  // words — "Movie Screening: Monsters vs. Aliens" tripped the ballgame
+  // \bvs\.?\b rule below (Stage D data-tail d). Narrow phrase, above sports.
+  ['art', /\b(?:movie|film) screenings?\b/i],
   ['sports', /\bvs\.?\b|\bgame\b|\bmatch day\b|\bgrand prix\b|\braces?\b|\broller derby\b|\bwrestling\b|\bpickleball\b/i],
   ['theatre', /\btheatre\b|\btheater\b|\bmusicals?\b|\bbroadway\b|\bcabaret\b/i],
   ['art', /\barts?\b|\bgallery\b|\bmuseum\b|\bexhibits?\b|\bexhibitions?\b|\bmurals?\b|\bcrafts?\b|\bpottery\b|\bpainting\b|\bfilms?\b|\bscreenings?\b|\bcinema\b|\bfashion\b|\brunway\b/i],
   ['market', /\bmarkets?\b|\bflea\b|\bfairs?\b|\bbazaar\b|\bexpo\b|\bvendors?\b|\bbridal\b|\bboat show\b|\btrain show\b|\bshow (?:&|and) sale\b/i],
   ['food', /\bfood\b|\bbrunch\b|\bdinner\b|\btastings?\b|\bbeer\b|\bwine\b|\bcocktails?\b|\btacos?\b|\bbbq\b|\bculinary\b|\bchefs?\b|\bbrewfests?\b/i],
   ['outdoors', /\bparks?\b|\bbeach\b|\bkayak\b|\bhikes?\b|\brun club\b|\b5k\b|\boutdoor\b|\bgardens?\b|\bnature\b|\btrails?\b|\bpaddles?\b|\bpaddleboard\w*\b|\bfishing\b|\bdragon boats?\b|\bpilates\b|\bbarre\b|\bon the lawn\b|\bwho walk\b|\bwalk (?:&|and) talk\b/i],
-  ['nightlife', /\bparty\b|\bclub night\b|\bburlesque\b|\bball\b|\brave\b|\bnightlife\b|\bdrag\b|\btrivia\b|\bbingo\b|\bbar crawls?\b|\bpub crawls?\b|\bspeed dating\b|\bsingles\b|\bhappy hour\b|\b(?:latin|salsa|disco|80s|90s) nights?\b|\bjuke joints?\b|\baxe throwing\b|\bthirsty thursday\b/i],
+  // unless: an event pitched at teens is not a night out — "Teen End of
+  // Summer Party" at a library must fall through to the family rule below
+  // (Stage D data-tail d). Deliberately NOT kids?/children: those words ride
+  // charity names and mission-statement blurbs on real adult events
+  // ("Helping Hands Happy Hour: Clothes To Kids" stays nightlife).
+  ['nightlife', /\bparty\b|\bclub night\b|\bburlesque\b|\bball\b|\brave\b|\bnightlife\b|\bdrag\b|\btrivia\b|\bbingo\b|\bbar crawls?\b|\bpub crawls?\b|\bspeed dating\b|\bsingles\b|\bhappy hour\b|\b(?:latin|salsa|disco|80s|90s) nights?\b|\bjuke joints?\b|\baxe throwing\b|\bthirsty thursday\b/i, /\bteens?\b|\btweens?\b|\btoddlers?\b/i],
   ['family', /\bfamily\b|\bkids?\b|\bchildren\b|\btoddlers?\b|\bteens?\b|\bstory ?time\b|\b(?:father|daddy)[\s-]+daughter\b|\bmother[\s-]+son\b|\bfather[’']?s day\b|\bmother[’']?s day\b|\bback[\s-]+to[\s-]+school\b|\bvbs\b|\bvacation bible school\b/i],
   ['community', /\bmeetup\b|\bworkshops?\b|\bclass(?:es)?\b|\bclubs?\b|\blibrary\b|\bnetworking\b|\bvolunteer\b|\bseminar\b|\blectures?\b|\bbooks?\b|\bgrand opening\b|\bconferences?\b|\bauthor\b|\bfundraisers?\b|\breceptions?\b|\bmixers?\b|\bpuzzles?\b|\bgame nights?\b|\bjuneteenth\b|\bpride\b(?!\s+(?:and|&)\s+prejudice)|pridetopia|\bsummits?\b|\bsymposiums?\b|\bforums?\b|\binfo(?:rmation)? sessions?\b|\btown halls?\b|\bawareness\b|\bsupport (?:group|meeting)s?\b|\brecycling\b|\bchemical collection\b|\bcollection events?\b|\bsandbags?\b|\bclean-?ups?\b|\bcoffee (?:&|and) conversation\b|\bmingle\b|\bsocialize\b|\bentrepreneurs?\b|\bbusiness\b|\bfireside chats?\b|\blunch (?:&|and) learn\b|\bceu\b|\bwebinars?\b|\breal estate\b|\bnonprofits?\b|\bcareers?\b|\bemployers?\b|\bempower\w*\b|\bwellness\b|\breiki\b|\bsound bath\b|\btarot\b|\bheart disease\b|\bcancer\b|\bhealth\b|\bstaying safe\b|\bsafety\b|\binspections?\b|\bcyber\w*\b|\banniversar\w*\b|\bpups?\b|\bdog grooming\b|\bpaws\b|\badoptions?\b|\bstorytell\w*\b|\bcandidate forums?\b|\bcosplay\b|\bcon?ventions?\b|\bmeet (?:&|and) greet\b/i],
   // --- weak signals: last resort before the venue/source priors below ---
   // (headliner/genre/doors-showtime language also shows up in comedy and
   // theatre listings, so it must NOT outrank those rules above.)
-  ['music', /\bw\/\s|\bspecial guests?\b|\bfeat\.\s|\bft\.\s|\bheadlin\w*\b|\bafrobeats?\b|\bamapiano\b|\btechno\b|\bdoors\b.{0,24}\bshowtime\b|pm doors\b/i],
-  ['sports', /\bgames\b/i],
+  ['music', /\bw\/\s|\bspecial guests?\b|\bfeat\.\s|\bft\.\s|\bheadlin\w*\b|\bafrobeats?\b|\bamapiano\b|\btechno\b|\bindie rock\b|\bdoors\b.{0,24}\bshowtime\b|pm doors\b/i],
+  // unless: "games" in a videogame/arcade blurb is a library console hour,
+  // not sports — fall through to the library venue prior (Stage D data-tail d).
+  ['sports', /\bgames\b/i, /\bvideo ?games?\b|\bnintendo\b|\barcade\b/i],
   ['food', /\bbrewer(?:y|ies)\b/i],
 ];
 
@@ -1218,6 +1290,14 @@ const VENUE_TYPE_PRIORS = [
 ];
 
 // Source-level category priors, applied only when no text/venue rule matched.
+// CITY NOTE (Stage D D2 audit): keyed by source FAMILY name, so the map is
+// per-city in practice — a new city's source modules carry new family names,
+// which simply miss here (-> 'other') until that city adds its own rows.
+// Values are canonical taxonomy categories; nothing else city-specific hides
+// in the map itself. The city-flavored TEXT/VENUE priors live above it
+// (MUSIC_VENUE_RE / CONCERT_VENUE_RE / KNOWN_COMEDIANS_RE / BIG_TICKET_RE /
+// COMEDY_VENUE_RE) — documented priors, config-extraction candidates for D3
+// when city #2's source scout lands.
 const SOURCE_CATEGORY = {
   'WMNF 88.5': 'music',            // grassroots-music calendar by charter
   'Hillsborough Libraries': 'community',
@@ -1250,9 +1330,9 @@ export function categorize(e) {
     return e.category;
   }
   if (MUSIC_VENUE_RE.test(e.venue || '')) return 'music';
-  for (const [cat, re] of CATEGORY_RULES) {
+  for (const [cat, re, unless] of CATEGORY_RULES) {
     if (cat === 'comedy' && COMEDY_STAGE_RE.test(text)) continue; // stage comedy → theatre rules below
-    if (re.test(text)) return cat;
+    if (re.test(text) && !(unless && unless.test(text))) return cat;
     // Yoga decides AT the outdoors slot (same precedence \byoga\b had):
     // outdoor setting in venue/text => outdoors, else wellness => community.
     if (cat === 'outdoors' && YOGA_RE.test(text)) {
@@ -1349,19 +1429,21 @@ function fmtPrice(e) {
   if (e.price > 0) return '$' + e.price + (e.currency && e.currency !== 'USD' ? ' ' + e.currency : '');
   return '—';
 }
-// Day heading for a start value. Uses the same local-midnight logic as
-// dayOf/startMs — a bare "2026-06-13" must NOT drift to June 12 via UTC parsing.
+// Day heading for a start value. Renders the LITERAL calendar day (weekday of
+// a date is timezone-free) — a bare "2026-06-13" must NOT drift to June 12.
 function fmtDateKey(iso) {
   const day = dayOf(iso);
   if (!day) return 'Date TBD';
   const [y, m, d] = day.split('-').map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', {
+    timeZone: 'UTC', weekday: 'long', month: 'long', day: 'numeric',
+  });
 }
 function fmtTime(iso) {
   if (!/T\d/.test(iso)) return '';
-  const d = new Date(iso);
+  const d = new Date(withCityOffset(iso)); // zoneless stamps are city-local
   if (isNaN(d)) return '';
-  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  return d.toLocaleTimeString('en-US', { timeZone: CITY_TZ, hour: 'numeric', minute: '2-digit' });
 }
 
 // ============== venue identity backfills (fixer pass, 2026-06-10) ==============
@@ -1506,10 +1588,13 @@ export function nameAddressVenues(events) {
 }
 
 // ===================== geocode cache hygiene =====================
-// Junk keys ("June", "Festivals", bare numbers) and any cached value outside
-// the Tampa Bay box (Key West, Argentina, Chile...) get purged so they're
-// re-resolved with the hardened bounded query.
-const JUNK_GEO_KEY_RE = /^(january|february|march|april|may|june|july|august|september|october|november|december|festivals?|events?|tampa|florida|\d+)$/i;
+// Junk keys ("June", "Festivals", bare city/region words, bare numbers) and any
+// cached value outside the city box (Key West, Argentina, Chile...) get purged
+// so they're re-resolved with the hardened bounded query. The city/region words
+// come from the active city config (geocode.junkKeyWords).
+const JUNK_GEO_KEY_RE = new RegExp(
+  '^(january|february|march|april|may|june|july|august|september|october|november|december' +
+  '|festivals?|events?|' + [...CITY_GEO.junkKeyWords, '\\d+'].join('|') + ')$', 'i');
 
 function loadGeoCache() {
   if (!existsSync(GEO)) return {};
@@ -1834,18 +1919,24 @@ async function main() {
     console.log(`  🗂️  dropped ${schedDropped.length} schedule-page listing(s): ${schedDropped.map((e) => `"${e.title}"`).join(', ')}`);
   }
 
-  // Univ.-of-Tampa academic-calendar rows are not events (WS1 fix 3e):
-  // "Classes begin for Summer 2nd 6 Weeks", "No classes - Holiday for 4th of
-  // July". Title guard scoped to the UT family so a real event that happens
-  // to open with these words elsewhere is untouched.
-  const UT_CALENDAR_RE = /^classes (?:begin|end)\b|^no classes\b/i;
+  // Univ.-of-Tampa academic-calendar + internal staff/HR rows are not public
+  // community events (WS1 fix 3e + Stage D data-tail c): "Classes begin for
+  // Summer 2nd 6 Weeks", "Deadline to complete coursework for an August degree
+  // conferral", "Form I-9 Best Practices" (HR onboarding refresher), the Ally
+  // "Accessibility Compliance Workshop" (faculty courseware training), Red
+  // Cross FA/CPR/AED certification courses, "Student Affairs July Advance"
+  // (a staff retreat). Title guard stays scoped to the UT family — a real
+  // event elsewhere that happens to share these words is untouched — and is
+  // deliberately narrow so UT's public-facing rows (gallery exhibitions,
+  // pitch contests, hooding ceremonies) keep shipping.
+  const UT_NONEVENT_RE = /^classes (?:begin|end)\b|^no classes\b|^deadline\b|\bform i-9\b|^accessibility compliance workshop\b|\bfa\/cpr\/aed\b|^student affairs .*\badvance\b/i;
   const utDropped = events.filter((e) =>
-    UT_CALENDAR_RE.test(e.title || '') &&
+    UT_NONEVENT_RE.test(e.title || '') &&
     (e.sources || [e.source]).some((s) => familyOf(s) === 'Univ. of Tampa'));
   if (utDropped.length) {
     const utSet = new Set(utDropped);
     events = events.filter((e) => !utSet.has(e));
-    console.log(`  🎓 dropped ${utDropped.length} UT academic-calendar row(s): ${utDropped.map((e) => `"${e.title}"`).join(', ')}`);
+    console.log(`  🎓 dropped ${utDropped.length} UT academic-calendar/staff row(s): ${utDropped.map((e) => `"${e.title}"`).join(', ')}`);
   }
 
   // Keep upcoming events, sorted soonest first. An event stays until it has
@@ -1895,11 +1986,11 @@ async function main() {
   const geocodeKey = async (key) => {
     if (!(key in geoCache)) {
       try {
-        const q = /\bfl\b|\bflorida\b/i.test(key) ? key : `${key}, Florida`;
+        const q = CITY_GEO.regionRe.test(key) ? key : `${key}, ${CITY_GEO.region}`;
         const res = await fetch(
           'https://nominatim.openstreetmap.org/search?format=json&limit=1' +
           '&viewbox=' + geocodeViewbox + '&bounded=1&q=' + encodeURIComponent(q),
-          { headers: { 'user-agent': 'tampabay-events-finder/0.2 (mvp)' } }
+          { headers: { 'user-agent': `${PRODUCT_UA} geocode` } }
         );
         const j = await res.json();
         const hit = j && j[0] ? { lat: parseFloat(j[0].lat), lng: parseFloat(j[0].lon) } : null;
@@ -1936,10 +2027,8 @@ async function main() {
   for (const e of events) {
     if (nameBudget <= 0) break;
     if (e.lat != null || !e.venue || ADDRESSY_VENUE_RE.test(e.venue)) continue;
-    const city = (String(e.address || '').match(
-      /(tampa|st\.?\s*petersburg|st\.?\s*pete(?:\s+beach)?|clearwater|dunedin|largo|gulfport|safety harbor|palm harbor|tarpon springs|pinellas park|wesley chapel|brandon|ybor city)/i
-    ) || [])[1];
-    const key = `${e.venue}, ${city || 'Tampa Bay'}, Florida`;
+    const city = (String(e.address || '').match(CITY_GEO.cityRe) || [])[1];
+    const key = `${e.venue}, ${city || CITY_GEO.fallbackLocality}, ${CITY_GEO.region}`;
     if (!(key in geoCache)) nameBudget--;
     const hit = await geocodeKey(key);
     if (hit) {
@@ -2095,7 +2184,7 @@ async function main() {
   // doesn't drown the cool stuff (nothing is hidden — just ordered).
   const allSourceNames = [...SOURCES.map((s) => s.name), ...moduleNames];
   let md = `# Tampa Bay Events — found ${events.length} real events\n\n`;
-  md += `_Generated ${new Date().toLocaleString('en-US')} · sources: ${allSourceNames.join(', ')}${renderOk ? ' + render' : ''}_\n\n`;
+  md += `_Generated ${new Date().toLocaleString('en-US', { timeZone: CITY_TZ })} · sources: ${allSourceNames.join(', ')}${renderOk ? ' + render' : ''}_\n\n`;
   md += `## Summary\n\n`;
   md += `- Tonight: ${counts.tonight}\n`;
   md += `- This weekend: ${counts.weekend}\n`;
