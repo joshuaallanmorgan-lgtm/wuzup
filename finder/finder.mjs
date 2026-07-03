@@ -1244,6 +1244,14 @@ const VENUE_TYPE_PRIORS = [
 ];
 
 // Source-level category priors, applied only when no text/venue rule matched.
+// CITY NOTE (Stage D D2 audit): keyed by source FAMILY name, so the map is
+// per-city in practice — a new city's source modules carry new family names,
+// which simply miss here (-> 'other') until that city adds its own rows.
+// Values are canonical taxonomy categories; nothing else city-specific hides
+// in the map itself. The city-flavored TEXT/VENUE priors live above it
+// (MUSIC_VENUE_RE / CONCERT_VENUE_RE / KNOWN_COMEDIANS_RE / BIG_TICKET_RE /
+// COMEDY_VENUE_RE) — documented priors, config-extraction candidates for D3
+// when city #2's source scout lands.
 const SOURCE_CATEGORY = {
   'WMNF 88.5': 'music',            // grassroots-music calendar by charter
   'Hillsborough Libraries': 'community',
