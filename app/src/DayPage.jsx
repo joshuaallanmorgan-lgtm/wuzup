@@ -31,7 +31,7 @@
 //
 // ALL COPY IS DRAFT for Charles (inventory in the sprint report).
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Icon, keyOf, timeOf } from './lib.js'
+import { fmtLocale, Icon, keyOf, timeOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { CardImg, SponsoredTag, featuredChips } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
@@ -53,7 +53,7 @@ import { dateKey, CONDITION } from './weather.js'
 import PickerSheet from './PickerSheet.jsx'
 import './day.css'
 
-const wdLong = (ts) => new Date(ts).toLocaleDateString('en-US', { weekday: 'long' })
+const wdLong = (ts) => new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'long' })
 
 export default function DayPage({ ts, events, anchors, wx }) {
   // openCalendarPicker is the Plan Phase 2 date-picker opener; in Phase 1 the
@@ -154,7 +154,7 @@ export default function DayPage({ ts, events, anchors, wx }) {
   // Tomorrow / weekday) + the short date feed the tappable day selector, which
   // opens the date picker (Plan Phase 2). day-plan keys stay ts-keyed.
   const dayLabel = ts === anchors.todayTs ? 'Today' : ts === anchors.tomorrowTs ? 'Tomorrow' : wdLong(ts)
-  const monthDay = new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  const monthDay = new Date(ts).toLocaleDateString(fmtLocale, { month: 'short', day: 'numeric' })
 
   // weather: the 16-day forecast map (App-owned). No entry for this day +
   // a live map = the day is past coverage → say so honestly instead of

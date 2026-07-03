@@ -77,3 +77,9 @@ if (!selected) {
 }
 
 export const CITY = selected
+
+// D4 §3 — THE formatting locale: every toLocaleDateString/toLocaleTimeString/
+// toLocaleString call site routes through this one constant (re-exported via
+// lib.js), so a future city localizes in exactly one place. 'en-US' for Tampa —
+// rendered output is byte-identical to the old per-call-site literals.
+export const fmtLocale = CITY.locale

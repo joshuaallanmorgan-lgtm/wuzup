@@ -8,7 +8,10 @@ import { lsGet, lsSet } from './storage.js'
 // to city.js — the build-time per-city module (D-DEP: one deployment per city).
 // Re-exported here so the ~24 existing `import { CITY } from './lib.js'` sites
 // stay untouched; new city-shaped code may import './city.js' directly.
-export { CITY } from './city.js'
+// fmtLocale (D4 §3) rides along: the one formatting-locale constant every
+// toLocale* call site uses instead of a hardcoded locale literal.
+import { CITY, fmtLocale } from './city.js'
+export { CITY, fmtLocale }
 export const DAY = 86400000
 
 // bubble destinations: every bubble opens a full BubblePage (round-3).
@@ -168,17 +171,17 @@ export function dayTs(iso) {
 }
 export function dayKey(iso) {
   const d = parseDate(iso)
-  return d ? d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : null
+  return d ? d.toLocaleDateString(fmtLocale, { weekday: 'long', month: 'long', day: 'numeric' }) : null
 }
 export function timeOf(iso) {
   if (!iso || !/T\d/.test(iso)) return ''
   const d = new Date(iso)
-  return isNaN(d) ? '' : d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  return isNaN(d) ? '' : d.toLocaleTimeString(fmtLocale, { hour: 'numeric', minute: '2-digit' })
 }
 export function dayLabel(ts, anchors) {
   if (ts === anchors.todayTs) return 'Today'
   if (ts === anchors.tomorrowTs) return 'Tomorrow'
-  return new Date(ts).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+  return new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'short', month: 'short', day: 'numeric' })
 }
 export function priceLabel(e) {
   if (e.isFree === true) return 'Free'
@@ -377,7 +380,7 @@ export function tonightModel(upcoming, anchors, now = new Date()) {
   return { items, late, futureN: futureTimed.length, tomorrowN: tomorrow.length }
 }
 export function dayLabelLoose(e) {
-  return e._day != null ? new Date(e._day).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : null
+  return e._day != null ? new Date(e._day).toLocaleDateString(fmtLocale, { weekday: 'short', month: 'short', day: 'numeric' }) : null
 }
 export function dayLoose(e) {
   return e._ongoing ? 'Ongoing' : dayLabelLoose(e)

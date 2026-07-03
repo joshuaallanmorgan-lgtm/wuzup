@@ -3,7 +3,7 @@
 // NAVIGATION state (active tab, subpage union, detail open/close + VT morph,
 // map focus) lives in nav.js (Sprint O6) — components reach it via useNav().
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { DAY, Icon, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, saveMyEvents } from './lib.js'
+import { DAY, fmtLocale, Icon, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, saveMyEvents } from './lib.js'
 import { NavProvider, VIEWS, useNav } from './nav.jsx'
 import Primer, { loadPrimerState } from './Primer.jsx'
 import { WxContext, CardToastHost } from './cards.jsx'
@@ -67,8 +67,8 @@ const RETRY_MS = 2500
 const STALE_MS = 48 * 3600 * 1000
 const staleDayLabel = (ms) =>
   Date.now() - ms <= 6 * DAY
-    ? new Date(ms).toLocaleDateString('en-US', { weekday: 'long' })
-    : new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    ? new Date(ms).toLocaleDateString(fmtLocale, { weekday: 'long' })
+    : new Date(ms).toLocaleDateString(fmtLocale, { month: 'short', day: 'numeric' })
 
 export default function App() {
   return (

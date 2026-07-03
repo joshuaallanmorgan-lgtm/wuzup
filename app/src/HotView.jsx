@@ -4,7 +4,7 @@
 // EVENTS_GRIND: Tonight carousel → vertical GemRow "Tonight's best bets" +
 // new "This weekend" section (day-grouped GemRow); both gain honest _why lines.
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { BUBBLES, CAT_BUBBLES, CITY, Icon, LENS_BUBBLES, dayLabel, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
+import { BUBBLES, CAT_BUBBLES, CITY, Icon, LENS_BUBBLES, dayLabel, fmtLocale, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
 import LensNav from './LensNav.jsx'
 import TasteTuner from './TasteTuner.jsx'
 import { curateFeed, collapseSeries } from './curate.js'
@@ -420,7 +420,7 @@ export default function HotView({ events, anchors, loading }) {
                   <>
                     More upcoming around {CITY.name}{' '}
                     <span className="sec-count">
-                      · {(seeAllEv ? feed.fullCount : feed.curatedCount).toLocaleString('en-US')}
+                      · {(seeAllEv ? feed.fullCount : feed.curatedCount).toLocaleString(fmtLocale)}
                     </span>
                   </>
                 }
@@ -437,7 +437,7 @@ export default function HotView({ events, anchors, loading }) {
               className="ev-seeall pressable"
               onClick={() => openDeck({ kind: 'events', origin: 'events' })}
             >
-              Swipe all {feed.fullEventCount.toLocaleString('en-US')} events →
+              Swipe all {feed.fullEventCount.toLocaleString(fmtLocale)} events →
             </button>
             {/* BINDING NEVER-HIDE PATH — do NOT remove or gate this (ROADMAP §1.1, Josh's
                 call). The in-feed expand is the no-swipe / reduced-motion guarantee: it

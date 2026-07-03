@@ -13,7 +13,7 @@
 // Sprint U-c uses these for "Share this day": shareDayText for the human text,
 // eventsIcs for the multi-VEVENT download. weekend.js's shareText (the whole
 // weekend) is untouched — the Weekend Builder still uses it verbatim.
-import { CITY, parseDate, timeOf } from './lib.js'
+import { CITY, fmtLocale, parseDate, timeOf } from './lib.js'
 import { DAYPART } from './weekend.js'
 
 // ===== ICS (RFC 5545) =====
@@ -117,7 +117,7 @@ export const eventsIcs = (list) => wrapIcs(list.map(vevent).filter(Boolean))
 export function shareDayText(dayTs, entries) {
   const picks = (entries || []).filter((x) => x && x.e)
   if (!picks.length) return null
-  const dateLine = new Date(dayTs).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
+  const dateLine = new Date(dayTs).toLocaleDateString(fmtLocale, { weekday: 'long', month: 'short', day: 'numeric' })
   const lines = ['My plan for ' + dateLine + ' 🌴'] // DRAFT for Charles
   for (const { part, e } of picks) {
     const bits = [e.title, timeOf(e.start) || null, e.venue || null].filter(Boolean).join(' · ')

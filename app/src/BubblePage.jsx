@@ -16,7 +16,7 @@
 // (Today/Tomorrow/weekday), hotScore desc within a day, RowFeed pages ~30 rows
 // via IntersectionObserver rooted at this page's own .pg scroller.
 import { useMemo, useRef, useState } from 'react'
-import { CITY, dayLabel, hotDesc, Icon, milesBetween, orderDay, LENS_BUBBLES, CAT_BUBBLES } from './lib.js'
+import { CITY, dayLabel, fmtLocale, hotDesc, Icon, milesBetween, orderDay, LENS_BUBBLES, CAT_BUBBLES } from './lib.js'
 import { useNav } from './nav.jsx'
 import { RowFeed } from './cards.jsx'
 import LensNav from './LensNav.jsx'
@@ -135,7 +135,7 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
             {HEADERS[bubble.id] || bubble.label}
           </h1>
           <div className="pg-count">
-            {count.toLocaleString('en-US')} event{count === 1 ? '' : 's'} in {CITY.name}
+            {count.toLocaleString(fmtLocale)} event{count === 1 ? '' : 's'} in {CITY.name}
           </div>
           <div className="bub-tag">{TAGLINES[bubble.id] || 'Picked fresh for you.'}</div>
           {/* Q2: this lens, as a finite swipe deck — explicit tap only.
