@@ -422,3 +422,13 @@
 .hf-hero-title { font-size: 18px; font-weight: 800; color: var(--ink); }
 .hf-hero-sub { margin-top: 6px; font-size: var(--t-meta); font-weight: 500; line-height: 1.4; color: var(--muted); }
 .hf-row { text-decoration: none; }
+
+/* WS3 §9 (emoji-out-of-chrome): engineered ledger/journal glyph alignment +
+   the Help hero heart — an accent MARK (sanctioned fills/marks use; --hot
+   stays reserved for save-hearts/heat). */
+.pf-ledger-line .meta-ic,
+.pf-rhythm .meta-ic,
+.pf-dayh-date .meta-ic,
+.pf-dayh-what .meta-ic { vertical-align: -2.5px; }
+.pf-ask-yes .btn-ic { width: 14px; height: 14px; vertical-align: -2.5px; }
+.hf-heart { width: 18px; height: 18px; vertical-align: -3px; color: var(--accent); }

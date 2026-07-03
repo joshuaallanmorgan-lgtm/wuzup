@@ -231,3 +231,6 @@
 /* S1-PS3: the search zero-state's preview tabs — muted + non-interactive, a
    foreshadow of the result-scope selector (not real controls). */
 .srch-tabs--preview { opacity: 0.5; pointer-events: none; }
+
+/* WS3 §9: the engineered pin in the locate CTA (was the 📍 chrome emoji) */
+.bub-locate-btn .btn-ic { width: 14px; height: 14px; vertical-align: -2.5px; margin-right: 2px; }

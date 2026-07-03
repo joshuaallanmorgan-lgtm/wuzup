@@ -116,3 +116,7 @@
 @media (prefers-reduced-motion: reduce) {
   .save-ic.pop { animation: none !important; }
 }
+
+/* WS3 §9: the "Your list" engineered save-heart (was the raw ❤️ emoji) —
+   --hot is the sanctioned save-heart color per the index.css ledger. */
+.shelf-heart { width: 17px; height: 17px; vertical-align: -2px; color: var(--hot); }

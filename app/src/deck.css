@@ -275,3 +275,7 @@
   .deck-done-title::after { animation: none !important; }
   .deck-dot { transition: none; }
 }
+
+/* WS3 §9 (emoji-out-of-chrome): the engineered pin in the deck venue meta
+   (was 📍) — the identity stamps/faces on the cards stay emoji by contract. */
+.deck-meta .meta-ic { vertical-align: -2px; }

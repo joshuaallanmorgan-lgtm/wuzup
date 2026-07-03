@@ -121,3 +121,6 @@
   .st-confirm-yes:active,
   .st-confirm-no:active { transform: none; }
 }
+
+/* WS3 §9: the sprout glyph (was 🌱) rides the sage .st-wiped color */
+.st-wiped .meta-ic { vertical-align: -2.5px; }

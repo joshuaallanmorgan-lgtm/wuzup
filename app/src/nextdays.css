@@ -20,13 +20,26 @@
   text-align: left;
   cursor: pointer;
 }
+/* WS3 §9: the condition DISC (home audit item 2) — a 40px circle with a pale
+   per-condition tint carrying the engineered stroke glyph (was a 26px raw
+   emoji). Sits inside the row's ~42px content height, so the row geometry is
+   unchanged. Tint pairs AA-computed: sun 4.63:1 · cloud 4.85:1 · rain 6.06:1 ·
+   storm 6.93:1. ⚑ Charles: hues tunable, keep pale + AA. */
 .nd-wx {
   flex: 0 0 auto;
-  font-size: 26px;
-  line-height: 1;
-  width: 30px;
-  text-align: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-circle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+.nd-wx svg { width: 22px; height: 22px; display: block; }
+.nd-wx--sun { background: hsl(42 100% 89%); color: hsl(36 85% 32%); }
+.nd-wx--cloud { background: hsl(35 22% 90%); color: hsl(30 12% 38%); }
+.nd-wx--rain { background: hsl(205 52% 90%); color: hsl(208 50% 33%); }
+.nd-wx--storm { background: hsl(250 32% 91%); color: hsl(252 28% 36%); }
+.nd-wx--none { background: var(--chip-fill); color: var(--muted); }
 .nd-main {
   flex: 1;
   min-width: 0;

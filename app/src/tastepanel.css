@@ -76,3 +76,6 @@
   .tp-ctl { transition: none; }
   .tp-ctl:active { transform: none; }
 }
+
+/* WS3 §9: engineered fact-row glyph alignment (was 🆓🌙🎉🤷 emoji) */
+.tp-fact .meta-ic { vertical-align: -2.5px; }

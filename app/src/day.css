@@ -361,3 +361,10 @@
   color: var(--muted);
   cursor: pointer;
 }
+
+/* WS3 §9 (emoji-out-of-chrome): the engineered glyphs' fit in DayPage text
+   contexts — .meta-ic is sized in cards.css; these align it to the baseline. */
+.dpg-card-venue .meta-ic,
+.dpg-sugg-meta .meta-ic { vertical-align: -2.5px; }
+.dpg-rest-title .meta-ic { width: 15px; height: 15px; vertical-align: -2px; }
+.dpg-more svg { width: 19px; height: 19px; display: block; margin: 0 auto; }
