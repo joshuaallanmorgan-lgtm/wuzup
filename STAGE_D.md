@@ -58,10 +58,12 @@ Verified hardcodes (2026-07-01 forensics):
 - `CITY` (lib.js) → a per-city config module; `wx-tampa-v1` storage key → `wx-{cityId}-v1` (with
   one-shot migration); data fetch URLs parameterized; the ~10 `en-US`/locale literals behind one
   `fmt` helper; Tampa copy in guides/taglines → config.
-- ⚑ **D-DEP (Josh, before D1 lands):** deployment model — one origin per city (config at build) vs
-  an in-app city switcher (runtime). The packet's D-MC4 said "can defer"; D1's path scheme and D4's
-  fetch scheme both depend on it. Recommendation: **build-time city selection for v1** (simplest,
-  matches "Tampa = reference config"), switcher = v2.
+- ✅ **D-DEP RESOLVED (Josh, 2026-07-02): ONE DEPLOYMENT PER CITY** — build-time city selection.
+  Consequences now binding for D1/D4: the finder namespaces outputs per city
+  (`finder/output/<cityId>/…`) and the DEPLOY step copies ONE city's artifacts into `app/public/`
+  (each deployment ships exactly one city's data at the same URLs the app already fetches — the app
+  needs no fetch-path changes); the app's `CITY` config resolves at build time (env/config module,
+  Tampa default); the in-app switcher is v2 ([BACKLOG](BACKLOG.md)).
 
 ## Exit gate
 
