@@ -71,10 +71,12 @@
    are hashed from the item key — so no two places look alike, yet each is stable
    (same key → same field; keeps the thumb→hero View-Transition continuous). Pure
    CSS, % radii (resolution-independent) + cqmin units under container-type:size, so
-   ONE composition holds 40px → full-bleed hero. Muted/warm S~50% per Sunlit Coastal
-   Pop; the paper grain (craft) + bottom vignette (depth + AA-legible foreground)
-   are kept. Honesty: reads as designed abstract art, NEVER a photo. First-listed
-   background layer paints on TOP. */
+   ONE composition holds 40px → full-bleed hero. Muted/warm S~40% per Sunlit Coastal
+   Pop (WS4, ⚑ Charles: was ~50% — the hotter blobs fought the warm palette and
+   pushed the field toward "broken photo"; S/L live HERE, centrally, so retune
+   without touching the seed math); the paper grain (craft) + bottom vignette
+   (depth + AA-legible foreground) are kept. Honesty: reads as designed abstract
+   art, NEVER a photo. First-listed background layer paints on TOP. */
 .imgbox-art {
   container-type: size;
   background:
@@ -83,11 +85,11 @@
     /* bottom-anchored vignette — depth + keeps the foreground time/marker AA-legible */
     radial-gradient(150% 125% at 50% 132%, rgba(0, 0, 0, 0.32), transparent 60%),
     /* === the three seed-placed aurora blobs (band hue, soft, layered) === */
-    radial-gradient(var(--ar1, 60%) var(--ar1, 60%) at var(--ax1, 28%) var(--ay1, 22%), hsl(var(--ah1, 220) 52% 64% / 0.62), transparent 62%),
-    radial-gradient(var(--ar2, 55%) var(--ar2, 55%) at var(--ax2, 74%) var(--ay2, 66%), hsl(var(--ah2, 242) 48% 56% / 0.58), transparent 64%),
-    radial-gradient(var(--ar3, 50%) var(--ar3, 50%) at var(--ax3, 58%) var(--ay3, 16%), hsl(var(--ah3, 204) 50% 52% / 0.52), transparent 62%),
+    radial-gradient(var(--ar1, 60%) var(--ar1, 60%) at var(--ax1, 28%) var(--ay1, 22%), hsl(var(--ah1, 220) 42% 64% / 0.62), transparent 62%),
+    radial-gradient(var(--ar2, 55%) var(--ar2, 55%) at var(--ax2, 74%) var(--ay2, 66%), hsl(var(--ah2, 242) 40% 56% / 0.58), transparent 64%),
+    radial-gradient(var(--ar3, 50%) var(--ar3, 50%) at var(--ax3, 58%) var(--ay3, 16%), hsl(var(--ah3, 204) 40% 52% / 0.52), transparent 62%),
     /* muted base wash in the place's hue band — the floor under the blobs */
-    linear-gradient(155deg, hsl(var(--ch, 220) 47% 46%), hsl(var(--ch, 220) 52% 30%));
+    linear-gradient(155deg, hsl(var(--ch, 220) 40% 46%), hsl(var(--ch, 220) 42% 30%));
 }
 /* MARKER — one isolated, tunable identity slot (⚑ Charles: swap emoji → stroke-icon →
    medallion here without touching the field). A small refined corner chip, scale-
@@ -747,6 +749,32 @@
 }
 .spotcard--row .spotcard-img { flex: 0 0 102px; width: 102px; height: auto; align-self: stretch; border-radius: var(--r-md); }
 .spotcard--row .spotcard-body { flex: 1; min-width: 0; display: flex; flex-direction: column; padding-right: 46px; overflow: hidden; } /* ruling #3: reserve for the 38px circled heart */
+/* WS4 — the imageMode 'icon' ROW form (3.7P-36's own spec, finally built): a
+   photo-less place row leads with a compact tinted placeType medallion instead
+   of wearing the Aurora field in the photo-shaped 102px slot (at thumbnail
+   density it mimicked a broken photo instead of reading designed). D1 BINDING:
+   the .spotcard--row box + --card-row-h are untouched — only the internal
+   composition changes; the text column takes the reclaimed width. The medallion
+   speaks the featc-noimg language (--mh = the same deterministic per-place hue
+   jitter as the aurora base) with a slightly deeper tint + hairline ring so it
+   stays legible at row density (the 3.7P-20 pale-tint lesson). ⚑ Charles: tint
+   values are taste-adjacent — tune S/L here without touching the seed math. */
+.spotcard--row .spotcard-medallion {
+  position: relative;
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
+  align-self: flex-start;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  border-radius: var(--r-md);
+  background: hsl(var(--mh, 28) 62% 88%);
+  box-shadow: inset 0 0 0 1px hsl(var(--mh, 28) 48% 78%);
+}
+.spotcard-med-gem { position: absolute; right: -5px; bottom: -5px; font-size: 14px; }
 .spotcard-loc {
   margin-top: 4px;
   display: flex;

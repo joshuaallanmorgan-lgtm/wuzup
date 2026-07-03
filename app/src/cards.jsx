@@ -16,7 +16,7 @@ import { CATEGORY_EMOJI, CATEGORY_HUES, PLACETYPE_EMOJI, PLACETYPE_HUE } from '.
 import { auroraVars, medallionHue } from './artseed.js'
 import { Icon, dayLabelLoose, dayLoose, keyOf, makeAnchors, priceLabel, startLabel, timeOf } from './lib.js'
 import { ACTIVITIES } from './places.js'
-import { imageMode } from './imageMode.js'
+import { imageMode, photoFirst } from './imageMode.js'
 import { daypartOf, DAYPART, fillOrder } from './weekend.js'
 import { dayEntryFor, loadDayPlans, saveDayPlans, withSlot } from './dayplan.js'
 import { SaveHeart, useSaves } from './saves.js'
@@ -153,7 +153,8 @@ export const WxContext = createContext(null)
 export { CATEGORY_EMOJI, CATEGORY_HUES } from './categories.js'
 // 3.7P-36: re-export the imageMode gate so card consumers (DecisionCard/P42,
 // Spots rows/P24) import it from the cards module alongside the components.
-export { imageMode }
+// WS4: photoFirst rides along — the count-preserving photos-lead ordering.
+export { imageMode, photoFirst }
 export const hueFor = (e) => {
   // 3.73a: places are placeType-keyed (beach/trail/pier/dog-park each distinct)
   // — kills the green-on-green wall; everything else stays category-keyed.
@@ -554,12 +555,32 @@ export function SpotCard({ p, onSelect, row = false }) {
     // Free leads the facts line, so it's dropped from the amenity chips (no dupe)
     const facts = [dist, p.isFree === true ? 'Free' : null, placeTypeLabel(p)].filter(Boolean).join(' · ')
     const amen = chips.filter((c) => c.label !== 'Free')
+    // WS4 — the 'icon' row form imageMode PROMISED (3.7P-36: a photo-less place
+    // gets "a compact icon/text card (NOT a big hue block)", naming Spots rows as
+    // the consumer) but never received: a photo-less place row leads with the
+    // compact placeType medallion (the featc-noimg precedent) instead of dressing
+    // the Aurora floor in the photo-shaped 102px slot, where at thumbnail density
+    // it read as a broken photo. Type/meta/chips take the reclaimed width. The D1
+    // uniformity invariant holds — same .spotcard--row box, same --card-row-h;
+    // only the internal composition changes. Full-bleed Aurora stays on surfaces
+    // where it reads as a designed field (detail heroes, deck cards, carousel
+    // tiles). No [data-vt] on the medallion (the FeaturedCard noimg precedent) —
+    // a 56px chip blown up to a hero snapshot smears, so these rows open with the
+    // standard slide-up instead of the thumb→hero morph.
+    const iconRow = imageMode(p) !== 'photo'
     return (
-      <div className="spotcard--row">
+      <div className={'spotcard--row' + (iconRow ? ' spotcard--row-icon' : '')}>
         <button className="spotcard-open pressable" onClick={(ev) => onSelect(p, ev.currentTarget)}>
-          <CardImg e={p} className="spotcard-img">
-            {p.hidden && <span className="spot-badge" aria-label="Hidden gem">💎</span>}
-          </CardImg>
+          {iconRow ? (
+            <span className="spotcard-medallion" style={{ '--mh': medallionVar(p) }}>
+              <span aria-hidden>{artEmoji(p)}</span>
+              {p.hidden && <span className="spotcard-med-gem" aria-label="Hidden gem">💎</span>}
+            </span>
+          ) : (
+            <CardImg e={p} className="spotcard-img">
+              {p.hidden && <span className="spot-badge" aria-label="Hidden gem">💎</span>}
+            </CardImg>
+          )}
           <div className="spotcard-body">
             <div className="spotcard-title">{p.title}</div>
             {p.venue && (

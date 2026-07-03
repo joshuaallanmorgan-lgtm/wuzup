@@ -1453,6 +1453,100 @@ test('3.7P-36 imageMode: photo / icon / text gate (no green placeholder as prima
   assert.equal(im(undefined), 'text', 'no event object → text-led (defensive)')
 })
 
+// WS4 (cohesion/aurora) — the photo-filter tautology fix. imageMode() has only
+// ever returned 'photo'|'icon'|'text', so the Spots rails' `!== 'none'` filter
+// was ALWAYS TRUE — "closest with real photos first" (SP-L3 / SPOTS P1b) silently
+// never happened. photoFirst() is the intended predicate as a count-preserving
+// stable partition; this pins the helper AND the call sites so the tautology
+// can't creep back.
+test('WS4 photoFirst: photos lead, order stable, nothing dropped; the !== none tautology is gone', async () => {
+  const { imageMode: im, photoFirst } = await import('../app/src/imageMode.js')
+  // the root cause, pinned: 'none' is not a value imageMode can return
+  for (const e of [{ image: 'https://x/p.jpg' }, { kind: 'place' }, {}, undefined]) {
+    assert.notEqual(im(e), 'none', 'imageMode never returns "none" — consumers must compare against real modes')
+  }
+  const a = { key: 'a', kind: 'place' }
+  const b = { key: 'b', kind: 'place', image: 'https://x/b.jpg' }
+  const c = { key: 'c', kind: 'place' }
+  const d = { key: 'd', kind: 'place', image: 'https://x/d.jpg' }
+  const out = photoFirst([a, b, c, d])
+  assert.deepEqual(out.map((x) => x.key), ['b', 'd', 'a', 'c'], 'photo-bearing lead; both partitions keep incoming order (stable)')
+  assert.equal(out.length, 4, 'count-preserving: reorder only, never hide')
+  assert.deepEqual(photoFirst([a, c]).map((x) => x.key), ['a', 'c'], 'an all-art pool passes through — rails still fill when photo supply is thin')
+  assert.deepEqual(photoFirst([]), [], 'empty in, empty out')
+  assert.deepEqual(photoFirst(null), [], 'null-safe (lazy store not yet loaded)')
+  // call sites: LocationsView orders with the real predicate, not the tautology
+  const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
+  assert.ok(!/!==\s*'none'/.test(loc), "the `imageMode(p) !== 'none'` tautology is gone from LocationsView")
+  assert.ok(/photoFirst\(/.test(loc), 'LocationsView orders its rails/sections with photoFirst (photos lead, count-preserving)')
+})
+
+// WS4 item 2 — photo-first ordering inside the MIXED place feeds (count-
+// preserving; never-hide holds because photoFirst is a stable reorder, not a
+// filter). The Spots master order + the See-all destination both lead with
+// photo-bearing places so a screenful reads composed, not lottery.
+test('WS4 photo-first feeds: Spots master order + PlaceBubblePage results lead with photos (reorder only)', () => {
+  const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
+  assert.ok(/photoFirst\(placeOrder\(/.test(loc), 'the Spots master list is photoFirst(placeOrder(...)) — photos lead, vibe order within')
+  const pbp = readFileSync(path.join(ROOT, 'app', 'src', 'PlaceBubblePage.jsx'), 'utf8')
+  assert.ok(/photoFirst\(/.test(pbp), 'PlaceBubblePage result feed is photo-first (count-preserving reorder)')
+  assert.ok(/\.filter\(bubble\.match\)/.test(pbp), 'PlaceBubblePage still filters ONLY by the bubble predicate (photoFirst reorders, never hides)')
+})
+
+// WS4 item 3 — the 'icon' row form imageMode's own spec promised (3.7P-36:
+// photo-less place → "a compact icon/text card (NOT a big hue block)", Spots
+// rows named as the consumer) but no card ever built. A photo-less place row
+// now leads with a compact tinted placeType medallion; the Aurora field stays
+// full-bleed only where it reads as a designed surface (detail heroes, deck
+// cards, carousel tiles). The D1 uniform-row-height invariant is BINDING.
+test('WS4 icon row form: photo-less place rows are compact medallion cards, not big hue blocks', () => {
+  const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
+  assert.ok(/const iconRow = imageMode\(p\) !== 'photo'/.test(cards), 'the SpotCard row derives its form from the imageMode gate (spec finally consumed)')
+  assert.ok(/spotcard--row-icon/.test(cards), 'the icon form is a variant CLASS on the same .spotcard--row box (not a new card)')
+  assert.ok(/spotcard-medallion/.test(cards) && /medallionVar\(p\)/.test(cards), 'the medallion tints from the deterministic per-place hue jitter (artseed)')
+  const css = readFileSync(path.join(ROOT, 'app', 'src', 'cards.css'), 'utf8')
+  // D1 BINDING: one uniform row height for every result row — the box is untouched
+  assert.ok(/\.spotcard--row\s*\{[^}]*height:\s*var\(--card-row-h\)/s.test(css), 'the icon form keeps the D1 uniform row height (same .spotcard--row box)')
+  assert.ok(/\.spotcard--row \.spotcard-medallion\s*\{[\s\S]*?hsl\(var\(--mh/.test(css), 'the medallion background keys off --mh (per-place, deterministic)')
+  // the designed-field surfaces keep the full-bleed aurora (detail heroes + deck)
+  const pd = readFileSync(path.join(ROOT, 'app', 'src', 'PlaceDetail.jsx'), 'utf8')
+  assert.ok(/imgbox-art/.test(pd), 'PlaceDetail art heroes keep the full-bleed aurora field')
+  const deck = readFileSync(path.join(ROOT, 'app', 'src', 'CalibrationDeck.jsx'), 'utf8')
+  assert.ok(/<CardImg e=\{e\} className="deck-img"/.test(deck), 'deck cards keep the full-bleed CardImg (aurora reads designed at card scale)')
+})
+
+// WS4 item 4 — the photo-less detail hero drops to a designed ~26svh band; a
+// REAL-photo hero keeps the full 42svh (a photo earns the space). Both detail
+// paths share the .detail-hero.imgbox-art form, so one rule covers events +
+// places; the evt-hero View-Transition contract is unchanged.
+test('WS4 detail hero: art-floor hero is a ~26svh band, photo hero keeps 42svh, morph contract intact', () => {
+  const appCss = readFileSync(path.join(ROOT, 'app', 'src', 'App.css'), 'utf8')
+  assert.ok(/\.detail-hero\s*\{[^}]*height:\s*42svh/s.test(appCss), 'the photo hero keeps its full 42svh')
+  assert.ok(/\.detail-hero\.imgbox-art\s*\{[^}]*height:\s*26svh/s.test(appCss), 'the photo-less (art-floor) hero drops to the 26svh band')
+  // both detail paths reach the rule through the same shared class + keep the
+  // same viewTransitionName, so the thumb→hero morph contract is untouched
+  for (const f of ['DetailPage.jsx', 'PlaceDetail.jsx']) {
+    const src = readFileSync(path.join(ROOT, 'app', 'src', f), 'utf8')
+    assert.ok(/'detail-hero' \+ \(heroArt \? ' imgbox-art' : ''\)/.test(src), `${f} art hero wears the shared .imgbox-art class`)
+    assert.ok(/viewTransitionName: 'evt-hero'/.test(src), `${f} hero keeps the evt-hero morph name`)
+  }
+})
+
+// WS4 item 5 — the aurora recipe stays CALM: every hsl() in the .imgbox-art
+// field sits at S ≤ 46% (the old S~50% blobs fought the warm Sunlit Coastal Pop
+// palette and pushed the field toward "broken photo"; the refs carry zero
+// saturated cool tiles). Hue/taste values are Charles's to retune — this only
+// tripwires the saturation creeping back up. Determinism is covered by the 3.8
+// aurora test (seed math untouched).
+test('WS4 aurora calm: the imgbox-art field saturation stays muted (S <= 46%)', () => {
+  const css = readFileSync(path.join(ROOT, 'app', 'src', 'cards.css'), 'utf8')
+  const art = css.match(/\.imgbox-art\s*\{[\s\S]*?\n\}/)
+  assert.ok(art, 'the .imgbox-art recipe exists')
+  const sats = [...art[0].matchAll(/hsl\(var\(--[a-z0-9]+,? ?\d*\)\s+(\d+)%/g)].map((m) => Number(m[1]))
+  assert.ok(sats.length >= 5, `found the field's hsl() saturation channels (got ${sats.length})`)
+  for (const s of sats) assert.ok(s <= 46, `an aurora hsl() saturation crept up to ${s}% (> 46% reads hot against the warm palette)`)
+})
+
 // CARD_LOCK (Phase 0) — the canonical result card. The dense CompactRow + the
 // editorial Row are RETIRED; ONE kind-aware ResultCard (GemRow event / SpotCard
 // place) renders every vertical result feed via RowFeed.

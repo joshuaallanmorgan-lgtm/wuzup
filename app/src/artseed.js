@@ -26,8 +26,9 @@ export const seedFloat = (key, i) => (fnv1a(key + ':' + i) % 1000000) / 1000000
 // the per-place CSS custom props for the aurora field: a muted base wash in the
 // place's hue band (--ch) + 3 soft radial "blobs", each SEED-PLACED (x / y / radius)
 // and hue-jittered within the band — base ±12°, a +22° companion, a −16° companion.
-// Saturation + lightness live in the CSS (Sunlit Coastal Pop, S~50%) so Charles can
-// re-tune the look without touching the seed math. All outputs are plain CSS values.
+// Saturation + lightness live in the CSS (Sunlit Coastal Pop, S~40% since WS4) so
+// Charles can re-tune the look without touching the seed math. All outputs are
+// plain CSS values.
 export function auroraVars(key, baseHue) {
   const jit = (i, amp) => Math.round((seedFloat(key, i) - 0.5) * 2 * amp) // ±amp degrees
   const pct = (i, lo, span) => (lo + seedFloat(key, i) * span).toFixed(1) + '%'
