@@ -218,14 +218,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-/* U-d: a did-day (plan → done) gets a calm teal accent + a quiet "✓ Went"
-   tag — a record of an accomplishment, not a trophy. Never red, never a count. */
-.pf-dayh-went { border-color: rgba(var(--accent-rgb), 0.35); }
+/* U-d: a did-day (plan → done) gets a quiet "✓ Went" tag — a record of an
+   accomplishment, not a trophy. Never red, never a count. WS3 accent restraint:
+   the record family is PASSIVE — the accent border + orange tag demote to a
+   calm ink hairline + muted tag (5.95:1 on card). ⚑ Charles eyeball */
+.pf-dayh-went { border-color: rgba(var(--ink-rgb), 0.16); }
 .pf-dayh-went-tag {
   flex: 0 0 auto;
   font-size: var(--t-micro);
   font-weight: 800;
-  color: var(--accent-ink);
+  color: var(--muted);
   letter-spacing: -0.1px;
 }
 /* Stage R (My plans subpage): the past-day rows are now TAPPABLE buttons → openDay */
@@ -254,7 +256,7 @@
 /* 3.76b: Plans → Reality — this month's plans vs follow-through (no score/guilt) */
 .pf-reality { margin: 2px var(--gutter) var(--sp-sm); font-size: var(--t-meta); font-weight: 600; color: var(--muted); }
 .pf-reality-n { color: var(--ink); font-weight: 800; }
-.pf-reality-went { color: var(--accent-ink); }
+.pf-reality-went { color: var(--ink); } /* WS3 accent restraint: the went count is a VALUE — ink like .pf-reality-n, not orange. ⚑ Charles eyeball */
 /* variety firsts: a small fixed set of breadth stamps, never a volume tracker */
 .pf-firsts { display: flex; flex-wrap: wrap; gap: var(--sp-xs); padding: 0 var(--gutter); margin-bottom: 14px; }
 .pf-first {

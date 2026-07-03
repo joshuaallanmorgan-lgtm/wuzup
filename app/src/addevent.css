@@ -1,12 +1,14 @@
 /* addevent.css — Add Event MVP (Sprint C, add-event agent owns this file):
-   the AddEvent form page (.ae-*), the "Added by you" provenance label (accent
+   the AddEvent form page (.ae-*), the "Added by you" provenance label (muted
    twin of .sp-label, rendered everywhere a Sponsored label would show), and the
    detail-page Remove button + 6s undo toast. (Phase 3.6 N1: the ghost "+ Add
    event" bubble was retired — Add event is now a menu item in LensNav,
    styled .tn-item-add in topnav.css.) */
 
-/* ===== provenance: user-added twin of the Sponsored label (accent, never hidden) ===== */
-.sp-label.my-label { color: var(--accent-ink); }
+/* ===== provenance: user-added twin of the Sponsored label (never hidden; WS3
+   accent restraint: provenance is a passive micro-label — muted like its
+   Sponsored twin, 5.95:1 on card. ⚑ Charles eyeball) ===== */
+.sp-label.my-label { color: var(--muted); }
 
 /* ===== form page ===== */
 .ae-form { padding: 4px var(--gutter) 28px; }

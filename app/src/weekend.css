@@ -162,8 +162,8 @@
 }
 /* 3.74: the honest "why it fits" reason row + the single Top-pick standout */
 .wkb-pick-why { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 3px; }
-.wkb-pick-fit { font-size: var(--t-micro); font-weight: 700; color: var(--accent-ink); background: rgba(var(--accent-rgb), 0.1); padding: 1px 7px; border-radius: var(--r-pill); }
-.wkb-pick-star { font-size: var(--t-micro); font-weight: 800; color: var(--ink); background: rgba(var(--accent-rgb), 0.22); padding: 1px 7px; border-radius: var(--r-pill); }
+.wkb-pick-fit { font-size: var(--t-micro); font-weight: 700; color: var(--muted); background: var(--chip-fill); padding: 1px 7px; border-radius: var(--r-pill); } /* WS3 accent restraint: the why/fit pill is an editorial label — chip-neutral (muted 5.20:1 on chip-fill). ⚑ Charles eyeball */
+.wkb-pick-star { font-size: var(--t-micro); font-weight: 800; color: var(--ink); background: var(--chip-fill); padding: 1px 7px; border-radius: var(--r-pill); } /* WS3 accent restraint: "Top pick" is an editorial superlative, not a selection — ink on chip-fill (15.7:1) keeps it outranking the muted fit pill. ⚑ Charles eyeball */
 .wkb-pick-top { background: rgba(var(--accent-rgb), 0.05); }
 .wkb-pick-add {
   flex: 0 0 26px;

@@ -228,7 +228,7 @@
 .cal-sel { padding: 14px var(--sp-md) 0; }
 .cal-sel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .cal-sel .cal-day { margin: 0; }
-.cal-sel-went { flex: 0 0 auto; font-size: var(--t-meta); font-weight: 800; color: var(--accent-ink); }
+.cal-sel-went { flex: 0 0 auto; font-size: var(--t-meta); font-weight: 800; color: var(--muted); } /* WS3 accent restraint: a went-record is a passive label, not a selection — off orange (muted 5.95:1 on card). ⚑ Charles eyeball */
 .cal-sel-rest { margin-top: var(--sp-xs); font-size: 14px; font-weight: 600; color: var(--muted); }
 .cal-sel-slots { display: flex; flex-direction: column; gap: var(--sp-xs); margin-top: var(--sp-sm); }
 .cal-sel-slot {

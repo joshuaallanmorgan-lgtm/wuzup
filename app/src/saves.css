@@ -88,8 +88,8 @@
   margin-left: var(--sp-xs);
   padding: 2px 9px;
   border-radius: var(--r-pill);
-  background: rgba(var(--accent-rgb), 0.12);
-  color: var(--accent-ink);
+  background: var(--chip-fill); /* WS3 accent restraint: a passive count pill — chip-neutral, muted 5.20:1. ⚑ Charles eyeball */
+  color: var(--muted);
   font-size: var(--t-meta);
   font-weight: 800;
 }

@@ -26,7 +26,7 @@ The honesty bar is unconditional and overrides everything here: **nothing fake i
 
 `*-rgb` companions (`--accent-rgb`, `--hot-rgb`, `--cta-rgb`, `--reward-rgb`) exist for `rgba()` tints/glows.
 
-**Accent restraint (A6):** Sunset Gold is over-spendable. Accent is for **real actions, selection, focus** — not editorial micro-labels. Overlines, "Best for", "Why", group headers, type/area labels read `--muted` (or `--ink` if a value). _Done in A6: section-overline family (`.st-over`/`.tp-over`/`.ie-over`/`.ae-group`/`.wkb-group`) + `.fc-best-title`. **Deferred to Stage B** (entangled, do as one sweep): the went/record family, the Sponsored-twin label, the `.wkb-pick-*` emphasis ladder, the count-pill recipe._
+**Accent restraint (A6):** Sunset Gold is over-spendable. Accent is for **real actions, selection, focus** — not editorial micro-labels. Overlines, "Best for", "Why", group headers, type/area labels read `--muted` (or `--ink` if a value). _Done in A6: section-overline family (`.st-over`/`.tp-over`/`.ie-over`/`.ae-group`/`.wkb-group`) + `.fc-best-title`. **Completed in the Cohesion Pass (WS3)** — the deferred sweep landed: the went/record family (`.cal-sel-went`, `.pf-dayh-went` border, `.pf-dayh-went-tag` → muted/ink-hairline; `.pf-reality-went` → `--ink`, it's a value), the Sponsored-twin `.sp-label.my-label` → muted, the `.wkb-pick-*` emphasis ladder → chip-neutral (ink "Top pick" still outranks the muted fit pill), and the `.shelf-count` pill → chip-neutral. All AA-verified (muted ≥5.2:1 on every fill used). Note the tension, honored: ruling 2026-07-01 #2 spends orange on NAVIGATION (See-all) and true action/selection moments — these four families are passive labels, exactly what restraint covers._
 
 ---
 
