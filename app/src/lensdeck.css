@@ -42,7 +42,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 0 20px 28px;
+  padding: 0 var(--gutter) 28px;
 }
 
 /* ===== kicker — the count-exact header claim ("18 for Friday") ===== */
@@ -79,7 +79,7 @@
   position: absolute;
   top: 16px;
   z-index: 5;
-  padding: 6px 12px;
+  padding: 6px var(--sp-sm);
   border-radius: var(--r-sm);
   border: 2.5px solid;
   font-size: var(--t-body);
@@ -135,13 +135,13 @@
 .ldk-btn-keep.is-saved { background: rgba(var(--hot-rgb), 0.18); }
 
 /* ===== end card — honest stopping cue, deliberately NOT a reward beat ===== */
-.ldk-done { text-align: center; padding: 64px 16px 24px; animation: ldkDoneIn 400ms var(--ease-out) both; }
+.ldk-done { text-align: center; padding: 64px var(--sp-md) var(--sp-lg); animation: ldkDoneIn 400ms var(--ease-out) both; }
 @keyframes ldkDoneIn {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: none; }
 }
 .ldk-done-emoji { font-size: 44px; line-height: 1; }
-.ldk-done-title { margin: 16px auto 6px; max-width: 320px; font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #fff; }
+.ldk-done-title { margin: var(--sp-md) auto 6px; max-width: 320px; font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #fff; }
 .ldk-done-sub { font-size: var(--t-meta); font-weight: 600; color: rgba(255, 255, 255, 0.6); }
 .ldk-done-btn {
   margin-top: 30px;
@@ -158,8 +158,8 @@
 }
 
 /* ===== defensive empty deal ===== */
-.ldk-empty { padding: 80px 24px; text-align: center; color: rgba(255, 255, 255, 0.7); line-height: 1.6; }
-.ldk-empty-emoji { font-size: 40px; margin-bottom: 12px; }
+.ldk-empty { padding: 80px var(--sp-lg); text-align: center; color: rgba(255, 255, 255, 0.7); line-height: 1.6; }
+.ldk-empty-emoji { font-size: 40px; margin-bottom: var(--sp-sm); }
 
 /* ===== the entry affordance (HotView day-headers + bubble pages) =====
    Fresh: accent-tinted pill. Already dealt this session: the quieter
@@ -168,7 +168,7 @@
   border: 1px solid rgba(var(--accent-rgb), 0.35);
   border-radius: var(--r-pill);
   background: rgba(var(--accent-rgb), 0.08);
-  padding: 6px 12px;
+  padding: 6px var(--sp-sm);
   font-family: inherit;
   font-size: var(--t-meta-sm);
   font-weight: 700;
@@ -191,7 +191,7 @@
   gap: 10px;
 }
 /* bubble-band variant: sits under the tagline, on the tinted band */
-.bub-deckthis { margin-top: 12px; }
+.bub-deckthis { margin-top: var(--sp-sm); }
 
 /* ===== reduced motion ===== */
 @media (prefers-reduced-motion: reduce) {

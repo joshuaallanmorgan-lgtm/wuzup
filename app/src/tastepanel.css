@@ -24,13 +24,13 @@
 /* P1/P2: the .tp-promise callout + the .tp-leans "Leaning toward" weight bars
    were retired (Josh's taste-sweep); the never-hide line is a .tp-trust line now. */
 
-.tp-facts { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.tp-facts { margin-top: var(--sp-md); display: flex; flex-direction: column; gap: var(--sp-xs); }
 .tp-fact { font-size: var(--t-meta); font-weight: 600; line-height: 1.4; }
 .tp-fact-dim { color: var(--muted); font-weight: 500; }
 
 /* ===== V3: explicit control ===== */
-.tp-ctl-note { font-size: var(--t-meta); font-weight: 500; color: var(--muted); line-height: 1.5; margin: 0 0 12px; }
-.tp-ctl-grid { display: flex; flex-direction: column; gap: 8px; }
+.tp-ctl-note { font-size: var(--t-meta); font-weight: 500; color: var(--muted); line-height: 1.5; margin: 0 0 var(--sp-sm); }
+.tp-ctl-grid { display: flex; flex-direction: column; gap: var(--sp-xs); }
 .tp-ctl {
   display: flex;
   align-items: center;

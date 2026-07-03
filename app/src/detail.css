@@ -45,7 +45,7 @@
    reason exists — absence IS the honest state, so no empty shell. ===== */
 .detail-why {
   margin-top: 18px;
-  padding: 14px 16px;
+  padding: 14px var(--sp-md);
   border-radius: var(--r-lg);
   background: rgba(var(--accent-rgb), 0.08);
 }
@@ -92,7 +92,7 @@ a.d-row { text-decoration: none; color: inherit; }
    list caps its height and scrolls so an 88-date program stays tidy without
    ever hiding a date. Quiet, hairline, the detail page's text-weight voice. */
 .detail-dates { margin-top: 26px; }
-.detail-dates .d-k { margin-bottom: 8px; }
+.detail-dates .d-k { margin-bottom: var(--sp-xs); }
 .dd-count {
   margin-left: 6px;
   padding: 1px 7px;
@@ -118,7 +118,7 @@ a.d-row { text-decoration: none; color: inherit; }
   align-items: baseline;
   gap: 10px;
   width: 100%;
-  padding: 10px 12px;
+  padding: 10px var(--sp-sm);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   background: var(--card);
@@ -165,9 +165,9 @@ a.d-row { text-decoration: none; color: inherit; }
 .dlink {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--sp-sm);
   width: 100%;
-  padding: 12px 14px;
+  padding: var(--sp-sm) 14px;
   border: none;
   border-bottom: 1px solid var(--line);
   border-radius: 0;
@@ -233,8 +233,8 @@ a.d-row { text-decoration: none; color: inherit; }
 .util-btn svg { width: 16px; height: 16px; flex: 0 0 auto; }
 
 /* ===== More like this rail (reuses .carousel/.tcard from cards.css) ===== */
-.detail-rail { margin: 34px -20px 0; } /* full-bleed back out of .detail-body's 20px gutters */
-.detail-rail .sec-head { margin-bottom: 12px; }
+.detail-rail { margin: 34px calc(-1 * var(--gutter)) 0; } /* full-bleed back out of .detail-body gutters (stays linked to --gutter) */
+.detail-rail .sec-head { margin-bottom: var(--sp-sm); }
 
 /* ===== I4 + FB-15: demoted provenance footer ("Found via …" / "Sourced from
    …") — internal info, not decision info; smallest text on the page, centered.
@@ -282,7 +282,7 @@ a.d-row { text-decoration: none; color: inherit; }
   bottom: calc(98px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
   z-index: 2030;
-  padding: 9px 16px;
+  padding: 9px var(--sp-md);
   border-radius: var(--r-pill);
   background: rgba(var(--ink-rgb), 0.92);
   color: #fff;

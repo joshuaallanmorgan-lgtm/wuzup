@@ -78,7 +78,7 @@
 @keyframes wkbFadeOut { to { opacity: 0; } }
 @keyframes wkbDown { to { transform: translateY(100%); } }
 
-.wkb-sheet-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 6px; }
+.wkb-sheet-head { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-md) 18px 6px; }
 .wkb-sheet-title { font-size: 17px; font-weight: 800; letter-spacing: -0.2px; }
 .wkb-sheet-close {
   width: 32px;
@@ -95,7 +95,7 @@
   transition: transform var(--dur-micro);
 }
 .wkb-sheet-close:active { transform: scale(0.9); }
-.wkb-sheet-body { overflow-y: auto; padding: 0 12px calc(24px + env(safe-area-inset-bottom)); }
+.wkb-sheet-body { overflow-y: auto; padding: 0 var(--sp-sm) calc(24px + env(safe-area-inset-bottom)); }
 
 /* Plan Phase 2 (flows-1 p3): Suggested / Saved tabs + the daypart subline */
 .wkb-tabs { display: flex; gap: 6px; padding: 6px 18px 0; }
@@ -119,7 +119,7 @@
 .wkb-sheet-sub { padding: 9px 18px 2px; font-size: var(--t-meta); font-weight: 500; color: var(--muted); }
 
 .wkb-group {
-  padding: 14px 8px 6px;
+  padding: 14px var(--sp-xs) 6px;
   font-size: var(--eyebrow-size);
   font-weight: 800;
   letter-spacing: 0.2px;
@@ -130,7 +130,7 @@
   align-items: center;
   gap: 11px;
   width: 100%;
-  padding: 7px 8px;
+  padding: 7px var(--sp-xs);
   border: none;
   border-radius: var(--r-md);
   background: none;
@@ -180,8 +180,8 @@
   justify-content: center;
 }
 .wkb-note {
-  margin: 12px 4px 0;
-  padding: 12px;
+  margin: var(--sp-sm) 4px 0;
+  padding: var(--sp-sm);
   border-radius: var(--r-md);
   background: rgba(var(--accent-rgb), 0.06);
   font-size: var(--t-meta);

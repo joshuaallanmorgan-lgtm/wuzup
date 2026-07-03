@@ -16,7 +16,7 @@
   );
 }
 /* A5: 6→0 so the title shares the back button's + the feed's 20px left ruler */
-.bub-band-main { padding: 12px 0 0; }
+.bub-band-main { padding: var(--sp-sm) 0 0; }
 .bub-title {
   display: flex;
   align-items: center;
@@ -51,19 +51,19 @@
 .guide-plan-cta:active { filter: brightness(0.96); }
 /* 3.75b: quiet provenance line on a GuidePage (a Watch Guide discloses it's
    keyword-matched to live listings — trust present, not academic). */
-.guide-sources { margin-top: 8px; font-size: var(--t-micro); font-weight: 500; color: var(--muted); }
+.guide-sources { margin-top: var(--sp-xs); font-size: var(--t-micro); font-weight: 500; color: var(--muted); }
 
 /* ===== Near Me: friendly inline location ask (shown until coords arrive) ===== */
 .bub-locate {
-  margin: 6px 20px 20px;
-  padding: 18px 16px;
+  margin: 6px var(--gutter) 20px;
+  padding: 18px var(--sp-md);
   border-radius: var(--r-lg);
   background: hsla(var(--bh, 200), 70%, 45%, 0.08);
   text-align: center;
 }
 .bub-locate-txt { font-size: var(--t-meta); font-weight: 600; color: var(--ink); line-height: 1.45; }
 .bub-locate-btn {
-  margin-top: 12px;
+  margin-top: var(--sp-sm);
   height: 44px;
   padding: 0 22px;
   border: none;
@@ -127,10 +127,10 @@
   transition: transform var(--dur-micro);
 }
 .srch-clear:active { transform: scale(0.9); }
-.srch-count { padding: 8px 20px 2px; font-size: var(--t-meta); font-weight: 600; color: var(--muted); }
+.srch-count { padding: var(--sp-xs) var(--gutter) 2px; font-size: var(--t-meta); font-weight: 600; color: var(--muted); }
 
 /* suggestion chips inside the pre-query empty state */
-.srch-sug { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 16px; }
+.srch-sug { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-xs); margin-top: var(--sp-md); }
 .srch-sug-btn {
   border: 1px solid var(--line);
   border-radius: var(--r-pill);
@@ -146,7 +146,7 @@
 .srch-sug-btn:active { transform: scale(0.94); }
 
 /* ===== Q2e zero-state: recent searches block (above the suggestions) ===== */
-.srch-recents { padding: 14px 20px 0; }
+.srch-recents { padding: 14px var(--gutter) 0; }
 .srch-recents-head {
   display: flex;
   align-items: baseline;
@@ -162,7 +162,7 @@
 .srch-recents-clear {
   border: none;
   background: none;
-  padding: 4px 0 4px 12px;
+  padding: 4px 0 4px var(--sp-sm);
   font-family: inherit;
   font-size: var(--t-meta-sm);
   font-weight: 600;
@@ -211,7 +211,7 @@
 }
 
 /* ===== 3.7P-41 (§N screen 9): search result-type tabs ===== */
-.srch-tabs { display: flex; gap: 8px; padding: 6px 20px 6px; flex-wrap: wrap; }
+.srch-tabs { display: flex; gap: var(--sp-xs); padding: 6px var(--gutter) 6px; flex-wrap: wrap; }
 .srch-tab {
   font-size: var(--t-meta);
   font-weight: 700;

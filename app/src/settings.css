@@ -9,7 +9,7 @@
 .st { background: var(--bg); }
 .st-body { padding: 4px 0 120px; }
 
-.st-sec { margin-top: var(--sp-lg); padding: 0 20px; }
+.st-sec { margin-top: var(--sp-lg); padding: 0 var(--gutter); }
 .st-sec:first-child { margin-top: var(--sp-xs); }
 .st-over {
   font-size: var(--eyebrow-size);
@@ -36,7 +36,7 @@
 .st-wiped { margin-top: 10px; font-size: var(--t-meta); font-weight: 600; color: var(--free); }
 
 /* ===== action rows ===== */
-.st-rows { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.st-rows { display: flex; flex-direction: column; gap: var(--sp-xs); margin-top: 10px; }
 .st-row {
   display: flex;
   align-items: center;
@@ -92,7 +92,7 @@
   background: var(--card);
 }
 .st-confirm-q { font-size: var(--t-meta); font-weight: 600; line-height: 1.5; }
-.st-confirm-btns { display: flex; gap: 8px; margin-top: 11px; }
+.st-confirm-btns { display: flex; gap: var(--sp-xs); margin-top: 11px; }
 .st-confirm-yes,
 .st-confirm-no {
   flex: 1;

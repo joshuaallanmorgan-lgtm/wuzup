@@ -9,7 +9,7 @@
 .sp-label.my-label { color: var(--accent-ink); }
 
 /* ===== form page ===== */
-.ae-form { padding: 4px 20px 28px; }
+.ae-form { padding: 4px var(--gutter) 28px; }
 .ae-field { margin-top: 18px; }
 /* 3.76c: a calm What/When/Where/Details group header in the add-your-own form */
 .ae-group { margin: 22px 0 2px; font-size: var(--t-meta-sm); font-weight: 800; letter-spacing: 0.2px; color: var(--muted); } /* A6 accent restraint: group header off orange */
@@ -45,7 +45,7 @@ textarea.ae-input { height: auto; min-height: 96px; padding: 11px 14px; resize: 
 .ae-hint { font-size: var(--t-meta); color: var(--muted); line-height: 1.4; }
 
 /* category chip-row (single-select radio; tap the active chip to clear) */
-.ae-cats { display: flex; flex-wrap: wrap; gap: 8px; }
+.ae-cats { display: flex; flex-wrap: wrap; gap: var(--sp-xs); }
 .ae-cat {
   display: inline-flex;
   align-items: center;
@@ -155,8 +155,8 @@ textarea.ae-input { height: auto; min-height: 96px; padding: 11px 14px; resize: 
 /* ===== detail page: Remove (added events only) + 6s undo toast ===== */
 .d-remove {
   display: block;
-  margin: 16px auto 0;
-  padding: 8px 14px;
+  margin: var(--sp-md) auto 0;
+  padding: var(--sp-xs) 14px;
   background: none;
   border: none;
   font-family: inherit;
@@ -167,7 +167,7 @@ textarea.ae-input { height: auto; min-height: 96px; padding: 11px 14px; resize: 
 }
 .d-remove:disabled { opacity: 0.45; cursor: default; }
 /* .detail-toast is pointer-events:none — the undo variant must take taps */
-.undo-toast { pointer-events: auto; display: flex; align-items: center; gap: 12px; }
+.undo-toast { pointer-events: auto; display: flex; align-items: center; gap: var(--sp-sm); }
 .undo-btn {
   background: none;
   border: none;

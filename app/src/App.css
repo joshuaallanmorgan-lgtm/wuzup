@@ -57,7 +57,7 @@
 /* H-L2: "View full forecast →" text link below NextDays */
 .home-forecast-link {
   display: block;
-  margin: 4px 20px 0;
+  margin: 4px var(--gutter) 0;
   padding: 0;
   border: none;
   background: none;
@@ -73,8 +73,8 @@
 .home-picks {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 0 20px;
+  gap: var(--sp-sm); /* Cohesion spacing: matches .gems — one card-stack rhythm (was 10) */
+  padding: 0 var(--gutter);
 }
 /* E-L1: "This weekend" day-group header (Friday / Saturday) */
 .weekend-day { margin-top: 10px; }
@@ -130,8 +130,8 @@
    a light doorway into the dark swipe deck. ===== */
 .tune {
   position: relative;
-  margin: 12px var(--gutter) 0; /* PREMIUM A1 (spacing#2): on the unified 20px body gutter (was 16px) */
-  padding: 15px 16px 16px;
+  margin: var(--sp-sm) var(--gutter) 0; /* PREMIUM A1 (spacing#2): on the unified 20px body gutter (was 16px) */
+  padding: 15px var(--sp-md) var(--sp-md);
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
@@ -156,7 +156,7 @@
   cursor: pointer;
 }
 .tune-x:hover { background: rgba(26, 20, 16, 0.06); }
-.tune-main { display: flex; align-items: flex-start; gap: 12px; }
+.tune-main { display: flex; align-items: flex-start; gap: var(--sp-sm); }
 .tune-copy {
   flex: 1 1 auto;
   min-width: 0;
@@ -214,8 +214,8 @@
 .empty-cta {
   display: block;
   width: fit-content;
-  margin: 16px auto 0; /* own line, centered in the empty state */
-  padding: 11px 20px;
+  margin: var(--sp-md) auto 0; /* own line, centered in the empty state */
+  padding: 11px var(--gutter);
   border: none;
   border-radius: var(--r-md);
   background: var(--cta);
@@ -251,7 +251,7 @@
   box-shadow: 0 5px 16px rgba(26, 20, 16, 0.14);
 }
 .tune-pc-img { display: block; width: 100%; height: 58px; object-fit: cover; }
-.tune-pc-body { padding: 6px 7px 8px; display: flex; flex-direction: column; gap: 4px; }
+.tune-pc-body { padding: 6px 7px var(--sp-xs); display: flex; flex-direction: column; gap: 4px; }
 .tune-pc-title {
   font-size: 10px;
   font-weight: 700;
@@ -290,8 +290,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin: 12px 16px 0;
-  padding: 8px 14px;
+  margin: var(--sp-sm) var(--sp-md) 0;
+  padding: var(--sp-xs) 14px;
   border: 1px dashed var(--line);
   border-radius: var(--r-pill);
   background: transparent;
@@ -311,9 +311,9 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 12px;
-  padding: 0 20px;
-  margin-bottom: 14px;
+  gap: var(--sp-sm);
+  padding: 0 var(--gutter);
+  margin-bottom: var(--sp-md); /* Cohesion spacing: section head-to-content rhythm on the scale (was 14) */
 }
 /* Stage 2 sweep: .sec-overline removed — SecHead retired the orange overline-on-top
    (R-H2); the descriptor renders into .sec-sub now, never .sec-overline. */
@@ -343,7 +343,7 @@
 .ev-seeall {
   display: block;
   width: calc(100% - 40px);
-  margin: 0 20px 14px;
+  margin: 0 var(--gutter) 14px;
   font-family: inherit;
   font-size: var(--t-meta);
   font-weight: 600;
@@ -359,7 +359,7 @@
 .ev-seeall-list {
   display: block;
   width: calc(100% - 40px);
-  margin: -6px 20px 14px;
+  margin: -6px var(--gutter) 14px;
   padding: 4px 0;
   background: none;
   border: none;
@@ -387,7 +387,7 @@
 
 /* ===== shared empty state ===== */
 .empty { padding: 64px 28px; text-align: center; color: var(--muted); line-height: 1.6; }
-.empty-sm { padding: 28px 20px; }
+.empty-sm { padding: 28px var(--gutter); }
 
 /* (D8/A5: the map view + its .map-wrap/.map/.map-note chrome are parked for v1
    along with MapView/leaflet — removed. Place locations route to Google Maps.) */
@@ -468,7 +468,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: calc(12px + env(safe-area-inset-top)) var(--gutter) 12px; /* A5: 14→20, header chrome on the body gutter */
+  padding: calc(12px + env(safe-area-inset-top)) var(--gutter) var(--sp-sm); /* A5: 14→20, header chrome on the body gutter */
 }
 .pg-head-title { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.3px; } /* PROFILE_GRIND §0: 21px → 26px subpage-title step */
 .pg-back {
@@ -596,7 +596,7 @@
   overflow-wrap: anywhere;
 }
 .detail-venue { margin-top: 6px; font-size: var(--t-body); font-weight: 600; color: var(--muted); }
-.detail-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.detail-chips { display: flex; flex-wrap: wrap; gap: var(--sp-xs); margin-top: var(--sp-sm); }
 /* 3.7P-2: photo credit (CC-BY/BY-SA attribution duty) — tiny, bottom-right of a
    real-photo hero, above the title z-layer; sits below the title text in the
    gradient. Art-floor heroes carry no credit. */
@@ -616,7 +616,7 @@
 .hero-credit a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 /* 3.7P-22: the CTA is now a flex sibling OUTSIDE .detail-scroll (a true bottom
    bar), so the body no longer reserves CTA clearance — just normal breathing room. */
-.detail-body { padding: 16px 20px 24px; }
+.detail-body { padding: var(--sp-md) var(--gutter) var(--sp-lg); }
 .detail-sp { display: block; margin-bottom: 10px; }
 .detail-rows { display: flex; flex-direction: column; }
 .d-row { display: flex; gap: 13px; align-items: flex-start; padding: 13px 0; border-bottom: 1px solid var(--line); }
@@ -655,8 +655,8 @@
    I1/I5 reward moment: the card wears the reward accent — violet overline,
    hairline + a faint corner wash. Entirely static: calm, nothing animates. ===== */
 .recap {
-  margin: 26px 20px 10px;
-  padding: 20px 18px 16px;
+  margin: 26px var(--gutter) 10px;
+  padding: 20px 18px var(--sp-md);
   border-radius: var(--r-lg);
   border: 1px solid rgba(var(--reward-rgb), 0.22);
   background:
@@ -671,8 +671,8 @@
   color: var(--reward);
 }
 .recap-title { margin-top: 4px; font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
-.recap-rows { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
-.recap-nudge { margin-top: 16px; text-align: center; font-size: var(--t-meta); font-weight: 600; color: var(--muted); }
+.recap-rows { display: flex; flex-direction: column; gap: var(--sp-sm); margin-top: 14px; } /* Cohesion spacing: card-stack rhythm (was 10) */
+.recap-nudge { margin-top: var(--sp-md); text-align: center; font-size: var(--t-meta); font-weight: 600; color: var(--muted); }
 
 /* ===== boot (gated 300ms in JS; topmost chrome) ===== */
 .boot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--bg); color: var(--muted); font-weight: 700; z-index: 2100; }

@@ -133,7 +133,7 @@
   font-size: var(--t-micro);
   font-weight: 800;
   line-height: 1;
-  padding: 4px 8px;
+  padding: 4px var(--sp-xs);
   border-radius: var(--r-pill);
   background: linear-gradient(135deg, var(--hot), var(--hot-2));
   color: #fff;
@@ -152,11 +152,11 @@
 /* ===== Tonight carousel (280×210 landscape cards) ===== */
 .carousel {
   display: flex;
-  gap: 12px;
+  gap: var(--sp-sm);
   overflow-x: auto;
-  padding: 0 20px 4px;
+  padding: 0 var(--gutter) 4px;
   scroll-snap-type: x mandatory;
-  scroll-padding-left: 20px;
+  scroll-padding-left: var(--gutter);
   scrollbar-width: none;
   /* a swipe ending at the carousel edge must NOT chain into the snap-mandatory
      tab pager (Hot snapping to Map mid-browse) */
@@ -177,7 +177,7 @@
 }
 .tcard-img { width: 280px; aspect-ratio: var(--ar-card); border-radius: var(--r-md); } /* 3.7P-1: framing token (was 280×157, identical 16:9) */
 .tcard-title {
-  margin-top: 8px;
+  margin-top: var(--sp-xs);
   /* A6: type comes from the shared --t-card override below (retires the dead 600) */
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -190,7 +190,7 @@
    placeType-aware art (3.73a) + a type label + one differentiator + 💎 badge. ===== */
 .spotcard { flex: 0 0 200px; scroll-snap-align: start; border: none; background: none; text-align: left; cursor: pointer; padding: 0; font: inherit; color: inherit; }
 .spotcard-img { display: block; width: 200px; height: 130px; border-radius: var(--r-md); }
-.spotcard-type { margin-top: 8px; font-size: var(--eyebrow-size); font-weight: 700; letter-spacing: 0.2px; color: var(--muted); } /* PREMIUM A1 (accent restraint): placeType overline off orange */
+.spotcard-type { margin-top: var(--sp-xs); font-size: var(--eyebrow-size); font-weight: 700; letter-spacing: 0.2px; color: var(--muted); } /* PREMIUM A1 (accent restraint): placeType overline off orange */
 .spotcard-title { margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } /* A6: type from the shared --t-card override below */
 .spotcard-meta { margin-top: 3px; font-size: var(--t-meta); font-weight: 500; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* 3.7P-13: richer amenity chips — up to 3 icon+label utility chips + distance */
@@ -228,7 +228,7 @@
   align-items: center;
   justify-content: flex-start; /* content pins to the top of the stretched tile */
   gap: 7px;
-  padding: 13px 8px 12px;
+  padding: 13px var(--sp-xs) var(--sp-sm);
   /* S1-SP2/SP3: a clean white card + neutral hairline (the per-hue editorial wash
      is retired); each tile keeps its identity via the hue-tinted emoji medallion
      below. --ink labels stay AA on white. */
@@ -286,7 +286,7 @@
 /* ===== 3.7P-23c FeaturedCard — the §N "Tonight's best bets" DecisionCard:
    image on top, content + honest chips below, inline [Save] [Add] actions ===== */
 .featc {
-  margin: 0 20px;
+  margin: 0 var(--gutter);
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
@@ -311,7 +311,7 @@
 .featc-img { display: block; width: 100%; aspect-ratio: var(--ar-card); border-radius: calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px) 0 0; }
 /* 1-B: the no-photo PLACE variant — a horizontal text-rich card (small tinted
    placeType medallion + name + amenity chips), never a big flat color hero. */
-.featc-noimg .featc-open { display: flex; align-items: flex-start; gap: 14px; padding: 16px 16px 4px; }
+.featc-noimg .featc-open { display: flex; align-items: flex-start; gap: 14px; padding: var(--sp-md) var(--sp-md) 4px; }
 .featc-noimg .featc-body { padding: 0; flex: 1; min-width: 0; }
 .featc-medallion {
   position: relative;
@@ -343,7 +343,7 @@
 }
 .featc-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
 /* A2: .featc-chip styling now comes from the shared chip primitive (below). */
-.featc-actions { display: flex; gap: 10px; padding: 12px 15px 15px; }
+.featc-actions { display: flex; gap: 10px; padding: var(--sp-sm) 15px 15px; }
 .featc-act {
   height: 42px;
   display: inline-flex;
@@ -359,7 +359,7 @@
 }
 .featc-act:active { transform: scale(0.97); }
 /* Save = ghost/outline secondary; toggles to a filled-heart state */
-.featc-save { flex: 0 0 auto; padding: 0 16px; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+.featc-save { flex: 0 0 auto; padding: 0 var(--sp-md); border: 1px solid var(--line); background: var(--card); color: var(--ink); }
 .featc-save.on { color: var(--hot); border-color: rgba(var(--hot-rgb), 0.4); background: rgba(var(--hot-rgb), 0.08); }
 /* a place featured card has Save only (no inline Add — places need a day) → stretch it */
 .featc-save:only-child { flex: 1; }
@@ -373,7 +373,7 @@
 }
 
 /* ===== Hidden Gems (compact 3-row list) ===== */
-.gems { display: flex; flex-direction: column; gap: 12px; padding: 0 20px; }
+.gems { display: flex; flex-direction: column; gap: var(--sp-sm); padding: 0 var(--gutter); }
 /* PREMIUM A2 (D1–D4): the canonical EVENT card. ONE fixed height (--card-row-h)
    for every event + spot card so a feed NEVER runs ragged; a TALL left image
    defines that height; the title owns the full body width (2-line clamp, D3); a
@@ -445,7 +445,7 @@
   align-items: center;
   gap: 5px;
   height: 30px;
-  padding: 0 12px;
+  padding: 0 var(--sp-sm);
   border: 1px solid rgba(var(--cta-rgb), 0.5);
   border-radius: var(--r-pill);
   background: rgba(var(--cta-rgb), 0.08);
@@ -466,10 +466,10 @@
 
 /* EVENTS_GRIND: "Neighborhood Picks" — a 2-up grid of compact image-top tiles
    (area overline + title + meta), distinct from the full-width GemRow row. */
-.nbhd-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; padding: 0 20px; }
+.nbhd-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-md) var(--sp-sm); padding: 0 var(--gutter); }
 .nbhd-card { min-width: 0; display: flex; flex-direction: column; background: none; border: none; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
 .nbhd-img { position: relative; display: block; width: 100%; aspect-ratio: 3 / 2; border-radius: var(--r-md); }
-.nbhd-area { margin-top: 8px; font-size: var(--eyebrow-size); font-weight: 800; letter-spacing: 0.1px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* PREMIUM A1 (accent restraint): area overline off orange */
+.nbhd-area { margin-top: var(--sp-xs); font-size: var(--eyebrow-size); font-weight: 800; letter-spacing: 0.1px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* PREMIUM A1 (accent restraint): area overline off orange */
 .nbhd-title { margin-top: 1px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } /* A6: type from the shared --t-card override below */
 .nbhd-meta { margin-top: 2px; font-size: var(--t-meta-sm); font-weight: 500; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nbhd-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
@@ -486,7 +486,7 @@
   font-size: var(--t-micro);
   font-weight: 700;
   letter-spacing: 0.04em;
-  padding: 4px 8px;
+  padding: 4px var(--sp-xs);
   border-radius: var(--r-pill);
   background: var(--free-fill-strong); /* C3 a11y: darker Tropical Sage — white-on-fill clears AA 4.5:1 (was var(--free) 3.07:1); token stays for text uses */
   color: #fff;
@@ -515,7 +515,7 @@
    renders the kind-aware ResultCard. .row is just the button reset those cards
    build on. ===== */
 .feed-date {
-  padding: 20px 20px 10px;
+  padding: 20px var(--gutter) 10px;
   font-size: var(--t-meta);
   font-weight: 700;
   letter-spacing: 0.2px;
@@ -532,7 +532,7 @@
   cursor: pointer;
 }
 .feed-sentinel { height: 1px; }
-.feed-end { padding: 26px 20px 10px; text-align: center; font-size: var(--t-meta); font-weight: 600; color: var(--muted); }
+.feed-end { padding: 26px var(--gutter) 10px; text-align: center; font-size: var(--t-meta); font-weight: 600; color: var(--muted); }
 
 /* one-shot staggered rise when a page swaps its list in (RowFeed stagger prop) */
 @keyframes rowIn {
@@ -706,9 +706,9 @@
    RowFeed now renders the kind-aware ResultCard (GemRow event / SpotCard place)
    in a .feed--cards container, spaced like the landing .home-picks.
    =========================================================================== */
-.feed--cards { display: flex; flex-direction: column; gap: 12px; padding: 0 var(--gutter); } /* PREMIUM A1 (spacing#2): 16→20px so the result feed shares the body gutter (no mid-scroll flip) */
+.feed--cards { display: flex; flex-direction: column; gap: var(--sp-sm); padding: 0 var(--gutter); } /* PREMIUM A1 (spacing#2): 16→20px so the result feed shares the body gutter (no mid-scroll flip) */
 /* day-group headers keep the editorial hairline divider, aligned to the cards */
-.feed--cards .feed-date { margin: 6px 0 0; padding: 14px 2px 8px; border-top: 1px solid var(--line); }
+.feed--cards .feed-date { margin: 6px 0 0; padding: 14px 2px var(--sp-xs); border-top: 1px solid var(--line); }
 .feed--cards .feed-date:first-child { margin-top: 0; padding-top: 4px; border-top: none; }
 .feed--cards .feed-end { padding-top: 18px; }
 /* the one-shot staggered rise now plays on the canonical cards */

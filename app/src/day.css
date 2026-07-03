@@ -51,7 +51,7 @@
   display: flex;
   align-items: center;
   gap: 13px;
-  margin: 0 16px;
+  margin: 0 var(--sp-md);
   padding: 13px 15px;
   border: 1px solid var(--line);
   border-radius: var(--r-md);
@@ -71,7 +71,7 @@
 }
 
 /* ===== small folded utility actions near the top (quiet text affordances) ===== */
-.dpg-top-actions { display: flex; flex-wrap: wrap; gap: 16px; margin: 10px 20px 2px; }
+.dpg-top-actions { display: flex; flex-wrap: wrap; gap: var(--sp-md); margin: 10px var(--gutter) 2px; }
 .dpg-fold-btn {
   padding: 2px 0;
   border: 0;
@@ -85,7 +85,7 @@
 .dpg-fold-btn:active { opacity: 0.55; }
 
 /* ===== the three daypart slots ===== */
-.dpg-slots { display: flex; flex-direction: column; gap: 16px; padding: 10px 16px 0; }
+.dpg-slots { display: flex; flex-direction: column; gap: var(--sp-md); padding: 10px var(--sp-md) 0; }
 .dpg-part {
   margin-bottom: 7px;
   padding: 0 2px;
@@ -100,7 +100,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--sp-sm);
   width: 100%;
   padding: 14px 15px;
   border: 1.5px dashed rgba(var(--cta-rgb), 0.4); /* --cta @ 40% */
@@ -147,7 +147,7 @@
 .dpg-card {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: var(--sp-sm);
   width: 100%;
   padding: 10px;
   border: 1px solid var(--line);
@@ -221,8 +221,8 @@
 
 /* rest day: the calm FILLED state that replaces the slot pickers */
 .dpg-rest {
-  margin: 8px 16px 0;
-  padding: 20px 16px;
+  margin: var(--sp-xs) var(--sp-md) 0;
+  padding: 20px var(--sp-md);
   box-shadow: var(--shadow-card);
   border-radius: var(--r-lg);
   background: var(--card);
@@ -232,7 +232,7 @@
 .dpg-rest-sub { margin-top: 4px; font-size: var(--t-meta); font-weight: 500; color: var(--muted); line-height: 1.45; }
 .dpg-rest-undo {
   margin-top: 14px;
-  padding: 8px 14px;
+  padding: var(--sp-xs) 14px;
   border: 1px solid rgba(var(--cta-rgb), 0.35);
   border-radius: var(--r-pill);
   background: none;
@@ -245,8 +245,8 @@
 
 /* ===== "Suggestions for you" ===== */
 .dpg-sec { padding-top: 22px; }
-.dpg-sec-sub { margin: 1px 20px 9px; font-size: var(--t-meta); font-weight: 500; color: var(--muted); }
-.dpg-suggs { display: flex; flex-direction: column; gap: 10px; padding: 0 16px; }
+.dpg-sec-sub { margin: 1px var(--gutter) 9px; font-size: var(--t-meta); font-weight: 500; color: var(--muted); }
+.dpg-suggs { display: flex; flex-direction: column; gap: var(--sp-sm); /* card-stack rhythm (was 10) */ padding: 0 var(--sp-md); }
 .dpg-sugg { display: flex; align-items: center; gap: 9px; }
 .dpg-sugg-card {
   flex: 1;
@@ -254,7 +254,7 @@
   display: flex;
   align-items: center;
   gap: 11px;
-  padding: 8px;
+  padding: var(--sp-xs);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   background: var(--card);
@@ -314,14 +314,14 @@
 .dpg-menu {
   width: 100%;
   max-width: 460px;
-  margin: 0 8px 8px;
-  padding: 8px;
+  margin: 0 var(--sp-xs) var(--sp-xs);
+  padding: var(--sp-xs);
   border-radius: var(--r-lg);
   background: var(--card);
   box-shadow: var(--shadow-card);
 }
 .dpg-menu-title {
-  padding: 10px 12px 6px;
+  padding: 10px var(--sp-sm) 6px;
   font-size: var(--t-meta);
   font-weight: 700;
   color: var(--muted);
@@ -333,7 +333,7 @@
 .dpg-menu-item {
   display: block;
   width: 100%;
-  padding: 14px 12px;
+  padding: 14px var(--sp-sm);
   border: 0;
   border-radius: var(--r-md);
   background: none;
@@ -351,7 +351,7 @@
   display: block;
   width: 100%;
   margin-top: 6px;
-  padding: 14px 12px;
+  padding: 14px var(--sp-sm);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   background: none;

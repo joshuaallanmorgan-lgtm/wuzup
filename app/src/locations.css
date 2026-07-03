@@ -31,7 +31,7 @@
   gap: 10px;
   width: 100%;
   margin-top: 14px;
-  padding: 12px 16px;
+  padding: var(--sp-sm) var(--sp-md);
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r-pill);
@@ -62,15 +62,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--sp-xs);
   font-size: 16px;
   font-weight: 800;
   color: #fff; /* D.0-R: shared primary-button fill (white text on --cta, AA ~4.86:1) */
   background: var(--cta);
   border: none;
   border-radius: var(--r-md);
-  padding: 15px 16px;
-  margin-bottom: 16px;
+  padding: 15px var(--sp-md);
+  margin-bottom: var(--sp-md);
   box-shadow: 0 6px 20px rgba(var(--accent-rgb), 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.4); /* 3.73a glow + 3.7P-1 tactile top-highlight */
   cursor: pointer;
   transition: box-shadow var(--dur-micro) var(--ease-out), transform var(--dur-micro); /* PREMIUM A4 (motion#9): glow tightens on press */
@@ -83,7 +83,7 @@
 /* ===== 3.7P-24 field-guide elements (§N spot detail) ===== */
 /* Stage R: name + meta now sit BELOW the clean hero photo on light. */
 .loc-fg-title {
-  margin: 0 0 8px;
+  margin: 0 0 var(--sp-xs);
   font-size: 26px;
   font-weight: 900;
   letter-spacing: -0.5px;
@@ -98,7 +98,7 @@
   font-size: 14px;
   font-weight: 600;
   color: var(--muted);
-  margin: 2px 0 12px;
+  margin: 2px 0 var(--sp-sm);
 }
 .loc-fg-mi {
   display: inline-flex;
@@ -114,8 +114,8 @@
 .loc-tag-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 16px;
+  gap: var(--sp-xs);
+  margin: 0 0 var(--sp-md);
 }
 /* C5: shared chip-lg geometry (6×11 pill, ink, nowrap) lives in cards.css;
    only this chip's own fill/ink-size/icon-gap stay here */
@@ -163,7 +163,7 @@
   flex: 0 0 auto;
   display: flex;
   gap: 10px;
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  padding: var(--sp-sm) var(--sp-md) calc(12px + env(safe-area-inset-bottom));
   background: var(--card);
   box-shadow: 0 -6px 24px rgba(26, 20, 16, 0.1);
   z-index: 2010;
@@ -229,7 +229,7 @@
 }
 .loc-watch {
   margin: 4px 0 18px;
-  padding: 12px 14px;
+  padding: var(--sp-sm) 14px;
   border-radius: var(--r-md);
   background: rgba(var(--hot-rgb), 0.07);
   border: 1px solid rgba(var(--hot-rgb), 0.18);
@@ -249,12 +249,12 @@
   margin: 4px 0 18px;
 }
 .loc-amen .d-k {
-  margin-bottom: 8px;
+  margin-bottom: var(--sp-xs);
 }
 .loc-amen-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--sp-xs);
 }
 /* C5: shared chip-lg geometry lives in cards.css; fill/border/ink-size stay here
    (13px + hairline vs the tag chip's 12.5/600 accent tint — a real difference) */
@@ -284,7 +284,7 @@
   position: relative;
   background: var(--card);
   border-radius: var(--r-lg) var(--r-lg) 0 0;
-  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  padding: var(--sp-md) var(--sp-md) calc(16px + env(safe-area-inset-bottom));
   max-height: 78vh;
   overflow-y: auto;
   animation: loc-sheet-up var(--dur-page) var(--ease-emphasis);
@@ -308,7 +308,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--sp-sm);
   margin-bottom: 14px;
 }
 .loc-sheet-title {
@@ -328,13 +328,13 @@
 .loc-note {
   font-size: var(--t-meta);
   color: var(--muted);
-  padding: 8px 2px;
+  padding: var(--sp-xs) 2px;
 }
 .loc-plan-days {
   display: flex;
-  gap: 8px;
+  gap: var(--sp-xs);
   overflow-x: auto;
-  padding-bottom: 12px;
+  padding-bottom: var(--sp-sm);
   margin-bottom: 4px;
   -webkit-overflow-scrolling: touch;
 }
@@ -346,7 +346,7 @@
   background: var(--bg);
   border: 1px solid var(--line);
   border-radius: var(--r-pill);
-  padding: 8px 14px;
+  padding: var(--sp-xs) 14px;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -357,7 +357,7 @@
 }
 .loc-plan-slots {
   display: flex;
-  gap: 12px;
+  gap: var(--sp-sm);
 }
 .loc-plan-slot {
   flex: 1;
@@ -365,7 +365,7 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 16px 10px;
+  padding: var(--sp-md) 10px;
   background: var(--bg);
   border: 1.5px solid var(--line);
   border-radius: var(--r-md);
@@ -409,7 +409,7 @@
 .loc-plan-add {
   display: block;
   width: 100%;
-  margin-top: 16px;
+  margin-top: var(--sp-md);
   padding: 14px;
   border: 0;
   border-radius: var(--r-md);

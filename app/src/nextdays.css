@@ -2,8 +2,8 @@
 .nextdays {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin: 0 20px 8px;
+  gap: var(--sp-sm); /* Cohesion spacing: the ONE vertical card-stack rhythm (was 10) */
+  margin: 0 var(--gutter) var(--sp-xs);
 }
 .nd-card {
   display: flex;
@@ -59,7 +59,7 @@
   color: #fff;
   background: var(--cta);
   border-radius: var(--r-sm);
-  padding: 6px 12px;
+  padding: 6px var(--sp-sm);
   box-shadow: 0 1px 5px rgba(var(--accent-rgb), 0.22);
 }
 /* H-L3: outline variant for future-day CTAs (Today is filled; Fri/Sat are ghost) */

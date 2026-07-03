@@ -12,7 +12,7 @@
 .cal-top { background: var(--bg); padding: 22px 0 6px; color: var(--ink); }
 /* the title row — title-only since W6 retired the Weekend pill (kept as a flex
    row so a future header slot drops in without reflow) */
-.cal-top-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 0 20px; }
+.cal-top-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 0 var(--gutter); }
 /* H1: the title is the shared .loc-head-title primitive now (32/800) — the old
    .cal-title 27/900 rule is retired; .cal-top-row supplies the gutter + flex slot. */
 
@@ -23,7 +23,7 @@
    Gold (var(--ink) ≈ 7.4:1; the old .cal-ledger used white, which failed AA on
    gold). ZERO IS SILENCE — the whole strip is absent until a stat is true. A calm
    record, never a score. (3.7P-4 adds the rhythm/streak chip + its increment beat.) */
-.cal-rhythm { display: flex; flex-wrap: wrap; gap: 22px; margin: 12px 20px 0; }
+.cal-rhythm { display: flex; flex-wrap: wrap; gap: 22px; margin: var(--sp-sm) var(--gutter) 0; }
 .cal-stat { display: flex; flex-direction: column; gap: 1px; }
 .cal-stat-num { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.05; color: var(--ink); }
 /* 1-A: on the clean light header the rhythm labels read as muted sublabels (like
@@ -37,13 +37,13 @@
 /* day header above the selected-day caption */
 .day-header {
   margin: 0;
-  padding: 16px 20px 8px;
+  padding: var(--sp-md) var(--gutter) var(--sp-xs);
   font-size: var(--t-meta-sm);
   font-weight: 800;
   letter-spacing: 0.2px;
   color: var(--muted);
 }
-.cal-day { padding-top: 16px; }
+.cal-day { padding-top: var(--sp-md); }
 
 /* 3.7P-17: the N5b "Plan your weekend" pull card was retired (a leftover after
    P8 retired the Weekend Builder). Planning lives in the day screens, reached
@@ -54,7 +54,7 @@
 .cal-fade { animation: calFade 250ms ease both; }
 
 /* month grid: 56px cells — personal marks only (no heat, no hot ring) */
-.mon-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 6px; }
+.mon-head { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-md) var(--gutter) 6px; }
 .mon-title { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.2px; } /* S1-C6: lighter */
 /* R-C2: the month/year picker popover (tappable label + caret → month list) */
 .mon-pickwrap { position: relative; }
@@ -93,7 +93,7 @@
   display: block;
   width: 100%;
   text-align: left;
-  padding: 9px 12px;
+  padding: 9px var(--sp-sm);
   border: none;
   border-radius: var(--r-sm);
   background: none;
@@ -125,8 +125,8 @@
 .cal-today:active {
   transform: scale(0.95);
 }
-.mgrid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 0 12px; }
-.mdow { text-align: center; font-size: var(--t-micro); font-weight: 700; color: var(--muted); padding: 8px 0 4px; }
+.mgrid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 0 var(--sp-sm); }
+.mdow { text-align: center; font-size: var(--t-micro); font-weight: 700; color: var(--muted); padding: var(--sp-xs) 0 4px; }
 .mcell-blank { height: 56px; }
 .mcell {
   position: relative;
@@ -225,12 +225,12 @@
    Replaces the FB-12 popover: it's content in the bottom, swapped in place as you
    tap days, never a modal — so rapid day-tapping never blocks. Appears only once
    a day is tapped; a blank past day shows nothing (no "tap to plan" nag). ===== */
-.cal-sel { padding: 14px 16px 0; }
+.cal-sel { padding: 14px var(--sp-md) 0; }
 .cal-sel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .cal-sel .cal-day { margin: 0; }
 .cal-sel-went { flex: 0 0 auto; font-size: var(--t-meta); font-weight: 800; color: var(--accent-ink); }
-.cal-sel-rest { margin-top: 8px; font-size: 14px; font-weight: 600; color: var(--muted); }
-.cal-sel-slots { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.cal-sel-rest { margin-top: var(--sp-xs); font-size: 14px; font-weight: 600; color: var(--muted); }
+.cal-sel-slots { display: flex; flex-direction: column; gap: var(--sp-xs); margin-top: var(--sp-sm); }
 .cal-sel-slot {
   display: flex;
   align-items: center;
@@ -266,9 +266,9 @@
 }
 .cal-sel-x:hover { color: var(--hot); }
 .cal-sel-full {
-  margin-top: 12px;
+  margin-top: var(--sp-sm);
   width: 100%;
-  padding: 12px;
+  padding: var(--sp-sm);
   border: 1px solid rgba(var(--accent-rgb), 0.4);
   border-radius: var(--r-md);
   background: rgba(var(--accent-rgb), 0.06);
@@ -294,13 +294,13 @@
    retired — the day detail is now the inline .cal-sel panel above.) */
 
 /* ===== 3.7P-40 (§N screen 8): date-state legend + "Upcoming" day-card stack ===== */
-.cal-legend { display: flex; flex-wrap: wrap; gap: 14px; padding: 12px 20px 4px; }
+.cal-legend { display: flex; flex-wrap: wrap; gap: 14px; padding: var(--sp-sm) var(--gutter) 4px; }
 .cal-leg { display: inline-flex; align-items: center; gap: 5px; font-size: var(--t-micro); font-weight: 600; color: var(--muted); }
 .cal-leg-dot { width: 10px; height: 10px; border-radius: var(--r-circle); box-shadow: inset 0 0 0 2px var(--accent); }
 .cal-leg-bar { width: 12px; height: 3px; border-radius: 2px; background: var(--accent); }
 .cal-leg-chk { color: var(--ink); font-weight: 800; }
-.cal-upcoming { margin-top: 12px; }
+.cal-upcoming { margin-top: var(--sp-sm); }
 /* R-C1: the "Upcoming" header matches the confirmed bold-ink section hierarchy
    (.sec-title — 21px/700 ink, Inter), not the old muted overline,
    so it reads like Home's "Your next days". */
-.cal-up-title { margin: 0 20px 10px; font-size: 21px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
+.cal-up-title { margin: 0 var(--gutter) 10px; font-size: 21px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
