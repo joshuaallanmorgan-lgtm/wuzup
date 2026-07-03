@@ -1155,6 +1155,8 @@ const MUSIC_VENUE_RE = /jannus live|orpheum|crowbar|the ritz|floridian social/i;
 // WEAK rules sit at the END (below community): they only fire when nothing
 // stronger matched, so a soft signal ("w/ special guests", a brewery mention)
 // can't steal an event from a confident rule.
+// Entries are [cat, re, unless?] — an `unless` regex vetoes just that rule
+// (same shape as STRONG_TITLE_RULES), letting a later rule claim the event.
 const CATEGORY_RULES = [
   ['theatre', /\bopera\b|\bboh[eèé]me\b|\bballets?\b|\bfringe\b|\bdramatic play\b|\bplaywrights?\b/i],
   // Comedy ABOVE music (WS1 fix 3b): touring stand-ups' listings carry
@@ -1164,20 +1166,31 @@ const CATEGORY_RULES = [
   // unless-style theatre veto inside categorize (see COMEDY_STAGE_RE).
   ['comedy', /\bcomedy\b|\bstand-?up\b|\bimprov\b|\bcomedians?\b/i],
   ['music', /\bconcerts?\b|\bconciertos?\b|\bbands?\b|\bdj\b|\btour\b|\borchestra\b|\bsymphony\b|\blive music\b|\balbum\b|\btribute\b|\bunplugged\b|\bacoustic\b|\blive at\b|\bkaraoke\b|\bopen mic\b|\bjazz\b|\bblues\b|\bsongwriters?\b|\bhip.?hop\b|\bvinyl\b|\bgreatest hits\b/i],
+  // A movie screening is a screening even when the FILM's title carries sports
+  // words — "Movie Screening: Monsters vs. Aliens" tripped the ballgame
+  // \bvs\.?\b rule below (Stage D data-tail d). Narrow phrase, above sports.
+  ['art', /\b(?:movie|film) screenings?\b/i],
   ['sports', /\bvs\.?\b|\bgame\b|\bmatch day\b|\bgrand prix\b|\braces?\b|\broller derby\b|\bwrestling\b|\bpickleball\b/i],
   ['theatre', /\btheatre\b|\btheater\b|\bmusicals?\b|\bbroadway\b|\bcabaret\b/i],
   ['art', /\barts?\b|\bgallery\b|\bmuseum\b|\bexhibits?\b|\bexhibitions?\b|\bmurals?\b|\bcrafts?\b|\bpottery\b|\bpainting\b|\bfilms?\b|\bscreenings?\b|\bcinema\b|\bfashion\b|\brunway\b/i],
   ['market', /\bmarkets?\b|\bflea\b|\bfairs?\b|\bbazaar\b|\bexpo\b|\bvendors?\b|\bbridal\b|\bboat show\b|\btrain show\b|\bshow (?:&|and) sale\b/i],
   ['food', /\bfood\b|\bbrunch\b|\bdinner\b|\btastings?\b|\bbeer\b|\bwine\b|\bcocktails?\b|\btacos?\b|\bbbq\b|\bculinary\b|\bchefs?\b|\bbrewfests?\b/i],
   ['outdoors', /\bparks?\b|\bbeach\b|\bkayak\b|\bhikes?\b|\brun club\b|\b5k\b|\boutdoor\b|\bgardens?\b|\bnature\b|\btrails?\b|\bpaddles?\b|\bpaddleboard\w*\b|\bfishing\b|\bdragon boats?\b|\bpilates\b|\bbarre\b|\bon the lawn\b|\bwho walk\b|\bwalk (?:&|and) talk\b/i],
-  ['nightlife', /\bparty\b|\bclub night\b|\bburlesque\b|\bball\b|\brave\b|\bnightlife\b|\bdrag\b|\btrivia\b|\bbingo\b|\bbar crawls?\b|\bpub crawls?\b|\bspeed dating\b|\bsingles\b|\bhappy hour\b|\b(?:latin|salsa|disco|80s|90s) nights?\b|\bjuke joints?\b|\baxe throwing\b|\bthirsty thursday\b/i],
+  // unless: an event pitched at teens is not a night out — "Teen End of
+  // Summer Party" at a library must fall through to the family rule below
+  // (Stage D data-tail d). Deliberately NOT kids?/children: those words ride
+  // charity names and mission-statement blurbs on real adult events
+  // ("Helping Hands Happy Hour: Clothes To Kids" stays nightlife).
+  ['nightlife', /\bparty\b|\bclub night\b|\bburlesque\b|\bball\b|\brave\b|\bnightlife\b|\bdrag\b|\btrivia\b|\bbingo\b|\bbar crawls?\b|\bpub crawls?\b|\bspeed dating\b|\bsingles\b|\bhappy hour\b|\b(?:latin|salsa|disco|80s|90s) nights?\b|\bjuke joints?\b|\baxe throwing\b|\bthirsty thursday\b/i, /\bteens?\b|\btweens?\b|\btoddlers?\b/i],
   ['family', /\bfamily\b|\bkids?\b|\bchildren\b|\btoddlers?\b|\bteens?\b|\bstory ?time\b|\b(?:father|daddy)[\s-]+daughter\b|\bmother[\s-]+son\b|\bfather[’']?s day\b|\bmother[’']?s day\b|\bback[\s-]+to[\s-]+school\b|\bvbs\b|\bvacation bible school\b/i],
   ['community', /\bmeetup\b|\bworkshops?\b|\bclass(?:es)?\b|\bclubs?\b|\blibrary\b|\bnetworking\b|\bvolunteer\b|\bseminar\b|\blectures?\b|\bbooks?\b|\bgrand opening\b|\bconferences?\b|\bauthor\b|\bfundraisers?\b|\breceptions?\b|\bmixers?\b|\bpuzzles?\b|\bgame nights?\b|\bjuneteenth\b|\bpride\b(?!\s+(?:and|&)\s+prejudice)|pridetopia|\bsummits?\b|\bsymposiums?\b|\bforums?\b|\binfo(?:rmation)? sessions?\b|\btown halls?\b|\bawareness\b|\bsupport (?:group|meeting)s?\b|\brecycling\b|\bchemical collection\b|\bcollection events?\b|\bsandbags?\b|\bclean-?ups?\b|\bcoffee (?:&|and) conversation\b|\bmingle\b|\bsocialize\b|\bentrepreneurs?\b|\bbusiness\b|\bfireside chats?\b|\blunch (?:&|and) learn\b|\bceu\b|\bwebinars?\b|\breal estate\b|\bnonprofits?\b|\bcareers?\b|\bemployers?\b|\bempower\w*\b|\bwellness\b|\breiki\b|\bsound bath\b|\btarot\b|\bheart disease\b|\bcancer\b|\bhealth\b|\bstaying safe\b|\bsafety\b|\binspections?\b|\bcyber\w*\b|\banniversar\w*\b|\bpups?\b|\bdog grooming\b|\bpaws\b|\badoptions?\b|\bstorytell\w*\b|\bcandidate forums?\b|\bcosplay\b|\bcon?ventions?\b|\bmeet (?:&|and) greet\b/i],
   // --- weak signals: last resort before the venue/source priors below ---
   // (headliner/genre/doors-showtime language also shows up in comedy and
   // theatre listings, so it must NOT outrank those rules above.)
-  ['music', /\bw\/\s|\bspecial guests?\b|\bfeat\.\s|\bft\.\s|\bheadlin\w*\b|\bafrobeats?\b|\bamapiano\b|\btechno\b|\bdoors\b.{0,24}\bshowtime\b|pm doors\b/i],
-  ['sports', /\bgames\b/i],
+  ['music', /\bw\/\s|\bspecial guests?\b|\bfeat\.\s|\bft\.\s|\bheadlin\w*\b|\bafrobeats?\b|\bamapiano\b|\btechno\b|\bindie rock\b|\bdoors\b.{0,24}\bshowtime\b|pm doors\b/i],
+  // unless: "games" in a videogame/arcade blurb is a library console hour,
+  // not sports — fall through to the library venue prior (Stage D data-tail d).
+  ['sports', /\bgames\b/i, /\bvideo ?games?\b|\bnintendo\b|\barcade\b/i],
   ['food', /\bbrewer(?:y|ies)\b/i],
 ];
 
@@ -1307,9 +1320,9 @@ export function categorize(e) {
     return e.category;
   }
   if (MUSIC_VENUE_RE.test(e.venue || '')) return 'music';
-  for (const [cat, re] of CATEGORY_RULES) {
+  for (const [cat, re, unless] of CATEGORY_RULES) {
     if (cat === 'comedy' && COMEDY_STAGE_RE.test(text)) continue; // stage comedy → theatre rules below
-    if (re.test(text)) return cat;
+    if (re.test(text) && !(unless && unless.test(text))) return cat;
     // Yoga decides AT the outdoors slot (same precedence \byoga\b had):
     // outdoor setting in venue/text => outdoors, else wellness => community.
     if (cat === 'outdoors' && YOGA_RE.test(text)) {
