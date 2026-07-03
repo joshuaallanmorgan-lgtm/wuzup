@@ -569,7 +569,10 @@ export function SpotCard({ p, onSelect, row = false }) {
     // standard slide-up instead of the thumb→hero morph.
     const iconRow = imageMode(p) !== 'photo'
     return (
-      <div className={'spotcard--row' + (iconRow ? ' spotcard--row-icon' : '')}>
+      // (REFUTE cleanup: the ' spotcard--row-icon' modifier hook was dead — no CSS
+      // ever styled it; the medallion styling rides the child class. Re-mint the
+      // modifier if a future variant needs row-level styling.)
+      <div className="spotcard--row">
         <button className="spotcard-open pressable" onClick={(ev) => onSelect(p, ev.currentTarget)}>
           {iconRow ? (
             <span className="spotcard-medallion" style={{ '--mh': medallionVar(p) }}>

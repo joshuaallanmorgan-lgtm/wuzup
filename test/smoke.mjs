@@ -171,8 +171,15 @@ function schemaProblems(e, i) {
 // 1) FINDER FAST-MODE — the long pole, so it runs first
 // ============================================================
 test('finder fast-mode: exit 0, benchmarks green, output schema-valid', { timeout: 360_000 }, async (t) => {
-  // in-memory backup of everything the finder overwrites
-  const backups = [APP_EVENTS, FINDER_JSON, FINDER_MD]
+  // in-memory backup of everything the finder overwrites — INCLUDING the
+  // committed source caches (Cohesion REFUTE finding: the fast-mode run
+  // refreshes cache TTL/ordering fields, so a green `npm test` used to leave
+  // a dirty tree and contributors smuggled cache churn into commits).
+  const cacheDir = path.join(ROOT, 'finder', 'cache')
+  const cacheFiles = existsSync(cacheDir)
+    ? readdirSync(cacheDir).filter((f) => f.endsWith('.json')).map((f) => path.join(cacheDir, f))
+    : []
+  const backups = [APP_EVENTS, FINDER_JSON, FINDER_MD, ...cacheFiles]
     .filter((f) => existsSync(f))
     .map((f) => [f, readFileSync(f)])
   let res

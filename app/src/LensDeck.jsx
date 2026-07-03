@@ -119,6 +119,11 @@ export default function LensDeck({ lens, events, anchors }) {
     else if (ev.key === 'ArrowRight') { ev.preventDefault(); deckApi.current.right() }
     else if (ev.key === 'ArrowUp') { ev.preventDefault(); deckApi.current.up() }
   }
+  // Cohesion REFUTE fix (see CalibrationDeck): nothing focused the deck on
+  // open, so arrow swipes were inert until a button was tabbed to. Focus the
+  // page root on mount; tabIndex -1 keeps it out of the tab order.
+  const deckRootRef = useRef(null)
+  useEffect(() => { deckRootRef.current?.focus({ preventScroll: true }) }, [])
 
   // ===== end card — the honest stopping cue (NO --reward, by contract) =====
   if (phase === 'done') {
@@ -149,7 +154,7 @@ export default function LensDeck({ lens, events, anchors }) {
   }
 
   return (
-    <div className="pg ldk" style={hue != null ? { '--lh': hue } : undefined} onKeyDown={onDeckKey}>
+    <div className="pg ldk" style={hue != null ? { '--lh': hue } : undefined} ref={deckRootRef} tabIndex={-1} onKeyDown={onDeckKey}>
       <header className="pg-head ldk-head">
         <button className="pg-back" onClick={back} aria-label="Back">
           <Icon.chevron />

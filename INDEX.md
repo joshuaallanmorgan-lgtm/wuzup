@@ -20,7 +20,7 @@ All forward work is named by **lettered Stage** (ROADMAP's A–E road). The old 
 | **E** | v1 Ship | holistic pass vs all refs · honesty audit · PWA/deploy/attribution · beta | ⏳ |
 | **v2** | Backlog | everything post-launch | → [BACKLOG.md](BACKLOG.md) |
 
-**Where we are right now:** mid **Stage C** on branch `stage-c/deep-sweep` — C1 (dead code) / C2 (perf) / C3 (a11y) committed and independently verified; C4 (inert tokens) + C5 (dedup) remain, then one Stage-C PR. **Fable 5 resumed leadership 2026-07-01** (single-session driver's seat; Josh's 10 adjudication rulings recorded in ROADMAP §5).
+**Where we are right now:** the **Cohesion Pass (Stage C.5) is COMPLETE on branch `cohesion/pass`** — all four workstreams merged + 5-lens REFUTE-verified — awaiting Josh's eyeball via the Cohesion PR. Stage C merged earlier (PR #6). Next: Stage D Multi-City ([STAGE_D.md](STAGE_D.md)). **Fable 5 resumed leadership 2026-07-01** (single-session driver's seat; Josh's 10 rulings in ROADMAP §5).
 
 ## Dead-vocabulary crosswalk
 

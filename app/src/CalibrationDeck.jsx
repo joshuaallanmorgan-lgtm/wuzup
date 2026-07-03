@@ -44,7 +44,7 @@
 // and an unrated close loses nothing.
 //
 // ALL COPY IS DRAFT for Charles (inventory in the sprint report).
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { categoryById } from './categories.js'
 import { Icon, dayLoose, keyOf, timeOf } from './lib.js'
 import { lsGet, lsSet } from './storage.js'
@@ -226,6 +226,13 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
     else if (ev.key === 'ArrowRight') { ev.preventDefault(); deckApi.current.right() }
     else if (ev.key === 'ArrowUp') { ev.preventDefault(); deckApi.current.up() }
   }
+  // Cohesion REFUTE fix: onDeckKey only hears keys bubbling from a FOCUSED
+  // descendant — nothing focused the deck on open, so arrow swipes were inert
+  // until the user happened to Tab to a button. Focus the page root itself on
+  // mount (tabIndex -1 keeps it out of the tab order; buttons Tab as before;
+  // programmatic focus paints no ring — :focus-visible only).
+  const deckRootRef = useRef(null)
+  useEffect(() => { deckRootRef.current?.focus({ preventScroll: true }) }, [])
 
   const top = deck[rated]
   const saved = top ? has(top) : false
@@ -278,7 +285,7 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
   }
 
   return (
-    <div className="pg deck" onKeyDown={onDeckKey}>
+    <div className="pg deck" ref={deckRootRef} tabIndex={-1} onKeyDown={onDeckKey}>
       <header className="pg-head deck-head">
         <button className="pg-back" onClick={onClose} aria-label="Close">
           <Icon.chevron />

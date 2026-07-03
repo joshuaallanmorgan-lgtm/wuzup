@@ -12,13 +12,13 @@ The honesty bar is unconditional and overrides everything here: **nothing fake i
 
 | Token | Value | Role |
 |---|---|---|
-| `--bg` | `#f6f2ec` | warm cream canvas (A1: darkened one step so cards lift) |
+| `--bg` | `#faf6f1` | airy warm canvas (ruling 2026-07-01 #5: lightened toward the refs off A1's `#f6f2ec`; the A4 shadow scale carries card-lift; one more step to `#fcfbf9` on the dial) |
 | `--card` | `#fefdfb` | near-white surface — the figure against `--bg` ground |
-| `--ink` | `#1a1410` | warm charcoal, primary text (16.4:1 on bg) |
-| `--muted` | `#6b6157` | secondary text (5.42:1 on bg, AA) |
+| `--ink` | `#1a1410` | warm charcoal, primary text (16.95:1 on bg) |
+| `--muted` | `#6b6157` | secondary text (5.62:1 on bg, AA) |
 | `--line` | `#ede8e2` | warm hairline divider |
 | `--accent` | `#ff8c42` | Sunset Gold — **fills/borders/marks/selection only** |
-| `--accent-ink` | `#ad5116` | AA-safe accent **text** on light (4.75:1 on bg) |
+| `--accent-ink` | `#ad5116` | AA-safe accent **text** on light (4.92:1 on bg) |
 | `--cta` | `#bb5719` | the one shared primary-button fill (white text passes AA) |
 | `--hot` | `#ff3b5f` | **reserved** for hot-ness + save-hearts (never decorative) |
 | `--reward` | `#d966f5` | **reserved** violet, sanctioned one-shot reward beats only |
@@ -122,13 +122,13 @@ A6 retired the orphan `600`/`750` weights and migrated the last literal titles (
 
 Tokens: `--dur-micro 120` / `--dur-fast 200` / `--dur-base 400` / `--dur-page 400` / `--dur-emphasis 300`; `--ease-out`, `--ease-emphasis` (the "Apple curve"), `--ease-inout`. **Reduced-motion always resets.**
 
-Universal press feedback (lens pills 0.96, tn-items 0.97, cards 0.985); reveals (skeleton shimmer, carousel left-to-right stagger, image scale/blur settle, tab-settle on tap); conversion beats (Add toast + button morph, bottom-CTA tactile); swipe-deck under-card rise. Sheets ease symmetrically (open `--ease-emphasis`, close `--ease-inout`). _Pending §F item: `filters.css` + `locations.css` sheets still slam-close — to convert to the `.closing` `--ease-inout` path._ Reward grammar: `savePop`/`slotPop` gold overshoots only at sanctioned beats.
+Universal press feedback (lens pills 0.96, tn-items 0.97, cards 0.985); reveals (skeleton shimmer, carousel left-to-right stagger, image scale/blur settle, tab-settle on tap); conversion beats (Add toast + button morph, bottom-CTA tactile); swipe-deck under-card rise. Sheets ease symmetrically (open `--ease-emphasis`, close `--ease-inout`) — _the last two slam-closers (`filters.css` + the loc-plan sheet) were converted to the `.closing` path in Stage C C5 (`84f019a`); §F is CLOSED._ Reward grammar: `savePop`/`slotPop` gold overshoots only at sanctioned beats. The deck adds physics (Cohesion WS2): velocity flicks + spring settles + momentum exits — knobs live in `deckgesture.js`; reduced-motion = buttons-only, unchanged.
 
 ---
 
 ## §9 — Emoji = identity only
 
-Emoji are reserved for **identity**: category badges, the placeType art floor, the deck's intentional stamps, and 💎 as a deliberate accent. **All UI control glyphs use the engineered 2.1-stroke `Icon.*` family** (heart/heartFill/sparkle/flame/pin/chevron) — never raw `♥`/`🔥`/`📍`.
+Emoji are reserved for **identity**: category badges, the placeType art floor + medallions, intent tiles, the primer tour, the deck's intentional stamps, and 💎 as a deliberate accent. **All UI control glyphs use the engineered 2.1-stroke `Icon.*` family** — never raw `♥`/`🔥`/`📍`. The family (grown in Cohesion WS3): heart/heartFill/sparkle/flame/pin/chevron/calendar/tag/hot + the drawn set sun/cloud/rain/storm (the NextDays weather discs) + moon/dots/burst/sprout/shuffle (⚑ Charles owns final glyph art). _Known stragglers, deliberate for now: the 🔎 search-bar glyph, the "🃏 Deck this" pill (arguably deck identity), Notification row icons — sweep or exempt-list in a later pass._
 
 ---
 
