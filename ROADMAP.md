@@ -64,9 +64,16 @@ scout-verified 2026-07-01; C4 (inert token consolidation) + C5 (dedup) remain. *
 plan-of-record = [STAGE_C.md](STAGE_C.md)** (recovered from the 06-30 kickoff — execution plans now
 live in repo docs, never only in session prompts). Exits as ONE Stage-C PR.
 
-### Stage C.5 — COHESION PASS *(new 2026-07-01 — the old Stage 2.5 "Lamination," re-scoped under the takeover mandate)*
+### Stage C.5 — COHESION PASS ◀ IN PROGRESS *(branch `cohesion/pass`; the old Stage 2.5 "Lamination," re-scoped under the takeover mandate)*
 The premium gap, attacked as **four whole-cloth passes** instead of per-screen punch lists. Exit
-test: *a stranger believes one team designed this* — Josh's eyeball closes it. Workstreams, in order:
+test: *a stranger believes one team designed this* — Josh's eyeball closes it.
+**Live status (2026-07-02):** ✅ the §5 ruling batch (canvas · See-all · Plan tab · circled heart ·
+greeting) + ✅ back-button integration + ✅ deck physics (velocity/springs/stamps/deal-in, merged)
+are landed + live-verified; ⏳ in flight on worktree branches: the finder data-quality fixes +
+fresh refresh (`cohesion/finder-fixes`), the Aurora re-derivation (`cohesion/aurora`), the
+DetailPage light-title rebuild (`cohesion/detail-rebuild`); then the type/spacing re-rhythm +
+eyebrow/emoji/accent sweeps land LAST (they touch every file), then loading states, an independent
+REFUTE pass over the whole branch, and ONE Cohesion PR. Workstreams, in order:
 1. **Data quality** — fresh finder run (dissolves the 21-day-stale snapshot = ~73% of the visible rot);
    venue canonicalization BEFORE the dedup merge; image source-ranking (official artwork > aggregator
    banners); the category-rule patches (comedy/fireworks/yoga); title wrap/clamp on card + hero surfaces.
@@ -81,7 +88,7 @@ test: *a stranger believes one team designed this* — Josh's eyeball closes it.
    (count-preserving); the promised `icon` text-forward row form for photoless places; shorter photoless
    detail heroes; warmer hue bands; a targeted honest-photo pass on the ~30–60 marquee top-rail places.
 
-### Stage D — Multi-City *(was Stage 3)* — per-city event/place data (new source modules) · a city switcher · per-city copy/theming. The big pre-ship expansion. **Imagery already pre-banked (2026-06-26 multi-city lock):** the finder's region is now ONE city config (no longer a hard-coded Tampa bbox) and the Mapillary + Aurora pipeline runs for any city with all honesty guards baked in — so Stage D's remaining work is the data sources + switcher + theming, NOT the imagery.
+### Stage D — Multi-City *(was Stage 3)* — **granular plan-of-record = [STAGE_D.md](STAGE_D.md)** (city #2 = SF & East Bay, reconfirmed ruling #9; one open ⚑D-DEP deployment-model call) — per-city event/place data (new source modules) · a city switcher · per-city copy/theming. The big pre-ship expansion. **Imagery already pre-banked (2026-06-26 multi-city lock):** the finder's region is now ONE city config (no longer a hard-coded Tampa bbox) and the Mapillary + Aurora pipeline runs for any city with all honesty guards baked in — so Stage D's remaining work is the data sources + switcher + theming, NOT the imagery.
 
 ### Stage E — V1 Ship *(was Stage 4)* — holistic pass (full app vs all refs + the premium bar) · final contract/honesty audit (post-bending) · perf/build hardening → ship. Then v2 (the parked map, etc.).
 

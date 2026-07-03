@@ -14,8 +14,8 @@ All forward work is named by **lettered Stage** (ROADMAP's A–E road). The old 
 |---|---|---|---|
 | **A** | Premium-feel pass | PREMIUM_PUNCH D1–D8 + A1–A6 token/primitive codification | ✅ merged (PR #4) |
 | **B** | Patch sprint | V1_PUNCHLIST Batches 1–5 + the never-hide deck-coverage fix | ✅ merged (PR #5) |
-| **C** | Deep Sweep | dead-code / perf / a11y / inert tokens / dedup — [STAGE_C.md](STAGE_C.md) | 🔨 **current** (C1–C3 ✅ + verified; C4/C5 next; branch `stage-c/deep-sweep`) |
-| **C.5** | **Cohesion Pass** | the premium gap as 4 whole-cloth passes (data quality · app feel · one visual language · Aurora re-derivation) — ROADMAP §CURRENT | ⏳ next |
+| **C** | Deep Sweep | dead-code / perf / a11y / inert tokens / dedup — [STAGE_C.md](STAGE_C.md) | ✅ merged (PR #6) |
+| **C.5** | **Cohesion Pass** | the premium gap as 4 whole-cloth passes (data quality · app feel · one visual language · Aurora re-derivation) — ROADMAP §CURRENT | 🔨 **current** (branch `cohesion/pass`; rulings + back-button + deck physics ✅; finder/Aurora/Detail in flight) |
 | **D** | Multi-City | geo-refactor + city #2 = **SF & East Bay (reconfirmed 2026-07-01)**; imagery pre-banked | 📋 specced (PHASE_3.7 Addendum I) |
 | **E** | v1 Ship | holistic pass vs all refs · honesty audit · PWA/deploy/attribution · beta | ⏳ |
 | **v2** | Backlog | everything post-launch | → [BACKLOG.md](BACKLOG.md) |
@@ -43,7 +43,8 @@ All forward work is named by **lettered Stage** (ROADMAP's A–E road). The old 
 | **[ROADMAP.md](ROADMAP.md)** | ⭐ The master plan. The Stage spine, binding contracts (§1), the 2026-07-01 rulings (§5), the takeover process (§4). **Authority.** |
 | [INDEX.md](INDEX.md) | This map. |
 | [BACKLOG.md](BACKLOG.md) | v1/v2 idea intake + triage (incl. the still-empty Tier-0 orphan inventory table — populate during C5). |
-| **[STAGE_C.md](STAGE_C.md)** | Stage C execution plan-of-record (recovered kickoff + checkpoint status). |
+| **[STAGE_C.md](STAGE_C.md)** | Stage C execution plan-of-record (recovered kickoff + checkpoint status; shipped via PR #6). |
+| **[STAGE_D.md](STAGE_D.md)** | Stage D Multi-City execution plan-of-record (Addendum I packet + the 2026-07-01 pipeline forensics; ⚑D-DEP open). |
 
 ### 🔵 REFERENCE — durable specs (consult, don't execute)
 | Doc | Purpose |
