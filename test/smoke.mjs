@@ -1492,6 +1492,28 @@ test('WS4 photo-first feeds: Spots master order + PlaceBubblePage results lead w
   assert.ok(/\.filter\(bubble\.match\)/.test(pbp), 'PlaceBubblePage still filters ONLY by the bubble predicate (photoFirst reorders, never hides)')
 })
 
+// WS4 item 3 — the 'icon' row form imageMode's own spec promised (3.7P-36:
+// photo-less place → "a compact icon/text card (NOT a big hue block)", Spots
+// rows named as the consumer) but no card ever built. A photo-less place row
+// now leads with a compact tinted placeType medallion; the Aurora field stays
+// full-bleed only where it reads as a designed surface (detail heroes, deck
+// cards, carousel tiles). The D1 uniform-row-height invariant is BINDING.
+test('WS4 icon row form: photo-less place rows are compact medallion cards, not big hue blocks', () => {
+  const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
+  assert.ok(/const iconRow = imageMode\(p\) !== 'photo'/.test(cards), 'the SpotCard row derives its form from the imageMode gate (spec finally consumed)')
+  assert.ok(/spotcard--row-icon/.test(cards), 'the icon form is a variant CLASS on the same .spotcard--row box (not a new card)')
+  assert.ok(/spotcard-medallion/.test(cards) && /medallionVar\(p\)/.test(cards), 'the medallion tints from the deterministic per-place hue jitter (artseed)')
+  const css = readFileSync(path.join(ROOT, 'app', 'src', 'cards.css'), 'utf8')
+  // D1 BINDING: one uniform row height for every result row — the box is untouched
+  assert.ok(/\.spotcard--row\s*\{[^}]*height:\s*var\(--card-row-h\)/s.test(css), 'the icon form keeps the D1 uniform row height (same .spotcard--row box)')
+  assert.ok(/\.spotcard--row \.spotcard-medallion\s*\{[\s\S]*?hsl\(var\(--mh/.test(css), 'the medallion background keys off --mh (per-place, deterministic)')
+  // the designed-field surfaces keep the full-bleed aurora (detail heroes + deck)
+  const pd = readFileSync(path.join(ROOT, 'app', 'src', 'PlaceDetail.jsx'), 'utf8')
+  assert.ok(/imgbox-art/.test(pd), 'PlaceDetail art heroes keep the full-bleed aurora field')
+  const deck = readFileSync(path.join(ROOT, 'app', 'src', 'CalibrationDeck.jsx'), 'utf8')
+  assert.ok(/<CardImg e=\{e\} className="deck-img"/.test(deck), 'deck cards keep the full-bleed CardImg (aurora reads designed at card scale)')
+})
+
 // CARD_LOCK (Phase 0) — the canonical result card. The dense CompactRow + the
 // editorial Row are RETIRED; ONE kind-aware ResultCard (GemRow event / SpotCard
 // place) renders every vertical result feed via RowFeed.
