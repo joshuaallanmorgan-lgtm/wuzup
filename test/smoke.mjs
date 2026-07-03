@@ -35,7 +35,7 @@ import { fileURLToPath } from 'node:url'
 // city-agnostic: the box + roster anchors come from the active city config, the
 // place/category vocab from the canonical taxonomy (categories.js) — so a new city
 // doesn't fail the build on hard-coded Tampa values.
-import { bbox as CITY_BBOX, rosterBenchmark as CITY_ROSTER } from '../finder/cities/index.mjs'
+import { bbox as CITY_BBOX, rosterBenchmark as CITY_ROSTER, cityId as CITY_ID } from '../finder/cities/index.mjs'
 import { PLACETYPE_HUE, CATEGORY_HUES } from '../app/src/categories.js'
 import * as deckdeal from '../app/src/deckdeal.js'
 import * as gesture from '../app/src/deckgesture.js'
@@ -384,13 +384,19 @@ test('places data invariants: schema v1 places.json', () => {
 
   // ROSTER BENCHMARKS on the artifact (review HARDENING: the pipeline's bench
   // lines are console-only — a generation regression must fail npm test too)
-  // the roster + the two specific merge guards below are the ACTIVE city's generation
-  // anchors (Tampa's live in finder/cities/tampa-bay.mjs). A city with no roster skips
-  // them — it brings its own once its sources land.
+  // the roster is the ACTIVE city's generation anchors (Tampa's live in
+  // finder/cities/tampa-bay.mjs). A city with no roster skips them — it brings
+  // its own once its sources land.
   if (CITY_ROSTER.length) {
     for (const slug of CITY_ROSTER) {
       assert.ok(keys.has('p|' + slug), `roster benchmark missing from generation: ${slug}`)
     }
+  }
+  // the two Tampa-LITERAL merge guards are pinned regressions of Tampa's own
+  // generation (Fort De Soto dupe-record class, the Weedon o/e-typo split) —
+  // scoped to the tampa-bay config id so a rostered city #2 passes npm test
+  // without inheriting another city's place names (Stage D D2).
+  if (CITY_ID === 'tampa-bay') {
     const fortDeSoto = places.filter((p) => p.key.startsWith('p|fort-de-soto') && p.classes.includes('park'))
     assert.equal(fortDeSoto.length, 1, `Fort De Soto must be exactly ONE park record (got: ${fortDeSoto.map((p) => p.key).join(', ') || 'none'})`)
     assert.ok(!keys.has('p|weedon-island-preserve-2'), 'Weedon Island split into two records — the o/e-typo merge regressed')
