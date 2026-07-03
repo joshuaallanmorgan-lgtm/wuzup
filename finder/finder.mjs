@@ -1896,18 +1896,24 @@ async function main() {
     console.log(`  🗂️  dropped ${schedDropped.length} schedule-page listing(s): ${schedDropped.map((e) => `"${e.title}"`).join(', ')}`);
   }
 
-  // Univ.-of-Tampa academic-calendar rows are not events (WS1 fix 3e):
-  // "Classes begin for Summer 2nd 6 Weeks", "No classes - Holiday for 4th of
-  // July". Title guard scoped to the UT family so a real event that happens
-  // to open with these words elsewhere is untouched.
-  const UT_CALENDAR_RE = /^classes (?:begin|end)\b|^no classes\b/i;
+  // Univ.-of-Tampa academic-calendar + internal staff/HR rows are not public
+  // community events (WS1 fix 3e + Stage D data-tail c): "Classes begin for
+  // Summer 2nd 6 Weeks", "Deadline to complete coursework for an August degree
+  // conferral", "Form I-9 Best Practices" (HR onboarding refresher), the Ally
+  // "Accessibility Compliance Workshop" (faculty courseware training), Red
+  // Cross FA/CPR/AED certification courses, "Student Affairs July Advance"
+  // (a staff retreat). Title guard stays scoped to the UT family — a real
+  // event elsewhere that happens to share these words is untouched — and is
+  // deliberately narrow so UT's public-facing rows (gallery exhibitions,
+  // pitch contests, hooding ceremonies) keep shipping.
+  const UT_NONEVENT_RE = /^classes (?:begin|end)\b|^no classes\b|^deadline\b|\bform i-9\b|^accessibility compliance workshop\b|\bfa\/cpr\/aed\b|^student affairs .*\badvance\b/i;
   const utDropped = events.filter((e) =>
-    UT_CALENDAR_RE.test(e.title || '') &&
+    UT_NONEVENT_RE.test(e.title || '') &&
     (e.sources || [e.source]).some((s) => familyOf(s) === 'Univ. of Tampa'));
   if (utDropped.length) {
     const utSet = new Set(utDropped);
     events = events.filter((e) => !utSet.has(e));
-    console.log(`  🎓 dropped ${utDropped.length} UT academic-calendar row(s): ${utDropped.map((e) => `"${e.title}"`).join(', ')}`);
+    console.log(`  🎓 dropped ${utDropped.length} UT academic-calendar/staff row(s): ${utDropped.map((e) => `"${e.title}"`).join(', ')}`);
   }
 
   // Keep upcoming events, sorted soonest first. An event stays until it has
