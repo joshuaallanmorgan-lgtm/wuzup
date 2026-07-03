@@ -7,11 +7,11 @@
    preferences is maintenance, not a sanctioned micro-moment). Scoped .ie. */
 
 .ie { background: var(--bg); }
-.ie-body { padding: 4px 20px 120px; }
+.ie-body { padding: 4px var(--gutter) 120px; }
 
 .ie-framing {
   margin: 6px 0 0;
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 500;
   color: var(--muted);
   line-height: 1.55;
@@ -19,9 +19,10 @@
 
 .ie-sec { margin-top: var(--sp-lg); }
 .ie-over {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.2px;
+  font-size: var(--eyebrow-size);
+  font-weight: var(--eyebrow-weight);
+  letter-spacing: var(--eyebrow-track);
+  text-transform: uppercase; /* Cohesion ruling #7: category group headers are metadata (UPPERCASE) */
   color: var(--muted); /* A6 accent restraint: section overline off orange */
   margin-bottom: 10px;
 }
@@ -39,7 +40,7 @@
   background: var(--card);
   color: var(--ink);
   font: inherit;
-  font-size: 13.5px;
+  font-size: var(--t-meta);
   font-weight: 700;
   cursor: pointer;
   transition:
@@ -52,10 +53,10 @@
   border-color: hsla(var(--ph, 200), 70%, 45%, 0.55);
   background: hsla(var(--ph, 200), 80%, 45%, 0.14);
 }
-.ie-grid-note { margin-top: 10px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.ie-grid-note { margin-top: 10px; font-size: var(--t-meta-sm); font-weight: 600; color: var(--muted); }
 
 /* ===== the question rows ===== */
-.ie-qs { display: flex; flex-direction: column; gap: 10px; }
+.ie-qs { display: flex; flex-direction: column; gap: var(--sp-sm); } /* Cohesion spacing: card-stack rhythm (was 10) */
 .ie-q {
   padding: var(--sp-sm);
   /* A5/D2: borderless + soft lift like the shipped card system (was a --line box) */
@@ -65,8 +66,8 @@
   box-shadow: var(--shadow-1);
 }
 .ie-q-title { font-size: 14px; font-weight: 700; }
-.ie-q-sub { margin-top: 2px; font-size: 12px; font-weight: 500; color: var(--muted); }
-.ie-opts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.ie-q-sub { margin-top: 2px; font-size: var(--t-meta-sm); font-weight: 500; color: var(--muted); }
+.ie-opts { display: flex; flex-wrap: wrap; gap: var(--sp-xs); margin-top: 10px; }
 .ie-opt {
   display: inline-flex;
   align-items: center;
@@ -78,7 +79,7 @@
   background: none;
   color: var(--ink);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 700;
   cursor: pointer;
   transition:
@@ -92,7 +93,7 @@
   background: rgba(var(--accent-rgb), 0.1);
 }
 
-.ie-foot { margin-top: 14px; font-size: 12px; font-weight: 500; color: var(--muted); line-height: 1.5; }
+.ie-foot { margin-top: 14px; font-size: var(--t-meta-sm); font-weight: 500; color: var(--muted); line-height: 1.5; }
 
 /* Save & continue primary CTA (PROFILE_PHASE2) */
 .ie-save-btn {

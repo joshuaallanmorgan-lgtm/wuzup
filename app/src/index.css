@@ -1,7 +1,9 @@
 /* Inter, self-hosted (Stage C4.5, Josh ruling 2026-07-01 #1). ONE variable face
-   covers 100-900 — required because the app uses non-standard weights 550/650/750
-   that static per-weight files can't render. Latin subset only (the app ships no
-   non-latin copy); replaces the render-blocking Google Fonts link (index.html). */
+   covers 100-900 — required because the app uses the non-standard weight 550
+   that static per-weight files can't render (the Cohesion type snap retired the
+   old 650/750 orphans onto 600/700; 550 stays, forecast.css). Latin subset only
+   (the app ships no non-latin copy); replaces the render-blocking Google Fonts
+   link (index.html). */
 @font-face {
   font-family: 'Inter';
   font-style: normal;
@@ -117,9 +119,12 @@
      contract), only the VALUES live here. */
   --deck-bg: linear-gradient(168deg, #1c160f 0%, #1b1712 55%, #181109 100%);
   --deck-card: linear-gradient(168deg, #2b2118 0%, #221b14 58%, #1b1510 100%);
-  /* Stage C4 (typo — the secondary-text scale, MINTED here; mass adoption happens in
-     the Cohesion Pass re-rhythm where off-scale sizes visibly snap to these steps):
-     body 15 / meta 13 / meta-sm 12 / micro 11. Card titles keep --t-card-*. */
+  /* Stage C4 (typo — the secondary-text scale) → ADOPTED app-wide in the Cohesion
+     type snap: body 15 / meta 13 (12.5/13.5 snapped here) / meta-sm 12 / micro 11
+     (11.5 snapped here — incl. the chip primitive). Card titles keep --t-card-*;
+     14px is the ONE deliberate off-scale text size (detail eyebrow + button/label
+     tier); 10/9/8px micro-badges sit below the scale floor and stay literal.
+     Half-pixel font sizes are BANNED (smoke.mjs tripwires them). */
   --t-body: 15px;
   --t-meta: 13px;
   --t-meta-sm: 12px;

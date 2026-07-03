@@ -116,7 +116,8 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone, loc
                 </div>
               </div>
             )}
-            {wiped && <div className="st-wiped">Wiped. The next tap starts the new you. 🌱</div>}
+            {/* WS3 §9: engineered sprout (inherits the sage .st-wiped color), not 🌱 */}
+            {wiped && <div className="st-wiped">Wiped. The next tap starts the new you. <Icon.sprout className="meta-ic" aria-hidden /></div>}
           </div>
         </section>
 

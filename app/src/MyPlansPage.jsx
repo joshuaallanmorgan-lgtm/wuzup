@@ -158,17 +158,20 @@ export default function MyPlansPage({ events, anchors }) {
           </div>
         )}
 
-        {/* the gentle ledger: days-out this month, rhythm, variety firsts */}
+        {/* the gentle ledger: days-out this month, rhythm, variety firsts
+            (WS3 §9: ledger row icons ride the engineered Icon family now —
+            the identity emoji on .pf-first variety stamps stay by contract) */}
         {daysOut > 0 && (
           <div className="pf-ledger-line">
-            {daysOut === 1 ? `1 day out in ${monthName} so far 🗓️` : `${daysOut} days out in ${monthName} so far 🗓️`}
+            <Icon.calendar className="meta-ic" aria-hidden />{' '}
+            {daysOut === 1 ? `1 day out in ${monthName} so far` : `${daysOut} days out in ${monthName} so far`}
           </div>
         )}
         {(rhythm.current >= 1 || rhythm.best >= 2) && (
           <div className="pf-rhythm">
             {rhythm.current >= 1 ? (
               <>
-                <span aria-hidden>🔥</span> {rhythm.current}-day rhythm
+                <Icon.hot className="meta-ic" aria-hidden /> {rhythm.current}-day rhythm
                 {rhythm.best > rhythm.current ? ` · best ${rhythm.best}` : ''}
               </>
             ) : (
@@ -198,10 +201,10 @@ export default function MyPlansPage({ events, anchors }) {
                   key={h.dayTs}
                   onClick={() => openDay(h.dayTs)}
                 >
-                  <span className="pf-dayh-date">🗓️ {fmtShort(h.dayTs)}</span>
+                  <span className="pf-dayh-date"><Icon.calendar className="meta-ic" aria-hidden /> {fmtShort(h.dayTs)}</span>
                   <span className="pf-dayh-what">
                     {h.state === 'rest'
-                      ? 'Rested 🌙'
+                      ? <>Rested <Icon.moon className="meta-ic" aria-hidden /></>
                       : PARTS.filter((p) => h.slots[p])
                           .map((p) => DAYPART[p].emoji + ' ' + (titleByKey.get(h.slots[p]) ?? 'no longer listed'))
                           .join(' · ')}
@@ -226,7 +229,8 @@ export default function MyPlansPage({ events, anchors }) {
                 </div>
                 <div className="pf-ask-btns">
                   <button className="pf-ask-yes" onClick={() => markBeen(key, snapshot, 'went')}>
-                    I went 🎉
+                    {/* WS3 §9: engineered burst, not 🎉 (white on --cta, D.0-R safe) */}
+                    <Icon.burst className="btn-ic" aria-hidden /> I went
                   </button>
                   <button className="pf-ask-no" onClick={() => markBeen(key, snapshot, 'missed')}>
                     Missed it

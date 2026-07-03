@@ -8,7 +8,7 @@ import { useMemo } from 'react'
 import { Icon } from './lib.js'
 import { useNav } from './nav.jsx'
 import { loadDayPlans, dayEntryFor, hasContent, emptyDay, PARTS } from './dayplan.js'
-import { dateKey, CONDITION } from './weather.js'
+import { dateKey, CONDITION, WX_GLYPH } from './weather.js'
 import { wxMood } from './weekend.js'
 import './nextdays.css'
 
@@ -56,7 +56,11 @@ export default function NextDays({ anchors, wx, rev }) {
         const cta = !planned && !rest ? (d.label === 'Today' ? 'Build today' : 'Plan ' + d.label) : null
         return (
           <button key={d.ts} className="nd-card pressable" onClick={() => openDay(d.ts)}>
-            <span className="nd-wx" aria-hidden>{w?.emoji || '🗓️'}</span>
+            {/* WS3 §9: the tinted condition disc — engineered stroke glyph, not the
+                raw emoji (the emoji stays the wx DATA key); no forecast → calendar */}
+            <span className={'nd-wx nd-wx--' + (WX_GLYPH[w?.emoji]?.k || 'none')} aria-hidden>
+              {WX_GLYPH[w?.emoji] ? WX_GLYPH[w.emoji].Ic() : <Icon.calendar />}
+            </span>
             <span className="nd-main">
               <span className="nd-day">{d.label}</span>
               <span className="nd-sub">{sub}</span>

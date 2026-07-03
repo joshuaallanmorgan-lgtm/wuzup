@@ -27,7 +27,10 @@ export default function HelpFeedbackPage() {
       </header>
       <div className="pg-body">
         <div className="hf-hero" aria-hidden>
-          <div className="hf-hero-title">We love hearing from you ❤️</div>
+          {/* WS3 §9: the engineered stroke heart as an accent MARK (sanctioned
+              fills/marks use), not the ❤️ emoji — --hot stays reserved for
+              save-hearts/heat per the token ledger */}
+          <div className="hf-hero-title">We love hearing from you <Icon.heart className="hf-heart" aria-hidden /></div>
           <div className="hf-hero-sub">Your feedback helps us build the best days.</div>
         </div>
         <div className="pf-menu hf-menu">

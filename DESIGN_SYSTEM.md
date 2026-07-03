@@ -26,7 +26,7 @@ The honesty bar is unconditional and overrides everything here: **nothing fake i
 
 `*-rgb` companions (`--accent-rgb`, `--hot-rgb`, `--cta-rgb`, `--reward-rgb`) exist for `rgba()` tints/glows.
 
-**Accent restraint (A6):** Sunset Gold is over-spendable. Accent is for **real actions, selection, focus** — not editorial micro-labels. Overlines, "Best for", "Why", group headers, type/area labels read `--muted` (or `--ink` if a value). _Done in A6: section-overline family (`.st-over`/`.tp-over`/`.ie-over`/`.ae-group`/`.wkb-group`) + `.fc-best-title`. **Deferred to Stage B** (entangled, do as one sweep): the went/record family, the Sponsored-twin label, the `.wkb-pick-*` emphasis ladder, the count-pill recipe._
+**Accent restraint (A6):** Sunset Gold is over-spendable. Accent is for **real actions, selection, focus** — not editorial micro-labels. Overlines, "Best for", "Why", group headers, type/area labels read `--muted` (or `--ink` if a value). _Done in A6: section-overline family (`.st-over`/`.tp-over`/`.ie-over`/`.ae-group`/`.wkb-group`) + `.fc-best-title`. **Completed in the Cohesion Pass (WS3)** — the deferred sweep landed: the went/record family (`.cal-sel-went`, `.pf-dayh-went` border, `.pf-dayh-went-tag` → muted/ink-hairline; `.pf-reality-went` → `--ink`, it's a value), the Sponsored-twin `.sp-label.my-label` → muted, the `.wkb-pick-*` emphasis ladder → chip-neutral (ink "Top pick" still outranks the muted fit pill), and the `.shelf-count` pill → chip-neutral. All AA-verified (muted ≥5.2:1 on every fill used). Note the tension, honored: ruling 2026-07-01 #2 spends orange on NAVIGATION (See-all) and true action/selection moments — these four families are passive labels, exactly what restraint covers._
 
 ---
 
@@ -76,14 +76,14 @@ One 4-step corner system; off-grid literals snap to the nearest step.
 
 ## §5 — Chip primitive (A6)
 
-One `.chip` — hairline warm pill, `11.5px/600` ink, `4×9` padding, `--r-pill`, optional 12px stroke-icon. Surface is tokenized (`--chip-fill #f3ede5`, `--chip-border rgba(26,20,16,0.07)`) so chips theme per-city.
+One `.chip` — hairline warm pill, `--t-micro (11px)/600` ink (Cohesion type snap: was the off-scale 11.5), `4×9` padding, `--r-pill`, optional 12px stroke-icon. Surface is tokenized (`--chip-fill #f3ede5`, `--chip-border rgba(26,20,16,0.07)`) so chips theme per-city.
 
 - `.chip-free` — sage tint (free badges)
 - `.chip-accent` — warm accent tint (e.g. detail "why this is here")
 - `.chip-lg` — the LARGER label pill (`6×11` padding, ink, nowrap) — shared geometry only; consumers keep their own fill/border/ink-size (Stage C C5)
 - `.chip-dark` — the deck-family chip on dark card surfaces (`3×9` white-on-glass, no hairline) — a sibling primitive, not `.chip` + overrides (Stage C C5)
 
-`.gem-chip`/`.featc-chip`/`.spot-amen` are aliases on the primitive; `.loc-tag-chip`/`.loc-amen-chip` alias onto `.chip-lg`'s shared geometry (their fills/ink-sizes genuinely differ — 12.5/600 accent tint vs 13px bg-fill hairline — and stay per-class); the decks' amenity chip is `.chip-dark` outright (the old `.deck-chip` class is gone; its icon slot `.deck-chip-ic` stays in deck.css). _Still deferred, with reasons (C5 audit): `.dpg-chip` (11px ink, `2×9`, `--line` fill — matches no variant's rendered pixels; an alias would need more overrides than it saves), `.srch-recent-chip` (a structural run-button+✕ wrapper on `.srch-sug-btn`, not a label chip), `.detail-catchip` (already rides `.chip` as a hue-tint modifier)._ Interactive pills (`.flt-chip`, `.ie-chip`, `.primer-chip`, `.lens-pill`) are **controls, not label chips** — they stay distinct by design.
+`.gem-chip`/`.featc-chip`/`.spot-amen` are aliases on the primitive; `.loc-tag-chip`/`.loc-amen-chip` alias onto `.chip-lg`'s shared geometry (their fills genuinely differ — accent tint vs bg-fill hairline — and stay per-class; the Cohesion type snap converged both inks on `--t-meta` 13); the decks' amenity chip is `.chip-dark` outright (the old `.deck-chip` class is gone; its icon slot `.deck-chip-ic` stays in deck.css). _Still deferred, with reasons (C5 audit): `.dpg-chip` (11px ink, `2×9`, `--line` fill — matches no variant's rendered pixels; an alias would need more overrides than it saves), `.srch-recent-chip` (a structural run-button+✕ wrapper on `.srch-sug-btn`, not a label chip), `.detail-catchip` (already rides `.chip` as a hue-tint modifier)._ Interactive pills (`.flt-chip`, `.ie-chip`, `.primer-chip`, `.lens-pill`) are **controls, not label chips** — they stay distinct by design.
 
 ---
 
@@ -91,7 +91,11 @@ One `.chip` — hairline warm pill, `11.5px/600` ink, `4×9` padding, `--r-pill`
 
 One contract: `--eyebrow-size 11px` · `--eyebrow-weight 700` · `--eyebrow-track 0.06em` · **UPPERCASE** (applied at the use-site).
 
-Applied in A6 to the already-uppercase section-label family (`.home-title`, `.weekend-day-label`, `.flt-section-label`, `.fc-list-head`, `.calpick-listhead`). **Deferred for Josh's sign-off:** the sentence-case *content* overlines (`.spotcard-type` "Coffee shop", `.nbhd-area`, `.d-k` "When/Where", `.pf-hist-label`, `.ms-group-label`) — adopting the contract flips their authored content to ALL-CAPS, an editorial-voice change.
+Applied in A6 to the already-uppercase section-label family (`.home-title`, `.weekend-day-label`, `.flt-section-label`, `.fc-list-head`, `.calpick-listhead`).
+
+**RESOLVED (Cohesion Pass, ruling 2026-07-01 #7 — delegated to Fable, executed WS3):**
+- **METADATA eyebrows = full contract + UPPERCASE** — labels that name a type/category/group of content: `.spotcard-type` ("COFFEE SHOP"), `.nbhd-area`, `.d-k` (When/Where/Price/About/What's here…), `.pf-hist-label` (Past days/Been there), `.ms-group-label` (Upcoming/Yesterday/…), `.st-over` (Settings groups), `.ie-over` (Interest groups), `.srch-recents-title` (Recent).
+- **EDITORIAL/authored lines stay sentence case** — anything with a voice: why-lines (`.gem-why`, the "Why this fits" card), the detail date eyebrow (`.detail-eyebrow`, deliberately 14px accent — not an 11px overline), guide/section subtitles, `.tp-over` "Tune it yourself", `.recap-over` "Before you go", `.pf-ask-q` "Did you make it?", `.ae-group` (mixed authored form groups), form field labels (`.ae-label`, `.ep-label`).
 
 ---
 
@@ -101,11 +105,16 @@ Applied in A6 to the already-uppercase section-label family (`.home-title`, `.we
 |---|---|---|
 | `--t-card` (`-size/-weight/-track/-line`) | `15 / 700 / -0.2px / 1.16` | every standard result/tile/row card title |
 | `--t-card-lg` (`…-lg-*`, incl. `-line 1.15`) | `19 / 800 / -0.3px / 1.15` | featured + deck card titles |
+| `--t-body` | `15px` | body/prose + row-label text |
+| `--t-meta` | `13px` | meta lines (the Cohesion snap folded 12.5/13.5 here) |
+| `--t-meta-sm` | `12px` | small meta |
+| `--t-micro` | `11px` | micro labels, badges, chips (11.5 folded here) |
 | `--card-row-h` | `158px` | the one result-card height (D1) |
 | section title | `22 / 800` | `.sec-title` outranks card titles |
 | `.num` | `font-variant-numeric: tabular-nums` | times/stats/distances/counts |
 
 A6 retired the orphan `600`/`750` weights and migrated the last literal titles (`.card-title`, `.deck-title`, `.dpg-card-title`, `.wkb-pick-title`) onto the tokens. Font is Inter everywhere.
+**Cohesion type snap:** every sub-16px literal now rides the C4 secondary scale above (display sizes ≥16 stay literal by design); half-pixel font sizes are banned app-wide (smoke tripwire); the last `650`/`750` orphan weights (forecast/nextdays/notifications) retired onto `600`/`700` (`550` stays — a deliberate mid-weight, forecast). `14px` is the one sanctioned off-scale text size (the detail date eyebrow + the button/label tier).
 
 ---
 

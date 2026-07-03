@@ -436,7 +436,7 @@ export default function DayPage({ ts, events, anchors, wx }) {
               </CardImg>
               <span className="dpg-card-main">
                 <span className="dpg-card-title">{e.title}</span>
-                {e.venue && <span className="dpg-card-venue">📍 {e.venue}</span>}
+                {e.venue && <span className="dpg-card-venue"><Icon.pin className="meta-ic" aria-hidden /> {e.venue}</span>}
                 {whenLine && <span className="dpg-card-meta">{whenLine}</span>}
                 {chips.length > 0 && (
                   <span className="dpg-card-chips">
@@ -450,7 +450,8 @@ export default function DayPage({ ts, events, anchors, wx }) {
             </button>
             {/* Plan Phase 2 (flows-1 p4): the ⋯ opens the move/remove menu */}
             <button className="dpg-more" onClick={(ev) => openMenu(part, ev.currentTarget)} aria-haspopup="dialog" aria-expanded={menuPart === part} aria-label={`Options for ${e.title}`}>
-              ⋯
+              {/* WS3 §9: engineered kebab, not the ⋯ text glyph */}
+              <Icon.dots aria-hidden />
             </button>
           </div>
         ) : (
@@ -534,7 +535,9 @@ export default function DayPage({ ts, events, anchors, wx }) {
         {/* ===== your plan: the three daypart slots, or the calm rest card ===== */}
         {rest ? (
           <div className="dpg-rest">
-            <div className="dpg-rest-title">🌙 Quiet day</div>
+            {/* WS3 §9: the rest crescent joins the engineered family (calendar's
+                CSS crescent is the same mark) — was the 🌙 text emoji */}
+            <div className="dpg-rest-title"><Icon.moon className="meta-ic" aria-hidden /> Quiet day</div>
             <div className="dpg-rest-sub">Resting is a plan too. Nothing to do here.</div>
             <button className="dpg-rest-undo" onClick={() => setPlans(withRest(plans, ts, false))}>
               Plan this day instead
@@ -555,7 +558,7 @@ export default function DayPage({ ts, events, anchors, wx }) {
             agenda.map((e, i) => {
               const why = whyFits(e, { w, nudge: (x) => tasteNudge(x, taste) })
               const timeBadge = e.kind !== 'place' && daypartOf(e) !== 'any' ? timeOf(e.start) : null
-              const meta = [e.venue ? '📍 ' + e.venue : null, timeBadge].filter(Boolean).join(' · ')
+              const meta = [e.venue, timeBadge].filter(Boolean).join(' · ') // WS3 §9: pin renders as Icon.pin below, not 📍 in the string
               return (
                 <div className="dpg-sugg" key={keyOf(e) + i}>
                   <button className="dpg-sugg-card pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
@@ -564,7 +567,7 @@ export default function DayPage({ ts, events, anchors, wx }) {
                     </CardImg>
                     <span className="dpg-sugg-main">
                       <span className="dpg-sugg-title">{e.title}</span>
-                      {meta && <span className="dpg-sugg-meta">{meta}</span>}
+                      {meta && <span className="dpg-sugg-meta">{e.venue && <Icon.pin className="meta-ic" aria-hidden />}{meta}</span>}
                       {why && <span className="dpg-sugg-why">{why}</span>}
                     </span>
                   </button>

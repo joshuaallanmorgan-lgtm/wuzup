@@ -16,7 +16,7 @@
   );
 }
 /* A5: 6→0 so the title shares the back button's + the feed's 20px left ruler */
-.bub-band-main { padding: 12px 0 0; }
+.bub-band-main { padding: var(--sp-sm) 0 0; }
 .bub-title {
   display: flex;
   align-items: center;
@@ -30,7 +30,7 @@
 /* A5: 30→24, a tasteful identity glyph beside the title, not a dominant sticker */
 .bub-emoji { flex: 0 0 auto; font-size: 24px; line-height: 1; }
 /* playful one-liner, dyed in the bubble's hue (darkened for contrast on --bg) */
-.bub-tag { margin-top: 7px; font-size: 13.5px; font-weight: 600; color: hsl(var(--bh, 200), 45%, 32%); }
+.bub-tag { margin-top: 7px; font-size: var(--t-meta); font-weight: 600; color: hsl(var(--bh, 200), 45%, 32%); }
 /* 3.75: a GuidePage's "Plan a day around this" — dark ink on Sunset Gold (AA) */
 .guide-plan-cta {
   display: inline-flex;
@@ -43,7 +43,7 @@
   background: var(--cta); /* D.0-R: shared primary-button fill (white text) */
   color: #fff;
   font: inherit;
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 800;
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(var(--accent-rgb), 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.4); /* 3.7P-1: tactile top-highlight */
@@ -51,19 +51,19 @@
 .guide-plan-cta:active { filter: brightness(0.96); }
 /* 3.75b: quiet provenance line on a GuidePage (a Watch Guide discloses it's
    keyword-matched to live listings — trust present, not academic). */
-.guide-sources { margin-top: 8px; font-size: 11px; font-weight: 500; color: var(--muted); }
+.guide-sources { margin-top: var(--sp-xs); font-size: var(--t-micro); font-weight: 500; color: var(--muted); }
 
 /* ===== Near Me: friendly inline location ask (shown until coords arrive) ===== */
 .bub-locate {
-  margin: 6px 20px 20px;
-  padding: 18px 16px;
+  margin: 6px var(--gutter) 20px;
+  padding: 18px var(--sp-md);
   border-radius: var(--r-lg);
   background: hsla(var(--bh, 200), 70%, 45%, 0.08);
   text-align: center;
 }
-.bub-locate-txt { font-size: 13.5px; font-weight: 600; color: var(--ink); line-height: 1.45; }
+.bub-locate-txt { font-size: var(--t-meta); font-weight: 600; color: var(--ink); line-height: 1.45; }
 .bub-locate-btn {
-  margin-top: 12px;
+  margin-top: var(--sp-sm);
   height: 44px;
   padding: 0 22px;
   border: none;
@@ -95,7 +95,7 @@
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.12);
 }
-.srch-ic { flex: 0 0 auto; padding: 0 4px 0 14px; font-size: 15px; line-height: 1; }
+.srch-ic { flex: 0 0 auto; padding: 0 4px 0 14px; font-size: var(--t-body); line-height: 1; }
 .srch-input {
   flex: 1;
   min-width: 0;
@@ -104,7 +104,7 @@
   background: none;
   padding: 0 6px;
   font: inherit;
-  font-size: 15px;
+  font-size: var(--t-body);
   color: var(--ink);
   outline: none;
 }
@@ -117,7 +117,7 @@
   border-radius: var(--r-circle);
   background: var(--line); /* C4: was cool #eceef1 — the pre-warm-palette relic */
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--t-micro);
   font-weight: 700;
   line-height: 1;
   display: flex;
@@ -127,17 +127,17 @@
   transition: transform var(--dur-micro);
 }
 .srch-clear:active { transform: scale(0.9); }
-.srch-count { padding: 8px 20px 2px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.srch-count { padding: var(--sp-xs) var(--gutter) 2px; font-size: var(--t-meta); font-weight: 600; color: var(--muted); }
 
 /* suggestion chips inside the pre-query empty state */
-.srch-sug { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 16px; }
+.srch-sug { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-xs); margin-top: var(--sp-md); }
 .srch-sug-btn {
   border: 1px solid var(--line);
   border-radius: var(--r-pill);
   background: var(--card);
   padding: 9px 15px;
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 600;
   color: var(--accent-ink);
   cursor: pointer;
@@ -146,25 +146,26 @@
 .srch-sug-btn:active { transform: scale(0.94); }
 
 /* ===== Q2e zero-state: recent searches block (above the suggestions) ===== */
-.srch-recents { padding: 14px 20px 0; }
+.srch-recents { padding: 14px var(--gutter) 0; }
 .srch-recents-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
 }
 .srch-recents-title {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.2px;
+  font-size: var(--eyebrow-size); /* Cohesion ruling #7: list-group metadata eyebrow (was 12/700 sentence) */
+  font-weight: var(--eyebrow-weight);
+  letter-spacing: var(--eyebrow-track);
+  text-transform: uppercase;
   color: var(--muted);
 }
 /* the quiet clear control: plain muted text, no chrome */
 .srch-recents-clear {
   border: none;
   background: none;
-  padding: 4px 0 4px 12px;
+  padding: 4px 0 4px var(--sp-sm);
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--t-meta-sm);
   font-weight: 600;
   color: var(--muted);
   cursor: pointer;
@@ -186,7 +187,7 @@
   border: none;
   background: none;
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 600;
   color: var(--ink);
   padding: 9px 6px 9px 15px;
@@ -195,7 +196,7 @@
 .srch-recent-x {
   border: none;
   background: none;
-  font-size: 11px;
+  font-size: var(--t-micro);
   line-height: 1;
   color: var(--muted);
   padding: 9px 13px 9px 7px;
@@ -211,9 +212,9 @@
 }
 
 /* ===== 3.7P-41 (§N screen 9): search result-type tabs ===== */
-.srch-tabs { display: flex; gap: 8px; padding: 6px 20px 6px; flex-wrap: wrap; }
+.srch-tabs { display: flex; gap: var(--sp-xs); padding: 6px var(--gutter) 6px; flex-wrap: wrap; }
 .srch-tab {
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 700;
   padding: 7px 14px;
   border-radius: var(--r-pill);
@@ -230,3 +231,6 @@
 /* S1-PS3: the search zero-state's preview tabs — muted + non-interactive, a
    foreshadow of the result-scope selector (not real controls). */
 .srch-tabs--preview { opacity: 0.5; pointer-events: none; }
+
+/* WS3 §9: the engineered pin in the locate CTA (was the 📍 chrome emoji) */
+.bub-locate-btn .btn-ic { width: 14px; height: 14px; vertical-align: -2.5px; margin-right: 2px; }

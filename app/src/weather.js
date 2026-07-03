@@ -8,7 +8,7 @@
 // cache or null so the UI degrades gracefully to "no weather".
 
 import { lsGet, lsSet } from './storage.js'
-import { CITY } from './lib.js'
+import { CITY, Icon } from './lib.js'
 
 const WX_URL =
   `https://api.open-meteo.com/v1/forecast?latitude=${CITY.center.lat}&longitude=${CITY.center.lng}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FNew_York&forecast_days=16`
@@ -41,6 +41,21 @@ export const CONDITION = {
   '🌧️': 'Showers likely',
   '❄️': 'Snow',
   '⛈️': 'Storms likely',
+}
+
+// Cohesion WS3 (§9): the CHROME face per condition — the emoji above stays the
+// DATA key (cache shape unchanged, every CONDITION consumer untouched); chrome
+// surfaces (NextDays' tinted disc) render the engineered Icon.* stroke glyph
+// instead of the raw emoji. k doubles as the tint-class suffix (.nd-wx--{k}).
+export const WX_GLYPH = {
+  '☀️': { k: 'sun', Ic: Icon.sun },
+  '⛅': { k: 'cloud', Ic: Icon.cloud },
+  '☁️': { k: 'cloud', Ic: Icon.cloud },
+  '🌫️': { k: 'cloud', Ic: Icon.cloud },
+  '🌦️': { k: 'rain', Ic: Icon.rain },
+  '🌧️': { k: 'rain', Ic: Icon.rain },
+  '❄️': { k: 'cloud', Ic: Icon.cloud }, // Tampa snow: honest-but-unlikely — calm cloud face
+  '⛈️': { k: 'storm', Ic: Icon.storm },
 }
 
 // local-time day timestamp → 'YYYY-MM-DD' (matches the API's daily.time keys)

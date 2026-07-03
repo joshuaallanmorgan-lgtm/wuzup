@@ -467,7 +467,7 @@ export function NbhdCard({ e, onSelect }) {
       <CardImg e={e} className="nbhd-img">
         <SaveHeart e={e} />
       </CardImg>
-      <div className="nbhd-area">📍 {e._area}</div>
+      <div className="nbhd-area"><PinIcon /> {e._area}</div>
       <div className="nbhd-title">{e.title}</div>
       <div className="nbhd-meta">{[dayLoose(e), e.venue].filter(Boolean).join(' · ')}</div>
       {chips.length > 0 && (

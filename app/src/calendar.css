@@ -12,7 +12,7 @@
 .cal-top { background: var(--bg); padding: 22px 0 6px; color: var(--ink); }
 /* the title row — title-only since W6 retired the Weekend pill (kept as a flex
    row so a future header slot drops in without reflow) */
-.cal-top-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 0 20px; }
+.cal-top-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 0 var(--gutter); }
 /* H1: the title is the shared .loc-head-title primitive now (32/800) — the old
    .cal-title 27/900 rule is retired; .cal-top-row supplies the gutter + flex slot. */
 
@@ -23,12 +23,12 @@
    Gold (var(--ink) ≈ 7.4:1; the old .cal-ledger used white, which failed AA on
    gold). ZERO IS SILENCE — the whole strip is absent until a stat is true. A calm
    record, never a score. (3.7P-4 adds the rhythm/streak chip + its increment beat.) */
-.cal-rhythm { display: flex; flex-wrap: wrap; gap: 22px; margin: 12px 20px 0; }
+.cal-rhythm { display: flex; flex-wrap: wrap; gap: 22px; margin: var(--sp-sm) var(--gutter) 0; }
 .cal-stat { display: flex; flex-direction: column; gap: 1px; }
 .cal-stat-num { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.05; color: var(--ink); }
 /* 1-A: on the clean light header the rhythm labels read as muted sublabels (like
    every other tab), no longer the gold-tuned dark-ink alpha. */
-.cal-stat-lab { font-size: 11px; font-weight: 700; letter-spacing: 0.2px; color: var(--muted); }
+.cal-stat-lab { font-size: var(--t-micro); font-weight: 700; letter-spacing: 0.2px; color: var(--muted); }
 /* 3.7P-4: the rhythm/streak chip — the gamification headline, a calm flame + the
    count in ink (NOT violet — violet is reserved for the transient increment beat). */
 .cal-stat-streak .cal-stat-num { display: inline-flex; align-items: center; gap: 3px; }
@@ -37,13 +37,13 @@
 /* day header above the selected-day caption */
 .day-header {
   margin: 0;
-  padding: 16px 20px 8px;
-  font-size: 12px;
+  padding: var(--sp-md) var(--gutter) var(--sp-xs);
+  font-size: var(--t-meta-sm);
   font-weight: 800;
   letter-spacing: 0.2px;
   color: var(--muted);
 }
-.cal-day { padding-top: 16px; }
+.cal-day { padding-top: var(--sp-md); }
 
 /* 3.7P-17: the N5b "Plan your weekend" pull card was retired (a leftover after
    P8 retired the Weekend Builder). Planning lives in the day screens, reached
@@ -54,7 +54,7 @@
 .cal-fade { animation: calFade 250ms ease both; }
 
 /* month grid: 56px cells — personal marks only (no heat, no hot ring) */
-.mon-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 6px; }
+.mon-head { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-md) var(--gutter) 6px; }
 .mon-title { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.2px; } /* S1-C6: lighter */
 /* R-C2: the month/year picker popover (tappable label + caret → month list) */
 .mon-pickwrap { position: relative; }
@@ -71,7 +71,7 @@
   cursor: pointer;
 }
 .mon-pick:active { transform: scale(0.97); }
-.mon-caret { font-size: 11px; color: var(--cta); transition: transform 0.15s; } /* S1-C5: accent caret */
+.mon-caret { font-size: var(--t-micro); color: var(--cta); transition: transform 0.15s; } /* S1-C5: accent caret */
 .mon-caret.open { transform: rotate(180deg); }
 .mon-picker-scrim { position: fixed; inset: 0; z-index: 40; border: none; background: transparent; cursor: default; }
 .mon-picker {
@@ -86,14 +86,14 @@
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 10px 30px rgba(26, 20, 16, 0.16); /* WS3: warm shadow per §3 (was cool black) */
   outline: none;
 }
 .mon-opt {
   display: block;
   width: 100%;
   text-align: left;
-  padding: 9px 12px;
+  padding: 9px var(--sp-sm);
   border: none;
   border-radius: var(--r-sm);
   background: none;
@@ -118,15 +118,15 @@
   background: var(--card);
   color: var(--ink);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 800;
   cursor: pointer;
 }
 .cal-today:active {
   transform: scale(0.95);
 }
-.mgrid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 0 12px; }
-.mdow { text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); padding: 8px 0 4px; }
+.mgrid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 0 var(--sp-sm); }
+.mdow { text-align: center; font-size: var(--t-micro); font-weight: 700; color: var(--muted); padding: var(--sp-xs) 0 4px; }
 .mcell-blank { height: 56px; }
 .mcell {
   position: relative;
@@ -161,7 +161,7 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--r-circle);
-  font-size: 15px;
+  font-size: var(--t-body);
   font-weight: 600;
   transition: background var(--dur-fast), color var(--dur-fast);
 }
@@ -182,7 +182,7 @@
   position: absolute;
   top: 6px;
   right: 8px;
-  font-size: 11px;
+  font-size: var(--t-micro);
   font-weight: 900;
   line-height: 1;
   color: var(--accent-ink);
@@ -225,12 +225,12 @@
    Replaces the FB-12 popover: it's content in the bottom, swapped in place as you
    tap days, never a modal — so rapid day-tapping never blocks. Appears only once
    a day is tapped; a blank past day shows nothing (no "tap to plan" nag). ===== */
-.cal-sel { padding: 14px 16px 0; }
+.cal-sel { padding: 14px var(--sp-md) 0; }
 .cal-sel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .cal-sel .cal-day { margin: 0; }
-.cal-sel-went { flex: 0 0 auto; font-size: 12.5px; font-weight: 800; color: var(--accent-ink); }
-.cal-sel-rest { margin-top: 8px; font-size: 14px; font-weight: 600; color: var(--muted); }
-.cal-sel-slots { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.cal-sel-went { flex: 0 0 auto; font-size: var(--t-meta); font-weight: 800; color: var(--muted); } /* WS3 accent restraint: a went-record is a passive label, not a selection — off orange (muted 5.95:1 on card). ⚑ Charles eyeball */
+.cal-sel-rest { margin-top: var(--sp-xs); font-size: 14px; font-weight: 600; color: var(--muted); }
+.cal-sel-slots { display: flex; flex-direction: column; gap: var(--sp-xs); margin-top: var(--sp-sm); }
 .cal-sel-slot {
   display: flex;
   align-items: center;
@@ -240,7 +240,7 @@
   border-radius: var(--r-md);
 }
 .cal-sel-slot.filled { background: var(--bg); }
-.cal-sel-when { flex: 0 0 auto; font-size: 12px; font-weight: 800; letter-spacing: 0.2px; color: var(--muted); }
+.cal-sel-when { flex: 0 0 auto; font-size: var(--t-meta-sm); font-weight: 800; letter-spacing: 0.2px; color: var(--muted); }
 .cal-sel-what {
   flex: 1;
   min-width: 0;
@@ -251,7 +251,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.cal-sel-open { flex: 1; font-size: 13px; font-weight: 600; color: var(--muted); }
+.cal-sel-open { flex: 1; font-size: var(--t-meta); font-weight: 600; color: var(--muted); }
 .cal-sel-x {
   flex: 0 0 auto;
   width: 26px;
@@ -260,15 +260,15 @@
   border-radius: var(--r-circle);
   background: none;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--t-meta-sm);
   cursor: pointer;
   transition: color var(--dur-fast);
 }
 .cal-sel-x:hover { color: var(--hot); }
 .cal-sel-full {
-  margin-top: 12px;
+  margin-top: var(--sp-sm);
   width: 100%;
-  padding: 12px;
+  padding: var(--sp-sm);
   border: 1px solid rgba(var(--accent-rgb), 0.4);
   border-radius: var(--r-md);
   background: rgba(var(--accent-rgb), 0.06);
@@ -294,13 +294,13 @@
    retired — the day detail is now the inline .cal-sel panel above.) */
 
 /* ===== 3.7P-40 (§N screen 8): date-state legend + "Upcoming" day-card stack ===== */
-.cal-legend { display: flex; flex-wrap: wrap; gap: 14px; padding: 12px 20px 4px; }
-.cal-leg { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; color: var(--muted); }
+.cal-legend { display: flex; flex-wrap: wrap; gap: 14px; padding: var(--sp-sm) var(--gutter) 4px; }
+.cal-leg { display: inline-flex; align-items: center; gap: 5px; font-size: var(--t-micro); font-weight: 600; color: var(--muted); }
 .cal-leg-dot { width: 10px; height: 10px; border-radius: var(--r-circle); box-shadow: inset 0 0 0 2px var(--accent); }
 .cal-leg-bar { width: 12px; height: 3px; border-radius: 2px; background: var(--accent); }
 .cal-leg-chk { color: var(--ink); font-weight: 800; }
-.cal-upcoming { margin-top: 12px; }
+.cal-upcoming { margin-top: var(--sp-sm); }
 /* R-C1: the "Upcoming" header matches the confirmed bold-ink section hierarchy
    (.sec-title — 21px/700 ink, Inter), not the old muted overline,
    so it reads like Home's "Your next days". */
-.cal-up-title { margin: 0 20px 10px; font-size: 21px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
+.cal-up-title { margin: 0 var(--gutter) 10px; font-size: 21px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }

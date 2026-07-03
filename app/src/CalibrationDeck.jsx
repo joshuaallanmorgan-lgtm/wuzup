@@ -115,7 +115,7 @@ export function PlaceDeckFace({ e }) {
           <span aria-hidden>{artEmoji(e)}</span> {placeTypeLabel(e)}
         </span>
         <div className="deck-title">{e.title}</div>
-        {e.venue && <div className="deck-meta">📍 {e.venue}</div>}
+        {e.venue && <div className="deck-meta"><Icon.pin className="meta-ic" aria-hidden /> {e.venue}</div>}
         {chips.length > 0 && (
           <div className="deck-extra deck-amen">
             {chips.map((c, i) => {

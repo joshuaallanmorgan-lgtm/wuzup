@@ -4,7 +4,7 @@
 // EVENTS_GRIND: Tonight carousel → vertical GemRow "Tonight's best bets" +
 // new "This weekend" section (day-grouped GemRow); both gain honest _why lines.
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { BUBBLES, CAT_BUBBLES, CITY, LENS_BUBBLES, dayLabel, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
+import { BUBBLES, CAT_BUBBLES, CITY, Icon, LENS_BUBBLES, dayLabel, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
 import LensNav from './LensNav.jsx'
 import TasteTuner from './TasteTuner.jsx'
 import { curateFeed, collapseSeries } from './curate.js'
@@ -331,7 +331,10 @@ export default function HotView({ events, anchors, loading }) {
               overline="Saved for later"
               title={
                 <>
-                  Your list ❤️<span className="shelf-count">{shelf.length}</span>
+                  {/* WS3 §9: the engineered save-heart (--hot IS the save-heart
+                      family per the token ledger), not the raw ❤️ */}
+                  Your list <Icon.heartFill className="shelf-heart" aria-hidden />
+                  <span className="shelf-count">{shelf.length}</span>
                 </>
               }
               sub="Your saves, ready when you are."
