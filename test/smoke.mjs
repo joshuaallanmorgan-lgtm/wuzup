@@ -1480,6 +1480,18 @@ test('WS4 photoFirst: photos lead, order stable, nothing dropped; the !== none t
   assert.ok(/photoFirst\(/.test(loc), 'LocationsView orders its rails/sections with photoFirst (photos lead, count-preserving)')
 })
 
+// WS4 item 2 — photo-first ordering inside the MIXED place feeds (count-
+// preserving; never-hide holds because photoFirst is a stable reorder, not a
+// filter). The Spots master order + the See-all destination both lead with
+// photo-bearing places so a screenful reads composed, not lottery.
+test('WS4 photo-first feeds: Spots master order + PlaceBubblePage results lead with photos (reorder only)', () => {
+  const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
+  assert.ok(/photoFirst\(placeOrder\(/.test(loc), 'the Spots master list is photoFirst(placeOrder(...)) — photos lead, vibe order within')
+  const pbp = readFileSync(path.join(ROOT, 'app', 'src', 'PlaceBubblePage.jsx'), 'utf8')
+  assert.ok(/photoFirst\(/.test(pbp), 'PlaceBubblePage result feed is photo-first (count-preserving reorder)')
+  assert.ok(/\.filter\(bubble\.match\)/.test(pbp), 'PlaceBubblePage still filters ONLY by the bubble predicate (photoFirst reorders, never hides)')
+})
+
 // CARD_LOCK (Phase 0) — the canonical result card. The dense CompactRow + the
 // editorial Row are RETIRED; ONE kind-aware ResultCard (GemRow event / SpotCard
 // place) renders every vertical result feed via RowFeed.

@@ -67,7 +67,11 @@ export default function LocationsView({ coords }) {
     if (sc && evRef.current) sc.scrollTo({ top: Math.max(evRef.current.offsetTop - 64, 0), behavior: 'smooth' })
   }
 
-  const all = useMemo(() => (Array.isArray(places) ? placeOrder(places, taste) : []), [places, taste])
+  // WS4 (photo-first, count-preserving): the master order leads with photo-bearing
+  // places, vibe order kept WITHIN each partition — so any screenful of a mixed
+  // feed reads composed (real photography up top, the designed art floor after),
+  // and nothing is hidden (stable reorder only; Everything keeps every place).
+  const all = useMemo(() => (Array.isArray(places) ? photoFirst(placeOrder(places, taste)) : []), [places, taste])
   // TINDER P3: two REAL top-ranked spots for the Tune-your-taste preview cards.
   const tuneSamples = useMemo(() => all.slice(0, 2), [all])
   const near = useMemo(() => nearest(all, coords, 12), [all, coords])
