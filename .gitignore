@@ -2,15 +2,17 @@ node_modules/
 dist/
 # places-pipeline fetch caches: bulky (~5MB/run), reproducible, weekly-churning
 # (committing them is the same git-history sleeper W3 already flags for events)
-finder/cache/osm-*.json
-finder/cache/places-*.json
+# D1: caches are per-city dirs — finder/cache/<cityId>/…
+finder/cache/*/osm-*.json
+finder/cache/*/places-*.json
 # Mapillary candidate-gen scratch: ~750 crop JPEGs + the name-blind review set +
 # logs/manifest, all regenerable. The TRACKED outputs of the pipeline are the
-# self-hosted ships in app/public/place-img/ + finder/cache/place-mapillary-images.json.
-finder/cache/mapillary-crops/
+# per-city ships in finder/output/<cityId>/place-img/ (deployed to app/public/) +
+# finder/cache/<cityId>/place-mapillary-images.json.
+finder/cache/*/mapillary-crops/
 # Phase A/B run reports (point-in-time review artifacts, not shipped system)
-finder/cache/phase*-mapillary-report.md
-finder/cache/phaseB-tierB-review.md
+finder/cache/*/phase*-mapillary-report.md
+finder/cache/*/phaseB-tierB-review.md
 # reference/_* = derived measurement crops of the reference sheets (Stage A2 spacing
 # extraction etc.) — regenerable by cropping the committed sheets; keep untracked
 reference/_*

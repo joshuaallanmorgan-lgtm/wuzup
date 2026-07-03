@@ -22,11 +22,12 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, copyFileSyn
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import sharp from 'sharp';
-import { imagery as cityImagery } from './cities/index.mjs';
+import { imagery as cityImagery, cityId } from './cities/index.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-const CROP_DIR = path.join(ROOT, 'finder', 'cache', 'mapillary-crops');
+// D1: the crop scratch is per-city (finder/cache/<cityId>/mapillary-crops/)
+const CROP_DIR = path.join(ROOT, 'finder', 'cache', cityId, 'mapillary-crops');
 const PLACES = path.join(ROOT, 'app', 'public', 'places.json');
 
 // ---- TUNABLES (surfaced for the scout) -------------------------------------

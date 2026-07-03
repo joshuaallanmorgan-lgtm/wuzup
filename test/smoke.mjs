@@ -176,10 +176,14 @@ test('finder fast-mode: exit 0, benchmarks green, output schema-valid', { timeou
   // committed source caches (Cohesion REFUTE finding: the fast-mode run
   // refreshes cache TTL/ordering fields, so a green `npm test` used to leave
   // a dirty tree and contributors smuggled cache churn into commits).
+  // D1: caches are per-city dirs (finder/cache/<cityId>/…) — walk recursively so
+  // every city's committed caches are protected, not just a flat top level.
   const cacheDir = path.join(ROOT, 'finder', 'cache')
-  const cacheFiles = existsSync(cacheDir)
-    ? readdirSync(cacheDir).filter((f) => f.endsWith('.json')).map((f) => path.join(cacheDir, f))
-    : []
+  const walkJson = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((d) => {
+    const p = path.join(dir, d.name)
+    return d.isDirectory() ? walkJson(p) : d.name.endsWith('.json') ? [p] : []
+  })
+  const cacheFiles = existsSync(cacheDir) ? walkJson(cacheDir) : []
   const backups = [APP_EVENTS, FINDER_JSON, FINDER_MD, ...cacheFiles]
     .filter((f) => existsSync(f))
     .map((f) => [f, readFileSync(f)])
@@ -449,7 +453,7 @@ test('W4/Phase1 images: place photos are real of-the-place Commons files + every
 test('ladder-3 Mapillary cafes: local file + CC-BY-SA credit + signTextRead receipt', () => {
   const doc = JSON.parse(readFileSync(APP_PLACES, 'utf8'))
   const cafes = doc.places.filter((p) => typeof p.image === 'string' && p.image.startsWith('/place-img/'))
-  const ATTRIB = path.join(ROOT, 'finder', 'cache', 'attributions.json')
+  const ATTRIB = path.join(ROOT, 'finder', 'cache', CITY_ID, 'attributions.json') // D1: per-city ledger
   const attrib = existsSync(ATTRIB) ? JSON.parse(readFileSync(ATTRIB, 'utf8')) : { byFile: {} }
   for (const p of cafes) {
     const slug = p.image.replace(/^\/place-img\//, '').replace(/\.jpg$/, '')
@@ -485,7 +489,7 @@ test('ladder-3 Mapillary cafes: local file + CC-BY-SA credit + signTextRead rece
 // committed cache, so a skipped re-judge can never silently re-open the pylon /
 // dominant-subject guards (the failure mode behind the 4 Tampa false positives).
 test('fail-closed: every shipped Mapillary cafe was re-verified', () => {
-  const MAP_CACHE = path.join(ROOT, 'finder', 'cache', 'place-mapillary-images.json')
+  const MAP_CACHE = path.join(ROOT, 'finder', 'cache', CITY_ID, 'place-mapillary-images.json') // D1: per-city
   if (!existsSync(MAP_CACHE)) return // no cafe cache yet (a city before its imagery run)
   const cache = JSON.parse(readFileSync(MAP_CACHE, 'utf8'))
   const entries = Object.entries(cache.byKey || {})

@@ -19,22 +19,23 @@
 //
 // Reads: _review/_transcriptions.json (Stage A), _review/_map.json (rid→key,name),
 //        mapillary-crops/_manifest.json (crop geometry/urls/creator).
-// Writes (always): finder/cache/phaseB-mapillary-report.md, phaseB-tierB-review.md,
-//        _review/_verdicts.json.
-// Writes (--ship): finder/cache/place-mapillary-images.json + copies the chosen
-//        crops to app/public/place-img/<slug>.jpg (clears the dir first).
+// Writes (always): finder/cache/<cityId>/phaseB-mapillary-report.md,
+//        phaseB-tierB-review.md, _review/_verdicts.json.
+// Writes (--ship): finder/cache/<cityId>/place-mapillary-images.json + copies the
+//        chosen crops to app/public/place-img/<slug>.jpg (clears the dir first).
 // =============================================================================
 import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, copyFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { area as cityArea, cafe as cityCafe, imagery as cityImagery } from './cities/index.mjs';
+import { area as cityArea, cafe as cityCafe, imagery as cityImagery, cityId } from './cities/index.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-const CROP_DIR = path.join(ROOT, 'finder', 'cache', 'mapillary-crops');
+// D1: crop scratch + the shipped-cafes cache are per-city (finder/cache/<cityId>/)
+const CROP_DIR = path.join(ROOT, 'finder', 'cache', cityId, 'mapillary-crops');
 const REVIEW = path.join(CROP_DIR, '_review');
 const PLACE_IMG = path.join(ROOT, 'app', 'public', 'place-img');
-const MAP_CACHE = path.join(ROOT, 'finder', 'cache', 'place-mapillary-images.json');
+const MAP_CACHE = path.join(ROOT, 'finder', 'cache', cityId, 'place-mapillary-images.json');
 
 // thresholds: config DEFAULTS (per active city), env vars still override at runtime.
 const CONF_FLOOR = Number(process.env.CONF_FLOOR || cityImagery.confFloor);
@@ -330,12 +331,12 @@ for (const r of shipped.sort((a, b) => (a.tier).localeCompare(b.tier) || a.name.
 md += `\n## Lenient-only Tier-A ships (quick glance — partial/fuzzy/number matches)\n\n`;
 if (!lenientA.length) md += `_(none — every Tier-A ship was a strong phrase/exact-token match)_\n`;
 for (const r of lenientA) md += `- **${esc(r.name)}** — ${r.matchKind} \`${esc(r.matched)}\` from sign “${esc(r.signTextRead)}” · ${r.cropPath}\n`;
-writeFileSync(path.join(ROOT, 'finder', 'cache', 'phaseB-mapillary-report.md'), md);
+writeFileSync(path.join(ROOT, 'finder', 'cache', cityId, 'phaseB-mapillary-report.md'), md);
 
 // Tier-B review — Josh's ONE-TIME eyeball gate
 let tb = `# Phase B — Tier-B ships (ONE-TIME review gate)\n\n`;
 tb += `_${tierB.length} cafes shipped on Tier B: NO name-match, but a clear cafe storefront with NO conflicting other-business sign at a strong geometric candidate. Eyeball each crop: if they genuinely show a cafe (no wrong business), Tier B is clean → keep it for multi-city. If any shows the wrong place, drop the rule._\n\n`;
-tb += `Crop files are at the listed path under \`finder/cache/mapillary-crops/<slug>/\`.\n\n`;
+tb += `Crop files are at the listed path under \`finder/cache/${cityId}/mapillary-crops/<slug>/\`.\n\n`;
 for (const r of tierB.sort((a, b) => a.name.localeCompare(b.name))) {
   tb += `### ${esc(r.name)}  (align ${r.align}°, ${r.d}m, q ${r.quality})\n`;
   tb += `- crop: \`${r.cropPath}\`  ·  [Mapillary](${r.mapillaryUrl})\n`;
@@ -344,7 +345,7 @@ for (const r of tierB.sort((a, b) => a.name.localeCompare(b.name))) {
   tb += `- vision: isCafeStorefront=${cr.isCafe}, otherBusinessNameOnSign=${cr.other == null ? 'null' : '“' + esc(cr.other) + '”'}, signs read=${(cr.signs || []).length ? (cr.signs).map((s) => '“' + esc(s) + '”').join(', ') : '(none)'}\n\n`;
 }
 if (!tierB.length) tb += `_(no Tier-B ships in this run)_\n`;
-writeFileSync(path.join(ROOT, 'finder', 'cache', 'phaseB-tierB-review.md'), tb);
+writeFileSync(path.join(ROOT, 'finder', 'cache', cityId, 'phaseB-tierB-review.md'), tb);
 
 writeFileSync(path.join(REVIEW, '_verdicts.json'), JSON.stringify({
   CONF_FLOOR, TIERB_MAX_ALIGN, TIERB_MAX_D, totalCafes, cafesWithCand,

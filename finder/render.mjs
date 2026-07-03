@@ -6,7 +6,7 @@
 // Event shape: { title, start, end, venue, address, price, isFree, url, image,
 //                description, staffPick, promoted, source: 'Creative Loafing' }
 //
-// Caching: finder/cache/cltampa.json { fetchedAt, events }. Cache < 6h old is
+// Caching: finder/cache/<cityId>/cltampa.json { fetchedAt, events }. Cache < 6h old is
 // returned without launching a browser. On scrape failure, stale cache (or []) is returned.
 //
 // IMPORTANT site quirks (verified live):
@@ -26,9 +26,11 @@ import { chromium } from 'playwright';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { cityId } from './cities/index.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const CACHE_FILE = path.join(__dirname, 'cache', 'cltampa.json');
+// D1: per-city cache dir (finder/cache/<cityId>/)
+const CACHE_FILE = path.join(__dirname, 'cache', cityId, 'cltampa.json');
 const SOURCE = 'Creative Loafing';
 const BASE = 'https://community.cltampa.com';
 

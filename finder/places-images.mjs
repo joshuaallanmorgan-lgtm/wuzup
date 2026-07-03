@@ -41,8 +41,9 @@
 //  hosts, no license, ToS-cache breach. wikimedia_commons is ABSENT in the Tampa
 //  OSM data, so its plumbing rides into the multi-city patch where it has data.)
 //
-// Caching: results live in finder/cache/wikidata-images.json (TRACKED) keyed by
-// Q-id; per-image credits live in finder/cache/attributions.json (TRACKED) keyed
+// Caching: results live in finder/cache/<cityId>/wikidata-images.json (TRACKED,
+// per-city) keyed by Q-id; per-image credits live in
+// finder/cache/<cityId>/attributions.json (TRACKED, per-city) keyed
 // by the Commons "File:" title — the machine-readable backing for the Settings →
 // About source-attribution page (⚑X3) AND the CC-BY/BY-SA legal duty, rendered
 // with NO live network call. Both caches are idempotent (only rewritten when
@@ -61,18 +62,21 @@ import { area, qidDeny, cityId } from './cities/index.mjs';
 import { PRODUCT_UA } from './ua.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const CACHE_FILE = join(HERE, 'cache', 'wikidata-images.json');
-const ATTRIB_FILE = join(HERE, 'cache', 'attributions.json');
+// D1: the slug/file-keyed image caches are COLLISION-PRONE across cities
+// (`p|starbucks-30` exists everywhere; the attribution ledger prunes to the
+// current run's ships) — all four live under finder/cache/<cityId>/.
+const CACHE_FILE = join(HERE, 'cache', cityId, 'wikidata-images.json');
+const ATTRIB_FILE = join(HERE, 'cache', cityId, 'attributions.json');
 // honest-imagery Phase 1: the place-KEYED cache for the Commons GEOSEARCH ladder
 // step (the ~97% of places with coords but no usable Q-id), alongside the Q-id
 // cache above. Same shape/TTL; keyed by place.key.
-const GEO_CACHE_FILE = join(HERE, 'cache', 'place-geo-images.json');
+const GEO_CACHE_FILE = join(HERE, 'cache', cityId, 'place-geo-images.json');
 // honest-imagery ladder 3 (Mapillary cafe storefronts): the place-KEYED cache of
 // sign-verified ships the OFFLINE verify harness (finder/mapillary-verify.mjs +
 // mapillary-stageb.mjs) produced — { byKey: { "p|slug": { id, image, license,
 // licenseUrl, author, signTextRead, mapillaryUrl, width, tier, matchKind, at } } }.
 // enrich READS this (+ checks the self-hosted JPEG exists); it never hits Mapillary.
-const MAP_CACHE_FILE = join(HERE, 'cache', 'place-mapillary-images.json');
+const MAP_CACHE_FILE = join(HERE, 'cache', cityId, 'place-mapillary-images.json');
 // D1: the self-hosted crops live in the per-city artifact set; deploy.mjs
 // ships them to app/public/place-img/ (the URL the app fetches is unchanged).
 const PLACE_IMG_DIR = join(HERE, 'output', cityId, 'place-img');

@@ -46,13 +46,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { cleanText } from './_shared.mjs';
+import { cityId } from '../cities/index.mjs';
 
 export const name = 'Visit St. Pete/Clearwater';
 
 const BASE = 'https://www.visitstpeteclearwater.com';
 const LISTING_URL = `${BASE}/events-festivals`;
-const CACHE_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'cache', 'vspc-source.json');
-const TIMES_CACHE_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'cache', 'vspc-times.json');
+// D1: module caches live under the per-city cache dir (finder/cache/<cityId>/)
+const CACHE_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'cache', cityId, 'vspc-source.json');
+const TIMES_CACHE_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'cache', cityId, 'vspc-times.json');
 const MAX_AGE_HOURS = 6;
 const DAYS_AHEAD = 45;
 const ENRICH_BUDGET = 40;          // detail pages per run, soonest events first

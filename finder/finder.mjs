@@ -22,10 +22,11 @@ import { bbox as TB_BOX, geocodeViewbox, tz as CITY_TZ, geocode as CITY_GEO, cit
 import { PRODUCT_UA } from './ua.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-// D1 multi-tenant artifacts: every output is namespaced per city so a
-// CITY=<other> run can never touch another city's snapshot.
+// D1 multi-tenant artifacts: every output AND every cache is namespaced per
+// city so a CITY=<other> run can never touch another city's snapshot or clobber
+// its warm caches (the eventbrite pages, geocode etc. are bbox-derived per city).
 const OUT = join(HERE, 'output', cityId);
-const CACHE = join(HERE, 'cache');
+const CACHE = join(HERE, 'cache', cityId);
 const GEO = join(CACHE, 'geocode.json');
 
 const slugify = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');

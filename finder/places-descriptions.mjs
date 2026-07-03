@@ -11,8 +11,9 @@
 //     bare Wikidata description ("park in Polk County, Florida") is near-noise,
 //     so we do not fabricate a blurb from it — no description beats a generic one.
 //
-// Cached in finder/cache/wikidata-descriptions.json (TRACKED, idempotent — a
-// warm/offline run leaves it byte-identical). PLACES_LIVE=1 forces a refresh.
+// Cached in finder/cache/<cityId>/wikidata-descriptions.json (TRACKED, per-city,
+// idempotent — a warm/offline run leaves it byte-identical). PLACES_LIVE=1
+// forces a refresh.
 //
 // Importable (places.mjs calls enrichPlacesWithDescriptions before writing) and
 // runnable standalone (node finder/places-descriptions.mjs — patches the
@@ -24,7 +25,7 @@ import { PRODUCT_UA } from './ua.mjs';
 import { cityId } from './cities/index.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const CACHE_FILE = join(HERE, 'cache', 'wikidata-descriptions.json');
+const CACHE_FILE = join(HERE, 'cache', cityId, 'wikidata-descriptions.json');
 // city-neutral product UA (Wikimedia etiquette) + this caller's purpose token.
 const UA = {
   'User-Agent': `${PRODUCT_UA} place-description-enrichment`,

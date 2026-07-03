@@ -13,12 +13,13 @@
 import { writeFileSync, readFileSync, existsSync, mkdirSync, statSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
-import { bboxOverpass } from '../cities/index.mjs';
+import { bboxOverpass, cityId } from '../cities/index.mjs';
 
 export const name = 'OSM';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const CACHE = join(HERE, '..', 'cache');
+// D1: raw Overpass caches are bbox-derived — per-city (finder/cache/<cityId>/)
+const CACHE = join(HERE, '..', 'cache', cityId);
 
 const ENDPOINT = 'https://overpass-api.de/api/interpreter';
 // Works but measured 7-weeks-stale and ~90s slow — cold fallback only, logged.

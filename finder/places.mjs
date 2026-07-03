@@ -28,10 +28,10 @@ import { enrichPlacesWithDescriptions } from './places-descriptions.mjs';
 import { bbox as TB_BOX, govOrder as GOV_ORDER, touristCentroids as TOURIST_CENTROIDS, cityId } from './cities/index.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-// D1 multi-tenant artifacts: outputs are namespaced per city (a CITY=<other>
-// run can never touch another city's snapshot).
+// D1 multi-tenant artifacts: outputs AND caches are namespaced per city (a
+// CITY=<other> run can never touch another city's snapshot or warm caches).
 const OUT = join(HERE, 'output', cityId);
-const CACHE = join(HERE, 'cache');
+const CACHE = join(HERE, 'cache', cityId);
 const SRC_DIR = join(HERE, 'places-sources');
 
 // ---- shared primitives, copied from finder.mjs (keep in sync) -------------

@@ -7,7 +7,8 @@
 //     "_Generated …_" stamp in finder/output/<cityId>/events.md), so the alive filter,
 //     tonight/weekend tags and hot-score recency reproduce exactly;
 //   • global fetch KILLED — every live pull fails, so every source takes its
-//     per-source cache fallback (finder/cache/*.json) and no cache is rewritten;
+//     per-source cache fallback (finder/cache/<cityId>/*.json) and no cache is
+//     rewritten;
 //   • timers clamped to 1 ms — the retry/backoff sleeps collapse (nothing can
 //     succeed on retry with fetch dead), so the run takes seconds, not minutes.
 //
