@@ -16,7 +16,7 @@ import { CATEGORY_EMOJI, CATEGORY_HUES, PLACETYPE_EMOJI, PLACETYPE_HUE } from '.
 import { auroraVars, medallionHue } from './artseed.js'
 import { Icon, dayLabelLoose, dayLoose, keyOf, makeAnchors, priceLabel, startLabel, timeOf } from './lib.js'
 import { ACTIVITIES } from './places.js'
-import { imageMode } from './imageMode.js'
+import { imageMode, photoFirst } from './imageMode.js'
 import { daypartOf, DAYPART, fillOrder } from './weekend.js'
 import { dayEntryFor, loadDayPlans, saveDayPlans, withSlot } from './dayplan.js'
 import { SaveHeart, useSaves } from './saves.js'
@@ -153,7 +153,8 @@ export const WxContext = createContext(null)
 export { CATEGORY_EMOJI, CATEGORY_HUES } from './categories.js'
 // 3.7P-36: re-export the imageMode gate so card consumers (DecisionCard/P42,
 // Spots rows/P24) import it from the cards module alongside the components.
-export { imageMode }
+// WS4: photoFirst rides along — the count-preserving photos-lead ordering.
+export { imageMode, photoFirst }
 export const hueFor = (e) => {
   // 3.73a: places are placeType-keyed (beach/trail/pier/dog-park each distinct)
   // — kills the green-on-green wall; everything else stays category-keyed.

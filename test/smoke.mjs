@@ -1452,6 +1452,34 @@ test('3.7P-36 imageMode: photo / icon / text gate (no green placeholder as prima
   assert.equal(im(undefined), 'text', 'no event object → text-led (defensive)')
 })
 
+// WS4 (cohesion/aurora) — the photo-filter tautology fix. imageMode() has only
+// ever returned 'photo'|'icon'|'text', so the Spots rails' `!== 'none'` filter
+// was ALWAYS TRUE — "closest with real photos first" (SP-L3 / SPOTS P1b) silently
+// never happened. photoFirst() is the intended predicate as a count-preserving
+// stable partition; this pins the helper AND the call sites so the tautology
+// can't creep back.
+test('WS4 photoFirst: photos lead, order stable, nothing dropped; the !== none tautology is gone', async () => {
+  const { imageMode: im, photoFirst } = await import('../app/src/imageMode.js')
+  // the root cause, pinned: 'none' is not a value imageMode can return
+  for (const e of [{ image: 'https://x/p.jpg' }, { kind: 'place' }, {}, undefined]) {
+    assert.notEqual(im(e), 'none', 'imageMode never returns "none" — consumers must compare against real modes')
+  }
+  const a = { key: 'a', kind: 'place' }
+  const b = { key: 'b', kind: 'place', image: 'https://x/b.jpg' }
+  const c = { key: 'c', kind: 'place' }
+  const d = { key: 'd', kind: 'place', image: 'https://x/d.jpg' }
+  const out = photoFirst([a, b, c, d])
+  assert.deepEqual(out.map((x) => x.key), ['b', 'd', 'a', 'c'], 'photo-bearing lead; both partitions keep incoming order (stable)')
+  assert.equal(out.length, 4, 'count-preserving: reorder only, never hide')
+  assert.deepEqual(photoFirst([a, c]).map((x) => x.key), ['a', 'c'], 'an all-art pool passes through — rails still fill when photo supply is thin')
+  assert.deepEqual(photoFirst([]), [], 'empty in, empty out')
+  assert.deepEqual(photoFirst(null), [], 'null-safe (lazy store not yet loaded)')
+  // call sites: LocationsView orders with the real predicate, not the tautology
+  const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
+  assert.ok(!/!==\s*'none'/.test(loc), "the `imageMode(p) !== 'none'` tautology is gone from LocationsView")
+  assert.ok(/photoFirst\(/.test(loc), 'LocationsView orders its rails/sections with photoFirst (photos lead, count-preserving)')
+})
+
 // CARD_LOCK (Phase 0) — the canonical result card. The dense CompactRow + the
 // editorial Row are RETIRED; ONE kind-aware ResultCard (GemRow event / SpotCard
 // place) renders every vertical result feed via RowFeed.

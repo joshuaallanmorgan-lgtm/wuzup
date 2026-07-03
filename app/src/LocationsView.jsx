@@ -12,7 +12,7 @@
 // of this tab, never at boot, never merged into the events feed. DRAFT copy ⚑ Charles.
 import { useMemo, useRef } from 'react'
 import { useNav } from './nav.jsx'
-import { SecHead, SpotCard, IntentTile, RowFeed, SkeletonRow, imageMode } from './cards.jsx'
+import { SecHead, SpotCard, IntentTile, RowFeed, SkeletonRow, photoFirst } from './cards.jsx'
 import { GUIDES } from './guides.js'
 import { railReady, tasteNudge, useTaste } from './taste.js'
 import { usePlaces, ACTIVITIES, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES, nearest, isPlaceKey, normalizePlace } from './places.js'
@@ -79,27 +79,36 @@ export default function LocationsView({ coords }) {
   // SP-L3: "Recommended near you" = carousel of top SpotCards (nearest with photos first).
   // SPOTS_GRIND: "Recommended near you" / "Worth the drive" are now vertical
   // SpotCard ROW lists (ref-spots-full), so a tighter top set.
+  // WS4 BUG FIX: the filter here compared imageMode(p) against 'none' — a
+  // tautology (imageMode returns 'photo'|'icon'|'text', never 'none'), so the
+  // stated "photos first" never actually happened. photoFirst() delivers the
+  // intent count-preservingly: photo rows lead, art-floor rows still fill the
+  // rail when photo supply is thin (a section never goes empty; reorder, never hide).
   const nearSpots = useMemo(() => {
     const pool = coords && near.length ? near : all
-    return pool.filter((p) => imageMode(p) !== 'none').slice(0, 3)
+    return photoFirst(pool).slice(0, 3)
   }, [near, all, coords])
 
-  // SP-L3: "Worth the drive" = next batch of spots not already shown in nearSpots.
+  // SP-L3: "Worth the drive" = next batch of spots not already shown in nearSpots
+  // (photos first, count-preserving — the same WS4 fix).
   const driveSpots = useMemo(() => {
     const nearKeys = new Set(nearSpots.map((p) => p.key))
-    return all.filter((p) => !nearKeys.has(p.key) && imageMode(p) !== 'none').slice(0, 3)
+    return photoFirst(all.filter((p) => !nearKeys.has(p.key))).slice(0, 3)
   }, [all, nearSpots])
 
   // SPOTS_GRIND themed sections — each a curated vertical SpotCard-row list, real
   // photos preferred, honestly gated (≥3 members). The FULL set is one tap away
   // (See all → PlaceBubblePage on the theme predicate, never-hide).
+  // WS4 BUG FIX: the old "photo pool" was gated on the same against-'none'
+  // tautology, so it was ALWAYS the whole matched set. Now the nearest photo-
+  // bearing members genuinely lead and art-floor members fill the remainder
+  // (count-preserving — a section never thins below 3 rows on scarce photos).
   const themeSections = useMemo(
     () =>
       SPOT_THEMES.map((t) => {
         const matched = all.filter(t.match)
-        const withPhoto = matched.filter((p) => imageMode(p) !== 'none')
-        const pool = withPhoto.length >= 4 ? withPhoto : matched
-        const items = coords ? nearest(pool, coords, 3) : pool.slice(0, 3)
+        const ordered = coords ? nearest(matched, coords, matched.length) : matched
+        const items = photoFirst(ordered).slice(0, 3)
         return { t, items, total: matched.length }
       }).filter((s) => s.total >= 3 && s.items.length > 0),
     [all, coords]
