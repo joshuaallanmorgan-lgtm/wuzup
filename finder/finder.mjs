@@ -2222,11 +2222,8 @@ async function main() {
   }
   writeFileSync(join(OUT, 'events.md'), md);
 
-  // Keep the web app's copy in sync, so re-running the finder refreshes the UI.
-  const appPublic = join(HERE, '..', 'app', 'public');
-  if (existsSync(appPublic)) {
-    writeFileSync(join(appPublic, 'events.json'), JSON.stringify(events, null, 2));
-  }
+  // D1: the finder never writes the app's copy directly — `npm run deploy-city`
+  // (finder/deploy.mjs) is the ONE writer of app/public data artifacts.
 
   // Image sample audit (L5) — null means skipped, [] means nothing to check.
   let imgAudit = null;

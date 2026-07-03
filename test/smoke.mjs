@@ -500,6 +500,34 @@ test('fail-closed: every shipped Mapillary cafe was re-verified', () => {
   }
 })
 
+// Stage D · D1 — the deploy seam. app/public data artifacts are written ONLY by
+// finder/deploy.mjs (`npm run deploy-city`), which copies exactly ONE city's set
+// from finder/output/<cityId>/. Guards: the deploy step exists, an artifact-less
+// city is refused LOUDLY (a CITY=sf-east-bay run can never blank Tampa's
+// deployment), and the legacy un-namespaced output paths stay dead.
+test('D1 deploy seam: deploy.mjs exists + refuses an artifact-less city + legacy paths gone', { timeout: 60_000 }, async () => {
+  assert.ok(existsSync(path.join(ROOT, 'finder', 'deploy.mjs')), 'finder/deploy.mjs must exist (the ONE writer of app/public data artifacts)')
+  const pkg = JSON.parse(readFileSync(path.join(ROOT, 'package.json'), 'utf8'))
+  assert.equal(pkg.scripts['deploy-city'], 'node finder/deploy.mjs', 'the deploy-city npm script must run the deploy step')
+  // a REGISTERED city with no generated artifacts must be refused loudly — and
+  // the refusal must not have touched the deployed files (byte-check one).
+  const guidesBefore = readFileSync(path.join(ROOT, 'app', 'public', 'guides.json'))
+  const res = await runNode('finder/deploy.mjs', { CITY: 'sf-east-bay' })
+  assert.notEqual(res.code, 0, `deploying a city with no artifacts must exit non-zero (got ${res.code}):\n${tail(res.out)}`)
+  assert.match(res.out, /REFUSING/, 'the refusal must be loud and name the problem')
+  assert.deepEqual(readFileSync(path.join(ROOT, 'app', 'public', 'guides.json')), guidesBefore,
+    'a refused deploy must leave the deployed artifacts untouched')
+  // the legacy un-namespaced output files must not exist (and no writer recreates
+  // them — the finder fast-mode run in test 1 would have, if a write path survived)
+  for (const f of ['events.json', 'events.md', 'places.json', 'places.md', 'guides.json', 'place-img']) {
+    assert.ok(!existsSync(path.join(ROOT, 'finder', 'output', f)), `legacy un-namespaced finder/output/${f} must not exist (outputs are per-city now)`)
+  }
+  // the per-city artifact set is COMPLETE for the reference city (deploy's contract)
+  for (const f of ['events.json', 'places.json', 'guides.json', 'place-img']) {
+    assert.ok(existsSync(path.join(ROOT, 'finder', 'output', CITY_ID, f)), `finder/output/${CITY_ID}/${f} missing — the deployable set is incomplete`)
+  }
+})
+
 // W4 wiring — the two heroes are real photos, the place detail renders its photo
 // with a category-art fallback, dead URLs never paint a broken glyph, and
 // normalizePlace carries `image` through (JSX/CSS can't import into Node).

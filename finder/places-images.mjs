@@ -73,7 +73,9 @@ const GEO_CACHE_FILE = join(HERE, 'cache', 'place-geo-images.json');
 // licenseUrl, author, signTextRead, mapillaryUrl, width, tier, matchKind, at } } }.
 // enrich READS this (+ checks the self-hosted JPEG exists); it never hits Mapillary.
 const MAP_CACHE_FILE = join(HERE, 'cache', 'place-mapillary-images.json');
-const PLACE_IMG_DIR = join(HERE, '..', 'app', 'public', 'place-img');
+// D1: the self-hosted crops live in the per-city artifact set; deploy.mjs
+// ships them to app/public/place-img/ (the URL the app fetches is unchanged).
+const PLACE_IMG_DIR = join(HERE, 'output', cityId, 'place-img');
 // a descriptive User-Agent is required by the Wikimedia API etiquette policy —
 // the shared, city-neutral product identity + this caller's purpose token.
 const UA = {
@@ -488,7 +490,7 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
         const slug = p.key.replace(/^p\|/, '');
         if (existsSync(join(PLACE_IMG_DIR, `${slug}.jpg`))) {
           rec = {
-            image: `/place-img/${slug}.jpg`, // site-root local path (Vite serves app/public)
+            image: `/place-img/${slug}.jpg`, // site-root local path (deploy.mjs ships the dir into app/public)
             file: `${slug}.jpg`,
             fileTitle: `Mapillary:${mc.id}`, // synthetic attributions key (no Commons File:)
             fileUrl: mc.mapillaryUrl,
@@ -590,10 +592,9 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
 // ---- standalone: backfill the existing places.json copies in place ----------
 async function main() {
   const live = process.env.PLACES_LIVE === '1';
-  const targets = [
-    join(HERE, 'output', cityId, 'places.json'),
-    join(HERE, '..', 'app', 'public', 'places.json'),
-  ].filter((p) => existsSync(p));
+  // D1: only the per-city finder artifact is patched — app/public/places.json
+  // is deploy.mjs's territory (re-run `npm run deploy-city` after a backfill).
+  const targets = [join(HERE, 'output', cityId, 'places.json')].filter((p) => existsSync(p));
   if (!targets.length) {
     console.error('no places.json found (run finder/places.mjs first)');
     process.exit(1);

@@ -149,10 +149,9 @@ export async function enrichPlacesWithDescriptions(places, { live = false, log =
 // ---- standalone: backfill the existing places.json copies in place ----------
 async function main() {
   const live = process.env.PLACES_LIVE === '1';
-  const targets = [
-    join(HERE, 'output', cityId, 'places.json'),
-    join(HERE, '..', 'app', 'public', 'places.json'),
-  ].filter((p) => existsSync(p));
+  // D1: only the per-city finder artifact is patched — app/public/places.json
+  // is deploy.mjs's territory (re-run `npm run deploy-city` after a backfill).
+  const targets = [join(HERE, 'output', cityId, 'places.json')].filter((p) => existsSync(p));
   if (!targets.length) {
     console.error('no places.json found (run finder/places.mjs first)');
     process.exit(1);

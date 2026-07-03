@@ -6,8 +6,8 @@
 // Overpass for breadth), merges duplicates across sources with a
 // grid-blocked, edit-tolerant name + spatial-gate clusterer, scores a capped
 // hidden-spots shelf, and writes finder/output/<cityId>/places.json +
-// places.md and the app's copy (app/public/places.json — the second lazy
-// fetch; NEVER concatenated into the events norm).
+// places.md (the app's copy — app/public/places.json, the second lazy fetch,
+// NEVER concatenated into the events norm — ships via finder/deploy.mjs).
 //
 // Structural clone of finder.mjs's loader/cache/benchmark conventions; the
 // build spec is PLACES_SOURCES.md (schema §2, merge rules §3, benchmarks §4,
@@ -661,11 +661,8 @@ async function main() {
   }
   writeFileSync(join(OUT, 'places.md'), md);
 
-  // Keep the web app's copy in sync (second lazy fetch — Sprint S consumes it).
-  const appPublic = join(HERE, '..', 'app', 'public');
-  if (existsSync(appPublic)) {
-    writeFileSync(join(appPublic, 'places.json'), JSON.stringify(payload, null, 2));
-  }
+  // D1: the app's copy (app/public/places.json — the second lazy fetch) is
+  // written ONLY by the deploy step (`npm run deploy-city`, finder/deploy.mjs).
 
   // ---- console summary + benchmarks ----------------------------------------
   console.log('\n──────────────────────────────────────────');
@@ -737,7 +734,7 @@ async function main() {
   console.log('──────────────────────────────────────────');
   console.log(`  Wrote: finder/output/${cityId}/places.json  (structured, schema v1)`);
   console.log(`  Wrote: finder/output/${cityId}/places.md    (readable + hidden shelf for the eyeball pass)`);
-  console.log('  Wrote: app/public/places.json     (second lazy fetch — Sprint S consumes it)');
+  console.log('  (ship into the app with: npm run deploy-city)');
   console.log('');
 }
 

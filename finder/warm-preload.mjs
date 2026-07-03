@@ -15,10 +15,10 @@
 // Vars:  WARM_FROZEN_AT=<ISO instant> overrides the frozen clock.
 //        SKIP_IMGCHECK is forced (the image audit is console-only + network).
 //
-// NOTE: the run still writes finder/output/<cityId>/events.{json,md}, the app
-// copy (app/public/events.json) and may rewrite finder/cache/geocode.json (the
-// null-entry purge). Copy the outputs aside for comparison, then restore:
-//   git checkout -- finder/output app/public/events.json finder/cache
+// NOTE: the run still writes finder/output/<cityId>/events.{json,md} and may
+// rewrite finder/cache/geocode.json (the null-entry purge). Copy the outputs
+// aside for comparison, then restore:
+//   git checkout -- finder/output finder/cache
 //
 // (Rebuilt from the WS1 finder-fixes proof method — "offline warm re-run over
 // the committed caches, clock frozen at the snapshot date"; see the
