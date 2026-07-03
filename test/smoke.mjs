@@ -2896,3 +2896,33 @@ test('Cohesion type snap: no half-pixel font sizes, no 650/750 weights (app CSS)
     assert.equal(orphans.length, 0, `${f} re-introduces an orphan ${orphans[0] || ''} — use 600/700 (550 is the only sanctioned mid-weight)`)
   }
 })
+
+// Stage D data-tail (e): "About this event" is Eventbrite PAGE CHROME, not
+// description text — cleanDescription strips it at ingest. Pinned as a unit
+// fixture because the fix is invisible to cache-fallback warm runs (module
+// caches hold already-normalized events); the shipped Pinellas solid-waste
+// tour record heals on the next live refresh.
+test('finder ingest: cleanDescription strips leading Eventbrite "About this event" chrome', async () => {
+  const { cleanDescription } = await import('../finder/finder.mjs')
+  // the shipped artifact, verbatim prefix shape
+  assert.equal(
+    cleanDescription('About this event There’s no such place as away! Join us to find out what happens to your garbage.'),
+    'There’s no such place as away! Join us to find out what happens to your garbage.',
+    'the chrome prefix must be stripped at ingest'
+  )
+  // separator variants glue the heading on with punctuation
+  assert.equal(cleanDescription('About this event: Doors at 7.'), 'Doors at 7.')
+  // chrome-only description -> no description (null beats an empty husk)
+  assert.equal(cleanDescription('About this event'), null)
+  // NOT a prefix -> untouched (never rewrite mid-text mentions)
+  assert.equal(
+    cleanDescription('Curious about this event? Come along.'),
+    'Curious about this event? Come along.',
+    'mid-text mentions must never be rewritten'
+  )
+  // the strip runs BEFORE the 200-char cap, so real text fills the blurb
+  const long = 'About this event ' + 'x'.repeat(250)
+  const out = cleanDescription(long)
+  assert.equal(out.length, 200, 'cap applies to the DE-CHROMED text')
+  assert.ok(out.startsWith('xxx'), 'recovered characters are real text, not chrome')
+})

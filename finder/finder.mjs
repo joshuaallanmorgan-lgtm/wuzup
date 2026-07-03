@@ -190,8 +190,18 @@ function cleanText(s) {
   return out || null;
 }
 
-function cleanDescription(desc) {
+// Exported for the smoke harness — the chrome-strip below is an INGEST-time
+// fix, invisible to cache-fallback warm runs (module caches hold already-
+// normalized events), so the mechanism is pinned as a unit fixture instead.
+export function cleanDescription(desc) {
   let t = cleanText(desc);
+  if (!t) return null;
+  // Eventbrite page chrome: a scraped description can open with the page's
+  // own section HEADING glued to the real text — "About this event There's
+  // no such place as away!..." (Stage D data-tail e). Chrome, not
+  // description: strip the prefix at ingest, BEFORE the length cap, so the
+  // trimmed blurb recovers those characters of real text.
+  t = t.replace(/^about this event\s*[:\-–—]?\s*/i, '');
   if (!t) return null;
   if (t.length > 200) t = t.slice(0, 197) + '...';
   return t;
