@@ -16,9 +16,10 @@
    the saves.css `.detail-hero .save-btn ~ .heat-badge { right: 64px }` regardless
    of stylesheet order. (16 heart + 38 + 8 → share@62; +40 + 8 → badge@110.) */
 .detail-hero .detail-share ~ .save-btn ~ .heat-badge { right: 110px; }
+/* WS2 detail-rebuild: the category chip moved off the hero into the light title
+   block's .detail-chips row (App.css), which owns the spacing — margins retired. */
 .detail-catchip {
   display: inline-block;
-  margin: 0 0 11px 8px;
   text-transform: capitalize;
   background: hsl(var(--ch, 220) 70% 93%);
   color: hsl(var(--ch, 220) 55% 27%);

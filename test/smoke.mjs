@@ -1586,6 +1586,25 @@ test('3.7P-34 event-detail: planner-first Add-to-day CTA + demoted event link', 
   assert.ok(/aria-modal="true"/.test(dp) && /planSheetRef/.test(dp) && /planBtnRef\.current\?\.focus\(\)/.test(dp), 'the add-to-day sheet is a focus-managed dialog (focus in + return to trigger)')
 })
 
+// WS2 detail-rebuild — the event detail ports PlaceDetail's Stage-R light-title
+// pattern: eyebrow (honest short WHEN) → title → venue sit BELOW the clean hero
+// on light; the over-hero white title + heavy scrim retired; the hero KEEPS the
+// 'evt-hero' viewTransitionName (the card→detail morph contract); the title
+// wraps unbroken garbage-source strings (live-capture defect #1, display half).
+test('WS2 detail-rebuild: light title block below the hero + VT name intact', () => {
+  const dp = readFileSync(path.join(ROOT, 'app', 'src', 'DetailPage.jsx'), 'utf8')
+  assert.ok(!/detail-hero-text/.test(dp), 'the over-hero title block is retired (title lives below the hero)')
+  assert.ok(/detail-eyebrow/.test(dp) && /className="detail-title"/.test(dp) && /detail-venue/.test(dp), 'DetailPage renders eyebrow + title + venue below the hero')
+  assert.ok(dp.indexOf('detail-eyebrow') < dp.indexOf('className="detail-title"'), 'the eyebrow sits above the title')
+  assert.ok(dp.indexOf('detail-body') < dp.indexOf('detail-eyebrow'), 'the title block lives in the light body, not the hero')
+  assert.ok(/viewTransitionName: 'evt-hero'/.test(dp), 'the detail hero still owns the evt-hero VT name (morph contract)')
+  const appCss = readFileSync(path.join(ROOT, 'app', 'src', 'App.css'), 'utf8')
+  assert.ok(/\.detail-title\s*\{[^}]*overflow-wrap:\s*anywhere/.test(appCss), 'a long unbroken title wraps instead of clipping (defect #1)')
+  assert.ok(/\.detail-title\s*\{[^}]*font-weight:\s*800/.test(appCss), 'the title is ink 800 (Stage-R), not the over-hero 900')
+  assert.ok(/\.detail-eyebrow\s*\{[^}]*var\(--accent-ink\)/.test(appCss), 'the eyebrow reads --accent-ink (AA accent text)')
+  assert.ok(/\.detail-hero-grad-ev/.test(appCss) && /detail-hero-grad detail-hero-grad-ev/.test(dp), 'the event hero wears the chrome-only scrim variant')
+})
+
 // 3.7P-39 — section-label honesty (D6 strict): the "Hidden Gems" shelf must not
 // carry a job/career/hiring fair. NON_GEM_RE gates the shelf (UI + finder); the
 // event still lives in Everything (curation, never hiding).

@@ -72,7 +72,10 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
   // navigation via useNav (O6): close/swap/map-handoff + the open-state flags
   const { closing, vtOpen: vt, closeDetail: onClose, openDetail: onSelect } = useNav()
   // ===== WHEN: end-date honesty (multi-day ranges, same-day time ranges, ongoing) =====
-  let when
+  // whenShort is the SAME honest WHEN in short form ("Fri, Jun 19 · 7:00 PM") for
+  // the title-block eyebrow (WS2 detail-rebuild); `when` (long form) stays
+  // byte-identical for the When fact row. One branch block so they can't desync.
+  let when, whenShort
   const DAY_MS = 86400000
   // overnight show (ends ≤6 AM the next day) reads as one evening, not a "range"
   const overnight = !!(
@@ -80,16 +83,21 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
   )
   if (e._ongoing) {
     when = 'Ongoing' + (e._endDay != null && e._endDay !== e._day ? ' · through ' + fmtShort(e._endDay) : '')
+    whenShort = when
   } else if (e._day == null) {
     when = 'Date TBD'
+    whenShort = when
   } else if (overnight) {
     when = dayKey(e.start) + ' · ' + timeRange(e.start, e.end)
+    whenShort = fmtShort(e._day) + ' · ' + timeRange(e.start, e.end)
   } else if (e._endDay != null && e._endDay !== e._day) {
     when = fmtShort(e._day) + ' – ' + fmtShort(e._endDay)
+    whenShort = when
   } else {
     const sameDayTimedEnd = !!(e.end && /T\d/.test(e.end) && e._endDay === e._day)
     const t = sameDayTimedEnd ? timeRange(e.start, e.end) : timeOf(e.start)
     when = (dayKey(e.start) || fmtShort(e._day)) + (t ? ' · ' + t : '')
+    whenShort = fmtShort(e._day) + (t ? ' · ' + t : '')
   }
 
   // ===== WHERE: venue, address fallback, Google-Maps link =====
@@ -382,20 +390,32 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         {/* ♥ save toggle (saves.js) — heat badge slides left of it via saves.css */}
         <SaveHeart e={e} big />
         <HeatBadge e={e} />
-        <div className="detail-hero-grad" />
-        <div className="detail-hero-text">
-          {priceLabel(e) && <span className={'chip detail-chip' + (e.isFree === true ? ' chip-free' : '')}>{priceLabel(e)}</span>}
-          {e.category !== 'other' && (
-            <span className="chip detail-chip detail-catchip" style={{ '--ch': hueFor(e) }}>
-              {CATEGORY_EMOJI[e.category] ?? '⭐'} {e.category}
-            </span>
-          )}
-          <h1 className="detail-title">{e.title}</h1>
-        </div>
+        {/* WS2 detail-rebuild: chrome-only scrim — the title moved below the hero
+            (light surface), so the heavy bottom title-wash retired with it */}
+        <div className="detail-hero-grad detail-hero-grad-ev" />
       </div>
       <div className="detail-body">
         {e.sponsored === true && <div className="sp-label detail-sp">Sponsored</div>}
         {mine && <div className="sp-label my-label detail-sp">Added by you</div>}
+        {/* WS2 detail-rebuild: the PlaceDetail Stage-R light-title pattern, ported —
+            eyebrow (the honest short WHEN, accent ink) → title (ink, 800) → venue
+            line → identity chips, all BELOW the clean hero. overflow-wrap on the
+            title fixes the garbled-source clip (live-capture defect #1, display half). */}
+        <div className="detail-head">
+          <div className="detail-eyebrow">{whenShort}</div>
+          <h1 className="detail-title">{e.title}</h1>
+          {whereMain && <div className="detail-venue">{whereMain}</div>}
+          {(e.category !== 'other' || priceLabel(e)) && (
+            <div className="detail-chips">
+              {e.category !== 'other' && (
+                <span className="chip detail-catchip" style={{ '--ch': hueFor(e) }}>
+                  {CATEGORY_EMOJI[e.category] ?? '⭐'} {e.category}
+                </span>
+              )}
+              {priceLabel(e) && <span className={'chip' + (e.isFree === true ? ' chip-free' : '')}>{priceLabel(e)}</span>}
+            </div>
+          )}
+        </div>
         <div className="detail-rows">
           <div className="d-row"><span className="d-ic" aria-hidden><Icon.calendar /></span><div><div className="d-k">When</div><div className="d-v">{when}</div></div></div>
           {whereMain && (
