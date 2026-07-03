@@ -522,6 +522,15 @@
 @keyframes detailIn { from { opacity: 0; transform: translate(-50%, 7%); } to { opacity: 1; transform: translate(-50%, 0); } }
 @keyframes detailOut { from { opacity: 1; transform: translate(-50%, 0); } to { opacity: 0; transform: translate(-50%, 5%); } }
 .detail-hero { position: relative; height: 42svh; min-height: 250px; overflow: hidden; }
+/* WS4: a PHOTO-LESS hero (the shared .imgbox-art art-floor form on BOTH detail
+   paths — DetailPage events + PlaceDetail places) drops to ~26svh. A 250px+
+   full-bleed gradient slab was the loudest "missing photo" tell on detail pages;
+   at banner height the aurora field reads as a designed band instead of a failed
+   photo. REAL-photo heroes keep the full 42svh (a photo earns the space). Same
+   element, same evt-hero viewTransitionName contract — the thumb→hero morph is
+   untouched, only the target box is shorter. min-height clears the top chrome
+   (back/share/heart) + a 2-line event title block on the shortest viewports. */
+.detail-hero.imgbox-art { height: 26svh; min-height: 176px; }
 .detail-hero-img {
   position: absolute;
   inset: 0;

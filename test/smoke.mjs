@@ -1514,6 +1514,23 @@ test('WS4 icon row form: photo-less place rows are compact medallion cards, not 
   assert.ok(/<CardImg e=\{e\} className="deck-img"/.test(deck), 'deck cards keep the full-bleed CardImg (aurora reads designed at card scale)')
 })
 
+// WS4 item 4 — the photo-less detail hero drops to a designed ~26svh band; a
+// REAL-photo hero keeps the full 42svh (a photo earns the space). Both detail
+// paths share the .detail-hero.imgbox-art form, so one rule covers events +
+// places; the evt-hero View-Transition contract is unchanged.
+test('WS4 detail hero: art-floor hero is a ~26svh band, photo hero keeps 42svh, morph contract intact', () => {
+  const appCss = readFileSync(path.join(ROOT, 'app', 'src', 'App.css'), 'utf8')
+  assert.ok(/\.detail-hero\s*\{[^}]*height:\s*42svh/s.test(appCss), 'the photo hero keeps its full 42svh')
+  assert.ok(/\.detail-hero\.imgbox-art\s*\{[^}]*height:\s*26svh/s.test(appCss), 'the photo-less (art-floor) hero drops to the 26svh band')
+  // both detail paths reach the rule through the same shared class + keep the
+  // same viewTransitionName, so the thumb→hero morph contract is untouched
+  for (const f of ['DetailPage.jsx', 'PlaceDetail.jsx']) {
+    const src = readFileSync(path.join(ROOT, 'app', 'src', f), 'utf8')
+    assert.ok(/'detail-hero' \+ \(heroArt \? ' imgbox-art' : ''\)/.test(src), `${f} art hero wears the shared .imgbox-art class`)
+    assert.ok(/viewTransitionName: 'evt-hero'/.test(src), `${f} hero keeps the evt-hero morph name`)
+  }
+})
+
 // CARD_LOCK (Phase 0) — the canonical result card. The dense CompactRow + the
 // editorial Row are RETIRED; ONE kind-aware ResultCard (GemRow event / SpotCard
 // place) renders every vertical result feed via RowFeed.
