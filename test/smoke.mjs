@@ -29,7 +29,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
 import { lookup as dnsLookup } from 'node:dns/promises'
-import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 // city-agnostic: the box + roster anchors come from the active city config, the
@@ -38,6 +38,7 @@ import { fileURLToPath } from 'node:url'
 import { bbox as CITY_BBOX, rosterBenchmark as CITY_ROSTER } from '../finder/cities/index.mjs'
 import { PLACETYPE_HUE, CATEGORY_HUES } from '../app/src/categories.js'
 import * as deckdeal from '../app/src/deckdeal.js'
+import * as gesture from '../app/src/deckgesture.js'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const APP_EVENTS = path.join(ROOT, 'app', 'public', 'events.json')
@@ -170,8 +171,15 @@ function schemaProblems(e, i) {
 // 1) FINDER FAST-MODE — the long pole, so it runs first
 // ============================================================
 test('finder fast-mode: exit 0, benchmarks green, output schema-valid', { timeout: 360_000 }, async (t) => {
-  // in-memory backup of everything the finder overwrites
-  const backups = [APP_EVENTS, FINDER_JSON, FINDER_MD]
+  // in-memory backup of everything the finder overwrites — INCLUDING the
+  // committed source caches (Cohesion REFUTE finding: the fast-mode run
+  // refreshes cache TTL/ordering fields, so a green `npm test` used to leave
+  // a dirty tree and contributors smuggled cache churn into commits).
+  const cacheDir = path.join(ROOT, 'finder', 'cache')
+  const cacheFiles = existsSync(cacheDir)
+    ? readdirSync(cacheDir).filter((f) => f.endsWith('.json')).map((f) => path.join(cacheDir, f))
+    : []
+  const backups = [APP_EVENTS, FINDER_JSON, FINDER_MD, ...cacheFiles]
     .filter((f) => existsSync(f))
     .map((f) => [f, readFileSync(f)])
   let res
@@ -679,11 +687,26 @@ test('3.75b: watch guides resolve to real keyword matches + honor the window', a
     assert.ok(g.window && Number.isFinite(Date.parse(g.window.start)) && Number.isFinite(Date.parse(g.window.end)), `watch guide ${g.id}: unparseable window`)
     assert.ok(Array.isArray(g.keywords) && g.keywords.length > 0, `watch guide ${g.id}: empty keywords`)
   }
-  // resolves against the REAL events store by keyword — honest, real listings only
+  // Resolver correctness is pinned on a FIXTURE (deterministic — live watch-
+  // party listings rotate out of the aggregators as a tournament progresses,
+  // so "the shipped data has >= 1 world-cup event" was a data-availability
+  // assumption, not a code invariant; it broke on the 2026-07-02 refresh when
+  // sources dropped the finished group-stage parties. A 0-match guide
+  // no-shows honestly in the app — that behavior is the contract.)
+  const fixture = [
+    { title: 'World Cup USA Watch Party', start: '2026-07-04', venue: 'Bar X' },
+    { title: 'Watch FIFA finals on the lawn', start: '2026-07-05', venue: 'Park' },
+    { title: 'Trivia Night', start: '2026-07-04', venue: 'Bar X' },
+    { title: 'World Cup USA Watch Party', start: '2026-07-04', venue: 'Bar X' }, // dupe — must dedupe
+  ]
+  const fHits = resolveWatchGuide(wc, fixture)
+  assert.equal(fHits.length, 2, `resolver must match exactly the keyword events (deduped) — got ${fHits.length}`)
+  assert.ok(!fHits.some((e) => e.title === 'Trivia Night'), 'resolver matched a non-keyword event (fabricating)')
+  // and against the REAL events store: whatever it matches must really carry
+  // a keyword — 0 hits is honest when the sources list none.
   const evDoc = JSON.parse(readFileSync(path.join(ROOT, 'app', 'public', 'events.json'), 'utf8'))
   const events = Array.isArray(evDoc) ? evDoc : evDoc.events || []
   const hits = resolveWatchGuide(wc, events)
-  assert.ok(hits.length > 0, 'world-cup watch guide matched 0 live events — keyword resolver or the data regressed')
   assert.ok(
     hits.every((e) => {
       const hay = ((e.title || '') + ' ' + (e.description || '') + ' ' + (e.venue || '')).toLowerCase()
@@ -1452,6 +1475,100 @@ test('3.7P-36 imageMode: photo / icon / text gate (no green placeholder as prima
   assert.equal(im(undefined), 'text', 'no event object → text-led (defensive)')
 })
 
+// WS4 (cohesion/aurora) — the photo-filter tautology fix. imageMode() has only
+// ever returned 'photo'|'icon'|'text', so the Spots rails' `!== 'none'` filter
+// was ALWAYS TRUE — "closest with real photos first" (SP-L3 / SPOTS P1b) silently
+// never happened. photoFirst() is the intended predicate as a count-preserving
+// stable partition; this pins the helper AND the call sites so the tautology
+// can't creep back.
+test('WS4 photoFirst: photos lead, order stable, nothing dropped; the !== none tautology is gone', async () => {
+  const { imageMode: im, photoFirst } = await import('../app/src/imageMode.js')
+  // the root cause, pinned: 'none' is not a value imageMode can return
+  for (const e of [{ image: 'https://x/p.jpg' }, { kind: 'place' }, {}, undefined]) {
+    assert.notEqual(im(e), 'none', 'imageMode never returns "none" — consumers must compare against real modes')
+  }
+  const a = { key: 'a', kind: 'place' }
+  const b = { key: 'b', kind: 'place', image: 'https://x/b.jpg' }
+  const c = { key: 'c', kind: 'place' }
+  const d = { key: 'd', kind: 'place', image: 'https://x/d.jpg' }
+  const out = photoFirst([a, b, c, d])
+  assert.deepEqual(out.map((x) => x.key), ['b', 'd', 'a', 'c'], 'photo-bearing lead; both partitions keep incoming order (stable)')
+  assert.equal(out.length, 4, 'count-preserving: reorder only, never hide')
+  assert.deepEqual(photoFirst([a, c]).map((x) => x.key), ['a', 'c'], 'an all-art pool passes through — rails still fill when photo supply is thin')
+  assert.deepEqual(photoFirst([]), [], 'empty in, empty out')
+  assert.deepEqual(photoFirst(null), [], 'null-safe (lazy store not yet loaded)')
+  // call sites: LocationsView orders with the real predicate, not the tautology
+  const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
+  assert.ok(!/!==\s*'none'/.test(loc), "the `imageMode(p) !== 'none'` tautology is gone from LocationsView")
+  assert.ok(/photoFirst\(/.test(loc), 'LocationsView orders its rails/sections with photoFirst (photos lead, count-preserving)')
+})
+
+// WS4 item 2 — photo-first ordering inside the MIXED place feeds (count-
+// preserving; never-hide holds because photoFirst is a stable reorder, not a
+// filter). The Spots master order + the See-all destination both lead with
+// photo-bearing places so a screenful reads composed, not lottery.
+test('WS4 photo-first feeds: Spots master order + PlaceBubblePage results lead with photos (reorder only)', () => {
+  const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
+  assert.ok(/photoFirst\(placeOrder\(/.test(loc), 'the Spots master list is photoFirst(placeOrder(...)) — photos lead, vibe order within')
+  const pbp = readFileSync(path.join(ROOT, 'app', 'src', 'PlaceBubblePage.jsx'), 'utf8')
+  assert.ok(/photoFirst\(/.test(pbp), 'PlaceBubblePage result feed is photo-first (count-preserving reorder)')
+  assert.ok(/\.filter\(bubble\.match\)/.test(pbp), 'PlaceBubblePage still filters ONLY by the bubble predicate (photoFirst reorders, never hides)')
+})
+
+// WS4 item 3 — the 'icon' row form imageMode's own spec promised (3.7P-36:
+// photo-less place → "a compact icon/text card (NOT a big hue block)", Spots
+// rows named as the consumer) but no card ever built. A photo-less place row
+// now leads with a compact tinted placeType medallion; the Aurora field stays
+// full-bleed only where it reads as a designed surface (detail heroes, deck
+// cards, carousel tiles). The D1 uniform-row-height invariant is BINDING.
+test('WS4 icon row form: photo-less place rows are compact medallion cards, not big hue blocks', () => {
+  const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
+  assert.ok(/const iconRow = imageMode\(p\) !== 'photo'/.test(cards), 'the SpotCard row derives its form from the imageMode gate (spec finally consumed)')
+  assert.ok(/spotcard--row-icon/.test(cards), 'the icon form is a variant CLASS on the same .spotcard--row box (not a new card)')
+  assert.ok(/spotcard-medallion/.test(cards) && /medallionVar\(p\)/.test(cards), 'the medallion tints from the deterministic per-place hue jitter (artseed)')
+  const css = readFileSync(path.join(ROOT, 'app', 'src', 'cards.css'), 'utf8')
+  // D1 BINDING: one uniform row height for every result row — the box is untouched
+  assert.ok(/\.spotcard--row\s*\{[^}]*height:\s*var\(--card-row-h\)/s.test(css), 'the icon form keeps the D1 uniform row height (same .spotcard--row box)')
+  assert.ok(/\.spotcard--row \.spotcard-medallion\s*\{[\s\S]*?hsl\(var\(--mh/.test(css), 'the medallion background keys off --mh (per-place, deterministic)')
+  // the designed-field surfaces keep the full-bleed aurora (detail heroes + deck)
+  const pd = readFileSync(path.join(ROOT, 'app', 'src', 'PlaceDetail.jsx'), 'utf8')
+  assert.ok(/imgbox-art/.test(pd), 'PlaceDetail art heroes keep the full-bleed aurora field')
+  const deck = readFileSync(path.join(ROOT, 'app', 'src', 'CalibrationDeck.jsx'), 'utf8')
+  assert.ok(/<CardImg e=\{e\} className="deck-img"/.test(deck), 'deck cards keep the full-bleed CardImg (aurora reads designed at card scale)')
+})
+
+// WS4 item 4 — the photo-less detail hero drops to a designed ~26svh band; a
+// REAL-photo hero keeps the full 42svh (a photo earns the space). Both detail
+// paths share the .detail-hero.imgbox-art form, so one rule covers events +
+// places; the evt-hero View-Transition contract is unchanged.
+test('WS4 detail hero: art-floor hero is a ~26svh band, photo hero keeps 42svh, morph contract intact', () => {
+  const appCss = readFileSync(path.join(ROOT, 'app', 'src', 'App.css'), 'utf8')
+  assert.ok(/\.detail-hero\s*\{[^}]*height:\s*42svh/s.test(appCss), 'the photo hero keeps its full 42svh')
+  assert.ok(/\.detail-hero\.imgbox-art\s*\{[^}]*height:\s*26svh/s.test(appCss), 'the photo-less (art-floor) hero drops to the 26svh band')
+  // both detail paths reach the rule through the same shared class + keep the
+  // same viewTransitionName, so the thumb→hero morph contract is untouched
+  for (const f of ['DetailPage.jsx', 'PlaceDetail.jsx']) {
+    const src = readFileSync(path.join(ROOT, 'app', 'src', f), 'utf8')
+    assert.ok(/'detail-hero' \+ \(heroArt \? ' imgbox-art' : ''\)/.test(src), `${f} art hero wears the shared .imgbox-art class`)
+    assert.ok(/viewTransitionName: 'evt-hero'/.test(src), `${f} hero keeps the evt-hero morph name`)
+  }
+})
+
+// WS4 item 5 — the aurora recipe stays CALM: every hsl() in the .imgbox-art
+// field sits at S ≤ 46% (the old S~50% blobs fought the warm Sunlit Coastal Pop
+// palette and pushed the field toward "broken photo"; the refs carry zero
+// saturated cool tiles). Hue/taste values are Charles's to retune — this only
+// tripwires the saturation creeping back up. Determinism is covered by the 3.8
+// aurora test (seed math untouched).
+test('WS4 aurora calm: the imgbox-art field saturation stays muted (S <= 46%)', () => {
+  const css = readFileSync(path.join(ROOT, 'app', 'src', 'cards.css'), 'utf8')
+  const art = css.match(/\.imgbox-art\s*\{[\s\S]*?\n\}/)
+  assert.ok(art, 'the .imgbox-art recipe exists')
+  const sats = [...art[0].matchAll(/hsl\(var\(--[a-z0-9]+,? ?\d*\)\s+(\d+)%/g)].map((m) => Number(m[1]))
+  assert.ok(sats.length >= 5, `found the field's hsl() saturation channels (got ${sats.length})`)
+  for (const s of sats) assert.ok(s <= 46, `an aurora hsl() saturation crept up to ${s}% (> 46% reads hot against the warm palette)`)
+})
+
 // CARD_LOCK (Phase 0) — the canonical result card. The dense CompactRow + the
 // editorial Row are RETIRED; ONE kind-aware ResultCard (GemRow event / SpotCard
 // place) renders every vertical result feed via RowFeed.
@@ -1586,6 +1703,49 @@ test('3.7P-34 event-detail: planner-first Add-to-day CTA + demoted event link', 
   assert.ok(/aria-modal="true"/.test(dp) && /planSheetRef/.test(dp) && /planBtnRef\.current\?\.focus\(\)/.test(dp), 'the add-to-day sheet is a focus-managed dialog (focus in + return to trigger)')
 })
 
+// WS2 detail-rebuild — the event detail ports PlaceDetail's Stage-R light-title
+// pattern: eyebrow (honest short WHEN) → title → venue sit BELOW the clean hero
+// on light; the over-hero white title + heavy scrim retired; the hero KEEPS the
+// 'evt-hero' viewTransitionName (the card→detail morph contract); the title
+// wraps unbroken garbage-source strings (live-capture defect #1, display half).
+test('WS2 detail-rebuild: light title block below the hero + VT name intact', () => {
+  const dp = readFileSync(path.join(ROOT, 'app', 'src', 'DetailPage.jsx'), 'utf8')
+  assert.ok(!/detail-hero-text/.test(dp), 'the over-hero title block is retired (title lives below the hero)')
+  assert.ok(/detail-eyebrow/.test(dp) && /className="detail-title"/.test(dp) && /detail-venue/.test(dp), 'DetailPage renders eyebrow + title + venue below the hero')
+  assert.ok(dp.indexOf('detail-eyebrow') < dp.indexOf('className="detail-title"'), 'the eyebrow sits above the title')
+  assert.ok(dp.indexOf('detail-body') < dp.indexOf('detail-eyebrow'), 'the title block lives in the light body, not the hero')
+  assert.ok(/viewTransitionName: 'evt-hero'/.test(dp), 'the detail hero still owns the evt-hero VT name (morph contract)')
+  const appCss = readFileSync(path.join(ROOT, 'app', 'src', 'App.css'), 'utf8')
+  assert.ok(/\.detail-title\s*\{[^}]*overflow-wrap:\s*anywhere/.test(appCss), 'a long unbroken title wraps instead of clipping (defect #1)')
+  assert.ok(/\.detail-title\s*\{[^}]*font-weight:\s*800/.test(appCss), 'the title is ink 800 (Stage-R), not the over-hero 900')
+  assert.ok(/\.detail-eyebrow\s*\{[^}]*var\(--accent-ink\)/.test(appCss), 'the eyebrow reads --accent-ink (AA accent text)')
+  assert.ok(/\.detail-hero-grad-ev/.test(appCss) && /detail-hero-grad detail-hero-grad-ev/.test(dp), 'the event hero wears the chrome-only scrim variant')
+  // WS2 2/4 — the hero TIME BADGE: card imgbadge geometry on the sanctioned --cta
+  // fill (D.0-R: the one white-text fill), gated exactly like GemRow's badge
+  // (a real start time, never an ongoing run — no fabricated times).
+  assert.ok(/heroTime = !e\._ongoing \? timeOf\(e\.start\) : ''/.test(dp), 'the hero time badge wears GemRow\'s honesty gate (real start time, not ongoing)')
+  assert.ok(/\{heroTime && <span className="imgbadge detail-timebadge">/.test(dp), 'the badge renders only when a time exists (imgbadge geometry reused)')
+  const detailCss = readFileSync(path.join(ROOT, 'app', 'src', 'detail.css'), 'utf8')
+  assert.ok(/\.detail-timebadge\s*\{[^}]*background:\s*var\(--cta\)/.test(detailCss), 'the badge fill is --cta (the one sanctioned white-text fill, D.0-R)')
+  // WS2 3/4 — "Why this fits" is a titled prose CARD composed ONLY from ratified
+  // true signals (whyReasons + the real event-day forecast via wxMood); zero
+  // reasons → NO card (never fabricated). The bare why-chips fact row retired.
+  assert.ok(/function whyProse/.test(dp) && /whyReasons\(e\)/.test(dp) && /wxMood\(w\)/.test(dp), 'whyProse composes from the ratified whyReasons seam + the real forecast')
+  assert.ok(/if \(!frags\.length\) return null/.test(dp) && /\{whyLine && \(/.test(dp), 'no real reason → no card (the honest-omission gate)')
+  assert.ok(!/className="why-chips"/.test(dp) && !/why-chip\b/.test(dp), 'the bare why-chips fact row is retired (no rendered why-chip)')
+  assert.ok(/Why this fits/.test(dp) && /Icon\.sparkle/.test(dp), 'the card carries the refs\' sparkle + title (engineered Icon.sparkle, not a raw glyph)')
+  // WS2 4/4 — link-out rows replace the event page's 4-button utility strip.
+  // Honesty: every row from real data or absent — hostname sub derived from
+  // e.url; Directions distance ONLY from a real upstream _dist; ICS stays
+  // reachable as the Add-to-calendar row. (.util-row itself survives — it still
+  // serves PlaceDetail.)
+  assert.ok(!/className="util-row"/.test(dp), 'the event detail no longer renders the utility strip')
+  assert.ok(/detail-links/.test(dp) && /className="dlink"/.test(dp), 'the refs\' link-out rows render instead')
+  assert.ok(/e\._dist != null/.test(dp) && /toFixed\(1\)\} mi/.test(dp), 'Directions distance renders ONLY from a real computed _dist (never fabricated)')
+  assert.ok(/new URL\(e\.url\)\.hostname/.test(dp), 'the official-page sub is the link\'s REAL hostname (derived, not invented)')
+  assert.ok(/Add to calendar/.test(dp) && /downloadIcs/.test(dp), 'the ICS affordance survives as the Add-to-calendar row')
+})
+
 // 3.7P-39 — section-label honesty (D6 strict): the "Hidden Gems" shelf must not
 // carry a job/career/hiring fair. NON_GEM_RE gates the shelf (UI + finder); the
 // event still lives in Everything (curation, never hiding).
@@ -1624,11 +1784,13 @@ test('3.7P-23/25 wiring: Home compact sections + clean AA-safe guide tiles', () 
 test('3.7P-23b §N Home: "Your next days" stack + title header + weather line', () => {
   // Stage R nav restructure: the Home dashboard (title + Your-next-days +
   // featured pick) is its own HomeView component now (split out of HotView).
-  // V1 H1/H3: the fabricated-name greeting + heroKicker were retired; the header
-  // is the shared .loc-head-title primitive + the weather sub.
+  // V1 H1/H3 → Cohesion R10: the FABRICATED-NAME greeting + heroKicker stay
+  // retired, but ruling 2026-07-01 #10 restored an honest name-free time-of-day
+  // greeting on the shared .loc-head-title primitive (+ the weather sub).
   const home = readFileSync(path.join(ROOT, 'app', 'src', 'HomeView.jsx'), 'utf8')
   assert.ok(/<NextDays /.test(home), 'HomeView renders the "Your next days" planning stack')
-  assert.ok(/loc-head-title">Home</.test(home) && !/heroKicker/.test(home), 'V1 H1/H3: Home uses the shared .loc-head-title primitive; the greeting + heroKicker are retired')
+  assert.ok(/loc-head-title">\{greeting\}</.test(home) && !/heroKicker/.test(home), 'R10: Home title = the honest time-of-day greeting on the shared primitive; heroKicker stays retired')
+  assert.ok(/Good morning/.test(home) && !/Good (morning|afternoon|evening)['"`]?\s*\+|Good (morning|afternoon|evening), /.test(home), 'R10: the greeting is name-free — no "Good morning, <name>" form and no name concatenation (the H3 honesty bar holds; comments may cite the history)')
   assert.ok(/nowMs/.test(home) && /tonightModel\(/.test(home), 'V1 H3: nowMs is KEPT — it still feeds tonightModel (not just the retired greeting)')
   assert.ok(/wxLine/.test(home), 'the Home header shows the real weather line when loaded')
   const nd = readFileSync(path.join(ROOT, 'app', 'src', 'NextDays.jsx'), 'utf8')
@@ -1821,7 +1983,12 @@ test('Stage R nav: roster is home/hot/locations/calendar/profile, Map is PARKED'
     assert.ok(new RegExp(`id: '${id}'`).test(nav), `VIEWS must include the '${id}' tab`)
   }
   assert.ok(!/\{ id: 'map'/.test(nav), 'Map must NOT be a tab in VIEWS')
-  assert.ok(/id: 'calendar', label: 'Calendar'/.test(nav), "the calendar tab label is 'Calendar' (S1-C1; id stays 'calendar')")
+  // Cohesion WS2: hardware/browser back closes layers instead of exiting the app.
+  // Both halves pinned: layers PUSH marker entries, and popstate runs the REAL
+  // closers (all closes flow through history so depth can never desync).
+  assert.ok(/history\.pushState\(\{ wzDepth/.test(nav) && /addEventListener\('popstate'/.test(nav), 'WS2: open layers push history markers + a popstate handler closes them')
+  assert.ok(/closeDetailNow\(\)\s*[\s\S]{0,40}open--/.test(nav) && /if \(open > target && pageOpenRef\.current\) closePageNow\(\)/.test(nav), 'WS2: popstate closes detail-first then page (the Escape ladder order)')
+  assert.ok(/id: 'calendar', label: 'Plan'/.test(nav), "the 4th tab is labelled 'Plan' (ruling 2026-07-01 #4, reversing S1-C1; id stays 'calendar')")
   // D8: map parked — no opener, no sub-view render, no MapView file.
   assert.ok(!/const openMap = useCallback/.test(nav), 'openMap is removed (map parked, D8)')
   const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
@@ -2550,6 +2717,129 @@ test('V1 B5 coverage (scout re-sim): the cumulative re-deal loop reaches EVERY e
   assert.ok(rem.length > 0 && rem.length <= deckdeal.DECK_SIZE, `<15 unseen → deals the short remainder (${rem.length}), never empty/stuck`)
 })
 
+// ============================================================
+// WS2 DECK PHYSICS (cohesion/deck-physics) — the PURE gesture math, simmed.
+// deckgesture.js is the Node seam (SwipeDeck.jsx re-exports gestureVerdict so
+// consumers keep one import); these sims prove the velocity upgrade PRESERVED
+// every verified distance behavior while fixing the flick-snaps-back tell.
+// ============================================================
+test('WS2 deck physics: gestureVerdict — distance unchanged, flicks commit, direction agreement, one verdict', () => {
+  const g = gesture.gestureVerdict
+  // legacy 2-arg calls (the verified Sprint-P behavior) — byte-identical outcomes
+  assert.equal(g(85, 0), 'right', 'slow drag past SWIPE_X commits right')
+  assert.equal(g(-85, 0), 'left', 'slow drag past -SWIPE_X commits left')
+  assert.equal(g(10, -95), 'up', 'upward travel past SWIPE_Y (dominating dx) commits up')
+  assert.equal(g(79, 0), null, 'under threshold with no velocity snaps back')
+  assert.equal(g(100, -120), 'up', 'up DOMINATES when both would qualify (priority preserved)')
+  assert.equal(g(100, -95), 'right', 'up travel that does not dominate dx falls to horizontal')
+  // slow drags past distance still commit WITH velocity args present
+  assert.equal(g(90, 5, 0.05, 0), 'right', 'slow deliberate drag past distance commits regardless of speed')
+  // the WS2 upgrade: a hard flick UNDER the distance threshold commits
+  assert.equal(g(40, 2, 0.9, 0), 'right', 'a 0.9 px/ms flick at 40px travel commits (was the #1 cheap tell)')
+  assert.equal(g(-40, -2, -0.9, 0.02), 'left', 'flick left commits under distance')
+  assert.equal(g(-4, -40, 0.05, -0.9), 'up', 'flick up commits under distance')
+  // sub-threshold slow releases still snap back
+  assert.equal(g(40, 0, 0.3, 0), null, 'sub-threshold travel + sub-flick speed snaps back')
+  assert.equal(g(-30, -40, -0.2, -0.3), null, 'slow diagonal wobble snaps back')
+  // direction agreement: velocity one way + net travel the other = wobble, never a verdict
+  assert.equal(g(-40, 0, 0.9, 0), null, 'rightward flick velocity with net-LEFT travel must not commit')
+  assert.equal(g(10, 0, 2, 0), null, 'micro-travel under FLICK_TRAVEL can never flick-commit')
+  // an up-flick must DOMINATE horizontally too — fast diagonals go horizontal
+  assert.equal(g(60, -30, 0.9, -0.7), 'right', 'diagonal flick with |vx|>|vy| commits horizontal, not up')
+  // ONE verdict per release, across the whole input space (the invariant's pure half;
+  // the component half — dragRef nulls before commit — is source-locked below)
+  const OUT = [null, 'left', 'right', 'up']
+  for (let dx = -200; dx <= 200; dx += 8)
+    for (let dy = -200; dy <= 200; dy += 8)
+      for (const [vx, vy] of [[0, 0], [0.8, 0], [-0.8, 0], [0, -0.8], [0.5, -0.7]])
+        assert.ok(OUT.includes(g(dx, dy, vx, vy)), `verdict domain holds at ${dx},${dy},${vx},${vy}`)
+})
+
+test('WS2 deck physics: releaseVelocity — trailing window, hold-then-release stall, noise floor', () => {
+  const S = (rows) => rows.map(([t, x, y]) => ({ t, x, y }))
+  // a steady 0.75 px/ms rightward flick reads back exactly
+  const fl = gesture.releaseVelocity(S([[0, 0, 0], [16, 12, 0], [32, 24, 0], [48, 36, 0], [64, 48, 0]]))
+  assert.ok(Math.abs(fl.vx - 0.75) < 0.001 && Math.abs(fl.vy) < 0.001, `steady flick reads 0.75 px/ms (got ${fl.vx})`)
+  // only the trailing SAMPLE_WINDOW counts: early slow travel can't dilute a late flick
+  const late = gesture.releaseVelocity(S([[0, 0, 0], [200, 10, 0], [216, 26, 0], [232, 42, 0]]))
+  assert.ok(late.vx > 0.9, `windowed velocity ignores stale samples (got ${late.vx})`)
+  // drag fast then HOLD then release: must read ~0, not the stale flick
+  const hold = gesture.releaseVelocity(S([[0, 0, 0], [16, 30, 0], [32, 60, 0], [400, 60, 0]]))
+  assert.equal(hold.vx, 0, 'a hold before release kills the stale velocity (no ghost commits)')
+  // degenerate inputs never throw, never invent motion
+  assert.deepEqual(gesture.releaseVelocity(S([[0, 0, 0]])), { vx: 0, vy: 0 })
+  assert.deepEqual(gesture.releaseVelocity([]), { vx: 0, vy: 0 })
+  assert.deepEqual(gesture.releaseVelocity(S([[0, 0, 0], [4, 30, 0]])), { vx: 0, vy: 0 }, 'a sub-frame pair is too noisy to trust')
+})
+
+test('WS2 deck physics: the snap-back spring settles fast, one small overshoot, never diverges', () => {
+  // release just under threshold (79px out), finger still moving OUTWARD at 0.3 px/ms
+  let x = 79
+  let v = 300
+  let overshoot = 0
+  let crossings = 0
+  let prevSign = 1
+  let t = 0
+  while (t < 2000) {
+    const s = gesture.springStep(x, v, 16.7)
+    x = s.x
+    v = s.v
+    t += 16.7
+    const sign = Math.sign(x)
+    if (sign !== 0 && sign !== prevSign) {
+      crossings++
+      prevSign = sign
+    }
+    if (sign === -1) overshoot = Math.max(overshoot, -x)
+    if (Math.abs(x) < gesture.SPRING.restDist && Math.abs(v) < gesture.SPRING.restSpeed) break
+  }
+  assert.ok(t < 700, `spring settles under 700ms (took ${t.toFixed(0)}ms)`)
+  assert.ok(crossings >= 1, 'the settle has a real overshoot (spring feel, not a tween)')
+  assert.ok(overshoot > 0.5 && overshoot < 12, `overshoot is visible but small (got ${overshoot.toFixed(1)}px)`)
+  // dropped frames can't explode the integration (dt clamps at 32ms inside springStep)
+  let x2 = 79
+  let v2 = 0
+  for (let i = 0; i < 60; i++) {
+    const s = gesture.springStep(x2, v2, 200) // pathological 200ms frames
+    x2 = s.x
+    v2 = s.v
+    assert.ok(Math.abs(x2) <= 100, `integration stays bounded on huge frames (|x|=${Math.abs(x2).toFixed(1)})`)
+  }
+})
+
+test('WS2 deck physics: flights inherit momentum within clamps + the SwipeDeck seam holds', () => {
+  assert.equal(gesture.flightMs(0), 400, 'a button commit (speed 0) keeps the shipped 400ms flight')
+  assert.equal(gesture.flightMs(3), 240, 'flights floor at 240ms however hard the flick')
+  assert.equal(gesture.flightMs(99), 240, 'speed clamps before scaling')
+  let prev = gesture.flightMs(0)
+  for (let s = 0.2; s <= 3.01; s += 0.2) {
+    const ms = gesture.flightMs(s)
+    assert.ok(ms <= prev, 'a faster release never yields a slower flight')
+    assert.ok(ms >= 240 && ms <= 400, `flight stays inside [240,400]ms (got ${ms})`)
+    prev = ms
+  }
+  // seam-lock: consumers and sims must share ONE math — SwipeDeck re-exports it,
+  // and the one-verdict-per-gesture nulling survives the velocity rework
+  const sd = readFileSync(path.join(ROOT, 'app', 'src', 'SwipeDeck.jsx'), 'utf8')
+  assert.ok(/from '\.\/deckgesture\.js'/.test(sd), 'SwipeDeck imports the pure math (one source of truth)')
+  assert.ok(/export \{ gestureVerdict \}/.test(sd), 'SwipeDeck still exports gestureVerdict (consumer seam unchanged)')
+  assert.ok(/dragRef\.current = null \/\/ one verdict per gesture/.test(sd), 'one-verdict-per-gesture: dragRef nulls BEFORE the commit')
+})
+
+// WS2 #7 — the decks' keyboard gesture path (JSX can't import into Node, so
+// grep the contract): both consumers wire ←/→/↑ to the SAME deckApi commit
+// paths as the buttons, gated to the rate phase (stale-closure guard) and
+// dropping key repeats (no machine-gun verdicts from a held arrow).
+test('WS2 deck a11y: arrow-key swipes ride the button commit paths on both decks', () => {
+  for (const f of ['CalibrationDeck.jsx', 'LensDeck.jsx']) {
+    const src = readFileSync(path.join(ROOT, 'app', 'src', f), 'utf8')
+    assert.ok(/onKeyDown=\{onDeckKey\}/.test(src), `${f} attaches the arrow-key handler to the deck page root`)
+    assert.ok(/phase !== 'rate' \|\| ev\.repeat/.test(src), `${f} guards the handler to the rate phase and drops key repeats`)
+    for (const [key, api] of [['ArrowLeft', 'left'], ['ArrowRight', 'right'], ['ArrowUp', 'up']])
+      assert.ok(new RegExp(`ev\\.key === '${key}'[\\s\\S]{0,80}deckApi\\.current\\.${api}\\(\\)`).test(src), `${f}: ${key} commits via deckApi.${api}() (the button path)`)
+  }
+})
+
 // W3 wiring — HotView must read curateFeed and ship the See-all escape (the
 // view can't import into Node: JSX + CSS), so grep the contract.
 test('W3 wiring: HotView curates Everything + keeps a See-all escape to all events', () => {
@@ -2580,4 +2870,23 @@ test('W3 never-hide: DetailPage renders rep._series as openable per-instance row
   // the actual open path (every instance, not just the rep, becomes tappable)
   assert.ok(/_series\.map\(/.test(detailSrc), 'DetailPage must map over _series (one row per instance)')
   assert.ok(/onClick=\{\(\)\s*=>\s*onSelect\(inst/.test(detailSrc), 'each instance row must open THAT instance via onSelect(inst, …)')
+})
+
+// ============================================================
+// Cohesion type snap — the re-rhythm tripwires. (1) HALF-PIXEL font sizes are
+// BANNED: the 58-strong 11.5/12.5/13.5/14.5 sprawl was the measured "different
+// hands" tell, and it snapped onto the C4 scale (--t-body/--t-meta/--t-meta-sm/
+// --t-micro). A new n.5px font-size re-opens the wobble — fail loud. (2) The
+// orphan 650/750 weights stay retired (600/700 are the sanctioned steps; 550 is
+// the one deliberate mid-weight, forecast.css). Values only — selectors are free.
+// ============================================================
+test('Cohesion type snap: no half-pixel font sizes, no 650/750 weights (app CSS)', () => {
+  const dir = path.join(ROOT, 'app', 'src')
+  for (const f of readdirSync(dir).filter((f) => f.endsWith('.css'))) {
+    const css = readFileSync(path.join(dir, f), 'utf8')
+    const halves = css.match(/font-size:\s*\d+\.5px/g) || []
+    assert.equal(halves.length, 0, `${f} re-introduces a half-pixel font-size (${halves[0] || ''}) — snap it onto the C4 type scale`)
+    const orphans = css.match(/font-weight:\s*[67]50\b/g) || []
+    assert.equal(orphans.length, 0, `${f} re-introduces an orphan ${orphans[0] || ''} — use 600/700 (550 is the only sanctioned mid-weight)`)
+  }
 })

@@ -31,7 +31,7 @@
 }
 .ldk-counthead {
   margin-left: auto;
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 800;
   color: rgba(255, 255, 255, 0.55);
   font-variant-numeric: tabular-nums;
@@ -42,13 +42,13 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 0 20px 28px;
+  padding: 0 var(--gutter) 28px;
 }
 
 /* ===== kicker — the count-exact header claim ("18 for Friday") ===== */
 .ldk-kicker { padding: 4px 4px 14px; }
 .ldk-kicker-title { font-size: 22px; font-weight: 900; letter-spacing: -0.4px; }
-.ldk-kicker-sub { margin-top: 4px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.55); }
+.ldk-kicker-sub { margin-top: 4px; font-size: var(--t-meta); font-weight: 600; color: rgba(255, 255, 255, 0.55); }
 
 /* ===== stack sizing + the dark card look (mechanics in swipedeck.css) ===== */
 .ldk-stack {
@@ -79,10 +79,10 @@
   position: absolute;
   top: 16px;
   z-index: 5;
-  padding: 6px 12px;
+  padding: 6px var(--sp-sm);
   border-radius: var(--r-sm);
   border: 2.5px solid;
-  font-size: 15px;
+  font-size: var(--t-body);
   font-weight: 900;
   letter-spacing: 0.2px;
   pointer-events: none;
@@ -95,20 +95,38 @@
 .ldk-stamp-open { left: 50%; top: auto; bottom: 18px; transform: translateX(-50%) rotate(-3deg); color: var(--accent-on-dark); border-color: var(--accent-on-dark); opacity: var(--keep, 0); }
 
 /* ===== always-visible button fallbacks (✕ pass · ↗ open · ♥ keep) ===== */
-.ldk-actions { display: flex; justify-content: center; gap: 20px; padding: 18px 0 4px; }
+/* WS2 #9: bottom padding grew 4→26px to make room for the absolute labels */
+.ldk-actions { display: flex; justify-content: center; gap: 20px; padding: 18px 0 26px; }
 .ldk-btn {
+  position: relative; /* WS2 #9: anchors the label below the circle */
   width: 60px;
   height: 60px;
   border-radius: var(--r-circle);
   border: 1.5px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
+  font-family: inherit; /* WS2 #9: the label must speak the app face, not the UA button font */
   font-size: 24px;
   line-height: 1;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+/* WS2 #9: visible verdict labels under the circles (copy DRAFT ⚑ Charles).
+   Absolute so the verified 60px circle geometry is untouched; quiet-label
+   voice (--t-micro / 700 / 0.55-white — the kicker-sub family, deck.css twin). */
+.ldk-btn-label {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: 0.1px;
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+  pointer-events: none;
 }
 .ldk-btn-pass { color: rgba(255, 255, 255, 0.75); }
 .ldk-btn-open { color: var(--accent-on-dark); border-color: rgba(var(--accent-on-dark-rgb), 0.45); }
@@ -117,14 +135,14 @@
 .ldk-btn-keep.is-saved { background: rgba(var(--hot-rgb), 0.18); }
 
 /* ===== end card — honest stopping cue, deliberately NOT a reward beat ===== */
-.ldk-done { text-align: center; padding: 64px 16px 24px; animation: ldkDoneIn 400ms var(--ease-out) both; }
+.ldk-done { text-align: center; padding: 64px var(--sp-md) var(--sp-lg); animation: ldkDoneIn 400ms var(--ease-out) both; }
 @keyframes ldkDoneIn {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: none; }
 }
 .ldk-done-emoji { font-size: 44px; line-height: 1; }
-.ldk-done-title { margin: 16px auto 6px; max-width: 320px; font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #fff; }
-.ldk-done-sub { font-size: 13.5px; font-weight: 600; color: rgba(255, 255, 255, 0.6); }
+.ldk-done-title { margin: var(--sp-md) auto 6px; max-width: 320px; font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #fff; }
+.ldk-done-sub { font-size: var(--t-meta); font-weight: 600; color: rgba(255, 255, 255, 0.6); }
 .ldk-done-btn {
   margin-top: 30px;
   height: 50px;
@@ -134,14 +152,14 @@
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
   font: inherit;
-  font-size: 15px;
+  font-size: var(--t-body);
   font-weight: 800;
   cursor: pointer;
 }
 
 /* ===== defensive empty deal ===== */
-.ldk-empty { padding: 80px 24px; text-align: center; color: rgba(255, 255, 255, 0.7); line-height: 1.6; }
-.ldk-empty-emoji { font-size: 40px; margin-bottom: 12px; }
+.ldk-empty { padding: 80px var(--sp-lg); text-align: center; color: rgba(255, 255, 255, 0.7); line-height: 1.6; }
+.ldk-empty-emoji { font-size: 40px; margin-bottom: var(--sp-sm); }
 
 /* ===== the entry affordance (HotView day-headers + bubble pages) =====
    Fresh: accent-tinted pill. Already dealt this session: the quieter
@@ -150,13 +168,13 @@
   border: 1px solid rgba(var(--accent-rgb), 0.35);
   border-radius: var(--r-pill);
   background: rgba(var(--accent-rgb), 0.08);
-  padding: 6px 12px;
+  padding: 6px var(--sp-sm);
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--t-meta-sm);
   font-weight: 700;
   letter-spacing: 0;
   text-transform: none;
-  color: var(--accent-ink-strong); /* C3 a11y: was --accent (2.07:1). Text sits on the 8% accent PILL FILL, not bare cream — #a54d12 (a hair deeper than --accent-ink) clears AA 4.5:1 on that composited fill over --bg (4.84:1); --accent-ink alone was 4.48:1 there */
+  color: var(--accent-ink-strong); /* C3 a11y: was --accent (2.07:1). Text sits on the 8% accent PILL FILL, not bare cream — #a54d12 (a hair deeper than --accent-ink) clears AA 4.5:1 on that composited fill over --bg (5.01:1 on the ruling-5 #faf6f1); --accent-ink alone was 4.48:1 there */
   cursor: pointer;
   white-space: nowrap;
 }
@@ -173,7 +191,7 @@
   gap: 10px;
 }
 /* bubble-band variant: sits under the tagline, on the tinted band */
-.bub-deckthis { margin-top: 12px; }
+.bub-deckthis { margin-top: var(--sp-sm); }
 
 /* ===== reduced motion ===== */
 @media (prefers-reduced-motion: reduce) {

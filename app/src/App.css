@@ -57,13 +57,13 @@
 /* H-L2: "View full forecast →" text link below NextDays */
 .home-forecast-link {
   display: block;
-  margin: 4px 20px 0;
+  margin: 4px var(--gutter) 0;
   padding: 0;
   border: none;
   background: none;
   color: var(--accent-ink);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 700;
   cursor: pointer;
   text-align: left;
@@ -73,8 +73,8 @@
 .home-picks {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 0 20px;
+  gap: var(--sp-sm); /* Cohesion spacing: matches .gems — one card-stack rhythm (was 10) */
+  padding: 0 var(--gutter);
 }
 /* E-L1: "This weekend" day-group header (Friday / Saturday) */
 .weekend-day { margin-top: 10px; }
@@ -130,8 +130,8 @@
    a light doorway into the dark swipe deck. ===== */
 .tune {
   position: relative;
-  margin: 12px var(--gutter) 0; /* PREMIUM A1 (spacing#2): on the unified 20px body gutter (was 16px) */
-  padding: 15px 16px 16px;
+  margin: var(--sp-sm) var(--gutter) 0; /* PREMIUM A1 (spacing#2): on the unified 20px body gutter (was 16px) */
+  padding: 15px var(--sp-md) var(--sp-md);
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
@@ -151,12 +151,12 @@
   border-radius: var(--r-pill);
   background: transparent;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--t-meta-sm);
   line-height: 1;
   cursor: pointer;
 }
 .tune-x:hover { background: rgba(26, 20, 16, 0.06); }
-.tune-main { display: flex; align-items: flex-start; gap: 12px; }
+.tune-main { display: flex; align-items: flex-start; gap: var(--sp-sm); }
 .tune-copy {
   flex: 1 1 auto;
   min-width: 0;
@@ -174,7 +174,7 @@
 }
 .tune-sub {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--t-meta);
   line-height: 1.4;
   color: var(--muted);
   max-width: 28ch;
@@ -214,8 +214,8 @@
 .empty-cta {
   display: block;
   width: fit-content;
-  margin: 16px auto 0; /* own line, centered in the empty state */
-  padding: 11px 20px;
+  margin: var(--sp-md) auto 0; /* own line, centered in the empty state */
+  padding: 11px var(--gutter);
   border: none;
   border-radius: var(--r-md);
   background: var(--cta);
@@ -251,9 +251,9 @@
   box-shadow: 0 5px 16px rgba(26, 20, 16, 0.14);
 }
 .tune-pc-img { display: block; width: 100%; height: 58px; object-fit: cover; }
-.tune-pc-body { padding: 6px 7px 8px; display: flex; flex-direction: column; gap: 4px; }
+.tune-pc-body { padding: 6px 7px var(--sp-xs); display: flex; flex-direction: column; gap: 4px; }
 .tune-pc-title {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
   line-height: 1.2;
   color: var(--ink);
@@ -277,7 +277,7 @@
   z-index: 3;
   padding: 2px 7px;
   border-radius: var(--r-pill);
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 800;
   white-space: nowrap;
   box-shadow: 0 1px 4px rgba(26, 20, 16, 0.18);
@@ -290,13 +290,13 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin: 12px 16px 0;
-  padding: 8px 14px;
+  margin: var(--sp-sm) var(--sp-md) 0;
+  padding: var(--sp-xs) 14px;
   border: 1px dashed var(--line);
   border-radius: var(--r-pill);
   background: transparent;
   color: var(--muted);
-  font-size: 12.5px;
+  font-size: var(--t-meta);
   font-weight: 700;
   cursor: pointer;
 }
@@ -311,25 +311,27 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 12px;
-  padding: 0 20px;
-  margin-bottom: 14px;
+  gap: var(--sp-sm);
+  padding: 0 var(--gutter);
+  margin-bottom: var(--sp-md); /* Cohesion spacing: section head-to-content rhythm on the scale (was 14) */
 }
 /* Stage 2 sweep: .sec-overline removed — SecHead retired the orange overline-on-top
    (R-H2); the descriptor renders into .sec-sub now, never .sec-overline. */
 .sec-title { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; } /* PREMIUM A1 (typo#3): 22/800 so the section title outranks card titles (some 800) */
 /* quiet inline tally inside a section title ("Everything · 1,342") */
 .sec-count { font-size: 14px; font-weight: 600; color: var(--muted); letter-spacing: 0; }
-.sec-sub { font-size: 13px; color: var(--muted); margin-top: 3px; font-weight: 500; }
+.sec-sub { font-size: var(--t-meta); color: var(--muted); margin-top: 3px; font-weight: 500; }
 .sec-seeall {
   flex: 0 0 auto;
   font-family: inherit;
   font-size: 14px;
   font-weight: 600;
-  color: var(--muted); /* PREMIUM A1 (color#4 accent restraint): the per-section inline
-                          "See all" is navigation chrome (chevron carries the affordance),
-                          not a primary action — demoted off orange. The full-width
-                          never-hide .ev-seeall pill KEEPS accent. */
+  color: var(--accent-ink); /* Cohesion ruling 2026-07-01 #2 (Josh): back to the refs'
+                               orange — every reference sheet paints section See-alls
+                               in brand orange; the A1 muted demotion is reversed.
+                               --accent-ink is the AA-safe orange TEXT ink (4.92:1 on
+                               the ruling-5 bg). The full-width never-hide .ev-seeall
+                               pill keeps its own accent treatment, unchanged. */
   background: none;
   border: none;
   padding: 0 0 2px;
@@ -341,9 +343,9 @@
 .ev-seeall {
   display: block;
   width: calc(100% - 40px);
-  margin: 0 20px 14px;
+  margin: 0 var(--gutter) 14px;
   font-family: inherit;
-  font-size: 13.5px;
+  font-size: var(--t-meta);
   font-weight: 600;
   color: var(--accent-ink);
   background: color-mix(in srgb, var(--accent) 8%, transparent);
@@ -357,12 +359,12 @@
 .ev-seeall-list {
   display: block;
   width: calc(100% - 40px);
-  margin: -6px 20px 14px;
+  margin: -6px var(--gutter) 14px;
   padding: 4px 0;
   background: none;
   border: none;
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 600;
   color: var(--muted);
   cursor: pointer;
@@ -385,7 +387,7 @@
 
 /* ===== shared empty state ===== */
 .empty { padding: 64px 28px; text-align: center; color: var(--muted); line-height: 1.6; }
-.empty-sm { padding: 28px 20px; }
+.empty-sm { padding: 28px var(--gutter); }
 
 /* (D8/A5: the map view + its .map-wrap/.map/.map-note chrome are parked for v1
    along with MapView/leaflet — removed. Place locations route to Google Maps.) */
@@ -410,7 +412,7 @@
 }
 .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; cursor: pointer; font: inherit; color: #a89e92; padding: 2px 0; transition: color var(--dur-fast); } /* PREMIUM A1: inactive icon → warm gray (was cold #aab0ba slate) */
 .tab-ic { transition: transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.5); }
-.tab-label { font-size: 11px; font-weight: 700; letter-spacing: 0.2px; }
+.tab-label { font-size: var(--t-micro); font-weight: 700; letter-spacing: 0.2px; }
 .tab.active { color: var(--accent-ink); }
 .tab.active.tab-hot { color: var(--hot); } /* the Hot tab burns warm when active */
 .tab.active .tab-ic { transform: translateY(-2px) scale(1.1); }
@@ -466,7 +468,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: calc(12px + env(safe-area-inset-top)) var(--gutter) 12px; /* A5: 14→20, header chrome on the body gutter */
+  padding: calc(12px + env(safe-area-inset-top)) var(--gutter) var(--sp-sm); /* A5: 14→20, header chrome on the body gutter */
 }
 .pg-head-title { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.3px; } /* PROFILE_GRIND §0: 21px → 26px subpage-title step */
 .pg-back {
@@ -486,7 +488,7 @@
 .pg-back:active { transform: scale(0.9); }
 .pg-band { padding: calc(12px + env(safe-area-inset-top)) var(--gutter) 20px; } /* A5: 14→20, header chrome on the body gutter */
 .pg-band .pg-back { background: rgba(255, 255, 255, 0.75); }
-.pg-count { margin-top: 4px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.pg-count { margin-top: 4px; font-size: var(--t-meta); font-weight: 600; color: var(--muted); }
 .pg-body { padding: 4px 0 120px; }
 
 /* ===== full-page event detail (z 2000: above tabbar + subpages) ===== */
@@ -522,6 +524,15 @@
 @keyframes detailIn { from { opacity: 0; transform: translate(-50%, 7%); } to { opacity: 1; transform: translate(-50%, 0); } }
 @keyframes detailOut { from { opacity: 1; transform: translate(-50%, 0); } to { opacity: 0; transform: translate(-50%, 5%); } }
 .detail-hero { position: relative; height: 42svh; min-height: 250px; overflow: hidden; }
+/* WS4: a PHOTO-LESS hero (the shared .imgbox-art art-floor form on BOTH detail
+   paths — DetailPage events + PlaceDetail places) drops to ~26svh. A 250px+
+   full-bleed gradient slab was the loudest "missing photo" tell on detail pages;
+   at banner height the aurora field reads as a designed band instead of a failed
+   photo. REAL-photo heroes keep the full 42svh (a photo earns the space). Same
+   element, same evt-hero viewTransitionName contract — the thumb→hero morph is
+   untouched, only the target box is shorter. min-height clears the top chrome
+   (back/share/heart) + a 2-line event title block on the shortest viewports. */
+.detail-hero.imgbox-art { height: 26svh; min-height: 176px; }
 .detail-hero-img {
   position: absolute;
   inset: 0;
@@ -540,6 +551,13 @@
   background:
     radial-gradient(125% 80% at 50% 32%, transparent 56%, rgba(0, 0, 0, 0.26) 100%),
     linear-gradient(180deg, rgba(0, 0, 0, 0.42) 0%, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.34) 62%, rgba(0, 0, 0, 0.82) 100%);
+}
+/* WS2 detail-rebuild: the EVENT hero wears a chrome-only scrim — its title moved
+   below the hero onto light, so the heavy bottom title-wash retired. The top wash
+   keeps back/share/♥ legible over any photo. (PlaceDetail keeps the layered base
+   above — its bottom-right photo credit still needs the bottom wash; unify later.) */
+.detail-hero-grad-ev {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0) 30%);
 }
 .detail-back {
   position: absolute;
@@ -560,9 +578,25 @@
   transition: transform 0.1s;
 }
 .detail-back:active { transform: scale(0.9); }
-.detail-hero-text { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 20px 18px; color: #fff; z-index: 1; }
-.detail-chip { display: inline-block; margin-bottom: 11px; }
-.detail-title { margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -0.7px; line-height: 1.06; text-shadow: 0 2px 22px rgba(0, 0, 0, 0.45); }
+/* WS2 detail-rebuild (Stage-R port): the event title block sits BELOW the clean
+   hero on light — eyebrow (honest short WHEN, accent ink, sentence-case) → title
+   (ink 800, NOT the old over-hero white 900) → venue → identity chips. The old
+   .detail-hero-text / .detail-chip over-hero trio retired with the heavy scrim.
+   overflow-wrap:anywhere — a garbled-source unbroken title WRAPS instead of
+   clipping off the viewport edge (live-capture defect #1, display half). */
+.detail-head { margin-bottom: 6px; }
+.detail-eyebrow { font-size: 14px; font-weight: 700; color: var(--accent-ink); }
+.detail-title {
+  margin: 6px 0 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.detail-venue { margin-top: 6px; font-size: var(--t-body); font-weight: 600; color: var(--muted); }
+.detail-chips { display: flex; flex-wrap: wrap; gap: var(--sp-xs); margin-top: var(--sp-sm); }
 /* 3.7P-2: photo credit (CC-BY/BY-SA attribution duty) — tiny, bottom-right of a
    real-photo hero, above the title z-layer; sits below the title text in the
    gradient. Art-floor heroes carry no credit. */
@@ -582,7 +616,7 @@
 .hero-credit a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 /* 3.7P-22: the CTA is now a flex sibling OUTSIDE .detail-scroll (a true bottom
    bar), so the body no longer reserves CTA clearance — just normal breathing room. */
-.detail-body { padding: 16px 20px 24px; }
+.detail-body { padding: var(--sp-md) var(--gutter) var(--sp-lg); }
 .detail-sp { display: block; margin-bottom: 10px; }
 .detail-rows { display: flex; flex-direction: column; }
 .d-row { display: flex; gap: 13px; align-items: flex-start; padding: 13px 0; border-bottom: 1px solid var(--line); }
@@ -590,9 +624,9 @@
 /* 3.7P-1: stroke-SVG fact-row icons (calendar/pin/tag/clock) — muted, calm,
    the gold stays reserved for CTAs. Identity glyphs (weather, 🔥) stay emoji. */
 .d-ic svg { width: 18px; height: 18px; display: block; margin: 2px auto 0; color: var(--muted); }
-.d-k { font-size: 11px; font-weight: 800; letter-spacing: 0.2px; color: var(--muted); }
-.d-v { font-size: 15px; font-weight: 600; margin-top: 2px; line-height: 1.35; }
-.detail-desc { margin: 18px 0 0; font-size: 15px; line-height: 1.6; color: #4a423a; }
+.d-k { font-size: var(--eyebrow-size); font-weight: var(--eyebrow-weight); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--muted); } /* Cohesion ruling #7: metadata eyebrow, full A6 contract (UPPERCASE) */
+.d-v { font-size: var(--t-body); font-weight: 600; margin-top: 2px; line-height: 1.35; }
+.detail-desc { margin: 18px 0 0; font-size: var(--t-body); line-height: 1.6; color: #4a423a; }
 /* Stage 2 sweep: .detail-cta (+ :active, + :hover .cta-arr) removed — the detail
    bottom CTA is .loc-plan-cta / .detail-actionbar-cta now (locations.css). The
    .cta-arr arrow stays — it's still used in the detail CTA markup. */
@@ -621,8 +655,8 @@
    I1/I5 reward moment: the card wears the reward accent — violet overline,
    hairline + a faint corner wash. Entirely static: calm, nothing animates. ===== */
 .recap {
-  margin: 26px 20px 10px;
-  padding: 20px 18px 16px;
+  margin: 26px var(--gutter) 10px;
+  padding: 20px 18px var(--sp-md);
   border-radius: var(--r-lg);
   border: 1px solid rgba(var(--reward-rgb), 0.22);
   background:
@@ -631,14 +665,14 @@
   box-shadow: 0 2px 14px rgba(var(--reward-rgb), 0.08);
 }
 .recap-over {
-  font-size: 11px;
+  font-size: var(--eyebrow-size);
   font-weight: 700;
   letter-spacing: 0.2px;
   color: var(--reward);
 }
 .recap-title { margin-top: 4px; font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
-.recap-rows { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
-.recap-nudge { margin-top: 16px; text-align: center; font-size: 13px; font-weight: 600; color: var(--muted); }
+.recap-rows { display: flex; flex-direction: column; gap: var(--sp-sm); margin-top: 14px; } /* Cohesion spacing: card-stack rhythm (was 10) */
+.recap-nudge { margin-top: var(--sp-md); text-align: center; font-size: var(--t-meta); font-weight: 600; color: var(--muted); }
 
 /* ===== boot (gated 300ms in JS; topmost chrome) ===== */
 .boot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--bg); color: var(--muted); font-weight: 700; z-index: 2100; }
@@ -660,7 +694,7 @@
   border-radius: var(--r-pill);
   background: rgba(var(--ink-rgb), 0.82);
   color: #fff;
-  font-size: 12px;
+  font-size: var(--t-meta-sm);
   font-weight: 600;
   line-height: 1.3;
   backdrop-filter: blur(6px);

@@ -9,7 +9,7 @@
 
 ---
 
-## ▶ CURRENT ROAD TO V1 (2026-07-01 — Fable 5 takeover; Stage C in flight)
+## ▶ CURRENT ROAD TO V1 (2026-07-02 — Cohesion Pass complete, at PR)
 
 > **Takeover note (2026-07-01):** Fable 5 resumed leadership (single-session driver's seat — see §4).
 > Josh's mandate: the idea phase is over; **cohesion over punch lists** — the exit test for all
@@ -58,15 +58,20 @@ see §5 rulings 2026-07-01.)*
 [V1_PUNCHLIST.md](V1_PUNCHLIST.md) Batches 1–5 (Josh+Charles 06-28 review) incl. Tinder-as-primary +
 the cumulative seen-set deck-coverage fix (`f69e51e` — the never-hide reachability proof).
 
-### Stage C — Deep Sweep ◀ IN PROGRESS *(was Stage 2)* — dead-code / dedup / perf / bundle / a11y / final token + card-variant consolidation.
-Branch `stage-c/deep-sweep`. C1 (dead code) · C2 (perf) · C3 (a11y) committed + independently
-scout-verified 2026-07-01; C4 (inert token consolidation) + C5 (dedup) remain. **Granular
-plan-of-record = [STAGE_C.md](STAGE_C.md)** (recovered from the 06-30 kickoff — execution plans now
-live in repo docs, never only in session prompts). Exits as ONE Stage-C PR.
+### Stage C — Deep Sweep ✅ DONE (merged via PR #6, 2026-07-02) *(was Stage 2)*
+Dead-code / perf / a11y / inert token consolidation / dedup — full history + checkpoint record in
+**[STAGE_C.md](STAGE_C.md)** (the recovered kickoff; execution plans now live in repo docs, never
+only in session prompts).
 
-### Stage C.5 — COHESION PASS *(new 2026-07-01 — the old Stage 2.5 "Lamination," re-scoped under the takeover mandate)*
+### Stage C.5 — COHESION PASS ◀ IN PROGRESS *(branch `cohesion/pass`; the old Stage 2.5 "Lamination," re-scoped under the takeover mandate)*
 The premium gap, attacked as **four whole-cloth passes** instead of per-screen punch lists. Exit
-test: *a stranger believes one team designed this* — Josh's eyeball closes it. Workstreams, in order:
+test: *a stranger believes one team designed this* — Josh's eyeball closes it.
+**Live status (2026-07-02): ALL FOUR WORKSTREAMS MERGED** — the §5 ruling batch · back-button
+integration · deck physics · Aurora re-derivation · DetailPage rebuild · the WS1 finder overhaul +
+FRESH 1,665-event snapshot · the WS3 visual-language sweep (type/spacing/eyebrows/accent/emoji/
+shimmer). Verified by a 5-lens independent REFUTE pass (contracts+honesty · live behavior · data ·
+regression seams · doc truth); its findings fixed in-branch. At PR — Josh's eyeball closes the
+stage. Workstreams as planned:
 1. **Data quality** — fresh finder run (dissolves the 21-day-stale snapshot = ~73% of the visible rot);
    venue canonicalization BEFORE the dedup merge; image source-ranking (official artwork > aggregator
    banners); the category-rule patches (comedy/fireworks/yoga); title wrap/clamp on card + hero surfaces.
@@ -81,7 +86,7 @@ test: *a stranger believes one team designed this* — Josh's eyeball closes it.
    (count-preserving); the promised `icon` text-forward row form for photoless places; shorter photoless
    detail heroes; warmer hue bands; a targeted honest-photo pass on the ~30–60 marquee top-rail places.
 
-### Stage D — Multi-City *(was Stage 3)* — per-city event/place data (new source modules) · a city switcher · per-city copy/theming. The big pre-ship expansion. **Imagery already pre-banked (2026-06-26 multi-city lock):** the finder's region is now ONE city config (no longer a hard-coded Tampa bbox) and the Mapillary + Aurora pipeline runs for any city with all honesty guards baked in — so Stage D's remaining work is the data sources + switcher + theming, NOT the imagery.
+### Stage D — Multi-City *(was Stage 3)* — **granular plan-of-record = [STAGE_D.md](STAGE_D.md)** (city #2 = SF & East Bay, reconfirmed ruling #9; one open ⚑D-DEP deployment-model call) — per-city event/place data (new source modules) · a city switcher · per-city copy/theming. The big pre-ship expansion. **Imagery already pre-banked (2026-06-26 multi-city lock):** the finder's region is now ONE city config (no longer a hard-coded Tampa bbox) and the Mapillary + Aurora pipeline runs for any city with all honesty guards baked in — so Stage D's remaining work is the data sources + switcher + theming, NOT the imagery.
 
 ### Stage E — V1 Ship *(was Stage 4)* — holistic pass (full app vs all refs + the premium bar) · final contract/honesty audit (post-bending) · perf/build hardening → ship. Then v2 (the parked map, etc.).
 
@@ -134,10 +139,10 @@ These are load-bearing and survive every stage. Any change requires explicit Jos
      _Shipped 2026-06-30 (Stage B Batch 5): the Events see-all relocated to the deck (openDeck {kind:'events'}) as the primary find-and-tune door, with the in-feed "See all N" expand RETAINED as a binding fallback (Josh's call). The deck re-deal loop was then HARDENED after the scout's coverage sim caught a shallow top-~45 carousel (FIFO-30 over a deterministic sort): it now uses a CUMULATIVE in-memory seen-set (deckdeal.js `nextEventsBatch`) that walks the whole catalog forward (~⌈N/15⌉ deals) before wrapping, with a Node coverage test proving every event is served. All three binding reachability conditions hold: cumulative re-deal walk · in-feed fallback · curate.js count-preserving full/fullEventCount proof._
 2. **D.0-R primary-button system.** One shared treatment = **`--cta #bb5719` fill + white text**
    (white-on-`#bb5719` ≈ 4.68:1, passes AA). White is **forbidden** on the light gold `--accent #ff8c42`.
-   `--accent-ink #b35418` for accent-text-on-light.
+   `--accent-ink #ad5116` for accent-text-on-light (PREMIUM A1 deepened it off the original `#b35418`).
 3. **"Sunlit Coastal Pop" tokens (current values — amended 2026-07-01, Josh ack'd; the old line had
-   drifted stale on 4 counts):** `--bg #f6f2ec` *(A1 warm-step; per Josh ruling 2026-07-01 this
-   lightens toward the refs' `#fcfbf9`/`#faf6f1` band in the Cohesion Pass — AA re-verified safe)* ·
+   drifted stale on 4 counts):** `--bg #faf6f1` *(ruling 2026-07-01 #5, SHIPPED in the Cohesion Pass —
+   the refs' airy band; one more step to `#fcfbf9` stays on the dial; AA re-verified, every ink gains)* ·
    `--card #fefdfb` · `--ink #1a1410` · `--muted #6b6157` · `--line #ede8e2` · `--accent #ff8c42` ·
    `--accent-2 #ffa754` · `--cta #bb5719` *(ruling: NO re-chroma — ratified by the late reference
    sheets' own swatch strip)* · `--accent-ink #ad5116` · `--hot #ff3b5f` · `--reward #d966f5` ·

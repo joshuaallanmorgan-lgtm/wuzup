@@ -746,6 +746,152 @@ export const Icon = {
         strokeLinecap: 'round',
       })
     ),
+  // Cohesion WS3 (§9 emoji-out-of-chrome): the minimal WEATHER set — the wx
+  // emoji stays the DATA key (weather.js WMO map); these are the engineered
+  // faces chrome renders (NextDays' tinted disc). Same 2.1-stroke voice.
+  // ⚑ Charles: all five weather paths + moon/dots/burst/sprout/shuffle below
+  // are NEW drawings — retune shapes freely, keep the 2.1/round voice.
+  sun: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('circle', { cx: 12, cy: 12, r: 4.1, fill: 'none', stroke: 'currentColor', strokeWidth: 2.1 }),
+      h('path', {
+        d: 'M12 2.6v2.5M12 18.9v2.5M2.6 12h2.5M18.9 12h2.5M5.2 5.2l1.8 1.8M17 17l1.8 1.8M18.8 5.2 17 7M7 17l-1.8 1.8',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinecap: 'round',
+      })
+    ),
+  cloud: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('path', {
+        d: 'M7 18.5a4.2 4.2 0 0 1-.6-8.36 5.4 5.4 0 0 1 10.6 1.06 3.65 3.65 0 0 1-.75 7.3H7Z',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinejoin: 'round',
+        strokeLinecap: 'round',
+      })
+    ),
+  rain: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('path', {
+        d: 'M7 15.5a4.1 4.1 0 0 1-.6-8.16 5.3 5.3 0 0 1 10.4 1.04 3.55 3.55 0 0 1-.73 7.12H7Z',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinejoin: 'round',
+        strokeLinecap: 'round',
+      }),
+      h('path', {
+        d: 'M8.4 18.4l-.8 2.4M12.4 18.4l-.8 2.4M16.4 18.4l-.8 2.4',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinecap: 'round',
+      })
+    ),
+  storm: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('path', {
+        d: 'M7 15a4.1 4.1 0 0 1-.6-8.16 5.3 5.3 0 0 1 10.4 1.04A3.55 3.55 0 0 1 16.07 15H7Z',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinejoin: 'round',
+        strokeLinecap: 'round',
+      }),
+      h('path', {
+        d: 'M12.8 15.4 10.6 19h2.6l-1.6 3',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinejoin: 'round',
+        strokeLinecap: 'round',
+      })
+    ),
+  // a crescent for the rest/quiet-day language (the calendar's CSS crescent,
+  // as a glyph — was the 🌙 text emoji)
+  moon: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('path', {
+        d: 'M19.6 14.2A7.9 7.9 0 0 1 9.8 4.4a7.9 7.9 0 1 0 9.8 9.8Z',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinejoin: 'round',
+        strokeLinecap: 'round',
+      })
+    ),
+  // the ⋯ options trigger (kebab) — small filled dots, same voice as trail's
+  dots: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('circle', { cx: 5, cy: 12, r: 1.8, fill: 'currentColor' }),
+      h('circle', { cx: 12, cy: 12, r: 1.8, fill: 'currentColor' }),
+      h('circle', { cx: 19, cy: 12, r: 1.8, fill: 'currentColor' })
+    ),
+  // a celebration burst (was 🎉 on "I went" / "Weekends are your nights")
+  burst: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('path', {
+        d: 'M12 4.4v3M17.4 6.6l-2.2 2.2M19.6 12h-3M17.4 17.4l-2.2-2.2M12 19.6v-3M6.6 17.4l2.2-2.2M4.4 12h3M6.6 6.6l2.2 2.2',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinecap: 'round',
+      }),
+      h('circle', { cx: 12, cy: 12, r: 1.5, fill: 'currentColor' })
+    ),
+  // a sprout for the fresh-start settings beat (was 🌱)
+  sprout: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('path', {
+        d: 'M12 20.5v-7M12 13.5c0-3.6 2.4-6 6.4-6 0 3.6-2.4 6-6.4 6ZM12 11.5c0-3-2-5-5.4-5 0 3 2 5 5.4 5Z',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinejoin: 'round',
+        strokeLinecap: 'round',
+      })
+    ),
+  // crossing shuffle arrows for the "out whenever" mood (was 🤷)
+  shuffle: (p) =>
+    h(
+      'svg',
+      { viewBox: '0 0 24 24', ...p },
+      h('path', {
+        d: 'M3.5 7h3.4c5.4 0 8.2 10 13.6 10M3.5 17h3.4c1.9 0 3.4-1.2 4.7-2.8M20.5 7h-3.4c-1.9 0-3.5 1.3-4.8 3',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinecap: 'round',
+        strokeLinejoin: 'round',
+      }),
+      h('path', {
+        d: 'm18 4.6 2.5 2.4L18 9.4M18 14.6l2.5 2.4L18 19.4',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2.1,
+        strokeLinecap: 'round',
+        strokeLinejoin: 'round',
+      })
+    ),
 }
 
 // --- "Added by you" events (Add Event MVP, Sprint C) ---

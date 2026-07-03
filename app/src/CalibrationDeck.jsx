@@ -44,7 +44,7 @@
 // and an unrated close loses nothing.
 //
 // ALL COPY IS DRAFT for Charles (inventory in the sprint report).
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { categoryById } from './categories.js'
 import { Icon, dayLoose, keyOf, timeOf } from './lib.js'
 import { lsGet, lsSet } from './storage.js'
@@ -115,7 +115,7 @@ export function PlaceDeckFace({ e }) {
           <span aria-hidden>{artEmoji(e)}</span> {placeTypeLabel(e)}
         </span>
         <div className="deck-title">{e.title}</div>
-        {e.venue && <div className="deck-meta">📍 {e.venue}</div>}
+        {e.venue && <div className="deck-meta"><Icon.pin className="meta-ic" aria-hidden /> {e.venue}</div>}
         {chips.length > 0 && (
           <div className="deck-extra deck-amen">
             {chips.map((c, i) => {
@@ -214,6 +214,26 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
   // SwipeDeck unmounts with the stack, clearing its own pending done timer.
   const finishEarly = () => setPhase('done')
 
+  // WS2 #7: keyboard swipes — ←/→/↑ mirror the buttons through the SAME
+  // commit paths (deckApi). Attached to the page root so it hears keys
+  // bubbling from the focused buttons; the z-2000 detail layer is a SIBLING
+  // of the subpage, so an open detail never leaks arrows into the deck.
+  // Guards: rate phase only (deckApi closures go stale once SwipeDeck
+  // unmounts) and no ev.repeat (a held key must not machine-gun verdicts).
+  const onDeckKey = (ev) => {
+    if (phase !== 'rate' || ev.repeat || !deckApi.current) return
+    if (ev.key === 'ArrowLeft') { ev.preventDefault(); deckApi.current.left() }
+    else if (ev.key === 'ArrowRight') { ev.preventDefault(); deckApi.current.right() }
+    else if (ev.key === 'ArrowUp') { ev.preventDefault(); deckApi.current.up() }
+  }
+  // Cohesion REFUTE fix: onDeckKey only hears keys bubbling from a FOCUSED
+  // descendant — nothing focused the deck on open, so arrow swipes were inert
+  // until the user happened to Tab to a button. Focus the page root itself on
+  // mount (tabIndex -1 keeps it out of the tab order; buttons Tab as before;
+  // programmatic focus paints no ring — :focus-visible only).
+  const deckRootRef = useRef(null)
+  useEffect(() => { deckRootRef.current?.focus({ preventScroll: true }) }, [])
+
   const top = deck[rated]
   const saved = top ? has(top) : false
 
@@ -265,7 +285,7 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
   }
 
   return (
-    <div className="pg deck">
+    <div className="pg deck" ref={deckRootRef} tabIndex={-1} onKeyDown={onDeckKey}>
       <header className="pg-head deck-head">
         <button className="pg-back" onClick={onClose} aria-label="Close">
           <Icon.chevron />
@@ -324,6 +344,10 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
               onDone={() => setPhase('done')}
             />
 
+            {/* WS2 #9: visible labels under the circles (glyph-only buttons made
+                first-time users hesitate). Copy DRAFT ⚑ Charles; label text is
+                contained in each aria-label (WCAG 2.5.3 label-in-name). Button
+                ORDER untouched — reordering is a Josh call. */}
             <div className="deck-actions">
               <button
                 className="deck-btn deck-btn-no pressable"
@@ -331,6 +355,7 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
                 aria-label="Not for me"
               >
                 ✕
+                <span className="deck-btn-label">Not for me</span>
               </button>
               <button
                 className={'deck-btn deck-btn-save pressable' + (saved ? ' is-saved' : '')}
@@ -339,6 +364,7 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
               >
                 {/* D6: the engineered stroke heart (matches SaveHeart app-wide), not a raw ♥ */}
                 {saved ? <Icon.heartFill className="deck-btn-ic" aria-hidden /> : <Icon.heart className="deck-btn-ic" aria-hidden />}
+                <span className="deck-btn-label">Save</span>
               </button>
               <button
                 className="deck-btn deck-btn-yes pressable"
@@ -346,6 +372,7 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
                 aria-label="Into it"
               >
                 ✓
+                <span className="deck-btn-label">Into it</span>
               </button>
             </div>
 

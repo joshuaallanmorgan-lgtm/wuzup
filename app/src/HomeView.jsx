@@ -56,12 +56,19 @@ export default function HomeView({ events, anchors, wx }) {
     ? `${CITY.name} · ${todayWx.hi != null ? todayWx.hi + '° · ' : ''}${CONDITION[todayWx.emoji] || 'Forecast'}`
     : CITY.name
 
+  // Cohesion ruling 2026-07-01 #10 (Josh): the refs' warm greeting returns,
+  // NAME-FREE (H3's honesty objection was the fabricated "Alex", not warmth
+  // itself — real time-of-day, no invented identity). Tracks nowMs, so it
+  // rolls over with the tab-return/10-min tick. Copy DRAFT ⚑ Charles.
+  const hour = new Date(nowMs).getHours()
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+
   return (
     <div className="hot-scroll">
       <header className="home-head">
-        {/* H1/H3: the title is the shared .loc-head primitive (32/800), the weather
-            line its muted sub — the greeting was retired (no fabricated name). */}
-        <h1 className="loc-head-title">Home</h1>
+        {/* H1: the title stays on the shared .loc-head primitive (32/800), the
+            weather line its muted sub. */}
+        <h1 className="loc-head-title">{greeting}</h1>
         <div className="loc-head-sub">{wxLine}</div>
         {/* H-L1: bell → notifications (replaces the search disc) */}
         <button className="home-search pressable" onClick={openNotifications} aria-label="Notifications">

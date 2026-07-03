@@ -19,3 +19,18 @@ export function imageMode(e) {
   if (e && typeof e.image === 'string' && e.image) return 'photo'
   return e?.kind === 'place' ? 'icon' : 'text'
 }
+
+// WS4 (cohesion/aurora): the count-preserving "photos first" order the Spots
+// rails/sections were always MEANT to have. imageMode has never returned 'none',
+// so the old `imageMode(p) !== 'none'` rail filter was a tautology (always true)
+// and "closest with real photos first" (SP-L3 / SPOTS P1b) silently never
+// happened. This is the intended predicate as a STABLE PARTITION: photo-bearing
+// items lead, art-floor items follow in their incoming order, nothing is dropped
+// (never-hide: reorder only) — so a thin photo supply still fills every rail
+// from the general pool. Pure + Node-safe (smoke harness imports it).
+export function photoFirst(list) {
+  const photos = []
+  const rest = []
+  for (const e of list || []) (imageMode(e) === 'photo' ? photos : rest).push(e)
+  return photos.concat(rest)
+}

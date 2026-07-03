@@ -8,7 +8,7 @@
   top: calc(16px + env(safe-area-inset-top));
   right: 16px;
   padding: 5px 10px;
-  font-size: 12px;
+  font-size: var(--t-meta-sm);
   z-index: 2;
 }
 /* R-HD2: with the share disc now in the hero (back · share · save · badge), the
@@ -16,37 +16,68 @@
    the saves.css `.detail-hero .save-btn ~ .heat-badge { right: 64px }` regardless
    of stylesheet order. (16 heart + 38 + 8 → share@62; +40 + 8 → badge@110.) */
 .detail-hero .detail-share ~ .save-btn ~ .heat-badge { right: 110px; }
+/* WS2 detail-rebuild: the hero TIME BADGE (refs, event-detail screen) — the card's
+   .imgbadge geometry scaled one step up, on the sanctioned --cta fill (the ONE
+   white-text primary fill, D.0-R; the refs' light-orange badge fails AA). Solid
+   fill → no backdrop blur. Rendered only from a real start time (GemRow's gate). */
+.detail-timebadge {
+  left: 16px;
+  bottom: 16px;
+  padding: 6px 11px;
+  font-size: var(--t-meta);
+  background: var(--cta);
+  backdrop-filter: none;
+  z-index: 2;
+}
+/* WS2 detail-rebuild: the category chip moved off the hero into the light title
+   block's .detail-chips row (App.css), which owns the spacing — margins retired. */
 .detail-catchip {
   display: inline-block;
-  margin: 0 0 11px 8px;
   text-transform: capitalize;
   background: hsl(var(--ch, 220) 70% 93%);
   color: hsl(var(--ch, 220) 55% 27%);
 }
 
-/* ===== "Why this is here" (Sprint G3): quiet true-reason chips inside the
-   trust row — absorbed the old standalone gem/staff d-flag banners and the
-   Buzz row into one honest block ===== */
-.why-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 5px;
+/* ===== "Why this fits" (WS2 detail-rebuild, was G3's why-chips row): the refs'
+   titled prose card. Soft accent-tinted card; the sparkle is the engineered
+   Icon.sparkle in accent-ink (a mark on a real recommendation); the title reads
+   ink (accent restraint, DESIGN_SYSTEM §1). The card renders ONLY when a true
+   reason exists — absence IS the honest state, so no empty shell. ===== */
+.detail-why {
+  margin-top: 18px;
+  padding: 14px var(--sp-md);
+  border-radius: var(--r-lg);
+  background: rgba(var(--accent-rgb), 0.08);
 }
-/* A6: now built on the .chip / .chip-accent primitive; this keeps only the
-   wrap override so multi-word "why" reasons can break instead of nowrapping. */
-.why-chip {
-  white-space: normal;
-  line-height: 1.4;
+.detail-why-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.1px;
+  color: var(--ink);
+}
+.detail-why-ic {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  color: var(--accent-ink);
+}
+.detail-why-text {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #4a423a; /* the detail body-prose ink (.detail-desc) */
 }
 
 /* ===== editorial info rows: hairline dividers, 11px uppercase labels,
    a touch more air than the v1 rows ===== */
 .detail .d-row { padding: 14px 0; }
 .detail .d-k { letter-spacing: 0.8px; }
-.d-sub { font-size: 13px; color: var(--muted); margin-top: 3px; line-height: 1.45; }
+.d-sub { font-size: var(--t-meta); color: var(--muted); margin-top: 3px; line-height: 1.45; }
 a.d-row { text-decoration: none; color: inherit; }
-.d-ext { margin-left: 6px; font-size: 12px; font-weight: 800; color: var(--muted); } /* PREMIUM A1 (accent restraint): the external-link ↗ marker off orange */
+.d-ext { margin-left: 6px; font-size: var(--t-meta-sm); font-weight: 800; color: var(--muted); } /* PREMIUM A1 (accent restraint): the external-link ↗ marker off orange */
 
 /* D8 (A5): the detail mini-map (non-interactive Leaflet) is parked for v1 — its
    styles are retired along with MapView. Directions (Google Maps) carries location. */
@@ -61,14 +92,14 @@ a.d-row { text-decoration: none; color: inherit; }
    list caps its height and scrolls so an 88-date program stays tidy without
    ever hiding a date. Quiet, hairline, the detail page's text-weight voice. */
 .detail-dates { margin-top: 26px; }
-.detail-dates .d-k { margin-bottom: 8px; }
+.detail-dates .d-k { margin-bottom: var(--sp-xs); }
 .dd-count {
   margin-left: 6px;
   padding: 1px 7px;
   border-radius: var(--r-pill);
   background: rgba(var(--accent-rgb), 0.1);
   color: var(--accent-ink);
-  font-size: 11px;
+  font-size: var(--t-micro);
   font-weight: 800;
   letter-spacing: 0;
 }
@@ -87,7 +118,7 @@ a.d-row { text-decoration: none; color: inherit; }
   align-items: baseline;
   gap: 10px;
   width: 100%;
-  padding: 10px 12px;
+  padding: 10px var(--sp-sm);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   background: var(--card);
@@ -96,11 +127,11 @@ a.d-row { text-decoration: none; color: inherit; }
   color: var(--ink);
   cursor: pointer;
 }
-.dd-when { flex: 0 0 auto; font-size: 13px; font-weight: 700; }
+.dd-when { flex: 0 0 auto; font-size: var(--t-meta); font-weight: 700; }
 .dd-where {
   flex: 1;
   min-width: 0;
-  font-size: 12px;
+  font-size: var(--t-meta-sm);
   font-weight: 500;
   color: var(--muted);
   white-space: nowrap;
@@ -120,8 +151,63 @@ a.d-row { text-decoration: none; color: inherit; }
   background: rgba(var(--accent-rgb), 0.05);
 }
 
+/* ===== WS2 detail-rebuild: LINK-OUT ROWS (refs' event detail) — the event
+   page's 4-button utility strip retired for one bordered group of full-width
+   tappable rows: icon disc · label (+ the link's real-hostname sub) · trailing
+   ↗ (external) / › (action). Rows render from real data only or not at all. ===== */
+.detail-links {
+  margin-top: 26px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--card);
+  overflow: hidden;
+}
+.dlink {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  width: 100%;
+  padding: var(--sp-sm) 14px;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  text-decoration: none;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background var(--dur-micro);
+}
+.dlink:last-child { border-bottom: none; }
+.dlink:active { background: rgba(26, 20, 16, 0.04); }
+.dlink-ic {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-circle);
+  background: var(--chip-fill);
+  color: var(--ink);
+}
+.dlink-ic svg { width: 17px; height: 17px; }
+.dlink-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.dlink-label { font-size: 14px; font-weight: 700; }
+.dlink-sub {
+  font-size: var(--t-meta-sm);
+  font-weight: 500;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dlink-go { flex: 0 0 auto; font-size: 16px; font-weight: 800; color: var(--muted); }
+
 /* ===== utility row (quiet, bordered, 44px — Editorial) ===== */
-/* 3.7P-34: wraps when a 4th (Tickets / Event page) secondary action is present */
+/* WS2 detail-rebuild: the EVENT detail moved to .detail-links above; this strip
+   now serves PlaceDetail only (Directions / Share) — unify in a later pass. */
 .util-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
 .util-btn {
   flex: 1 1 88px;
@@ -135,7 +221,7 @@ a.d-row { text-decoration: none; color: inherit; }
   background: var(--card);
   color: var(--ink);
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 700;
   text-decoration: none;
   cursor: pointer;
@@ -147,8 +233,8 @@ a.d-row { text-decoration: none; color: inherit; }
 .util-btn svg { width: 16px; height: 16px; flex: 0 0 auto; }
 
 /* ===== More like this rail (reuses .carousel/.tcard from cards.css) ===== */
-.detail-rail { margin: 34px -20px 0; } /* full-bleed back out of .detail-body's 20px gutters */
-.detail-rail .sec-head { margin-bottom: 12px; }
+.detail-rail { margin: 34px calc(-1 * var(--gutter)) 0; } /* full-bleed back out of .detail-body gutters (stays linked to --gutter) */
+.detail-rail .sec-head { margin-bottom: var(--sp-sm); }
 
 /* ===== I4 + FB-15: demoted provenance footer ("Found via …" / "Sourced from
    …") — internal info, not decision info; smallest text on the page, centered.
@@ -157,7 +243,7 @@ a.d-row { text-decoration: none; color: inherit; }
 .detail-via {
   margin-top: 30px;
   text-align: center;
-  font-size: 12px;
+  font-size: var(--t-meta-sm);
   font-weight: 600;
   color: var(--muted);
   opacity: 0.85;
@@ -196,11 +282,11 @@ a.d-row { text-decoration: none; color: inherit; }
   bottom: calc(98px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
   z-index: 2030;
-  padding: 9px 16px;
+  padding: 9px var(--sp-md);
   border-radius: var(--r-pill);
   background: rgba(var(--ink-rgb), 0.92);
   color: #fff;
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 700;
   pointer-events: none;
   animation: toastIn var(--dur-fast) var(--ease-out) both;

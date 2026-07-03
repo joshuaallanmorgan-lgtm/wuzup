@@ -20,7 +20,7 @@
 | C4 — token consolidation | `ba4ed30` | ✅ committed (inert-verified via live computed-style probes) |
 | C4.5 — Inter self-host | `4122f5e` | ✅ committed (Josh ruling #1; variable weights live-verified, GF link gone, favicon restored ⚑ Charles) |
 | C5 — dedup + fold-ins | `e06ab6e` `6c4cca5` `bf626ad` + tail `647c59b`→`3192d0c` | ✅ committed (BottomSheet scaffold deliberately deferred — too much collateral for an inert pass) |
-| **Scout Checkpoint 2** | — | independent REFUTE pass → then PR |
+| **Scout Checkpoint 2** | — | ✅ **PASSED 2026-07-01** (independent REFUTE agent; 3 doc-only findings fixed in `0783f15`) → **PR #6 MERGED 2026-07-02** |
 
 ## C4 — Token consolidation (swaps must be inert)
 

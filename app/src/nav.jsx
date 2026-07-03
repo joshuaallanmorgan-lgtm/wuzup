@@ -58,7 +58,9 @@ export const VIEWS = [
   { id: 'home', label: 'Home' },
   { id: 'hot', label: 'Events' },
   { id: 'locations', label: 'Spots' },
-  { id: 'calendar', label: 'Calendar' },
+  { id: 'calendar', label: 'Plan' }, /* ruling 2026-07-01 #4: back to the refs' "Plan"
+                                        (reverses S1-C1's Calendar rename); id stays
+                                        'calendar' for every seam that keys on it */
   { id: 'profile', label: 'Profile' },
 ]
 export const viewIndex = (id) => VIEWS.findIndex((v) => v.id === id)
@@ -311,7 +313,17 @@ export function NavProvider({ children }) {
     setPageClosing(false)
     setPage({ type: 'lensdeck', lens })
   }, [])
-  const closePage = useCallback(() => {
+  // WS2 back-button refs (full design note at the WS2 block below): history
+  // entry count we own + per-layer open flags, flipped at open (effects) and
+  // at close INITIATION (the Now-closers), so races can't desync them.
+  const histDepthRef = useRef(0)
+  const detailOpenRef = useRef(false)
+  const pageOpenRef = useRef(false)
+
+  // the REAL page close (animation owner) — flips its open-ref at INITIATION so
+  // the history layer (WS2 below) sees the close immediately, not 400ms later.
+  const closePageNow = useCallback(() => {
+    pageOpenRef.current = false
     setPageClosing(true)
     clearTimeout(pageTRef.current)
     pageTRef.current = setTimeout(() => {
@@ -353,7 +365,9 @@ export function NavProvider({ children }) {
       setDetail(e)
     }
   }, [])
-  const closeDetail = useCallback(() => {
+  // the REAL detail close (animation owner) — see closePageNow's ref note.
+  const closeDetailNow = useCallback(() => {
+    detailOpenRef.current = false
     const el = morphElRef.current
     if (vtOpen && supportsVT()) {
       const t = document.startViewTransition(() => {
@@ -375,6 +389,72 @@ export function NavProvider({ children }) {
       }, 240)
     }
   }, [vtOpen])
+
+  // ===== Cohesion WS2 (app-feel): the hardware/browser BACK button =====
+  // The app had ZERO history integration — Android/browser back EXITED the app
+  // with layers open (the #1 "webpage, not app" tell). Design: one history
+  // entry per open LAYER (page z1500, detail z2000), pushed by effects watching
+  // the layer states (every open* path covered, no per-callback edits), and
+  // ALL closes flow through popstate — the public closeDetail/closePage below
+  // are history-consuming PROXIES (history.back() → the popstate handler runs
+  // the real close), so the history depth can never desync from the open-layer
+  // count, even under rapid UI-close + hardware-back races. pushState carries
+  // only a {wzDepth} marker — the URL never changes; deep links / refresh-
+  // restore are deliberately out of scope (BACKLOG). A multi-entry jump (back
+  // long-press) closes layers down to the landed depth, detail-first — the
+  // same order as the Escape ladder. Page REPLACE (the single-slot union's
+  // settings→interests hop) keeps its ONE entry: back closes the current page,
+  // matching the "one level deep in feel" contract. Known edges, accepted:
+  // the first-run Primer is App-level (not a page) so back during it behaves
+  // natively; dev-HMR remounts reset the refs while marker entries persist
+  // (one extra back press, dev-only). StrictMode double-effects are guarded by
+  // the open-ref boundary checks. (The refs themselves are declared above the
+  // Now-closers, which flip them at close initiation.)
+  useEffect(() => {
+    if (page !== null) {
+      if (!pageOpenRef.current) {
+        pageOpenRef.current = true
+        histDepthRef.current++
+        window.history.pushState({ wzDepth: histDepthRef.current }, '')
+      }
+    } else pageOpenRef.current = false
+  }, [page])
+  useEffect(() => {
+    if (detail !== null) {
+      if (!detailOpenRef.current) {
+        detailOpenRef.current = true
+        histDepthRef.current++
+        window.history.pushState({ wzDepth: histDepthRef.current }, '')
+      }
+    } else detailOpenRef.current = false
+  }, [detail])
+  useEffect(() => {
+    const onPop = (ev) => {
+      const target = typeof ev.state?.wzDepth === 'number' ? Math.max(0, ev.state.wzDepth) : 0
+      let open = (detailOpenRef.current ? 1 : 0) + (pageOpenRef.current ? 1 : 0)
+      histDepthRef.current = target
+      if (open > target && detailOpenRef.current) {
+        closeDetailNow()
+        open--
+      }
+      if (open > target && pageOpenRef.current) closePageNow()
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [closeDetailNow, closePageNow])
+  // the public closers every consumer calls — consume our history entry so the
+  // real close runs through popstate; fall back to a direct close if the depth
+  // ever desyncs (belt-and-braces, e.g. an open landing inside a close window).
+  const closeDetail = useCallback(() => {
+    if (!detailOpenRef.current) return
+    if (histDepthRef.current > 0) window.history.back()
+    else closeDetailNow()
+  }, [closeDetailNow])
+  const closePage = useCallback(() => {
+    if (!pageOpenRef.current) return
+    if (histDepthRef.current > 0) window.history.back()
+    else closePageNow()
+  }, [closePageNow])
 
   // D8: openMap / focusMap / the mapFocus handoff (the Map sub-view) are parked for
   // v1 — removed. Place detail routes to Google Maps via its Directions link.

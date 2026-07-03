@@ -1,40 +1,40 @@
 /* forecast.css — ForecastPage (HOME_PHASE2 + TOUCHUP P2). Today hero, best-day
    callout, 7-day wx rows (hi/lo + rain). */
 .fc-pg .pg-body {
-  padding: 8px 0 80px;
+  padding: var(--sp-xs) 0 80px;
 }
 /* location subhead above the hero (real active city, never geolocated "current") */
-.fc-loc { display: flex; align-items: center; gap: 5px; padding: 6px 20px 0; font-size: 13px; font-weight: 700; color: var(--ink); }
+.fc-loc { display: flex; align-items: center; gap: 5px; padding: 6px var(--gutter) 0; font-size: var(--t-meta); font-weight: 700; color: var(--ink); }
 .fc-loc-pin { width: 14px; height: 14px; flex: 0 0 auto; color: var(--muted); }
 /* Today hero */
 .fc-hero {
   display: flex;
   align-items: center;
   gap: 18px;
-  padding: 10px 20px 20px;
+  padding: 10px var(--gutter) 20px;
 }
 .fc-hero-emoji { font-size: 64px; line-height: 1; flex: 0 0 auto; }
 .fc-hero-main { min-width: 0; }
 .fc-hero-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .fc-hero-temp { font-size: 46px; font-weight: 800; color: var(--ink); letter-spacing: -1.5px; line-height: 1; }
-.fc-hero-cond { font-size: 16px; font-weight: 650; color: var(--ink); }
-.fc-hero-sub { margin-top: 6px; display: flex; gap: 12px; font-size: 13px; font-weight: 500; color: var(--muted); }
+.fc-hero-cond { font-size: 16px; font-weight: 600; color: var(--ink); }
+.fc-hero-sub { margin-top: 6px; display: flex; gap: var(--sp-sm); font-size: var(--t-meta); font-weight: 500; color: var(--muted); }
 /* Best day to get outside */
 .fc-best {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 0 20px 16px;
-  padding: 12px 14px;
+  gap: var(--sp-sm);
+  margin: 0 var(--gutter) var(--sp-md);
+  padding: var(--sp-sm) 14px;
   border-radius: var(--r-md);
   background: rgba(var(--accent-rgb), 0.09);
 }
 .fc-best-icon { font-size: 24px; flex: 0 0 auto; }
-.fc-best-title { font-size: 13px; font-weight: 800; color: var(--ink); letter-spacing: -0.1px; } /* A6 accent restraint: headline off orange (value, not a label) */
-.fc-best-sub { margin-top: 1px; font-size: 13px; font-weight: 550; color: var(--muted); }
+.fc-best-title { font-size: var(--t-meta); font-weight: 800; color: var(--ink); letter-spacing: -0.1px; } /* A6 accent restraint: headline off orange (value, not a label) */
+.fc-best-sub { margin-top: 1px; font-size: var(--t-meta); font-weight: 550; color: var(--muted); }
 /* 7-day list header */
 .fc-list-head {
-  padding: 4px 20px 8px;
+  padding: 4px var(--gutter) var(--sp-xs);
   font-size: var(--eyebrow-size); /* A6: the eyebrow contract (was 11/800/0.4px) */
   font-weight: var(--eyebrow-weight);
   letter-spacing: var(--eyebrow-track);
@@ -42,13 +42,13 @@
   color: var(--muted);
 }
 /* hi/lo pair on each row */
-.fc-temps { flex: 0 0 auto; display: flex; align-items: baseline; gap: 8px; }
-.fc-lo { font-size: 15px; font-weight: 550; color: var(--muted); letter-spacing: -0.3px; }
+.fc-temps { flex: 0 0 auto; display: flex; align-items: baseline; gap: var(--sp-xs); }
+.fc-lo { font-size: var(--t-body); font-weight: 550; color: var(--muted); letter-spacing: -0.3px; }
 .fc-row {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 14px 20px;
+  padding: 14px var(--gutter);
   border-bottom: 1px solid var(--line);
 }
 .fc-row:first-child { border-top: 1px solid var(--line); }
@@ -68,20 +68,20 @@
   gap: 2px;
 }
 .fc-label {
-  font-size: 15px;
-  font-weight: 750;
+  font-size: var(--t-body);
+  font-weight: 700;
   color: var(--ink);
   letter-spacing: -0.15px;
 }
 .fc-cond {
-  font-size: 13px;
+  font-size: var(--t-meta);
   font-weight: 500;
   color: var(--muted);
 }
 .fc-hi {
   flex: 0 0 auto;
   font-size: 18px;
-  font-weight: 750;
+  font-weight: 700;
   color: var(--ink);
   letter-spacing: -0.3px;
 }

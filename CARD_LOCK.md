@@ -14,6 +14,10 @@
 - **Spot card = `SpotCard`** (`cards.jsx`). Anatomy (ref "Recommended near you"): left photo + **no time
   badge** → **title** → "📍 location" + "12 min · Free · Park" (**distance as TEXT, only when known** · price ·
   placeType) → **amenity chips** (real, ≤3) → **"★ Best for: …"** (honest) → outline **heart** → **"Open map"**.
+  - _⚑ AMENDMENT PENDING JOSH (Cohesion WS4, `c3074cd`): PHOTOLESS spot rows no longer wear the art-floor
+    in the photo slot — they lead with a compact 56px placeType **medallion** (the honesty re-derivation:
+    an aurora blob at thumbnail density read as a broken photo, not designed art). Photo-row anatomy above
+    is unchanged; row height stays the locked 158px. Josh's eyeball ratifies or reverts; this note then resolves._
 - **Save control stays the HEART** (FLOWS §1.3 — bookmark deferred; not worth a global churn for MVP).
 
 ## RETIRE from result/destination feeds: `CompactRow` (the right-thumb outlier)

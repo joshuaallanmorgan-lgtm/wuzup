@@ -235,6 +235,63 @@ function smartTitleCase(t) {
     .join(' ');
 }
 
+// De-shout CAPS RUNS inside otherwise-mixed titles (WS1 fix 4): the whole-
+// title gate above misses "Ink & Lace; THE FASHION EVENT". A run = >= 3
+// uppercase words (>= 2 letters each); connector tokens without real letters
+// ("&", "//", "5K") ride along inside a run without counting or breaking it,
+// so "SUMMER LOCK & KEY SINGLES PARTY" is one shout, not two 2-word bursts.
+// Within a run: allowlisted acronyms (TITLE_KEEP_CAPS) and 2-letter INITIALS
+// (AJ, MC — anything not a common word) survive; small words lowercase
+// mid-run; everything else title-cases. Lone caps words (a stylized
+// "TOLEREW") and 2-word bursts are stylization, not shouting — untouched.
+// Stylized LOWERCASE names are never touched (only uppercase runs qualify).
+const TITLE_TWO_LETTER_WORDS = new Set(['me', 'be', 'my', 'we', 'he', 'it', 'is', 'do', 'go', 'no', 'so', 'up', 'st', 'mr', 'ms', 'dr']);
+function deShoutCapsRuns(t) {
+  const words = t.split(' ');
+  const letters = (w) => w.replace(/[^a-zA-Z]/g, '');
+  const isCaps = (w) => {
+    const l = letters(w);
+    return l.length >= 2 && l === l.toUpperCase();
+  };
+  const isTransparent = (w) => {
+    const l = letters(w);
+    return l.length <= 1 && l === l.toUpperCase();
+  };
+  let i = 0;
+  while (i < words.length) {
+    if (!isCaps(words[i])) { i++; continue; }
+    let j = i;
+    let capsCount = 0;
+    let lastCaps = i;
+    while (j < words.length && (isCaps(words[j]) || isTransparent(words[j]))) {
+      if (isCaps(words[j])) { capsCount++; lastCaps = j; }
+      j++;
+    }
+    if (capsCount >= 3) {
+      for (let k = i; k <= lastCaps; k++) {
+        if (!isCaps(words[k])) continue; // transparent riders keep their case
+        const core = words[k].replace(/[^\w&+']/g, '');
+        if (TITLE_KEEP_CAPS.has(core.toUpperCase())) continue;
+        const coreLower = core.toLowerCase();
+        const small = TITLE_SMALL_WORDS.has(coreLower);
+        // 2-letter caps that are NOT common words read as initials — keep
+        if (letters(words[k]).length <= 2 && !small && !TITLE_TWO_LETTER_WORDS.has(coreLower)) continue;
+        const lower = words[k].toLowerCase();
+        const prevEndsPunct = k > 0 && /[;:|/–—-]$/.test(words[k - 1]);
+        if (small && k !== i && !prevEndsPunct && k > 0 && k < words.length - 1) {
+          words[k] = lower; // mid-run small word: "for the final time"
+        } else {
+          // capitalize the first LETTER even behind punctuation ("(just" →
+          // "(Just"), and after -/. ("power-up" → "Power-Up")
+          words[k] = lower.replace(/(^[^a-z]*|[-/.])([a-z])/g, (m, p, c) => p + c.toUpperCase());
+        }
+      }
+    }
+    i = j;
+  }
+  return words.join(' ');
+}
+
 function cleanEventTitle(raw) {
   let t = String(raw || '');
   t = t.replace(/^\s*TBD\s+at\s+/i, ''); // "TBD at Tampa Bay Lightning — ..." placeholder prefix
@@ -245,9 +302,33 @@ function cleanEventTitle(raw) {
   t = t.replace(TITLE_CITY_SUFFIX_RE, ''); // "KBONG & JOHNNY COSMIC - ST PETE"
   t = t.replace(/\s*[-–—]\s*artist\s*$/i, ''); // aggregator's "Ye - Artist" type suffix
   t = smartTitleCase(t.trim());
+  t = deShoutCapsRuns(t); // caps runs inside mixed titles (whole-title gate above)
   for (const [re, fix] of TITLE_FIXES) t = t.replace(re, fix);
   t = t.trim();
   return t.length >= 2 ? t : String(raw || '');
+}
+
+// ---- venue-boilerplate descriptions (WS1 fix 3b) ----------------------------
+// AllEvents attaches the VENUE's welcome blurb as the event description
+// ("Welcome to the Funny Bone Comedy Club in Tampa, Florida, where
+// laughter..."). It's not a description of the event — and its wording fed
+// the music rule wrong keywords (a comedy headliner shipped as music). Null
+// it at ingest when the name right after "Welcome to (the)" is the record's
+// OWN venue. Real descriptions that merely open with "Welcome to the 17th
+// annual ..." (not the venue) are untouched.
+const BOILERPLATE_WELCOME_RE = /^welcome to (?:the )?(.{3,70}?)(?:\s+in\s+|\s+where\s+|[,!.])/i;
+function isVenueBoilerplate(e) {
+  if (!e.description || !e.venue) return false;
+  const m = e.description.match(BOILERPLATE_WELCOME_RE);
+  if (!m) return false;
+  const dTokens = titleTokens(m[1]);
+  const vTokens = titleTokens(e.venue);
+  if (!dTokens.size || !vTokens.size) return false;
+  let shared = 0;
+  for (const t of dTokens) if (vTokens.has(t)) shared++;
+  // enough overlap that the blurb is naming THIS venue ("Funny Bone Comedy
+  // Club" vs venue "Funny Bone - Tampa" shares funny+bone)
+  return shared >= Math.min(2, Math.min(dTokens.size, vTokens.size));
 }
 
 function normalize(node, sourceName) {
@@ -555,7 +636,12 @@ function sameEvent(a, b) {
   // in the longer (≥3 significant tokens), and at most ONE venue present —
   // both-venued pairs must match on venue above ("Art After Dark" really does
   // run at two museums on the same night).
-  if (a.hr != null && a.hr === b.hr && (!a.vTokens.size || !b.vTokens.size)) {
+  // Date-only pairs (BOTH sides hourless — WS1 dedup 1c): requiring equal
+  // hours meant two unclocked listings of one renamed event could never
+  // qualify; the shared calendar day (this whole comparison is same-day by
+  // construction) is the time evidence such pairs have.
+  const hrMatch = a.hr != null ? a.hr === b.hr : b.hr == null;
+  if (hrMatch && (!a.vTokens.size || !b.vTokens.size)) {
     const [small, big] = a.sTokens.size <= b.sTokens.size ? [a.sTokens, b.sTokens] : [b.sTokens, a.sTokens];
     if (small.size >= 3) {
       let inter = 0;
@@ -569,6 +655,39 @@ function sameEvent(a, b) {
 function pickFirst(members, key) {
   for (const m of members) if (m[key] != null) return m[key];
   return null;
+}
+
+// ===================== image source ranking (WS1 fix 2) =====================
+// pickFirst(members,'image') = insertion order, and AllEvents loads before the
+// official sources — its auto-generated banner CDN beat official CVB artwork
+// on 14 merged events (Marlon Wayans wore an allevents banner over Visit
+// Tampa Bay's real poster). Rank by host: official/organizer CDNs (CVB sites,
+// simpleview asset CDN, Eventbrite organizer uploads, library/gov hosts) >
+// anything else > *.allevents.in banners. A cluster with ANY non-allevents
+// image never ships the allevents one (rank 0 loses every comparison).
+const IMG_AGGREGATOR_HOST_RE = /(?:^|\.)allevents\.in$/i;
+const IMG_OFFICIAL_HOST_RE = /(?:^|\.)(?:visitstpeteclearwater\.com|simpleviewinc\.com|visittampabay\.com|evbuc\.com|eventbrite\.com|libnet\.info|ilovetheburg\.com|wmnf\.org|cltampa\.com)$|\.gov$/i;
+
+function imageRank(url) {
+  if (!url) return -1;
+  let host = '';
+  try { host = new URL(url).hostname.toLowerCase(); } catch { return 0; }
+  if (IMG_AGGREGATOR_HOST_RE.test(host)) return 0;
+  if (IMG_OFFICIAL_HOST_RE.test(host)) return 2;
+  return 1;
+}
+
+// Highest-ranked image in the cluster; insertion order breaks ties (so the
+// pre-ranking behavior is preserved whenever no aggregator banner competes).
+function pickImage(members) {
+  let best = null;
+  let bestRank = -1;
+  for (const m of members) {
+    if (m.image == null) continue;
+    const r = imageRank(m.image);
+    if (r > bestRank) { best = m.image; bestRank = r; }
+  }
+  return best;
 }
 
 // Merge a cluster of duplicate listings into one record, keeping the richest
@@ -590,6 +709,18 @@ function mergeCluster(members) {
   const dateOnly = starts.find((s) => startHourOf(s) === null);
   const anyTimed = starts.find((s) => startHourOf(s) !== null);
   const start = saneTimed || dateOnly || anyTimed || starts[0] || null;
+
+  // End: keep the LATEST end among members (max endedAtMs — WS1 dedup 1d).
+  // pickFirst let the first-listed member's same-day end CLIP a sibling's
+  // published multi-day span (PAVA: City's "7/18 17:00" end beat VSPC's
+  // 7/19, so the exhibit fold below could never see the 2-day run).
+  let end = null;
+  let endAt = -Infinity;
+  for (const m of members) {
+    if (m.end == null) continue;
+    const t = endedAtMs({ start: m.start, end: m.end });
+    if (!isNaN(t) && t > endAt) { endAt = t; end = m.end; }
+  }
 
   let description = null;
   for (const m of members) {
@@ -619,7 +750,7 @@ function mergeCluster(members) {
   return {
     title: pickFirst(members, 'title'),
     start,
-    end: pickFirst(members, 'end'),
+    end,
     venue: pickFirst(members, 'venue'),
     address: pickFirst(members, 'address'),
     price,
@@ -628,7 +759,7 @@ function mergeCluster(members) {
     lat,
     lng,
     url: pickFirst(members, 'url'),
-    image: pickFirst(members, 'image'),
+    image: pickImage(members),
     description,
     source: sources[0] || null,   // primary source (v1 back-compat)
     sources,                      // every source that listed it (detailed names)
@@ -730,8 +861,20 @@ function stemmedTokens(title) {
   return new Set([...titleTokens(title)].map(stemToken));
 }
 
-const EXHIBIT_SPAN_MIN_DAYS = 14;   // multi-week = an exhibit-style run
+// Span in INCLUSIVE calendar days (WS1 dedup 1d): a Sat–Sun art show is a
+// 2-day run. The old exclusive arithmetic + MIN 14 meant 2–13-day runs never
+// cross-day folded, so a weekend show shipped once per occurrence record
+// (PAVA Cool Art Show shipped 3x).
+const EXHIBIT_SPAN_MIN_DAYS = 2;    // >= a full weekend counts as a run
 const EXHIBIT_SPAN_MAX_DAYS = 270;  // longer = permanent installation, not a run
+// Short runs (< 2 weeks) from a SINGLE family are as likely an aggregator's
+// series listing (AllEvents publishes "Rays vs. Guardians" as one 7/23–7/25
+// span umbrella-ing three real games) as a true run — they only umbrella when
+// 2+ families corroborate the span. Multi-week spans keep the old behavior
+// (REALM: a single-family ILB exhibit record is a legitimate umbrella).
+const EXHIBIT_SHORT_SPAN_DAYS = 14;
+// Head-to-head events are per-game listings, never exhibit runs.
+const EXHIBIT_NEVER_RUN_RE = /\bvs\.?\b/i;
 const EXHIBIT_TITLE_JACCARD = 0.6;
 
 export function dedupeOngoingOccurrences(events) {
@@ -740,13 +883,24 @@ export function dedupeOngoingOccurrences(events) {
     const sd = dayOf(e.start);
     const ed = dayOf(e.end);
     if (!sd || !ed) continue;
-    const span = (startMs(ed) - startMs(sd)) / 86400e3;
+    const span = (startMs(ed) - startMs(sd)) / 86400e3 + 1; // inclusive days
     if (span >= EXHIBIT_SPAN_MIN_DAYS && span <= EXHIBIT_SPAN_MAX_DAYS) {
+      if (EXHIBIT_NEVER_RUN_RE.test(e.title || '')) continue;
+      const fams = new Set((e.sources || []).map(familyOf).filter(Boolean));
+      const multiFam = fams.size >= 2;
+      if (span < EXHIBIT_SHORT_SPAN_DAYS && !multiFam) continue;
       ongoing.push({
         e, sd, ed,
         tokens: stemmedTokens(e.title),
         vTokens: venueMergeTokens(e.venue),
-        fams: new Set((e.sources || []).map(familyOf).filter(Boolean)),
+        fams,
+        // Frozen at build (not updated by folds): a run record ALREADY
+        // corroborated by 2+ families may absorb repeat occurrences from a
+        // family it carries — PAVA's 7/19 City record repeats a City+VSPC
+        // merged span. Single-family umbrellas keep the strict
+        // must-add-a-family rule (a publisher's own repeats are often
+        // deliberate separate sessions).
+        multiFam,
       });
     }
   }
@@ -756,15 +910,19 @@ export function dedupeOngoingOccurrences(events) {
   let folded = 0;
   for (const e of events) {
     const day = dayOf(e.start);
-    if (!day || e.end || drop.has(e)) continue; // single-day records only
+    // Single-day records only — no end, or an end on the SAME calendar day
+    // (civic calendars publish "10:00–16:00" occurrence records; the end
+    // being same-day doesn't make them less of an occurrence).
+    const endDay = e.end ? dayOf(e.end) : null;
+    if (!day || (endDay && endDay !== day) || drop.has(e)) continue;
     for (const o of ongoing) {
       if (o.e === e || drop.has(o.e)) continue;
       if (day < o.sd || day > o.ed) continue; // must fall inside the run
-      // Cross-source only: the occurrence must add a family the ongoing
-      // record doesn't already carry (same-family repeats are a different
-      // problem and are left alone — conservative by design).
+      // Family guard: the occurrence must add a family the ongoing record
+      // doesn't already carry — unless the run is independently corroborated
+      // (multiFam, frozen at build) — conservative by design.
       const eFams = (e.sources || []).map(familyOf).filter(Boolean);
-      if (!eFams.length || !eFams.some((f) => !o.fams.has(f))) continue;
+      if (!eFams.length || (!eFams.some((f) => !o.fams.has(f)) && !o.multiFam)) continue;
       if (jaccard(stemmedTokens(e.title), o.tokens) < EXHIBIT_TITLE_JACCARD) continue;
       // Venue guard: when both name a venue they must share a non-generic
       // token — otherwise it's a same-name run at a different place.
@@ -778,7 +936,10 @@ export function dedupeOngoingOccurrences(events) {
       t.sources = [...new Set([...(t.sources || []), ...(e.sources || [])])];
       t.buzz = [...new Set(t.sources.map(familyOf).filter(Boolean))].length;
       for (const f of eFams) o.fams.add(f);
-      if (!t.image && e.image) t.image = e.image;
+      // adopt the occurrence's image when the run has none OR the occurrence's
+      // is better-ranked (never keep an aggregator banner over real artwork —
+      // both are real member images, so this stays within the honesty contract)
+      if (e.image && imageRank(e.image) > imageRank(t.image)) t.image = e.image;
       if (!t.url && e.url) t.url = e.url;
       if (e.description && (!t.description || e.description.length > t.description.length)) {
         t.description = e.description;
@@ -845,7 +1006,9 @@ export function dedupeBareEchoes(events) {
       const t = r.e;
       t.sources = [...new Set([...(t.sources || []), ...(e.sources || [])])];
       t.buzz = [...new Set(t.sources.map(familyOf).filter(Boolean))].length;
-      if (!t.image && e.image) t.image = e.image;
+      // same ranked adoption as the exhibit fold: fill, or upgrade an
+      // aggregator banner with the echo's better-ranked real image
+      if (e.image && imageRank(e.image) > imageRank(t.image)) t.image = e.image;
       if (!t.url && e.url) t.url = e.url;
       if (typeof e.price === 'number' && !isNaN(e.price) && (t.price === null || e.price < t.price)) {
         t.price = e.price;
@@ -860,16 +1023,41 @@ export function dedupeBareEchoes(events) {
   return { events: events.filter((e) => !drop.has(e)), folded };
 }
 
+// ---- merge-key title (WS1 dedup 1b) -----------------------------------------
+// Suffixes that dilute the Jaccard title gate WITHOUT identifying the event:
+// a trailing " at <venue>" (only when it names the record's OWN venue — "Art
+// After Dark at MFA" keeps its venue tokens if the record's venue is a
+// different museum) and an aggregator's ": Tampa Bay" / ", Tampa Bay" region
+// tag. Stripped for MERGE KEYS ONLY — the display title is never altered.
+// Removing venue tokens from the key also stops a venue's own name inside two
+// DIFFERENT same-venue titles from bridging them to a false J >= 0.5.
+const MERGE_REGION_TAG_RE = /\s*[:,]\s*tampa bay\s*$/i;
+function mergeTitleOf(title, venue) {
+  let t = String(title || '').replace(MERGE_REGION_TAG_RE, '');
+  // greedy prefix = split at the LAST " at " ("An Evening at the Museum at MFA")
+  const m = t.match(/^(.{3,})\s+at\s+(?:the\s+)?(.{3,60})$/i);
+  if (m && venue) {
+    const suffixKey = venueKey(m[2]);
+    const ownKey = venueKey(venue);
+    if (suffixKey && ownKey &&
+        (suffixKey === ownKey || suffixKey.includes(ownKey) || ownKey.includes(suffixKey))) {
+      t = m[1];
+    }
+  }
+  return t;
+}
+
 // Cluster all raw listings by calendar day, then greedily merge matches.
 function fuzzyMerge(all) {
   const byDay = new Map();
   for (const e of all) {
     const day = dayOf(e.start) || 'tbd';
     if (!byDay.has(day)) byDay.set(day, []);
+    const mergeTitle = mergeTitleOf(e.title, e.venue);
     byDay.get(day).push({
       ...e,
-      tokens: titleTokens(e.title),
-      sTokens: stemmedTokens(e.title),
+      tokens: titleTokens(mergeTitle),
+      sTokens: stemmedTokens(mergeTitle),
       nVenue: normVenue(e.venue),
       fam: familyOf(e.source),
       vTokens: venueMergeTokens(e.venue),
@@ -920,14 +1108,19 @@ const MUSIC_VENUE_RE = /jannus live|orpheum|crowbar|the ritz|floridian social/i;
 // can't steal an event from a confident rule.
 const CATEGORY_RULES = [
   ['theatre', /\bopera\b|\bboh[eèé]me\b|\bballets?\b|\bfringe\b|\bdramatic play\b|\bplaywrights?\b/i],
+  // Comedy ABOVE music (WS1 fix 3b): touring stand-ups' listings carry
+  // music-y language (\btour\b, headliner talk) that stole them for music —
+  // "The Get Right Comedy Tour" must land comedy. Stage-comedy titles
+  // ("The Comedy of Errors", "musical comedy") are protected by the
+  // unless-style theatre veto inside categorize (see COMEDY_STAGE_RE).
+  ['comedy', /\bcomedy\b|\bstand-?up\b|\bimprov\b|\bcomedians?\b/i],
   ['music', /\bconcerts?\b|\bconciertos?\b|\bbands?\b|\bdj\b|\btour\b|\borchestra\b|\bsymphony\b|\blive music\b|\balbum\b|\btribute\b|\bunplugged\b|\bacoustic\b|\blive at\b|\bkaraoke\b|\bopen mic\b|\bjazz\b|\bblues\b|\bsongwriters?\b|\bhip.?hop\b|\bvinyl\b|\bgreatest hits\b/i],
   ['sports', /\bvs\.?\b|\bgame\b|\bmatch day\b|\bgrand prix\b|\braces?\b|\broller derby\b|\bwrestling\b|\bpickleball\b/i],
   ['theatre', /\btheatre\b|\btheater\b|\bmusicals?\b|\bbroadway\b|\bcabaret\b/i],
-  ['comedy', /\bcomedy\b|\bstand-?up\b|\bimprov\b|\bcomedians?\b/i],
   ['art', /\barts?\b|\bgallery\b|\bmuseum\b|\bexhibits?\b|\bexhibitions?\b|\bmurals?\b|\bcrafts?\b|\bpottery\b|\bpainting\b|\bfilms?\b|\bscreenings?\b|\bcinema\b|\bfashion\b|\brunway\b/i],
   ['market', /\bmarkets?\b|\bflea\b|\bfairs?\b|\bbazaar\b|\bexpo\b|\bvendors?\b|\bbridal\b|\bboat show\b|\btrain show\b|\bshow (?:&|and) sale\b/i],
   ['food', /\bfood\b|\bbrunch\b|\bdinner\b|\btastings?\b|\bbeer\b|\bwine\b|\bcocktails?\b|\btacos?\b|\bbbq\b|\bculinary\b|\bchefs?\b|\bbrewfests?\b/i],
-  ['outdoors', /\bparks?\b|\bbeach\b|\bkayak\b|\bhikes?\b|\brun club\b|\b5k\b|\boutdoor\b|\bgardens?\b|\bnature\b|\btrails?\b|\byoga\b|\bpaddles?\b|\bpaddleboard\w*\b|\bfishing\b|\bdragon boats?\b|\bpilates\b|\bbarre\b|\bon the lawn\b|\bwho walk\b|\bwalk (?:&|and) talk\b/i],
+  ['outdoors', /\bparks?\b|\bbeach\b|\bkayak\b|\bhikes?\b|\brun club\b|\b5k\b|\boutdoor\b|\bgardens?\b|\bnature\b|\btrails?\b|\bpaddles?\b|\bpaddleboard\w*\b|\bfishing\b|\bdragon boats?\b|\bpilates\b|\bbarre\b|\bon the lawn\b|\bwho walk\b|\bwalk (?:&|and) talk\b/i],
   ['nightlife', /\bparty\b|\bclub night\b|\bburlesque\b|\bball\b|\brave\b|\bnightlife\b|\bdrag\b|\btrivia\b|\bbingo\b|\bbar crawls?\b|\bpub crawls?\b|\bspeed dating\b|\bsingles\b|\bhappy hour\b|\b(?:latin|salsa|disco|80s|90s) nights?\b|\bjuke joints?\b|\baxe throwing\b|\bthirsty thursday\b/i],
   ['family', /\bfamily\b|\bkids?\b|\bchildren\b|\btoddlers?\b|\bteens?\b|\bstory ?time\b|\b(?:father|daddy)[\s-]+daughter\b|\bmother[\s-]+son\b|\bfather[’']?s day\b|\bmother[’']?s day\b|\bback[\s-]+to[\s-]+school\b|\bvbs\b|\bvacation bible school\b/i],
   ['community', /\bmeetup\b|\bworkshops?\b|\bclass(?:es)?\b|\bclubs?\b|\blibrary\b|\bnetworking\b|\bvolunteer\b|\bseminar\b|\blectures?\b|\bbooks?\b|\bgrand opening\b|\bconferences?\b|\bauthor\b|\bfundraisers?\b|\breceptions?\b|\bmixers?\b|\bpuzzles?\b|\bgame nights?\b|\bjuneteenth\b|\bpride\b(?!\s+(?:and|&)\s+prejudice)|pridetopia|\bsummits?\b|\bsymposiums?\b|\bforums?\b|\binfo(?:rmation)? sessions?\b|\btown halls?\b|\bawareness\b|\bsupport (?:group|meeting)s?\b|\brecycling\b|\bchemical collection\b|\bcollection events?\b|\bsandbags?\b|\bclean-?ups?\b|\bcoffee (?:&|and) conversation\b|\bmingle\b|\bsocialize\b|\bentrepreneurs?\b|\bbusiness\b|\bfireside chats?\b|\blunch (?:&|and) learn\b|\bceu\b|\bwebinars?\b|\breal estate\b|\bnonprofits?\b|\bcareers?\b|\bemployers?\b|\bempower\w*\b|\bwellness\b|\breiki\b|\bsound bath\b|\btarot\b|\bheart disease\b|\bcancer\b|\bhealth\b|\bstaying safe\b|\bsafety\b|\binspections?\b|\bcyber\w*\b|\banniversar\w*\b|\bpups?\b|\bdog grooming\b|\bpaws\b|\badoptions?\b|\bstorytell\w*\b|\bcandidate forums?\b|\bcosplay\b|\bcon?ventions?\b|\bmeet (?:&|and) greet\b/i],
@@ -966,6 +1159,16 @@ const STRONG_TITLE_RULES = [
   // nature programming — a sea-turtle conservation ride-along carried a
   // native "Sports & Recreation" tag
   ['outdoors', /\bsea turtles?\b|\bbirdwatch\w*\b|\bnature preserve\b|\bwildlife\b/i],
+  // fireworks shows (WS1 fix 3c): NO fireworks rule existed, so VSPC's
+  // Largo 4th of July Fireworks landed food (food-truck mentions) and
+  // Treasure Island's landed market (vendor mentions). A fireworks show is
+  // an outdoor civic event; a "Fireworks Night" THEME at a ballgame stays
+  // sports (the unless-guard).
+  ['outdoors', /\bfireworks?\b/i, /\bvs\.?\b/i],
+  // library film programming (WS1 fix 3, census-named): "Watch Wednesday:
+  // Night at the Museum (PG)" — the movie's own title tripped the art
+  // rule's \bmuseum\b; the series is a daytime family screening.
+  ['family', /\bwatch wednesday\b/i],
 ];
 // title+description rules of the same rank ("Written by X … Directed by Y" is
 // playbill language — "American Stage: The Hot Wing King" carried native art).
@@ -980,7 +1183,23 @@ const STRONG_TEXT_RULES = [
 
 // Touring stand-ups whose shows are listed title-only ("Jo Koy") at concert
 // venues — without this they'd take the concert-venue prior and land music.
-const KNOWN_COMEDIANS_RE = /\bjo koy\b|\bbert kreischer\b|\bnate bargatze\b|\bsebastian maniscalco\b|\bkatt williams\b|\bmatt rife\b|\btom segura\b|\bbill burr\b|\bgabriel iglesias\b|\bjeff dunham\b|\bnikki glaser\b|\btheo von\b|\bshane gillis\b|\bkevin hart\b|\bjim gaffigan\b|\btrevor noah\b|\bjohn mulaney\b|\bali wong\b|\btaylor tomlinson\b|\bleanne morgan\b/i;
+const KNOWN_COMEDIANS_RE = /\bjo koy\b|\bbert kreischer\b|\bnate bargatze\b|\bsebastian maniscalco\b|\bkatt williams\b|\bmatt rife\b|\btom segura\b|\bbill burr\b|\bgabriel iglesias\b|\bjeff dunham\b|\bnikki glaser\b|\btheo von\b|\bshane gillis\b|\bkevin hart\b|\bjim gaffigan\b|\btrevor noah\b|\bjohn mulaney\b|\bali wong\b|\btaylor tomlinson\b|\bleanne morgan\b|\bmarlon wayans\b|\bchristopher titus\b/i;
+
+// Comedy-club venues host comedy (WS1 fix 3a). Checked BEFORE native source
+// categories — stronger than a venue "prior" because the aggregators'
+// native tags are the very defect here (VTB natively files Funny Bone
+// headliners under music); what a comedy club programs IS comedy.
+const COMEDY_VENUE_RE = /funny bone|side splitters|comedy club|\bimprov\b/i;
+
+// Stage-comedy phrasing must NOT take the comedy rule now that it outranks
+// music — "The Comedy of Errors" and a "musical comedy" are theatre.
+const COMEDY_STAGE_RE = /\bcomedy of errors\b|\bmusical comedy\b|\bromantic comedy\b/i;
+
+// Yoga is a SETTING call, not a category (WS1 fix 3d): 13 library chair-yoga
+// sessions shipped "outdoors" via the unconditional \byoga\b rule. Outdoor
+// setting evidence => outdoors; otherwise it's a wellness class => community.
+const YOGA_RE = /\byoga\b/i;
+const OUTDOOR_SETTING_RE = /\bparks?\b|\bbeach\b|\bpier\b|\blawn\b|\bgardens?\b|\bwaterfront\b|\boutdoors?\b|\bsunrise\b|\bsunset\b|\brooftop\b|\bpoolside\b|\bvines\b|\bfarms?\b|\btrails?\b/i;
 
 // Concert rooms/sheds/arenas: an event here that matched NO text rule is a
 // concert in practice (sports/comedy/family shows at these venues carry their
@@ -993,7 +1212,9 @@ const VENUE_TYPE_PRIORS = [
   ['theatre', /theat(?:re|er)|playhouse/i],
   ['community', /librar|\bbooks\b|bookstore|\bchurch\b/i],
   ['art', /museum/i],
-  ['nightlife', /\blounge\b/i],
+  // nightclub prior (WS1 fix 3a): a text-ruleless event at a night club
+  // (the Status Night Club class) is a night out, not 'other'
+  ['nightlife', /\bnight ?club\b|\blounge\b/i],
 ];
 
 // Source-level category priors, applied only when no text/venue rule matched.
@@ -1020,6 +1241,9 @@ export function categorize(e) {
   for (const [cat, re] of STRONG_TEXT_RULES) {
     if (re.test(text)) return cat;
   }
+  // Comedy-club venue: outranks native tags too — the aggregators' native
+  // categories are the documented defect at these venues (see COMEDY_VENUE_RE).
+  if (COMEDY_VENUE_RE.test(e.venue || '')) return 'comedy';
   // Native category from a source module's API — respect it, don't re-derive.
   // 'other' carries no information, so the text classifier still gets a shot.
   if (e.category && e.category !== 'other' && KNOWN_CATEGORIES.has(e.category)) {
@@ -1027,7 +1251,13 @@ export function categorize(e) {
   }
   if (MUSIC_VENUE_RE.test(e.venue || '')) return 'music';
   for (const [cat, re] of CATEGORY_RULES) {
+    if (cat === 'comedy' && COMEDY_STAGE_RE.test(text)) continue; // stage comedy → theatre rules below
     if (re.test(text)) return cat;
+    // Yoga decides AT the outdoors slot (same precedence \byoga\b had):
+    // outdoor setting in venue/text => outdoors, else wellness => community.
+    if (cat === 'outdoors' && YOGA_RE.test(text)) {
+      return OUTDOOR_SETTING_RE.test(`${e.venue || ''} ${text}`) ? 'outdoors' : 'community';
+    }
   }
   // Text gave nothing — fall through the documented priors, specific → broad.
   if (KNOWN_COMEDIANS_RE.test(e.title || '')) return 'comedy';
@@ -1537,6 +1767,17 @@ async function main() {
   }
   if (titlesCleaned) console.log(`  ✏️  cleaned ${titlesCleaned} junk titles (caps/suffixes/colons)`);
 
+  // Venue-boilerplate descriptions are not descriptions (WS1 fix 3b) — null
+  // them BEFORE merging so mergeCluster picks a sibling's real text instead.
+  let boilerplateNulled = 0;
+  for (const e of all) {
+    if (isVenueBoilerplate(e)) {
+      e.description = null;
+      boilerplateNulled++;
+    }
+  }
+  if (boilerplateNulled) console.log(`  🧽 nulled ${boilerplateNulled} venue-boilerplate description(s) ("Welcome to the <venue>...")`);
+
   // Venue canonicalization (L4): rewrite alias spellings + jittery coords to
   // the committed canonical identity BEFORE merging, so venue-equality rules
   // see one venue as one venue.
@@ -1546,6 +1787,18 @@ async function main() {
     console.log(`  🏛️  venue table: ${venueTable.size} canonical venues — rewrote ${venuesCanonicalized} listings`);
   } else {
     console.log('  ⚠️  finder/venues.json missing — venue canonicalization skipped (run finder/build-venues.mjs)');
+  }
+
+  // Address-as-venue naming, PRE-merge pass (WS1 dedup fix): venue identity
+  // must resolve BEFORE fuzzyMerge or the venue-equality rules can't see it —
+  // VSPC's "535 4th Ave N" never merged with City-of-St-Pete's "The Coliseum"
+  // even on identical titles (an address venue shares zero name tokens, which
+  // VETOES the title-only merge). Rename address-y venues from named twins at
+  // the same address core now; a second pass after geocoding (below) catches
+  // records whose rename needs coords that only exist post-geocode.
+  const preNames = nameAddressVenues(all);
+  if (preNames.renamed || preNames.trimmed) {
+    console.log(`  🏷️  address-venues (pre-merge): ${preNames.renamed} renamed from named siblings, ${preNames.trimmed} de-tailed`);
   }
 
   // Fuzzy cross-source merge: duplicate listings of the same real-world event
@@ -1579,6 +1832,20 @@ async function main() {
   if (schedDropped.length) {
     events = events.filter((e) => !SCHEDULE_PAGE_RE.test(e.title || ''));
     console.log(`  🗂️  dropped ${schedDropped.length} schedule-page listing(s): ${schedDropped.map((e) => `"${e.title}"`).join(', ')}`);
+  }
+
+  // Univ.-of-Tampa academic-calendar rows are not events (WS1 fix 3e):
+  // "Classes begin for Summer 2nd 6 Weeks", "No classes - Holiday for 4th of
+  // July". Title guard scoped to the UT family so a real event that happens
+  // to open with these words elsewhere is untouched.
+  const UT_CALENDAR_RE = /^classes (?:begin|end)\b|^no classes\b/i;
+  const utDropped = events.filter((e) =>
+    UT_CALENDAR_RE.test(e.title || '') &&
+    (e.sources || [e.source]).some((s) => familyOf(s) === 'Univ. of Tampa'));
+  if (utDropped.length) {
+    const utSet = new Set(utDropped);
+    events = events.filter((e) => !utSet.has(e));
+    console.log(`  🎓 dropped ${utDropped.length} UT academic-calendar row(s): ${utDropped.map((e) => `"${e.title}"`).join(', ')}`);
   }
 
   // Keep upcoming events, sorted soonest first. An event stays until it has
@@ -1683,12 +1950,14 @@ async function main() {
   }
   if (geocoded2) console.log(`  📍 geocoded ${geocoded2} more via venue-name fallback queries`);
 
-  // Address-as-venue naming (fixer): "10165 McKinley Dr" on a visible card IS
-  // Busch Gardens when a named sibling shares the address/coords; renames are
-  // data-internal, the rest at least lose their ", City, Florida, USA" tails.
+  // Address-as-venue naming, POST-geocode pass (fixer): "10165 McKinley Dr" on
+  // a visible card IS Busch Gardens when a named sibling shares the address /
+  // coords; renames are data-internal, the rest at least lose their ", City,
+  // Florida, USA" tails. (Most renames now happen in the pre-merge pass above;
+  // this one catches records whose only link to a named twin is geocoded coords.)
   const venueNames = nameAddressVenues(events);
   if (venueNames.renamed || venueNames.trimmed) {
-    console.log(`  🏷️  address-venues: ${venueNames.renamed} renamed from named siblings, ${venueNames.trimmed} de-tailed`);
+    console.log(`  🏷️  address-venues (post-geocode): ${venueNames.renamed} renamed from named siblings, ${venueNames.trimmed} de-tailed`);
   }
 
   // Recurring detection, then tags / hot score / category per event.

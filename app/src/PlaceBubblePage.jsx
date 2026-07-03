@@ -1,8 +1,9 @@
 // PlaceBubblePage — full-page destination for a tapped Locations bubble
 // (Sprint S, the place-side twin of BubblePage). App mounts it inside the
 // sliding .subpage overlay. Filters the places store by the bubble's pure
-// `match` predicate, orders count-preservingly by taste (S3) then
-// corroboration then name (never hides), and renders the shared RowFeed.
+// `match` predicate, orders count-preservingly — photo-bearing places first
+// (WS4: a screenful reads composed, not lottery), then taste (S3), then
+// corroboration then name (never hides) — and renders the shared RowFeed.
 //
 // Props: bubble — a PLACE_BUBBLES entry { id, emoji, label, hue, match }.
 // Detail-open + close come from useNav() (the shared detail layer; opening a
@@ -10,7 +11,7 @@
 import { useMemo, useRef } from 'react'
 import { CITY, Icon } from './lib.js'
 import { useNav } from './nav.jsx'
-import { RowFeed } from './cards.jsx'
+import { RowFeed, photoFirst } from './cards.jsx'
 import LensNav from './LensNav.jsx'
 import { tasteNudge, useTaste } from './taste.js'
 import { usePlaces, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES } from './places.js'
@@ -45,14 +46,16 @@ export default function PlaceBubblePage({ bubble }) {
 
   const sections = useMemo(() => {
     if (!Array.isArray(places)) return []
-    const list = places
-      .filter(bubble.match)
-      .sort(
-        (a, b) =>
-          tasteNudge(b, taste) - tasteNudge(a, taste) ||
-          (b.srcCount || 0) - (a.srcCount || 0) ||
-          a.name.localeCompare(b.name)
-      )
+    const list = photoFirst(
+      places
+        .filter(bubble.match)
+        .sort(
+          (a, b) =>
+            tasteNudge(b, taste) - tasteNudge(a, taste) ||
+            (b.srcCount || 0) - (a.srcCount || 0) ||
+            a.name.localeCompare(b.name)
+        )
+    )
     return list.length ? [{ label: null, items: list }] : []
   }, [places, bubble, taste])
 

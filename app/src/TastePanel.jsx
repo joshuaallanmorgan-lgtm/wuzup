@@ -31,10 +31,11 @@ import './tastepanel.css'
 const GRID_CATS = CATEGORIES.filter((c) => c.id !== 'other')
 
 // the unified when-preference reflected back (DRAFT — matches Profile's lines)
+// WS3 §9: the fact-row glyphs ride the engineered Icon family (was 🌙🎉🤷)
 const WHEN_LABEL = {
-  weeknights: '🌙 Weeknights are your nights',
-  weekends: '🎉 Weekends are your nights',
-  whenever: '🤷 Out whenever the mood hits',
+  weeknights: { Ic: Icon.moon, text: 'Weeknights are your nights' },
+  weekends: { Ic: Icon.burst, text: 'Weekends are your nights' },
+  whenever: { Ic: Icon.shuffle, text: 'Out whenever the mood hits' },
 }
 
 // the three explicit states, in order; the tap cycles boost → neutral → mute
@@ -94,10 +95,14 @@ export default function TastePanel({ from, primer }) {
           <div className="tp-facts">
             {sum.freeLeaning && (
               <div className="tp-fact">
-                <span aria-hidden>🆓</span> You lean toward free events — they get a small bump.
+                <Icon.tag className="meta-ic" aria-hidden /> You lean toward free events — they get a small bump.
               </div>
             )}
-            {sum.when && <div className="tp-fact">{WHEN_LABEL[sum.when]}</div>}
+            {sum.when && (
+              <div className="tp-fact">
+                {WHEN_LABEL[sum.when].Ic({ className: 'meta-ic', 'aria-hidden': true })} {WHEN_LABEL[sum.when].text}
+              </div>
+            )}
             {!sum.railReady && sum.n > 0 && (
               <div className="tp-fact tp-fact-dim">
                 {/* V1b honesty: seeds tilt ordering, but "Your kind of night" waits for real taps */}

@@ -16,7 +16,7 @@
   background: rgba(var(--ink-rgb), 0.42);
   backdrop-filter: blur(4px);
   color: #fff;
-  font-size: 15px;
+  font-size: var(--t-body);
   line-height: 1;
   cursor: pointer;
   user-select: none;
@@ -27,22 +27,28 @@
 /* PREMIUM A2: the engineered stroke heart svg (replaces the ♥/♡ glyph) */
 .save-svg { display: block; width: 17px; height: 17px; }
 
-/* PREMIUM A2 (D4): the BARE card-body heart — a thin stroke heart at the card's
-   top-right corner, NO disc, NOT over the image. Resting = muted outline; saved =
-   filled --hot. (The image-overlay disc form above is unchanged for tiles/hero.) */
+/* Cohesion ruling 2026-07-01 #3 (Josh): the card-body heart wears the refs'
+   CIRCLED chip — a ~38px card-white disc, hairline border, soft row shadow,
+   ORANGE stroke heart (— --accent-ink: the accent itself fails the 3:1 non-text
+   bar at 2.3:1; the ink clears it with room). Position stays top-right (D4
+   stands); saved keeps the sanctioned --hot fill (I2: a red heart is the
+   universal affordance). Replaces A2's bare muted stroke; the image-overlay
+   disc form above is unchanged for tiles/hero. */
 .save-btn.save-bare {
   position: absolute;
   top: 9px;
   right: 9px;
-  width: 32px;
-  height: 32px;
-  background: none;
+  width: 38px;
+  height: 38px;
+  background: var(--card);
   backdrop-filter: none;
-  border-radius: 0;
-  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: var(--r-circle);
+  box-shadow: var(--shadow-1);
+  color: var(--accent-ink);
 }
 .save-btn.save-bare.on { color: var(--hot); }
-.save-btn.save-bare .save-svg { width: 22px; height: 22px; }
+.save-btn.save-bare .save-svg { width: 20px; height: 20px; }
 
 /* pop on toggle-on only (saves.js gates the class to real local toggles).
    I1 reward moment: the pop flashes --reward with a soft glow, then settles
@@ -79,12 +85,12 @@
 .shelf-count {
   display: inline-block;
   vertical-align: 3px;
-  margin-left: 8px;
+  margin-left: var(--sp-xs);
   padding: 2px 9px;
   border-radius: var(--r-pill);
-  background: rgba(var(--accent-rgb), 0.12);
-  color: var(--accent-ink);
-  font-size: 13px;
+  background: var(--chip-fill); /* WS3 accent restraint: a passive count pill — chip-neutral, muted 5.20:1. ⚑ Charles eyeball */
+  color: var(--muted);
+  font-size: var(--t-meta);
   font-weight: 800;
 }
 /* carousel wrapper around a reused TonightCard (div ≠ flex item styles) */
@@ -98,7 +104,7 @@
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.2px;
-  padding: 4px 8px;
+  padding: 4px var(--sp-xs);
   border-radius: var(--r-pill);
   background: rgba(var(--ink-rgb), 0.72);
   color: #fff;
@@ -110,3 +116,7 @@
 @media (prefers-reduced-motion: reduce) {
   .save-ic.pop { animation: none !important; }
 }
+
+/* WS3 §9: the "Your list" engineered save-heart (was the raw ❤️ emoji) —
+   --hot is the sanctioned save-heart color per the index.css ledger. */
+.shelf-heart { width: 17px; height: 17px; vertical-align: -2px; color: var(--hot); }

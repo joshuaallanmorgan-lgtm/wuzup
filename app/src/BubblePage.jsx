@@ -162,7 +162,8 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
                 : `${CITY.name} is big — narrow it to what's near you.`}
             </div>
             <button className="bub-locate-btn" onClick={locate} disabled={locState === 'asking'}>
-              {locState === 'asking' ? 'Locating…' : '📍 Use my location'}
+              {/* WS3 §9: engineered pin, not the 📍 chrome emoji */}
+              {locState === 'asking' ? 'Locating…' : <><Icon.pin className="btn-ic" aria-hidden /> Use my location</>}
             </button>
           </div>
         )}
