@@ -108,8 +108,10 @@ export const imagery = {
 // generation:
 //   'crissy-field'            (GGNRA seed — in-box)
 //   'lands-end'               (GGNRA seed — in-box)
-//   'tilden-regional-park'    (EBRPD — in-box)
-//   'briones-regional-park'   (EBRPD — in-box)
+//   'charles-lee-tilden-regional-park' (EBRPD — in-box; the layer's
+//                             OFFICIAL_NAME is "Charles Lee Tilden Regional
+//                             Park", live-verified — NOT 'tilden-regional-park')
+//   'briones-regional-park'   (EBRPD — in-box, live-verified)
 //   'mount-diablo-state-park' ⚑ OUTSIDE the ratified bbox (see the bbox flag) —
 //                             cannot generate unless Josh widens the box.
 export const rosterBenchmark = [];
@@ -146,25 +148,35 @@ export const meta = { id: 'sf-east-bay', name: 'SF & East Bay', center: { lat: 3
 
 // ---------------------------------------------------------------------------
 // ⛔ UNREVIEWED — AREA gazetteer STAGING (Stage D3 prep, 2026-07-03).
-// Candidates drafted from (a) the SF Rec & Parks Socrata neighborhood fields
-// (analysis/mons/realtor/planning_neighborhood — live-sampled) and (b) the
-// corridor's well-known town/district/island words. NOT CODE — a human review
-// per MULTICITY_IMAGERY_RUNBOOK.md must cull ambiguous words (each word here
-// individually neutralizes 2-word geosearch matches: 'golden gate park' must
-// NEVER be swallowed, so 'golden'/'gate' must NOT be promoted, etc.) before any
-// of this text moves into `area` above. The staging list lives in this file so
-// the config and its pending honesty review travel together.
+// NOT CODE — a human review per MULTICITY_IMAGERY_RUNBOOK.md must cull
+// ambiguous words before any of this text moves into `area` above (each
+// promoted word neutralizes 2-word geosearch phrases made entirely of AREA
+// words — promote a park-name word and that park stops matching its own
+// photos). The staging list lives in this file so the config and its pending
+// honesty review travel together.
 //
+// (a) DATA-DERIVED — the 50 distinct DataSF neighborhood values carried by the
+// sf-parks adapter's source datasets (analysis/planning_neighborhood fields,
+// live-sampled 2026-07-03; multi-word values decompose into words for review):
+//   bayview hunters point bernal heights castro upper market chinatown crocker
+//   amazon diamond heights downtown civic center excelsior financial district
+//   south beach glen park haight ashbury hayes valley inner richmond inner
+//   sunset japantown lakeshore lincoln park lone mountain usf marina mclaren
+//   mission mission bay nob hill noe valley north beach ocean view oceanview
+//   merced ingleside outer mission outer richmond outer sunset pacific heights
+//   parkside portola potrero hill presidio presidio heights russian hill
+//   seacliff south of market tenderloin treasure island ybi twin peaks
+//   visitacion valley western addition
+//   (EBRPD's layer carries NO district fields — East Bay area words come from
+//   the corridor town list below, not from that adapter.)
+//
+// (b) HAND-DRAFTED — corridor towns/districts (the Tampa-list analog):
 //   san francisco oakland berkeley emeryville alameda albany piedmont orinda
 //   lafayette moraga walnut creek concord pleasant hill martinez richmond
-//   el cerrito kensington hercules pinole san pablo mission castro soma
-//   presidio embarcadero haight ashbury noe valley potrero dogpatch bayview
-//   hunters point excelsior sunset richmond-district marina pacific heights
-//   nob hill russian hill telegraph chinatown north beach tenderloin fillmore
-//   japantown glen park bernal heights twin peaks visitacion crocker amazon
-//   ingleside portola parkside laurel rockridge temescal fruitvale dimond
-//   montclair elmwood claremont gourmet ghetto uptown downtown jack london
-//   treasure island yerba buena angel island alcatraz county usa california ca
+//   el cerrito kensington hercules pinole san pablo soma fillmore embarcadero
+//   dogpatch telegraph laurel rockridge temescal fruitvale dimond montclair
+//   elmwood claremont gourmet ghetto uptown jack london yerba buena angel
+//   island alcatraz county usa california ca
 //
 // Known review traps already spotted (do NOT promote blindly):
 //   'richmond'   — both an East Bay CITY and an SF DISTRICT; high collision value.
@@ -173,4 +185,10 @@ export const meta = { id: 'sf-east-bay', name: 'SF & East Bay', center: { lat: 3
 //                  Creek', 'Mission Dolores Park' (the park must still match).
 //   'golden'/'gate' — NEVER: would neutralize 'Golden Gate Park' name-matches.
 //   'lake'/'merritt' — 'Lake Merritt' is a DESTINATION, not an area word.
+//   'glen'/'park', 'mclaren', 'lincoln', 'buena vista', 'golden gate park' —
+//                  DataSF neighborhood values that are PARK NAMES (the
+//                  neighborhood is named after the park): promoting their words
+//                  would swallow the parks' own photo matches. Same class:
+//                  'presidio' (both a district and the destination).
+//   'marina'     — district word AND a generic waterfront feature word.
 // ---------------------------------------------------------------------------
