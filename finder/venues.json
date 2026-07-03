@@ -334,20 +334,22 @@
   },
   {
     "canonicalName": "The BayCare Sound",
-    "aliases": [],
-    "lat": 27.9681,
-    "lng": -82.778966,
+    "aliases": [
+      "The BayCare Sound - Coachman Park",
+      "The Baycare Sound at Coachman Park"
+    ],
+    "lat": 27.96804,
+    "lng": -82.80233,
     "address": "255 Drew Street, Clearwater, FL 33755"
   },
   {
     "canonicalName": "Coachman Park",
     "aliases": [
-      "The BayCare Sound - Coachman Park",
-      "The Baycare Sound at Coachman Park"
+      "301 Drew St"
     ],
     "lat": 27.968029,
     "lng": -82.803131,
-    "address": "255 Drew Street, Clearwater, FL 33755, Clearwater, FL"
+    "address": "301 Drew St, Clearwater, FL 33755"
   },
   {
     "canonicalName": "The Body Electric Yoga Company",
@@ -361,7 +363,8 @@
   {
     "canonicalName": "The Coliseum",
     "aliases": [
-      "St Petersburg Coliseum"
+      "St Petersburg Coliseum",
+      "535 4th Ave N"
     ],
     "lat": 27.7757,
     "lng": -82.6442,
@@ -382,11 +385,25 @@
     "canonicalName": "The James Museum",
     "aliases": [
       "The James Museum of Western & Wildlife Art",
-      "James Museum"
+      "James Museum",
+      "150 Central Ave"
     ],
     "lat": 27.770634,
     "lng": -82.634767,
     "address": "150 Central Ave, St. Petersburg, FL 33701"
+  },
+  {
+    "canonicalName": "The Mahaffey Theater",
+    "aliases": [
+      "Duke Energy Center for the Arts - Mahaffey Theater",
+      "Duke Energy Center for the Arts – Mahaffey Theater",
+      "Mahaffey Theater",
+      "Mahaffey Theater At The Duke Energy Center for the Arts",
+      "Duke Energy Center for the Arts"
+    ],
+    "lat": 27.7679,
+    "lng": -82.633,
+    "address": "400 1st St S, St. Petersburg, FL 33701"
   },
   {
     "canonicalName": "The St. Pete Pier",
