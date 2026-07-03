@@ -16,28 +16,59 @@
    the saves.css `.detail-hero .save-btn ~ .heat-badge { right: 64px }` regardless
    of stylesheet order. (16 heart + 38 + 8 → share@62; +40 + 8 → badge@110.) */
 .detail-hero .detail-share ~ .save-btn ~ .heat-badge { right: 110px; }
+/* WS2 detail-rebuild: the hero TIME BADGE (refs, event-detail screen) — the card's
+   .imgbadge geometry scaled one step up, on the sanctioned --cta fill (the ONE
+   white-text primary fill, D.0-R; the refs' light-orange badge fails AA). Solid
+   fill → no backdrop blur. Rendered only from a real start time (GemRow's gate). */
+.detail-timebadge {
+  left: 16px;
+  bottom: 16px;
+  padding: 6px 11px;
+  font-size: 13px;
+  background: var(--cta);
+  backdrop-filter: none;
+  z-index: 2;
+}
+/* WS2 detail-rebuild: the category chip moved off the hero into the light title
+   block's .detail-chips row (App.css), which owns the spacing — margins retired. */
 .detail-catchip {
   display: inline-block;
-  margin: 0 0 11px 8px;
   text-transform: capitalize;
   background: hsl(var(--ch, 220) 70% 93%);
   color: hsl(var(--ch, 220) 55% 27%);
 }
 
-/* ===== "Why this is here" (Sprint G3): quiet true-reason chips inside the
-   trust row — absorbed the old standalone gem/staff d-flag banners and the
-   Buzz row into one honest block ===== */
-.why-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 5px;
+/* ===== "Why this fits" (WS2 detail-rebuild, was G3's why-chips row): the refs'
+   titled prose card. Soft accent-tinted card; the sparkle is the engineered
+   Icon.sparkle in accent-ink (a mark on a real recommendation); the title reads
+   ink (accent restraint, DESIGN_SYSTEM §1). The card renders ONLY when a true
+   reason exists — absence IS the honest state, so no empty shell. ===== */
+.detail-why {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: var(--r-lg);
+  background: rgba(var(--accent-rgb), 0.08);
 }
-/* A6: now built on the .chip / .chip-accent primitive; this keeps only the
-   wrap override so multi-word "why" reasons can break instead of nowrapping. */
-.why-chip {
-  white-space: normal;
-  line-height: 1.4;
+.detail-why-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.1px;
+  color: var(--ink);
+}
+.detail-why-ic {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  color: var(--accent-ink);
+}
+.detail-why-text {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #4a423a; /* the detail body-prose ink (.detail-desc) */
 }
 
 /* ===== editorial info rows: hairline dividers, 11px uppercase labels,
@@ -120,8 +151,63 @@ a.d-row { text-decoration: none; color: inherit; }
   background: rgba(var(--accent-rgb), 0.05);
 }
 
+/* ===== WS2 detail-rebuild: LINK-OUT ROWS (refs' event detail) — the event
+   page's 4-button utility strip retired for one bordered group of full-width
+   tappable rows: icon disc · label (+ the link's real-hostname sub) · trailing
+   ↗ (external) / › (action). Rows render from real data only or not at all. ===== */
+.detail-links {
+  margin-top: 26px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--card);
+  overflow: hidden;
+}
+.dlink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  text-decoration: none;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background var(--dur-micro);
+}
+.dlink:last-child { border-bottom: none; }
+.dlink:active { background: rgba(26, 20, 16, 0.04); }
+.dlink-ic {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-circle);
+  background: var(--chip-fill);
+  color: var(--ink);
+}
+.dlink-ic svg { width: 17px; height: 17px; }
+.dlink-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.dlink-label { font-size: 14.5px; font-weight: 700; }
+.dlink-sub {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dlink-go { flex: 0 0 auto; font-size: 16px; font-weight: 800; color: var(--muted); }
+
 /* ===== utility row (quiet, bordered, 44px — Editorial) ===== */
-/* 3.7P-34: wraps when a 4th (Tickets / Event page) secondary action is present */
+/* WS2 detail-rebuild: the EVENT detail moved to .detail-links above; this strip
+   now serves PlaceDetail only (Directions / Share) — unify in a later pass. */
 .util-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
 .util-btn {
   flex: 1 1 88px;

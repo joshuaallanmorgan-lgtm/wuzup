@@ -1681,6 +1681,49 @@ test('3.7P-34 event-detail: planner-first Add-to-day CTA + demoted event link', 
   assert.ok(/aria-modal="true"/.test(dp) && /planSheetRef/.test(dp) && /planBtnRef\.current\?\.focus\(\)/.test(dp), 'the add-to-day sheet is a focus-managed dialog (focus in + return to trigger)')
 })
 
+// WS2 detail-rebuild — the event detail ports PlaceDetail's Stage-R light-title
+// pattern: eyebrow (honest short WHEN) → title → venue sit BELOW the clean hero
+// on light; the over-hero white title + heavy scrim retired; the hero KEEPS the
+// 'evt-hero' viewTransitionName (the card→detail morph contract); the title
+// wraps unbroken garbage-source strings (live-capture defect #1, display half).
+test('WS2 detail-rebuild: light title block below the hero + VT name intact', () => {
+  const dp = readFileSync(path.join(ROOT, 'app', 'src', 'DetailPage.jsx'), 'utf8')
+  assert.ok(!/detail-hero-text/.test(dp), 'the over-hero title block is retired (title lives below the hero)')
+  assert.ok(/detail-eyebrow/.test(dp) && /className="detail-title"/.test(dp) && /detail-venue/.test(dp), 'DetailPage renders eyebrow + title + venue below the hero')
+  assert.ok(dp.indexOf('detail-eyebrow') < dp.indexOf('className="detail-title"'), 'the eyebrow sits above the title')
+  assert.ok(dp.indexOf('detail-body') < dp.indexOf('detail-eyebrow'), 'the title block lives in the light body, not the hero')
+  assert.ok(/viewTransitionName: 'evt-hero'/.test(dp), 'the detail hero still owns the evt-hero VT name (morph contract)')
+  const appCss = readFileSync(path.join(ROOT, 'app', 'src', 'App.css'), 'utf8')
+  assert.ok(/\.detail-title\s*\{[^}]*overflow-wrap:\s*anywhere/.test(appCss), 'a long unbroken title wraps instead of clipping (defect #1)')
+  assert.ok(/\.detail-title\s*\{[^}]*font-weight:\s*800/.test(appCss), 'the title is ink 800 (Stage-R), not the over-hero 900')
+  assert.ok(/\.detail-eyebrow\s*\{[^}]*var\(--accent-ink\)/.test(appCss), 'the eyebrow reads --accent-ink (AA accent text)')
+  assert.ok(/\.detail-hero-grad-ev/.test(appCss) && /detail-hero-grad detail-hero-grad-ev/.test(dp), 'the event hero wears the chrome-only scrim variant')
+  // WS2 2/4 — the hero TIME BADGE: card imgbadge geometry on the sanctioned --cta
+  // fill (D.0-R: the one white-text fill), gated exactly like GemRow's badge
+  // (a real start time, never an ongoing run — no fabricated times).
+  assert.ok(/heroTime = !e\._ongoing \? timeOf\(e\.start\) : ''/.test(dp), 'the hero time badge wears GemRow\'s honesty gate (real start time, not ongoing)')
+  assert.ok(/\{heroTime && <span className="imgbadge detail-timebadge">/.test(dp), 'the badge renders only when a time exists (imgbadge geometry reused)')
+  const detailCss = readFileSync(path.join(ROOT, 'app', 'src', 'detail.css'), 'utf8')
+  assert.ok(/\.detail-timebadge\s*\{[^}]*background:\s*var\(--cta\)/.test(detailCss), 'the badge fill is --cta (the one sanctioned white-text fill, D.0-R)')
+  // WS2 3/4 — "Why this fits" is a titled prose CARD composed ONLY from ratified
+  // true signals (whyReasons + the real event-day forecast via wxMood); zero
+  // reasons → NO card (never fabricated). The bare why-chips fact row retired.
+  assert.ok(/function whyProse/.test(dp) && /whyReasons\(e\)/.test(dp) && /wxMood\(w\)/.test(dp), 'whyProse composes from the ratified whyReasons seam + the real forecast')
+  assert.ok(/if \(!frags\.length\) return null/.test(dp) && /\{whyLine && \(/.test(dp), 'no real reason → no card (the honest-omission gate)')
+  assert.ok(!/className="why-chips"/.test(dp) && !/why-chip\b/.test(dp), 'the bare why-chips fact row is retired (no rendered why-chip)')
+  assert.ok(/Why this fits/.test(dp) && /Icon\.sparkle/.test(dp), 'the card carries the refs\' sparkle + title (engineered Icon.sparkle, not a raw glyph)')
+  // WS2 4/4 — link-out rows replace the event page's 4-button utility strip.
+  // Honesty: every row from real data or absent — hostname sub derived from
+  // e.url; Directions distance ONLY from a real upstream _dist; ICS stays
+  // reachable as the Add-to-calendar row. (.util-row itself survives — it still
+  // serves PlaceDetail.)
+  assert.ok(!/className="util-row"/.test(dp), 'the event detail no longer renders the utility strip')
+  assert.ok(/detail-links/.test(dp) && /className="dlink"/.test(dp), 'the refs\' link-out rows render instead')
+  assert.ok(/e\._dist != null/.test(dp) && /toFixed\(1\)\} mi/.test(dp), 'Directions distance renders ONLY from a real computed _dist (never fabricated)')
+  assert.ok(/new URL\(e\.url\)\.hostname/.test(dp), 'the official-page sub is the link\'s REAL hostname (derived, not invented)')
+  assert.ok(/Add to calendar/.test(dp) && /downloadIcs/.test(dp), 'the ICS affordance survives as the Add-to-calendar row')
+})
+
 // 3.7P-39 — section-label honesty (D6 strict): the "Hidden Gems" shelf must not
 // carry a job/career/hiring fair. NON_GEM_RE gates the shelf (UI + finder); the
 // event still lives in Everything (curation, never hiding).
