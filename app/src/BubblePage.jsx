@@ -42,7 +42,7 @@ const TAGLINES = {
   weekend: 'Friday to Sunday, fully loaded.',
   free: 'Your wallet stays home.',
   near: 'Good times, walking distance.',
-  music: 'Turn it up, Tampa.',
+  music: `Turn it up, ${CITY.shortName}.`,
   food: 'Come hungry. Leave happy.',
   outdoors: 'Vitamin D included.',
   sports: 'Game faces on.',
