@@ -35,7 +35,24 @@ const slugify = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
           '(KHTML, like Gecko) Chrome/124.0 Safari/537.36';
 
-const SOURCES = JSON.parse(readFileSync(join(HERE, 'sources.json'), 'utf8'));
+// The sources manifest is CITY DATA (Stage D REFUTE F1): it lives per-city at
+// finder/cities/<cityId>.sources.json. An events run for a city with no
+// manifest REFUSES LOUDLY before any fetch or write — without this gate a
+// CITY=sf-east-bay run would happily ingest Tampa's 14 source URLs and ship
+// Tampa events labeled as SF (the exact honesty hazard multi-tenancy exists
+// to prevent). Writing a new city's manifest is part of its events build
+// (see STAGE_D_SF_EVENTS.md for the scouted SF set).
+const SOURCES_FILE = join(HERE, 'cities', `${cityId}.sources.json`);
+if (!existsSync(SOURCES_FILE)) {
+  console.error(
+    `\n✋ EVENTS RUN REFUSED: city '${cityId}' has no sources manifest\n` +
+    `   (expected finder/cities/${cityId}.sources.json).\n` +
+    `   Events sources are per-city inputs — write the city's source modules +\n` +
+    `   manifest first (STAGE_D_SF_EVENTS.md holds the scouted SF set).\n`
+  );
+  process.exit(1);
+}
+const SOURCES = JSON.parse(readFileSync(SOURCES_FILE, 'utf8'));
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -825,14 +842,17 @@ function mergeCluster(members) {
 }
 
 // ===================== venue canonicalization (Sprint L4) =====================
-// finder/venues.json is a GENERATED, committed canonical-venue table (built by
-// finder/build-venues.mjs from real pipeline output). At merge time, any raw
-// listing whose venue matches a canonical alias gets the canonical name +
-// coordinates + (if missing) address. One venue, one name, one coord — so
-// coordinate jitter and alias spellings ("The Dali" / "Salvador Dali Museum")
-// can't split the venue-equality merge or scatter map pins.
+// The venue table is a GENERATED, committed canonical-venue table (built by
+// finder/build-venues.mjs from real pipeline output) — and it is CITY DATA
+// (Stage D REFUTE F2), so it lives per-city at finder/cities/<cityId>.venues.json.
+// At merge time, any raw listing whose venue matches a canonical alias gets the
+// canonical name + coordinates + (if missing) address. One venue, one name, one
+// coord — so coordinate jitter and alias spellings ("The Dali" / "Salvador Dali
+// Museum") can't split the venue-equality merge or scatter map pins. A NEW city
+// bootstraps without one (loud skip below — merge quality only, not an honesty
+// gate); build-venues.mjs generates it from the city's first events output.
 
-const VENUES_FILE = join(HERE, 'venues.json');
+const VENUES_FILE = join(HERE, 'cities', `${cityId}.venues.json`);
 
 // Aggressive-normalize a venue name into a lookup key: fold diacritics
 // (Dalí → dali), lowercase, strip punctuation, drop a leading "the", fold
@@ -1735,6 +1755,18 @@ async function main() {
       // Events from a "free" source query are free by definition (e.g. Eventbrite's
       // free filter), even though their JSON-LD omits the price.
       if (src.free) for (const e of events) { e.isFree = true; e.price = 0; }
+      // Stage D REFUTE F3 (same guard as the module path): an empty parse never
+      // overwrites a non-empty last-good cache — fall back to it instead.
+      if (events.length === 0 && existsSync(cacheFile)) {
+        let cached = null;
+        try { cached = JSON.parse(readFileSync(cacheFile, 'utf8')); } catch { /* corrupt — treat empty as real */ }
+        if (Array.isArray(cached) && cached.length > 0) {
+          all.push(...cached);
+          report.push({ source: src.name, found: cached.length, ok: false, cached: true });
+          console.log(`  ⚠️  ${src.name.padEnd(26)} ${cached.length} events (cached — live returned 0, cache kept)`);
+          continue;
+        }
+      }
       all.push(...events);
       writeFileSync(cacheFile, JSON.stringify(events)); // remember last good pull
       report.push({ source: src.name, found: events.length, ok: true });
@@ -1813,6 +1845,26 @@ async function main() {
         const mapped = (Array.isArray(raw) ? raw : [])
           .map((r) => normalizeModuleEvent(r, label))
           .filter((e) => e && e.title && e.start);
+        // Stage D REFUTE F3: a module that soft-swallows every page failure
+        // (meetup.mjs's per-page catch) returns [] AS IF it were a good pull —
+        // and the cache write below would ZERO the committed last-good cache.
+        // That bit warm runs AND any real full-block day (Meetup 429ing every
+        // page erased the very fallback the resilience layer exists for). An
+        // EMPTY result never overwrites a NON-EMPTY cache: fall back to the
+        // cached pull, exactly like a thrown failure. Self-limiting staleness:
+        // cached events carry real dates, so downstream ended-at-generation
+        // filtering decays a genuinely-dead source to zero on its own.
+        if (mapped.length === 0 && existsSync(cacheFile)) {
+          let cached = null;
+          try { cached = JSON.parse(readFileSync(cacheFile, 'utf8')); } catch { /* corrupt — treat empty as real */ }
+          if (Array.isArray(cached) && cached.length > 0) {
+            all.push(...cached);
+            moduleNames.push(label);
+            report.push({ source: label, found: cached.length, ok: false, cached: true });
+            console.log(`  ⚠️  ${label.padEnd(26)} ${cached.length} events (cached — live returned 0, cache kept)`);
+            continue;
+          }
+        }
         all.push(...mapped);
         writeFileSync(cacheFile, JSON.stringify(mapped)); // remember last good pull
         moduleNames.push(label);
@@ -1875,7 +1927,7 @@ async function main() {
   if (venueTable) {
     console.log(`  🏛️  venue table: ${venueTable.size} canonical venues — rewrote ${venuesCanonicalized} listings`);
   } else {
-    console.log('  ⚠️  finder/venues.json missing — venue canonicalization skipped (run finder/build-venues.mjs)');
+    console.log(`  ⚠️  finder/cities/${cityId}.venues.json missing — venue canonicalization skipped (a new city bootstraps without one; run finder/build-venues.mjs after its first events run)`);
   }
 
   // Address-as-venue naming, PRE-merge pass (WS1 dedup fix): venue identity

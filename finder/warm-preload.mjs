@@ -17,7 +17,7 @@
 //        SKIP_IMGCHECK is forced (the image audit is console-only + network).
 //
 // NOTE: the run still writes finder/output/<cityId>/events.{json,md} and may
-// rewrite finder/cache/geocode.json (the null-entry purge). Copy the outputs
+// rewrite finder/cache/<cityId>/geocode.json (the null-entry purge). Copy the outputs
 // aside for comparison, then restore:
 //   git checkout -- finder/output finder/cache
 //

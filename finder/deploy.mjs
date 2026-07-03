@@ -41,7 +41,17 @@ for (const f of JSON_ARTIFACTS) {
     problems.push(`${f} is not valid JSON (${e.message})`);
   }
 }
-if (!existsSync(join(SRC, IMG_DIR))) problems.push(`missing ${IMG_DIR}/`);
+// Stage D REFUTE F8: validate place-img is a real, readable DIRECTORY here —
+// the copy phase rmSyncs the deployed dir before enumerating the source, so a
+// source that turns out to be a file (or unreadable) mid-copy would leave
+// app/public half-swapped with its photos deleted. All refusals happen before
+// any destructive step.
+const srcImgCheck = join(SRC, IMG_DIR);
+if (!existsSync(srcImgCheck)) problems.push(`missing ${IMG_DIR}/`);
+else if (!statSync(srcImgCheck).isDirectory()) problems.push(`${IMG_DIR} is not a directory`);
+else {
+  try { readdirSync(srcImgCheck); } catch (e) { problems.push(`${IMG_DIR}/ unreadable (${e.message})`); }
+}
 if (!existsSync(DEST)) problems.push('app/public/ does not exist (run from the repo root)');
 if (problems.length) {
   console.error(`deploy-city: REFUSING to deploy '${cityId}' — ${problems.join(' · ')}`);

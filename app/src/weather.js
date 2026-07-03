@@ -31,8 +31,12 @@ const LEGACY_WX_KEY = 'wx-tampa-v1'
 if (CACHE_KEY !== LEGACY_WX_KEY) {
   const old = lsGet(LEGACY_WX_KEY)
   if (old !== null) {
-    if (lsGet(CACHE_KEY) === null) lsSet(CACHE_KEY, old)
-    lsRemove(LEGACY_WX_KEY)
+    // storage.js's destructive-sequence rule (REFUTE nit): remove the legacy
+    // key ONLY once the copy verifiably landed — lsSet returns false on quota/
+    // private-mode failure, and removing anyway would orphan the cache (cost:
+    // one extra weather fetch, but the rule is the rule).
+    const landed = lsGet(CACHE_KEY) !== null ? true : lsSet(CACHE_KEY, old)
+    if (landed) lsRemove(LEGACY_WX_KEY)
   }
 }
 

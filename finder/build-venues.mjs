@@ -1,4 +1,4 @@
-// build-venues.mjs — generate finder/venues.json, the canonical venue table.
+// build-venues.mjs — generate finder/cities/<cityId>.venues.json, the canonical venue table.
 //
 // Usage:  node finder/build-venues.mjs [eventsJsonPath]
 //         (eventsJsonPath defaults to finder/output/<cityId>/events.json)
@@ -26,7 +26,7 @@
 // spellings, or one spelling whose own coords jitter by > 40 m across events.
 // finder.mjs applies the table at merge time (canonical name + coords).
 //
-// ACCRETIVE: the existing venues.json is folded back in before clustering.
+// ACCRETIVE: the existing per-city venues table is folded back in before clustering.
 // Pipeline output is already canonicalized, so alias spellings stop appearing
 // in the data the moment the table works — without this, every regeneration
 // would forget yesterday's aliases (observed live: 44 venues collapsed to 5).
@@ -40,7 +40,7 @@ import { bbox, cityId } from './cities/index.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const EVENTS = process.argv[2] || join(HERE, 'output', cityId, 'events.json');
-const OUT = join(HERE, 'venues.json');
+const OUT = join(HERE, 'cities', `${cityId}.venues.json`); // city data (Stage D REFUTE F2): never a shared path
 
 // Tampa Bay sanity box — from the active city config (cities/).
 const inBox = (lat, lng) =>
