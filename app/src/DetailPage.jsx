@@ -15,7 +15,7 @@ import { eventIcs } from './share.js'
 import { CATEGORY_EMOJI, HeatBadge, SecHead, TonightCard, auroraStyle, hueFor } from './cards.jsx'
 import { SaveHeart, useSaves } from './saves.js'
 import { whyReasons } from './taste.js'
-import { daypartOf, DAYPART } from './weekend.js'
+import { daypartOf, DAYPART, wxMood } from './weekend.js'
 import { loadDayPlans, saveDayPlans, withSlot, dayEntryFor, PARTS } from './dayplan.js'
 import { CONDITION, dateKey } from './weather.js'
 import './detail.css'
@@ -68,6 +68,36 @@ function eventPlanDays(e, anchors) {
 // excluded from vibe matching ('added-by-you' is provenance, not a vibe)
 const GENERIC_TAGS = new Set(['tonight', 'weekend', 'one-off', 'recurring', 'ongoing', 'added-by-you'])
 
+// WS2 detail-rebuild — the refs' "Why this fits" prose card: ONE honest sentence
+// composed ONLY from already-ratified TRUE signals — whyReasons(e) (taste.js:
+// buzz≥2, free, live tonight/weekend anchors-math, gem, staff-pick, taste lean;
+// every chip true by construction) plus the same wxMood forecast cue DayPage
+// uses, fed the REAL forecast for the event's own day. 'Sponsored placement' is
+// deliberately NOT a fit reason — that disclosure renders unconditionally as the
+// .detail-sp label up top. Zero fragments → null → NO card rendered at all
+// (honesty: a missing reason is never papered over with a fabricated one).
+// Max three fragments, one sentence. ALL COPY DRAFT ⚑ Charles.
+function whyProse(e, w) {
+  const frags = []
+  // weather leads (whyFits' own priority): outdoor event + a genuinely clear day
+  if (e.category === 'outdoors' && wxMood(w) === 'clear') frags.push('the forecast looks clear that day')
+  for (const r of whyReasons(e)) {
+    if (r.startsWith('🔥')) frags.push(`${e.buzz} local sources list it`)
+    else if (r === 'Free') frags.push("it's free")
+    else if (r === 'Tonight') frags.push("it's on tonight")
+    else if (r === 'This weekend') frags.push("it's on this weekend")
+    else if (r === '💎 Hidden gem') frags.push("it's a hidden gem")
+    else if (r === '⭐ Staff pick') frags.push("it's a staff pick")
+    else if (r.startsWith('Your taps lean')) frags.push(r.charAt(0).toLowerCase() + r.slice(1))
+    // anything else (incl. 'Sponsored placement') is not a fit reason — skipped
+  }
+  if (!frags.length) return null
+  const top = frags.slice(0, 3)
+  const s =
+    top.length === 1 ? top[0] : top.length === 2 ? `${top[0]} and ${top[1]}` : `${top[0]}, ${top[1]}, and ${top[2]}`
+  return s.charAt(0).toUpperCase() + s.slice(1) + '.'
+}
+
 export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, onRestoreMine }) {
   // navigation via useNav (O6): close/swap/map-handoff + the open-state flags
   const { closing, vtOpen: vt, closeDetail: onClose, openDetail: onSelect } = useNav()
@@ -111,16 +141,12 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         encodeURIComponent([e.venue, e.address].filter(Boolean).join(', '))
       : null
 
-  // ===== trust + transparency (G3): ONE honest block. whyReasons (taste.js)
-  // composes only TRUE chips — buzz≥2, free, tonight/this-weekend (live
-  // anchors-math, not baked tags), hidden-gem, staff-pick, sponsored
-  // disclosure, and "You open a lot of {category}" ONLY when the taste nudge
-  // actually boosted this event (>5 pts). The old Buzz/gem/staff rows merge
-  // in here rather than duplicating; zero reasons → no why-line at all, just
-  // the plain found-via row. =====
+  // ===== trust + transparency (G3 → WS2 detail-rebuild): the why-signal now
+  // renders as the refs' "Why this fits" prose CARD (whyProse above, composed
+  // from the same honest whyReasons seam + the real forecast); the bare
+  // why-chips fact row retired. Zero reasons → no card at all. `via` stays the
+  // quiet provenance footer. =====
   const via = e.sources && e.sources.length ? e.sources.join(' · ') : e.source
-  const multiSource = typeof e.buzz === 'number' && e.buzz >= 2
-  const why = whyReasons(e)
 
   // ===== user-added event? (Add Event MVP) — provenance label + Remove =====
   const mine = Array.isArray(e.tags) && e.tags.includes('added-by-you')
@@ -136,6 +162,8 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         .filter(Boolean)
         .join(' · ')
     : null
+  // the Why-this-fits sentence — needs the event-day forecast (w) above
+  const whyLine = whyProse(e, w)
 
   // ===== detail hero image: preload + 300ms fade over the dark placeholder =====
   const [loadedSrc, setLoadedSrc] = useState(null)
@@ -441,23 +469,21 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
             <div className="d-row"><span className="d-ic">{w.emoji}</span><div><div className="d-k">Weather</div><div className="d-v">{wxLine}</div></div></div>
           )}
           {/* I4: provenance ("Found via …") is internal, not decision info — it
-              lives in the page footer now (.detail-via); the why-chips stay */}
-          {why.length > 0 && (
-            <div className="d-row">
-              <span className="d-ic">{multiSource ? '🔥' : '🧭'}</span>
-              <div>
-                <div className="d-k">Why this is here</div>
-                <div className="why-chips">
-                  {why.map((r) => (
-                    <span className="chip chip-accent why-chip" key={r}>
-                      {r}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+              lives in the page footer (.detail-via) */}
         </div>
+        {/* WS2 detail-rebuild: the refs' "✦ Why this fits" titled prose card —
+            replaces the bare why-chips fact row. Rendered ONLY when whyProse
+            composed a real reason; no reason → no card (never fabricated).
+            Copy DRAFT ⚑ Charles. */}
+        {whyLine && (
+          <div className="detail-why">
+            <div className="detail-why-head">
+              <Icon.sparkle className="detail-why-ic" aria-hidden />
+              Why this fits
+            </div>
+            <p className="detail-why-text">{whyLine}</p>
+          </div>
+        )}
         {/* W3 never-hide: a collapsed recurring card carries every instance in
             _series. THIS is the rendered open path for them — without it the
             non-rep instances (the same program on other days/at other venues)

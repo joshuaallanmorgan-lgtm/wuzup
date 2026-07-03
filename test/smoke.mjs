@@ -1610,6 +1610,13 @@ test('WS2 detail-rebuild: light title block below the hero + VT name intact', ()
   assert.ok(/\{heroTime && <span className="imgbadge detail-timebadge">/.test(dp), 'the badge renders only when a time exists (imgbadge geometry reused)')
   const detailCss = readFileSync(path.join(ROOT, 'app', 'src', 'detail.css'), 'utf8')
   assert.ok(/\.detail-timebadge\s*\{[^}]*background:\s*var\(--cta\)/.test(detailCss), 'the badge fill is --cta (the one sanctioned white-text fill, D.0-R)')
+  // WS2 3/4 — "Why this fits" is a titled prose CARD composed ONLY from ratified
+  // true signals (whyReasons + the real event-day forecast via wxMood); zero
+  // reasons → NO card (never fabricated). The bare why-chips fact row retired.
+  assert.ok(/function whyProse/.test(dp) && /whyReasons\(e\)/.test(dp) && /wxMood\(w\)/.test(dp), 'whyProse composes from the ratified whyReasons seam + the real forecast')
+  assert.ok(/if \(!frags\.length\) return null/.test(dp) && /\{whyLine && \(/.test(dp), 'no real reason → no card (the honest-omission gate)')
+  assert.ok(!/className="why-chips"/.test(dp) && !/why-chip\b/.test(dp), 'the bare why-chips fact row is retired (no rendered why-chip)')
+  assert.ok(/Why this fits/.test(dp) && /Icon\.sparkle/.test(dp), 'the card carries the refs\' sparkle + title (engineered Icon.sparkle, not a raw glyph)')
 })
 
 // 3.7P-39 — section-label honesty (D6 strict): the "Hidden Gems" shelf must not

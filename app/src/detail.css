@@ -38,20 +38,37 @@
   color: hsl(var(--ch, 220) 55% 27%);
 }
 
-/* ===== "Why this is here" (Sprint G3): quiet true-reason chips inside the
-   trust row — absorbed the old standalone gem/staff d-flag banners and the
-   Buzz row into one honest block ===== */
-.why-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 5px;
+/* ===== "Why this fits" (WS2 detail-rebuild, was G3's why-chips row): the refs'
+   titled prose card. Soft accent-tinted card; the sparkle is the engineered
+   Icon.sparkle in accent-ink (a mark on a real recommendation); the title reads
+   ink (accent restraint, DESIGN_SYSTEM §1). The card renders ONLY when a true
+   reason exists — absence IS the honest state, so no empty shell. ===== */
+.detail-why {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: var(--r-lg);
+  background: rgba(var(--accent-rgb), 0.08);
 }
-/* A6: now built on the .chip / .chip-accent primitive; this keeps only the
-   wrap override so multi-word "why" reasons can break instead of nowrapping. */
-.why-chip {
-  white-space: normal;
-  line-height: 1.4;
+.detail-why-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.1px;
+  color: var(--ink);
+}
+.detail-why-ic {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  color: var(--accent-ink);
+}
+.detail-why-text {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #4a423a; /* the detail body-prose ink (.detail-desc) */
 }
 
 /* ===== editorial info rows: hairline dividers, 11px uppercase labels,
