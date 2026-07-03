@@ -16,6 +16,19 @@
    the saves.css `.detail-hero .save-btn ~ .heat-badge { right: 64px }` regardless
    of stylesheet order. (16 heart + 38 + 8 → share@62; +40 + 8 → badge@110.) */
 .detail-hero .detail-share ~ .save-btn ~ .heat-badge { right: 110px; }
+/* WS2 detail-rebuild: the hero TIME BADGE (refs, event-detail screen) — the card's
+   .imgbadge geometry scaled one step up, on the sanctioned --cta fill (the ONE
+   white-text primary fill, D.0-R; the refs' light-orange badge fails AA). Solid
+   fill → no backdrop blur. Rendered only from a real start time (GemRow's gate). */
+.detail-timebadge {
+  left: 16px;
+  bottom: 16px;
+  padding: 6px 11px;
+  font-size: 13px;
+  background: var(--cta);
+  backdrop-filter: none;
+  z-index: 2;
+}
 /* WS2 detail-rebuild: the category chip moved off the hero into the light title
    block's .detail-chips row (App.css), which owns the spacing — margins retired. */
 .detail-catchip {

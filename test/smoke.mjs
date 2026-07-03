@@ -1603,6 +1603,13 @@ test('WS2 detail-rebuild: light title block below the hero + VT name intact', ()
   assert.ok(/\.detail-title\s*\{[^}]*font-weight:\s*800/.test(appCss), 'the title is ink 800 (Stage-R), not the over-hero 900')
   assert.ok(/\.detail-eyebrow\s*\{[^}]*var\(--accent-ink\)/.test(appCss), 'the eyebrow reads --accent-ink (AA accent text)')
   assert.ok(/\.detail-hero-grad-ev/.test(appCss) && /detail-hero-grad detail-hero-grad-ev/.test(dp), 'the event hero wears the chrome-only scrim variant')
+  // WS2 2/4 — the hero TIME BADGE: card imgbadge geometry on the sanctioned --cta
+  // fill (D.0-R: the one white-text fill), gated exactly like GemRow's badge
+  // (a real start time, never an ongoing run — no fabricated times).
+  assert.ok(/heroTime = !e\._ongoing \? timeOf\(e\.start\) : ''/.test(dp), 'the hero time badge wears GemRow\'s honesty gate (real start time, not ongoing)')
+  assert.ok(/\{heroTime && <span className="imgbadge detail-timebadge">/.test(dp), 'the badge renders only when a time exists (imgbadge geometry reused)')
+  const detailCss = readFileSync(path.join(ROOT, 'app', 'src', 'detail.css'), 'utf8')
+  assert.ok(/\.detail-timebadge\s*\{[^}]*background:\s*var\(--cta\)/.test(detailCss), 'the badge fill is --cta (the one sanctioned white-text fill, D.0-R)')
 })
 
 // 3.7P-39 — section-label honesty (D6 strict): the "Hidden Gems" shelf must not

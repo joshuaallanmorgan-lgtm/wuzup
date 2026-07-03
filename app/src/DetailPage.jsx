@@ -155,6 +155,9 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
   const imgOk = loadedSrc === e.image
   // a real photo that loads → image hero; no image OR a broken URL → art hero
   const heroArt = !e.image || heroFailed
+  // WS2 detail-rebuild: the hero time badge — GemRow's exact honesty gate (never
+  // on an ongoing run, only a real start time; '' renders nothing).
+  const heroTime = !e._ongoing ? timeOf(e.start) : ''
 
   // D8: the detail mini-map (lazy Leaflet) is parked for v1 — removed. Coordinates
   // still drive the Directions button (Google Maps), below.
@@ -390,6 +393,11 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         {/* ♥ save toggle (saves.js) — heat badge slides left of it via saves.css */}
         <SaveHeart e={e} big />
         <HeatBadge e={e} />
+        {/* WS2 detail-rebuild: the refs' TIME BADGE, bottom-left on the hero —
+            solid --cta fill + white text (D.0-R compliant, 4.68:1; the refs'
+            light-orange fill fails AA with white). Card .imgbadge geometry,
+            scaled one step for the hero. */}
+        {heroTime && <span className="imgbadge detail-timebadge">{heroTime}</span>}
         {/* WS2 detail-rebuild: chrome-only scrim — the title moved below the hero
             (light surface), so the heavy bottom title-wash retired with it */}
         <div className="detail-hero-grad detail-hero-grad-ev" />
