@@ -13,8 +13,8 @@ const CITIES = {
   // CITY=sf-east-bay run writes ONLY finder/{output,cache}/sf-east-bay/ and
   // cannot touch Tampa's artifacts or the deployment (app/public changes only
   // via finder/deploy.mjs, which refuses an artifact-less city). The EVENTS
-  // pipeline stays D2-gated: this config has no `tz`/`geocode` wiring yet, so
-  // an events run fails closed at module load (see sf-east-bay.mjs header).
+  // pipeline stays GATED by missing INPUTS (no sf source modules; sources.json/
+  // venues.json are Tampa's) — the tz/geocode seams ARE wired (sf-east-bay.mjs).
   'sf-east-bay': sfEastBay,
 };
 

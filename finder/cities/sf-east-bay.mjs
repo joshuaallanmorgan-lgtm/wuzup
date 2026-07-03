@@ -11,9 +11,13 @@
 // finder/cache/sf-east-bay/), mapillary --ship clears only this city's
 // place-img dir, and app/public changes only via finder/deploy.mjs (which
 // refuses to deploy this city until its artifact set exists).
-// ⚠️ EVENTS still D2-GATED: this config exports `timezone` but not the `tz` +
-// `geocode` shape finder.mjs consumes, so an events run FAILS CLOSED at module
-// load (nothing written). The PLACES side runs (its adapters land in D3).
+// ⚠️ EVENTS still GATED — but by MISSING INPUTS now, not by config shape: the
+// `tz` + `geocode` seams below match what finder.mjs consumes (aligned to the
+// D2 seam post-merge), but `finder/sources.json` + `finder/venues.json` are
+// un-namespaced Tampa inputs and this city has ZERO event source modules yet
+// (the scouted v1 set = STAGE_D_SF_EVENTS.md, ~4-4.5 builder-days). An events
+// run without them produces Tampa-flavored garbage — do not run until the
+// events build lands. The PLACES side runs (its adapters landed in D3).
 
 // sanity box — any coordinate outside this is wrong for a local place/event.
 // Ratified by Josh 2026-06-16 (PHASE_3.7.md §I.5): SF through the East Bay to
@@ -30,11 +34,21 @@ export const bboxOverpass = `(${bbox.latMin},${bbox.lngMin},${bbox.latMax},${bbo
 export const bboxArcgisEnvelope = JSON.stringify({ xmin: bbox.lngMin, ymin: bbox.latMin, xmax: bbox.lngMax, ymax: bbox.latMax });
 export const geocodeViewbox = `${bbox.lngMin},${bbox.latMax},${bbox.lngMax},${bbox.latMin}`;
 
-// timezone — America/Los_Angeles (Pacific + DST). ⚠️ NOT WIRED YET: finder.mjs
-// still hardcodes Eastern offsets (~293–310); until D2 routes day/time math
-// through this field, every SF event would be stamped 3 hours early. This field
-// is the D2 wiring target (PHASE_3.7.md §I.5 critical-refactor flag).
-export const timezone = 'America/Los_Angeles';
+// timezone — America/Los_Angeles (Pacific + DST). Wired: D2 routes ALL day/time
+// math through `tz` (Intl-derived per-date offsets, DST-safe — see tampa-bay.mjs).
+export const tz = 'America/Los_Angeles';
+
+// geocode facts (the D2 seam shape — see tampa-bay.mjs for field semantics).
+// cityRe = locality-hint extractor for THIS city's listings; corridor localities
+// only (the D3 gazetteer ambiguity traps — richmond/alameda-as-island — matter
+// for the AREA list, not here: this regex only ever sees this city's addresses).
+export const geocode = {
+  region: 'California',
+  regionRe: /\bca\b|\bcalifornia\b/i,
+  cityRe: /(san francisco|oakland|berkeley|emeryville|alameda|albany|el cerrito|richmond|orinda|lafayette|moraga|walnut creek|pleasant hill|concord|martinez|san leandro|piedmont|danville)/i,
+  fallbackLocality: 'San Francisco',
+  junkKeyWords: ['san francisco', 'california', 'east bay', 'bay area'],
+};
 
 // government source ranking — richness-ranked tie-breaks among gov layers.
 // Strings must match each adapter's `name` export exactly. SF Rec & Parks
