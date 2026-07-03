@@ -17,7 +17,7 @@
 import { writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
-import { bbox as TB_BOX, geocodeViewbox, tz as CITY_TZ } from './cities/index.mjs';
+import { bbox as TB_BOX, geocodeViewbox, tz as CITY_TZ, geocode as CITY_GEO } from './cities/index.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(HERE, 'output');
@@ -1533,10 +1533,13 @@ export function nameAddressVenues(events) {
 }
 
 // ===================== geocode cache hygiene =====================
-// Junk keys ("June", "Festivals", bare numbers) and any cached value outside
-// the Tampa Bay box (Key West, Argentina, Chile...) get purged so they're
-// re-resolved with the hardened bounded query.
-const JUNK_GEO_KEY_RE = /^(january|february|march|april|may|june|july|august|september|october|november|december|festivals?|events?|tampa|florida|\d+)$/i;
+// Junk keys ("June", "Festivals", bare city/region words, bare numbers) and any
+// cached value outside the city box (Key West, Argentina, Chile...) get purged
+// so they're re-resolved with the hardened bounded query. The city/region words
+// come from the active city config (geocode.junkKeyWords).
+const JUNK_GEO_KEY_RE = new RegExp(
+  '^(january|february|march|april|may|june|july|august|september|october|november|december' +
+  '|festivals?|events?|' + [...CITY_GEO.junkKeyWords, '\\d+'].join('|') + ')$', 'i');
 
 function loadGeoCache() {
   if (!existsSync(GEO)) return {};
@@ -1922,7 +1925,7 @@ async function main() {
   const geocodeKey = async (key) => {
     if (!(key in geoCache)) {
       try {
-        const q = /\bfl\b|\bflorida\b/i.test(key) ? key : `${key}, Florida`;
+        const q = CITY_GEO.regionRe.test(key) ? key : `${key}, ${CITY_GEO.region}`;
         const res = await fetch(
           'https://nominatim.openstreetmap.org/search?format=json&limit=1' +
           '&viewbox=' + geocodeViewbox + '&bounded=1&q=' + encodeURIComponent(q),
@@ -1963,10 +1966,8 @@ async function main() {
   for (const e of events) {
     if (nameBudget <= 0) break;
     if (e.lat != null || !e.venue || ADDRESSY_VENUE_RE.test(e.venue)) continue;
-    const city = (String(e.address || '').match(
-      /(tampa|st\.?\s*petersburg|st\.?\s*pete(?:\s+beach)?|clearwater|dunedin|largo|gulfport|safety harbor|palm harbor|tarpon springs|pinellas park|wesley chapel|brandon|ybor city)/i
-    ) || [])[1];
-    const key = `${e.venue}, ${city || 'Tampa Bay'}, Florida`;
+    const city = (String(e.address || '').match(CITY_GEO.cityRe) || [])[1];
+    const key = `${e.venue}, ${city || CITY_GEO.fallbackLocality}, ${CITY_GEO.region}`;
     if (!(key in geoCache)) nameBudget--;
     const hit = await geocodeKey(key);
     if (hit) {

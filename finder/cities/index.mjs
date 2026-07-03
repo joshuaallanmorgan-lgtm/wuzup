@@ -18,6 +18,6 @@ if (!mod) {
 
 export const cityId = id;
 export const {
-  tz, bbox, bboxOverpass, bboxArcgisEnvelope, geocodeViewbox,
+  tz, bbox, bboxOverpass, bboxArcgisEnvelope, geocodeViewbox, geocode,
   govOrder, touristCentroids, area, qidDeny, cafe, imagery, rosterBenchmark, meta,
 } = mod;

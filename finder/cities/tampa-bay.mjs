@@ -24,6 +24,20 @@ export const bboxOverpass = `(${bbox.latMin},${bbox.lngMin},${bbox.latMax},${bbo
 export const bboxArcgisEnvelope = JSON.stringify({ xmin: bbox.lngMin, ymin: bbox.latMin, xmax: bbox.lngMax, ymax: bbox.latMax });
 export const geocodeViewbox = `${bbox.lngMin},${bbox.latMax},${bbox.lngMax},${bbox.latMin}`;
 
+// geocoding (Nominatim) — the query-building city facts for the EVENTS pipeline.
+// `region` is appended to bare address keys and anchors the venue-name fallback
+// query; `regionRe` detects keys that already carry it; `cityRe` (capture group
+// required) extracts a locality hint from a listing's address; `fallbackLocality`
+// stands in when the address names no known locality; `junkKeyWords` are city
+// words that are junk as WHOLE geocode cache keys (purged on load).
+export const geocode = {
+  region: 'Florida',
+  regionRe: /\bfl\b|\bflorida\b/i,
+  cityRe: /(tampa|st\.?\s*petersburg|st\.?\s*pete(?:\s+beach)?|clearwater|dunedin|largo|gulfport|safety harbor|palm harbor|tarpon springs|pinellas park|wesley chapel|brandon|ybor city)/i,
+  fallbackLocality: 'Tampa Bay',
+  junkKeyWords: ['tampa', 'florida'],
+};
+
 // government source ranking — richness-ranked tie-breaks among gov layers (§3.4).
 export const govOrder = [
   'Pinellas Park Points',
