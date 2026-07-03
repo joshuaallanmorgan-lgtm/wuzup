@@ -1531,6 +1531,21 @@ test('WS4 detail hero: art-floor hero is a ~26svh band, photo hero keeps 42svh, 
   }
 })
 
+// WS4 item 5 — the aurora recipe stays CALM: every hsl() in the .imgbox-art
+// field sits at S ≤ 46% (the old S~50% blobs fought the warm Sunlit Coastal Pop
+// palette and pushed the field toward "broken photo"; the refs carry zero
+// saturated cool tiles). Hue/taste values are Charles's to retune — this only
+// tripwires the saturation creeping back up. Determinism is covered by the 3.8
+// aurora test (seed math untouched).
+test('WS4 aurora calm: the imgbox-art field saturation stays muted (S <= 46%)', () => {
+  const css = readFileSync(path.join(ROOT, 'app', 'src', 'cards.css'), 'utf8')
+  const art = css.match(/\.imgbox-art\s*\{[\s\S]*?\n\}/)
+  assert.ok(art, 'the .imgbox-art recipe exists')
+  const sats = [...art[0].matchAll(/hsl\(var\(--[a-z0-9]+,? ?\d*\)\s+(\d+)%/g)].map((m) => Number(m[1]))
+  assert.ok(sats.length >= 5, `found the field's hsl() saturation channels (got ${sats.length})`)
+  for (const s of sats) assert.ok(s <= 46, `an aurora hsl() saturation crept up to ${s}% (> 46% reads hot against the warm palette)`)
+})
+
 // CARD_LOCK (Phase 0) — the canonical result card. The dense CompactRow + the
 // editorial Row are RETIRED; ONE kind-aware ResultCard (GemRow event / SpotCard
 // place) renders every vertical result feed via RowFeed.

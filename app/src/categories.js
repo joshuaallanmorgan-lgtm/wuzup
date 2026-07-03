@@ -46,19 +46,23 @@ export const CATEGORY_EMOJI = Object.fromEntries(CATEGORIES.map((c) => [c.id, c.
 // outdoors look, so any unmapped type degrades gracefully (smoke-tested for full
 // coverage). Hues lean on the brand's coastal world: water = blue, sunset
 // vantage = gold, nature = green. Plain data — Node-importable for the harness.
+// WS4 (cohesion/aurora, ⚑ Charles): the nature greens are WARMED off the cool
+// 120-140 band toward moss/olive (the Sunlit Coastal Pop refs carry zero
+// saturated cool tiles) — each type stays a distinct, legible band; water blues
+// keep their identity (the saturation cut lives in cards.css's aurora recipe).
 export const PLACETYPE_HUE = {
   beach: 200, // ocean blue
   boat_ramp: 195, // water
   pier: 28, // sunset over the water
   viewpoint: 32, // sunset vantage
-  trail: 120, // forest
-  preserve: 132, // deep nature
+  trail: 104, // warm moss (was 120 forest)
+  preserve: 112, // sage (was 132 deep nature)
   garden: 92, // bloom
   dog_park: 50, // warm amber
   playground: 45, // warm
   courts: 35, // clay court
   cafe: 24, // warm coffee brown
-  park: 140, // the classic green — now one of many, not all
+  park: 118, // warmed classic green (was 140) — one of many, not all
 }
 export const PLACETYPE_EMOJI = {
   beach: '🏖️',
