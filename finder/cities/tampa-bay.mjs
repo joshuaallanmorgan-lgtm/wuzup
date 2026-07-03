@@ -10,6 +10,12 @@
 // reproduces the same places.json. The derived strings are computed from `bbox` so a
 // new city only edits the box once.
 
+// IANA zone — ALL wall-clock derivation in the events pipeline (day boundaries,
+// offset stamping, weekend windows, junk-hour checks) routes through this.
+// Offsets incl. DST come from Intl at runtime, never hardcoded ("every SF event
+// stamped 7 hours early" is the bug class this prevents).
+export const tz = 'America/New_York';
+
 // sanity box — any coordinate outside this is wrong for a local place/event.
 export const bbox = { latMin: 27.3, latMax: 28.6, lngMin: -83.3, lngMax: -81.9 };
 // the box in each source's required wire format (byte-identical to the literals the

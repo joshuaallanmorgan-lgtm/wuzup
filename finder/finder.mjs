@@ -17,7 +17,7 @@
 import { writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
-import { bbox as TB_BOX, geocodeViewbox } from './cities/index.mjs';
+import { bbox as TB_BOX, geocodeViewbox, tz as CITY_TZ } from './cities/index.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(HERE, 'output');
@@ -369,25 +369,45 @@ function isOnlineOnly(e) {
   return /OnlineEventAttendanceMode/i.test(String(e.attendanceMode || ''));
 }
 
-// ===================== Eastern-time helpers =====================
+// ===================== city-local time helpers =====================
+// The active city's IANA zone (cities/<id>.mjs `tz`) drives every wall-clock
+// derivation below. Offsets — including DST — come from Intl at runtime, so a
+// non-Eastern city #2 can't inherit Tampa's clock ("every SF event stamped
+// 7 hours early" is the bug class this seam closes).
 
-// UTC offset ('-04:00' / '-05:00') in effect in Tampa around a local datetime.
-function easternOffsetFor(isoLocal) {
-  const probe = new Date(String(isoLocal).slice(0, 10) + 'T12:00:00Z');
+// UTC offset string ('-04:00' / '-05:00' / ...) in effect in the city at an instant.
+function cityOffsetAt(instant) {
   const part = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/New_York', timeZoneName: 'longOffset',
-  }).formatToParts(probe).find((p) => p.type === 'timeZoneName');
+    timeZone: CITY_TZ, timeZoneName: 'longOffset',
+  }).formatToParts(instant).find((p) => p.type === 'timeZoneName');
   const m = /GMT([+-]\d{2}:\d{2})/.exec(part?.value || '');
-  return m ? m[1] : '-04:00';
+  return m ? m[1] : '+00:00';
 }
 
-// 'YYYY-MM-DDTHH:MM[:SS]' with no zone → append the Eastern offset so the
+// UTC offset in effect in the city around a local datetime (probed at noon UTC
+// of its calendar day — away from the 2 a.m. DST switch hours).
+function cityOffsetFor(isoLocal) {
+  return cityOffsetAt(new Date(String(isoLocal).slice(0, 10) + 'T12:00:00Z'));
+}
+
+// 'YYYY-MM-DDTHH:MM[:SS]' with no zone → append the city offset so the
 // timestamp is unambiguous off this machine. Anything else passes through.
-function withEasternOffset(s) {
+function withCityOffset(s) {
   if (typeof s !== 'string') return s || null;
   const m = s.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})(:\d{2})?$/);
   if (!m) return s;
-  return `${m[1]}${m[2] || ':00'}${easternOffsetFor(s)}`;
+  return `${m[1]}${m[2] || ':00'}${cityOffsetFor(s)}`;
+}
+
+// Epoch ms of midnight (city wall clock) on a 'YYYY-MM-DD' day. The noon-probe
+// offset is re-checked at the constructed instant, so a midnight that sits on
+// the other side of a DST switch resolves to the offset actually in effect —
+// matching what local-midnight `new Date(y, m-1, d)` produced on an in-zone
+// machine (the pre-seam behavior this replaces).
+function cityMidnightMs(dayStr) {
+  const guess = Date.parse(`${dayStr}T00:00:00${cityOffsetFor(dayStr)}`);
+  const actual = cityOffsetAt(new Date(guess));
+  return Date.parse(`${dayStr}T00:00:00${actual}`);
 }
 
 // --- map a render.mjs event ({title,start,end,venue,address,price,isFree,url,
@@ -399,8 +419,8 @@ function normalizeRenderEvent(r) {
   if (typeof price !== 'number' || isNaN(price)) price = null;
   return {
     title: cleanText(r.title),
-    start: withEasternOffset(r.start),
-    end: withEasternOffset(r.end),
+    start: withCityOffset(r.start),
+    end: withCityOffset(r.end),
     venue: cleanText(r.venue),
     address: cleanText(r.address),
     price,
@@ -531,33 +551,36 @@ function dayOf(start) {
   return isNaN(d) ? null : localDayStr(d);
 }
 
+// 'YYYY-MM-DD' of a Date instant on the CITY's wall clock (en-CA formats
+// ISO-style). Formatter cached — this runs several times per event.
+const CITY_DAY_FMT = new Intl.DateTimeFormat('en-CA', {
+  timeZone: CITY_TZ, year: 'numeric', month: '2-digit', day: '2-digit',
+});
 function localDayStr(d) {
-  const p = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  return CITY_DAY_FMT.format(d);
 }
 
-// Parse an event start into epoch ms; date-only strings become LOCAL midnight
-// (Date.parse would treat them as UTC and shift the day in Tampa).
+// Parse an event start into epoch ms; date-only strings become CITY midnight
+// (Date.parse would treat them as UTC and shift the day), and zoneless timed
+// stamps get the city offset (they'd parse machine-local otherwise).
 function startMs(start) {
   const s = String(start || '');
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-    const [y, m, d] = s.split('-').map(Number);
-    return new Date(y, m - 1, d).getTime();
-  }
-  return Date.parse(s);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return cityMidnightMs(s);
+  return Date.parse(withCityOffset(s));
 }
 
 // Epoch ms at which an event is FULLY ENDED. Date-only stamps (end if present,
-// else start) end at local end-of-day; a timed end is taken literally; a timed
+// else start) end at city end-of-day; a timed end is taken literally; a timed
 // start with no end gets a 3-hour assumed duration. NaN if unparseable.
 const ASSUMED_DURATION_MS = 3 * 3600 * 1000;
 function endedAtMs(e) {
   const s = String(e.end || e.start || '');
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
     const [y, m, d] = s.split('-').map(Number);
-    return new Date(y, m - 1, d + 1).getTime();
+    const next = new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10);
+    return cityMidnightMs(next);
   }
-  const t = Date.parse(s);
+  const t = Date.parse(withCityOffset(s));
   if (isNaN(t)) return NaN;
   return e.end ? t : t + ASSUMED_DURATION_MS;
 }
@@ -1082,17 +1105,19 @@ function fuzzyMerge(all) {
 const BIG_TICKET_RE = /rays|buccaneers|lightning|rowdies|amalie arena|raymond james|tropicana/i;
 
 // Dates of the current/upcoming weekend (Fri/Sat/Sun). If today IS the weekend,
-// it's this weekend; otherwise the next one.
+// it's this weekend; otherwise the next one. "Today" is the CITY's calendar
+// day; day arithmetic runs in UTC on that literal date (weekday-of-a-date is
+// timezone-free once the city day is fixed).
 function weekendDays(now) {
-  const dow = now.getDay(); // 0=Sun .. 6=Sat
+  const [y, m, d] = localDayStr(now).split('-').map(Number);
+  const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay(); // 0=Sun .. 6=Sat
   let toFri;
   if (dow === 0) toFri = -2;        // Sunday → weekend started Friday
   else if (dow === 6) toFri = -1;   // Saturday → started yesterday
   else toFri = 5 - dow;             // Mon-Fri → this coming Friday (0 on Friday)
   const days = new Set();
   for (let i = 0; i < 3; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + toFri + i);
-    days.add(localDayStr(d));
+    days.add(new Date(Date.UTC(y, m - 1, d + toFri + i)).toISOString().slice(0, 10));
   }
   return days;
 }
@@ -1349,19 +1374,21 @@ function fmtPrice(e) {
   if (e.price > 0) return '$' + e.price + (e.currency && e.currency !== 'USD' ? ' ' + e.currency : '');
   return '—';
 }
-// Day heading for a start value. Uses the same local-midnight logic as
-// dayOf/startMs — a bare "2026-06-13" must NOT drift to June 12 via UTC parsing.
+// Day heading for a start value. Renders the LITERAL calendar day (weekday of
+// a date is timezone-free) — a bare "2026-06-13" must NOT drift to June 12.
 function fmtDateKey(iso) {
   const day = dayOf(iso);
   if (!day) return 'Date TBD';
   const [y, m, d] = day.split('-').map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', {
+    timeZone: 'UTC', weekday: 'long', month: 'long', day: 'numeric',
+  });
 }
 function fmtTime(iso) {
   if (!/T\d/.test(iso)) return '';
-  const d = new Date(iso);
+  const d = new Date(withCityOffset(iso)); // zoneless stamps are city-local
   if (isNaN(d)) return '';
-  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  return d.toLocaleTimeString('en-US', { timeZone: CITY_TZ, hour: 'numeric', minute: '2-digit' });
 }
 
 // ============== venue identity backfills (fixer pass, 2026-06-10) ==============
@@ -2095,7 +2122,7 @@ async function main() {
   // doesn't drown the cool stuff (nothing is hidden — just ordered).
   const allSourceNames = [...SOURCES.map((s) => s.name), ...moduleNames];
   let md = `# Tampa Bay Events — found ${events.length} real events\n\n`;
-  md += `_Generated ${new Date().toLocaleString('en-US')} · sources: ${allSourceNames.join(', ')}${renderOk ? ' + render' : ''}_\n\n`;
+  md += `_Generated ${new Date().toLocaleString('en-US', { timeZone: CITY_TZ })} · sources: ${allSourceNames.join(', ')}${renderOk ? ' + render' : ''}_\n\n`;
   md += `## Summary\n\n`;
   md += `- Tonight: ${counts.tonight}\n`;
   md += `- This weekend: ${counts.weekend}\n`;
