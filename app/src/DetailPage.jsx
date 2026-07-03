@@ -141,6 +141,17 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         encodeURIComponent([e.venue, e.address].filter(Boolean).join(', '))
       : null
 
+  // WS2 detail-rebuild: the official link's REAL hostname, as the link row's
+  // subtitle — derived from e.url, never invented (malformed URL → no subtitle)
+  let urlHost = null
+  if (e.url) {
+    try {
+      urlHost = new URL(e.url).hostname.replace(/^www\./, '')
+    } catch {
+      /* a garbled source URL — the row still works, just without the sub */
+    }
+  }
+
   // ===== trust + transparency (G3 → WS2 detail-rebuild): the why-signal now
   // renders as the refs' "Why this fits" prose CARD (whyProse above, composed
   // from the same honest whyReasons seam + the real forecast); the bare
@@ -519,30 +530,54 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
             </div>
           </div>
         )}
-        {/* D8: map parked for v1 — the mini-map is removed; the Directions util
-            button below already routes to Google Maps. */}
+        {/* D8: map parked for v1 — the mini-map is removed; the Directions link
+            row below already routes to Google Maps. */}
+        {/* WS2 detail-rebuild: the refs' LINK-OUT ROWS replace the 4-button utility
+            strip. Every row is real data or ABSENT: the official page only with
+            e.url (3.7P-34 gating kept — when the event can't be planned, the
+            bottom bar owns that link; sub = the link's real hostname), Directions
+            only with a maps target (distance appended ONLY when a real _dist was
+            computed upstream — never fabricated), and the ICS download rides as
+            the "Add to calendar" row (my call: the row family beats a stray lone
+            button). Share stays in the hero chrome (R-HD2). Copy DRAFT ⚑ Charles. */}
+        {((canPlan && e.url) || mapsUrl || e.start) && (
+          <div className="detail-links">
+            {canPlan && e.url && (
+              <a className="dlink" href={e.url} target="_blank" rel="noreferrer">
+                <span className="dlink-ic" aria-hidden><Icon.tag /></span>
+                <span className="dlink-main">
+                  <span className="dlink-label">{e.isFree === true || !(e.price > 0) ? 'Official event page' : 'Tickets & event page'}</span>
+                  {urlHost && <span className="dlink-sub">{urlHost}</span>}
+                </span>
+                <span className="dlink-go" aria-hidden>↗</span>
+              </a>
+            )}
+            {mapsUrl && (
+              <a className="dlink" href={mapsUrl} target="_blank" rel="noreferrer">
+                <span className="dlink-ic" aria-hidden><Icon.compass /></span>
+                <span className="dlink-main">
+                  <span className="dlink-label num">Directions{e._dist != null ? ` · ${e._dist.toFixed(1)} mi` : ''}</span>
+                </span>
+                <span className="dlink-go" aria-hidden>›</span>
+              </a>
+            )}
+            {e.start && (
+              <button className="dlink" onClick={downloadIcs}>
+                <span className="dlink-ic" aria-hidden><Icon.calendar /></span>
+                <span className="dlink-main">
+                  <span className="dlink-label">Add to calendar</span>
+                </span>
+                <span className="dlink-go" aria-hidden>›</span>
+              </button>
+            )}
+          </div>
+        )}
         {e.description && (
           <div className="detail-about">
             <div className="d-k">About</div>
             <p className="detail-desc">{e.description}</p>
           </div>
         )}
-        <div className="util-row">
-          {e.start && (
-            <button className="util-btn" onClick={downloadIcs}><Icon.calendar />Calendar</button>
-          )}
-          {mapsUrl && (
-            <a className="util-btn" href={mapsUrl} target="_blank" rel="noreferrer"><Icon.compass />Directions</a>
-          )}
-          <button className="util-btn" onClick={share}><Icon.share />Share</button>
-          {/* 3.7P-34: when "Add to day" is the primary CTA, the official event /
-              ticket link is demoted here as a secondary action (still one tap). */}
-          {canPlan && e.url && (
-            <a className="util-btn" href={e.url} target="_blank" rel="noreferrer">
-              <Icon.tag />{e.isFree === true || !(e.price > 0) ? 'Event page' : 'Tickets'}
-            </a>
-          )}
-        </div>
         {mine && onRemoveMine && (
           <button className="d-remove" onClick={removeMine} disabled={undoVis}>
             Remove from my feed

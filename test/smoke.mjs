@@ -1617,6 +1617,16 @@ test('WS2 detail-rebuild: light title block below the hero + VT name intact', ()
   assert.ok(/if \(!frags\.length\) return null/.test(dp) && /\{whyLine && \(/.test(dp), 'no real reason → no card (the honest-omission gate)')
   assert.ok(!/className="why-chips"/.test(dp) && !/why-chip\b/.test(dp), 'the bare why-chips fact row is retired (no rendered why-chip)')
   assert.ok(/Why this fits/.test(dp) && /Icon\.sparkle/.test(dp), 'the card carries the refs\' sparkle + title (engineered Icon.sparkle, not a raw glyph)')
+  // WS2 4/4 — link-out rows replace the event page's 4-button utility strip.
+  // Honesty: every row from real data or absent — hostname sub derived from
+  // e.url; Directions distance ONLY from a real upstream _dist; ICS stays
+  // reachable as the Add-to-calendar row. (.util-row itself survives — it still
+  // serves PlaceDetail.)
+  assert.ok(!/className="util-row"/.test(dp), 'the event detail no longer renders the utility strip')
+  assert.ok(/detail-links/.test(dp) && /className="dlink"/.test(dp), 'the refs\' link-out rows render instead')
+  assert.ok(/e\._dist != null/.test(dp) && /toFixed\(1\)\} mi/.test(dp), 'Directions distance renders ONLY from a real computed _dist (never fabricated)')
+  assert.ok(/new URL\(e\.url\)\.hostname/.test(dp), 'the official-page sub is the link\'s REAL hostname (derived, not invented)')
+  assert.ok(/Add to calendar/.test(dp) && /downloadIcs/.test(dp), 'the ICS affordance survives as the Add-to-calendar row')
 })
 
 // 3.7P-39 — section-label honesty (D6 strict): the "Hidden Gems" shelf must not

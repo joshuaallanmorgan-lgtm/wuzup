@@ -151,8 +151,63 @@ a.d-row { text-decoration: none; color: inherit; }
   background: rgba(var(--accent-rgb), 0.05);
 }
 
+/* ===== WS2 detail-rebuild: LINK-OUT ROWS (refs' event detail) — the event
+   page's 4-button utility strip retired for one bordered group of full-width
+   tappable rows: icon disc · label (+ the link's real-hostname sub) · trailing
+   ↗ (external) / › (action). Rows render from real data only or not at all. ===== */
+.detail-links {
+  margin-top: 26px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--card);
+  overflow: hidden;
+}
+.dlink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  text-decoration: none;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background var(--dur-micro);
+}
+.dlink:last-child { border-bottom: none; }
+.dlink:active { background: rgba(26, 20, 16, 0.04); }
+.dlink-ic {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-circle);
+  background: var(--chip-fill);
+  color: var(--ink);
+}
+.dlink-ic svg { width: 17px; height: 17px; }
+.dlink-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.dlink-label { font-size: 14.5px; font-weight: 700; }
+.dlink-sub {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dlink-go { flex: 0 0 auto; font-size: 16px; font-weight: 800; color: var(--muted); }
+
 /* ===== utility row (quiet, bordered, 44px — Editorial) ===== */
-/* 3.7P-34: wraps when a 4th (Tickets / Event page) secondary action is present */
+/* WS2 detail-rebuild: the EVENT detail moved to .detail-links above; this strip
+   now serves PlaceDetail only (Directions / Share) — unify in a later pass. */
 .util-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
 .util-btn {
   flex: 1 1 88px;
