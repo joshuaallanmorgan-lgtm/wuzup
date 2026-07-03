@@ -35,7 +35,7 @@
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r-pill);
-  box-shadow: var(--shadow-card, 0 1px 3px rgba(0, 0, 0, 0.04));
+  box-shadow: var(--shadow-card, 0 1px 3px rgba(26, 20, 16, 0.04)); /* WS3: warm fallback per §3 */
   cursor: pointer;
   text-align: left;
 }

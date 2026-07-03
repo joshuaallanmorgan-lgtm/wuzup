@@ -145,7 +145,7 @@
   text-align: left;
   cursor: pointer;
   /* D7: embossed depth on the dark surface — inset top-sheen + soft drop */
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 12px rgba(0, 0, 0, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 12px rgba(26, 20, 16, 0.22); /* WS3: warm shadow per §3 (was cool black) */
   transition:
     border-color var(--dur-fast) var(--ease-out),
     background var(--dur-fast) var(--ease-out),

@@ -77,7 +77,7 @@ textarea.ae-input { height: auto; min-height: 96px; padding: 11px 14px; resize: 
   height: 30px;
   border: none;
   border-radius: var(--r-pill);
-  background: #d8dbe1;
+  background: rgba(var(--ink-rgb), 0.18); /* WS3 cool-relic purge: warm ink-derived track (was the cool slate #d8dbe1; knob contrast 1.49 vs 1.39 before) */
   cursor: pointer;
   position: relative;
   transition: background var(--dur-fast);
@@ -91,7 +91,7 @@ textarea.ae-input { height: auto; min-height: 96px; padding: 11px 14px; resize: 
   height: 24px;
   border-radius: var(--r-circle);
   background: #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 4px rgba(26, 20, 16, 0.2); /* WS3: warm shadow per §3 (was cool black) */
   transition: transform var(--dur-fast) var(--ease-out);
 }
 .ae-switch.on .ae-knob { transform: translateX(22px); }

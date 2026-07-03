@@ -15,6 +15,22 @@
      photo settles UP from cream — no dark flash. The art floor sets its own bg. */
   background: #e9e2d9;
 }
+/* WS3 (loading states): while a REAL photo is still loading, the imgbox runs
+   the established .skel shimmer (--skel-lo/hi) so loading thumbs read as
+   DESIGNED loading, not blank cream. The art floor paints instantly and is
+   excluded; :has() drops the layer the moment the img settles .on (no
+   perpetual offscreen animation). Deck imgboxes ride the same light shimmer —
+   their loading box was already the light #e9e2d9 placeholder, so nothing
+   flashes on the dark surface (verified live). Reduced-motion: static
+   --skel-lo (card-scope block below). Badges/hearts layer above (later children). */
+.imgbox:not(.imgbox-art):has(.imgbox-img:not(.on))::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--skel-lo) 25%, var(--skel-hi) 37%, var(--skel-lo) 63%);
+  background-size: 600px 100%;
+  animation: skel 1.4s linear infinite;
+}
 /* 3.72: a hairline frame on every image tile (real poster + art floor alike) so
    chaotic third-party flyers sit inside the design language. Edge-only +
    pointer-events:none, so it never touches the badges/heart layered above. */
@@ -50,7 +66,7 @@
   color: #fff;
   font-weight: 800;
   font-size: var(--t-meta);
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  text-shadow: 0 1px 4px rgba(26, 20, 16, 0.25); /* WS3: warm shadow per §3 */
 }
 
 /* ===== I3 no-image composition: a designed tile, not a dark block.
@@ -104,10 +120,10 @@
   height: clamp(11px, 21cqmin, 34px);
   border-radius: var(--r-circle);
   background: rgba(255, 255, 255, 0.15);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16), 0 1cqmin 2cqmin rgba(0, 0, 0, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16), 0 1cqmin 2cqmin rgba(26, 20, 16, 0.18); /* WS3: warm shadow per §3 */
   font-size: clamp(9px, 12cqmin, 19px);
   line-height: 1;
-  filter: drop-shadow(0 0.5cqmin 1cqmin rgba(0, 0, 0, 0.25));
+  filter: drop-shadow(0 0.5cqmin 1cqmin rgba(26, 20, 16, 0.25)); /* WS3: warm shadow per §3 */
   pointer-events: none;
   user-select: none;
 }
@@ -862,4 +878,9 @@
   .spotcard-add.is-added,
   .card-toast { animation: none !important; }
   .skel { animation: none !important; }
+  /* WS3: the imgbox loading shimmer goes static (calm --skel-lo, no sweep) */
+  .imgbox:not(.imgbox-art):has(.imgbox-img:not(.on))::before {
+    animation: none !important;
+    background: var(--skel-lo);
+  }
 }

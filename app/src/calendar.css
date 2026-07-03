@@ -86,7 +86,7 @@
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 10px 30px rgba(26, 20, 16, 0.16); /* WS3: warm shadow per §3 (was cool black) */
   outline: none;
 }
 .mon-opt {
