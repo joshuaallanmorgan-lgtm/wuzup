@@ -26,9 +26,10 @@ import { imagery as cityImagery, cityId } from './cities/index.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-// D1: the crop scratch is per-city (finder/cache/<cityId>/mapillary-crops/)
+// D1: the crop scratch is per-city (finder/cache/<cityId>/mapillary-crops/);
+// the cafe roster reads the per-city ARTIFACT, not the deployed app copy.
 const CROP_DIR = path.join(ROOT, 'finder', 'cache', cityId, 'mapillary-crops');
-const PLACES = path.join(ROOT, 'app', 'public', 'places.json');
+const PLACES = path.join(ROOT, 'finder', 'output', cityId, 'places.json');
 
 // ---- TUNABLES (surfaced for the scout) -------------------------------------
 // Phase B: SEARCH loosened (Josh) — wider net = more cafes get a shot at a legible

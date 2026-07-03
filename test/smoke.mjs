@@ -459,8 +459,12 @@ test('ladder-3 Mapillary cafes: local file + CC-BY-SA credit + signTextRead rece
     const slug = p.image.replace(/^\/place-img\//, '').replace(/\.jpg$/, '')
     assert.match(slug, /^[a-z0-9-]+$/, `${p.name}: unsafe /place-img slug (${p.image})`)
     // (a) the self-hosted JPEG actually exists (enrich self-heals if it doesn't)
+    // — BOTH copies: the deployed file the app serves AND the per-city artifact
+    // deploy.mjs copies from (D1: the artifact set is the source of truth)
     assert.ok(existsSync(path.join(ROOT, 'app', 'public', 'place-img', `${slug}.jpg`)),
-      `${p.name}: /place-img/${slug}.jpg referenced but the file is missing`)
+      `${p.name}: /place-img/${slug}.jpg referenced but the deployed file is missing`)
+    assert.ok(existsSync(path.join(ROOT, 'finder', 'output', CITY_ID, 'place-img', `${slug}.jpg`)),
+      `${p.name}: finder/output/${CITY_ID}/place-img/${slug}.jpg missing — the per-city artifact set drifted from the deployment`)
     // (b) a satisfiable CC-BY-SA credit with an author byline + the source marker
     assert.ok(p.imageCredit && p.imageCredit.license, `${p.name}: Mapillary image without a credit`)
     assert.match(p.imageCredit.license, /cc\s*by/i, `${p.name}: Mapillary credit must be a CC-BY(-SA) license`)
@@ -530,6 +534,28 @@ test('D1 deploy seam: deploy.mjs exists + refuses an artifact-less city + legacy
   for (const f of ['events.json', 'places.json', 'guides.json', 'place-img']) {
     assert.ok(existsSync(path.join(ROOT, 'finder', 'output', CITY_ID, f)), `finder/output/${CITY_ID}/${f} missing — the deployable set is incomplete`)
   }
+})
+
+// D1 — the app/public write monopoly. deploy.mjs is the ONLY finder module that
+// may construct an app/public path: the finder writing the app directly is exactly
+// how a CITY=<other> run damaged the deployed city (stageb's rmSync of
+// app/public/place-img was THE Tampa-deleting hazard). Source-grep over every
+// finder .mjs/.js (output/ + cache/ data dirs skipped): no quoted 'app','public'
+// join and no 'app/public' string literal outside deploy.mjs.
+test('D1: only deploy.mjs constructs an app/public path', () => {
+  const walk = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((d) => {
+    if (['output', 'cache', 'node_modules'].includes(d.name)) return []
+    const p = path.join(dir, d.name)
+    return d.isDirectory() ? walk(p) : /\.(mjs|js)$/.test(d.name) ? [p] : []
+  })
+  const offenders = []
+  for (const f of walk(path.join(ROOT, 'finder'))) {
+    if (path.basename(f) === 'deploy.mjs') continue
+    const src = readFileSync(f, 'utf8')
+    if (/['"`]app['"`]\s*,\s*['"`]public['"`]/.test(src) || /['"`]app\/public/.test(src)) offenders.push(path.relative(ROOT, f))
+  }
+  assert.deepEqual(offenders, [],
+    `finder module(s) construct an app/public path — only finder/deploy.mjs may touch the deployed artifacts: ${offenders.join(', ')}`)
 })
 
 // W4 wiring — the two heroes are real photos, the place detail renders its photo

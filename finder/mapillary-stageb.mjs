@@ -22,7 +22,8 @@
 // Writes (always): finder/cache/<cityId>/phaseB-mapillary-report.md,
 //        phaseB-tierB-review.md, _review/_verdicts.json.
 // Writes (--ship): finder/cache/<cityId>/place-mapillary-images.json + copies the
-//        chosen crops to app/public/place-img/<slug>.jpg (clears the dir first).
+//        chosen crops to finder/output/<cityId>/place-img/<slug>.jpg (clears ONLY
+//        that city's dir first; deploy.mjs ships the dir into the app).
 // =============================================================================
 import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, copyFileSync } from 'node:fs';
 import path from 'node:path';
@@ -34,7 +35,10 @@ const ROOT = path.resolve(__dirname, '..');
 // D1: crop scratch + the shipped-cafes cache are per-city (finder/cache/<cityId>/)
 const CROP_DIR = path.join(ROOT, 'finder', 'cache', cityId, 'mapillary-crops');
 const REVIEW = path.join(CROP_DIR, '_review');
-const PLACE_IMG = path.join(ROOT, 'app', 'public', 'place-img');
+// D1: --ship writes the PER-CITY artifact dir — rmSync below clears ONLY this
+// city's crops (the old app/public/place-img target deleted Tampa's 35 ships on
+// any other city's run). deploy.mjs is what copies the dir into app/public/.
+const PLACE_IMG = path.join(ROOT, 'finder', 'output', cityId, 'place-img');
 const MAP_CACHE = path.join(ROOT, 'finder', 'cache', cityId, 'place-mapillary-images.json');
 
 // thresholds: config DEFAULTS (per active city), env vars still override at runtime.
