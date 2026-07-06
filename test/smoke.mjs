@@ -3226,3 +3226,100 @@ test('Stage E dark mode: straggler seams hold — no resurrected light literals,
   assert.ok(/media="\(prefers-color-scheme: light\)" content="#faf6f1"/.test(html), 'theme-color light = the shipped canvas')
   assert.ok(/media="\(prefers-color-scheme: dark\)" content="#1b1611"/.test(html), 'theme-color dark = the dark canvas')
 })
+
+// ============================================================================
+// Stage D graft D-G1 — the Coverage Card ("what we know here"; STAGE_D.md
+// grafts + V2_VISION §8.6 ruling #6). The card's whole contract is the
+// attribution page's: every number DERIVES at render time from data the app
+// already loads, and an absent input makes a line DISAPPEAR, never a guess.
+// These guards pin (1) the wiring + the two Home positions, (2) the
+// derivation call sites + the anti-drift tripwire (no hardcoded names/counts),
+// (3) the PROMOTION GATE against the REAL shipped snapshot — this city must
+// read rich, so the "we're new here" form must never appear on its data —
+// plus the isSparse edges (0 = failed fetch, NOT a new city), and (4) the
+// tokens-only CSS that lets the Stage E dark ladder carry both schemes with
+// zero forks. JSX can't import into Node — source-grep for the component,
+// real imports for coverage.js (plain js by design).
+// ============================================================================
+const stripComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '')
+
+test('D-G1 coverage: wired — App hands dataAt, Home carries both forms in their positions, attribution carries the header', () => {
+  const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
+  assert.ok(/<HomeView events=\{norm\} anchors=\{anchors\} wx=\{wx\} dataAt=\{dataAt\}/.test(app), 'App hands dataAt to HomeView — the "updated" line is the REAL Last-Modified ms, never a guess')
+  assert.ok(/<AttributionPage events=\{norm\} dataAt=\{dataAt\}/.test(app), 'App hands dataAt to AttributionPage (the header form)')
+  const home = readFileSync(path.join(ROOT, 'app', 'src', 'HomeView.jsx'), 'utf8')
+  assert.ok(/import CoverageCard from '\.\/CoverageCard\.jsx'/.test(home), 'Home imports the card')
+  assert.ok(/isSparse\(coverageStats\(events\)\.events\)/.test(home), "Home's placement decision rides coverage.js (one derivation, no local magic number)")
+  assert.ok(/\{sparse && \(/.test(home) && /\{!sparse && \(/.test(home), 'ONE card: promoted (sparse) XOR colophon (rich) — never both')
+  const promotedAt = home.indexOf('<CoverageCard events={events} dataAt={dataAt} promoted />')
+  assert.ok(promotedAt !== -1, 'the sparse form renders promoted')
+  assert.ok(promotedAt < home.indexOf('title="Your next days"'), 'the promoted form leads Home (above the first section) — the week-one honest floor')
+  assert.ok(home.indexOf('title="Quick actions"') < home.indexOf('{!sparse && ('), 'the rich-city colophon sits under the LAST section')
+  const at = readFileSync(path.join(ROOT, 'app', 'src', 'AttributionPage.jsx'), 'utf8')
+  assert.ok(/<CoverageCard events=\{events\} dataAt=\{dataAt\} \/>/.test(at), 'the attribution page mounts the card as its summary header')
+  assert.ok(at.indexOf('<CoverageCard') < at.indexOf('Event listings'), 'the header sits above the per-source breakdown sections')
+})
+
+test('D-G1 coverage: every number DERIVES — no hardcoded names/counts/city, no boot fetch, the honesty guards hold', () => {
+  const cc = readFileSync(path.join(ROOT, 'app', 'src', 'CoverageCard.jsx'), 'utf8')
+  const cov = readFileSync(path.join(ROOT, 'app', 'src', 'coverage.js'), 'utf8')
+  // derivation call sites
+  assert.ok(/sourceFamily/.test(cov), 'the source count derives via lib.js sourceFamily over the loaded events')
+  assert.ok(/added-by-you/.test(cov), "the user's own added events are excluded (they're not a source)")
+  assert.ok(/p\.image && p\.imageCredit/.test(cov), 'imagery coverage counts REAL credited photos only (the attribution-ledger predicate)')
+  assert.ok(/usePlaces\(false\)/.test(cc), 'the card SUBSCRIBES to the places store but never triggers the ~1.2MB fetch (usePlaces(false) — Home pays nothing at boot)')
+  // honesty guards
+  assert.ok(/dataAt != null &&/.test(cc), '"updated" renders ONLY when Last-Modified existed (absent header = no claim — the stale-banner grace)')
+  assert.ok(/stats\.events === 0\) return null/.test(cc), 'zero loaded events renders NOTHING (a failed fetch is not a sparse city)')
+  assert.ok(/CITY\.shortName/.test(cc), 'the sparse sentence interpolates CITY.shortName (per-city by construction)')
+  // the anti-drift tripwire (attribution precedent): nothing real is hand-typed
+  for (const src of [stripComments(cc), stripComments(cov)]) {
+    assert.ok(!/Tampa/.test(src), 'no city name hardcoded in the card/derivation code')
+    for (const name of ['Eventbrite', 'Meetup', 'AllEvents', 'Creative Loafing']) {
+      assert.ok(!src.includes(name), `no hardcoded event-source name ("${name}" must come from data)`)
+    }
+    assert.ok(!/1,?665|2,?163|\b139\b/.test(src), 'no snapshot count hardcoded — every number interpolates from the derived stats')
+  }
+})
+
+test('D-G1 coverage: the promotion gate — the REAL snapshot reads rich (never the "new here" form); isSparse honest at the edges', async () => {
+  const covMod = await import('../app/src/coverage.js')
+  // the live gate: with this repo's shipped data the promoted form must not exist
+  const stats = covMod.coverageStats(fullEvents)
+  assert.ok(stats.events >= covMod.SPARSE_EVENTS_FLOOR, `the shipped snapshot (${stats.events} events) must clear SPARSE_EVENTS_FLOOR (${covMod.SPARSE_EVENTS_FLOOR}) — if this trips, either the data collapsed or the floor crept; the promoted form must NEVER appear on this city`)
+  assert.equal(covMod.isSparse(stats.events), false, 'the live snapshot is not sparse')
+  assert.ok(stats.sources >= 5, `a rich snapshot speaks many voices (got ${stats.sources})`)
+  // the edges: 0 = failed/absent fetch, NOT a week-one city; the floor itself is rich
+  assert.equal(covMod.isSparse(0), false, '0 events = no data, never "0 events and growing"')
+  assert.equal(covMod.isSparse(1), true, '1 event is a sparse (but real) city')
+  assert.equal(covMod.isSparse(covMod.SPARSE_EVENTS_FLOOR - 1), true, 'one under the floor promotes')
+  assert.equal(covMod.isSparse(covMod.SPARSE_EVENTS_FLOOR), false, 'the floor itself reads rich (strict less-than)')
+  // family folding + added-by-you exclusion (the Settings/attribution rule)
+  const mk = (src, tags) => ({ sources: [src], tags })
+  const s2 = covMod.coverageStats([mk('Eventbrite (p2)'), mk('Eventbrite (Free)'), mk('WMNF 88.5'), mk('Meetup', ['added-by-you'])])
+  assert.equal(s2.events, 3, 'added-by-you entries are excluded from the event count')
+  assert.equal(s2.sources, 2, 'source FAMILIES fold the parenthetical variants (Eventbrite ×2 = one voice)')
+  // photoStats: silent until the layer loads; counts exactly the credited photos — on the REAL data
+  assert.equal(covMod.photoStats(null), null, 'places layer not loaded = no claim (null, not zeros)')
+  assert.equal(covMod.photoStats([]), null, 'an empty/failed places load claims nothing')
+  const doc = JSON.parse(readFileSync(APP_PLACES, 'utf8'))
+  const ph = covMod.photoStats(doc.places)
+  const credited = doc.places.filter((p) => p.image && p.imageCredit).length
+  assert.equal(ph.photos, credited, 'photoStats counts exactly the image+imageCredit places')
+  assert.ok(ph.photos > 0 && ph.photos < ph.spots, `real data: ${ph.photos}/${ph.spots} credited — a strict subset (a card claiming every spot has a photo would be a lie)`)
+  // dayStamp keeps the stale-banner idiom: weekday inside 6 days, date beyond
+  assert.equal(covMod.dayStamp(Date.now()), new Date().toLocaleDateString('en-US', { weekday: 'long' }), 'a fresh stamp reads as the weekday')
+  assert.match(covMod.dayStamp(Date.now() - 30 * 86400000), /^[A-Z][a-z]{2} \d{1,2}$/, 'an old stamp reads as "Mon D"')
+})
+
+test('D-G1 coverage: tokens-only CSS — the dark ladder carries both schemes; eyebrow canon; zero accent spend', () => {
+  const css = readFileSync(path.join(ROOT, 'app', 'src', 'coverage.css'), 'utf8')
+  const bare = stripComments(css)
+  assert.ok(!/#[0-9a-fA-F]{3,8}\b/.test(bare), 'no raw color literals — every color rides a token the dark ladder re-derives (both schemes AA by construction)')
+  assert.ok(!/prefers-color-scheme/.test(bare), 'no dark fork needed: tokens only')
+  assert.ok(/var\(--card\)/.test(bare) && /var\(--shadow-1\)/.test(bare) && /var\(--r-lg\)/.test(bare), 'the plate speaks the system: --card + --shadow-1 (a colophon, not a feature) + --r-lg')
+  assert.ok(/--eyebrow-size/.test(bare) && /text-transform: uppercase/.test(bare) && /var\(--muted\)/.test(bare), 'the WHAT-WE-KNOW eyebrow rides the WS3 metadata contract, muted (A6 accent restraint)')
+  assert.ok(!/--accent|--hot|--reward|--cta/.test(bare), 'a passive disclosure spends NO accent/hot/reward/cta')
+  const cc = readFileSync(path.join(ROOT, 'app', 'src', 'CoverageCard.jsx'), 'utf8')
+  assert.ok(/className="num"/.test(cc), 'counts wear .num tabular numerals (the type canon)')
+})
