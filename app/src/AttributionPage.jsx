@@ -180,6 +180,12 @@ export default function AttributionPage({ events }) {
                     </div>
                   ))}
                 </div>
+                {/* CC BY-SA §3(a)(1)(B) modification disclosure (attribution REFUTE
+                    flag #1): the self-hosted Mapillary images are CROPS of the
+                    original street-level captures — adapted works must say so. */}
+                <div className="at-note">
+                  Street-level storefront photos are cropped from their original Mapillary captures.
+                </div>
                 {photoCredits.length > 0 && (
                   <>
                     <button
