@@ -3121,3 +3121,108 @@ test('Stage E attribution: the license obligations render — ODbL, Open-Meteo, 
   assert.ok(/--eyebrow-size/.test(css) && /text-transform: uppercase/.test(css), 'section labels ride the WS3 metadata-eyebrow contract')
   assert.ok(/var\(--accent-ink\)/.test(css), 'links use the AA-safe --accent-ink token (no new colors)')
 })
+
+// ============================================================================
+// Stage E ship-shell — PWA installability + the dark-mode second ladder.
+// The dark guards are COMPUTED, not asserted: the test parses the pinned dark
+// hexes out of index.css and recomputes the WCAG ratios (wcag-dark.mjs's math,
+// inlined) so a future "tune the dark bg one step" edit that silently breaks a
+// pair trips HERE, not on a user's phone.
+// ============================================================================
+
+test('Stage E ship-shell: installable PWA — manifest plugin, icon set, iOS wiring', () => {
+  const vc = readFileSync(path.join(ROOT, 'app', 'vite.config.js'), 'utf8')
+  // the manifest is EMITTED from the one city registry — never a second copy
+  assert.ok(/name: 'city-manifest'/.test(vc), 'vite.config carries the city-manifest plugin (Stage E)')
+  assert.ok(/emitFile\(\{ type: 'asset', fileName: 'manifest\.webmanifest'/.test(vc), 'the plugin emits manifest.webmanifest into the build')
+  assert.ok(/configureServer/.test(vc), 'the plugin also serves the manifest in dev (installability signals testable live)')
+  assert.ok(vc.includes('`Wuzup · ${CITY.name}`'), 'the manifest name derives from CITY.name (D4: one registry)')
+  assert.ok(!/Tampa Bay/.test(vc), 'vite.config must not hardcode a city name — a second city needs zero edits here')
+  assert.ok(/display: 'standalone'/.test(vc) && /orientation: 'portrait'/.test(vc), 'standalone + portrait — the installed shell')
+  assert.ok(!/serviceWorker|navigator\.serviceWorker/.test(vc), 'NO service worker ships (offline is v2; zero SW = events.json can never be cache-stale)')
+  // the icon set exists and is really PNG (magic bytes, not just filenames)
+  for (const f of ['icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-192.png', 'icons/icon-maskable-512.png', 'apple-touch-icon.png']) {
+    const fp = path.join(ROOT, 'app', 'public', f)
+    assert.ok(existsSync(fp), `missing PWA icon app/public/${f}`)
+    const head = readFileSync(fp).subarray(0, 8).toString('hex')
+    assert.equal(head, '89504e470d0a1a0a', `app/public/${f} is not a real PNG (magic bytes)`)
+  }
+  const html = readFileSync(path.join(ROOT, 'app', 'index.html'), 'utf8')
+  assert.ok(/rel="manifest" href="\/manifest\.webmanifest"/.test(html), 'index.html links the manifest')
+  assert.ok(/rel="apple-touch-icon"/.test(html), 'index.html links the apple-touch-icon (iOS ignores manifest icons)')
+  assert.ok(/name="apple-mobile-web-app-capable"/.test(html) && /name="mobile-web-app-capable"/.test(html), 'both standalone-capable meta spellings present')
+})
+
+test('Stage E dark mode: the ladder exists, covers the core tokens, and every pinned pair COMPUTES >= AA', () => {
+  const ic = readFileSync(path.join(ROOT, 'app', 'src', 'index.css'), 'utf8')
+  // the light seam tokens are minted AT their shipped values (byte-inert swaps)
+  assert.ok(/--cta-ink: #bb5719/.test(ic), ':root mints --cta-ink at the shipped --cta hex (light-inert)')
+  assert.ok(/--img-ph: #e9e2d9/.test(ic), ':root mints --img-ph at the shipped imgbox placeholder')
+  assert.ok(/--prose: #4a423a/.test(ic), ':root mints --prose at the shipped detail-prose ink')
+  assert.ok(/--card-rgb: 254, 253, 251/.test(ic) && /--sheet-rgb: 250, 248, 245/.test(ic) && /--bg-rgb: 250, 246, 241/.test(ic), ':root mints the rgb glass companions at shipped values')
+  // the dark :root ladder
+  const m = ic.match(/@media \(prefers-color-scheme: dark\) \{\s*:root \{([\s\S]*?)\n  \}/)
+  assert.ok(m, 'index.css carries the dark ladder: @media (prefers-color-scheme: dark) { :root { … } }')
+  const d = m[1]
+  assert.ok(/color-scheme: dark/.test(d), 'dark ladder flips color-scheme (native controls follow)')
+  const pin = (tok) => {
+    const mm = d.match(new RegExp('--' + tok + ': (#[0-9a-f]{6})'))
+    assert.ok(mm, `dark ladder re-derives --${tok}`)
+    return mm[1]
+  }
+  const BG = pin('bg'), CARD = pin('card'), INK = pin('ink'), MUTED = pin('muted')
+  const ACC = pin('accent-ink'), CTA = pin('cta-ink'), FREE = pin('free-ink')
+  const DANGER = pin('danger'), PROSE = pin('prose')
+  pin('accent-ink-strong'); pin('img-ph'); pin('chip-fill'); pin('skel-lo'); pin('skel-hi')
+  assert.ok(/--ink-rgb: 245, 239, 231/.test(d), 'dark --ink-rgb follows the cream ink (glass/tints invert with it)')
+  assert.ok(/--line: rgba\(245, 239, 231/.test(d), 'dark --line is low-alpha warm LIGHT (never a gray hairline)')
+  assert.ok(/--shadow-1: [^;]*rgba\(0, 0, 0/.test(d), 'dark shadows switch to true black (warm-ink shadows vanish on dark)')
+  assert.ok(!/--deck-bg|--deck-card/.test(d), 'the deck-family surface tokens are NOT re-derived (dark by contract, ROADMAP §1.3)')
+  assert.ok(!/--cta:|--hot:|--reward:|--accent: /.test(d), 'fills (--cta/--hot/--reward/--accent) are NOT re-derived — white-on-CTA is canvas-independent')
+  // COMPUTE the ratios (WCAG relative luminance) — the guard recalculates, never trusts
+  const lum = (hex) => {
+    const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+      .map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+  }
+  const ratio = (a, b) => { const [h, l] = [lum(a), lum(b)].sort((x, y) => y - x); return (h + 0.05) / (l + 0.05) }
+  const atLeast = (fg, bg, min, what) => assert.ok(ratio(fg, bg) >= min, `${what}: ${ratio(fg, bg).toFixed(2)}:1 < ${min}:1 — the dark pair regressed`)
+  atLeast(INK, BG, 10, 'dark ink on bg')
+  atLeast(INK, CARD, 10, 'dark ink on card')
+  atLeast(MUTED, CARD, 4.6, 'dark muted on card')
+  atLeast(ACC, CARD, 4.5, 'dark accent-ink (gold) on card')
+  atLeast(CTA, CARD, 4.5, 'dark cta-ink on card')
+  atLeast(FREE, CARD, 4.5, 'dark free-ink on card')
+  atLeast(DANGER, CARD, 4.5, 'dark danger on card')
+  atLeast(PROSE, CARD, 4.5, 'dark prose on card')
+  atLeast('#ffffff', '#bb5719', 4.5, 'white on --cta (must hold on ANY canvas)')
+})
+
+test('Stage E dark mode: straggler seams hold — no resurrected light literals, ink-on-gold pinned, decks untouched', () => {
+  const src = (f) => readFileSync(path.join(ROOT, 'app', 'src', f), 'utf8')
+  // the tokenized literals must not come back as raw declarations
+  assert.ok(!/background: #e9e2d9/.test(src('cards.css')), 'imgbox placeholder rides var(--img-ph), not the raw light hex')
+  assert.ok(!/rgba\(254, 253, 251/.test(src('App.css')), 'tabbar glass rides var(--card-rgb)')
+  for (const f of ['topnav.css', 'weekend.css']) assert.ok(!/rgba\(250, 248, 245/.test(src(f)), `${f}: frosted sheet rides var(--sheet-rgb)`)
+  for (const f of ['App.css', 'detail.css']) assert.ok(!/color: #4a423a/.test(src(f)), `${f}: prose rides var(--prose)`)
+  // accent TEXT/outline sites ride --cta-ink (the fill hex reads 3.55:1 as dark text)
+  for (const f of ['day.css', 'nextdays.css', 'calpicker.css', 'calendar.css']) {
+    assert.ok(!/color: var\(--cta\)/.test(src(f)), `${f}: no color: var(--cta) text remains — accent text rides --cta-ink`)
+  }
+  assert.ok((src('day.css').match(/var\(--cta-ink\)/g) || []).length >= 5, 'day.css consumes --cta-ink at its five swapped sites')
+  // ink-on-gold pins: the gold fill is mode-invariant, its ink must not flip to cream (2.02:1)
+  for (const [f, sel] of [['bubble.css', '\\.srch-tab\\.on'], ['calendar.css', '\\.mon-opt\\.on'], ['calendar.css', '\\.mcell\\.sel \\.mnum'], ['locations.css', '\\.loc-plan-day\\.on']]) {
+    const dark = src(f).match(/@media \(prefers-color-scheme: dark\) \{([\s\S]*?)\n\}/)
+    assert.ok(dark && new RegExp(sel + '[^}]*color: #1a1410').test(dark[1]), `${f}: ${sel} pins #1a1410 in its dark block (ink-on-gold)`)
+  }
+  // toasts invert with their ink-rgb glass
+  assert.ok(/\.stale-note \{ color: var\(--bg\); \}/.test(src('App.css')), 'the stale-note toast text inverts to the canvas color in dark')
+  // the dark DECK contract: those surfaces are dark in BOTH modes — no media forks
+  for (const f of ['deck.css', 'lensdeck.css', 'primer.css', 'swipedeck.css']) {
+    assert.ok(!/prefers-color-scheme/.test(src(f)), `${f} stays mode-invariant (the dark-deck contract, ROADMAP §1.3)`)
+  }
+  // the browser chrome follows the canvas pair
+  const html = readFileSync(path.join(ROOT, 'app', 'index.html'), 'utf8')
+  assert.ok(/media="\(prefers-color-scheme: light\)" content="#faf6f1"/.test(html), 'theme-color light = the shipped canvas')
+  assert.ok(/media="\(prefers-color-scheme: dark\)" content="#1b1611"/.test(html), 'theme-color dark = the dark canvas')
+})
