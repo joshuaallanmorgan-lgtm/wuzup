@@ -16,6 +16,7 @@
 //       SKIP_EXTRA=1  node finder/finder.mjs   (skip the finder/sources/*.mjs modules)
 
 import { writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { bbox as TB_BOX, geocodeViewbox, tz as CITY_TZ, geocode as CITY_GEO, cityId, meta as CITY_META, priors as CITY_PRIORS } from './cities/index.mjs';
@@ -936,6 +937,125 @@ function stemToken(t) {
 
 function stemmedTokens(title) {
   return new Set([...titleTokens(title)].map(stemToken));
+}
+
+// ===================== D-G2: stable event ids =====================
+// Deterministic, content-derived identity for every emitted event — the
+// ground every V2 share/link/ledger feature stands on (V2_VISION.md §8.6 +
+// STAGE_D.md grafts). Zero v1 UI change. Design constraints, from the Stage D
+// identity forensics:
+//   • NEVER mint from source/sources[0] (429s flip live→cache fallback order
+//     run to run) or from array position (the emit array re-sorts by startMs).
+//   • Mint from the calendar DAY, not the timestamp — `start` legitimately
+//     flips date-only↔timed as better-clocked siblings appear, and the
+//     junk-hour strip rewrites it; the day survives all of that.
+//   • Mint venue-FREE by default: venue strings churn twice (canonical-venue
+//     table renames as the table grows — 142 in one commit — plus the
+//     address-venue renames pre- AND post-geocode). Venue enters the id ONLY
+//     as a collision tiebreak, so churn exposure is confined to the genuinely
+//     ambiguous records (measured on the real artifacts: 405/1,665 Tampa —
+//     the library-flood class, one program at N branches on one day — and
+//     4/747 SF; venue is the honest identity fact separating those).
+//   • Fold diacritics + stem for the id even though display titles do
+//     neither: Rosalía/Rosalia must mint ONE id, and the merged title can
+//     legally flip between member variants ("Exhibit"/"Exhibition") run to run.
+//
+// THE RECIPE IS A VERSIONED CONTRACT — evolving it means bumping the prefix
+// so two recipe generations can never mint ambiguous ids:
+//   id = first 16 hex of sha256("v1|<cityId>|<titleKey>|<startDay>[|<venueKey>[|<n>]]")
+//   titleKey = NFD diacritic-fold → lowercase → strip [^a-z0-9\s] → split on
+//              whitespace → drop STOPWORDS → stemToken each → unique → SORT →
+//              join with single spaces
+//   startDay = dayOf(start) (the literal YYYY-MM-DD day; 'tbd' if unparseable)
+//   venueKey = appended for EVERY member of a base-string collision (level 2)
+//   n        = 1-based counter appended when events ALSO share the venue key
+//              (level 3), ordered by the events' own facts (start·end·url·
+//              address, lexicographic) — never by array position. Two events
+//              tying on ALL of those are indistinguishable → hard build fail.
+// Minting is a pure function of the final event MULTISET: same events in any
+// order → same ids. Uniqueness of the truncated hashes is re-checked at build.
+const ID_RECIPE_VERSION = 'v1';
+const EVENT_ID_RE = /^[0-9a-f]{16}$/;
+
+function idTitleKey(title) {
+  const toks = String(title || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((t) => t && !STOPWORDS.has(t))
+    .map(stemToken);
+  return [...new Set(toks)].sort().join(' ');
+}
+
+export function eventIdCanonical(e, city) {
+  return `${ID_RECIPE_VERSION}|${city}|${idTitleKey(e.title)}|${dayOf(e.start) || 'tbd'}`;
+}
+
+const eventIdHash = (canonical) => createHash('sha256').update(canonical, 'utf8').digest('hex').slice(0, 16);
+
+// Level-3 ordering key: the event's own stable-ish facts, never its position.
+// (start/url CAN still churn — a level-3 pair is two near-identical listings
+// of one thing that upstream dedupe kept apart; measured population: 1 pair
+// in Tampa, 0 in SF.)
+const idOrdinalKey = (e) => [e.start, e.end, e.url, e.address].map((v) => String(v ?? '')).join(' ');
+
+// Mint e.id for every event. Returns a report for the build log; throws on
+// any outcome that would ship an ambiguous or missing id.
+export function mintEventIds(events, city) {
+  const report = { total: events.length, baseGroups: 0, venueQualified: 0, counterQualified: 0, counterDetails: [] };
+  const byBase = new Map();
+  for (const e of events) {
+    const base = eventIdCanonical(e, city);
+    if (!byBase.has(base)) byBase.set(base, []);
+    byBase.get(base).push(e);
+  }
+  for (const [base, group] of byBase) {
+    if (group.length === 1) {
+      group[0].id = eventIdHash(base);
+      continue;
+    }
+    // Level 2: EVERY member of an ambiguous base takes the venue qualifier —
+    // qualifying only "the extras" would depend on which member came first.
+    report.baseGroups++;
+    const byVenue = new Map();
+    for (const e of group) {
+      const q = `${base}|${venueKey(e.venue)}`;
+      if (!byVenue.has(q)) byVenue.set(q, []);
+      byVenue.get(q).push(e);
+    }
+    for (const [q, g2] of byVenue) {
+      if (g2.length === 1) {
+        g2[0].id = eventIdHash(q);
+        report.venueQualified++;
+        continue;
+      }
+      // Level 3: deterministic counter over the stable secondary ordering.
+      const keyed = g2.map((e) => [idOrdinalKey(e), e]).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+      for (let i = 0; i < keyed.length; i++) {
+        if (i > 0 && keyed[i][0] === keyed[i - 1][0]) {
+          throw new Error(
+            'event-id HARD COLLISION — two indistinguishable events (same title key, day, venue key, start, end, url, address): ' +
+            `"${keyed[i][1].title}" @ "${keyed[i][1].venue}" ${keyed[i][1].start} — these should have merged upstream`
+          );
+        }
+        keyed[i][1].id = eventIdHash(`${q}|${i + 1}`);
+        report.counterQualified++;
+        report.counterDetails.push(`"${keyed[i][1].title}" @ "${keyed[i][1].venue}" ${keyed[i][1].start} → ${keyed[i][1].id} (#${i + 1})`);
+      }
+    }
+  }
+  // Truncated-hash safety net: distinct canonical strings colliding at 16 hex
+  // chars is ~2⁻⁶⁴-unlikely, but an id space with a silent dupe is worthless.
+  const seen = new Map();
+  for (const e of events) {
+    if (!EVENT_ID_RE.test(e.id || '')) throw new Error(`event-id minting missed an event: "${e.title}" got '${e.id}'`);
+    if (seen.has(e.id)) {
+      throw new Error(`event-id truncated-hash collision: '${e.id}' on "${seen.get(e.id).title}" and "${e.title}"`);
+    }
+    seen.set(e.id, e);
+  }
+  return report;
 }
 
 // Span in INCLUSIVE calendar days (WS1 dedup 1d): a Sat–Sun art show is a
@@ -2167,6 +2287,10 @@ async function main() {
     }
     const tags = tagsFor(e, todayStr, weekend);
     return {
+      // D-G2: filled by mintEventIds below (first key so the id leads every
+      // emitted record); minted after this map because the junk-hour strip
+      // above is the last mutation of an identity-bearing field.
+      id: null,
       title: e.title,
       start: e.start,
       end: e.end,
@@ -2246,6 +2370,17 @@ async function main() {
     gemPicks.push(e);
   }
   for (const e of gemPicks) e.tags.push('hidden-gem');
+
+  // D-G2: stable content-derived ids, minted at the emit choke point — after
+  // every fold, merge, rename and strip has settled, from event-intrinsic
+  // facts only (see the recipe contract at mintEventIds). Prints what the
+  // collision tiebreaks did; throws rather than ship an ambiguous id space.
+  const idReport = mintEventIds(events, cityId);
+  console.log(
+    `  🆔 stable event ids: ${idReport.total} minted · ` +
+    `${idReport.baseGroups} title+day collision group(s) → ${idReport.venueQualified} venue-qualified, ${idReport.counterQualified} counter-qualified`
+  );
+  for (const d of idReport.counterDetails) console.log(`      ↳ counter tiebreak: ${d}`);
 
   // Counts used by the summary, the markdown block, and the benchmarks.
   const count = (fn) => events.filter(fn).length;
