@@ -1,0 +1,19 @@
+[
+  { "name": "AllEvents (San Francisco)", "url": "https://allevents.in/san-francisco" },
+  { "name": "AllEvents (SF Free)", "url": "https://allevents.in/san-francisco/free", "free": true },
+  { "name": "Eventbrite (SF Free)", "url": "https://www.eventbrite.com/d/ca--san-francisco/free--events/", "free": true, "waitMs": 3000 },
+  { "name": "AllEvents (Oakland)", "url": "https://allevents.in/oakland" },
+  { "name": "Eventbrite (SF)", "url": "https://www.eventbrite.com/d/ca--san-francisco/all-events/", "waitMs": 3000 },
+  { "name": "AllEvents (Berkeley)", "url": "https://allevents.in/berkeley" },
+  { "name": "Eventbrite (SF p2)", "url": "https://www.eventbrite.com/d/ca--san-francisco/all-events/?page=2", "waitMs": 3000 },
+  { "name": "AllEvents (Walnut Creek)", "url": "https://allevents.in/walnut-creek" },
+  { "name": "Eventbrite (SF p3)", "url": "https://www.eventbrite.com/d/ca--san-francisco/all-events/?page=3", "waitMs": 3000 },
+  { "name": "Eventbrite (Oakland Free)", "url": "https://www.eventbrite.com/d/ca--oakland/free--events/", "free": true, "waitMs": 3000 },
+  { "name": "Eventbrite (Oakland)", "url": "https://www.eventbrite.com/d/ca--oakland/all-events/", "waitMs": 3000 },
+  { "name": "Eventbrite (Oakland p2)", "url": "https://www.eventbrite.com/d/ca--oakland/all-events/?page=2", "waitMs": 3000 },
+  { "name": "Eventbrite (Oakland p3)", "url": "https://www.eventbrite.com/d/ca--oakland/all-events/?page=3", "waitMs": 3000 },
+  { "name": "Eventbrite (Berkeley Free)", "url": "https://www.eventbrite.com/d/ca--berkeley/free--events/", "free": true, "waitMs": 3000 },
+  { "name": "Eventbrite (Berkeley)", "url": "https://www.eventbrite.com/d/ca--berkeley/all-events/", "waitMs": 3000 },
+  { "name": "Eventbrite (Walnut Creek Free)", "url": "https://www.eventbrite.com/d/ca--walnut-creek/free--events/", "free": true, "waitMs": 3000 },
+  { "name": "Eventbrite (Walnut Creek)", "url": "https://www.eventbrite.com/d/ca--walnut-creek/all-events/", "waitMs": 3000 }
+]

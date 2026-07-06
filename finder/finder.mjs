@@ -1745,6 +1745,11 @@ async function main() {
   for (const src of SOURCES) {
     const cacheFile = join(CACHE, slugify(src.name) + '.json');
     try {
+      // Optional per-source politeness gap (manifest `waitMs`): the SF
+      // manifest paces its Eventbrite pages — cold bursts from a fresh IP get
+      // rate-limited before the first byte (STAGE_D_SF_EVENTS.md gotcha 3).
+      // Tampa's manifest carries no waitMs, so its behavior is unchanged.
+      if (src.waitMs) await sleep(src.waitMs);
       const html = await fetchHtml(src.url);
       const blocks = ldJsonBlocks(html);
       const nodes = [];

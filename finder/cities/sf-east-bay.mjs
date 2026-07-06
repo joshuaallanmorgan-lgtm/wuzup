@@ -11,13 +11,15 @@
 // finder/cache/sf-east-bay/), mapillary --ship clears only this city's
 // place-img dir, and app/public changes only via finder/deploy.mjs (which
 // refuses to deploy this city until its artifact set exists).
-// ⚠️ EVENTS still GATED — but by MISSING INPUTS now, not by config shape: the
-// `tz` + `geocode` seams below match what finder.mjs consumes (aligned to the
-// D2 seam post-merge), but `finder/sources.json` + `finder/venues.json` are
-// un-namespaced Tampa inputs and this city has ZERO event source modules yet
-// (the scouted v1 set = STAGE_D_SF_EVENTS.md, ~4-4.5 builder-days). An events
-// run without them produces Tampa-flavored garbage — do not run until the
-// events build lands. The PLACES side runs (its adapters landed in D3).
+// ✅ EVENTS UNGATED (Stage D sf-events build): the manifest refusal lifts
+// with `finder/cities/sf-east-bay.sources.json` (the scouted static set:
+// AllEvents pages + paced Eventbrite geo queries). Source modules load ONLY
+// from `finder/sources/sf-east-bay/` — Tampa's modules live in
+// finder/sources/tampa-bay/ and can never run for this city (the Stage D
+// module-isolation fix); a missing/empty dir is a loud zero, never a
+// fallback. `sf-east-bay.venues.json` bootstraps from the first real events
+// run via finder/build-venues.mjs (its absence is a loud merge-quality skip,
+// not an honesty gate). The PLACES side runs (its adapters landed in D3).
 
 // sanity box — any coordinate outside this is wrong for a local place/event.
 // Ratified by Josh 2026-06-16 (PHASE_3.7.md §I.5): SF through the East Bay to
