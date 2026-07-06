@@ -1,6 +1,6 @@
 // Univ. of Tampa campus events via Trumba public JSON feed.
 // Source: https://www.trumba.com/calendars/ut-events.json
-import { decodeEntities, stripHtml, truncate, fetchWithTimeout } from './_shared.mjs';
+import { decodeEntities, stripHtml, truncate, fetchWithTimeout } from '../_shared.mjs';
 
 export const name = 'Univ. of Tampa';
 

@@ -1,5 +1,5 @@
 # Tampa Bay Event Data Sources — verified intel
-_Data scout report, 2026-06-09. All top-8 fetched live and returned real event data. Implementation modules live in `finder/sources/`._
+_Data scout report, 2026-06-09. All top-8 fetched live and returned real event data. Implementation modules live in `finder/sources/tampa-bay/` (source modules are per-city inputs — the loader resolves `finder/sources/<cityId>/` only; SF & East Bay's set is scouted in STAGE_D_SF_EVENTS.md)._
 
 ## Top 8 (ranked by value-per-effort)
 

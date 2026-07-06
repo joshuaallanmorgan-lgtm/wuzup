@@ -1,7 +1,7 @@
 // Visit Tampa Bay (Simpleview DMO) event source.
 // Two-step flow: fetch a per-session token, then query the events_by_date REST plugin.
 // Date range boundaries MUST be midnight Eastern Time (the API errors otherwise).
-import { decodeEntities, cleanText, fetchWithTimeout } from './_shared.mjs';
+import { decodeEntities, cleanText, fetchWithTimeout } from '../_shared.mjs';
 
 export const name = 'Visit Tampa Bay';
 

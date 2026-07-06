@@ -2,7 +2,7 @@
 // List endpoint supports relation includes (Datetime, Venue) and `where` filters,
 // so one request usually suffices; per-event datetime fetches are a capped fallback.
 
-import { decodeEntities, stripHtml, truncate, fetchWithTimeout } from './_shared.mjs';
+import { decodeEntities, stripHtml, truncate, fetchWithTimeout } from '../_shared.mjs';
 
 export const name = 'WMNF 88.5';
 

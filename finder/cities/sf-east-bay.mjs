@@ -11,13 +11,15 @@
 // finder/cache/sf-east-bay/), mapillary --ship clears only this city's
 // place-img dir, and app/public changes only via finder/deploy.mjs (which
 // refuses to deploy this city until its artifact set exists).
-// ⚠️ EVENTS still GATED — but by MISSING INPUTS now, not by config shape: the
-// `tz` + `geocode` seams below match what finder.mjs consumes (aligned to the
-// D2 seam post-merge), but `finder/sources.json` + `finder/venues.json` are
-// un-namespaced Tampa inputs and this city has ZERO event source modules yet
-// (the scouted v1 set = STAGE_D_SF_EVENTS.md, ~4-4.5 builder-days). An events
-// run without them produces Tampa-flavored garbage — do not run until the
-// events build lands. The PLACES side runs (its adapters landed in D3).
+// ✅ EVENTS UNGATED (Stage D sf-events build): the manifest refusal lifts
+// with `finder/cities/sf-east-bay.sources.json` (the scouted static set:
+// AllEvents pages + paced Eventbrite geo queries). Source modules load ONLY
+// from `finder/sources/sf-east-bay/` — Tampa's modules live in
+// finder/sources/tampa-bay/ and can never run for this city (the Stage D
+// module-isolation fix); a missing/empty dir is a loud zero, never a
+// fallback. `sf-east-bay.venues.json` bootstraps from the first real events
+// run via finder/build-venues.mjs (its absence is a loud merge-quality skip,
+// not an honesty gate). The PLACES side runs (its adapters landed in D3).
 
 // sanity box — any coordinate outside this is wrong for a local place/event.
 // Ratified by Josh 2026-06-16 (PHASE_3.7.md §I.5): SF through the East Bay to
@@ -48,6 +50,33 @@ export const geocode = {
   cityRe: /(san francisco|oakland|berkeley|emeryville|alameda|albany|el cerrito|richmond|orinda|lafayette|moraga|walnut creek|pleasant hill|concord|martinez|san leandro|piedmont|danville)/i,
   fallbackLocality: 'San Francisco',
   junkKeyWords: ['san francisco', 'california', 'east bay', 'bay area'],
+};
+
+// last-resort CATEGORIZATION PRIORS (documented as priors, not facts) — the
+// city-flavored half of finder.mjs's categorize() fallthrough, the seam the
+// D2 audit flagged for extraction "when city #2's source scout lands".
+// These fire ONLY after every text rule came up empty, exactly like Tampa's
+// in-finder CONCERT_VENUE_RE / SOURCE_CATEGORY. Built from the FIRST REAL
+// SF RUN's 'other' residue (2026-07-05: 104 events, 75 of them artist-name-
+// only listings at the big sheds).
+export const priors = {
+  // venue priors, tested in order: what these rooms program in the
+  // overwhelming majority of cases. music BEFORE sports so the combined
+  // "Oakland Arena and Oakland-Alameda County Coliseum" complex string
+  // resolves to the arena's concert prior; the bare Coliseum/stadium/park
+  // strings are the pro/college sports parks.
+  venuePriors: [
+    ['music', /oakland arena|chase center|bill graham civic|greek theatre|the fillmore|the warfield|davies symphony|sfjazz|yoshi'?s|stern grove|great american music hall|the independent\b|the masonic|regency ballroom|fox theater|\bthe freight\b|freight (?:&|and) salvage|music park|the chapel\b|\bpier 80\b/i],
+    ['nightlife', /1015 folsom|the great northern|\bcrybaby\b|dance fridays|retro junkie/i],
+    ['sports', /oracle park|california memorial stadium|oakland.alameda county coliseum|\bcoliseum\b/i],
+  ],
+  // source-family priors for the civic/campus calendars whose unmatched
+  // residue is municipal/campus programming by definition (the City-of-
+  // Tampa / Univ.-of-Tampa class).
+  sourceCategory: {
+    'SF Rec & Parks': 'community',
+    'UC Berkeley': 'community',
+  },
 };
 
 // government source ranking — richness-ranked tie-breaks among gov layers.
