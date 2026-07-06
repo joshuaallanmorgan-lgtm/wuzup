@@ -628,24 +628,44 @@ test('D4 city seam: city.js config + lib re-export + finder mirror + no stray Ta
   // 2. lib.js re-exports the SAME object — importers and the seam can't fork
   assert.equal(libMod.CITY, cityMod.CITY, 'lib.js must re-export city.js CITY (same object, not a copy)')
   assert.equal(libMod.fmtLocale, cityMod.CITY.locale, 'fmtLocale must BE the config locale')
-  // 3. app config mirrors the finder config identity (no cross-layer import —
-  //    the app stays finder-free; this assertion is the only tie)
-  const finder = await import('../finder/cities/index.mjs')
-  assert.equal(cityMod.CITY.id, finder.meta.id, 'app city id must mirror finder meta.id')
-  assert.equal(cityMod.CITY.name, finder.meta.name, 'app city name must mirror finder meta.name')
-  assert.deepEqual(cityMod.CITY.center, finder.meta.center, 'app city center must mirror finder meta.center')
-  // 4. the honesty contract survived the lib.js → city.js move: every hero
-  //    entry keeps its full credit block, and the W4 scalar aliases still
-  //    mirror entry [0] (the Primer bg + attribution page depend on them)
-  for (const list of ['heroes', 'spotsHeroes']) {
-    for (const h of cityMod.CITY[list]) {
-      for (const field of ['url', 'credit', 'license', 'licenseUrl', 'page']) {
-        assert.ok(typeof h[field] === 'string' && h[field], `CITY.${list} entry must keep its ${field} (credits must not drop in the move)`)
+  // 3. EVERY app registry entry mirrors ITS finder config identity + heroes
+  //    (no cross-layer import — the app stays finder-free; this assertion is
+  //    the only tie). Stage D sf-app: iterates the full registry, so a second
+  //    city can't land with a drifted name/center or dropped hero credits.
+  //    The finder city modules import directly by path — index.mjs would only
+  //    resolve the CITY-env-selected one.
+  const entries = Object.entries(cityMod.CITIES)
+  assert.ok(entries.length >= 2, 'CITIES must carry tampa-bay + sf-east-bay (Stage D sf-app)')
+  for (const [key, appCity] of entries) {
+    const finderCity = await import(`../finder/cities/${key}.mjs`)
+    assert.equal(key, appCity.id, `CITIES['${key}'] key must equal its id`)
+    assert.equal(appCity.id, finderCity.meta.id, `${key}: app city id must mirror finder meta.id`)
+    assert.equal(appCity.name, finderCity.meta.name, `${key}: app city name must mirror finder meta.name`)
+    assert.deepEqual(appCity.center, finderCity.meta.center, `${key}: app city center must mirror finder meta.center`)
+    assert.equal(appCity.tz, finderCity.tz, `${key}: app city tz must mirror the finder tz (weather/day math)`)
+    assert.equal(appCity.region, finderCity.geocode.region, `${key}: app city region must mirror the finder geocode region`)
+    // 4. the honesty contract: every hero entry keeps its full credit block; and
+    //    where the finder config CARRIES verified hero records (sf-east-bay —
+    //    live-verified on Commons, STAGE_D_SF_ENDPOINTS.md §7) the app entry
+    //    mirrors them field-for-field. (Tampa's pair was hand-picked in W4 and
+    //    lives only in city.js — no finder record to mirror.) The W4 scalar
+    //    aliases still mirror entry [0] (the Primer bg + attribution page).
+    for (const list of ['heroes', 'spotsHeroes']) {
+      if (finderCity[list]) {
+        assert.equal(appCity[list].length, finderCity[list].length, `${key}: CITY.${list} must carry the finder config's verified set`)
       }
+      appCity[list].forEach((h, i) => {
+        for (const field of ['url', 'credit', 'license', 'licenseUrl', 'page']) {
+          assert.ok(typeof h[field] === 'string' && h[field], `${key}: CITY.${list}[${i}] must keep its ${field} (credits must not drop)`)
+          if (finderCity[list]) {
+            assert.equal(h[field], finderCity[list][i][field], `${key}: CITY.${list}[${i}].${field} drifted from the finder config's verified record`)
+          }
+        }
+      })
     }
+    assert.equal(appCity.hero, appCity.heroes[0].url, `${key}: CITY.hero alias must mirror heroes[0].url`)
+    assert.equal(appCity.spotsHero, appCity.spotsHeroes[0].url, `${key}: CITY.spotsHero alias must mirror spotsHeroes[0].url`)
   }
-  assert.equal(cityMod.CITY.hero, cityMod.CITY.heroes[0].url, 'CITY.hero alias must mirror heroes[0].url')
-  assert.equal(cityMod.CITY.spotsHero, cityMod.CITY.spotsHeroes[0].url, 'CITY.spotsHero alias must mirror spotsHeroes[0].url')
   // 5. literal sweeps over app/src (flat *.js/*.jsx — assets/ has no code):
   //    - 'wx-tampa-v1' only on the two migration paths (weather.js one-shot,
   //      storage.js LEGACY_KEYS)
