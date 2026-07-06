@@ -87,3 +87,57 @@ export async function fetchWithTimeout(url, options = {}, timeoutMs = DEFAULT_TI
     clearTimeout(timer);
   }
 }
+
+// ---- city-timezone helpers (the D2 seam, module side) --------------------
+// Source modules must derive "today" / wall-clock stamps in THEIR CITY's
+// IANA zone, never the machine's ("every SF event stamped 7 hours early" is
+// the D2 bug class). Offsets come from Intl at runtime, so DST is handled.
+// Pass the `tz` exported by the module's own city config
+// (finder/cities/<cityId>.mjs) — the config stays the single source of truth.
+
+// 'YYYY-MM-DD' of an instant on the tz's wall clock (en-CA formats ISO-style).
+export function dayInTz(tz, instant = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(instant);
+}
+
+// UTC offset string ('-07:00' / '-08:00' / ...) in effect in tz at an instant.
+export function offsetInTz(tz, instant = new Date()) {
+  const part = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'longOffset' })
+    .formatToParts(instant)
+    .find((p) => p.type === 'timeZoneName');
+  const m = /GMT([+-]\d{2}:\d{2})/.exec(part?.value || '');
+  return m ? m[1] : '+00:00';
+}
+
+// Offset in effect in tz on a 'YYYY-MM-DD' calendar day (probed at noon UTC,
+// away from the 2 a.m. DST switch hours — mirrors finder.mjs cityOffsetFor).
+export function offsetForDay(tz, dayStr) {
+  return offsetInTz(tz, new Date(`${dayStr}T12:00:00Z`));
+}
+
+// Date instant of midnight (tz wall clock) on a 'YYYY-MM-DD' day. The
+// noon-probe offset is re-checked at the constructed instant so a midnight
+// across a DST switch resolves to the offset actually in effect.
+export function midnightInTz(tz, dayStr) {
+  const guess = new Date(`${dayStr}T00:00:00.000${offsetForDay(tz, dayStr)}`);
+  return new Date(`${dayStr}T00:00:00.000${offsetInTz(tz, guess)}`);
+}
+
+// Local ISO stamp ('YYYY-MM-DDTHH:MM:SS±HH:MM') of a UTC instant on the tz's
+// wall clock — for feeds that publish UTC instants (LiveWhale pubDate).
+export function isoInTz(tz, instant) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
+  }).formatToParts(instant);
+  const get = (t) => parts.find((p) => p.type === t)?.value;
+  return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}:${get('second')}${offsetInTz(tz, instant)}`;
+}
+
+// 'YYYY-MM-DD' + n days, pure UTC math (no local-TZ surprises).
+export function addDaysStr(dayStr, days) {
+  const [y, m, d] = dayStr.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+}
