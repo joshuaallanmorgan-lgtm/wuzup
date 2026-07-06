@@ -285,7 +285,8 @@ function Shell() {
               Home is the boot tab (index 0, eager); the rest mount on first visit.
               The map is parked for v1 (D8) — no Map tab and no {type:'map'} sub-view. */}
           <section className="page page-hot">
-            <HomeView events={norm} anchors={anchors} wx={wx} />
+            {/* dataAt (D-G1): the Coverage Card colophon's "updated" line */}
+            <HomeView events={norm} anchors={anchors} wx={wx} dataAt={dataAt} />
           </section>
           <section className="page page-hot">
             {/* Events — the browse (search + filter + event sections). Now lazy

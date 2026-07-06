@@ -6,6 +6,8 @@
 // Quick actions grid. DRAFT copy — ⚑ Charles.
 import { useEffect, useMemo, useState } from 'react'
 import { BUBBLES, CITY, keyOf, tonightModel } from './lib.js'
+import { coverageStats, isSparse } from './coverage.js'
+import CoverageCard from './CoverageCard.jsx'
 import NextDays from './NextDays.jsx'
 import { useNav } from './nav.jsx'
 import { GemRow, IntentTile, SecHead } from './cards.jsx'
@@ -19,7 +21,7 @@ const NATURE_ACT = ACTIVITIES.find((a) => a.id === 'act-trails')
 const MARKETS_GUIDE = GUIDES.find((g) => g.id === 'markets')
 const SPORTS_BARS_GUIDE = GUIDES.find((g) => g.id === 'sports-bars')
 
-export default function HomeView({ events, anchors, wx }) {
+export default function HomeView({ events, anchors, wx, dataAt }) {
   const { openDetail: onSelect, openNotifications, openForecast, openBubble, openPlaceBubble, openGuide } = useNav()
 
   // re-seed on tab return + every 10 min (tonight-window awareness)
@@ -63,6 +65,13 @@ export default function HomeView({ events, anchors, wx }) {
   const hour = new Date(nowMs).getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
 
+  // D-G1 promotion gate (coverage.js): a sparse week-one city promotes the
+  // Coverage Card to the top of Home — the honest floor ("here's what we know
+  // so far") instead of a thin feed pretending to be rich. A rich city (Tampa:
+  // ~1,665 events, 5× the floor) keeps it as the quiet colophon at the bottom.
+  // ONE card either way — the promotion moves it, never duplicates it.
+  const sparse = useMemo(() => isSparse(coverageStats(events).events), [events])
+
   return (
     <div className="hot-scroll">
       <header className="home-head">
@@ -80,6 +89,13 @@ export default function HomeView({ events, anchors, wx }) {
       </header>
 
       <div className="hot-body">
+        {/* D-G1 promoted form (sparse city only): the card leads Home with the
+            one extra honest sentence. Tampa's data must never render this. */}
+        {sparse && (
+          <section className="sec cov-home">
+            <CoverageCard events={events} dataAt={dataAt} promoted />
+          </section>
+        )}
         <section className="sec">
           <SecHead title="Your next days" />
           <NextDays anchors={anchors} wx={wx} rev={0} />
@@ -119,6 +135,14 @@ export default function HomeView({ events, anchors, wx }) {
             )}
           </div>
         </section>
+
+        {/* D-G1 compact form (the normal, rich-city state): an honest colophon
+            under the last section — what we know, from whom, as of when. */}
+        {!sparse && (
+          <section className="sec cov-home">
+            <CoverageCard events={events} dataAt={dataAt} />
+          </section>
+        )}
       </div>
     </div>
   )
