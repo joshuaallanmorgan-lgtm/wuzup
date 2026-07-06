@@ -159,7 +159,7 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone, loc
         </section>
 
         {/* ===== 5 · ABOUT (Stage E: the ⚑X3 credits page is REAL now — the
-            old "coming with the public release" stub is retired) ===== */}
+            old coming-soon stub line is retired) ===== */}
         <section className="st-sec">
           <div className="st-over">About</div>
           <div className="st-card">

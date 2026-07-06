@@ -3046,3 +3046,78 @@ test('finder ingest: cleanDescription strips leading Eventbrite "About this even
   assert.equal(out.length, 200, 'cap applies to the DE-CHROMED text')
   assert.ok(out.startsWith('xxx'), 'recovered characters are real text, not chrome')
 })
+
+// ============================================================
+// Stage E — the ⚑X3 attribution page (ROADMAP §1: "sources disclosed").
+// The page's whole contract is DERIVATION: every credit line must come from
+// the loaded data / city config at render time, never a hand-maintained list
+// that can drift. These guards pin (1) the wiring (nav union → App slot →
+// Settings row), (2) the derivation call sites, (3) the two config-level
+// license obligations (OSM ODbL, Open-Meteo), and (4) that no event-source
+// NAME is hardcoded in the page (the anti-drift tripwire). JSX can't import
+// into Node — source-grep, the Addendum-O precedent.
+// ============================================================
+test('Stage E attribution: page wired from Settings (nav union + App slot + About row)', () => {
+  const nav = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
+  const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
+  const st = readFileSync(path.join(ROOT, 'app', 'src', 'SettingsPage.jsx'), 'utf8')
+  // nav: the single-slot opener exists and is exported through the context value
+  assert.ok(/const openAttribution = useCallback/.test(nav), 'nav exposes openAttribution')
+  assert.ok(/setPage\(\{ type: 'attribution' \}\)/.test(nav), "openAttribution sets {type:'attribution'} (single-slot union)")
+  assert.ok((nav.match(/openAttribution,/g) || []).length >= 2, 'openAttribution is in the context value AND the memo deps')
+  // App: imports the page + renders it in the .subpage slot with the live events
+  assert.ok(/import AttributionPage/.test(app), 'App imports AttributionPage')
+  assert.ok(/page\.type === 'attribution' && <AttributionPage events=\{norm\}/.test(app), 'App renders the attribution subpage with the LOADED events (derivation input)')
+  // Settings: the About row opens it; the old "coming soon" stub is retired
+  assert.ok(/openAttribution/.test(st) && /Data &amp; photo credits/.test(st), 'Settings has a real "Data & photo credits" row wired to openAttribution')
+  assert.ok(!/coming with the public release/.test(st), 'the old About stub line is retired (the promise is kept, not re-promised)')
+})
+
+test('Stage E attribution: every section DERIVES from data/config — nothing hand-listed', () => {
+  const at = readFileSync(path.join(ROOT, 'app', 'src', 'AttributionPage.jsx'), 'utf8')
+  // (a) event sources: derived via lib.js sourceFamily over the loaded events —
+  // and NO real source name is hardcoded in the page (the anti-drift tripwire:
+  // a hand-list would rot the moment the finder's source roster changes)
+  assert.ok(/sourceFamily/.test(at), 'event source names derive from sourceFamily(e) over the loaded events')
+  assert.ok(/added-by-you/.test(at), "the user's own added events are excluded from the source tally (they're not a source)")
+  for (const name of ['Hillsborough Libraries', 'Visit Tampa Bay', 'Eventbrite', 'Meetup']) {
+    assert.ok(!at.includes(name), `no hardcoded event-source name in the page ("${name}" must come from data)`)
+  }
+  // (b) place sources: derived from places.json's sources[] via the shared store
+  assert.ok(/usePlaces\(/.test(at), 'place data rides the shared places store (the same /places.json the app ships)')
+  assert.ok(/p\.sources/.test(at), "place dataset names derive from each place's sources[] field")
+  for (const name of ['Pinellas Park Points', 'FWC Boat Ramps', 'Tampa Parks']) {
+    assert.ok(!at.includes(name), `no hardcoded place-source name in the page ("${name}" must come from data)`)
+  }
+  // (c) photos: credits from the real imageCredit fields (author/license/licenseUrl/url),
+  // license families derived (Mapillary split via the recorded sourceFamily)
+  assert.ok(/imageCredit/.test(at), 'photo credits read the real imageCredit records')
+  assert.ok(/mapillary-sign/.test(at), 'the Mapillary family splits on the RECORDED sourceFamily, not a name guess')
+  for (const field of ['author', 'licenseUrl']) {
+    assert.ok(new RegExp('c\\.' + field).test(at), `the photographer ledger renders the real ${field} field`)
+  }
+  // the city hero credits come from the config arrays (city.js), never retyped
+  assert.ok(/CITY\.heroes/.test(at) && /CITY\.spotsHeroes/.test(at), 'hero credits derive from CITY.heroes/CITY.spotsHeroes')
+  for (const field of ['credit', 'license', 'licenseUrl', 'page']) {
+    assert.ok(new RegExp('h\\.' + field).test(at), `hero credit rendering reads the config ${field} field`)
+  }
+  assert.ok(!/Eric Statzer|Ebyabe/.test(at), 'no hero photographer name is hardcoded (config-derived only)')
+  // city name interpolates from CITY (per-city by construction)
+  assert.ok(/CITY\.name/.test(at), 'the city name interpolates from CITY (a second city needs zero page edits)')
+})
+
+test('Stage E attribution: the license obligations render — ODbL, Open-Meteo, the art-floor promise', () => {
+  const at = readFileSync(path.join(ROOT, 'app', 'src', 'AttributionPage.jsx'), 'utf8')
+  // OSM ODbL is the one REQUIRED attribution (PLACES_SOURCES §6) — pinned verbatim
+  assert.ok(/OpenStreetMap contributors/.test(at), 'the ODbL-required "© OpenStreetMap contributors" line renders')
+  assert.ok(/openstreetmap\.org\/copyright/.test(at) && /opendatacommons\.org\/licenses\/odbl/.test(at), 'the OSM copyright + ODbL license links are real destinations')
+  // Open-Meteo (weather.js) — CC BY 4.0, linked
+  assert.ok(/open-meteo\.com/.test(at) && /creativecommons\.org\/licenses\/by\/4\.0/.test(at), 'Open-Meteo is credited with its CC BY 4.0 license link')
+  // the app's own floor: the no-stock promise, stated to users (the contract)
+  assert.ok(/generated artwork/.test(at) && /stock photo/.test(at), 'the art-floor honesty line renders (photoless places show art, never stock)')
+  // the page speaks the app's sub-page language: pg shell + uppercase eyebrows
+  assert.ok(/className="pg at"/.test(at) && /pg-head-title/.test(at), 'the page rides the pg/pg-head shell (one designed app)')
+  const css = readFileSync(path.join(ROOT, 'app', 'src', 'attribution.css'), 'utf8')
+  assert.ok(/--eyebrow-size/.test(css) && /text-transform: uppercase/.test(css), 'section labels ride the WS3 metadata-eyebrow contract')
+  assert.ok(/var\(--accent-ink\)/.test(css), 'links use the AA-safe --accent-ink token (no new colors)')
+})
