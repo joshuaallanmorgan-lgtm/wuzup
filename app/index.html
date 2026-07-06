@@ -8,6 +8,16 @@
          The Google Fonts link + preconnects were removed in Stage C4.5 (render-blocking,
          third-party dep; Josh ruling 2026-07-01 #1). -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Stage E ship-shell: installable-PWA wiring. The manifest is emitted from
+         vite.config.js (city-manifest plugin) off the ONE city registry; icons are
+         rendered from the ⚑ Charles placeholder favicon.svg. No service worker —
+         Chrome/Edge install on manifest-only; offline is v2 (BACKLOG). -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Wuzup" />
     <!-- %CITY_NAME% is replaced at build/dev time from app/src/city.js (the
          cityTitle plugin in vite.config.js) — one source of truth, D4. -->
     <title>Wuzup · %CITY_NAME%</title>
