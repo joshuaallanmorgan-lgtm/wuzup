@@ -3,7 +3,8 @@
 // NAVIGATION state (active tab, subpage union, detail open/close + VT morph,
 // map focus) lives in nav.js (Sprint O6) — components reach it via useNav().
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { DAY, fmtLocale, Icon, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, saveMyEvents } from './lib.js'
+import { Icon, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, saveMyEvents } from './lib.js'
+import { dayStamp } from './coverage.js'
 import { NavProvider, VIEWS, useNav } from './nav.jsx'
 import Primer, { loadPrimerState } from './Primer.jsx'
 import { WxContext, CardToastHost } from './cards.jsx'
@@ -66,10 +67,8 @@ function TabBar({ active, onTab, inert }) {
 // never shows (graceful, no fake claims).
 const RETRY_MS = 2500
 const STALE_MS = 48 * 3600 * 1000
-const staleDayLabel = (ms) =>
-  Date.now() - ms <= 6 * DAY
-    ? new Date(ms).toLocaleDateString(fmtLocale, { weekday: 'long' })
-    : new Date(ms).toLocaleDateString(fmtLocale, { month: 'short', day: 'numeric' })
+// the banner's day label (weekday <6d, date beyond) lives in coverage.js now —
+// dayStamp — shared with the D-G1 Coverage Card's "updated {day}" line.
 
 export default function App() {
   return (
@@ -286,7 +285,8 @@ function Shell() {
               Home is the boot tab (index 0, eager); the rest mount on first visit.
               The map is parked for v1 (D8) — no Map tab and no {type:'map'} sub-view. */}
           <section className="page page-hot">
-            <HomeView events={norm} anchors={anchors} wx={wx} />
+            {/* dataAt (D-G1): the Coverage Card colophon's "updated" line */}
+            <HomeView events={norm} anchors={anchors} wx={wx} dataAt={dataAt} />
           </section>
           <section className="page page-hot">
             {/* Events — the browse (search + filter + event sections). Now lazy
@@ -311,7 +311,7 @@ function Shell() {
             (z 1200: subpages/detail/primer all render over it) */}
         {staleAt != null && !staleHidden && (
           <div className="stale-note" role="status" inert={inertAll}>
-            <span className="stale-txt">Events from {staleDayLabel(staleAt)} — they may have changed</span>
+            <span className="stale-txt">Events from {dayStamp(staleAt)} — they may have changed</span>
             <button className="stale-x" onClick={() => setStaleHidden(true)} aria-label="Dismiss">
               ✕
             </button>
@@ -372,8 +372,9 @@ function Shell() {
             {page.type === 'evfilters' && <FiltersSheet />}
             {/* Stage E (⚑X3): Settings → Data & photo credits — single-slot
                 REPLACE; its back affordance reopens Settings. Every credit line
-                derives from norm / places.json / the city config at render. */}
-            {page.type === 'attribution' && <AttributionPage events={norm} />}
+                derives from norm / places.json / the city config at render.
+                dataAt (D-G1) feeds the Coverage Card header's "updated" line. */}
+            {page.type === 'attribution' && <AttributionPage events={norm} dataAt={dataAt} />}
             {page.type === 'interests' && <InterestEditor from={page.from} />}
             {/* Sprint V2/V3: the "why your feed looks like this" + mute/boost
                 panel — opened from Settings, back returns there (the `from`

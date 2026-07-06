@@ -17,6 +17,7 @@ import { useMemo, useState } from 'react'
 import { CITY, fmtLocale, Icon, sourceFamily } from './lib.js'
 import { usePlaces } from './places.js'
 import { useNav } from './nav.jsx'
+import CoverageCard from './CoverageCard.jsx'
 import './attribution.css'
 
 const fmtN = (n) => n.toLocaleString(fmtLocale)
@@ -40,7 +41,7 @@ function tally(names) {
   return [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
 }
 
-export default function AttributionPage({ events }) {
+export default function AttributionPage({ events, dataAt }) {
   // opened ONLY from Settings (the About row): the visible back affordance
   // reopens Settings (the InterestEditor settings-origin idiom) so the trio
   // reads as layers; hardware/browser back + Escape ride the nav page layer
@@ -96,6 +97,13 @@ export default function AttributionPage({ events }) {
           Everything in Wuzup {CITY.name} comes from real, public sources — and every one of them is
           named below. Nothing here is hand-typed: this page reads the same data the app runs on.
         </p>
+
+        {/* ===== D-G1: the Coverage Card as this page's summary header — the
+                   same derived numbers the sections below break down (this
+                   page's own usePlaces fetch feeds its spots/photos line) ===== */}
+        <section className="at-sec">
+          <CoverageCard events={events} dataAt={dataAt} />
+        </section>
 
         {/* ===== (a) EVENT LISTINGS — derived from the loaded events ===== */}
         <section className="at-sec">

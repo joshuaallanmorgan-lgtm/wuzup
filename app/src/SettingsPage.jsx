@@ -15,24 +15,19 @@
 //
 // ALL COPY IS DRAFT for Charles (inventory in the sprint report).
 import { useMemo, useState } from 'react'
-import { CITY, fmtLocale, Icon, sourceFamily } from './lib.js'
+import { CITY, fmtLocale, Icon } from './lib.js'
+import { coverageStats, dayStamp } from './coverage.js'
 import { useNav } from './nav.jsx'
 import { lsRemove } from './storage.js'
 import { resetTaste } from './taste.js'
 import Primer from './Primer.jsx'
 import './settings.css'
 
-// "Events updated {when}": weekday + time inside the last 6 days, date + time
-// beyond (the stale banner's labeling rule, with the clock added — settings
-// is where precision belongs)
-const fmtUpdated = (ms) => {
-  const day =
-    Date.now() - ms <= 6 * 24 * 3600 * 1000
-      ? new Date(ms).toLocaleDateString(fmtLocale, { weekday: 'long' })
-      : new Date(ms).toLocaleDateString(fmtLocale, { month: 'short', day: 'numeric' })
-  const time = new Date(ms).toLocaleTimeString(fmtLocale, { hour: 'numeric', minute: '2-digit' })
-  return `${day} · ${time}`
-}
+// "Events updated {when}": the shared dayStamp idiom (weekday inside the last
+// 6 days, date beyond — coverage.js) with the clock added — settings is where
+// precision belongs
+const fmtUpdated = (ms) =>
+  `${dayStamp(ms)} · ${new Date(ms).toLocaleTimeString(fmtLocale, { hour: 'numeric', minute: '2-digit' })}`
 
 export default function SettingsPage({ events, dataAt, primer, onPrimerDone, locationAllowed, onAllowLocation }) {
   // openAttribution (Stage E ⚑X3): the About row → Data & photo credits page
@@ -42,14 +37,10 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone, loc
   const [arming, setArming] = useState(false) // reset's two-step confirm
   const [wiped, setWiped] = useState(false) // honest one-line receipt after a reset
 
-  // distinct source FAMILIES in the fetched dataset ("Eventbrite (p2)" and
-  // "Eventbrite (Free)" are one voice); added-by-you entries aren't sources
-  const srcCount = useMemo(() => {
-    const fams = new Set()
-    for (const e of events) if (!e.tags?.includes('added-by-you')) fams.add(sourceFamily(e))
-    return fams.size
-  }, [events])
-  const evCount = useMemo(() => events.filter((e) => !e.tags?.includes('added-by-you')).length, [events])
+  // events + distinct source FAMILIES in the fetched dataset — the shared
+  // coverage.js derivation (one tally, spoken here, on Home's Coverage Card,
+  // and on the attribution page's header)
+  const { events: evCount, sources: srcCount } = useMemo(() => coverageStats(events), [events])
 
   const doReset = () => {
     resetTaste() // wipes taste-v1 + the in-memory profile (taste.js owns both)
