@@ -29,6 +29,13 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { cityId } from './cities/index.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// CITY GATE (Stage D module-isolation): this scraper is Tampa-only — cltampa
+// is a Tampa publication. finder.mjs checks this export and skips the render
+// step for every other city (Tampa events must never enter another city's
+// artifact). A future city's render scraper is a NEW module, not a BASE swap.
+export const city = 'tampa-bay';
+
 // D1: per-city cache dir (finder/cache/<cityId>/)
 const CACHE_FILE = path.join(__dirname, 'cache', cityId, 'cltampa.json');
 const SOURCE = 'Creative Loafing';

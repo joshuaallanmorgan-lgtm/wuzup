@@ -23,8 +23,8 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { fetchWithTimeout, cleanText } from './_shared.mjs';
-import { cityId } from '../cities/index.mjs';
+import { fetchWithTimeout, cleanText } from '../_shared.mjs';
+import { cityId } from '../../cities/index.mjs';
 
 export const name = 'City of St. Petersburg';
 
@@ -301,7 +301,7 @@ export async function fetchEvents() {
   }
 }
 
-// CLI runner: node finder/sources/stpete.mjs
+// CLI runner: node finder/sources/tampa-bay/stpete.mjs
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   fetchEvents().then((evs) => {
     console.log(`City of St. Petersburg: ${evs.length} events`);

@@ -1,6 +1,6 @@
 // City of Tampa calendar RSS (tampa.gov Drupal feed), parsed with string ops only.
 import { pathToFileURL } from 'node:url';
-import { decodeEntities, stripHtml, truncate, fetchWithTimeout } from './_shared.mjs';
+import { decodeEntities, stripHtml, truncate, fetchWithTimeout } from '../_shared.mjs';
 
 export const name = 'City of Tampa';
 
