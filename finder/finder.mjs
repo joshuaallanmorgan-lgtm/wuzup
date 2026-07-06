@@ -18,7 +18,7 @@
 import { writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
-import { bbox as TB_BOX, geocodeViewbox, tz as CITY_TZ, geocode as CITY_GEO, cityId, meta as CITY_META } from './cities/index.mjs';
+import { bbox as TB_BOX, geocodeViewbox, tz as CITY_TZ, geocode as CITY_GEO, cityId, meta as CITY_META, priors as CITY_PRIORS } from './cities/index.mjs';
 import { PRODUCT_UA } from './ua.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -1372,7 +1372,14 @@ export function categorize(e) {
   for (const [cat, re] of VENUE_TYPE_PRIORS) {
     if (re.test(venue)) return cat;
   }
-  const hinted = SOURCE_CATEGORY[familyOf(e.source)];
+  // City-config venue priors (cities/<id>.mjs `priors.venuePriors`) — the
+  // per-city half of the last-resort tier (Tampa's rows are the literals
+  // above; a config without the export contributes nothing here).
+  for (const [cat, re] of CITY_PRIORS.venuePriors) {
+    if (re.test(venue)) return cat;
+  }
+  const fam = familyOf(e.source);
+  const hinted = SOURCE_CATEGORY[fam] || CITY_PRIORS.sourceCategory[fam];
   return hinted || 'other';
 }
 
@@ -2357,24 +2364,28 @@ async function main() {
   const libraryCount = events.filter((e) =>
     (e.sources || []).some((s) => /librar/i.test(String(s)))).length;
   console.log(`    📚 library records in output: ${libraryCount} (was 207 pre-merge-fix; expect ~440+ on a full run — 0/low is normal with SKIP_EXTRA=1)`);
-  const redBull = events.find((e) => /cliff diving|red bull/i.test(e.title));
-  console.log(`    ${redBull ? '👀 present: "' + redBull.title + '"' : '✅ absent'} — Red Bull Cliff Diving (legacy canary — event ended 6/6, expected absent)`);
-  // Hidden-event-class benchmark (Josh, 2026-06-10): Don't Tell Comedy sells
-  // secret-location shows only through its own site — if we stop catching them,
-  // the "hidden events" differentiation has regressed. Skipped in fast mode
-  // (the module loader is what produces them).
-  if (process.env.SKIP_EXTRA !== '1') {
-    const dtc = events.filter((e) => /don'?t tell comedy/i.test(e.title));
-    console.log(`    ${dtc.length ? '✅' : '❌'} Don't Tell Comedy secret shows captured: ${dtc.length} (need >= 1 — hidden-event class)`);
-  }
-  // Sprint L data-v3 checks.
-  const vspcTimed = events.filter((e) =>
-    (e.sources || []).some((s) => familyOf(s) === 'Visit St. Pete/Clearwater') &&
-    /T\d{2}:/.test(String(e.start))).length;
-  if (process.env.SKIP_RENDER === '1' && vspcTimed < 10) {
-    console.log(`    ⚠️  VSPC events with a real start time: ${vspcTimed} (enrichment needs a render run)`);
-  } else {
-    console.log(`    ${vspcTimed >= 10 ? '✅' : '❌'} VSPC events with a real start time: ${vspcTimed} (need >= 10 — detail-page enrichment)`);
+  // CITY-SCOPED benchmarks (Tampa sources/canaries — running them for
+  // another city prints false ❌s about sources that can never appear there).
+  if (cityId === 'tampa-bay') {
+    const redBull = events.find((e) => /cliff diving|red bull/i.test(e.title));
+    console.log(`    ${redBull ? '👀 present: "' + redBull.title + '"' : '✅ absent'} — Red Bull Cliff Diving (legacy canary — event ended 6/6, expected absent)`);
+    // Hidden-event-class benchmark (Josh, 2026-06-10): Don't Tell Comedy sells
+    // secret-location shows only through its own site — if we stop catching them,
+    // the "hidden events" differentiation has regressed. Skipped in fast mode
+    // (the module loader is what produces them).
+    if (process.env.SKIP_EXTRA !== '1') {
+      const dtc = events.filter((e) => /don'?t tell comedy/i.test(e.title));
+      console.log(`    ${dtc.length ? '✅' : '❌'} Don't Tell Comedy secret shows captured: ${dtc.length} (need >= 1 — hidden-event class)`);
+    }
+    // Sprint L data-v3 checks.
+    const vspcTimed = events.filter((e) =>
+      (e.sources || []).some((s) => familyOf(s) === 'Visit St. Pete/Clearwater') &&
+      /T\d{2}:/.test(String(e.start))).length;
+    if (process.env.SKIP_RENDER === '1' && vspcTimed < 10) {
+      console.log(`    ⚠️  VSPC events with a real start time: ${vspcTimed} (enrichment needs a render run)`);
+    } else {
+      console.log(`    ${vspcTimed >= 10 ? '✅' : '❌'} VSPC events with a real start time: ${vspcTimed} (need >= 10 — detail-page enrichment)`);
+    }
   }
   console.log(`    ${venueTable ? '✅' : '❌'} venue table loaded: ${venueTable ? venueTable.size : 0} canonical venues, ${venuesCanonicalized} listings rewritten`);
   console.log(`    🖼️  ongoing-exhibit occurrences folded: ${exhibitsFolded} (cross-source, cross-day)`);

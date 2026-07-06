@@ -52,6 +52,32 @@ export const geocode = {
   junkKeyWords: ['san francisco', 'california', 'east bay', 'bay area'],
 };
 
+// last-resort CATEGORIZATION PRIORS (documented as priors, not facts) — the
+// city-flavored half of finder.mjs's categorize() fallthrough, the seam the
+// D2 audit flagged for extraction "when city #2's source scout lands".
+// These fire ONLY after every text rule came up empty, exactly like Tampa's
+// in-finder CONCERT_VENUE_RE / SOURCE_CATEGORY. Built from the FIRST REAL
+// SF RUN's 'other' residue (2026-07-05: 104 events, 75 of them artist-name-
+// only listings at the big sheds).
+export const priors = {
+  // venue priors, tested in order: what these rooms program in the
+  // overwhelming majority of cases. music BEFORE sports so the combined
+  // "Oakland Arena and Oakland-Alameda County Coliseum" complex string
+  // resolves to the arena's concert prior; the bare Coliseum/stadium/park
+  // strings are the pro/college sports parks.
+  venuePriors: [
+    ['music', /oakland arena|chase center|bill graham civic|greek theatre|the fillmore|the warfield|davies symphony|sfjazz|yoshi'?s|stern grove|great american music hall|the independent\b|the masonic|regency ballroom|fox theater|freight (?:&|and) salvage|music park|the chapel\b/i],
+    ['sports', /oracle park|california memorial stadium|oakland.alameda county coliseum|\bcoliseum\b/i],
+  ],
+  // source-family priors for the civic/campus calendars whose unmatched
+  // residue is municipal/campus programming by definition (the City-of-
+  // Tampa / Univ.-of-Tampa class).
+  sourceCategory: {
+    'SF Rec & Parks': 'community',
+    'UC Berkeley': 'community',
+  },
+};
+
 // government source ranking — richness-ranked tie-breaks among gov layers.
 // Strings must match each adapter's `name` export exactly. SF Rec & Parks
 // outranks EBRPD (address/zip/acres/neighborhoods vs name/status/acres); the
