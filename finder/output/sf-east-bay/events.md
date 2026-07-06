@@ -1,4 +1,4 @@
-# SF & East Bay Events — found 747 real events
+# SF & East Bay Events — found 742 real events
 
 _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents (SF Free), Eventbrite (SF Free), AllEvents (Oakland), Eventbrite (SF), AllEvents (Berkeley), Eventbrite (SF p2), AllEvents (Walnut Creek), Eventbrite (SF p3), Eventbrite (Oakland Free), Eventbrite (Oakland), Eventbrite (Oakland p2), Eventbrite (Oakland p3), Eventbrite (Berkeley Free), Eventbrite (Berkeley), Eventbrite (Walnut Creek Free), Eventbrite (Walnut Creek), DoTheBay, Meetup, SF Rec & Parks, UC Berkeley, Visit Oakland_
 
@@ -34,18 +34,17 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 ## Monday, July 6
 
 - **7:00 PM** — SF Startups, Investors, Professionals: Pitch & Networking Event · Casements Bar · _—_ · 🔥73 · buzz 2 · (Eventbrite (SF p3)) · [details](https://www.eventbrite.com/e/sf-startups-investors-professionals-pitch-networking-event-tickets-1990687908121)
+- **8:30 PM** — Rosalia at Oakland, CA · Oakland Arena · _—_ · 🔥73 · buzz 2 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/rosalia-at-oakland-ca/200029365073926)
 - Soccer Viewing · Thrive City · _Free_ · 🔥53 · buzz 1 · (Eventbrite (SF Free)) · [details](https://www.eventbrite.com/e/soccer-viewing-tickets-1992601996210)
 - **11:45 AM** — Baby Bounce · Lakeview Branch Oakland Public Library · _Free_ · 🔥53 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/baby-bounce/34150/)
 - "Hayes Valley Comedy Night" at SF's Newest Comedy Club / THE FUNCTION · The Function SF: Comedy Club & Cocktail Lounge · _—_ · 🔥48 · buzz 1 · (AllEvents (San Francisco)) · [details](https://allevents.in/san-francisco/hayes-valley-comedy-night-at-sfs-newest-comedy-club-the-function-tickets/10000939199530077)
-- Rosalía Oakland · Oakland Arena and Oakland-Alameda County Coliseum · _—_ · 🔥48 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/rosalía-oakland/200030286374942)
-- Rosalia at Oakland, CA · Oakland Arena - Oakland, CA · _—_ · 🔥48 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/rosalia-at-oakland-ca/200029365073926)
+- Rosalía Oakland · Oakland Arena · _—_ · 🔥48 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/rosalía-oakland/200030286374942)
 - Rosalia · West Oakland, Oakland, California · _—_ · 🔥48 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/rosalia-tickets/200030124847953)
 - The Marcus King Band · Fox Theater - Oakland · _—_ · 🔥48 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/the-marcus-king-band/2300029812350621)
 - Salsa Classes July 2026 4 Week Progressive Salsa Dance Lessons SF · SalsaCrazy Mondays, Neck of the Woods · _—_ · 🔥48 · buzz 1 · (Eventbrite (SF)) · [details](https://www.eventbrite.com/e/salsa-classes-july-2026-4-week-progressive-salsa-dance-lessons-sf-tickets-1988607310999)
 - Recruiting Event: Raingutter Regatta · Arbolado Park · _—_ · 🔥48 · buzz 1 · (AllEvents (Walnut Creek)) · [details](https://allevents.in/walnut-creek/recruiting-event-raingutter-regatta/200030289143425)
 - **9:00 AM** — Outside/In Ecology & Vertical Dance Camp · BANDALOOP · _$750_ · 🔥48 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/outside-in-ecology-%26-vertical-dance-camp/35361/)
 - **3:00 PM** — Voter Support for Billionaire Taxes Around the World · social Sciences 820 UC Berkeley Campus · _—_ · 🔥48 · buzz 1 · (UC Berkeley) · [details](https://events.berkeley.edu/econ/event/323281-voter-support-for-billionaire-taxes-around-the)
-- **8:30 PM** — Rosalia: LUX Tour 2026 · Oakland Arena & Coliseum · _—_ · 🔥48 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/rosalia%3a-lux-tour-2026/34806/)
 - **5:00 PM** — Low-volume intimate piano performances at Bar Shiru's Monday Happy Hour · Bar Shiru · _Free_ · 🔥43 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/low-volume-intimate-piano-performances-at-bar-shirus-monday-happy-hour/32470/)
 - Exhibit | Divestment Now! Student Activism and the Anti-Apartheid Movement at UC Berkeley · The Rowell Exhibition Cases, Doe Library, 2nd floor · _—_ · 🔥38 · buzz 1 · (UC Berkeley) · [details](https://events.berkeley.edu/live/events/309073-exhibit-divestment-now-student-activism-and-the-anti-)
 - Exhibit | The Etruscans Uncovered: The Phoebe A. Hearst Collection at UC Berkeley · Bernice Layne Brown Gallery, Doe Library, University of California, Berkeley · _—_ · 🔥38 · buzz 1 · (UC Berkeley) · [details](https://events.berkeley.edu/live/events/316565-exhibit-the-etruscans-uncovered-the-phoebe-a-hearst-c)
@@ -63,7 +62,7 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 - Lectures on Tap-How & Why to Talk to Strangers: The Science of Connection · North Beach · _—_ · 🔥48 · buzz 1 · (Eventbrite (SF p2)) · [details](https://www.eventbrite.com/e/lectures-on-tap-how-why-to-talk-to-strangers-the-science-of-connection-tickets-1991407904650)
 - 🎨 Asian Brush Painting: Korean Ink Painting Workshop · 2661 Oak Grove Rd, Walnut Creek, CA 94598-3627 · _—_ · 🔥48 · buzz 1 · (AllEvents (Walnut Creek)) · [details](https://allevents.in/walnut-creek/asian-brush-painting-korean-ink-painting-workshop/200030271595730)
 - Miles Davis - Kind of Blue : LISTEN | Envelop SF (7:30pm) · Envelop SF · _—_ · 🔥48 · buzz 1 · (Eventbrite (SF p3)) · [details](https://www.eventbrite.com/e/miles-davis-kind-of-blue-listen-envelop-sf-730pm-tickets-1992328518230)
-- The Marcus King Band Darling Blue Pt.2 Tour · Fox Theater · _—_ · 🔥48 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/the-marcus-king-band-darling-blue-pt-2-tour/35499/)
+- The Marcus King Band Darling Blue Pt.2 Tour · Fox Theater - Oakland · _—_ · 🔥48 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/the-marcus-king-band-darling-blue-pt-2-tour/35499/)
 - Oakland Ballers vs Modesto Roadsters · Raimondi Park · _—_ · 🔥48 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/oakland-ballers-vs-modesto-roadsters/34882/)
 - **10:00 AM** — Botanical Illustration: Summer Flowers with Catherine Watters · UC Botanical Garden at Berkeley · _—_ · 🔥48 · buzz 1 · (UC Berkeley) · [details](https://events.berkeley.edu/townsend/event/321698-botanical-illustration-summer-flowers-with)
 - **10:30 AM** — World Kiswahili Language Day · Savio Steps, Sproul Plaza · _—_ · 🔥48 · buzz 1 · (UC Berkeley) · [details](https://events.berkeley.edu/townsend/event/323132-world-kiswahili-language-day)
@@ -111,7 +110,7 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 - Foster Youth Museum Presents: Hope Through the Eyes of HYPE: Opening Night · Community Works - Restorative Hub · _Free_ · 🔥48 · buzz 1 · (Eventbrite (SF Free)) · [details](https://www.eventbrite.com/e/foster-youth-museum-presents-hope-through-the-eyes-of-hype-opening-night-tickets-1990209399890)
 - A Voice for the People: A Conversation with San Francisco District Attorney · HELLA BEES · _Free_ · 🔥48 · buzz 1 · (Eventbrite (Oakland Free)) · [details](https://www.eventbrite.com/e/a-voice-for-the-people-a-conversation-with-san-francisco-district-attorney-tickets-1989838167524)
 - KOO Labs Summer Showcase: Crowned Creators · Merritt College · _Free_ · 🔥48 · buzz 1 · (Eventbrite (Walnut Creek Free)) · [details](https://www.eventbrite.com/e/koo-labs-summer-showcase-crowned-creators-tickets-1992664304576)
-- Keak Da Sneak, 3x Krazy w/ Splash Bakery Band & More · Yoshi's Oakland -Jack London square · _—_ · 🔥43 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/keak-da-sneak-3x-krazy-w-splash-bakery-band-and-more/200030124886949)
+- Keak Da Sneak, 3x Krazy w/ Splash Bakery Band & More · Yoshi's Oakland · _—_ · 🔥43 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/keak-da-sneak-3x-krazy-w-splash-bakery-band-and-more/200030124886949)
 - Bushbaby · 1015 Folsom · _—_ · 🔥43 · buzz 1 · (Eventbrite (SF p2)) · [details](https://www.eventbrite.com/e/bushbaby-tickets-1988577006357)
 - Selena Paint & Sip Sing-A-Long · Vinnie's Bar & Grill · _—_ · 🔥43 · buzz 1 · (Eventbrite (Walnut Creek)) · [details](https://www.eventbrite.com/e/selena-paint-sip-sing-a-long-tickets-1990811058467)
 - **6:00 PM** — sticker making craft night! · Alameda Brewing Co. · _—_ · 🔥43 · buzz 1 · (Meetup) · [details](https://www.meetup.com/east-bay-creative-cuties-20s-30s-40s/events/315519392/)
@@ -173,11 +172,11 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 - Beat the Midsummer Heat · Howe Homestead Park · _Free_ · 🔥48 · buzz 1 · (Eventbrite (Walnut Creek Free)) · [details](https://www.eventbrite.com/e/beat-the-midsummer-heat-tickets-1980588759295)
 - Grand Lake Farmers Market · Grand Lakes Farmers Market · _Free_ · 🔥48 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/grand-lake-farmers-market/28965/)
 - **9:00 AM** — East Bay Front Runners & Walkers · Camron-Stanford House · _Free_ · 🔥48 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/east-bay-front-runners-%26-walkers/32533/)
-- **9:30 AM** — Gardens at Lake Merritt · Gardens at Lake Merritt · _Free_ · 🔥48 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/gardens-at-lake-merritt/32578/)
+- **9:30 AM** — Gardens at Lake Merritt · The Gardens at Lake Merritt · _Free_ · 🔥48 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/gardens-at-lake-merritt/32578/)
 - **11:00 AM** — Temescal Street Fair · Temescal District · _Free_ · 🔥48 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/temescal-street-fair/35548/)
 - **12:00 PM** — Golden Gate Bandshell: SF Free Folk Festival · Music Concourse Drive · _Free_ · 🔥48 · buzz 1 · (SF Rec & Parks) · [details](https://sfrecpark.org/Calendar.aspx?EID=10276)
 - **12:00 PM** — Bastille Day Fête du Marché · Rockridge Market Hall · _Free_ · 🔥48 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/bastille-day-f%c3%aate-du-march%c3%a9/35553/)
-- IVisit Boxing Comes to San Francisco · Civic Center Plaza, San Francisco, CA · _—_ · 🔥43 · buzz 1 · (AllEvents (San Francisco)) · [details](https://allevents.in/san-francisco/ivisit-boxing-comes-to-san-francisco/200029814948206)
+- IVisit Boxing Comes to San Francisco · Civic Center Plaza · _—_ · 🔥43 · buzz 1 · (AllEvents (San Francisco)) · [details](https://allevents.in/san-francisco/ivisit-boxing-comes-to-san-francisco/200029814948206)
 - Temescal Street Fair · 5000 Telegraph Ave, Oakland, CA 94609-2014 · _—_ · 🔥43 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/temescal-street-fair/200029613546325)
 - Kelly King Bay Area Book Launch · Nomadic Bookshop · _—_ · 🔥43 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/kelly-king-bay-area-book-launch-tickets/100001989832475499)
 - Alison Krauss at Bowl in the Pines · Bowl in the Pines · _—_ · 🔥43 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/alison-krauss-at-bowl-in-the-pines/2400029358060525)
@@ -185,7 +184,7 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 - Summer Nights Pop Up Social | Special Guest: Susan Beras · Space 550 · _—_ · 🔥43 · buzz 1 · (Eventbrite (SF)) · [details](https://www.eventbrite.com/e/summer-nights-pop-up-social-special-guest-susan-beras-tickets-1983832618766)
 - BabyFace Ray with 42 Dugg · The UC Theatre · _—_ · 🔥43 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/babyface-ray-with-42-dugg/3200030033357158)
 - Berkeley Coffee Club | Foodies + New Friends · Cafe of the Month · _$10_ · 🔥43 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/berkeley-coffee-club-|-foodies-new-friends/100001992779058809)
-- Matt Rife · Greek Theater · _—_ · 🔥43 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/matt-rife/200030271579851)
+- Matt Rife · Greek Theatre - Berkeley · _—_ · 🔥43 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/matt-rife/200030271579851)
 - KNICK · Club Six · _—_ · 🔥43 · buzz 1 · (Eventbrite (SF p2)) · [details](https://www.eventbrite.com/e/knick-tickets-1988258632091)
 - San Francisco Magazine Best of the Bay After Party · Madarae · _—_ · 🔥43 · buzz 1 · (Eventbrite (SF p2)) · [details](https://www.eventbrite.com/e/san-francisco-magazine-best-of-the-bay-after-party-tickets-1991720191709)
 - FRYTM presents: URSUL · The Great Northern · _—_ · 🔥43 · buzz 1 · (Eventbrite (SF p2)) · [details](https://www.eventbrite.com/e/frytm-presents-ursul-tickets-1990429565411)
@@ -195,7 +194,7 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 - Watering Our Roots, Planting Seeds · 2406 Webster St · _—_ · 🔥43 · buzz 1 · (Eventbrite (Oakland)) · [details](https://www.eventbrite.com/e/watering-our-roots-planting-seeds-registration-1991121271322)
 - Après Mundi: a Burning Man Community Celebration! · The Loom · _—_ · 🔥43 · buzz 1 · (Eventbrite (Oakland)) · [details](https://www.eventbrite.com/e/apres-mundi-a-burning-man-community-celebration-tickets-1991792861065)
 - Our Freedom Festival of Music and Movements · First Congregational Church of Oakland · _—_ · 🔥43 · buzz 1 · (Eventbrite (Oakland p3)) · [details](https://www.eventbrite.com/e/our-freedom-festival-of-music-and-movements-tickets-1988607035174)
-- Oakland Roots SC vs Spokane Velocity FC (USL Cup) · Oakland Arena & Coliseum · _—_ · 🔥43 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/oakland-roots-sc-vs-spokane-velocity-fc-(usl-cup)/34871/)
+- Oakland Roots SC vs Spokane Velocity FC (USL Cup) · Oakland Arena · _—_ · 🔥43 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/oakland-roots-sc-vs-spokane-velocity-fc-(usl-cup)/34871/)
 - **10:00 AM** — Bay Area AI War Room - Berkeley Edition - Saturday, 10:00 AM · Victory Point Cafe · _—_ · 🔥43 · buzz 1 · (Meetup) · [details](https://www.meetup.com/bay-area-artificial-war-room/events/313148539/)
 - **10:00 AM** — Make a Clay Hanging Planter for Your Plants - Saturday, July 11, 2026 · Wild One Boutique · _$100_ · 🔥43 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/make-a-clay-hanging-planter-for-your-plants-saturday-july-11-2026/35538/)
 - **10:00 AM** — Hanging Clay Pot Workshop -Saturday, July 11, 2026 · Wild One Boutique · _$100_ · 🔥43 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/hanging-clay-pot-workshop-saturday-july-11-2026/35473/)
@@ -349,6 +348,7 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 
 ## Saturday, July 18
 
+- Makers Market™ Local Artist Street Fair @ Broadway Plaza · Broadway Plaza · _Free_ · 🔥68 · buzz 2 · (AllEvents (Walnut Creek)) · [details](https://allevents.in/walnut-creek/makers-market-local-artist-street-fair-broadway-plaza/100001981947658800)
 - **4:30 PM** — Major League Cricket in Bay Area San Francisco Unicorns · Oakland Coliseum · _—_ · 🔥63 · buzz 2 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/major-league-cricket-in-bay-area-san-francisco-unicorns/200030299982505)
 - Richmond Night Market · Clement Street · _Free_ · 🔥43 · buzz 1 · (AllEvents (SF Free)) · [details](https://allevents.in/san-francisco/richmond-night-market/100001992857539547)
 - The Circus is Coming to Town! The 2026 Hayes Valley Carnival · Proxy Walk-In Theater · _Free_ · 🔥43 · buzz 1 · (AllEvents (SF Free)) · [details](https://allevents.in/san-francisco/the-circus-is-coming-to-town-the-2026-hayes-valley-carnival/100001992438126070)
@@ -356,7 +356,6 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 - Yerba Buena Gardens Reggae Festival · Yerba Buena Gardens · _Free_ · 🔥43 · buzz 1 · (Eventbrite (SF Free)) · [details](https://www.eventbrite.com/e/yerba-buena-gardens-reggae-festival-tickets-1986846415112)
 - National Caviar Day by The Caviar Co. · The Caviar Co. · _Free_ · 🔥43 · buzz 1 · (Eventbrite (SF Free)) · [details](https://www.eventbrite.com/e/national-caviar-day-by-the-caviar-co-tickets-1992261456647)
 - Christian Singles Coffee Meet-up · Gratitude Coffee Bar · _Free_ · 🔥43 · buzz 1 · (Eventbrite (Walnut Creek Free)) · [details](https://www.eventbrite.com/e/christian-singles-coffee-meet-up-tickets-1990711647125)
-- Vuori Broadway Plaza x Pvolve · Vuori Broadway Plaza · _Free_ · 🔥43 · buzz 1 · (Eventbrite (Walnut Creek Free)) · [details](https://www.eventbrite.com/e/vuori-broadway-plaza-x-pvolve-tickets-1990053379228)
 - Free Film Screening in Concord, CA · CinemaWest Veranda LUXE IMAX, 4DX, ScreenX & Giant Screen · _Free_ · 🔥43 · buzz 1 · (Eventbrite (Walnut Creek Free)) · [details](https://www.eventbrite.com/e/free-film-screening-in-concord-ca-tickets-1991969883544)
 - LO SF Bay Area | Queer Caminata: Somos Familia · Orinda · _Free_ · 🔥43 · buzz 1 · (Eventbrite (Walnut Creek Free)) · [details](https://www.eventbrite.com/e/lo-sf-bay-area-queer-caminata-somos-familia-tickets-1987872465055)
 - **10:00 AM** — The Wardrobe Project Flea · Rockridge Bart Parking Lot · _Free_ · 🔥43 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/the-wardrobe-project-flea/35277/)
@@ -372,7 +371,6 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 - PRINCESS: Homecoming w/ JULIE J · OASIS · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF p2)) · [details](https://www.eventbrite.com/e/princess-homecoming-w-julie-j-tickets-1992034859890)
 - AGI Summit 2026 | Where AGI Converges · July 18–19 · Palace of Fine Art · 3301 Lyon St · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF p2)) · [details](https://www.eventbrite.com/e/agi-summit-2026-where-agi-converges-july-1819-palace-of-fine-art-tickets-1985545163032)
 - Grateful Dead & the Allman Brothers Band Tributes... Live @ Retro Junkie! · Retro Junkie · _$17.85_ · 🔥38 · buzz 1 · (AllEvents (Walnut Creek)) · [details](https://allevents.in/walnut-creek/grateful-dead-and-the-allman-brothers-band-tributes-live-retro-junkie/100001990060804437)
-- Makers Market™ Local Artist Street Fair @ Broadway Plaza · Broadway Plaza · _—_ · 🔥38 · buzz 1 · (AllEvents (Walnut Creek)) · [details](https://allevents.in/walnut-creek/makers-market-local-artist-street-fair-broadway-plaza/100001981947658800)
 - LAVERN | Day Party at 620 Jones Terrace · Jones · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF p3)) · [details](https://www.eventbrite.com/e/lavern-day-party-at-620-jones-terrace-tickets-1988845095218)
 - Morphine Love Dion at Beaux in the Castro Saturday July 18th · Beaux · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF p3)) · [details](https://www.eventbrite.com/e/morphine-love-dion-at-beaux-in-the-castro-saturday-july-18th-tickets-1984929015117)
 - Brave New Voices Festival Day 4 · San Francisco War Memorial & Performing Arts Center HERBST Theater · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF p3)) · [details](https://www.eventbrite.com/e/brave-new-voices-festival-day-4-tickets-1990212616511)
@@ -401,7 +399,7 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 ## Sunday, July 19
 
 - Sunday Streets · Valencia Street · _Free_ · 🔥43 · buzz 1 · (AllEvents (San Francisco)) · [details](https://allevents.in/san-francisco/sunday-streets-tickets/80001187082140)
-- Soccer Final ⚽ Screening at the Ferry Building · Ferry Building · _Free_ · 🔥43 · buzz 1 · (AllEvents (SF Free)) · [details](https://allevents.in/san-francisco/soccer-final-screening-at-the-ferry-building/100001992888477082)
+- Soccer Final ⚽ Screening at the Ferry Building · San Francisco Ferry Building · _Free_ · 🔥43 · buzz 1 · (AllEvents (SF Free)) · [details](https://allevents.in/san-francisco/soccer-final-screening-at-the-ferry-building/100001992888477082)
 - Community Ice Cream Appreciation Event | Sponsored by Lupe Kemper Team · Nancy Boyd Park · _Free_ · 🔥43 · buzz 1 · (Eventbrite (Walnut Creek Free)) · [details](https://www.eventbrite.com/e/community-ice-cream-appreciation-event-sponsored-by-lupe-kemper-team-tickets-1991951961940)
 - Queer Con Leche: Hot Queer Summer · Open Test Kitchen (OTK) · _—_ · 🔥38 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/queer-con-leche-hot-queer-summer/100001992393900791)
 - Super Perreo Latin Rave Day Party @ the Midway 3pm · The Midway · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF)) · [details](https://www.eventbrite.com/e/super-perreo-latin-rave-day-party-the-midway-3pm-tickets-1990143189854)
@@ -409,7 +407,7 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 - Sunset Rooftop Party with Ali Farahani at Via Hotel. · Hotel VIA · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF)) · [details](https://www.eventbrite.com/e/sunset-rooftop-party-with-ali-farahani-at-via-hotel-tickets-1987643036829)
 - World Cup After Party / Nomadz · The Phoenix Hotel · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF)) · [details](https://www.eventbrite.com/e/world-cup-after-party-nomadz-tickets-1990206348764)
 - Young the Giant at Greek Theatre - Berkeley · Greek Theatre - Berkeley · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/young-the-giant-at-greek-theatre-berkeley/2400029739115401)
-- Young the Giant with Cold War Kids and KennyHoopla · The Greek Theatre at U.C. Berkeley · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/young-the-giant-with-cold-war-kids-and-kennyhoopla/3200029736598005)
+- Young the Giant with Cold War Kids and KennyHoopla · Greek Theatre - Berkeley · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/young-the-giant-with-cold-war-kids-and-kennyhoopla/3200029736598005)
 - NAACH SF Season 8 Showcase · Dance Mission Theater · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF p2)) · [details](https://www.eventbrite.com/e/naach-sf-season-8-showcase-tickets-1991750341889)
 - Resonating Sound Bath · Behavioral Fitness · _$44_ · 🔥38 · buzz 1 · (AllEvents (Walnut Creek)) · [details](https://allevents.in/walnut-creek/resonating-sound-bath/100001992331957517)
 - East Bay Aggies Ice Cream Social · O'Brien's Ice Cream · _—_ · 🔥38 · buzz 1 · (AllEvents (Walnut Creek)) · [details](https://allevents.in/walnut-creek/east-bay-aggies-ice-cream-social/200030200443701)
@@ -479,9 +477,9 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 
 ## Friday, July 24
 
-- **4:30 PM** — WWE: Smackdown - Oakland, CA · Oakland Arena and Oakland-Alameda County Coliseum · _—_ · 🔥63 · buzz 2 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/wwe-smackdown-oakland-ca/200030347359118)
+- **4:30 PM** — WWE Friday Night SmackDown · Oakland Arena · _—_ · 🔥63 · buzz 2 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/wwe-friday-night-smackdown/210004537865031)
 - Bollywood Festive Nights with Rang De Bollywood | July 24 · Union Square, San Francisco · _Free_ · 🔥43 · buzz 1 · (AllEvents (SF Free)) · [details](https://allevents.in/san-francisco/bollywood-festive-nights-with-rang-de-bollywood-|-july-24/100001984843269650)
-- WWE Friday Night SmackDown · Oakland Arena · _—_ · 🔥38 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/wwe-friday-night-smackdown/210004537865031)
+- WWE: Smackdown - Oakland, CA · Oakland Arena · _—_ · 🔥38 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/wwe-smackdown-oakland-ca/200030347359118)
 - Bhangra and Beats Night Market-July 24th · Yerba Buena Gardens · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF)) · [details](https://www.eventbrite.com/e/bhangra-and-beats-night-market-july-24th-tickets-1988450923239)
 - Speakpreneur San Francisco (2 Day Workshop) · The Marker Union Square San Francisco · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF)) · [details](https://www.eventbrite.com/e/speakpreneur-san-francisco-2-day-workshop-tickets-1987899688481)
 - Cal Poly Night at the SF Giants Pre-Game Alumni and Friends Mixer · Fieldwork SF China Basin Park · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF p2)) · [details](https://www.eventbrite.com/e/cal-poly-night-at-the-sf-giants-pre-game-alumni-and-friends-mixer-tickets-1990580972273)
@@ -497,11 +495,11 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 
 ## Saturday, July 25
 
-- ACTV Studio IRL: Vuori Broadway Plaza x Barry's · Vuori Broadway Plaza · _Free_ · 🔥43 · buzz 1 · (Eventbrite (Walnut Creek Free)) · [details](https://www.eventbrite.com/e/actv-studio-irl-vuori-broadway-plaza-x-barrys-tickets-1992098504252)
+- ACTV Studio IRL: Vuori Broadway Plaza x Barry's · Broadway Plaza · _Free_ · 🔥43 · buzz 1 · (Eventbrite (Walnut Creek Free)) · [details](https://www.eventbrite.com/e/actv-studio-irl-vuori-broadway-plaza-x-barrys-tickets-1992098504252)
 - Orchids in the Park 2026 - Summer Sale - July 25 & July 26 · SF County Fair Building · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF)) · [details](https://www.eventbrite.com/e/orchids-in-the-park-2026-summer-sale-july-25-july-26-tickets-1988526536400)
 - Ballet22: Summer Season 2026 · The Cowell Theater at Pier 2 · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF)) · [details](https://www.eventbrite.com/e/ballet22-summer-season-2026-tickets-1493443322179)
 - Mixologi's Annual Summer Day Party - July 25th · Jones · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF)) · [details](https://www.eventbrite.com/e/mixologis-annual-summer-day-party-july-25th-tickets-1992726285964)
-- Lauren Daigle at Lake Tahoe Amphitheatre at Caesars Republic · The William Randolph Hearst Greek Theatre at UC Berkeley · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/lauren-daigle-at-lake-tahoe-amphitheatre-at-caesars-republic/200030110308251)
+- Lauren Daigle at Lake Tahoe Amphitheatre at Caesars Republic · Greek Theatre - Berkeley · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/lauren-daigle-at-lake-tahoe-amphitheatre-at-caesars-republic/200030110308251)
 - Brandee Younger at The UC Theatre · The UC Theatre · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/brandee-younger-at-the-uc-theatre/2400030237246629)
 - George Cotsirilos Quartet, w/ Keith Saunders, Robb Fisher & Ron Marabuto · 1984 Bonita Ave, Berkeley, CA 94704 · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/george-cotsirilos-quartet-w-keith-saunders-robb-fisher-and-ron-marabuto/200030165145814)
 - Teance Midsummer Bazaar · 1036 Grayson, Berkeley, CA, United States, California 94710 · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/teance-midsummer-bazaar/200030306935005)
@@ -513,7 +511,7 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 - Colores Experience @ Crybaby 10pm (oakland) · Crybaby · _—_ · 🔥38 · buzz 1 · (Eventbrite (Oakland)) · [details](https://www.eventbrite.com/e/colores-experience-crybaby-10pm-oakland-tickets-1989063621837)
 - 11th Annual Pass to Play - A Community Sports Physical Event · Golden State Orthopedics and Spine - Redwood Office · _—_ · 🔥38 · buzz 1 · (Eventbrite (Walnut Creek)) · [details](https://www.eventbrite.com/e/11th-annual-pass-to-play-a-community-sports-physical-event-tickets-1991788448868)
 - Psychedelics & the Whole Self: A Gathering for Womxn · Shulgin Farm & Foundation · _—_ · 🔥38 · buzz 1 · (Eventbrite (Walnut Creek)) · [details](https://www.eventbrite.com/e/psychedelics-the-whole-self-a-gathering-for-womxn-tickets-1990339564215)
-- Oakland Roots SC vs Sacramento Republic FC · Oakland Arena & Coliseum · _—_ · 🔥38 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/oakland-roots-sc-vs-sacramento-republic-fc/34872/)
+- Oakland Roots SC vs Sacramento Republic FC · Oakland Arena · _—_ · 🔥38 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/oakland-roots-sc-vs-sacramento-republic-fc/34872/)
 - **10:30 AM** — Summer Welcome Party · Mary Wood Park House, 130 E 5th Ave, Conshohocken, PA 19428 · _—_ · 🔥38 · buzz 1 · (UC Berkeley) · [details](https://events.berkeley.edu/CAA/event/322075-summer-welcome-party)
 - **12:00 PM** — Ken’s Custom Walk Special Stairways & Iconic Views · 19th and Douglas · _—_ · 🔥38 · buzz 1 · (Meetup) · [details](https://www.meetup.com/san-francisco-urban-explorers/events/315405660/)
 - **12:00 PM** — Summer Picnic · Wallace Park, Northwest 25th Avenue &, 2550 NW Raleigh St, Portland, OR 97210 · _—_ · 🔥38 · buzz 1 · (UC Berkeley) · [details](https://events.berkeley.edu/CAA/event/323921-summer-picnic)
@@ -593,7 +591,7 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 - STAR 101.3 Karaoke Bay Cruise · LUXE Cruises - Luxury Yachts for Weddings, Birthdays, Corporate Events & School Proms · _—_ · 🔥38 · buzz 1 · (Eventbrite (Oakland p2)) · [details](https://www.eventbrite.com/e/star-1013-karaoke-bay-cruise-tickets-1991495779486)
 - Summer Stack 2026 - Art Popup | Alameda, CA · Faction Brewing · _—_ · 🔥38 · buzz 1 · (Eventbrite (Oakland p3)) · [details](https://www.eventbrite.com/e/summer-stack-2026-art-popup-alameda-ca-tickets-1987031208835)
 - Music at Viano Vineyards featuring KillBillies · Viano Vineyards · _—_ · 🔥38 · buzz 1 · (Eventbrite (Walnut Creek)) · [details](https://www.eventbrite.com/e/music-at-viano-vineyards-featuring-killbillies-tickets-1986837939762)
-- Oakland Roots SC vs Pittsburgh Riverhounds SC · Oakland Arena & Coliseum · _—_ · 🔥38 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/oakland-roots-sc-vs-pittsburgh-riverhounds-sc/34873/)
+- Oakland Roots SC vs Pittsburgh Riverhounds SC · Oakland Arena · _—_ · 🔥38 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/oakland-roots-sc-vs-pittsburgh-riverhounds-sc/34873/)
 - **4:00 PM** — Film Screening – “My Neighbors the Yamadas” · 2155 Center Street Berkeley, CA · _—_ · 🔥38 · buzz 1 · (UC Berkeley) · [details](https://events.berkeley.edu/BAMPFA/event/322409-film-screening-my-neighbors-the-yamadas)
 - **5:00 PM** — The Karaoke Paint & Sip · M2 Mimosa on Grand · _$30_ · 🔥38 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/the-karaoke-paint-%26-sip/34186/)
 - **7:00 PM** — Cal-scadia Cup · Providence Park, 1844 SW Morrison St, Portland, OR 97205 · _—_ · 🔥38 · buzz 1 · (UC Berkeley) · [details](https://events.berkeley.edu/CAA/event/323918-cal-scadia-cup)
@@ -620,11 +618,10 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 
 ## Tuesday, August 4
 
+- **8:00 PM** — IVE at Oakland Arena · Oakland Arena · _—_ · 🔥63 · buzz 2 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/ive-at-oakland-arena/2400029903972004)
 - Lake Merritt Joggers and Striders · Lake Merritt · _Free_ · 🔥43 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/lake-merritt-joggers-and-striders/32581/)
-- IVE at Oakland Arena · Oakland Arena · _—_ · 🔥38 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/ive-at-oakland-arena/2400029903972004)
 - National Night Out Martinez 2026 · Martinez Waterfront Park · _—_ · 🔥38 · buzz 1 · (Eventbrite (Walnut Creek)) · [details](https://www.eventbrite.com/e/national-night-out-martinez-2026-registration-1988692156775)
 - Oakland Ballers vs Modesto Roadsters · Raimondi Park · _—_ · 🔥38 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/oakland-ballers-vs-modesto-roadsters/34886/)
-- **8:00 PM** — Ive World Tour in Oakland · Oakland Arena & Coliseum · _—_ · 🔥38 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/ive-world-tour-%3cshow-what-i-am%3e-in-oakland/35270/)
 - Exhibit | Divestment Now! Student Activism and the Anti-Apartheid Movement at UC Berkeley · The Rowell Exhibition Cases, Doe Library, 2nd floor · _—_ · 🔥28 · buzz 1 · (UC Berkeley) · [details](https://events.berkeley.edu/AC/event/309712-exhibit-divestment-now-student-activism-and-the)
 - Exhibit | The Etruscans Uncovered: The Phoebe A. Hearst Collection at UC Berkeley · Bernice Layne Brown Gallery, Doe Library, University of California, Berkeley · _—_ · 🔥28 · buzz 1 · (UC Berkeley) · [details](https://events.berkeley.edu/live/events/316565-exhibit-the-etruscans-uncovered-the-phoebe-a-hearst-c)
 
@@ -661,7 +658,7 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 - Outside Lands Music & Arts Festival: The Strokes The ** & DJO - Saturday · Golden Gate Park · _—_ · 🔥38 · buzz 1 · (AllEvents (San Francisco)) · [details](https://allevents.in/san-francisco/outside-lands-music-and-arts-festival-the-strokes-the-and-djo-saturday/2300030152204057)
 - Caldwell Snyder Gallery Presents a New Exhibition: Chromatic Narratives · 341 Sutter St · _—_ · 🔥38 · buzz 1 · (AllEvents (San Francisco)) · [details](https://allevents.in/san-francisco/caldwell-snyder-gallery-presents-a-new-exhibition-chromatic-narratives-tickets/80002701139682)
 - 2026 Outside Lands Music and Arts Festival - Multiday Pass at Golden Gate Park · Golden Gate Park · _—_ · 🔥38 · buzz 1 · (AllEvents (San Francisco)) · [details](https://allevents.in/san-francisco/2026-outside-lands-music-and-arts-festival-multiday-pass-at-golden-gate-park/2400029715334720)
-- Teddy Riley · Yoshi's Oakland -Jack London square · _—_ · 🔥38 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/teddy-riley/200030124929220)
+- Teddy Riley · Yoshi's Oakland · _—_ · 🔥38 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/teddy-riley/200030124929220)
 - BE LOVE – Meditation & Sound Bath · Unity of Walnut Creek · _—_ · 🔥38 · buzz 1 · (AllEvents (Walnut Creek)) · [details](https://allevents.in/walnut-creek/be-love-meditation-and-sound-bath/200030356409259)
 - Summer Movie Night: Zootopia · Joybound People & Pets · _$7.18_ · 🔥38 · buzz 1 · (AllEvents (Walnut Creek)) · [details](https://allevents.in/walnut-creek/summer-movie-night-zootopia/100001989881848174)
 - **5:00 PM** — Game Dev Showcase · Museum of Art and Digital Entertainment (MADE) · _$15_ · 🔥38 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/game-dev-showcase/35525/)
@@ -741,8 +738,8 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 - Thee Sacred Souls with LA LOM at Greek Theatre - Berkeley · Greek Theatre - Berkeley · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/thee-sacred-souls-with-la-lom-at-greek-theatre-berkeley/2400029735348915)
 - Helado Tropical at YBG Festival · Yerba Buena Gardens · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF p2)) · [details](https://www.eventbrite.com/e/helado-tropical-at-ybg-festival-tickets-1986353490762)
 - The Linkin Park Experience... Live @ Retro Junkie! · Retro Junkie · _$17.85_ · 🔥38 · buzz 1 · (AllEvents (Walnut Creek)) · [details](https://allevents.in/walnut-creek/the-linkin-park-experience-live-retro-junkie/100001990533562469)
-- Organic - Tribute to DJ Dan · Phoenix Hotel · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF p3)) · [details](https://www.eventbrite.com/e/organic-tribute-to-dj-dan-tickets-1990695526909)
-- Oakland Roots SC vs Monterey Bay FC · Oakland Arena & Coliseum · _—_ · 🔥38 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/oakland-roots-sc-vs-monterey-bay-fc/34874/)
+- Organic - Tribute to DJ Dan · The Phoenix Hotel · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF p3)) · [details](https://www.eventbrite.com/e/organic-tribute-to-dj-dan-tickets-1990695526909)
+- Oakland Roots SC vs Monterey Bay FC · Oakland Arena · _—_ · 🔥38 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/oakland-roots-sc-vs-monterey-bay-fc/34874/)
 - **12:00 PM** — Summer Welcome Party · Codornices Park in Berkeley - Picnic Area #1, 1201 Euclid Ave, Berkeley, CA · _—_ · 🔥38 · buzz 1 · (UC Berkeley) · [details](https://events.berkeley.edu/CAA/event/322923-summer-welcome-party)
 - **12:00 PM** — Taste of Jack London 2026 - Food and Beer Fest · Bloc15 · _$40_ · 🔥38 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/taste-of-jack-london-2026-food-and-beer-fest/35338/)
 - **2:00 PM** — Rinaldo · West Edge Opera · _$22_ · 🔥38 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/rinaldo/35431/)
@@ -831,7 +828,7 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 ## Sunday, August 30
 
 - J. Cole · Oakland Arena · _—_ · 🔥38 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/j-cole/3200029746185935)
-- Tori Amos · The Greek Theatre at U.C. Berkeley · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/tori-amos/3200029570539525)
+- Tori Amos · Greek Theatre - Berkeley · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/tori-amos/3200029570539525)
 
 ## Tuesday, September 1
 
@@ -872,7 +869,6 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 ## Friday, September 11
 
 - Foster The People at Greek Theatre - Berkeley · Greek Theatre - Berkeley · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/foster-the-people-at-greek-theatre-berkeley/2400030045540624)
-- Foster The People with Goth Babe · The Greek Theatre at U.C. Berkeley · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/foster-the-people-with-goth-babe/3200030044649256)
 - Foster The People, Goth Babe in Berkeley · Greek Theatre-U.C. Berkeley · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/foster-the-people-goth-babe-in-berkeley/3300030220469102)
 
 ## Saturday, September 12
@@ -888,12 +884,12 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 
 - Patti Smith at Sydney Goldstein Theater · Sydney Goldstein Theater · _—_ · 🔥38 · buzz 1 · (AllEvents (San Francisco)) · [details](https://allevents.in/san-francisco/patti-smith-at-sydney-goldstein-theater/2400030139275040)
 - The Bald and the Beautiful LIVE: Very Bald, Very Beautiful · Paramount Theatre Oakland · _—_ · 🔥38 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/the-bald-and-the-beautiful-live-very-bald-very-beautiful/210004647650828)
-- Bleachers with The Linda Lindas · The Greek Theatre at U.C. Berkeley · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/bleachers-with-the-linda-lindas/3200030045283526)
+- Bleachers with The Linda Lindas · Greek Theatre - Berkeley · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/bleachers-with-the-linda-lindas/3200030045283526)
 
 ## Friday, September 18
 
 - Steve Aoki · Bill Graham Civic Auditorium · _—_ · 🔥38 · buzz 1 · (AllEvents (San Francisco)) · [details](https://allevents.in/san-francisco/steve-aoki/2300029512318601)
-- Jack Harlow at Fox Theater Oakland · Fox Theater Oakland · _—_ · 🔥38 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/jack-harlow-at-fox-theater-oakland/2400029904131712)
+- Jack Harlow at Fox Theater Oakland · Fox Theater - Oakland · _—_ · 🔥38 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/jack-harlow-at-fox-theater-oakland/2400029904131712)
 
 ## Saturday, September 19
 
@@ -934,8 +930,8 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 ## Thursday, October 1
 
 - Billy Strings - 2 Day Pass · Oakland Arena · _—_ · 🔥38 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/billy-strings-2-day-pass/2300029907730157)
-- Jack Johnson at Greek Theatre - Two Nights! · The William Randolph Hearst Greek Theatre at UC Berkeley · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/jack-johnson-at-greek-theatre-two-nights/200029459719309)
-- Jack Johnson: SURFILMUSIC Tour 2026 · Greek Theatre-U.C. Berkeley · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/jack-johnson-surfilmusic-tour-2026/210003101827703)
+- Jack Johnson at Greek Theatre - Two Nights! · Greek Theatre - Berkeley · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/jack-johnson-at-greek-theatre-two-nights/200029459719309)
+- Jack Johnson: SURFILMUSIC Tour 2026 · Greek Theatre - Berkeley · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/jack-johnson-surfilmusic-tour-2026/210003101827703)
 
 ## Friday, October 2
 
@@ -947,7 +943,6 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 ## Saturday, October 3
 
 - Jon Batiste at Greek Theatre - Berkeley · Greek Theatre - Berkeley · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/jon-batiste-at-greek-theatre-berkeley/2400029941740036)
-- Jon Batiste - Jon Batiste Live · Greek Theatre-U.C. Berkeley · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/jon-batiste-jon-batiste-live/210001764794764)
 
 ## Monday, October 5
 
@@ -977,7 +972,7 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 ## Saturday, October 17
 
 - Disney On Ice presents Find Your Hero - Oakland · Oakland Arena · _—_ · 🔥38 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/disney-on-ice-presents-find-your-hero-oakland/3200030189416132)
-- Vulfpeck · The Greek Theatre at U.C. Berkeley · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/vulfpeck/3200029995507618)
+- Vulfpeck · Greek Theatre - Berkeley · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/vulfpeck/3200029995507618)
 - Wake Forest Demon Deacons at California Golden Bears Football · California Memorial Stadium · _—_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/wake-forest-demon-deacons-at-california-golden-bears-football/3200029571427017)
 
 ## Monday, October 19
@@ -1012,7 +1007,7 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 
 ## Tuesday, November 10
 
-- Canary Live Bay Area · The Freight · _$39_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/canary-live-bay-area/100001981580904829)
+- Canary Live Bay Area · Freight & Salvage · _$39_ · 🔥38 · buzz 1 · (AllEvents (Berkeley)) · [details](https://allevents.in/berkeley/canary-live-bay-area/100001981580904829)
 
 ## Friday, November 13
 
@@ -1037,7 +1032,7 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 
 ## Saturday, December 12
 
-- Olivia Rodrigo - Oakland, CA · Oakland Arena and Oakland-Alameda County Coliseum · _—_ · 🔥38 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/olivia-rodrigo-oakland-ca/200030041473332)
+- Olivia Rodrigo - Oakland, CA · Oakland Arena · _—_ · 🔥38 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/olivia-rodrigo-oakland-ca/200030041473332)
 
 ## Thursday, December 17
 
@@ -1051,7 +1046,7 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 ## Saturday, December 19
 
 - Ali Wong · The Masonic - San Francisco · _—_ · 🔥38 · buzz 1 · (AllEvents (San Francisco)) · [details](https://allevents.in/san-francisco/ali-wong/2300029727500541)
-- Ali Wong Live · The Masonic · _—_ · 🔥38 · buzz 1 · (AllEvents (San Francisco)) · [details](https://allevents.in/san-francisco/ali-wong-live/210001699078887)
+- Ali Wong Live · SF Masonic Auditorium · _—_ · 🔥38 · buzz 1 · (AllEvents (San Francisco)) · [details](https://allevents.in/san-francisco/ali-wong-live/210001699078887)
 - Makers Market™ Local Artist Holiday Street Fair @ Broadway Plaza · Broadway Plaza · _—_ · 🔥38 · buzz 1 · (AllEvents (Walnut Creek)) · [details](https://allevents.in/walnut-creek/makers-market-local-artist-holiday-street-fair-broadway-plaza/100001982564843817)
 
 ## Saturday, January 9
@@ -1084,4 +1079,4 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 
 ## Thursday, January 6
 
-- Harlem Globetrotters World Tour · Oakland Arena and Oakland-Alameda County Coliseum · _—_ · 🔥38 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/harlem-globetrotters-world-tour/200028165568602)
+- Harlem Globetrotters World Tour · Oakland Arena · _—_ · 🔥38 · buzz 1 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/harlem-globetrotters-world-tour/200028165568602)
