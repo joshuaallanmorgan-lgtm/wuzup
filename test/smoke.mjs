@@ -3193,6 +3193,44 @@ test('D-G2 stable ids: minting — order-independent, tiebreaks confined, hard-f
   assert.throws(() => mintEventIds(twins, 'tampa-bay'), /HARD COLLISION/, 'indistinguishable twins must fail loudly')
 })
 
+// D-G2 artifact pins: BOTH cities' committed finder artifacts carry the ids.
+// Bytes captured at module load — the fast-mode finder run overwrites (then
+// restores) the active city's artifact mid-suite; same hazard fullRaw dodges.
+const CITY_ID_ARTIFACTS = ['tampa-bay', 'sf-east-bay'].map((city) => {
+  const p = path.join(ROOT, 'finder', 'output', city, 'events.json')
+  return { city, raw: existsSync(p) ? readFileSync(p, 'utf8') : null }
+})
+
+test("D-G2 stable ids: both cities' committed artifacts — present, well-formed, unique, recipe-true", async () => {
+  const { mintEventIds } = await import('../finder/finder.mjs')
+  for (const { city, raw } of CITY_ID_ARTIFACTS) {
+    assert.ok(raw, `finder/output/${city}/events.json missing — BOTH cities ship stable ids (D-G2)`)
+    const events = JSON.parse(raw)
+    assert.ok(Array.isArray(events) && events.length > 0, `${city}: events.json is not a non-empty array`)
+    const bad = events.filter((e) => typeof e.id !== 'string' || !/^[0-9a-f]{16}$/.test(e.id))
+    assert.equal(
+      bad.length,
+      0,
+      `${city}: ${bad.length} events without a valid 16-hex stable id (first: "${bad[0] && bad[0].title}")`
+    )
+    assert.equal(new Set(events.map((e) => e.id)).size, events.length, `${city}: duplicate stable ids in the committed artifact`)
+    // recipe reproduction: re-minting the same multiset under the CURRENT
+    // recipe must reproduce every committed id exactly — a recipe edit
+    // without a version bump + artifact regeneration turns this red instead
+    // of silently orphaning every id already shipped or shared
+    const copy = JSON.parse(raw)
+    for (const e of copy) delete e.id
+    mintEventIds(copy, city)
+    const drift = copy.filter((e, i) => e.id !== events[i].id)
+    assert.equal(
+      drift.length,
+      0,
+      `${city}: ${drift.length} committed ids do not reproduce under the current recipe ` +
+        `(first: "${drift[0] && drift[0].title}") — bump ID_RECIPE_VERSION and regenerate the artifacts`
+    )
+  }
+})
+
 // ============================================================
 // Stage E — the ⚑X3 attribution page (ROADMAP §1: "sources disclosed").
 // The page's whole contract is DERIVATION: every credit line must come from
