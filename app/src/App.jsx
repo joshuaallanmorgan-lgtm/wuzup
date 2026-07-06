@@ -3,7 +3,8 @@
 // NAVIGATION state (active tab, subpage union, detail open/close + VT morph,
 // map focus) lives in nav.js (Sprint O6) — components reach it via useNav().
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { DAY, fmtLocale, Icon, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, saveMyEvents } from './lib.js'
+import { Icon, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, saveMyEvents } from './lib.js'
+import { dayStamp } from './coverage.js'
 import { NavProvider, VIEWS, useNav } from './nav.jsx'
 import Primer, { loadPrimerState } from './Primer.jsx'
 import { WxContext, CardToastHost } from './cards.jsx'
@@ -66,10 +67,8 @@ function TabBar({ active, onTab, inert }) {
 // never shows (graceful, no fake claims).
 const RETRY_MS = 2500
 const STALE_MS = 48 * 3600 * 1000
-const staleDayLabel = (ms) =>
-  Date.now() - ms <= 6 * DAY
-    ? new Date(ms).toLocaleDateString(fmtLocale, { weekday: 'long' })
-    : new Date(ms).toLocaleDateString(fmtLocale, { month: 'short', day: 'numeric' })
+// the banner's day label (weekday <6d, date beyond) lives in coverage.js now —
+// dayStamp — shared with the D-G1 Coverage Card's "updated {day}" line.
 
 export default function App() {
   return (
@@ -311,7 +310,7 @@ function Shell() {
             (z 1200: subpages/detail/primer all render over it) */}
         {staleAt != null && !staleHidden && (
           <div className="stale-note" role="status" inert={inertAll}>
-            <span className="stale-txt">Events from {staleDayLabel(staleAt)} — they may have changed</span>
+            <span className="stale-txt">Events from {dayStamp(staleAt)} — they may have changed</span>
             <button className="stale-x" onClick={() => setStaleHidden(true)} aria-label="Dismiss">
               ✕
             </button>
