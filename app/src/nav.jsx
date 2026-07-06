@@ -137,7 +137,8 @@ export function NavProvider({ children }) {
   // {type:'placebubble',bubble} (Sprint S) | {type:'search'} |
   // {type:'add',ts} | {type:'day',ts} | {type:'settings'} |
   // {type:'interests',from} | {type:'taste',from} (Sprint V — why-feed +
-  // mute/boost) | {type:'deck',from} | {type:'lensdeck',lens} —
+  // mute/boost) | {type:'deck',from} | {type:'lensdeck',lens} |
+  // {type:'attribution'} (Stage E ⚑X3 — Settings → Data & photo credits) —
   // slides in over the active tab (z 1500, below detail 2000). Sprint P added
   // settings (Profile's gear) and the calibration deck (launched FROM
   // settings — they stack by replacing the page, and their back/finish
@@ -269,6 +270,14 @@ export function NavProvider({ children }) {
     clearTimeout(pageTRef.current)
     setPageClosing(false)
     setPage({ type: 'evfilters' })
+  }, [])
+  // Stage E (⚑X3): the Data & photo credits page — opened from Settings' About
+  // section. Single-slot REPLACE (same pattern as openSettings): its back
+  // affordance reopens Settings, so "one level deep" stays true in feel.
+  const openAttribution = useCallback(() => {
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    setPage({ type: 'attribution' })
   }, [])
   // Q2c: the InterestEditor. `from` is honored ONLY as the literal 'settings'
   // (callers pass it through onClick, so a click-event arg must read as "not
@@ -497,6 +506,7 @@ export function NavProvider({ children }) {
       openForecast,
       openNotifications,
       openEvFilters,
+      openAttribution,
       openInterests,
       openTaste,
       openDeck,
@@ -532,6 +542,7 @@ export function NavProvider({ children }) {
       openForecast,
       openNotifications,
       openEvFilters,
+      openAttribution,
       openInterests,
       openTaste,
       openDeck,

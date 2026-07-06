@@ -41,7 +41,11 @@ function tally(names) {
 }
 
 export default function AttributionPage({ events }) {
-  const { closePage: onClose } = useNav()
+  // opened ONLY from Settings (the About row): the visible back affordance
+  // reopens Settings (the InterestEditor settings-origin idiom) so the trio
+  // reads as layers; hardware/browser back + Escape ride the nav page layer
+  // (WS2 single-entry REPLACE: they close to the tab, the accepted contract).
+  const { openSettings: onClose } = useNav()
   // the places layer (same lazy /places.json fetch the Spots tab uses) — this
   // page exists to disclose that data, so it pays the fetch on open.
   const { places, status } = usePlaces()

@@ -31,6 +31,7 @@ import AddEvent from './AddEvent.jsx'
 import DayPage from './DayPage.jsx'
 import CalendarPickerPage from './CalendarPickerPage.jsx'
 import SettingsPage from './SettingsPage.jsx'
+import AttributionPage from './AttributionPage.jsx'
 import InterestEditor from './InterestEditor.jsx'
 import TastePanel from './TastePanel.jsx'
 import CalibrationDeck, { PlacesDeck } from './CalibrationDeck.jsx'
@@ -369,6 +370,10 @@ function Shell() {
             {page.type === 'notifications' && <NotificationsPage events={norm} anchors={anchors} wx={wx} />}
             {/* EVENTS_PHASE2: Filters bottom-sheet */}
             {page.type === 'evfilters' && <FiltersSheet />}
+            {/* Stage E (⚑X3): Settings → Data & photo credits — single-slot
+                REPLACE; its back affordance reopens Settings. Every credit line
+                derives from norm / places.json / the city config at render. */}
+            {page.type === 'attribution' && <AttributionPage events={norm} />}
             {page.type === 'interests' && <InterestEditor from={page.from} />}
             {/* Sprint V2/V3: the "why your feed looks like this" + mute/boost
                 panel — opened from Settings, back returns there (the `from`
