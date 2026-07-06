@@ -101,6 +101,9 @@ export async function fetchEvents() {
     const cats = tagText(item, 'livewhale:categories') || '';
     if (/Exclude from Main Calendar/i.test(cats)) continue;
     if (/<livewhale:is_canceled>1</.test(item)) continue;
+    // editors cancel by title prefix too (live find: "CANCELED: Complete
+    // Streets…" carried no is_canceled flag)
+    if (/^\s*(?:canceled|cancelled|postponed)\b/i.test(title)) continue;
 
     const venueRaw = tagText(item, 'georss:featurename');
     const venue = venueRaw ? stripHtml(decodeEntities(venueRaw)) : null;

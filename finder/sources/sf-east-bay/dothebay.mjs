@@ -17,7 +17,12 @@
 import { fetchWithTimeout, cleanText, dayInTz, addDaysStr } from '../_shared.mjs';
 // D2 seam: all day math runs in THIS city's zone, from the city config —
 // never the machine clock (the easternToday()/machine-local bug class).
-import { tz as CITY_TZ } from '../../cities/sf-east-bay.mjs';
+// bbox: DoTheBay is BAY-WIDE (Napa, Petaluma, San Jose...) while this city
+// is the SF→Walnut Creek corridor — records whose OWN coords fall outside
+// the ratified box are dropped HERE, because downstream only NULLS
+// out-of-box coords (the event would ship coordless, out-of-market).
+// Coordless records pass through: the bounded geocoder decides them.
+import { tz as CITY_TZ, bbox as CITY_BBOX } from '../../cities/sf-east-bay.mjs';
 
 export const name = 'DoTheBay';
 
@@ -109,6 +114,7 @@ export async function fetchEvents(base = BASE) {
   const t1 = addDaysStr(t0, WINDOW_DAYS);
   const seen = new Set();
   const events = [];
+  let outOfBox = 0;
 
   for (let page = 1; page <= MAX_PAGES; page++) {
     if (page > 1) await new Promise((r) => setTimeout(r, PAGE_GAP_MS));
@@ -132,6 +138,14 @@ export async function fetchEvents(base = BASE) {
       if (!ev) continue;
       const day = ev.start.slice(0, 10);
       if (day < t0 || day > t1) continue; // skip already-running ("ongoing") and far-future
+      // out-of-corridor drop (see the bbox import note): source-provided
+      // venue coords outside the city box = a North/South Bay listing.
+      if (ev.lat != null && ev.lng != null &&
+          (ev.lat < CITY_BBOX.latMin || ev.lat > CITY_BBOX.latMax ||
+           ev.lng < CITY_BBOX.lngMin || ev.lng > CITY_BBOX.lngMax)) {
+        outOfBox++;
+        continue;
+      }
       if (seen.has(ev.url)) continue;
       seen.add(ev.url);
       events.push(ev);
@@ -140,6 +154,7 @@ export async function fetchEvents(base = BASE) {
     if (page >= totalPages) break;
   }
 
+  if (outOfBox) console.warn(`[dothebay] dropped ${outOfBox} out-of-corridor listing(s) (own coords outside the city box)`);
   if (events.length === 0) {
     console.warn('[dothebay] 0 events — feed empty or shape changed (66 events live on 2026-07-05).');
   }

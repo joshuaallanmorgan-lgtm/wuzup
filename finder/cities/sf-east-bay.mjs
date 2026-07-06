@@ -66,7 +66,8 @@ export const priors = {
   // resolves to the arena's concert prior; the bare Coliseum/stadium/park
   // strings are the pro/college sports parks.
   venuePriors: [
-    ['music', /oakland arena|chase center|bill graham civic|greek theatre|the fillmore|the warfield|davies symphony|sfjazz|yoshi'?s|stern grove|great american music hall|the independent\b|the masonic|regency ballroom|fox theater|freight (?:&|and) salvage|music park|the chapel\b/i],
+    ['music', /oakland arena|chase center|bill graham civic|greek theatre|the fillmore|the warfield|davies symphony|sfjazz|yoshi'?s|stern grove|great american music hall|the independent\b|the masonic|regency ballroom|fox theater|\bthe freight\b|freight (?:&|and) salvage|music park|the chapel\b|\bpier 80\b/i],
+    ['nightlife', /1015 folsom|the great northern|\bcrybaby\b|dance fridays|retro junkie/i],
     ['sports', /oracle park|california memorial stadium|oakland.alameda county coliseum|\bcoliseum\b/i],
   ],
   // source-family priors for the civic/campus calendars whose unmatched
