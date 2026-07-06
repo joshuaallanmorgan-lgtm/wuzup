@@ -1,0 +1,1920 @@
+{
+  "fetchedAt": "2026-07-06T06:47:39.677Z",
+  "byQid": {
+    "Q49471862": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:26.585Z"
+    },
+    "Q23016611": {
+      "description": "Adventure Playground is an urban park and adventure playground in Berkeley, California, located at the Berkeley Marina. The park opened in 1979 based on the ideas of Danish architect Carl Theodor Sørensen, who had made use of scrap junkyards for playgrounds when Copenhagen was under occupation during World War II.",
+      "title": "Adventure Playground (Berkeley)",
+      "at": "2026-07-06T06:45:27.347Z"
+    },
+    "Q49471956": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:27.569Z"
+    },
+    "Q118533801": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:27.773Z"
+    },
+    "Q4709295": {
+      "description": "Albany Beach is a sand beach located in Albany, California on the east shore of San Francisco Bay.",
+      "title": "Albany Beach",
+      "at": "2026-07-06T06:45:28.031Z"
+    },
+    "Q4709297": {
+      "description": "The Albany Bulb is a former landfill largely owned by the City of Albany, in California. The Bulb is the west end of a landfill peninsula jutting west from the east shore of San Francisco Bay.",
+      "title": "Albany Bulb",
+      "at": "2026-07-06T06:45:28.297Z"
+    },
+    "Q49472069": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:28.495Z"
+    },
+    "Q131354": {
+      "description": "Alcatraz Island is a small island about 1.25 miles offshore from San Francisco in San Francisco Bay, California, near the Golden Gate Strait. The island was developed in the mid-19th century with facilities for a lighthouse, a military fortification, and a military prison.",
+      "title": "Alcatraz Island",
+      "at": "2026-07-06T06:45:28.764Z"
+    },
+    "Q49477667": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:28.979Z"
+    },
+    "Q49472245": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:29.184Z"
+    },
+    "Q49472265": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:29.383Z"
+    },
+    "Q4735994": {
+      "description": "Alta Plaza Park is a 12.9-acre (5.2 ha) public park in San Francisco, California and caps the top of the western edge of Pacific Heights. It falls under the jurisdiction of the city's Supervisorial District 2. The park is served by several San Francisco Municipal Railway bus lines.",
+      "title": "Alta Plaza Park",
+      "at": "2026-07-06T06:45:29.646Z"
+    },
+    "Q4737881": {
+      "description": "Alvarado Area is a subsection of Wildcat Canyon Regional Park in Richmond, California and is a National Historic Place. It is located at the mouth of Wildcat Canyon in the Alvarado Area section. Between 1909 and 1923, Alvarado Park was a private park that was owned and operated by local residents.",
+      "title": "Alvarado Park",
+      "at": "2026-07-06T06:45:29.932Z"
+    },
+    "Q49472596": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:30.168Z"
+    },
+    "Q4772245": {
+      "description": "Anthony Chabot Regional Park is a regional park in Alameda County, California, United States. It is part of the East Bay Regional Park District system, and covers 5,067 acres (2,051 ha) in the San Leandro Hills adjacent to Oakland, San Leandro and Castro Valley.",
+      "title": "Anthony Chabot Regional Park",
+      "at": "2026-07-06T06:45:30.445Z"
+    },
+    "Q49472746": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:30.682Z"
+    },
+    "Q4782794": {
+      "description": "Aquatic Park is a public park in Berkeley, California, United States, located just east of the Eastshore Freeway between Ashby and University Avenues. The Works Progress Administration created the park in the 1930s simultaneously with the nearby Berkeley Yacht Harbor.",
+      "title": "Aquatic Park (Berkeley)",
+      "at": "2026-07-06T06:45:31.292Z"
+    },
+    "Q2475631": {
+      "description": "Aquatic Park Historic District is a National Historic Landmark and building complex on the San Francisco Bay waterfront within San Francisco Maritime National Historical Park.",
+      "title": "Aquatic Park Historic District",
+      "at": "2026-07-06T06:45:31.553Z"
+    },
+    "Q106311508": {
+      "description": "Aramburu Island is a 17-acre (6.9 ha) island in Richardson Bay, Marin County, California. It, along with Strawberry Spit, came to exist in the 1950s and 1960s as a consequence of dumping dredged material from nearby developments into the bay.",
+      "title": "Aramburu Island",
+      "at": "2026-07-06T06:45:31.807Z"
+    },
+    "Q49472859": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:32.016Z"
+    },
+    "Q49472876": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:32.237Z"
+    },
+    "Q49473056": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:32.450Z"
+    },
+    "Q49473146": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:32.658Z"
+    },
+    "Q684879": {
+      "description": "Baker Beach is a public beach on the peninsula of San Francisco, California, United States. The beach lies on the shore of the Pacific Ocean in the West Side of the city.",
+      "title": "Baker Beach",
+      "at": "2026-07-06T06:45:32.934Z"
+    },
+    "Q3624755": {
+      "description": "Balboa Park is a public park in the Mission Terrace neighborhood of San Francisco, California. It was originally dedicated in 1909 when the park included the land now used by City College of San Francisco Ocean Campus west of I-280 Freeway.",
+      "title": "Balboa Park, San Francisco",
+      "at": "2026-07-06T06:45:33.609Z"
+    },
+    "Q125876127": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:33.803Z"
+    },
+    "Q4873921": {
+      "description": "The Bay Area Ridge Trail is a multi-use trail along the hill and mountain ridgelines surrounding the San Francisco Bay Area, in Northern California. It is planned to extend 550 miles (890 km); As of May 2025, 427 miles (687 km) have been established.",
+      "title": "Bay Area Ridge Trail",
+      "at": "2026-07-06T06:45:36.221Z"
+    },
+    "Q30590547": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:37.124Z"
+    },
+    "Q49473894": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:37.333Z"
+    },
+    "Q49473933": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:37.771Z"
+    },
+    "Q49473946": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:37.968Z"
+    },
+    "Q4884882": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:38.178Z"
+    },
+    "Q49474355": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:38.413Z"
+    },
+    "Q4892079": {
+      "description": "The Berkeley Pier is in Berkeley, California. When constructed in 1926, the pier extended 3.5 miles (5.6 km) into San Francisco Bay from the end of University Avenue. Due to extensive filling of the bay and the creation of the Berkeley Marina, it presently extends only 2.5 miles (4.0 km).",
+      "title": "Berkeley Pier",
+      "at": "2026-07-06T06:45:39.213Z"
+    },
+    "Q4892095": {
+      "description": "The Berkeley Rose Garden is a city-owned park in the North Berkeley area of Berkeley, California.",
+      "title": "Berkeley Rose Garden",
+      "at": "2026-07-06T06:45:40.538Z"
+    },
+    "Q49474489": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:40.772Z"
+    },
+    "Q49474817": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:41.001Z"
+    },
+    "Q4924392": {
+      "description": "Blake Garden is a teaching facility for the UC Berkeley College of Environmental Design in the hills of Kensington, California, a census-designated place of the East Bay region of the Bay Area in Northern California, approximately 4 mi (6.4 km) north of the main University of California, Berkeley campus.",
+      "title": "Blake Garden (Kensington, California)",
+      "at": "2026-07-06T06:45:43.596Z"
+    },
+    "Q125872386": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:43.803Z"
+    },
+    "Q48817891": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:44.030Z"
+    },
+    "Q49475245": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:44.246Z"
+    },
+    "Q4948640": {
+      "description": "Bothin Marsh is a 106 acres (43 ha) wetland in Marin County, California. Parts of the wetlands are in the Bothin Marsh Open Space Preserve, a regional park.",
+      "title": "Bothin Marsh",
+      "at": "2026-07-06T06:45:45.214Z"
+    },
+    "Q49475485": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:45.423Z"
+    },
+    "Q49475717": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:45.663Z"
+    },
+    "Q49475737": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:45.898Z"
+    },
+    "Q4968503": {
+      "description": "Briones Regional Park is a 6,117-acre (24.75 km2) regional park in the East Bay Regional Park District (EBRPD) system, located in the Briones Hills of central Contra Costa County of the San Francisco Bay Area in California.",
+      "title": "Briones Regional Park",
+      "at": "2026-07-06T06:45:46.440Z"
+    },
+    "Q4116375": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:46.700Z"
+    },
+    "Q49475853": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:46.916Z"
+    },
+    "Q49475871": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:47.141Z"
+    },
+    "Q4975018": {
+      "description": "Brooks Island Regional Preserve includes both the 75-acre (30 ha) of Brooks Island above the low-tide line and 300 acres (120 ha) of the surrounding bay. The only public access to the island is via an East Bay Regional Park District naturalist tour.",
+      "title": "Brooks Island Regional Preserve",
+      "at": "2026-07-06T06:45:48.244Z"
+    },
+    "Q49475895": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:48.451Z"
+    },
+    "Q2749189": {
+      "description": "Buena Vista Park is a public park in the Haight-Ashbury and Buena Vista Heights neighborhoods of San Francisco, California. It is the oldest official park in San Francisco, established in 1867 as Hill Park, later renamed Buena Vista.",
+      "title": "Buena Vista Park",
+      "at": "2026-07-06T06:45:48.702Z"
+    },
+    "Q5001569": {
+      "description": "The Bushrod neighborhood in North Oakland, Oakland, California, is an area surrounding its namesake park, and bounded by Martin Luther King, Jr. Way to the west, Claremont Avenue to the east, Highway 24 to the south, and the Berkeley border to the north.",
+      "title": "Bushrod, Oakland, California",
+      "at": "2026-07-06T06:45:49.255Z"
+    },
+    "Q5202534": {
+      "description": "César Chávez Park is a 90 acres (36 ha) city park of Berkeley, California named after César Chávez. It can be found on the peninsula on the north side of the Berkeley Marina in the San Francisco Bay and is adjacent to Eastshore State Park.",
+      "title": "César Chávez Park",
+      "at": "2026-07-06T06:45:50.053Z"
+    },
+    "Q49476479": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:50.283Z"
+    },
+    "Q5017151": {
+      "description": "Caffè Trieste is an internationally known coffeehouse, retail store, and former franchise in San Francisco. The original cafe, opened in 1956, was the first espresso-based coffeehouse on the West Coast of the United States.",
+      "title": "Caffe Trieste",
+      "at": "2026-07-06T06:45:50.536Z"
+    },
+    "Q5031998": {
+      "description": "Candlestick Point State Recreation Area is a state park unit of California, United States, providing an urban protected area on San Francisco Bay. The park is located at the southeastern tip of San Francisco immediately south of Hunters Point and 2 miles (3.2 km) north of Sierra Point in Brisbane.",
+      "title": "Candlestick Point State Recreation Area",
+      "at": "2026-07-06T06:45:50.978Z"
+    },
+    "Q139860979": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:51.191Z"
+    },
+    "Q28222881": {
+      "description": "Carl Larsen Park is a 6.6-acre (2.7 ha) neighborhood park located in the Parkside District on the West Side of San Francisco. It lies west of 19th Avenue, at the intersection with Vicente, and just north of Stern Grove.",
+      "title": "Larsen Park",
+      "at": "2026-07-06T06:45:51.467Z"
+    },
+    "Q49476972": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:51.715Z"
+    },
+    "Q49477224": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:51.912Z"
+    },
+    "Q5055479": {
+      "description": "Cayuga Park is a neighborhood park and playground in San Francisco, at the edge of the Cayuga Terrace neighborhood. Its history, location and aesthetics make it unique among the parks of San Francisco.",
+      "title": "Cayuga Park",
+      "at": "2026-07-06T06:45:52.375Z"
+    },
+    "Q49477581": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:52.579Z"
+    },
+    "Q49477635": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:52.968Z"
+    },
+    "Q7802101": {
+      "description": "Charles Lee Tilden Regional Park, also known as Tilden Park or Tilden, [], is a 2,079-acre (841 ha) regional park in the East Bay, part of the San Francisco Bay Area in California. It is between the Berkeley Hills and San Pablo Ridge. Its main entrance is near Kensington, Berkeley, and Richmond.",
+      "title": "Tilden Regional Park",
+      "at": "2026-07-06T06:45:53.230Z"
+    },
+    "Q15262098": {
+      "description": "Chase Center is an indoor arena in the Mission Bay neighborhood of San Francisco, California, United States.",
+      "title": "Chase Center",
+      "at": "2026-07-06T06:45:53.513Z"
+    },
+    "Q49477920": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:53.742Z"
+    },
+    "Q125997100": {
+      "description": "China Basin Park is a 5-acre (2.0 ha) park in San Francisco, California, located at the mouth of Mission Creek in the Mission Bay neighborhood and across from the Oracle Park baseball stadium. The park features a hilly lawn, dog run, artificial beach, amphitheater seating, and a statue of Willie McCovey.",
+      "title": "China Basin Park",
+      "at": "2026-07-06T06:45:54.254Z"
+    },
+    "Q1073221": {
+      "description": "China Camp State Park is a state park in Marin County, California, surrounding a historic Chinese American shrimp-fishing village and a salt marsh. The park is located in San Rafael, California, on the shore of San Pablo Bay. It is known for its hiking and mountain biking trails, scenic views, and open spaces.",
+      "title": "China Camp State Park",
+      "at": "2026-07-06T06:45:54.534Z"
+    },
+    "Q49506175": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:54.770Z"
+    },
+    "Q49478335": {
+      "description": "Civic Center Plaza, also known as Joseph Alioto Piazza, is the 4.53-acre (1.83 ha) plaza immediately east of San Francisco City Hall in Civic Center, San Francisco, in the U.S. state of California. Civic Center Plaza occupies two blocks bounded by McAllister, Larkin, Grove, and Carlton B.",
+      "title": "Civic Center Plaza",
+      "at": "2026-07-06T06:45:55.252Z"
+    },
+    "Q5126301": {
+      "description": "Claremont Canyon Regional Preserve is a small regional park mainly located in the city of Oakland, California, and administered by the East Bay Regional Park District.",
+      "title": "Claremont Canyon Regional Preserve",
+      "at": "2026-07-06T06:45:56.067Z"
+    },
+    "Q49478622": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:56.312Z"
+    },
+    "Q49478808": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:56.520Z"
+    },
+    "Q1107297": {
+      "description": "Coit Tower is a 210-foot (64 m) tower in the Telegraph Hill neighborhood of San Francisco, California, overlooking the city and San Francisco Bay. The tower, in the city's Pioneer Park, was built between 1932 and 1933 using Lillie Hitchcock Coit's bequest to beautify the city of San Francisco.",
+      "title": "Coit Tower",
+      "at": "2026-07-06T06:45:57.111Z"
+    },
+    "Q49478898": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:57.333Z"
+    },
+    "Q49479014": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:57.808Z"
+    },
+    "Q49479358": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:58.020Z"
+    },
+    "Q49479686": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:58.245Z"
+    },
+    "Q5172129": {
+      "description": "Corona Heights Park is a public park in the Castro and Corona Heights neighborhoods of San Francisco, California, United States. It is situated immediately to the south of Buena Vista Park.",
+      "title": "Corona Heights Park",
+      "at": "2026-07-06T06:45:58.494Z"
+    },
+    "Q49480258": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:58.704Z"
+    },
+    "Q49480260": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:58.909Z"
+    },
+    "Q49480299": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:59.129Z"
+    },
+    "Q49480811": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:59.371Z"
+    },
+    "Q108550863": {
+      "description": "Crane Cove Park is a 7-acre (2.8 ha) urban park in Potrero Point, San Francisco, California, located on the city's east-facing waterfront at San Francisco's historic Pier 70. The park opened in 2020. The site used to be a shipbuilding site occupied by the Union Iron Works and the Bethlehem Shipbuilding Corporation.",
+      "title": "Crane Cove Park",
+      "at": "2026-07-06T06:45:59.623Z"
+    },
+    "Q49480921": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:45:59.817Z"
+    },
+    "Q125304422": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:00.074Z"
+    },
+    "Q49481051": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:00.302Z"
+    },
+    "Q5192966": {
+      "description": "Cull Canyon Regional Recreation Area (CCRRA) is a regional park located in Castro Valley, Alameda County, California. It is part of the East Bay Regional Park District (EBRPD) system.",
+      "title": "Cull Canyon Regional Recreation Area",
+      "at": "2026-07-06T06:46:01.186Z"
+    },
+    "Q49535740": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:01.392Z"
+    },
+    "Q49482225": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:01.619Z"
+    },
+    "Q49483287": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:01.839Z"
+    },
+    "Q5278632": {
+      "description": "Dinosaur Hill Park is a park in Pleasant Hill, California. Located off Taylor Blvd, the park includes 13 acres of open space, hiking, and scenic views. The elevation is 308 feet. There is a small parking area accessible only by northbound traffic.",
+      "title": "Dinosaur Hill Park",
+      "at": "2026-07-06T06:46:02.572Z"
+    },
+    "Q14681850": {
+      "description": "Don Castro Regional Recreation Area is a regional park located in Fairview, California. It is part of the East Bay Regional Parks system.",
+      "title": "Don Castro Regional Recreation Area",
+      "at": "2026-07-06T06:46:03.157Z"
+    },
+    "Q5292603": {
+      "description": "The Don Fernando Pacheco Adobe is located at 3119 Grant Street in Concord, California.The Fernando Pacheco Adobe is the only Concord landmark listed in all three Historical Registries: entry on the National Register occurred on June 6, 1980; the California Registered landmark number is 455; and the Concord Historical…",
+      "title": "Fernando Pacheco Adobe",
+      "at": "2026-07-06T06:46:03.733Z"
+    },
+    "Q49525892": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:03.958Z"
+    },
+    "Q49483857": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:04.182Z"
+    },
+    "Q49484017": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:04.404Z"
+    },
+    "Q7306525": {
+      "description": "Dr. Aurelia Reinhardt Redwood Regional Park is a part of the East Bay Regional Parks District (EBRPD) in the San Francisco Bay Area. It is located in the hills east of Oakland, California in Castro Valley, California. The park contains the largest remaining natural stand of coast redwood found in the East Bay.",
+      "title": "Dr. Aurelia Reinhardt Redwood Regional Park",
+      "at": "2026-07-06T06:46:06.003Z"
+    },
+    "Q5311049": {
+      "description": "Duboce Park is a small urban park located between the Duboce Triangle and Lower Haight neighborhoods of San Francisco, California. The park is less than one block wide from north to south and two blocks wide from west to east. Its western boundary is Scott Street, and its eastern boundary is Steiner Street.",
+      "title": "Duboce Park",
+      "at": "2026-07-06T06:46:06.380Z"
+    },
+    "Q49484574": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:06.590Z"
+    },
+    "Q49484982": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:06.820Z"
+    },
+    "Q49485668": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:07.025Z"
+    },
+    "Q5338000": {
+      "description": "The Edible Schoolyard (ESY) is a 1-acre (4,000 m2) garden and kitchen program at the Martin Luther King Jr. Middle School, a public middle school in Berkeley, California. It was established in 1995 by chef and author Alice Waters.",
+      "title": "Edible Schoolyard",
+      "at": "2026-07-06T06:46:07.741Z"
+    },
+    "Q49486707": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:07.957Z"
+    },
+    "Q49486854": {
+      "description": "Embarcadero Plaza, previously known as Justin Herman Plaza from its opening in 1972 until 2017, is a 4.1-acre (1.7 ha) plaza near the intersection of Market Street and The Embarcadero in San Francisco's Financial District, in the U.S. state of California.",
+      "title": "Embarcadero Plaza",
+      "at": "2026-07-06T06:46:09.741Z"
+    },
+    "Q49547648": {
+      "description": "Raimondi Park is a 4,000-seat ballpark and public park in the West Oakland neighborhood of Oakland, California. It is the home field of the Oakland Ballers of the independent Pioneer League, and is closely connected to the history of baseball in Oakland.",
+      "title": "Raimondi Park",
+      "at": "2026-07-06T06:46:10.063Z"
+    },
+    "Q14681956": {
+      "description": "The Eugene O'Neill National Historic Site, located in Danville, California, preserves Tao House, the Monterey Colonial hillside home of America's only Nobel Prize-winning playwright, Eugene O'Neill.",
+      "title": "Eugene O'Neill National Historic Site",
+      "at": "2026-07-06T06:46:10.320Z"
+    },
+    "Q49487648": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:10.538Z"
+    },
+    "Q49487808": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:10.745Z"
+    },
+    "Q49562549": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:10.948Z"
+    },
+    "Q49488048": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:11.173Z"
+    },
+    "Q49488097": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:11.412Z"
+    },
+    "Q3077870": {
+      "description": "Fort Funston is a former harbor defense installation located on the West Side of San Francisco in the southwestern part of the city.",
+      "title": "Fort Funston",
+      "at": "2026-07-06T06:46:12.504Z"
+    },
+    "Q948933": {
+      "description": "Fort Mason, in San Francisco, California is a former United States Army post located in the northern Marina District, alongside San Francisco Bay. Fort Mason served as an Army post for more than 100 years, initially as a coastal defense site and subsequently as a military port facility.",
+      "title": "Fort Mason",
+      "at": "2026-07-06T06:46:12.790Z"
+    },
+    "Q112061568": {
+      "description": "Francisco Park is a 4.9-acre (2.0 ha) public park in the Russian Hill neighborhood in San Francisco, California, on the site of a former reservoir. The accessible park has a large lawn, a community garden, a playground, and a dog run. It opened in 2022. It has sweeping views of the San Francisco Bay.",
+      "title": "Francisco Park",
+      "at": "2026-07-06T06:46:13.731Z"
+    },
+    "Q5487030": {
+      "description": "Frank H. Ogawa Plaza is a public square located in Downtown Oakland.",
+      "title": "Frank H. Ogawa Plaza",
+      "at": "2026-07-06T06:46:15.643Z"
+    },
+    "Q49491459": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:15.873Z"
+    },
+    "Q49492314": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:16.072Z"
+    },
+    "Q49492316": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:16.324Z"
+    },
+    "Q49492447": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:16.548Z"
+    },
+    "Q49492563": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:16.764Z"
+    },
+    "Q49492876": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:16.984Z"
+    },
+    "Q49492910": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:17.178Z"
+    },
+    "Q5523101": {
+      "description": "Garfield Square, also known as Garfield Park, is a 3.46-acre (14,000 m2) city park located in the Mission District of San Francisco, California. It is bounded by 25th Street to the north, 26th Street to the south, Treat Avenue to the west, and Harrison Street to the east and was first opened in 1884.",
+      "title": "Garfield Square",
+      "at": "2026-07-06T06:46:18.031Z"
+    },
+    "Q49493370": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:18.241Z"
+    },
+    "Q49493834": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:18.442Z"
+    },
+    "Q5567631": {
+      "description": "Glen Canyon Park is a city park in San Francisco, California. It occupies about 70 acres (28 ha) along a deep canyon adjacent to the Glen Park, Diamond Heights, and Miraloma Park neighborhoods.",
+      "title": "Glen Canyon Park",
+      "at": "2026-07-06T06:46:18.714Z"
+    },
+    "Q49494318": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:18.943Z"
+    },
+    "Q635559": {
+      "description": "Golden Gate Park is an urban park between the Richmond and Sunset districts on the West Side of San Francisco, California, United States.",
+      "title": "Golden Gate Park",
+      "at": "2026-07-06T06:46:19.205Z"
+    },
+    "Q49495016": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:19.423Z"
+    },
+    "Q5595236": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:19.708Z"
+    },
+    "Q49495457": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:19.952Z"
+    },
+    "Q49495632": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:20.158Z"
+    },
+    "Q49496081": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:20.362Z"
+    },
+    "Q49496575": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:20.596Z"
+    },
+    "Q49497153": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:20.813Z"
+    },
+    "Q49497924": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:21.038Z"
+    },
+    "Q49498405": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:21.277Z"
+    },
+    "Q43401507": {
+      "description": "Harvey Milk Plaza is a plaza commemorating Harvey Milk in the Castro District of San Francisco, California, United States. Located at the intersection of Market Street, Castro Street, and 17th Street, it serves as the southern entrance to Castro station.",
+      "title": "Harvey Milk Plaza",
+      "at": "2026-07-06T06:46:21.541Z"
+    },
+    "Q49487071": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:21.742Z"
+    },
+    "Q49498831": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:21.967Z"
+    },
+    "Q5684825": {
+      "description": "Hawk Hill is a 923-foot (281 m) peak in the Marin Headlands, just north of the Golden Gate Bridge and across the Golden Gate strait from San Francisco, California. The hill is within the Golden Gate National Recreation Area.",
+      "title": "Hawk Hill (California)",
+      "at": "2026-07-06T06:46:22.250Z"
+    },
+    "Q49499377": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:22.459Z"
+    },
+    "Q49499394": {
+      "description": "Heather Farm Park is a 102-acre community park in Walnut Creek, California. It contains the Gardens at Heather Farm, a swimming pool, inclusive playground, sports fields, equestrian center, dog park, fishing pond, nature area, lake, and other amenities.",
+      "title": "Heather Farm Park",
+      "at": "2026-07-06T06:46:23.615Z"
+    },
+    "Q49499425": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:23.819Z"
+    },
+    "Q49499676": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:24.030Z"
+    },
+    "Q49499724": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:24.230Z"
+    },
+    "Q23016936": {
+      "description": "Heron's Head Park is a public park in San Francisco, California; maintained by the San Francisco Port Authority. The park is about 22 acres in size. It is based in a wetland and is known for its bird watching. The park is home to The EcoCenter, an environmental education facility.",
+      "title": "Heron's Head Park",
+      "at": "2026-07-06T06:46:25.051Z"
+    },
+    "Q49501755": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:25.411Z"
+    },
+    "Q48790355": {
+      "description": "Holly Park is a public park in San Francisco, California in the Bernal Heights neighborhood. It is known for excellent views of the city and San Francisco Bay.",
+      "title": "Holly Park (San Francisco)",
+      "at": "2026-07-06T06:46:26.654Z"
+    },
+    "Q49503221": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:26.854Z"
+    },
+    "Q49504137": {
+      "description": "Collis P. Huntington Park is a 1.3-acre (0.53 ha) park in the Nob Hill neighborhood of San Francisco, California.",
+      "title": "Huntington Park (San Francisco)",
+      "at": "2026-07-06T06:46:27.130Z"
+    },
+    "Q12060640": {
+      "description": "The Hyde Street Pier, at 2905 Hyde Street, is a historic ferry pier located on the northern waterfront of San Francisco in the U.S. state of California.",
+      "title": "Hyde Street Pier",
+      "at": "2026-07-06T06:46:28.004Z"
+    },
+    "Q49504637": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:28.210Z"
+    },
+    "Q49504698": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:28.464Z"
+    },
+    "Q49529856": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:28.668Z"
+    },
+    "Q49506183": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:28.867Z"
+    },
+    "Q49506611": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:29.096Z"
+    },
+    "Q49553318": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:29.313Z"
+    },
+    "Q3270367": {
+      "description": "The Japanese Tea Garden in San Francisco, California, is a popular feature of Golden Gate Park, originally built as part of a sprawling World's Fair, the California Midwinter International Exposition of 1894.",
+      "title": "Japanese Tea Garden (San Francisco)",
+      "at": "2026-07-06T06:46:29.778Z"
+    },
+    "Q49507350": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:29.994Z"
+    },
+    "Q14682513": {
+      "description": "Joaquin Miller Park is a large open space park in the Oakland Hills owned and operated by the city of Oakland, California. It is named after early California writer and poet Joaquin Miller, who bought the land in the 1880s, naming it \"The Hights\" [sic], and lived in the house preserved as the Joaquin Miller House.",
+      "title": "Joaquin Miller Park",
+      "at": "2026-07-06T06:46:30.632Z"
+    },
+    "Q49532201": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:30.832Z"
+    },
+    "Q49508199": {
+      "description": "John Hinkel Park is an urban park located in the North Berkeley neighborhood of Berkeley, California, U.S. It has been listed by the city as a Berkeley Landmark since April 2, 2001, and it contains a historical plaque since 2003.",
+      "title": "John Hinkel Park",
+      "at": "2026-07-06T06:46:31.913Z"
+    },
+    "Q14683311": {
+      "description": "John McLaren Park is a park in southeastern San Francisco. At 313.7 acres (126.9 ha), McLaren Park is the fourth largest park in San Francisco by area, after Golden Gate Park, the Presidio, and Lake Merced Park.",
+      "title": "John McLaren Park",
+      "at": "2026-07-06T06:46:32.214Z"
+    },
+    "Q1701162": {
+      "description": "The John Muir National Historic Site is located in the San Francisco Bay Area, in Martinez, Contra Costa County, California.",
+      "title": "John Muir National Historic Site",
+      "at": "2026-07-06T06:46:32.674Z"
+    },
+    "Q49509077": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:32.898Z"
+    },
+    "Q6385670": {
+      "description": "Miller/Knox Regional Shoreline is a 295-acre (1.19 km2) bayside park near the Brickyard Cove neighborhood of the Point Richmond District in Richmond, California.",
+      "title": "Keller Beach",
+      "at": "2026-07-06T06:46:33.177Z"
+    },
+    "Q49509811": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:33.379Z"
+    },
+    "Q6389624": {
+      "description": "Kennedy Grove Regional Recreation Area (KGRRA), also known simply as Kennedy Grove, is located in Richmond, Contra Costa County, California at the base of San Pablo Dam. Created in 1967, it contains a three-mile hiking trail with an elevation of 760 feet (230 m).",
+      "title": "Kennedy Grove Regional Recreation Area",
+      "at": "2026-07-06T06:46:34.008Z"
+    },
+    "Q49510152": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:34.216Z"
+    },
+    "Q49511758": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:34.440Z"
+    },
+    "Q125871905": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:34.639Z"
+    },
+    "Q49511993": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:34.845Z"
+    },
+    "Q49512139": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:35.158Z"
+    },
+    "Q6471488": {
+      "description": "Lafayette Park is an 12.5 acres (5.1 ha) park in San Francisco, California, United States.",
+      "title": "Lafayette Park (San Francisco)",
+      "at": "2026-07-06T06:46:35.444Z"
+    },
+    "Q49512765": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:35.887Z"
+    },
+    "Q6475232": {
+      "description": "Lake Chabot Regional Park is a regional park located in the southern Berkeley Hills in Alameda County, California. It was opened to the public on June 18, 1966, as part of the East Bay Regional Parks system.",
+      "title": "Lake Chabot Regional Park",
+      "at": "2026-07-06T06:46:36.336Z"
+    },
+    "Q118495266": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:36.597Z"
+    },
+    "Q6484999": {
+      "description": "Lands End is a park in San Francisco within the larger Golden Gate National Recreation Area. It is also the geographic name of a specific promontory next to the Pacific Ocean on the northwest side of the park.",
+      "title": "Lands End (San Francisco)",
+      "at": "2026-07-06T06:46:36.885Z"
+    },
+    "Q49514683": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:37.107Z"
+    },
+    "Q6492465": {
+      "description": "Las Trampas Regional Wilderness is a 5,342-acre (21.62 km2) regional park located in Alameda and Contra Costa counties in Northern California. The nearest city is Danville, California. The park belongs to the East Bay Regional Park District (EBRPD).",
+      "title": "Las Trampas Regional Wilderness",
+      "at": "2026-07-06T06:46:37.365Z"
+    },
+    "Q49515005": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:37.581Z"
+    },
+    "Q6535334": {
+      "description": "Levi Strauss Plaza, also known as Levi Plaza or Levi's Plaza, is an office complex located in North Waterfront district of San Francisco, west of The Embarcadero. It houses the headquarters of Levi Strauss & Co. As of 1998 the company Blue Jeans Equity West is the landlord of the complex.",
+      "title": "Levi's Plaza",
+      "at": "2026-07-06T06:46:37.859Z"
+    },
+    "Q49516173": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:38.108Z"
+    },
+    "Q49516388": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:38.328Z"
+    },
+    "Q49516890": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:38.547Z"
+    },
+    "Q49516915": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:38.752Z"
+    },
+    "Q49516892": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:39.003Z"
+    },
+    "Q49518059": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:39.213Z"
+    },
+    "Q49519073": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:39.442Z"
+    },
+    "Q49519583": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:39.640Z"
+    },
+    "Q49521174": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:39.845Z"
+    },
+    "Q49521370": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:40.071Z"
+    },
+    "Q488627": {
+      "description": "The Marin Headlands are a hilly peninsula at the southernmost end of Marin County, California, United States, located just north of San Francisco across the Golden Gate Bridge, which connects the two counties and peninsulas. The entire area is part of the Golden Gate National Recreation Area.",
+      "title": "Marin Headlands",
+      "at": "2026-07-06T06:46:40.342Z"
+    },
+    "Q16686421": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:40.579Z"
+    },
+    "Q49521708": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:40.798Z"
+    },
+    "Q49521709": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:41.019Z"
+    },
+    "Q49521779": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:41.214Z"
+    },
+    "Q49521781": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:41.435Z"
+    },
+    "Q49567212": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:41.647Z"
+    },
+    "Q118533978": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:41.910Z"
+    },
+    "Q49522160": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:42.110Z"
+    },
+    "Q49478314": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:42.347Z"
+    },
+    "Q49522221": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:42.550Z"
+    },
+    "Q49522901": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:42.751Z"
+    },
+    "Q49523262": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:42.967Z"
+    },
+    "Q49523325": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:43.191Z"
+    },
+    "Q49523711": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:43.385Z"
+    },
+    "Q49523785": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:43.589Z"
+    },
+    "Q49523840": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:43.793Z"
+    },
+    "Q5330912": {
+      "description": "McLaughlin Eastshore State Park is a state park and wildlife refuge along the San Francisco Bay shoreline of the East Bay between the cities of Richmond, Albany, Berkeley, Emeryville, and Oakland. It encompasses remnant natural wetlands, restored wetlands, as well as landfill west of the Eastshore Freeway.",
+      "title": "McLaughlin Eastshore State Park",
+      "at": "2026-07-06T06:46:44.054Z"
+    },
+    "Q49524007": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:44.263Z"
+    },
+    "Q49524498": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:44.455Z"
+    },
+    "Q49524739": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:44.683Z"
+    },
+    "Q49525294": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:44.901Z"
+    },
+    "Q49525360": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:45.102Z"
+    },
+    "Q49525837": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:45.296Z"
+    },
+    "Q6841447": {
+      "description": "Middle Harbor Shoreline Park (MHSP) is located on San Francisco Bay and the Oakland Seaport entrance channel, west of downtown Oakland, California. It is owned and operated by the Port of Oakland. The park entrance is at the intersection of 7th Street and Middle Harbor Road. It is open seven days a week from 8 a.m.",
+      "title": "Middle Harbor Shoreline Park",
+      "at": "2026-07-06T06:46:46.148Z"
+    },
+    "Q49526103": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:46.352Z"
+    },
+    "Q49526782": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:46.583Z"
+    },
+    "Q49527052": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:46.789Z"
+    },
+    "Q11519": {
+      "description": "Mission Dolores Park, often abbreviated to Dolores Park, is a city park in San Francisco, California. It is located two blocks south of Mission Dolores at the western edge of the Mission District.",
+      "title": "Mission Dolores Park",
+      "at": "2026-07-06T06:46:47.037Z"
+    },
+    "Q49527146": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:47.259Z"
+    },
+    "Q49527754": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:47.471Z"
+    },
+    "Q6909559": {
+      "description": "The Morcom Rose Garden is located in a residential neighborhood in Oakland, California, near the Piedmont border. The street address is 700 Jean St., Oakland, CA 94610.",
+      "title": "Morcom Rose Garden",
+      "at": "2026-07-06T06:46:47.720Z"
+    },
+    "Q49528343": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:47.912Z"
+    },
+    "Q49528610": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:48.140Z"
+    },
+    "Q14683416": {
+      "description": "Moscone Recreation Center is a park located between Chestnut Street and Bay Street, Laguna Street and Webster Street in San Francisco's Marina District.",
+      "title": "Moscone Recreation Center",
+      "at": "2026-07-06T06:46:48.386Z"
+    },
+    "Q6916706": {
+      "description": "Mosswood Park is a 4-acre (16,000 m2) public park in Oakland, California, located on W MacArthur Boulevard between Webster Street and Broadway.",
+      "title": "Mosswood Park",
+      "at": "2026-07-06T06:46:49.013Z"
+    },
+    "Q49528904": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:49.219Z"
+    },
+    "Q49332492": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:49.420Z"
+    },
+    "Q6925042": {
+      "description": "Mountain Lake Park is a 14-acre (5.7 ha) park located in Richmond District on the West Side of San Francisco. Situated north of the intersection of Lake and Funston, the park was designed by engineer William Hammond Hall in the late 19th century.",
+      "title": "Mountain Lake Park",
+      "at": "2026-07-06T06:46:49.680Z"
+    },
+    "Q49529271": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:49.884Z"
+    },
+    "Q49529583": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:50.085Z"
+    },
+    "Q66081277": {
+      "description": "Aquatic Park Historic District is a National Historic Landmark and building complex on the San Francisco Bay waterfront within San Francisco Maritime National Historical Park.",
+      "title": "Municipal Pier (San Francisco)",
+      "at": "2026-07-06T06:46:51.035Z"
+    },
+    "Q49472861": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:51.271Z"
+    },
+    "Q6941496": {
+      "description": "The Music Concourse is an open-air plaza within Golden Gate Park in San Francisco. Flanking the oval-shaped concourse are the M. H. de Young Memorial Museum and the California Academy of Sciences.",
+      "title": "Music Concourse",
+      "at": "2026-07-06T06:46:51.545Z"
+    },
+    "Q49530985": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:51.741Z"
+    },
+    "Q49531799": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:51.966Z"
+    },
+    "Q49531880": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:52.189Z"
+    },
+    "Q49532637": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:52.402Z"
+    },
+    "Q49532639": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:52.623Z"
+    },
+    "Q49533908": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:52.863Z"
+    },
+    "Q1139021": {
+      "description": "Oakland Arena, often referred to as the Oakland Coliseum Arena, is an indoor arena in Oakland, California, and part of the Oakland–Alameda County Coliseum Authority.",
+      "title": "Oakland Arena",
+      "at": "2026-07-06T06:46:53.128Z"
+    },
+    "Q2350498": {
+      "description": "Ocean Beach is a beach on the west coast of San Francisco, California, United States. Bordering the Pacific Ocean, the beach is 3.5 miles long, and it is known for its strong currents, surf culture, foggy weather in the late spring and summer, and lack of high rise buildings.",
+      "title": "Ocean Beach, San Francisco",
+      "at": "2026-07-06T06:46:53.405Z"
+    },
+    "Q49534639": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:53.637Z"
+    },
+    "Q49526044": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:53.860Z"
+    },
+    "Q7081086": {
+      "description": "Ohlone Park is a public linear park in the city of Berkeley, California, United States. Directly underground is the subway used by the Bay Area Rapid Transit (BART) Red Line and Orange Line. It is part of the Ohlone Greenway.",
+      "title": "Ohlone Park",
+      "at": "2026-07-06T06:46:54.124Z"
+    },
+    "Q49536349": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:54.319Z"
+    },
+    "Q7116321": {
+      "description": "Oyster Bay Regional Shoreline is a park in San Leandro, California, part of the East Bay Regional Park District (EBRPD). It is located along the eastern shore of San Francisco Bay directly to the south of Oakland International Airport.",
+      "title": "Oyster Bay Regional Shoreline",
+      "at": "2026-07-06T06:46:54.595Z"
+    },
+    "Q49545272": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:54.815Z"
+    },
+    "Q7131005": {
+      "description": "The Panhandle is a public park in San Francisco, California, so named because it forms a panhandle with Golden Gate Park. It is long and narrow, being three-quarters of a mile long and just one block wide.",
+      "title": "Panhandle (San Francisco)",
+      "at": "2026-07-06T06:46:55.097Z"
+    },
+    "Q49537506": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:55.320Z"
+    },
+    "Q7136531": {
+      "description": "The Pardee Home is a house in Oakland, California. It was the home of three generations of the Pardee family. It is now a non-profit museum showing over 100 years of the life of a prominent California family.",
+      "title": "Pardee Home",
+      "at": "2026-07-06T06:46:55.575Z"
+    },
+    "Q49539288": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:55.782Z"
+    },
+    "Q49528899": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:55.993Z"
+    },
+    "Q49540608": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:56.193Z"
+    },
+    "Q49541358": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:56.419Z"
+    },
+    "Q49541362": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:56.626Z"
+    },
+    "Q49322508": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:56.852Z"
+    },
+    "Q49322516": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:57.066Z"
+    },
+    "Q17065930": {
+      "description": "Philosopher's Way, San Francisco is a 2.7-mile (4.3 km) loop trail around the perimeter of John McLaren Park created by artists Peter Richards and Susan Schwartzenberg, staff artists at the Exploratorium.",
+      "title": "Philosopher's Way, San Francisco",
+      "at": "2026-07-06T06:46:58.390Z"
+    },
+    "Q49542374": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:58.603Z"
+    },
+    "Q49542389": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:58.805Z"
+    },
+    "Q49542392": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:59.013Z"
+    },
+    "Q66078388": {
+      "description": "The Central Embarcadero Piers Historic District is a Registered Historic District in the city of San Francisco, California, United States. It consists of Piers 1, 1½, 3 and 5, which form one of the largest surviving pier complexes along San Francisco's Embarcadero waterfront road.",
+      "title": "Pier 1 (San Francisco)",
+      "at": "2026-07-06T06:46:59.708Z"
+    },
+    "Q66081107": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:46:59.920Z"
+    },
+    "Q47739227": {
+      "description": "Pine Lake Park is a park located on the West Side of San Francisco, which encompasses Pine Lake.",
+      "title": "Pine Lake Park (San Francisco)",
+      "at": "2026-07-06T06:47:01.426Z"
+    },
+    "Q1893618": {
+      "description": "The Pink Triangle Park is a triangle-shaped mini-park located in the Castro District of San Francisco, California. The park is less than 4,000 square feet (370 m2) and faces Market Street with 17th Street to its back. The park sits directly above the Castro Street Station of Muni Metro, across from Harvey Milk Plaza.",
+      "title": "Pink Triangle Park",
+      "at": "2026-07-06T06:47:01.709Z"
+    },
+    "Q49543155": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:01.934Z"
+    },
+    "Q7196747": {
+      "description": "Pioneer Park is a 4.82-acre (1.95 ha) public park crowning the top of Telegraph Hill in San Francisco, California. It was established in 1876 in celebration of the United States Centennial. Prior to establishment of the park, it was the site of the Marine Telegraph Station.",
+      "title": "Pioneer Park (San Francisco)",
+      "at": "2026-07-06T06:47:02.208Z"
+    },
+    "Q49543567": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:02.440Z"
+    },
+    "Q49544022": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:02.646Z"
+    },
+    "Q7208054": {
+      "description": "Point Isabel Regional Shoreline in Richmond, California, is operated by East Bay Regional Park District, and is a multi-use park for joggers, windsurfers, kayakers, photographers, picnickers, and people walking dogs. It has access for pedestrians and via public transit, private vehicles, and bikes.",
+      "title": "Point Isabel Regional Shoreline",
+      "at": "2026-07-06T06:47:04.104Z"
+    },
+    "Q7208087": {
+      "description": "Point Molate Beach Park is a city-owned park in Richmond, California, accessible only via a narrow road from the Richmond-San Rafael Bridge toll plaza exit \"Western Drive\", and separate from the rest of the city. The park is adjacent to the present day ghost town of Winehaven.",
+      "title": "Point Molate Beach Park",
+      "at": "2026-07-06T06:47:04.866Z"
+    },
+    "Q7208118": {
+      "description": "Point Pinole Regional Shoreline is a regional park on the shores of the San Pablo Bay, California, in the United States. It is approximately 2,315 acres (9.37 km2) in area, and is operated by the East Bay Regional Park District.",
+      "title": "Point Pinole Regional Shoreline",
+      "at": "2026-07-06T06:47:06.332Z"
+    },
+    "Q49545004": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:06.539Z"
+    },
+    "Q7972206": {
+      "description": "Washington Square is an 2.8-acre (1.1 ha) park in the North Beach district of San Francisco. It was established in 1847 and is one of the city's first parks.",
+      "title": "Washington Square (San Francisco)",
+      "at": "2026-07-06T06:47:06.789Z"
+    },
+    "Q49545283": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:06.997Z"
+    },
+    "Q49545414": {
+      "description": "Potrero del Sol Park, San Francisco Potrero del Sol Park, formally known as “La Raza Park,” is an urban park located at the intersection of Potrero Avenue and 25th St in the Calle 24 Latino Cultural District within San Francisco’s Mission District.",
+      "title": "Potrero del Sol Park",
+      "at": "2026-07-06T06:47:07.848Z"
+    },
+    "Q49545419": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:08.070Z"
+    },
+    "Q49474490": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:08.274Z"
+    },
+    "Q49546003": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:08.485Z"
+    },
+    "Q49546034": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:08.717Z"
+    },
+    "Q1755360": {
+      "description": "The Presidio of San Francisco is a park and former U.S. Army post on the northern tip of the San Francisco Peninsula in San Francisco, California, and is part of the Golden Gate National Recreation Area.",
+      "title": "Presidio of San Francisco",
+      "at": "2026-07-06T06:47:09.035Z"
+    },
+    "Q121870410": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:09.262Z"
+    },
+    "Q49324450": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:09.462Z"
+    },
+    "Q49547225": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:09.666Z"
+    },
+    "Q7280678": {
+      "description": "The Radio Beach Shoreline is the only beach in Oakland, California. On the San Francisco Bay, it borders the onramp to the Bay Bridge, leading into San Francisco. Its name refers to the radio towers on the beach.",
+      "title": "Radio Beach",
+      "at": "2026-07-06T06:47:09.916Z"
+    },
+    "Q49547710": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:10.122Z"
+    },
+    "Q49510784": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:10.336Z"
+    },
+    "Q49549001": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:10.552Z"
+    },
+    "Q7309119": {
+      "description": "The Regional Parks Botanic Garden is a 10-acre botanical garden located in Tilden Regional Park in the Berkeley Hills, east of Berkeley, California, in the United States. It showcases California native plants, and is open to the public. The garden was founded on January 1, 1940.",
+      "title": "Regional Parks Botanic Garden",
+      "at": "2026-07-06T06:47:11.027Z"
+    },
+    "Q49549291": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:11.230Z"
+    },
+    "Q49550024": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:11.446Z"
+    },
+    "Q50824363": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:11.639Z"
+    },
+    "Q49550596": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:11.834Z"
+    },
+    "Q7336849": {
+      "description": "Ritual Coffee Roasters is a coffee roaster based in San Francisco, California, with six cafes in San Francisco and Napa. Founded in 2005, Ritual Roasters is considered part of the \"third wave of coffee\" independent companies which both roast their own beans, wholesale, and operate cafes.",
+      "title": "Ritual Coffee Roasters",
+      "at": "2026-07-06T06:47:13.203Z"
+    },
+    "Q7349780": {
+      "description": "Robert Sibley Volcanic Regional Preserve is located in the Oakland Hills of the East Bay region of the San Francisco Bay Area, California. The park is part of the East Bay Regional Parks District (EBRPD), covers 928 acres (3.76 km2), and lies east of Oakland, partly in Alameda County and partly in Contra Costa County.",
+      "title": "Robert Sibley Volcanic Regional Preserve",
+      "at": "2026-07-06T06:47:14.164Z"
+    },
+    "Q5189411": {
+      "description": "Crown Memorial State Beach is a state park in the city of Alameda, California on the shores of San Francisco Bay. It is operated by East Bay Regional Parks District (EBRPD), under a cooperative agreement with the State of California and the City of Alameda.",
+      "title": "Crown Memorial State Beach",
+      "at": "2026-07-06T06:47:14.450Z"
+    },
+    "Q49552361": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:14.683Z"
+    },
+    "Q49552730": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:14.885Z"
+    },
+    "Q49553320": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:15.093Z"
+    },
+    "Q49553560": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:15.302Z"
+    },
+    "Q96376966": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:15.515Z"
+    },
+    "Q16255441": {
+      "description": "Round House Café is a cafe and diner in the Presidio of San Francisco, California next to the Golden Gate Bridge.",
+      "title": "Round House Café",
+      "at": "2026-07-06T06:47:15.774Z"
+    },
+    "Q153256": {
+      "description": "The Ruth Bancroft Garden is a 3.5-acre (1.4 ha) public dry garden established by Ruth Bancroft. It contains more than 2,000 cactus, succulents, trees, and shrubs native to California, Mexico, Chile, South Africa, and Australia. It is located at 1552 Bancroft Road in Walnut Creek, California, USA.",
+      "title": "Ruth Bancroft Garden",
+      "at": "2026-07-06T06:47:17.148Z"
+    },
+    "Q49556838": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:17.348Z"
+    },
+    "Q7413484": {
+      "description": "San Bruno Mountain State Park, officially San Bruno Mountain State and County Park, is a park located in northern San Mateo County, California. It is adjacent to the southern boundary of San Francisco and borders the cities of Brisbane, South San Francisco, Colma and Daly City.",
+      "title": "San Bruno Mountain State Park",
+      "at": "2026-07-06T06:47:17.621Z"
+    },
+    "Q589884": {
+      "description": "The San Francisco Botanical Garden at Strybing Arboretum is located in San Francisco's Golden Gate Park.",
+      "title": "San Francisco Botanical Garden",
+      "at": "2026-07-06T06:47:17.913Z"
+    },
+    "Q123821083": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:18.114Z"
+    },
+    "Q123821108": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:18.381Z"
+    },
+    "Q49556942": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:18.621Z"
+    },
+    "Q49557034": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:18.824Z"
+    },
+    "Q49557069": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:19.027Z"
+    },
+    "Q49324593": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:19.234Z"
+    },
+    "Q49324600": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:19.464Z"
+    },
+    "Q49533810": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:19.666Z"
+    },
+    "Q49560283": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:19.912Z"
+    },
+    "Q49560869": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:20.152Z"
+    },
+    "Q49561379": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:20.372Z"
+    },
+    "Q49561390": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:20.575Z"
+    },
+    "Q49561397": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:20.783Z"
+    },
+    "Q49561606": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:21.001Z"
+    },
+    "Q7512507": {
+      "description": "Sigmund Stern Recreation Grove, locally called Stern Grove, is a 33-acre (130,000 m2) recreational site located on the West Side of the city of San Francisco California USA in the Parkside District.",
+      "title": "Sigmund Stern Recreation Grove",
+      "at": "2026-07-06T06:47:22.063Z"
+    },
+    "Q49561796": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:22.261Z"
+    },
+    "Q49562766": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:22.463Z"
+    },
+    "Q49562831": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:22.697Z"
+    },
+    "Q118478411": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:22.893Z"
+    },
+    "Q49564070": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:23.099Z"
+    },
+    "Q7578383": {
+      "description": "Splash Pad Park is the name of several parks containing a splash pad. The original is in Oakland, California, along Lake Park Ave, between Grand Ave and Lakeshore Ave, and north of the 580 Freeway.",
+      "title": "Splash Pad Park",
+      "at": "2026-07-06T06:47:23.764Z"
+    },
+    "Q49556101": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:23.992Z"
+    },
+    "Q40731422": {
+      "description": "Saint Mary's Square is a park and urban square across California Street from Old St. Mary's Cathedral in San Francisco's Chinatown, in the U.S. state of California.",
+      "title": "Saint Mary's Square (San Francisco)",
+      "at": "2026-07-06T06:47:24.632Z"
+    },
+    "Q49566147": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:24.837Z"
+    },
+    "Q49566643": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:25.055Z"
+    },
+    "Q49566852": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:25.257Z"
+    },
+    "Q19605769": {
+      "description": "Sue Bierman Park, previously known as Ferry Park, is a 4.5-acre (1.8 ha) park in San Francisco, California in the Financial District, in the U.S. state of California. The park is named after Sue Bierman, a San Francisco civic activist and San Francisco Supervisor.",
+      "title": "Sue Bierman Park",
+      "at": "2026-07-06T06:47:25.514Z"
+    },
+    "Q49567634": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:25.740Z"
+    },
+    "Q134087867": {
+      "description": "Sunset Dunes is a 2 mi (3.2 km) long public urban park next to Ocean Beach on the West Side of San Francisco, California. The park is located on a former location of the Great Highway between Lincoln Way and Sloat Boulevard.",
+      "title": "Sunset Dunes",
+      "at": "2026-07-06T06:47:27.426Z"
+    },
+    "Q49568022": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:27.650Z"
+    },
+    "Q49568050": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:27.882Z"
+    },
+    "Q7650129": {
+      "description": "Sutro Heights Park is an historic public park in the Outer Richmond District located on the West Side of San Francisco, California. It is within the Golden Gate National Recreation Area and the Sutro Historic District.",
+      "title": "Sutro Heights Park",
+      "at": "2026-07-06T06:47:29.346Z"
+    },
+    "Q7660214": {
+      "description": "Sydney Walton Square is a hybrid public and private park located just west of the Embarcadero in San Francisco, California, United States. The park is named after San Francisco's Sydney Grant Walton, a banker and former vice chairman of the San Francisco Redevelopment Agency.",
+      "title": "Sydney Walton Square",
+      "at": "2026-07-06T06:47:30.371Z"
+    },
+    "Q7683479": {
+      "description": "Tank Hill Park is a municipal park in the Ashbury Heights neighborhood of San Francisco, California. The hill is named for a water tank that formerly stood there, and was acquired for park use in 1977.",
+      "title": "Tank Hill",
+      "at": "2026-07-06T06:47:30.635Z"
+    },
+    "Q49569213": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:30.847Z"
+    },
+    "Q7698102": {
+      "description": "Temescal Regional Recreation Area (TRRA), formerly Lake Temescal Regional Park, is a regional park in the Berkeley Hills, in northeastern Oakland, California.",
+      "title": "Temescal Regional Recreational Area",
+      "at": "2026-07-06T06:47:31.288Z"
+    },
+    "Q49569703": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:31.510Z"
+    },
+    "Q4859493": {
+      "description": "The Barbary Coast Trail is a marked trail that connects a series of historic sites and several local history museums in San Francisco, California. Approximately 180 bronze medallions and arrows embedded in the sidewalk mark the 3.8-mile (6.1 km) trail.",
+      "title": "Barbary Coast Trail",
+      "at": "2026-07-06T06:47:31.752Z"
+    },
+    "Q106091624": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:32.003Z"
+    },
+    "Q49570312": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:32.229Z"
+    },
+    "Q49570717": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:32.442Z"
+    },
+    "Q7801660": {
+      "description": "Tightwad Hill is the popular name for Charter Hill, the hill rising to the east of California Memorial Stadium at the University of California, Berkeley in Berkeley, California, U.S.",
+      "title": "Tightwad Hill",
+      "at": "2026-07-06T06:47:32.689Z"
+    },
+    "Q7824679": {
+      "description": "The Top of the Mark is a penthouse level bar located on the nineteenth floor of the Mark Hopkins Hotel on Nob Hill at California and Mason Streets in San Francisco, California.",
+      "title": "Top of the Mark",
+      "at": "2026-07-06T06:47:33.144Z"
+    },
+    "Q66040792": {
+      "description": "Torpedo Wharf is a wharf in the Presidio of San Francisco, in the U.S. state of California. The site has been a wharf since 1854, and earned its current name when the United States Army built a naval mine depot c. 1907–1909. The current wharf was established in 1941, and now serves as a popular tourist destination.",
+      "title": "Torpedo Wharf",
+      "at": "2026-07-06T06:47:33.408Z"
+    },
+    "Q49571406": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:33.604Z"
+    },
+    "Q49477018": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:33.820Z"
+    },
+    "Q49573025": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:34.037Z"
+    },
+    "Q49573199": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:34.235Z"
+    },
+    "Q49573226": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:34.521Z"
+    },
+    "Q5796845": {
+      "description": "The University of California Botanical Garden is a 34-acre botanical garden located on the University of California, Berkeley campus, in Strawberry Canyon. The garden is in the Berkeley Hills, inside the city boundary of Oakland, with views overlooking the San Francisco Bay.",
+      "title": "University of California Botanical Garden",
+      "at": "2026-07-06T06:47:34.773Z"
+    },
+    "Q49573391": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:34.981Z"
+    },
+    "Q49574201": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:35.197Z"
+    },
+    "Q49574956": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:35.428Z"
+    },
+    "Q49574984": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:35.627Z"
+    },
+    "Q49558101": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:35.832Z"
+    },
+    "Q49576583": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:36.032Z"
+    },
+    "Q49524679": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:36.250Z"
+    },
+    "Q7969580": {
+      "description": "Warm Water Cove is an outdoor, formerly industrialized picnic area in San Francisco, California, located near Pier 80 and the Dogpatch neighborhood.",
+      "title": "Warm Water Cove",
+      "at": "2026-07-06T06:47:36.526Z"
+    },
+    "Q49577023": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:36.743Z"
+    },
+    "Q49577042": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:36.969Z"
+    },
+    "Q49579104": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:37.185Z"
+    },
+    "Q8000998": {
+      "description": "Wildcat Canyon Regional Park is a 2,789-acre (1,129 ha) East Bay Regional Park District (EBRPD) park bordering the city of Richmond in Contra Costa County in the San Francisco Bay Area of California.",
+      "title": "Wildcat Canyon Regional Park",
+      "at": "2026-07-06T06:47:37.449Z"
+    },
+    "Q49580900": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:37.654Z"
+    },
+    "Q49575978": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:37.960Z"
+    },
+    "Q49520614": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:38.182Z"
+    },
+    "Q49583037": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:38.395Z"
+    },
+    "Q3293150": {
+      "description": "The Marina Green in San Francisco, California, is a 74-acre (300,000 m2) expanse of grass between Fort Mason and the Presidio. It is adjacent to San Francisco Bay, and this location provides good views of the Golden Gate Bridge, Angel Island, Alcatraz Island, and parts of Marin County.",
+      "title": "Marina Green",
+      "at": "2026-07-06T06:47:38.641Z"
+    },
+    "Q49583523": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:38.857Z"
+    },
+    "Q2600143": {
+      "description": "Yerba Buena Gardens is the name for two blocks of public parks located between Third and Fourth, Mission and Folsom Streets in the South of Market (SoMA) neighbourhood of San Francisco, California. The first block bordered by Mission and Howard Streets was opened on October 11, 1993.",
+      "title": "Yerba Buena Gardens",
+      "at": "2026-07-06T06:47:39.111Z"
+    },
+    "Q49575707": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:39.316Z"
+    },
+    "Q49583755": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-06T06:47:39.547Z"
+    }
+  }
+}
