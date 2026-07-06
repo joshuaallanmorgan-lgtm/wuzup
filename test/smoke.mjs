@@ -720,6 +720,15 @@ test('D4 city seam: city.js config + lib re-export + finder mirror + no stray Ta
   for (const f of ['BubblePage.jsx', 'PlaceBubblePage.jsx', 'AddEvent.jsx', 'guides.js', 'Primer.jsx']) {
     assert.ok(!readFileSync(path.join(SRC, f), 'utf8').includes('Tampa'), `${f}: hardcoded 'Tampa' — interpolate CITY.name / CITY.shortName`)
   }
+  // Stage D sf-app: the attribution page spoke a hardcoded state name — caught
+  // LIVE on the first SF runtime proof ("Government data is Florida public
+  // records" rendered over California data, a false claim on the honesty page
+  // itself). It must interpolate CITY.region; no state literal may return.
+  const atText = readFileSync(path.join(SRC, 'AttributionPage.jsx'), 'utf8')
+  for (const state of ['Florida', 'California']) {
+    assert.ok(!atText.includes(state), `AttributionPage.jsx: hardcoded '${state}' — interpolate CITY.region`)
+  }
+  assert.ok(/\{CITY\.region\}/.test(atText), 'AttributionPage.jsx: the public-records line must interpolate CITY.region')
   const indexHtml = readFileSync(path.join(ROOT, 'app', 'index.html'), 'utf8')
   assert.ok(!indexHtml.includes('Tampa'), 'index.html: the title must use the %CITY_NAME% token (cityTitle plugin), not a hardcoded city')
   assert.ok(indexHtml.includes('%CITY_NAME%'), 'index.html: the %CITY_NAME% token must exist for the cityTitle plugin to fill')
