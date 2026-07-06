@@ -68,7 +68,7 @@
   margin: 6px 0 0;
   font-size: 14px;
   line-height: 1.5;
-  color: #4a423a; /* the detail body-prose ink (.detail-desc) */
+  color: var(--prose); /* the detail body-prose ink (.detail-desc) — Stage E dark seam (#4a423a = --prose, byte-inert) */
 }
 
 /* ===== editorial info rows: hairline dividers, 11px uppercase labels,
@@ -180,7 +180,7 @@ a.d-row { text-decoration: none; color: inherit; }
   transition: background var(--dur-micro);
 }
 .dlink:last-child { border-bottom: none; }
-.dlink:active { background: rgba(26, 20, 16, 0.04); }
+.dlink:active { background: rgba(var(--ink-rgb), 0.04); } /* Stage E dark seam: press-tint follows the ink (byte-inert in light) */
 .dlink-ic {
   flex: 0 0 36px;
   width: 36px;
@@ -298,4 +298,16 @@ a.d-row { text-decoration: none; color: inherit; }
 
 @media (prefers-reduced-motion: reduce) {
   .detail-toast { animation: none !important; }
+}
+
+/* ===== Stage E dark mode (detail-scope): the category chip's pale hue tint
+   assumed cream (93% L glares on dark) — re-seated in the dark band, hue math
+   untouched; text hsl(h 70% 78%) on hsl(h 45% 22%) ≥6.50:1 across the wheel.
+   The toast inverts with its ink-rgb glass (canvas-colored text, 13.44:1). */
+@media (prefers-color-scheme: dark) {
+  .detail-catchip {
+    background: hsl(var(--ch, 220) 45% 22%);
+    color: hsl(var(--ch, 220) 70% 78%);
+  }
+  .detail-toast { color: var(--bg); }
 }

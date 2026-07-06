@@ -109,8 +109,8 @@
 
 .flt-chip--on {
   background: color-mix(in srgb, var(--cta) 12%, var(--card));
-  border-color: var(--cta);
-  color: var(--cta);
+  border-color: var(--cta-ink); /* Stage E dark seam: selected-chip outline+text ride the accent TEXT ink */
+  color: var(--cta-ink);
 }
 
 .flt-footer {

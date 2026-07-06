@@ -26,7 +26,7 @@
   font-size: var(--t-body);
   font-weight: 700;
   letter-spacing: -0.2px;
-  color: var(--cta);
+  color: var(--cta-ink); /* Stage E dark seam: accent TEXT ink (same hex in light) */
   cursor: pointer;
 }
 .dpg-daysel-caret { margin-top: 1px; }
@@ -120,8 +120,8 @@
   width: 28px;
   height: 28px;
   border-radius: var(--r-pill);
-  border: 1.5px solid var(--cta);
-  color: var(--cta);
+  border: 1.5px solid var(--cta-ink); /* Stage E dark seam: outline control rides the accent TEXT ink */
+  color: var(--cta-ink);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -236,7 +236,7 @@
   border: 1px solid rgba(var(--cta-rgb), 0.35);
   border-radius: var(--r-pill);
   background: none;
-  color: var(--cta);
+  color: var(--cta-ink); /* Stage E dark seam */
   font-family: inherit;
   font-size: var(--t-meta-sm);
   font-weight: 700;
@@ -282,7 +282,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.dpg-sugg-why { font-size: var(--t-micro); font-weight: 600; color: var(--cta); }
+.dpg-sugg-why { font-size: var(--t-micro); font-weight: 600; color: var(--cta-ink); } /* Stage E dark seam */
 .dpg-sugg-add {
   flex: 0 0 30px;
   width: 30px;
@@ -290,10 +290,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid var(--cta);
+  border: 1.5px solid var(--cta-ink); /* Stage E dark seam */
   border-radius: var(--r-pill);
   background: rgba(var(--cta-rgb), 0.05);
-  color: var(--cta);
+  color: var(--cta-ink);
   font-size: 18px;
   font-weight: 600;
   line-height: 1;

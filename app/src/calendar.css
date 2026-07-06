@@ -71,7 +71,7 @@
   cursor: pointer;
 }
 .mon-pick:active { transform: scale(0.97); }
-.mon-caret { font-size: var(--t-micro); color: var(--cta); transition: transform 0.15s; } /* S1-C5: accent caret */
+.mon-caret { font-size: var(--t-micro); color: var(--cta-ink); transition: transform 0.15s; } /* S1-C5: accent caret */
 .mon-caret.open { transform: rotate(180deg); }
 .mon-picker-scrim { position: fixed; inset: 0; z-index: 40; border: none; background: transparent; cursor: default; }
 .mon-picker {
@@ -304,3 +304,12 @@
    (.sec-title — 21px/700 ink, Inter), not the old muted overline,
    so it reads like Home's "Your next days". */
 .cal-up-title { margin: 0 var(--gutter) 10px; font-size: 21px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
+
+/* ===== Stage E dark mode (calendar-scope): the gold selection fill is mode-
+   INVARIANT, so its "dark ink on gold, never white (D.0)" contract must not
+   ride --ink (which flips to cream — 2.02:1 on gold). Pin the warm charcoal
+   literal (7.89:1 on --accent, wcag-dark.mjs). ===== */
+@media (prefers-color-scheme: dark) {
+  .mon-opt.on { color: #1a1410; } /* ink-on-gold pin */
+  .mcell.sel .mnum { color: #1a1410; } /* ink-on-gold pin */
+}

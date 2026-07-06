@@ -124,3 +124,11 @@
 
 /* WS3 §9: the sprout glyph (was 🌱) rides the sage .st-wiped color */
 .st-wiped .meta-ic { vertical-align: -2.5px; }
+
+/* ===== Stage E dark mode: the off-switch track was var(--line) — in dark
+   that's a 0.10-alpha hairline tint, too faint to read as a control track.
+   Match the AddEvent switch's ink-derived recipe (rgba(ink-rgb, .18), which
+   flips with the ladder) so the two switches speak one language. ===== */
+@media (prefers-color-scheme: dark) {
+  .st-switch { background: rgba(var(--ink-rgb), 0.18); }
+}

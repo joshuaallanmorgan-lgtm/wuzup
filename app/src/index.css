@@ -209,9 +209,84 @@
   --r-pill: 999px; /* fully-rounded pills + chips */
   --r-circle: 50%; /* true circles — icon buttons, avatars, knobs, dots */
   --r-xl: 22px; /* deck swipe cards + bottom-sheet top corners */
+  /* Stage E (dark-mode seam): tokens minted AT their shipped literal values so
+     straggler sites can consume vars the dark ladder below flips — the light-mode
+     site swaps are byte-inert (same values).
+       --cta-ink   accent-COLORED text/outline-borders on canvas (was literal
+                   color: var(--cta) at ~14 sites — #bb5719 is the FILL color;
+                   as TEXT on the dark card it reads 3.55:1, so dark swaps this
+                   one to the gold text ink while fills keep --cta)
+       --bg-rgb / --card-rgb / --sheet-rgb   rgba() glass companions (tabbar
+                   cream glass, frosted sheets, inverted toasts)
+       --img-ph    the imgbox loading placeholder (cards.css #e9e2d9)
+       --prose     the detail body-prose ink (App.css/detail.css #4a423a) */
+  --cta-ink: #bb5719;
+  --bg-rgb: 250, 246, 241;
+  --card-rgb: 254, 253, 251;
+  --sheet-rgb: 250, 248, 245;
+  --img-ph: #e9e2d9;
+  --prose: #4a423a;
+  color-scheme: light; /* native controls/scrollbars follow the canvas (dark flips it) */
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* ============================================================================
+   STAGE E — DARK MODE, the second token ladder (system-following ONLY:
+   prefers-color-scheme; an in-app toggle = storage + Settings UI + a Josh
+   product call — noted as a possible follow-up, not v1. ⚑ scope ruling: Fable).
+
+   The dark family starts from the DECKS' proven warm-dark ambiance (the
+   #181109–#1b1712 --deck-bg band + the gold --accent-on-dark language) — warm
+   brown-black, NEVER a cold slate (DESIGN_SYSTEM warm-palette philosophy).
+   Every re-derived text/ground pair carries its COMPUTED WCAG ratio (scratch
+   wcag-dark.mjs run — the house wcag precedent: computed, never asserted).
+
+   Deliberately UNTOUCHED: the deck/primer dark surfaces (dark BY CONTRACT,
+   ROADMAP §1.3 — their own tokens/literals hold; gold on --deck-card top stop
+   8.74:1), --cta fills (white-on-#bb5719 4.68:1 is canvas-independent),
+   --free-fill-strong (white 4.84:1), --hot/--reward/--free/--accent fills.
+   Parity notes (dark is BETTER, no action): hot-as-text 4.78:1 on dark card
+   vs the shipped 3.23:1 on light; reward overline 5.67:1 vs 2.88:1 light.
+   ⚑ Josh/Charles: the decks' "different world" contrast necessarily softens
+   when the whole app around them is dark — punch-list item, not a defect.
+   ========================================================================= */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #1b1611; /* warm brown-black, inside the deck band (deliberately warmer than #1b1712) */
+    --card: #251d14; /* one step lighter — figure/ground survives where shadows go quiet */
+    --ink: #f5efe7; /* warm cream — 15.72:1 on --bg, 14.54:1 on --card */
+    --muted: #b0a494; /* warm gray — 7.34:1 on --bg, 6.79:1 on --card, 6.30:1 on --chip-fill */
+    --line: rgba(245, 239, 231, 0.1); /* low-alpha warm light hairline */
+    --accent-ink: #ffb066; /* = --accent-on-dark — the ONE gold text ink: 9.97:1 bg, 9.22:1 card */
+    --accent-ink-strong: #ffb066; /* 8.05:1 on the composited 8%-accent pill over --card */
+    --cta-ink: #ffb066; /* accent-colored TEXT/outlines flip to gold (fills stay --cta) */
+    --chip-fill: #2c231a; /* dark warm sand — ink on it 13.49:1 */
+    --chip-border: rgba(245, 239, 231, 0.09);
+    --free-ink: #45cf94; /* sage text — 8.39:1 on --card, 7.17:1 on the 12% sage tint */
+    --danger: #ff8273; /* warm error red — 7.43:1 on --bg, 6.87:1 on --card */
+    --prose: #d6ccc0; /* body prose, softer than ink — 11.34:1 bg, 10.48:1 card */
+    --img-ph: #2a2119; /* imgbox placeholder: photos settle up from warm dark, no light flash */
+    --ink-rgb: 245, 239, 231; /* ink-derived tints/glass invert with the ink */
+    --muted-rgb: 176, 164, 148;
+    --bg-rgb: 27, 22, 17;
+    --card-rgb: 37, 29, 20;
+    --sheet-rgb: 32, 25, 18;
+    --skel-lo: #272019; /* skeleton shimmer, warm dark */
+    --skel-hi: #322920;
+    /* shadows on dark: the warm-ink family disappears against a darker ground —
+       switch to true black at higher alpha, same geometry (restraint: no
+       edge-light chrome invented; surface steps carry most of the separation) */
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 3px 10px rgba(0, 0, 0, 0.35);
+    --shadow-2: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 10px rgba(0, 0, 0, 0.32),
+      0 8px 24px rgba(0, 0, 0, 0.38);
+    --shadow-3: 0 2px 4px rgba(0, 0, 0, 0.42), 0 8px 20px rgba(0, 0, 0, 0.45),
+      0 18px 40px rgba(0, 0, 0, 0.5);
+    --shadow-sheet: 0 -10px 40px rgba(0, 0, 0, 0.62);
+    --shadow-press: 0 1px 3px rgba(0, 0, 0, 0.5);
+  }
 }
 
 * { box-sizing: border-box; }
@@ -240,6 +315,19 @@ body {
   position: relative;
   box-shadow: 0 0 60px rgba(26, 20, 16, 0.42);
   overflow: hidden;
+}
+
+/* Stage E dark: the desktop surround drops BELOW the canvas (both were #1b1712-
+   family; without the step the phone frame vanished), the paper grain flips to
+   light flecks (ink dots are invisible on dark), and the frame gains a whisper
+   of edge-light where the 60px glow can no longer separate dark-on-dark.
+   ⚑ Charles: surround/edge values are taste-tunable. */
+@media (prefers-color-scheme: dark) {
+  body { background: #110d09; }
+  #root {
+    background-image: radial-gradient(circle, rgba(245, 239, 231, 0.02) 1px, transparent 1px);
+    box-shadow: 0 0 0 1px rgba(245, 239, 231, 0.07), 0 0 60px rgba(0, 0, 0, 0.55);
+  }
 }
 
 a { color: inherit; }
