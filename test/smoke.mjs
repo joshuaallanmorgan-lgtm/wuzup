@@ -1201,6 +1201,37 @@ test('app lint: eslint exits 0', { timeout: 300_000 }, async (t) => {
   assert.equal(r.code, 0, `app lint failed (exit ${r.code}):\n${tail(r.out)}`)
 })
 
+// Stage D sf-app — the SECOND city must BUILD. VITE_CITY=sf-east-bay was
+// fail-closed (unknown id → loud registry throw) until its entry landed; this
+// holds the door open and pins the two identity surfaces the build stamps:
+// the emitted index.html <title> and the manifest name must both carry the SF
+// name from the ONE registry. Cheap by measurement (rolldown builds in ~0.2s)
+// and isolated — a scratch --outDir, so the default (Tampa) build's app/dist
+// is never clobbered. Runs after the Tampa build test (node:test is
+// sequential in-file), so the two vite runs never overlap.
+test('Stage D sf-app: VITE_CITY=sf-east-bay builds — title + manifest carry the SF name', { timeout: 300_000 }, async (t) => {
+  startAppChecks()
+  await buildP // never overlap the Tampa build (shared caches, half the machine)
+  const outDir = mkdtempSync(path.join(tmpdir(), 'wuzup-sf-build-'))
+  try {
+    const r = await collect(
+      spawn(`npm --prefix app run build -- --outDir "${outDir}" --emptyOutDir`, {
+        cwd: ROOT,
+        shell: true,
+        env: { ...process.env, VITE_CITY: 'sf-east-bay' },
+      })
+    )
+    t.diagnostic(`sf build took ${r.secs}s`)
+    assert.equal(r.code, 0, `VITE_CITY=sf-east-bay build failed (exit ${r.code}):\n${tail(r.out)}`)
+    const html = readFileSync(path.join(outDir, 'index.html'), 'utf8')
+    assert.ok(html.includes('<title>Wuzup · SF & East Bay</title>'), 'the emitted index.html title must carry the SF name')
+    const manifest = JSON.parse(readFileSync(path.join(outDir, 'manifest.webmanifest'), 'utf8'))
+    assert.equal(manifest.name, 'Wuzup · SF & East Bay', 'the emitted manifest name must carry the SF name')
+  } finally {
+    rmSync(outDir, { recursive: true, force: true })
+  }
+})
+
 // ============================================================
 // 5) PURE-LOGIC UNITS — app/src modules imported straight into Node
 //    (lib/taste/weekend are deliberately JSX-free; localStorage access is
