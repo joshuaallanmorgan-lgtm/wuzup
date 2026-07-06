@@ -3,7 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#faf6f1" />
+    <!-- Stage E dark mode: the browser chrome follows the canvas token pair
+         (index.css --bg light/dark). The manifest's theme_color has no dark
+         conditional in the spec — these metas win at runtime. -->
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#faf6f1" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1b1611" />
     <!-- Inter is self-hosted (variable woff2, /fonts/) — @font-face lives in src/index.css.
          The Google Fonts link + preconnects were removed in Stage C4.5 (render-blocking,
          third-party dep; Josh ruling 2026-07-01 #1). -->
