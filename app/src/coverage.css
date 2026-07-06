@@ -1,0 +1,47 @@
+/* coverage.css — the D-G1 Coverage Card ("what we know here"). QUIET
+   provenance in the settings/attribution family idiom: an uppercase metadata
+   eyebrow (WS3 §6) over the --card plate at the soft row shadow (--shadow-1 —
+   a colophon, not a feature card), tabular counts, muted tails. TOKENS ONLY —
+   no raw color literals, so the Stage E dark ladder carries the card in both
+   schemes with zero forks (ink/muted pairs are AA-computed in index.css).
+   No --accent, no --hot, no --reward: coverage is a passive disclosure, the
+   exact case A6 accent restraint covers. The promoted (sparse-city) form is
+   POSITION + one extra sentence, never louder decoration — calm-not-shouty.
+   Scoped under .cov. */
+
+.cov {
+  padding: var(--sp-md);
+  background: var(--card);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+}
+
+/* each placement supplies the page gutter (Home sections + .at-sec both pad
+   their own content); this wrapper is Home's */
+.cov-home { padding: 0 var(--gutter); }
+
+.cov-over {
+  font-size: var(--eyebrow-size);
+  font-weight: var(--eyebrow-weight);
+  letter-spacing: var(--eyebrow-track);
+  text-transform: uppercase; /* WS3 ruling #7: section labels are metadata */
+  color: var(--muted); /* A6 accent restraint: overlines off orange */
+  margin-bottom: 6px;
+}
+
+/* the sparse-city sentence (promoted form only) — the card's one voiced line,
+   ink at the settings-family 14/600 */
+.cov-new {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.55;
+  margin-bottom: 4px;
+}
+
+.cov-line {
+  font-size: var(--t-meta);
+  font-weight: 600;
+  line-height: 1.6;
+}
+.cov-line + .cov-line { margin-top: 2px; }
+.cov-dim { color: var(--muted); font-weight: 500; }

@@ -371,8 +371,9 @@ function Shell() {
             {page.type === 'evfilters' && <FiltersSheet />}
             {/* Stage E (⚑X3): Settings → Data & photo credits — single-slot
                 REPLACE; its back affordance reopens Settings. Every credit line
-                derives from norm / places.json / the city config at render. */}
-            {page.type === 'attribution' && <AttributionPage events={norm} />}
+                derives from norm / places.json / the city config at render.
+                dataAt (D-G1) feeds the Coverage Card header's "updated" line. */}
+            {page.type === 'attribution' && <AttributionPage events={norm} dataAt={dataAt} />}
             {page.type === 'interests' && <InterestEditor from={page.from} />}
             {/* Sprint V2/V3: the "why your feed looks like this" + mute/boost
                 panel — opened from Settings, back returns there (the `from`
