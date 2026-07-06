@@ -35,7 +35,9 @@ const fmtUpdated = (ms) => {
 }
 
 export default function SettingsPage({ events, dataAt, primer, onPrimerDone, locationAllowed, onAllowLocation }) {
-  const { closePage: onClose } = useNav()
+  // openAttribution (Stage E ⚑X3): the About row → Data & photo credits page
+  // (single-slot REPLACE; its back affordance reopens Settings)
+  const { closePage: onClose, openAttribution } = useNav()
   const [retaking, setRetaking] = useState(false)
   const [arming, setArming] = useState(false) // reset's two-step confirm
   const [wiped, setWiped] = useState(false) // honest one-line receipt after a reset
@@ -156,12 +158,21 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone, loc
           </div>
         </section>
 
-        {/* ===== 5 · ABOUT (stub — Phase 4 fills credits + attribution) ===== */}
+        {/* ===== 5 · ABOUT (Stage E: the ⚑X3 credits page is REAL now — the
+            old coming-soon stub line is retired) ===== */}
         <section className="st-sec">
           <div className="st-over">About</div>
           <div className="st-card">
             <div className="st-line">Wuzup · {CITY.name} · early build (v0)</div>
-            <div className="st-line st-dim">Credits &amp; source attribution page coming with the public release.</div>
+          </div>
+          <div className="st-rows">
+            <button className="st-row" onClick={openAttribution}>
+              <span className="st-row-main">
+                <span className="st-row-title">Data &amp; photo credits</span>
+                <span className="st-row-sub">Every source and photographer behind the app, disclosed</span>
+              </span>
+              <span className="st-row-go" aria-hidden>→</span>
+            </button>
           </div>
         </section>
       </div>

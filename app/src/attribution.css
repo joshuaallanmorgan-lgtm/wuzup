@@ -1,0 +1,108 @@
+/* attribution.css — Settings → Data & photo credits (Stage E, the ⚑X3 page).
+   QUIET provenance in the settings-family idiom: uppercase metadata eyebrows
+   (WS3 §6) over white card plates, hairline source rows with tabular counts,
+   one expandable photographer ledger. Scoped under .at. No --hot and no
+   --reward (credits are maintenance, not moments); links ride --accent-ink
+   (AA on bg/card per the token ledger). */
+
+.at { background: var(--bg); }
+.at-body { padding: 4px 0 120px; }
+
+.at-intro {
+  margin: 0;
+  padding: var(--sp-xs) var(--gutter) 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.at-sec { margin-top: var(--sp-lg); padding: 0 var(--gutter); }
+.at-over {
+  font-size: var(--eyebrow-size);
+  font-weight: var(--eyebrow-weight);
+  letter-spacing: var(--eyebrow-track);
+  text-transform: uppercase; /* ruling #7: section labels are metadata */
+  color: var(--muted); /* A6 accent restraint: overlines off orange */
+  margin-bottom: 10px;
+}
+
+/* ===== card: the section's quiet plate (settings-family) ===== */
+.at-card {
+  padding: var(--sp-md);
+  box-shadow: var(--shadow-card);
+  border-radius: var(--r-lg);
+  background: var(--card);
+}
+.at-line { font-size: 14px; font-weight: 600; line-height: 1.6; }
+.at-line + .at-line { margin-top: 4px; }
+.at-dim { color: var(--muted); font-weight: 500; }
+.at-note {
+  margin-top: 10px;
+  font-size: var(--t-meta-sm);
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* links: real destinations (source pages, license deeds) — accent-ink text */
+.at a { color: var(--accent-ink); font-weight: 600; text-decoration: none; }
+.at a:active { opacity: 0.7; }
+
+/* ===== source rows: name + tabular count over hairlines ===== */
+.at-rows { margin-top: 10px; }
+.at-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 0;
+  border-top: 1px solid var(--line);
+  font-size: var(--t-meta);
+  font-weight: 600;
+}
+.at-row-name { min-width: 0; }
+.at-row-n { flex: 0 0 auto; color: var(--muted); }
+
+/* ===== the expandable photographer ledger ===== */
+.at-expand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 9px 0 2px;
+  border: none;
+  border-top: 1px solid var(--line);
+  background: none;
+  font-family: inherit;
+  font-size: var(--t-meta);
+  font-weight: 700;
+  color: var(--accent-ink); /* a real action (expand), not an editorial label */
+  text-align: left;
+  cursor: pointer;
+}
+.at-expand-chev { transform: rotate(-90deg); transition: transform var(--dur-fast) var(--ease-out); }
+.at-expand.open .at-expand-chev { transform: rotate(90deg); }
+
+.at-photos { list-style: none; margin: 4px 0 0; padding: 0; }
+.at-ph {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 7px 0;
+  border-top: 1px solid var(--line);
+}
+.at-ph:first-child { border-top: none; }
+.at-ph-place { font-size: var(--t-meta-sm); font-weight: 700; }
+.at-ph-by { font-size: var(--t-meta-sm); font-weight: 500; color: var(--muted); }
+
+/* the hero-credit block sits below the ledger, same row form */
+.at-heroes { margin-top: 10px; border-top: 1px solid var(--line); }
+.at-heroes .at-ph:first-child { border-top: none; }
+
+/* ===== reduced motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .at-expand-chev { transition: none; }
+}
