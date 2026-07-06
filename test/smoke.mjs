@@ -29,7 +29,8 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
 import { lookup as dnsLookup } from 'node:dns/promises'
-import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 // city-agnostic: the box + roster anchors come from the active city config, the
@@ -527,29 +528,60 @@ test('fail-closed: every shipped Mapillary cafe was re-verified', () => {
 
 // Stage D · D1 — the deploy seam. app/public data artifacts are written ONLY by
 // finder/deploy.mjs (`npm run deploy-city`), which copies exactly ONE city's set
-// from finder/output/<cityId>/. Guards: the deploy step exists, an artifact-less
-// city is refused LOUDLY (a CITY=sf-east-bay run can never blank Tampa's
-// deployment), and the legacy un-namespaced output paths stay dead.
-test('D1 deploy seam: deploy.mjs exists + refuses an artifact-less city + legacy paths gone', { timeout: 60_000 }, async () => {
+// from finder/output/<cityId>/. Guards: the deploy step exists, an incomplete
+// artifact set is refused LOUDLY, a COMPLETE set deploys whole (proven against a
+// scratch DEST — sf-east-bay's set is real now, and a live deploy of it here
+// would blank Tampa's deployment mid-test), and the legacy un-namespaced output
+// paths stay dead.
+test('D1 deploy seam: deploy.mjs exists + refuses an incomplete set + scratch-deploys a complete one + legacy paths gone', { timeout: 60_000 }, async () => {
   assert.ok(existsSync(path.join(ROOT, 'finder', 'deploy.mjs')), 'finder/deploy.mjs must exist (the ONE writer of app/public data artifacts)')
   const pkg = JSON.parse(readFileSync(path.join(ROOT, 'package.json'), 'utf8'))
   assert.equal(pkg.scripts['deploy-city'], 'node finder/deploy.mjs', 'the deploy-city npm script must run the deploy step')
-  // a REGISTERED city with no generated artifacts must be refused loudly — and
-  // the refusal must not have touched the deployed files (byte-check one).
   const guidesBefore = readFileSync(path.join(ROOT, 'app', 'public', 'guides.json'))
-  const res = await runNode('finder/deploy.mjs', { CITY: 'sf-east-bay' })
-  assert.notEqual(res.code, 0, `deploying a city with no artifacts must exit non-zero (got ${res.code}):\n${tail(res.out)}`)
-  assert.match(res.out, /REFUSING/, 'the refusal must be loud and name the problem')
-  assert.deepEqual(readFileSync(path.join(ROOT, 'app', 'public', 'guides.json')), guidesBefore,
-    'a refused deploy must leave the deployed artifacts untouched')
+  const scratch = mkdtempSync(path.join(tmpdir(), 'wuzup-deploy-seam-'))
+  try {
+    // (a) REFUSAL: a city with no artifacts must be refused loudly, touching
+    // nothing. Stage D sf-app: BOTH registered cities carry complete sets now,
+    // so the probe rides the DEPLOY_SRC verification seam — an empty scratch
+    // root IS "no artifacts", same checks, same code path, same loud exit.
+    const emptyRoot = path.join(scratch, 'empty-output')
+    mkdirSync(emptyRoot, { recursive: true })
+    const res = await runNode('finder/deploy.mjs', { CITY: 'sf-east-bay', DEPLOY_SRC: emptyRoot })
+    assert.notEqual(res.code, 0, `deploying a city with no artifacts must exit non-zero (got ${res.code}):\n${tail(res.out)}`)
+    assert.match(res.out, /REFUSING/, 'the refusal must be loud and name the problem')
+    assert.deepEqual(readFileSync(path.join(ROOT, 'app', 'public', 'guides.json')), guidesBefore,
+      'a refused deploy must leave the deployed artifacts untouched')
+    // (b) SUCCESS: sf-east-bay's real artifact set deploys whole into a scratch
+    // DEST — JSON lands byte-identical, the pre-imagery .gitkeep git seed never
+    // ships, and the REAL deployment (app/public = Tampa) still hasn't moved.
+    const dest = path.join(scratch, 'dest')
+    mkdirSync(dest, { recursive: true })
+    const ok = await runNode('finder/deploy.mjs', { CITY: 'sf-east-bay', DEPLOY_DEST: dest })
+    assert.equal(ok.code, 0, `deploying a complete artifact set must exit 0 (got ${ok.code}):\n${tail(ok.out)}`)
+    for (const f of ['events.json', 'places.json', 'guides.json']) {
+      assert.equal(readFileSync(path.join(dest, f), 'utf8'), readFileSync(path.join(ROOT, 'finder', 'output', 'sf-east-bay', f), 'utf8'),
+        `${f} must land byte-identical in the scratch deploy`)
+    }
+    assert.ok(existsSync(path.join(dest, 'place-img')) && statSync(path.join(dest, 'place-img')).isDirectory(),
+      'the scratch deploy must create place-img/')
+    assert.ok(!existsSync(path.join(dest, 'place-img', '.gitkeep')),
+      'the .gitkeep empty-dir git seed must never ship into a deployment')
+    assert.deepEqual(readFileSync(path.join(ROOT, 'app', 'public', 'guides.json')), guidesBefore,
+      'a scratch-DEST deploy must leave the real deployment untouched')
+  } finally {
+    rmSync(scratch, { recursive: true, force: true })
+  }
   // the legacy un-namespaced output files must not exist (and no writer recreates
   // them — the finder fast-mode run in test 1 would have, if a write path survived)
   for (const f of ['events.json', 'events.md', 'places.json', 'places.md', 'guides.json', 'place-img']) {
     assert.ok(!existsSync(path.join(ROOT, 'finder', 'output', f)), `legacy un-namespaced finder/output/${f} must not exist (outputs are per-city now)`)
   }
-  // the per-city artifact set is COMPLETE for the reference city (deploy's contract)
-  for (const f of ['events.json', 'places.json', 'guides.json', 'place-img']) {
-    assert.ok(existsSync(path.join(ROOT, 'finder', 'output', CITY_ID, f)), `finder/output/${CITY_ID}/${f} missing — the deployable set is incomplete`)
+  // the per-city artifact set is COMPLETE for BOTH registered cities (deploy's
+  // contract — Stage D sf-app: sf-east-bay is deployable from this commit on)
+  for (const city of ['tampa-bay', 'sf-east-bay']) {
+    for (const f of ['events.json', 'places.json', 'guides.json', 'place-img']) {
+      assert.ok(existsSync(path.join(ROOT, 'finder', 'output', city, f)), `finder/output/${city}/${f} missing — the deployable set is incomplete`)
+    }
   }
 })
 
@@ -880,6 +912,19 @@ test('3.75b: watch guides resolve to real keyword matches + honor the window', a
   // window gate
   assert.equal(watchGuideActive(wc, Date.parse('2026-06-20')), true, 'should be active mid-window')
   assert.equal(watchGuideActive(wc, Date.parse('2027-01-01')), false, 'should be inactive outside its window')
+  // Stage D sf-app: the PER-CITY artifact guides (finder/output/<city>/guides.json,
+  // what deploy-city ships) obey the same honesty shape — schemaVersion 1 and
+  // every watch guide carries a parseable window + non-empty keywords (a
+  // malformed guide silently no-shows in the app; keywords are the no-fabrication
+  // contract — a watch guide with none could only ever show invented picks).
+  for (const city of ['tampa-bay', 'sf-east-bay']) {
+    const doc = JSON.parse(readFileSync(path.join(ROOT, 'finder', 'output', city, 'guides.json'), 'utf8'))
+    assert.equal(doc.schemaVersion, 1, `${city} artifact guides.json schemaVersion must be 1`)
+    for (const g of (doc.guides || []).filter((x) => x.kind === 'watch')) {
+      assert.ok(g.window && Number.isFinite(Date.parse(g.window.start)) && Number.isFinite(Date.parse(g.window.end)), `${city} watch guide ${g.id}: unparseable window`)
+      assert.ok(Array.isArray(g.keywords) && g.keywords.length > 0, `${city} watch guide ${g.id}: empty keywords`)
+    }
+  }
 })
 
 // Phase 3.5 W7 — DEEPEN REC COVERAGE. New OSM classes (disc golf, skate parks,
