@@ -998,7 +998,7 @@ const eventIdHash = (canonical) => createHash('sha256').update(canonical, 'utf8'
 // (start/url CAN still churn — a level-3 pair is two near-identical listings
 // of one thing that upstream dedupe kept apart; measured population: 1 pair
 // in Tampa, 0 in SF.)
-const idOrdinalKey = (e) => [e.start, e.end, e.url, e.address].map((v) => String(v ?? '')).join(' ');
+const idOrdinalKey = (e) => [e.start, e.end, e.url, e.address].map((v) => String(v ?? '')).join('\u0000');
 
 // Mint e.id for every event. Returns a report for the build log; throws on
 // any outcome that would ship an ambiguous or missing id.
