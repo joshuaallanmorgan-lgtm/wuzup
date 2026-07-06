@@ -25,7 +25,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { enrichPlacesWithImages } from './places-images.mjs';
 import { enrichPlacesWithDescriptions } from './places-descriptions.mjs';
-import { bbox as TB_BOX, govOrder as GOV_ORDER, touristCentroids as TOURIST_CENTROIDS, cityId } from './cities/index.mjs';
+import { bbox as TB_BOX, govOrder as GOV_ORDER, touristCentroids as TOURIST_CENTROIDS, cityId, meta as CITY_META } from './cities/index.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 // D1 multi-tenant artifacts: outputs AND caches are namespaced per city (a
@@ -486,7 +486,7 @@ function hiddenScoreOf(p) {
 
 // ===================== main =================================================
 async function main() {
-  console.log('\n🏞️  Tampa Bay Places Finder — building the places layer from free sources...\n');
+  console.log(`\n🏞️  ${CITY_META.name} Places Finder — building the places layer from free sources...\n`);
   const { raws, report } = await loadSources();
 
   // Split amenity-chip points (courts + anonymous OSM geometry) from place
@@ -640,7 +640,9 @@ async function main() {
   const scoreDist = {};
   for (const p of places) scoreDist[p.hiddenScore] = (scoreDist[p.hiddenScore] || 0) + 1;
 
-  let md = `# Tampa Bay Places — ${places.length} real places\n\n`;
+  // City name from the active config — byte-identical for Tampa (meta.name
+  // is 'Tampa Bay'), honest for every other city's artifact.
+  let md = `# ${CITY_META.name} Places — ${places.length} real places\n\n`;
   md += `_Generated ${new Date().toLocaleString('en-US')} · sources: ${report.map((r) => r.source).join(', ')}_\n\n`;
   md += `## Summary\n\n`;
   md += `- Total places: ${places.length}\n`;
@@ -676,7 +678,7 @@ async function main() {
   const bench = (ok, label) => console.log(`    ${ok ? '✅' : '❌'} ${label}`);
   bench(places.length >= 300, `total places: ${places.length} (need >= 300)`);
   const outOfBox = places.filter((p) => !inBox(p.lat, p.lng)).length;
-  bench(outOfBox === 0, `coords outside Tampa Bay box: ${outOfBox} (need 0)`);
+  bench(outOfBox === 0, `coords outside ${CITY_META.name} box: ${outOfBox} (need 0)`);
   bench(withHours >= 150, `places with hours: ${withHours} (need >= 150)`);
   bench(withAmenities >= 250, `places with amenities: ${withAmenities} (need >= 250)`);
   const nameless = places.filter((p) => !p.name || !p.name.trim()).length;
@@ -684,52 +686,58 @@ async function main() {
   const badKeys = places.filter((p) => !/^p\|/.test(p.key)).length;
   bench(badKeys === 0, `keys without the 'p|' prefix: ${badKeys} (need 0)`);
   bench(shelf.length <= HIDDEN_CAP, `hidden shelf: ${shelf.length} (cap ${HIDDEN_CAP})`);
-  // Per-source raw count floors — a silently-broken source fails loudly here.
-  const floors = [
-    ['Pinellas Park Points', 350],
-    ['Tampa Parks', 150],
-    ['FWC Boat Ramps', 200],
-    ['OSM', 600],
-  ];
-  for (const [src, floor] of floors) {
-    const n = rawBySource.get(src) || 0;
-    bench(n >= floor, `${src} raw records: ${n} (need >= ${floor})`);
-  }
+  // CITY-SCOPED benchmarks (Tampa sources/roster — running them for another
+  // city prints false ❌s about sources that can never appear there; the
+  // per-city roster lives in the city config's rosterBenchmark, empty for a
+  // bootstrapping city by design).
+  if (cityId === 'tampa-bay') {
+    // Per-source raw count floors — a silently-broken source fails loudly here.
+    const floors = [
+      ['Pinellas Park Points', 350],
+      ['Tampa Parks', 150],
+      ['FWC Boat Ramps', 200],
+      ['OSM', 600],
+    ];
+    for (const [src, floor] of floors) {
+      const n = rawBySource.get(src) || 0;
+      bench(n >= floor, `${src} raw records: ${n} (need >= ${floor})`);
+    }
 
-  // ROSTER BENCHMARKS (R3 — pass by GENERATION, never hardcoding; these
-  // strings appear NOWHERE in fetch or merge code — this block is fuzzy
-  // matching against the GENERATED output only, using the same edit-tolerant
-  // comparator as the merge).
-  //
-  // ⚑R-MOON RESOLVED (Josh, 2026-06-11): "Moonlight Beach" was a
-  // misremembering — it does not exist in Tampa Bay (proven six independent
-  // ways by the R1 scouts). Josh ratified Honeymoon Island State Park as the
-  // fifth roster slot. PLACES_SOURCES.md §0.3 / §4.
-  const roster = [
-    'Honeymoon Island State Park',
-    'Caladesi Island State Park',
-    'Fort De Soto',
-    'Weedon Island Preserve',   // county GIS spells it "Weeden" — comparator must tolerate
-    'Davis Islands dog park beach', // the Tampa pair may ship as two adjacent records
-  ];
-  const rosterMatches = (rosterName) => {
-    const rTokens = nameTokens(rosterName);
-    return places.filter((p) => tolerantJaccard(rTokens, nameTokens(p.name)) >= 0.5);
-  };
-  for (const r of roster) {
-    const hits = rosterMatches(r);
-    bench(hits.length >= 1, `roster "${r}": ${hits.length ? hits.map((h) => h.key).join(', ') : 'NOT FOUND'}`);
+    // ROSTER BENCHMARKS (R3 — pass by GENERATION, never hardcoding; these
+    // strings appear NOWHERE in fetch or merge code — this block is fuzzy
+    // matching against the GENERATED output only, using the same edit-tolerant
+    // comparator as the merge).
+    //
+    // ⚑R-MOON RESOLVED (Josh, 2026-06-11): "Moonlight Beach" was a
+    // misremembering — it does not exist in Tampa Bay (proven six independent
+    // ways by the R1 scouts). Josh ratified Honeymoon Island State Park as the
+    // fifth roster slot. PLACES_SOURCES.md §0.3 / §4.
+    const roster = [
+      'Honeymoon Island State Park',
+      'Caladesi Island State Park',
+      'Fort De Soto',
+      'Weedon Island Preserve',   // county GIS spells it "Weeden" — comparator must tolerate
+      'Davis Islands dog park beach', // the Tampa pair may ship as two adjacent records
+    ];
+    const rosterMatches = (rosterName) => {
+      const rTokens = nameTokens(rosterName);
+      return places.filter((p) => tolerantJaccard(rTokens, nameTokens(p.name)) >= 0.5);
+    };
+    for (const r of roster) {
+      const hits = rosterMatches(r);
+      bench(hits.length >= 1, `roster "${r}": ${hits.length ? hits.map((h) => h.key).join(', ') : 'NOT FOUND'}`);
+    }
+    // The o/e-typo benchmark also asserts the merge: county + OSM spellings of
+    // the same preserve must converge on ONE record, not two. STRICT stripped-
+    // token matching here, not the loose roster matcher — the preserve's own
+    // paddlecraft launch is a genuinely separate place, not a failed merge.
+    const weedonStripped = stripDesignators(nameTokens('Weedon Island Preserve'));
+    const weedonHits = places.filter((p) => {
+      const s = stripDesignators(nameTokens(p.name));
+      return s.length === weedonStripped.length && tolerantOverlap(weedonStripped, s) === s.length;
+    });
+    bench(weedonHits.length === 1, `roster "Weedon Island Preserve" merged to exactly ONE record: ${weedonHits.length} (${weedonHits.map((h) => h.key).join(', ')})`);
   }
-  // The o/e-typo benchmark also asserts the merge: county + OSM spellings of
-  // the same preserve must converge on ONE record, not two. STRICT stripped-
-  // token matching here, not the loose roster matcher — the preserve's own
-  // paddlecraft launch is a genuinely separate place, not a failed merge.
-  const weedonStripped = stripDesignators(nameTokens('Weedon Island Preserve'));
-  const weedonHits = places.filter((p) => {
-    const s = stripDesignators(nameTokens(p.name));
-    return s.length === weedonStripped.length && tolerantOverlap(weedonStripped, s) === s.length;
-  });
-  bench(weedonHits.length === 1, `roster "Weedon Island Preserve" merged to exactly ONE record: ${weedonHits.length} (${weedonHits.map((h) => h.key).join(', ')})`);
 
   console.log('──────────────────────────────────────────');
   console.log(`  Wrote: finder/output/${cityId}/places.json  (structured, schema v1)`);

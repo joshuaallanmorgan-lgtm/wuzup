@@ -171,6 +171,23 @@ function schemaProblems(e, i) {
 // ============================================================
 // 1) FINDER FAST-MODE — the long pole, so it runs first
 // ============================================================
+// SF-data REFUTE gap: fast mode runs with SKIP_EXTRA=1, so the per-city module
+// LOADER is never exercised by npm test — a vanished finder/sources/<cityId>/
+// dir would pass green (the loud-zero warn is console-only). Pin existence +
+// the expected roster so the miss is a test failure, not a silent data hole.
+test('per-city source-module dirs exist with their full rosters', () => {
+  const tampaDir = path.join(ROOT, 'finder', 'sources', 'tampa-bay')
+  const sfDir = path.join(ROOT, 'finder', 'sources', 'sf-east-bay')
+  assert.ok(existsSync(tampaDir), 'finder/sources/tampa-bay/ must exist (the 12 Tampa modules live there since the isolation fix)')
+  const tampaMods = readdirSync(tampaDir).filter((f) => f.endsWith('.mjs'))
+  assert.equal(tampaMods.length, 12, `tampa-bay must hold its 12 source modules (found ${tampaMods.length}: ${tampaMods.join(', ')})`)
+  assert.ok(existsSync(sfDir), 'finder/sources/sf-east-bay/ must exist')
+  const sfMods = readdirSync(sfDir).filter((f) => f.endsWith('.mjs'))
+  assert.equal(sfMods.length, 5, `sf-east-bay must hold its 5 source modules (found ${sfMods.length}: ${sfMods.join(', ')})`)
+  // the shared helpers stay at the parent (never inside a city dir)
+  assert.ok(existsSync(path.join(ROOT, 'finder', 'sources', '_shared.mjs')), '_shared.mjs stays at finder/sources/ root')
+})
+
 test('finder fast-mode: exit 0, benchmarks green, output schema-valid', { timeout: 360_000 }, async (t) => {
   // in-memory backup of everything the finder overwrites — INCLUDING the
   // committed source caches (Cohesion REFUTE finding: the fast-mode run

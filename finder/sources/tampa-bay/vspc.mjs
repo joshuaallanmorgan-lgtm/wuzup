@@ -45,8 +45,8 @@ import { chromium } from 'playwright';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { cleanText } from './_shared.mjs';
-import { cityId } from '../cities/index.mjs';
+import { cleanText } from '../_shared.mjs';
+import { cityId } from '../../cities/index.mjs';
 
 export const name = 'Visit St. Pete/Clearwater';
 
@@ -515,7 +515,7 @@ export async function fetchEvents() {
 }
 
 // ---------------------------------------------------------------------------
-// Standalone runner: node finder/sources/vspc.mjs
+// Standalone runner: node finder/sources/tampa-bay/vspc.mjs
 // ---------------------------------------------------------------------------
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

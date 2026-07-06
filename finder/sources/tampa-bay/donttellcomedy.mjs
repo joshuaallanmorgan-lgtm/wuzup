@@ -12,7 +12,7 @@
 //   <div>Saturday, June 13</div>                 ← weekday, month day (no year)
 //   <div class="font-weight-bold mb-2"> St. Petersburg - Grand Central District </div>
 //   time appears as e.g. "8:00 PM" within the card; price badge like "$30" when shown.
-import { fetchWithTimeout, cleanText } from './_shared.mjs';
+import { fetchWithTimeout, cleanText } from '../_shared.mjs';
 
 export const name = "Don't Tell Comedy";
 
@@ -118,7 +118,7 @@ export async function fetchEvents() {
   return events;
 }
 
-// CLI runner: node finder/sources/donttellcomedy.mjs
+// CLI runner: node finder/sources/tampa-bay/donttellcomedy.mjs
 import { pathToFileURL } from 'node:url';
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   fetchEvents().then((evs) => {

@@ -4,7 +4,7 @@
 // so parsing is a defensive recursive walk: collect anything event-shaped,
 // warn and return [] when nothing is found — never throw on shape surprises.
 
-import { decodeEntities, stripHtml, truncate, fetchWithTimeout } from './_shared.mjs';
+import { decodeEntities, stripHtml, truncate, fetchWithTimeout } from '../_shared.mjs';
 
 export const name = 'Meetup';
 

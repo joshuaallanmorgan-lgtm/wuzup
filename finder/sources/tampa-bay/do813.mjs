@@ -16,8 +16,8 @@
 // listing page shows zero listings. This module is a thin, correct client
 // that costs one request while dormant and revives automatically if the
 // metro is restaffed. Parser mechanics were verified against the identical
-// live schema on do312:  node finder/sources/do813.mjs https://do312.com
-import { fetchWithTimeout, cleanText } from './_shared.mjs';
+// live schema on do312:  node finder/sources/tampa-bay/do813.mjs https://do312.com
+import { fetchWithTimeout, cleanText } from '../_shared.mjs';
 
 export const name = 'Do813';
 
@@ -132,7 +132,7 @@ export async function fetchEvents(base = BASE) {
   return events;
 }
 
-// CLI runner: node finder/sources/do813.mjs [baseUrl]
+// CLI runner: node finder/sources/tampa-bay/do813.mjs [baseUrl]
 // Pass a sibling metro (e.g. https://do312.com) to verify parser mechanics
 // against live data while do813 is dormant. fetchEvents() in the pipeline
 // always uses do813.com.

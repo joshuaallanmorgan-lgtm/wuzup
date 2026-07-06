@@ -3,7 +3,7 @@
 // in four Tampa Bay listing pages. Listing-level startDate is often date-only; we
 // deliberately do NOT fetch detail pages (politeness + speed).
 
-import { cleanText, fetchWithTimeout } from './_shared.mjs';
+import { cleanText, fetchWithTimeout } from '../_shared.mjs';
 
 export const name = 'AllEvents';
 

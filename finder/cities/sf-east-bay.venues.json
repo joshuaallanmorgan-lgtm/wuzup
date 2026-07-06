@@ -1,0 +1,187 @@
+[
+  {
+    "canonicalName": "Bill Graham Civic Auditorium",
+    "aliases": [],
+    "lat": 37.77805,
+    "lng": -122.417308,
+    "address": "99 Grove Street, San Francisco, CA"
+  },
+  {
+    "canonicalName": "Broadway Plaza",
+    "aliases": [
+      "Vuori Broadway Plaza"
+    ],
+    "lat": 37.895592,
+    "lng": -122.05764,
+    "address": "1275 Broadway Plaza, Walnut Creek, CA"
+  },
+  {
+    "canonicalName": "Chase Center",
+    "aliases": [],
+    "lat": 37.767971,
+    "lng": -122.389465,
+    "address": "300 16th St, San Francisco, CA 94158, San Francisco, CA"
+  },
+  {
+    "canonicalName": "Children's Fairyland",
+    "aliases": [],
+    "lat": 37.808686,
+    "lng": -122.260195,
+    "address": "699 Bellevue, Oakland, CA, 94610"
+  },
+  {
+    "canonicalName": "Civic Center Plaza",
+    "aliases": [
+      "Civic Center Plaza, San Francisco, CA"
+    ],
+    "lat": 37.779484,
+    "lng": -122.417385,
+    "address": "335 McAllister St, San Francisco, CA"
+  },
+  {
+    "canonicalName": "Civic Park East",
+    "aliases": [],
+    "lat": 37.90287,
+    "lng": -122.059467,
+    "address": "1375 Civic Drive, Walnut Creek, CA"
+  },
+  {
+    "canonicalName": "Davies Symphony Hall",
+    "aliases": [],
+    "lat": 37.777611,
+    "lng": -122.420624,
+    "address": "201 Van Ness Ave., San Francisco, CA 94102, San Francisco, CA"
+  },
+  {
+    "canonicalName": "Fox Theater - Oakland",
+    "aliases": [
+      "Fox Theater Oakland",
+      "Fox Theater"
+    ],
+    "lat": 37.807999,
+    "lng": -122.270274,
+    "address": "1807 Telegraph Ave, Oakland, CA, 94612"
+  },
+  {
+    "canonicalName": "Freight & Salvage",
+    "aliases": [
+      "The Freight"
+    ],
+    "lat": 37.87085,
+    "lng": -122.269585,
+    "address": "2020 Addison St, Berkeley, CA"
+  },
+  {
+    "canonicalName": "Greek Theatre - Berkeley",
+    "aliases": [
+      "The Greek Theatre at U.C. Berkeley",
+      "The William Randolph Hearst Greek Theatre at UC Berkeley",
+      "Greek Theatre Berkeley",
+      "Greek Theater",
+      "Greek Theatre - U.C. Berkeley",
+      "Greek Theatre-U.C. Berkeley"
+    ],
+    "lat": 37.873615,
+    "lng": -122.25444,
+    "address": "2001 Gayley Road, Berkeley, CA 94720, Berkeley, CA"
+  },
+  {
+    "canonicalName": "Mosswood Park",
+    "aliases": [],
+    "lat": 37.81419,
+    "lng": -122.265347,
+    "address": "3612 Webster St,Oakland, California, Oakland, CA"
+  },
+  {
+    "canonicalName": "Oakland Arena",
+    "aliases": [
+      "Oakland Arena & Coliseum",
+      "Oakland Arena and Oakland-Alameda County Coliseum",
+      "Oakland Arena - Oakland, CA"
+    ],
+    "lat": 37.750301,
+    "lng": -122.203003,
+    "address": "7000 Coliseum Way, Oakland, CA 94621, Oakland, CA"
+  },
+  {
+    "canonicalName": "Oracle Park",
+    "aliases": [],
+    "lat": 37.778595,
+    "lng": -122.389267,
+    "address": "24 Willie Mays Plaza, San Francisco, CA"
+  },
+  {
+    "canonicalName": "Raimondi Park",
+    "aliases": [],
+    "lat": 37.81621,
+    "lng": -122.294097,
+    "address": "1800 Wood St, Oakland, CA, 94607"
+  },
+  {
+    "canonicalName": "San Francisco Ferry Building",
+    "aliases": [
+      "Ferry Building"
+    ],
+    "lat": 37.795443,
+    "lng": -122.393614,
+    "address": "1 Ferry Building, San Francisco, CA"
+  },
+  {
+    "canonicalName": "SF Masonic Auditorium",
+    "aliases": [
+      "The Masonic",
+      "The Masonic - San Francisco"
+    ],
+    "lat": 37.791302,
+    "lng": -122.413116,
+    "address": "1111 California St, San Francisco, CA 94108, San Francisco, CA"
+  },
+  {
+    "canonicalName": "The Gardens at Lake Merritt",
+    "aliases": [
+      "Gardens at Lake Merritt"
+    ],
+    "lat": 37.805637,
+    "lng": -122.258034,
+    "address": "568 Bellevue Ave, Oakland, CA, 94610"
+  },
+  {
+    "canonicalName": "The Phoenix Hotel",
+    "aliases": [
+      "Phoenix Hotel"
+    ],
+    "lat": 37.783009,
+    "lng": -122.418031,
+    "address": "601 Eddy St., San Francisco, CA, 94109"
+  },
+  {
+    "canonicalName": "The UC Theatre",
+    "aliases": [],
+    "lat": 37.871799,
+    "lng": -122.269997,
+    "address": "2036 University Ave, Berkeley, CA"
+  },
+  {
+    "canonicalName": "West Edge Opera",
+    "aliases": [],
+    "lat": 37.802886,
+    "lng": -122.262354,
+    "address": "1547 Lakeside Dr,, Oakland, CA, 94612"
+  },
+  {
+    "canonicalName": "Yerba Buena Gardens",
+    "aliases": [],
+    "lat": 37.784988,
+    "lng": -122.402351,
+    "address": "750 Howard Street, San Francisco, CA, 94103"
+  },
+  {
+    "canonicalName": "Yoshi's Oakland",
+    "aliases": [
+      "Yoshi's Oakland -Jack London square"
+    ],
+    "lat": 37.796093,
+    "lng": -122.278717,
+    "address": "510 Embarcadero West,Oakland, California, Oakland, CA"
+  }
+]

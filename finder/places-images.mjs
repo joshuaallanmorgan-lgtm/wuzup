@@ -150,6 +150,16 @@ const titleMatchesName = (fileTitle, toks) => {
 // "Bonnet Springs"). The bar: precision over coverage.
 // the canonical gazetteer comes from the active city config (cities/) — one source.
 const AREA = new Set(area.split(' '));
+// FAIL-CLOSED GEOSEARCH GATE (Stage D sf-events; the imagery lock's fail-OPEN
+// class): an EMPTY gazetteer does not fail safe in phraseAreaOnly() below — it
+// fails OPEN (no phrase is ever "area-only", so a generic "San Francisco" /
+// "Lake Merritt" geotag counts as a strong of-the-place name-match and ships
+// wrong photos — the exact false-positive class the Phase-1.1 Tampa cleanup
+// fixed). The sf-east-bay config documents this ban; this constant ENFORCES
+// it: no reviewed gazetteer → ladder 2 (Commons geosearch) never runs and the
+// city stays on Wikidata-P18 + the Aurora art floor. Tampa's gazetteer is
+// populated, so its code path is unchanged.
+const GEOSEARCH_ENABLED = area.trim().length > 0;
 // the N-word phrases of a place name (contiguous), skipping leading/trailing 1-char
 // fragments and (for 2-word) all-generic pairs ("state park") that carry no signal.
 const namePhrases = (name, n) => {
@@ -450,8 +460,14 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
 
     // ── ladder 2: Commons GEOSEARCH + name-match (the big outdoor win) — only if
     //    the Q-id step didn't ship. Runs over EVERY place with coords + a name;
-    //    the name-match HARD GATE inside makes "near" → "of". Place-keyed cache. ──
-    if (!shippable(rec) && hasCoords && p.name) {
+    //    the name-match HARD GATE inside makes "near" → "of". Place-keyed cache.
+    //    GEOSEARCH_ENABLED: fail-closed when the city's AREA gazetteer is empty
+    //    (see the gate note above) — the whole ladder is skipped, loudly, once. ──
+    if (!GEOSEARCH_ENABLED && !stats.geoBanned) {
+      stats.geoBanned = true;
+      log(`  ⛔ Commons geosearch (ladder 2) DISABLED for '${cityId}': AREA gazetteer is empty/unreviewed (fail-closed — Wikidata P18 + art floor only)`);
+    }
+    if (GEOSEARCH_ENABLED && !shippable(rec) && hasCoords && p.name) {
       stats.geoTried++;
       const gkey = p.key || `${p.lat},${p.lng}`;
       const gcached = geoCache.byKey[gkey];

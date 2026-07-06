@@ -29,3 +29,11 @@ export const {
   tz, bbox, bboxOverpass, bboxArcgisEnvelope, geocodeViewbox, geocode,
   govOrder, touristCentroids, area, qidDeny, cafe, imagery, rosterBenchmark, meta,
 } = mod;
+// Optional per-city categorization priors (venuePriors + sourceCategory —
+// see sf-east-bay.mjs). A city without the export (Tampa: its priors still
+// live as finder.mjs literals) gets empty defaults — behavior unchanged.
+export const priors = {
+  venuePriors: [],
+  sourceCategory: {},
+  ...(mod.priors || {}),
+};

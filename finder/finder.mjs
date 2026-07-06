@@ -3,7 +3,7 @@
 // What it does: fetches a list of free local event sources, pulls out their
 // schema.org/Event data (the machine-readable JSON-LD that sites embed for Google),
 // optionally pulls render-scraped sources (render.mjs — Creative Loafing etc.),
-// loads every self-contained source module in finder/sources/*.mjs,
+// loads every self-contained source module in finder/sources/<cityId>/*.mjs,
 // fuzzy-merges duplicates across sources into a "buzz" signal, tags and scores
 // every event, and writes the result to output/<cityId>/ (D1 multi-tenant
 // artifacts — see STAGE_D.md).
@@ -18,7 +18,7 @@
 import { writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
-import { bbox as TB_BOX, geocodeViewbox, tz as CITY_TZ, geocode as CITY_GEO, cityId } from './cities/index.mjs';
+import { bbox as TB_BOX, geocodeViewbox, tz as CITY_TZ, geocode as CITY_GEO, cityId, meta as CITY_META, priors as CITY_PRIORS } from './cities/index.mjs';
 import { PRODUCT_UA } from './ua.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -1372,7 +1372,14 @@ export function categorize(e) {
   for (const [cat, re] of VENUE_TYPE_PRIORS) {
     if (re.test(venue)) return cat;
   }
-  const hinted = SOURCE_CATEGORY[familyOf(e.source)];
+  // City-config venue priors (cities/<id>.mjs `priors.venuePriors`) — the
+  // per-city half of the last-resort tier (Tampa's rows are the literals
+  // above; a config without the export contributes nothing here).
+  for (const [cat, re] of CITY_PRIORS.venuePriors) {
+    if (re.test(venue)) return cat;
+  }
+  const fam = familyOf(e.source);
+  const hinted = SOURCE_CATEGORY[fam] || CITY_PRIORS.sourceCategory[fam];
   return hinted || 'other';
 }
 
@@ -1736,7 +1743,7 @@ async function auditImages(events) {
 }
 
 async function main() {
-  console.log('\n🔎 Tampa Bay Event Finder — pulling real events from free sources...\n');
+  console.log(`\n🔎 ${CITY_META.name} Event Finder — pulling real events from free sources...\n`);
   const all = [];
   const report = [];
   let onlineDropped = 0;
@@ -1745,6 +1752,11 @@ async function main() {
   for (const src of SOURCES) {
     const cacheFile = join(CACHE, slugify(src.name) + '.json');
     try {
+      // Optional per-source politeness gap (manifest `waitMs`): the SF
+      // manifest paces its Eventbrite pages — cold bursts from a fresh IP get
+      // rate-limited before the first byte (STAGE_D_SF_EVENTS.md gotcha 3).
+      // Tampa's manifest carries no waitMs, so its behavior is unchanged.
+      if (src.waitMs) await sleep(src.waitMs);
       const html = await fetchHtml(src.url);
       const blocks = ldJsonBlocks(html);
       const nodes = [];
@@ -1792,27 +1804,34 @@ async function main() {
 
   // Render-scraped sources (teammate's render.mjs — Creative Loafing etc.).
   // It may not exist yet and handles its own caching/failures — never let it
-  // break the static pipeline.
+  // break the static pipeline. CITY-GATED (Stage D module-isolation hazard):
+  // render.mjs declares the city it scrapes for (`export const city`) — a
+  // run for any OTHER city must never launch it (cltampa events are Tampa
+  // data; shipping them in another city's file is the F1 hazard again).
   let renderOk = false;
   try {
     if (process.env.SKIP_RENDER !== '1') {
-      const { scrapeRenderSources } = await import('./render.mjs');
-      const rEvents = await scrapeRenderSources();
-      const mapped = (Array.isArray(rEvents) ? rEvents : [])
-        .map(normalizeRenderEvent)
-        .filter((e) => e && e.title && e.start);
-      // Venue-conflict guard: ship NO location rather than a wrong one.
-      for (const e of mapped) {
-        if (venueConflict(e)) {
-          console.log(`  🧭 venue conflict — dropped location on "${e.title}" (venue "${e.venue}" vs description)`);
-          e.venue = null;
-          e.address = null;
+      const renderMod = await import('./render.mjs');
+      if (renderMod.city && renderMod.city !== cityId) {
+        console.log(`  ⏭️  ${'Render sources'.padEnd(26)} skipped (render.mjs is ${renderMod.city}-only; CITY=${cityId})`);
+      } else {
+        const rEvents = await renderMod.scrapeRenderSources();
+        const mapped = (Array.isArray(rEvents) ? rEvents : [])
+          .map(normalizeRenderEvent)
+          .filter((e) => e && e.title && e.start);
+        // Venue-conflict guard: ship NO location rather than a wrong one.
+        for (const e of mapped) {
+          if (venueConflict(e)) {
+            console.log(`  🧭 venue conflict — dropped location on "${e.title}" (venue "${e.venue}" vs description)`);
+            e.venue = null;
+            e.address = null;
+          }
         }
+        all.push(...mapped);
+        renderOk = true;
+        report.push({ source: 'Render sources', found: mapped.length, ok: true });
+        console.log(`  ✅ ${'Render sources'.padEnd(26)} ${mapped.length} events`);
       }
-      all.push(...mapped);
-      renderOk = true;
-      report.push({ source: 'Render sources', found: mapped.length, ok: true });
-      console.log(`  ✅ ${'Render sources'.padEnd(26)} ${mapped.length} events`);
     } else {
       console.log(`  ⏭️  ${'Render sources'.padEnd(26)} skipped (SKIP_RENDER=1)`);
     }
@@ -1820,18 +1839,29 @@ async function main() {
     console.log(`  ⚠️  ${'Render sources'.padEnd(26)} unavailable (${e.message || e}) — continuing without them`);
   }
 
-  // Self-contained source modules (finder/sources/*.mjs). Each exports
-  // { name, fetchEvents } and gets the same per-source resilience as the
-  // static sources: cache on success, fall back to cache, else skip.
+  // Self-contained source modules (finder/sources/<cityId>/*.mjs). Each
+  // exports { name, fetchEvents } and gets the same per-source resilience as
+  // the static sources: cache on success, fall back to cache, else skip.
+  //
+  // PER-CITY DIRS (Stage D module-isolation hazard): source modules are CITY
+  // DATA, exactly like the sources manifest — a flat finder/sources/*.mjs
+  // auto-discovery ran Tampa's 12 modules for EVERY city, and since events
+  // are not bbox-dropped (out-of-box coords are nulled, events kept), an SF
+  // run would have shipped Tampa events labeled SF. The loader resolves ONLY
+  // finder/sources/<cityId>/; a missing/empty dir is zero modules, loudly
+  // logged ("_"-prefixed helpers like ../_shared.mjs stay at the parent level).
   const moduleNames = [];
   if (process.env.SKIP_EXTRA !== '1') {
-    const srcDir = join(HERE, 'sources');
+    const srcDir = join(HERE, 'sources', cityId);
     let files = [];
     try {
-      // "_"-prefixed files are shared helpers (e.g. _shared.mjs), not sources.
+      // "_"-prefixed files are shared helpers, not sources.
       files = readdirSync(srcDir).filter((f) => f.endsWith('.mjs') && !f.startsWith('_')).sort();
     } catch {
-      // no sources/ directory — nothing to load
+      // no per-city sources dir — nothing to load (warned below)
+    }
+    if (!files.length) {
+      console.warn(`  ⚠️  ${'Extra source modules'.padEnd(26)} NONE for city '${cityId}' (finder/sources/${cityId}/ missing or empty)`);
     }
     for (const file of files) {
       const modBase = file.replace(/\.mjs$/, '');
@@ -2239,7 +2269,9 @@ async function main() {
   // events are listed by hotScore descending so the 1,000-event library flood
   // doesn't drown the cool stuff (nothing is hidden — just ordered).
   const allSourceNames = [...SOURCES.map((s) => s.name), ...moduleNames];
-  let md = `# Tampa Bay Events — found ${events.length} real events\n\n`;
+  // City name from the active config — byte-identical for Tampa (meta.name
+  // is 'Tampa Bay'), honest for every other city's artifact.
+  let md = `# ${CITY_META.name} Events — found ${events.length} real events\n\n`;
   md += `_Generated ${new Date().toLocaleString('en-US', { timeZone: CITY_TZ })} · sources: ${allSourceNames.join(', ')}${renderOk ? ' + render' : ''}_\n\n`;
   md += `## Summary\n\n`;
   md += `- Tonight: ${counts.tonight}\n`;
@@ -2316,7 +2348,7 @@ async function main() {
   console.log(`    ${counts.free >= 15 ? '✅' : '❌'} free events: ${counts.free} (need >= 15)`);
   console.log(`    ${counts.buzz2 >= 3 ? '✅' : '❌'} events with buzz >= 2: ${counts.buzz2} (need >= 3 — merge works, family-collapsed)`);
   console.log(`    ${counts.gems >= 5 && counts.gems <= GEM_CAP ? '✅' : '❌'} hidden gems: ${counts.gems} (need 5..${GEM_CAP} — curated shelf)`);
-  console.log(`    ${outOfBox === 0 ? '✅' : '❌'} coords outside Tampa Bay box: ${outOfBox} (need 0)`);
+  console.log(`    ${outOfBox === 0 ? '✅' : '❌'} coords outside ${CITY_META.name} box: ${outOfBox} (need 0)`);
   const junkHourCount = events.filter((e) => {
     const h = startHourOf(e.start);
     return e.category !== 'nightlife' && h !== null && h >= 1 && h <= 5;
@@ -2332,24 +2364,28 @@ async function main() {
   const libraryCount = events.filter((e) =>
     (e.sources || []).some((s) => /librar/i.test(String(s)))).length;
   console.log(`    📚 library records in output: ${libraryCount} (was 207 pre-merge-fix; expect ~440+ on a full run — 0/low is normal with SKIP_EXTRA=1)`);
-  const redBull = events.find((e) => /cliff diving|red bull/i.test(e.title));
-  console.log(`    ${redBull ? '👀 present: "' + redBull.title + '"' : '✅ absent'} — Red Bull Cliff Diving (legacy canary — event ended 6/6, expected absent)`);
-  // Hidden-event-class benchmark (Josh, 2026-06-10): Don't Tell Comedy sells
-  // secret-location shows only through its own site — if we stop catching them,
-  // the "hidden events" differentiation has regressed. Skipped in fast mode
-  // (the module loader is what produces them).
-  if (process.env.SKIP_EXTRA !== '1') {
-    const dtc = events.filter((e) => /don'?t tell comedy/i.test(e.title));
-    console.log(`    ${dtc.length ? '✅' : '❌'} Don't Tell Comedy secret shows captured: ${dtc.length} (need >= 1 — hidden-event class)`);
-  }
-  // Sprint L data-v3 checks.
-  const vspcTimed = events.filter((e) =>
-    (e.sources || []).some((s) => familyOf(s) === 'Visit St. Pete/Clearwater') &&
-    /T\d{2}:/.test(String(e.start))).length;
-  if (process.env.SKIP_RENDER === '1' && vspcTimed < 10) {
-    console.log(`    ⚠️  VSPC events with a real start time: ${vspcTimed} (enrichment needs a render run)`);
-  } else {
-    console.log(`    ${vspcTimed >= 10 ? '✅' : '❌'} VSPC events with a real start time: ${vspcTimed} (need >= 10 — detail-page enrichment)`);
+  // CITY-SCOPED benchmarks (Tampa sources/canaries — running them for
+  // another city prints false ❌s about sources that can never appear there).
+  if (cityId === 'tampa-bay') {
+    const redBull = events.find((e) => /cliff diving|red bull/i.test(e.title));
+    console.log(`    ${redBull ? '👀 present: "' + redBull.title + '"' : '✅ absent'} — Red Bull Cliff Diving (legacy canary — event ended 6/6, expected absent)`);
+    // Hidden-event-class benchmark (Josh, 2026-06-10): Don't Tell Comedy sells
+    // secret-location shows only through its own site — if we stop catching them,
+    // the "hidden events" differentiation has regressed. Skipped in fast mode
+    // (the module loader is what produces them).
+    if (process.env.SKIP_EXTRA !== '1') {
+      const dtc = events.filter((e) => /don'?t tell comedy/i.test(e.title));
+      console.log(`    ${dtc.length ? '✅' : '❌'} Don't Tell Comedy secret shows captured: ${dtc.length} (need >= 1 — hidden-event class)`);
+    }
+    // Sprint L data-v3 checks.
+    const vspcTimed = events.filter((e) =>
+      (e.sources || []).some((s) => familyOf(s) === 'Visit St. Pete/Clearwater') &&
+      /T\d{2}:/.test(String(e.start))).length;
+    if (process.env.SKIP_RENDER === '1' && vspcTimed < 10) {
+      console.log(`    ⚠️  VSPC events with a real start time: ${vspcTimed} (enrichment needs a render run)`);
+    } else {
+      console.log(`    ${vspcTimed >= 10 ? '✅' : '❌'} VSPC events with a real start time: ${vspcTimed} (need >= 10 — detail-page enrichment)`);
+    }
   }
   console.log(`    ${venueTable ? '✅' : '❌'} venue table loaded: ${venueTable ? venueTable.size : 0} canonical venues, ${venuesCanonicalized} listings rewritten`);
   console.log(`    🖼️  ongoing-exhibit occurrences folded: ${exhibitsFolded} (cross-source, cross-day)`);
