@@ -30,7 +30,7 @@
 /* A5: 30→24, a tasteful identity glyph beside the title, not a dominant sticker */
 .bub-emoji { flex: 0 0 auto; font-size: 24px; line-height: 1; }
 /* playful one-liner, dyed in the bubble's hue (darkened for contrast on --bg) */
-.bub-tag { margin-top: 7px; font-size: var(--t-meta); font-weight: 600; color: hsl(var(--bh, 200), 45%, 32%); }
+.bub-tag { margin-top: 7px; font-size: var(--t-meta); font-weight: 600; color: hsl(var(--bh, 200), 45%, 32%); } /* dark variant at file end (Stage E) */
 /* 3.75: a GuidePage's "Plan a day around this" — dark ink on Sunset Gold (AA) */
 .guide-plan-cta {
   display: inline-flex;
@@ -234,3 +234,14 @@
 
 /* WS3 §9: the engineered pin in the locate CTA (was the 📍 chrome emoji) */
 .bub-locate-btn .btn-ic { width: 14px; height: 14px; vertical-align: -2.5px; margin-right: 2px; }
+
+/* ===== Stage E dark mode (bubble/search-scope): the hue-dyed tagline was
+   darkened-for-cream (L32 vanishes on dark) — re-lightened in the dark band,
+   hue untouched (hsl(h 45% 72%) on the dark --bg ≥7.45:1 across the wheel).
+   The gold fill is mode-INVARIANT, so its "dark ink on gold" contract must
+   not ride --ink (which flips to cream — 2.02:1 on gold): pin the warm
+   charcoal literal (7.89:1 on --accent). ===== */
+@media (prefers-color-scheme: dark) {
+  .bub-tag { color: hsl(var(--bh, 200), 45%, 72%); }
+  .srch-tab.on { color: #1a1410; } /* ink-on-gold pin — the light --ink hex, deliberately literal */
+}

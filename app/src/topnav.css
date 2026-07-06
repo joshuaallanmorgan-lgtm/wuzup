@@ -108,7 +108,7 @@
   max-height: 72svh;
   /* 3.7P-1: frosted glass — the sheet floats over a blurred backdrop (elite). The
      rgba cream is the no-backdrop-filter fallback; reduced-transparency resets it. */
-  background: rgba(250, 248, 245, 0.82);
+  background: rgba(var(--sheet-rgb), 0.82); /* Stage E dark seam: 250,248,245 = --sheet-rgb (byte-inert); dark = warm-dark frosted glass */
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-radius: var(--r-xl) var(--r-xl) 0 0;

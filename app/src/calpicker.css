@@ -39,10 +39,10 @@
   background: rgba(var(--cta-rgb), 0.07);
 }
 .calpick-row.is-cur .calpick-row-ic,
-.calpick-row.is-cur .calpick-row-label { color: var(--cta); }
+.calpick-row.is-cur .calpick-row-label { color: var(--cta-ink); } /* Stage E dark seam */
 /* the Full-calendar row — quietly distinct (a door, not a date) */
 .calpick-full .calpick-row-label { font-weight: 700; }
-.calpick-full .calpick-row-ic { color: var(--cta); }
+.calpick-full .calpick-row-ic { color: var(--cta-ink); } /* Stage E dark seam */
 
 /* ===== the Full-calendar month grid ===== */
 .calpick-grid-wrap {

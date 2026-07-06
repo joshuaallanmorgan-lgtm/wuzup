@@ -12,8 +12,10 @@
   position: relative;
   overflow: hidden;
   /* PREMIUM A4 (motion#12): a warm light placeholder (was #241c15) so a loading
-     photo settles UP from cream — no dark flash. The art floor sets its own bg. */
-  background: #e9e2d9;
+     photo settles UP from cream — no dark flash. The art floor sets its own bg.
+     Stage E dark seam: tokenized (#e9e2d9 = --img-ph, byte-inert in light) so a
+     dark canvas gets no LIGHT flash either. */
+  background: var(--img-ph);
 }
 /* WS3 (loading states): while a REAL photo is still loading, the imgbox runs
    the established .skel shimmer (--skel-lo/hi) so loading thumbs read as
@@ -39,7 +41,7 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  box-shadow: inset 0 0 0 1px rgba(26, 20, 16, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(var(--ink-rgb), 0.06); /* Stage E dark seam: the hairline frame follows the ink (byte-inert in light; a light frame on dark) */
   pointer-events: none;
 }
 .imgbox-img {
@@ -817,7 +819,7 @@
   max-width: 360px;
   padding: 11px 18px;
   border-radius: var(--r-pill);
-  background: rgba(26, 20, 16, 0.92);
+  background: rgba(var(--ink-rgb), 0.92); /* Stage E dark seam (byte-inert in light; dark inverts the toast — see the dark block below) */
   color: #fff;
   font-size: var(--t-meta);
   font-weight: 700;
@@ -864,6 +866,30 @@
 .skel-w45 { width: 45%; }
 .skel-chips { display: flex; gap: 6px; margin-top: 4px; }
 .skel-chip { width: 52px; height: 20px; border-radius: var(--r-pill); }
+
+/* ===== Stage E dark mode (card-scope) — the pale identity tints assumed the
+   cream canvas; on dark they'd glare like stickers. Same hue variables, the
+   lightness/saturation re-seated in the dark band (the hue math in artseed.js /
+   categories.js is untouched — S/L live in CSS by design, the WS4 lesson).
+   Ratios: catchip text hsl(h 70% 78%) on hsl(h 45% 22%) ≥6.50:1 across the hue
+   wheel (worst h=0/280). The aurora field itself already lives mid-dark and
+   keeps its vignette/grain — verified live, untouched. ===== */
+@media (prefers-color-scheme: dark) {
+  .intent-tile-emoji {
+    background: hsl(var(--ih, 30) 32% 26%);
+    box-shadow: inset 0 0 0 1px hsl(var(--ih, 30) 30% 38%);
+  }
+  .featc-medallion { background: hsl(var(--mh, 28) 30% 24%); }
+  .spotcard--row .spotcard-medallion {
+    background: hsl(var(--mh, 28) 30% 24%);
+    box-shadow: inset 0 0 0 1px hsl(var(--mh, 28) 26% 36%);
+  }
+  /* the 3.7P-25 #5f574e was AA-derived for retired light gradients; on dark the
+     plain --muted clears 6.79:1 on the card tile */
+  .intent-tile-pov { color: var(--muted); }
+  /* toast inversion (pairs with the ink-rgb glass above): canvas-colored text */
+  .card-toast { color: var(--bg); }
+}
 
 /* ===== reduced motion (card-scope) ===== */
 @media (prefers-reduced-motion: reduce) {

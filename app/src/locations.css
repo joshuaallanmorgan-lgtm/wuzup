@@ -400,11 +400,11 @@
   color: var(--muted);
 }
 .loc-plan-slot.on {
-  border-color: var(--cta);
+  border-color: var(--cta-ink); /* Stage E dark seam */
   background: rgba(var(--cta-rgb), 0.06);
 }
 .loc-plan-slot.on .loc-plan-slot-label {
-  color: var(--cta);
+  color: var(--cta-ink); /* Stage E dark seam */
 }
 .loc-plan-add {
   display: block;
@@ -433,4 +433,13 @@
   .loc-plan-cta:active,
   .detail-share:active,
   .loc-plan-add:not(:disabled):active { transform: none; }
+}
+
+/* ===== Stage E dark mode (locations-scope): the ink-on-gold day pill pins the
+   warm charcoal (the fill is mode-invariant; cream ink would read 2.02:1), and
+   the action bar's warm-ink up-shadow — invisible against a dark canvas — is
+   re-thrown in black (same geometry). ===== */
+@media (prefers-color-scheme: dark) {
+  .loc-plan-day.on { color: #1a1410; } /* ink-on-gold pin (7.89:1 on --accent) */
+  .detail-actionbar { box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.45); }
 }

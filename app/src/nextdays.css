@@ -81,9 +81,9 @@
   font-size: var(--t-micro);
   font-weight: 700;
   letter-spacing: 0;
-  color: var(--cta);
+  color: var(--cta-ink); /* Stage E dark seam: ghost CTA = accent TEXT ink (same hex in light; gold on dark — the fill hex reads 3.55:1 there) */
   background: transparent;
-  border: 1.5px solid var(--cta);
+  border: 1.5px solid var(--cta-ink);
   border-radius: var(--r-sm);
   padding: 4.5px 10.5px; /* 1.5px less each side to compensate for the border */
 }
@@ -97,4 +97,15 @@
   width: 18px;
   height: 18px;
   transform: rotate(180deg); /* Icon.chevron points back/left; flip to a forward cue */
+}
+
+/* ===== Stage E dark mode: the pale condition-disc tints assumed cream — the
+   same four conditions re-seated in the dark band (hues untouched, per the
+   WS3 ⚑ Charles note "hues tunable, keep AA"). COMPUTED glyph-on-disc pairs:
+   sun 6.52:1 · cloud 5.65:1 · rain 6.21:1 · storm 6.08:1 (wcag-dark.mjs). */
+@media (prefers-color-scheme: dark) {
+  .nd-wx--sun { background: hsl(42 45% 22%); color: hsl(42 90% 70%); }
+  .nd-wx--cloud { background: hsl(35 14% 24%); color: hsl(35 16% 74%); }
+  .nd-wx--rain { background: hsl(205 35% 22%); color: hsl(205 60% 74%); }
+  .nd-wx--storm { background: hsl(250 24% 25%); color: hsl(250 40% 78%); }
 }
