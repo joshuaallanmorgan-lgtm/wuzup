@@ -125,7 +125,10 @@ function Shell() {
     let on = true
     let timer
     const load = (attempt) => {
-      fetch('/events.json')
+      // Stage E base-path: BASE_URL-relative, never root-absolute — under a
+      // subpath deployment (GitHub Pages /cj/) '/events.json' 404s. Vite
+      // statically folds this to '/events.json' at the default base (no-op).
+      fetch(import.meta.env.BASE_URL + 'events.json')
         .then((r) => {
           if (!r.ok) throw new Error('http ' + r.status)
           const lm = Date.parse(r.headers.get('last-modified') || '')

@@ -1280,6 +1280,87 @@ test('Stage D sf-app: VITE_CITY=sf-east-bay builds — title + manifest carry th
   }
 })
 
+// Stage E deploy-infra — base-path safety, the SOURCE pin. GitHub Pages serves
+// the app under /cj/ (Tampa) and /cj/sf/ (SF); a root-absolute '/events.json'
+// fetch 404s there. Every runtime data fetch must ride import.meta.env.BASE_URL
+// (which vite statically folds back to the identical root-absolute literal at
+// the default base — the default build is byte-identical, verified at land).
+test('Stage E base-path: no root-absolute fetch literals in app/src — data fetches ride BASE_URL', () => {
+  const srcDir = path.join(ROOT, 'app', 'src')
+  const files = readdirSync(srcDir).filter((f) => /\.(js|jsx)$/.test(f))
+  const offenders = []
+  for (const f of files) {
+    if (/fetch\(\s*['"`]\//.test(readFileSync(path.join(srcDir, f), 'utf8'))) offenders.push(f)
+  }
+  assert.deepEqual(offenders, [],
+    `root-absolute fetch literal(s) in app/src — these 404 under a subpath deployment: ${offenders.join(', ')}`)
+  // the three data artifacts are fetched BASE_URL-relative (the folding pattern)
+  for (const [f, artifact] of [['App.jsx', 'events.json'], ['places.js', 'places.json'], ['guides.js', 'guides.json']]) {
+    const src = readFileSync(path.join(srcDir, f), 'utf8')
+    assert.ok(src.includes(`+ '${artifact}'`) && src.includes('import.meta.env'),
+      `${f} must fetch ${artifact} via import.meta.env BASE_URL + '${artifact}'`)
+  }
+  // the data-embedded /place-img/ crop paths get rebased in normalizePlace —
+  // the ONE choke point every consumer (cards/detail/attribution/saved
+  // snapshots) flows through
+  const placesSrc = readFileSync(path.join(srcDir, 'places.js'), 'utf8')
+  assert.ok(placesSrc.includes('p.image = BASE + p.image.slice(1)'),
+    'places.js normalizePlace must rebase root-absolute image paths onto BASE (the /place-img/ crops ship root-absolute in the data)')
+})
+
+// Stage E deploy-infra — the BASE_PATH build itself. Builds once with
+// BASE_PATH=/cj/ (exactly what the Pages deploy workflow ships for Tampa) into
+// a scratch outDir and pins every base-path surface that has ever escaped:
+// index.html links (the plugin-emitted manifest href was vite-invisible), the
+// manifest's OWN start_url/scope/icons (raw asset — vite never rewrites its
+// internals), the CSS @font-face public URL, and the folded fetch literals in
+// the bundle. Cheap by measurement (rolldown builds in ~0.3s).
+test('Stage E base-path: BASE_PATH=/cj/ build rebases every runtime surface', { timeout: 300_000 }, async (t) => {
+  startAppChecks()
+  await buildP // never overlap another vite run
+  const outDir = mkdtempSync(path.join(tmpdir(), 'wuzup-basepath-build-'))
+  try {
+    const r = await collect(
+      spawn(`npm --prefix app run build -- --outDir "${outDir}" --emptyOutDir`, {
+        cwd: ROOT,
+        shell: true,
+        env: { ...process.env, BASE_PATH: '/cj/' },
+      })
+    )
+    t.diagnostic(`BASE_PATH build took ${r.secs}s`)
+    assert.equal(r.code, 0, `BASE_PATH=/cj/ build failed (exit ${r.code}):\n${tail(r.out)}`)
+    // index.html: every ref base-prefixed, none left at the root
+    const html = readFileSync(path.join(outDir, 'index.html'), 'utf8')
+    for (const ref of ['href="/cj/favicon.svg"', 'href="/cj/manifest.webmanifest"', 'href="/cj/apple-touch-icon.png"']) {
+      assert.ok(html.includes(ref), `index.html must carry ${ref}`)
+    }
+    assert.ok(!/(href|src)="\/(?!cj\/)/.test(html),
+      'index.html carries a root-absolute href/src outside /cj/ — a base-path escapee')
+    // the manifest's internals (raw asset — vite rewrites nothing inside it)
+    const manifest = JSON.parse(readFileSync(path.join(outDir, 'manifest.webmanifest'), 'utf8'))
+    assert.equal(manifest.start_url, '/cj/', 'manifest start_url must be the base')
+    assert.equal(manifest.scope, '/cj/', 'manifest scope must be the base')
+    for (const icon of manifest.icons) {
+      assert.ok(icon.src.startsWith('/cj/icons/'), `manifest icon ${icon.src} must be base-prefixed`)
+    }
+    // the @font-face public URL in the emitted CSS
+    const assets = readdirSync(path.join(outDir, 'assets'))
+    const css = readFileSync(path.join(outDir, 'assets', assets.find((f) => f.endsWith('.css'))), 'utf8')
+    assert.ok(css.includes('url(/cj/fonts/inter-var-latin.woff2)'), 'the CSS @font-face URL must be base-prefixed')
+    assert.ok(!css.includes('url(/fonts/'), 'the CSS still carries a root-absolute /fonts/ URL')
+    // the folded fetch literals in the app bundle
+    const bundle = assets.filter((f) => f.startsWith('index-') && f.endsWith('.js'))
+      .map((f) => readFileSync(path.join(outDir, 'assets', f), 'utf8')).join('\n')
+    for (const a of ['events.json', 'places.json', 'guides.json']) {
+      const esc = a.replace('.', '\\.')
+      assert.ok(new RegExp(`fetch\\((['"\`])/cj/${esc}\\1\\)`).test(bundle), `bundle must fetch /cj/${a}`)
+      assert.ok(!new RegExp(`fetch\\((['"\`])/${esc}\\1\\)`).test(bundle), `bundle still fetches root-absolute /${a}`)
+    }
+  } finally {
+    rmSync(outDir, { recursive: true, force: true })
+  }
+})
+
 // ============================================================
 // 5) PURE-LOGIC UNITS — app/src modules imported straight into Node
 //    (lib/taste/weekend are deliberately JSX-free; localStorage access is

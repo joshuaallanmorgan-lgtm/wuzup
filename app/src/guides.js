@@ -166,7 +166,11 @@ export function loadGuides() {
   if (_ginflight) return _ginflight
   _gstatus = 'loading'
   _gemit()
-  _ginflight = fetch('/guides.json')
+  // Stage E base-path: BASE_URL-relative fetch — root-absolute '/guides.json'
+  // 404s under a subpath deployment (GitHub Pages /cj/). The ?.-form stays
+  // Node-safe (smoke imports this module; import.meta.env is undefined there)
+  // and vite still folds it to the same '/guides.json' literal at base '/'.
+  _ginflight = fetch((import.meta.env?.BASE_URL ?? '/') + 'guides.json')
     .then((r) => (r.ok ? r.json() : Promise.reject(new Error('guides http ' + r.status))))
     .then((doc) => {
       _guides = Array.isArray(doc?.guides) ? doc.guides : []

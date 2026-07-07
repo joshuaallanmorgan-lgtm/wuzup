@@ -1,0 +1,142 @@
+# Stage E deploy-infra — the weekly data refresh. Runs the finder for BOTH
+# cities, gates on the full smoke suite, then opens an AUTOMATED PR (ruling:
+# never a direct push of data to main — a human one-click-merges, and that
+# merge push triggers deploy.yml, so fresh data reaches Pages with a human in
+# the loop). If tests fail, this workflow fails loudly and opens nothing.
+#
+# Honesty constraints (binding):
+# - no secrets anywhere: every source the finder pulls is public; the
+#   GITHUB_TOKEN used for the PR is the runner's own.
+# - imagery is OUT of refresh scope: this runs finder.mjs (events) only —
+#   never places.mjs/stageb. Mapillary is Josh-supervised, not CI's. The
+#   deploy-city step mirrors place-img byte-identically, so no imagery diff
+#   can appear in the PR.
+name: Weekly data refresh
+
+on:
+  schedule:
+    # Thursdays 09:23 UTC (~4–5am ET): fresh data going INTO the weekend, off
+    # the :00 scheduler stampede, with Thu/Fri daytime left for the one-click
+    # merge. Scheduled runs can drift ~15+ min at busy hours — fine here.
+    - cron: '23 9 * * 4'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: data-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            app/package-lock.json
+
+      # root deps: playwright (render.mjs — Tampa's render-scraped sources).
+      # app deps: npm test builds + lints the app as part of the gate.
+      - name: Install dependencies (both roots)
+        run: |
+          npm ci
+          npm --prefix app ci
+
+      # Tampa runs FULL (incl. render) only when the browser install succeeds;
+      # otherwise SKIP_RENDER=1 with an honest, visible note — a degraded
+      # refresh must say so, never silently ship a render-less dataset as full.
+      - name: Install Playwright Chromium (Tampa render sources)
+        id: pw
+        continue-on-error: true
+        run: npx playwright install --with-deps chromium
+
+      - name: Finder — Tampa Bay (full)
+        shell: bash # explicit: gives -o pipefail, so a finder failure survives the tee
+        env:
+          # NOT the tempting `== 'success' && '' || '1'` — in Actions
+          # expressions `true && ''` is falsy, so the || arm would fire on
+          # success too and render would ALWAYS be skipped. Truthy arm first.
+          SKIP_RENDER: ${{ steps.pw.outcome != 'success' && '1' || '' }}
+        run: |
+          if [ "$SKIP_RENDER" = "1" ]; then
+            echo "::warning::Playwright install failed — Tampa refresh runs SKIP_RENDER=1 (render-scraped sources + sponsored flags absent this week)"
+          fi
+          CITY=tampa-bay node finder/finder.mjs | tee "$RUNNER_TEMP/tampa.log"
+
+      - name: Finder — SF & East Bay (standard)
+        shell: bash
+        run: CITY=sf-east-bay node finder/finder.mjs | tee "$RUNNER_TEMP/sf.log"
+
+      # sync the committed deployment copy to the fresh Tampa artifacts through
+      # the ONE sanctioned writer of app/public (D-DEP/D1 — never a direct cp).
+      - name: Deploy Tampa artifacts into app/public
+        run: CITY=tampa-bay node finder/deploy.mjs
+
+      # THE GATE: the full smoke suite (finder fast-mode benchmarks, data
+      # invariants on the refreshed dataset, app build + lint, base-path pins).
+      # A failure fails this workflow loudly, with the log — and no PR opens.
+      - name: Gate — npm test
+        run: npm test
+
+      - name: Open the data-refresh PR
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet && [ -z "$(git status --porcelain)" ]; then
+            echo "No data changes this week — nothing to PR."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          BRANCH="bot/data-refresh"
+          git switch -c "$BRANCH"
+          # scoped add — data artifacts and source caches ONLY (never -A):
+          # anything else changing here would mean the refresh overstepped.
+          git add finder/output finder/cache app/public
+          git commit -m "Data refresh: finder run for tampa-bay + sf-east-bay ($(date -u +%Y-%m-%d))"
+          git push -u origin "$BRANCH" --force
+          # PR body carries the finder's OWN benchmark summaries (the block
+          # from the ────── separator on, per city) — the honesty surface the
+          # human merger actually reads.
+          {
+            echo "Automated weekly data refresh — finder run for both cities, gated by the full smoke suite (green on this run)."
+            echo
+            if [ "${{ steps.pw.outcome }}" != "success" ]; then
+              echo "> [!WARNING]"
+              echo "> Playwright install failed on this runner — Tampa ran SKIP_RENDER=1 (render-scraped sources + sponsored flags absent this week)."
+              echo
+            fi
+            echo "## Tampa Bay — finder benchmark summary"
+            echo '```'
+            awk '/──────/{f=1} f' "$RUNNER_TEMP/tampa.log"
+            echo '```'
+            echo
+            echo "## SF & East Bay — finder benchmark summary"
+            echo '```'
+            awk '/──────/{f=1} f' "$RUNNER_TEMP/sf.log"
+            echo '```'
+            echo
+            echo "Merging this PR triggers the Pages deploy (deploy.yml) with the fresh data."
+          } > "$RUNNER_TEMP/pr-body.md"
+          EXISTING=$(gh pr list --head "$BRANCH" --state open --json number --jq 'length')
+          if [ "$EXISTING" -gt 0 ]; then
+            gh pr edit "$BRANCH" \
+              --title "Data refresh: $(date -u +%Y-%m-%d) (tampa-bay + sf-east-bay)" \
+              --body-file "$RUNNER_TEMP/pr-body.md"
+            echo "Updated the existing open data-refresh PR."
+          else
+            gh pr create \
+              --title "Data refresh: $(date -u +%Y-%m-%d) (tampa-bay + sf-east-bay)" \
+              --body-file "$RUNNER_TEMP/pr-body.md" \
+              --base main --head "$BRANCH"
+          fi
