@@ -1,0 +1,61 @@
+# Stage E ship gate — the pull_request CI. Added at the shippability REFUTE's
+# prompting: refresh.yml's bot PRs (and every human PR) previously reached the
+# merge button with ZERO checks — the weekly refresh gates itself inside its
+# own run, but nothing re-validated the branch against a moved main. This is
+# the same three-gate sequence the house runs locally before every commit
+# (lint · build · smoke), each step's exit code checked directly — never
+# chained through grep (the masked-failure lesson, Cohesion R10).
+#
+# Root deps ARE needed here (unlike deploy.yml): test/smoke.mjs runs under the
+# root package. Playwright browsers are NOT — the smoke suite is browserless
+# by design (`PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD` keeps the heavy install out).
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            app/package-lock.json
+
+      - name: Install dependencies (root + app)
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: |
+          npm ci
+          npm --prefix app ci
+
+      - name: Lint
+        run: npm --prefix app run lint
+
+      - name: Build Tampa Bay
+        run: VITE_CITY=tampa-bay npm --prefix app run build
+
+      # smoke runs BEFORE the SF stage: the suite reads the tree as committed
+      # (Tampa's app/public; the deploy-monopoly guard compares against it) —
+      # deploy.mjs re-staging SF first would fail honest pins for a fake reason.
+      - name: Smoke suite
+        run: npm test
+
+      - name: Stage + build SF & East Bay
+        run: |
+          CITY=sf-east-bay node finder/deploy.mjs
+          VITE_CITY=sf-east-bay npm --prefix app run build
