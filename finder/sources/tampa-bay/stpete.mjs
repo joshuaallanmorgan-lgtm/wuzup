@@ -38,7 +38,10 @@ const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 // there and was silently clobbering this module's {fetchedAt, events} cache
 // every run (so the 6h TTL never hit and the 5.9 MB dump re-downloaded).
 // D1: lives under the per-city cache dir (finder/cache/<cityId>/).
-const CACHE_FILE = join(dirname(fileURLToPath(import.meta.url)), '..', 'cache', cityId, 'stpete-source.json');
+// '..', '..' — this module sits a level deeper since the Stage D module-
+// isolation split (finder/sources/ -> finder/sources/<cityId>/); the single
+// '..' was silently writing untracked finder/sources/cache/ (ship-gate catch).
+const CACHE_FILE = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'cache', cityId, 'stpete-source.json');
 const UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 
