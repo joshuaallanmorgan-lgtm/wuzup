@@ -1,0 +1,88 @@
+# Stage E deploy-infra — the GitHub Pages deploy (ruling: deploy = GitHub Pages,
+# repo joshuaallanmorgan-lgtm/cj). Topology: TWO self-contained builds, one
+# deployment per city (D-DEP) — Tampa at the project-site root (/cj/), SF as
+# its own complete standalone build at /cj/sf/. No runtime city switching:
+# each build carries its own data, manifest, icons, and BASE_PATH.
+#
+# The per-city loop below is the EXACT sequence verified locally (stage → build
+# → collect; both halves pass a Playwright probe served under their literal
+# subpaths). What only the first real CI run can prove: Pages enablement
+# (Settings → Pages → Source: GitHub Actions — the LEAD does that post-merge)
+# and the runner environment itself.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# one Pages deploy at a time; never cancel an in-flight production deploy
+# (the standard actions/deploy-pages guidance) — a queued newer run follows.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      # app deps only: finder/deploy.mjs (the data-staging step) is
+      # dependency-free by design (node builtins + the city registry), so the
+      # root install (playwright/sharp — heavy, native) is not needed to deploy.
+      - name: Install app dependencies
+        run: npm --prefix app ci
+
+      # BASE_PATH derives from the repo name — a rename keeps the site working
+      # without touching this file ('/cj/' today).
+      - name: Stage + build Tampa Bay (site root)
+        env:
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          CITY=tampa-bay node finder/deploy.mjs
+          VITE_CITY=tampa-bay BASE_PATH="/${REPO_NAME}/" npm --prefix app run build
+          mkdir -p _site
+          cp -r app/dist/. _site/
+
+      # deploy.mjs re-stages app/public with SF's artifact set (mirrored
+      # place-img and all — ephemeral in CI, exactly what it exists for), then
+      # the second build ships it under sf/.
+      - name: Stage + build SF & East Bay (site /sf/)
+        env:
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          CITY=sf-east-bay node finder/deploy.mjs
+          VITE_CITY=sf-east-bay BASE_PATH="/${REPO_NAME}/sf/" npm --prefix app run build
+          mkdir -p _site/sf
+          cp -r app/dist/. _site/sf/
+
+      # .nojekyll: Pages must serve the tree verbatim (no Jekyll pass — it
+      # would drop dotfiles and anything it can't parse).
+      - name: Assemble the Pages artifact
+        run: touch _site/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
