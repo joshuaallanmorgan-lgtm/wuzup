@@ -59,12 +59,26 @@ const fullEvents = JSON.parse(fullRaw)
 // written in the same run as both json files; trust it whenever the app copy
 // and the finder output are byte-identical (the normal pipeline state), else
 // fall back to mtime and say so in the failure message.
+// D-G2: the finder artifact carries stable event ids AHEAD of the deployed
+// copy (ids mint at finder emit; app/public changes only via `npm run
+// deploy-city`). "Same artifact" for stamp-trust purposes = identical once
+// ids are ignored on BOTH sides — byte-identity resumes at the next deploy.
+const sansIds = (raw) => {
+  try {
+    const a = JSON.parse(raw)
+    if (!Array.isArray(a)) return raw
+    for (const e of a) if (e && typeof e === 'object') delete e.id
+    return JSON.stringify(a)
+  } catch {
+    return raw
+  }
+}
 const genRefMs = (() => {
   try {
     if (
       existsSync(FINDER_MD) &&
       existsSync(FINDER_JSON) &&
-      readFileSync(FINDER_JSON, 'utf8') === fullRaw
+      sansIds(readFileSync(FINDER_JSON, 'utf8')) === sansIds(fullRaw)
     ) {
       const m = readFileSync(FINDER_MD, 'utf8').match(/_Generated ([^·]+) ·/)
       const t = m ? new Date(m[1].trim()).getTime() : NaN
@@ -166,6 +180,12 @@ function schemaProblems(e, i) {
     else if (e[k] !== null && typeof e[k] !== want) p.push(`${id}: ${k} must be ${want}|null (got ${typeof e[k]})`)
   }
   if ((e.lat == null) !== (e.lng == null)) p.push(`${id}: lat/lng must be null together or set together`)
+  // D-G2 stable ids: 16-hex sha256 prefix, minted at finder emit. Absent on a
+  // pre-id deployed dataset (the field arrives via deploy-city); when present
+  // it must be well-formed. The all-or-nothing + uniqueness pins live in the
+  // dataset-level tests (a per-event validator can't see its siblings).
+  if (e.id !== undefined && (typeof e.id !== 'string' || !/^[0-9a-f]{16}$/.test(e.id)))
+    p.push(`${id}: id must be a 16-hex stable event id (got ${JSON.stringify(e.id)})`)
   return p
 }
 
@@ -273,6 +293,22 @@ test('finder fast-mode: exit 0, benchmarks green, output schema-valid', { timeou
     t.diagnostic(`schema spot-check indexes: ${picked.join(',')}`)
     const problems = picked.flatMap((i) => schemaProblems(fast[i], i))
     assert.equal(problems.length, 0, `fast-mode output schema problems:\n  ${problems.join('\n  ')}`)
+
+    // --- D-G2: EVERY freshly-emitted event carries a stable id, unique across
+    // the run — pins the minting LIVE at the emit choke point (the committed-
+    // artifact pins can't catch a regression that only bites fresh runs) ---
+    const badIds = fast.filter((e) => typeof e.id !== 'string' || !/^[0-9a-f]{16}$/.test(e.id))
+    assert.equal(
+      badIds.length,
+      0,
+      `${badIds.length} fast-mode events without a valid stable id: ` +
+        badIds.slice(0, 3).map((e) => `"${e.title}" id=${JSON.stringify(e.id)}`).join('; ')
+    )
+    assert.equal(
+      new Set(fast.map((e) => e.id)).size,
+      fast.length,
+      'fast-mode stable ids must be unique — the collision tiebreaks + truncated-hash check exist for exactly this'
+    )
   } finally {
     for (const [f, buf] of backups) writeFileSync(f, buf) // never leave fast-mode data behind
   }
@@ -335,6 +371,18 @@ test(`data invariants: full events.json (${fullEvents.length} events)`, (t) => {
   // hidden gems: curated shelf stays capped
   const gems = fullEvents.filter((e) => Array.isArray(e.tags) && e.tags.includes('hidden-gem')).length
   assert.ok(gems <= 24, `hidden-gem count ${gems} exceeds the cap of 24 — gem curation regressed`)
+
+  // D-G2: stable ids are all-or-nothing per dataset (mixed presence means a
+  // splice of pre- and post-id artifact generations — corruption, not a
+  // transition state) and unique when present. Format is schema-validated.
+  const withId = fullEvents.filter((e) => e.id !== undefined)
+  assert.ok(
+    withId.length === 0 || withId.length === fullEvents.length,
+    `stable ids are MIXED: ${withId.length}/${fullEvents.length} events carry an id — the dataset splices two artifact generations`
+  )
+  if (withId.length) {
+    assert.equal(new Set(withId.map((e) => e.id)).size, fullEvents.length, 'stable ids must be unique within the dataset')
+  }
 
   // full-file schema pass (cheap at this size; loud per-event messages)
   const problems = fullEvents.flatMap((e, i) => schemaProblems(e, i))
@@ -3167,6 +3215,125 @@ test('finder ingest: cleanDescription strips leading Eventbrite "About this even
   const out = cleanDescription(long)
   assert.equal(out.length, 200, 'cap applies to the DE-CHROMED text')
   assert.ok(out.startsWith('xxx'), 'recovered characters are real text, not chrome')
+})
+
+// ============================================================
+// D-G2 — stable event ids (STAGE_D.md grafts; V2_VISION.md §8.6). The id is
+// a VERSIONED CONTRACT: sha256("v1|<cityId>|<titleKey>|<startDay>[|<venueKey>
+// [|<n>]]") → 16 hex. These units pin the recipe's survival guarantees
+// against the measured churn classes from the identity forensics: start
+// flips date-only↔timed (mint from the DAY), merged titles flip between
+// member variants (fold diacritics + stem), venue strings churn twice (mint
+// venue-FREE unless genuinely ambiguous), the emit array re-sorts every run
+// (minting must be order-independent).
+// ============================================================
+test('D-G2 stable ids: the recipe contract — versioned, day-based, folded, venue-free', async () => {
+  const { eventIdCanonical } = await import('../finder/finder.mjs')
+  const c = (e) => eventIdCanonical(e, 'tampa-bay')
+  // the exact canonical form is FROZEN (changing it = bumping the version prefix)
+  assert.equal(c({ title: 'Sunset Music Series', start: '2026-07-10' }), 'v1|tampa-bay|music serie sunset|2026-07-10')
+  // a date-only event that gains a time keeps its id (day-based minting)
+  assert.equal(
+    c({ title: 'Sunset Music Series', start: '2026-07-10T19:00:00-04:00' }),
+    c({ title: 'Sunset Music Series', start: '2026-07-10' }),
+    'date-only ↔ timed start flips must not move the id'
+  )
+  // diacritics fold for the id even though display titles keep them
+  assert.equal(
+    c({ title: 'Rosalía Oakland', start: '2026-07-06' }),
+    c({ title: 'Rosalia Oakland', start: '2026-07-06' }),
+    'Rosalía/Rosalia must mint ONE id (NFD fold)'
+  )
+  // stemming: the merge may legally pick a different member title run-to-run
+  assert.equal(c({ title: 'REALM Exhibition', start: '2026-07-06' }), c({ title: 'REALM Exhibit', start: '2026-07-06' }))
+  // token order, punctuation and stopwords never matter
+  assert.equal(c({ title: 'The Journey West!', start: '2026-07-07' }), c({ title: 'Journey — West', start: '2026-07-07' }))
+  // venue-free base: venue only ever enters as a collision tiebreak
+  assert.equal(
+    c({ title: 'Baby Time', start: '2026-07-02', venue: 'Brandon Regional Library' }),
+    c({ title: 'Baby Time', start: '2026-07-02', venue: 'Port Tampa City Library' })
+  )
+  // two cities can never share an id input
+  assert.notEqual(
+    eventIdCanonical({ title: 'Baby Time', start: '2026-07-02' }, 'sf-east-bay'),
+    c({ title: 'Baby Time', start: '2026-07-02' })
+  )
+})
+
+test('D-G2 stable ids: minting — order-independent, tiebreaks confined, hard-fail loud', async () => {
+  const { mintEventIds } = await import('../finder/finder.mjs')
+  const fixture = () => [
+    { title: 'Baby Time', start: '2026-07-02T10:15:00', venue: 'Brandon Regional Library', url: 'https://x/1' },
+    { title: 'Baby Time', start: '2026-07-02T14:00:00', venue: 'West Tampa Branch Library', url: 'https://x/2' },
+    { title: 'Jazz Night', start: '2026-07-02T20:00:00', venue: 'The Attic', url: 'https://x/3' },
+    // level-3 pair: same title+day+venue, distinguished only by url (the
+    // trolley-tour class — 1 real pair in Tampa, 0 in SF)
+    { title: 'Trolley Tour', start: '2026-07-04T09:00:00', venue: 'History Museum', url: 'https://x/4a' },
+    { title: 'Trolley Tour', start: '2026-07-04T09:00:00', venue: 'History Museum', url: 'https://x/4b' },
+  ]
+  const a = fixture()
+  const rep = mintEventIds(a, 'tampa-bay')
+  for (const e of a) assert.match(e.id, /^[0-9a-f]{16}$/, `"${e.title}" minted id ${JSON.stringify(e.id)}`)
+  assert.equal(new Set(a.map((e) => e.id)).size, a.length, 'minted ids must be unique')
+  assert.equal(rep.baseGroups, 2, 'two ambiguous title+day groups (Baby Time, Trolley Tour)')
+  assert.equal(rep.venueQualified, 2, 'the Baby Time pair resolves at the venue level')
+  assert.equal(rep.counterQualified, 2, 'the Trolley pair needs the level-3 counter')
+  // order independence: the emit array re-sorts by startMs every run — a
+  // reversed multiset must mint the exact same id per event
+  const b = fixture().reverse()
+  mintEventIds(b, 'tampa-bay')
+  const byUrl = new Map(b.map((e) => [e.url, e.id]))
+  for (const e of a) assert.equal(byUrl.get(e.url), e.id, `array order leaked into the id of "${e.title}" (${e.url})`)
+  // churn survival on an UNambiguous event: a venue rename (venue-free base)
+  // AND losing the clock (day-based) both leave the id untouched
+  const solo = [{ title: 'Jazz Night', start: '2026-07-02', venue: 'The Attic Rooftop (Renamed)', url: 'https://x/3' }]
+  mintEventIds(solo, 'tampa-bay')
+  assert.equal(solo[0].id, a[2].id, 'venue rename + date-only start must not move an unambiguous id')
+  // indistinguishable twins (every identity fact equal) must FAIL the build,
+  // never ship an arbitrary assignment
+  const twins = [
+    { title: 'Trolley Tour', start: '2026-07-04T09:00:00', venue: 'History Museum', url: 'https://x/same' },
+    { title: 'Trolley Tour', start: '2026-07-04T09:00:00', venue: 'History Museum', url: 'https://x/same' },
+  ]
+  assert.throws(() => mintEventIds(twins, 'tampa-bay'), /HARD COLLISION/, 'indistinguishable twins must fail loudly')
+})
+
+// D-G2 artifact pins: BOTH cities' committed finder artifacts carry the ids.
+// Bytes captured at module load — the fast-mode finder run overwrites (then
+// restores) the active city's artifact mid-suite; same hazard fullRaw dodges.
+const CITY_ID_ARTIFACTS = ['tampa-bay', 'sf-east-bay'].map((city) => {
+  const p = path.join(ROOT, 'finder', 'output', city, 'events.json')
+  return { city, raw: existsSync(p) ? readFileSync(p, 'utf8') : null }
+})
+
+test("D-G2 stable ids: both cities' committed artifacts — present, well-formed, unique, recipe-true", async () => {
+  const { mintEventIds } = await import('../finder/finder.mjs')
+  for (const { city, raw } of CITY_ID_ARTIFACTS) {
+    assert.ok(raw, `finder/output/${city}/events.json missing — BOTH cities ship stable ids (D-G2)`)
+    const events = JSON.parse(raw)
+    assert.ok(Array.isArray(events) && events.length > 0, `${city}: events.json is not a non-empty array`)
+    const bad = events.filter((e) => typeof e.id !== 'string' || !/^[0-9a-f]{16}$/.test(e.id))
+    assert.equal(
+      bad.length,
+      0,
+      `${city}: ${bad.length} events without a valid 16-hex stable id (first: "${bad[0] && bad[0].title}")`
+    )
+    assert.equal(new Set(events.map((e) => e.id)).size, events.length, `${city}: duplicate stable ids in the committed artifact`)
+    // recipe reproduction: re-minting the same multiset under the CURRENT
+    // recipe must reproduce every committed id exactly — a recipe edit
+    // without a version bump + artifact regeneration turns this red instead
+    // of silently orphaning every id already shipped or shared
+    const copy = JSON.parse(raw)
+    for (const e of copy) delete e.id
+    mintEventIds(copy, city)
+    const drift = copy.filter((e, i) => e.id !== events[i].id)
+    assert.equal(
+      drift.length,
+      0,
+      `${city}: ${drift.length} committed ids do not reproduce under the current recipe ` +
+        `(first: "${drift[0] && drift[0].title}") — bump ID_RECIPE_VERSION and regenerate the artifacts`
+    )
+  }
 })
 
 // ============================================================
