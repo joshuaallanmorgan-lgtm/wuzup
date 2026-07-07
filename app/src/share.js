@@ -58,7 +58,10 @@ export function vevent(e) {
   const idKey = (e.url || e.title || 'event') + '|' + (e.start || '')
   let h = 0
   for (let i = 0; i < idKey.length; i++) h = (h * 31 + idKey.charCodeAt(i)) >>> 0
-  const lines = ['BEGIN:VEVENT', 'UID:' + h.toString(36) + '@whats-hot-tampa-bay', 'DTSTAMP:' + dtStamp()]
+  // UID domain rides the city registry (Stage E ship gate: the old hardcoded
+  // '@whats-hot-tampa-bay' shipped Tampa-branded UIDs in every SF export).
+  // One-time UID break for pre-ship exports — acceptable, nothing is live yet.
+  const lines = ['BEGIN:VEVENT', 'UID:' + h.toString(36) + '@wuzup-' + CITY.id, 'DTSTAMP:' + dtStamp()]
   if (/^\d{4}-\d{2}-\d{2}$/.test(e.start)) {
     const s = parseDate(e.start)
     const last = new Date(e._endDay ?? e._day) // last day the event runs
@@ -91,7 +94,7 @@ export function vevent(e) {
 // arrays. The CRLF + trailing CRLF formatting matches the old single-event
 // output byte-for-byte when given exactly one body.
 export function wrapIcs(bodies) {
-  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', `PRODID:-//Whats Hot ${CITY.name}//EN`, 'CALSCALE:GREGORIAN']
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', `PRODID:-//Wuzup ${CITY.name}//EN`, 'CALSCALE:GREGORIAN']
   for (const b of bodies) lines.push(...b)
   lines.push('END:VCALENDAR')
   return lines.join('\r\n') + '\r\n'
