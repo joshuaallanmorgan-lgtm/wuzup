@@ -80,15 +80,15 @@ app-side = add a `CITIES` entry (NOT yet present for sf-east-bay — deliberate:
   needs no fetch-path changes); the app's `CITY` config resolves at build time (env/config module,
   Tampa default); the in-app switcher is v2 ([BACKLOG](BACKLOG.md)).
 
-## Grafts pulled in from the V2 adjudication (Fable rulings 2026-07-05 — see planning/v2/V2_VISION.md §8.6)
+## Grafts pulled in from the V2 adjudication ✅ BOTH LANDED (D-G1 via PR #12; D-G2 on stage-d/complete)
 
 Two small V2-substrate items land in the current road because they're cheap now and painful later:
 
-- **D-G1 — Coverage Card** (new D3/D4 scope): a small honest "what we know here" surface — N events ·
+- ✅ **D-G1 — Coverage Card** (SHIPPED — Home colophon + attribution header + the sparse-city promotion): a small honest "what we know here" surface — N events ·
   M sources · updated <time> · imagery coverage — rendered from data already in the artifacts +
   attribution ledger. Doubles as SF's week-one sparse-data answer (an honest floor beats an empty
   feed pretending otherwise). Per-city by construction.
-- **D-G2 — Stable event IDs** (finder, before v1 ships): mint a deterministic content-derived `id`
+- ✅ **D-G2 — Stable event IDs** (SHIPPED — v1|-versioned recipe, venue-free + deterministic tiebreaks, both cities id-carrying; the ONE sanctioned Tampa amendment landed, new warm baseline c68491d4…): mint a deterministic content-derived `id`
   per event at emit (stable across re-runs, collision-checked at build; Tampa regression must show
   ONLY the added field). Zero UI change in v1 — it exists so every V2 share/link/ledger feature has
   identity ground to stand on. **Byte-identity caveat:** this intentionally amends the Tampa
