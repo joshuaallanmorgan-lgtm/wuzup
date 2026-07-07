@@ -28,8 +28,11 @@
 // ship): lngMax widened −122.00 → −121.88 so Mt. Diablo State Park generates
 // as a real spot — the city HERO shows the mountain, users will search it, and
 // the packet's own rosterBenchmark wanted it. The east-edge widening adds the
-// state-park corridor only; Mt. Diablo places MATERIALIZE at the next data
-// refresh (the committed artifacts predate the widening — disclosed).
+// state-park corridor only; the Mt. Diablo / east-Concord places MATERIALIZED
+// in the Stage E places regeneration (same branch). NOTE the places pipeline
+// is operator-run, at need — the weekly refresh workflow is events-only by
+// design (STAGE_E.md §E4); a bbox/config change here does nothing to the
+// shipped spots until someone runs `CITY=sf-east-bay node finder/places.mjs`.
 export const bbox = { latMin: 37.68, latMax: 38.00, lngMin: -122.53, lngMax: -121.88 };
 // the box in each source's required wire format (derived — edit the box once).
 export const bboxOverpass = `(${bbox.latMin},${bbox.lngMin},${bbox.latMax},${bbox.lngMax})`;

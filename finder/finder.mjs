@@ -737,12 +737,22 @@ function pickFirst(members, key) {
 // anything else > *.allevents.in banners. A cluster with ANY non-allevents
 // image never ships the allevents one (rank 0 loses every comparison).
 const IMG_AGGREGATOR_HOST_RE = /(?:^|\.)allevents\.in$/i;
-const IMG_OFFICIAL_HOST_RE = /(?:^|\.)(?:visitstpeteclearwater\.com|simpleviewinc\.com|visittampabay\.com|evbuc\.com|eventbrite\.com|libnet\.info|ilovetheburg\.com|wmnf\.org|cltampa\.com)$|\.gov$/i;
+// Stage E ship gate: visitstpeteclearwater.com hard-blocks hotlinking now
+// (403 + Cross-Origin-Resource-Policy: same-origin — dead in ANY browser, not
+// a headless artifact; the final path-trace caught 153 events shipping it).
+// A poster there is a broken promise: rank it BELOW no-image-at-all so a
+// cluster whose only artwork is VSPC ships imageless (the Aurora floor is the
+// honest floor). VSPC stays a first-class EVENT source — only its image CDN
+// is banned. (hcplc.libnet.info is NOT banned: 4 of its 93 posters 301→415,
+// the other 89 are healthy — the app-side hero/card fallbacks absorb those.)
+const IMG_DEAD_HOST_RE = /(?:^|\.)visitstpeteclearwater\.com$/i;
+const IMG_OFFICIAL_HOST_RE = /(?:^|\.)(?:simpleviewinc\.com|visittampabay\.com|evbuc\.com|eventbrite\.com|libnet\.info|ilovetheburg\.com|wmnf\.org|cltampa\.com)$|\.gov$/i;
 
 function imageRank(url) {
   if (!url) return -1;
   let host = '';
   try { host = new URL(url).hostname.toLowerCase(); } catch { return 0; }
+  if (IMG_DEAD_HOST_RE.test(host)) return -1; // loses to null: never ships
   if (IMG_AGGREGATOR_HOST_RE.test(host)) return 0;
   if (IMG_OFFICIAL_HOST_RE.test(host)) return 2;
   return 1;
@@ -2135,7 +2145,9 @@ async function main() {
   // event elsewhere that happens to share these words is untouched — and is
   // deliberately narrow so UT's public-facing rows (gallery exhibitions,
   // pitch contests, hooding ceremonies) keep shipping.
-  const UT_NONEVENT_RE = /^classes (?:begin|end)\b|^no classes\b|^deadline\b|\bform i-9\b|^accessibility compliance workshop\b|\bfa\/cpr\/aed\b|^student affairs .*\badvance\b/i;
+  // + supplier-invoices/procurement-cards sessions (Stage E ship gate: one
+  // staff finance training slipped through and tripped the gov-noise-0 bench)
+  const UT_NONEVENT_RE = /^classes (?:begin|end)\b|^no classes\b|^deadline\b|\bform i-9\b|^accessibility compliance workshop\b|\bfa\/cpr\/aed\b|^student affairs .*\badvance\b|supplier invoices|procurement cards/i;
   const utDropped = events.filter((e) =>
     UT_NONEVENT_RE.test(e.title || '') &&
     (e.sources || [e.source]).some((s) => familyOf(s) === 'Univ. of Tampa'));

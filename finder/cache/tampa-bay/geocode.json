@@ -1287,15 +1287,104 @@
     "lat": 27.830297,
     "lng": -82.7004314
   },
-  "2606 Fairfield Ave S, Building 6, St. Petersburg, 33712": null,
-  "2901 Beach Blvd S #104, Gulfport, 33707": null,
-  "2nd St N & Central Ave, St. Petersburg, FL, 33701": null,
-  "6340 49 Street N, Pinellas Park, FL, 33781": null,
-  "12938 N. Dale Mbry Hwy, Tampa, FL, 33618": null,
+  "3530 Tyrone Blvd N, St. Petersburg, FL": {
+    "lat": 27.8039295,
+    "lng": -82.7453161
+  },
+  "7770 52nd St N, Pinellas Park": {
+    "lat": 27.8425014,
+    "lng": -82.7041535
+  },
+  "1920 Pinehurst Road, Dunedin": {
+    "lat": 28.0365121,
+    "lng": -82.7727072
+  },
+  "12550 Morris Bridge Road, Thonotosassa, FL": {
+    "lat": 28.0802059,
+    "lng": -82.3326366
+  },
+  "9401 W Hillsborough Ave, Tampa": {
+    "lat": 27.9960583,
+    "lng": -82.471027
+  },
+  "211 S Howard Ave, Tampa": {
+    "lat": 27.9430947,
+    "lng": -82.4830863
+  },
+  "555 76th Avenue North, St. Petersburg": {
+    "lat": 27.8417051,
+    "lng": -82.6413737
+  },
+  "735 Dodecanese Boulevard, Tarpon Springs": {
+    "lat": 28.1551957,
+    "lng": -82.7608255
+  },
+  "253 5th Avenue North, St. Petersburg": {
+    "lat": 27.7778779,
+    "lng": -82.6367975
+  },
+  "1812 North 17th Street, Tampa": {
+    "lat": 27.9608255,
+    "lng": -82.4406176
+  },
+  "3860 W Columbus Ave, Tampa, FL": {
+    "lat": 27.9661912,
+    "lng": -82.5093335
+  },
+  "10940 McMullen Rd, Riverview, FL": {
+    "lat": 27.8585325,
+    "lng": -82.3022178
+  },
+  "6920 E Fletcher Ave,, Tampa, FL": {
+    "lat": 28.0720492,
+    "lng": -82.3693613
+  },
+  "301 Drew Street, Clearwater, FL 33755": {
+    "lat": 27.9680714,
+    "lng": -82.8025822
+  },
+  "10500 Ulmerton Rd, #500, Largo, FL 33771": null,
+  "400 Bayshore Dr NE, St. Petersburg, FL 33701": null,
+  "515 22nd St S, Suite #130, St. Petersburg, FL 33712": null,
+  "13th Ave NE & North Shore Dr NE, St. Petersburg, FL 33701": null,
+  "445 E Shore Dr, Slip 50, Clearwater Beach, FL 33767": null,
   "5145 Harvey Tew Rd, Plant City, FL, 33565": null,
-  "FloridaRAMA, St. Petersburg, Florida": null,
-  "Brenda McMahon Gallery, Gulfport, Florida": null,
-  "2nd St N & Central Ave, St. Petersburg, Florida": null,
-  "Side Splitters Comedy Club, Tampa, Florida": null,
-  "Dinosaur World - FL, Tampa Bay, Florida": null
+  "1211 1st Ave N., Suite 101, St. Petersburg, FL 33705": null,
+  "515 22nd St S, Suite 130, St. Petersburg, FL 33712": null,
+  "4802 US Highway 301 North, Tampa": null,
+  "New Port Richey, FL, Tampa, FL": null,
+  "Downtown Main St, Dunedin, FL 34698": null,
+  "6210 44th Street N, Suite 14, Pinellas Park, FL 33781": null,
+  "11909 125th St N, Largo, FL 33774": null,
+  "1701 E 2nd Ave, Tampa, FL": null,
+  "2101 3rd Ave S, Grey and White Building at the end of parking lot, St. Petersburg, FL": null,
+  "2124 Bloomingdale Avenue, Valrico, FL": null,
+  "398-300 Corey Ave., St. Pete Beach, FL 33706": null,
+  "420 22nd St S, St. Pete, FL 33701": null,
+  "13090 Gandy Blvd N, St. Petersburg, FL 33702": null,
+  "2020 W Brandon Blvd , Unit 105, FL": null,
+  "12615 102nd Ave Largo, Largo, FL 33778": null,
+  "10500 Ulmerton Rd, Suite 288, Largo Mall, FL": null,
+  "Entrepreneur Collaborative Center, 2101 E. Palm Ave., Tampa FL 33605": null,
+  "6302 E. Dr. Martin Luther King Jr. Blvd , Inside the Interstate Corporate Center, Tampa, FL": null,
+  "Charlene A. Gordon Theater": null,
+  "910 Skipper Rd., Tampa, FL 33613": null,
+  "600 Hill St & Dodecanese Blvd, Tarpon Springs, FL 34689": null,
+  "13th Ave NE & North Shore Dr NE, St. Petersburg, Florida": null,
+  "Dinosaur World - FL, Tampa Bay, Florida": null,
+  "MIDFLORIDA Credit Union Amphitheatre at the FL State Fairgrounds, Tampa, Florida": null,
+  "New Port Richey, FL (secret location), Tampa, Florida": null,
+  "Downtown Main St, Dunedin, Florida": null,
+  "Heritage Village, Largo, Florida": null,
+  "Tampa Pickleball Crew, Tampa, Florida": null,
+  "Five deuces Galleria, St. Petersburg, Florida": null,
+  "Andy's Frozen Yogurt, Tampa Bay, Florida": null,
+  "398-300 Corey Ave., St. Pete Beach, Florida": null,
+  "Morean Arts Center for Clay, St. Pete, Florida": null,
+  "Just Love Coffee Cafe, Brandon, Florida": null,
+  "The Spot Sushi Burritos Ha Long Bat, Largo, Florida": null,
+  "Entrepreneur Collaborative Center, 2101 E. Palm Ave., Tampa FL 33605, Tampa Bay, Florida": null,
+  "Campfired, Tampa, Florida": null,
+  "Charlene A. Gordon Theater, Tampa Bay, Florida": null,
+  "Skipper's Smokehouse, Tampa, Florida": null
 }
