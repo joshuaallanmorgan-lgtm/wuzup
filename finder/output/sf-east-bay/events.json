@@ -4217,8 +4217,8 @@
     "price": 0,
     "currency": null,
     "isFree": true,
-    "lat": null,
-    "lng": null,
+    "lat": 37.8019743,
+    "lng": -121.919157,
     "url": "https://www.eventbrite.com/e/skiin-blackhawk-anniversary-xerf-launch-event-tickets-1991516965855",
     "image": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F1186554894%2F16468773051%2F1%2Foriginal.20260610-010323?crop=focalpoint&fit=crop&w=512&auto=format%2Ccompress&q=75&sharp=10&fp-x=0.68&fp-y=0.169&s=4db097cd5bed39849583a66b4671dd20",
     "description": "Celebrate with us at our Anniversary & XERF Launch Party featuring live demos, giveaways, refreshments, and event-only pricing.",
@@ -8588,23 +8588,21 @@
     "end": "2026-07-18",
     "venue": "Broadway Plaza",
     "address": "1275 Broadway Plaza, Walnut Creek, CA",
-    "price": 0,
+    "price": null,
     "currency": null,
-    "isFree": true,
+    "isFree": null,
     "lat": 37.895592,
     "lng": -122.05764,
     "url": "https://allevents.in/walnut-creek/makers-market-local-artist-street-fair-broadway-plaza/100001981947658800",
-    "image": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F1185088391%2F1545804593253%2F1%2Foriginal.20260520-230632?crop=focalpoint&fit=crop&w=512&auto=format%2Ccompress&q=75&sharp=10&fp-x=0.5&fp-y=0.5&s=e63c69827da3eea32cc2f06be0e70f3d",
+    "image": "https://cdn-ip.allevents.in/s/rs:fill:500:250/g:sm/sh:100/aHR0cHM6Ly9jZG4tYXouYWxsZXZlbnRzLmluL2V2ZW50czgvYmFubmVycy82YzYxNTk5YmQ3ZWFkZmY0Mjc1MWQ1ZDBhZGMyNWY4MjYxMWY2NGQyZGFkNzdkMWI4NjQ5NTM3N2Y1N2Y0MmY5LXJpbWctdzEyMDAtaDYyOS1kYzc2Nzc3My1nbWlyLmpwZz92PTE3Njk3Mzc1NjE.avif",
     "description": "We’ve rounded up the best local artists, crafters, designers, and makers for a truly unforgettable shopping experience.About this EventStep into Spring and support small businesses with one-of-a-ki...",
     "source": "AllEvents (Walnut Creek)",
     "sources": [
-      "AllEvents (Walnut Creek)",
-      "Eventbrite (Walnut Creek Free)"
+      "AllEvents (Walnut Creek)"
     ],
-    "buzz": 2,
-    "hotScore": 68,
+    "buzz": 1,
+    "hotScore": 38,
     "tags": [
-      "free",
       "one-off"
     ],
     "category": "theatre",
@@ -8880,6 +8878,34 @@
       "one-off"
     ],
     "category": "community",
+    "sponsored": false
+  },
+  {
+    "id": "b86a5eb04847b0b4",
+    "title": "Vuori Broadway Plaza x Pvolve",
+    "start": "2026-07-18",
+    "end": "2026-07-18",
+    "venue": "Vuori Broadway Plaza",
+    "address": "1277 Broadway Plaza, Walnut Creek, CA, 94596",
+    "price": 0,
+    "currency": null,
+    "isFree": true,
+    "lat": 37.895553,
+    "lng": -122.058442,
+    "url": "https://www.eventbrite.com/e/vuori-broadway-plaza-x-pvolve-tickets-1990053379228",
+    "image": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F1185088391%2F1545804593253%2F1%2Foriginal.20260520-230632?crop=focalpoint&fit=crop&w=512&auto=format%2Ccompress&q=75&sharp=10&fp-x=0.5&fp-y=0.5&s=e63c69827da3eea32cc2f06be0e70f3d",
+    "description": "Join Vuori Broadway Plaza for an in-store fitness class on July 18th.",
+    "source": "Eventbrite (Walnut Creek Free)",
+    "sources": [
+      "Eventbrite (Walnut Creek Free)"
+    ],
+    "buzz": 1,
+    "hotScore": 43,
+    "tags": [
+      "free",
+      "one-off"
+    ],
+    "category": "theatre",
     "sponsored": false
   },
   {
@@ -11926,13 +11952,13 @@
     "title": "ACTV Studio IRL: Vuori Broadway Plaza x Barry's",
     "start": "2026-07-25",
     "end": "2026-07-25",
-    "venue": "Broadway Plaza",
+    "venue": "Vuori Broadway Plaza",
     "address": "1277 Broadway Plaza, Walnut Creek, CA, 94596",
     "price": 0,
     "currency": null,
     "isFree": true,
-    "lat": 37.895592,
-    "lng": -122.05764,
+    "lat": 37.895553,
+    "lng": -122.058442,
     "url": "https://www.eventbrite.com/e/actv-studio-irl-vuori-broadway-plaza-x-barrys-tickets-1992098504252",
     "image": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F1185088391%2F1545804593253%2F1%2Foriginal.20260520-230632?crop=focalpoint&fit=crop&w=512&auto=format%2Ccompress&q=75&sharp=10&fp-x=0.5&fp-y=0.5&s=e63c69827da3eea32cc2f06be0e70f3d",
     "description": "Join Vuori Broadway Plaza for an in-store fitness class on July 25th.",

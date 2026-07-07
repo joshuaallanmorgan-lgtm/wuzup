@@ -203,7 +203,14 @@ export async function fetchPlaces() {
       const tags = el.tags || {};
       const pt = coordsOf(el);
       if (!pt) continue;
-      const nm = typeof tags.name === 'string' ? tags.name.replace(/\s+/g, ' ').trim() : null;
+      const rawNm = typeof tags.name === 'string' ? tags.name.replace(/\s+/g, ' ').trim() : null;
+      // Stage E ship: a PURE-NUMBER "name" is an OSM ref/number tag leaking into
+      // name ("1200" piers, "1"/"2"/"3" courts — 19 shipped in SF's first cut, a
+      // spot card titled "1200" is broken UX). Treat it as ANONYMOUS: the element
+      // flows into the same namedOnly/court/chip handling as a nameless one
+      // (honest — we don't fabricate "Pier 1200"; if the number IS the real name,
+      // the source should say so in words somewhere we can verify).
+      const nm = rawNm && /^\d+$/.test(rawNm) ? null : rawNm;
 
       // Courts are geometry, not places: anonymous → chip; named facilities
       // (tennis centers, pickleball barns) DO ship as standalone courts places.

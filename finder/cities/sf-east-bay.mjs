@@ -24,13 +24,13 @@
 // sanity box — any coordinate outside this is wrong for a local place/event.
 // Ratified by Josh 2026-06-16 (PHASE_3.7.md §I.5): SF through the East Bay to
 // Walnut Creek/Concord + a buffer.
-// ⚑ FLAG for Josh (STAGE_D_SF_ENDPOINTS.md): Mt. Diablo's summit sits at
-// lng −121.914 — EAST of this box's −122.00 edge. As a HERO it's fine (a city-
-// mood backdrop, not a place record — same logic as Tampa's skyline hero), but
-// the packet's "Mt. Diablo generates as a benchmark spot" check CANNOT pass
-// unless the box widens (lngMax ≈ −121.88 would take in the state park proper).
-// Keeping the ratified box verbatim until Josh rules; see rosterBenchmark below.
-export const bbox = { latMin: 37.68, latMax: 38.00, lngMin: -122.53, lngMax: -122.00 };
+// ⚑ RESOLVED (Fable ruling 2026-07-06, judgment delegated by Josh for the v1
+// ship): lngMax widened −122.00 → −121.88 so Mt. Diablo State Park generates
+// as a real spot — the city HERO shows the mountain, users will search it, and
+// the packet's own rosterBenchmark wanted it. The east-edge widening adds the
+// state-park corridor only; Mt. Diablo places MATERIALIZE at the next data
+// refresh (the committed artifacts predate the widening — disclosed).
+export const bbox = { latMin: 37.68, latMax: 38.00, lngMin: -122.53, lngMax: -121.88 };
 // the box in each source's required wire format (derived — edit the box once).
 export const bboxOverpass = `(${bbox.latMin},${bbox.lngMin},${bbox.latMax},${bbox.lngMax})`;
 export const bboxArcgisEnvelope = JSON.stringify({ xmin: bbox.lngMin, ymin: bbox.latMin, xmax: bbox.lngMax, ymax: bbox.latMax });
