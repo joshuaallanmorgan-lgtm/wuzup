@@ -70,9 +70,10 @@ config call. The original packet, for the record:
 
 `app/src/city.js` (build-time `VITE_CITY` registry, fail-closed on unknown ids; lib.js re-exports
 so importers were untouched); wx key migrated per-city (chained legacy path); `fmtLocale` covers
-all 33 locale literals; Tampa copy interpolated incl. the `%CITY_NAME%` tab title. City #2
-app-side = add a `CITIES` entry (NOT yet present for sf-east-bay — deliberate: a
-`VITE_CITY=sf-east-bay` build fails closed until its data exists) + build with the env var.
+all 33 locale literals; Tampa copy interpolated incl. the `%CITY_NAME%` tab title. The
+sf-east-bay `CITIES` entry ✅ LANDED (stage-d/complete): `VITE_CITY=sf-east-bay` is a working,
+runtime-proven build (real SF events render; Coverage Card compact at 747; attribution derives
+SF sources + hero credits). Unknown ids still fail closed.
 - ✅ **D-DEP RESOLVED (Josh, 2026-07-02): ONE DEPLOYMENT PER CITY** — build-time city selection.
   Consequences now binding for D1/D4: the finder namespaces outputs per city
   (`finder/output/<cityId>/…`) and the DEPLOY step copies ONE city's artifacts into `app/public/`
