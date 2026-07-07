@@ -20,8 +20,15 @@ import { fileURLToPath } from 'node:url';
 import { cityId } from './cities/index.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const SRC = join(HERE, 'output', cityId);
-const DEST = join(HERE, '..', 'app', 'public');
+// DEPLOY_SRC / DEPLOY_DEST — verification seams (Stage D sf-app), NOT deploy
+// knobs: the smoke harness points DEPLOY_SRC at an empty scratch root to prove
+// the refusal path stays loud for ANY city, and DEPLOY_DEST at a scratch dir to
+// prove a full artifact set deploys correctly WITHOUT touching the real
+// deployment. Neither engages unless explicitly set — an unadorned
+// `npm run deploy-city` reads finder/output/<cityId>/ and writes app/public/,
+// exactly as before.
+const SRC = join(process.env.DEPLOY_SRC || join(HERE, 'output'), cityId);
+const DEST = process.env.DEPLOY_DEST || join(HERE, '..', 'app', 'public');
 
 const JSON_ARTIFACTS = ['events.json', 'places.json', 'guides.json'];
 const IMG_DIR = 'place-img';
@@ -52,7 +59,7 @@ else if (!statSync(srcImgCheck).isDirectory()) problems.push(`${IMG_DIR} is not 
 else {
   try { readdirSync(srcImgCheck); } catch (e) { problems.push(`${IMG_DIR}/ unreadable (${e.message})`); }
 }
-if (!existsSync(DEST)) problems.push('app/public/ does not exist (run from the repo root)');
+if (!existsSync(DEST)) problems.push(`${process.env.DEPLOY_DEST ? `DEPLOY_DEST '${DEST}'` : 'app/public/'} does not exist${process.env.DEPLOY_DEST ? '' : ' (run from the repo root)'}`);
 if (problems.length) {
   console.error(`deploy-city: REFUSING to deploy '${cityId}' — ${problems.join(' · ')}`);
   console.error(`  Generate the city's artifacts first (finder/finder.mjs + finder/places.mjs${cityId === 'tampa-bay' ? '' : `, CITY=${cityId}`}), then re-run.`);
@@ -77,12 +84,16 @@ if (existsSync(destImg)) rmSync(destImg, { recursive: true, force: true });
 mkdirSync(destImg, { recursive: true });
 let imgN = 0;
 for (const f of readdirSync(srcImg)) {
+  // dotfiles (.gitkeep) are the empty-dir GIT seed for a city before its
+  // imagery run (Stage D: SF ships with zero place photos until Josh's
+  // supervised run) — repo plumbing, never a deployable artifact.
+  if (f.startsWith('.')) continue;
   copyFileSync(join(srcImg, f), join(destImg, f));
   total += statSync(join(destImg, f)).size;
   imgN++;
 }
 lines.push(`  ${(IMG_DIR + '/').padEnd(24)} ${String(imgN).padStart(6)} files`);
 
-console.log(`deploy-city: deployed '${cityId}' → app/public/`);
+console.log(`deploy-city: deployed '${cityId}' → ${process.env.DEPLOY_DEST ? DEST : 'app/public/'}`);
 for (const l of lines) console.log(l);
 console.log(`  total ${total.toLocaleString('en-US')} bytes`);

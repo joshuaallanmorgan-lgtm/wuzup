@@ -157,8 +157,12 @@ export default function AttributionPage({ events, dataAt }) {
                   ))}
                 </div>
                 <div className="at-note">
+                  {/* Stage D sf-app: the state name interpolates from CITY.region — a
+                      hardcoded state literal read as a false claim the moment the second
+                      city's data rendered (found live on the sf-east-bay runtime proof;
+                      the D4 smoke sweep now covers this file). */}
                   Sources overlap on purpose — one park is often corroborated by several datasets.
-                  Government data is Florida public records, credited to each agency by name.
+                  Government data is {CITY.region} public records, credited to each agency by name.
                 </div>
               </>
             )}

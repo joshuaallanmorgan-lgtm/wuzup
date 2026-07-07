@@ -25,7 +25,10 @@
 // lib.js → city.js into Node, and vite.config.js imports it for the HTML
 // title) — hence the guarded env access below.
 
-const CITIES = {
+// Exported for the D4 smoke pin ONLY (test/smoke.mjs imports the full registry
+// to mirror-check EVERY entry against its finder config, not just the active
+// city). App code must keep consuming the selected CITY below — never the map.
+export const CITIES = {
   'tampa-bay': {
     id: 'tampa-bay',
     name: 'Tampa Bay', // the user-facing city label (headers, counts, Profile)
@@ -60,6 +63,47 @@ const CITIES = {
     // so the W4 real-photo smoke guard still reads them from this file's source).
     hero: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Tampa_Skyline_-_Eric_Statzer.jpg/960px-Tampa_Skyline_-_Eric_Statzer.jpg',
     spotsHero: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Tampa_Bayshore_Blvd_looking_south01.jpg/960px-Tampa_Bayshore_Blvd_looking_south01.jpg',
+  },
+  // Stage D: city #2 — SF & East Bay (the SF → Walnut Creek corridor, Josh
+  // 2026-06-16, reconfirmed 2026-07-01 ruling #9). Identity fields + heroes
+  // MIRROR finder/cities/sf-east-bay.mjs (meta/heroes/spotsHeroes) — no import,
+  // by design; the D4 smoke pin holds the two in sync. Heroes were live-verified
+  // on Commons 2026-07-03 (STAGE_D_SF_ENDPOINTS.md §7); credits carried in full
+  // for the attribution page. ⚑ The Mt. Diablo Spots hero is a city-mood
+  // backdrop (fine per the hero rule) — the summit sits OUTSIDE the ratified
+  // finder bbox, so Diablo-as-a-SPOT stays Josh's bbox call (STAGE_D.md D3).
+  'sf-east-bay': {
+    id: 'sf-east-bay',
+    name: 'SF & East Bay', // mirrors finder meta.name EXACTLY (smoke-pinned)
+    shortName: 'SF', // the casual/vocative form (taglines, address hints)
+    region: 'California', // mirrors the finder geocode region
+    locale: 'en-US',
+    tz: 'America/Los_Angeles', // mirrors the finder tz (weather.js forecast query)
+    center: { lat: 37.84, lng: -122.25 }, // mirrors finder meta.center
+    heroes: [
+      {
+        url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/GoldenGateBridge-001.jpg/960px-GoldenGateBridge-001.jpg',
+        credit: 'Rich Niewiroski Jr.',
+        license: 'CC BY 2.5',
+        licenseUrl: 'https://creativecommons.org/licenses/by/2.5',
+        page: 'https://commons.wikimedia.org/wiki/File:GoldenGateBridge-001.jpg',
+      },
+    ],
+    spotsHeroes: [
+      {
+        // CC0 — no byline legally required; credited anyway (house style: every
+        // hero carries its credit).
+        url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Mount_Diablo_with_wildflowers.jpg/960px-Mount_Diablo_with_wildflowers.jpg',
+        credit: 'Mx. Granger',
+        license: 'CC0',
+        licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/',
+        page: 'https://commons.wikimedia.org/wiki/File:Mount_Diablo_with_wildflowers.jpg',
+      },
+    ],
+    // scalar aliases — mirror heroes[0]/spotsHeroes[0].url as plain string
+    // literals (the W4 real-photo smoke guard reads them from this source text).
+    hero: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/GoldenGateBridge-001.jpg/960px-GoldenGateBridge-001.jpg',
+    spotsHero: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Mount_Diablo_with_wildflowers.jpg/960px-Mount_Diablo_with_wildflowers.jpg',
   },
 }
 

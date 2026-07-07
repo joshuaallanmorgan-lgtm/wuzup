@@ -70,9 +70,10 @@ config call. The original packet, for the record:
 
 `app/src/city.js` (build-time `VITE_CITY` registry, fail-closed on unknown ids; lib.js re-exports
 so importers were untouched); wx key migrated per-city (chained legacy path); `fmtLocale` covers
-all 33 locale literals; Tampa copy interpolated incl. the `%CITY_NAME%` tab title. City #2
-app-side = add a `CITIES` entry (NOT yet present for sf-east-bay — deliberate: a
-`VITE_CITY=sf-east-bay` build fails closed until its data exists) + build with the env var.
+all 33 locale literals; Tampa copy interpolated incl. the `%CITY_NAME%` tab title. The
+sf-east-bay `CITIES` entry ✅ LANDED (stage-d/complete): `VITE_CITY=sf-east-bay` is a working,
+runtime-proven build (real SF events render; Coverage Card compact at 747; attribution derives
+SF sources + hero credits). Unknown ids still fail closed.
 - ✅ **D-DEP RESOLVED (Josh, 2026-07-02): ONE DEPLOYMENT PER CITY** — build-time city selection.
   Consequences now binding for D1/D4: the finder namespaces outputs per city
   (`finder/output/<cityId>/…`) and the DEPLOY step copies ONE city's artifacts into `app/public/`
@@ -80,15 +81,15 @@ app-side = add a `CITIES` entry (NOT yet present for sf-east-bay — deliberate:
   needs no fetch-path changes); the app's `CITY` config resolves at build time (env/config module,
   Tampa default); the in-app switcher is v2 ([BACKLOG](BACKLOG.md)).
 
-## Grafts pulled in from the V2 adjudication (Fable rulings 2026-07-05 — see planning/v2/V2_VISION.md §8.6)
+## Grafts pulled in from the V2 adjudication ✅ BOTH LANDED (D-G1 via PR #12; D-G2 on stage-d/complete)
 
 Two small V2-substrate items land in the current road because they're cheap now and painful later:
 
-- **D-G1 — Coverage Card** (new D3/D4 scope): a small honest "what we know here" surface — N events ·
+- ✅ **D-G1 — Coverage Card** (SHIPPED — Home colophon + attribution header + the sparse-city promotion): a small honest "what we know here" surface — N events ·
   M sources · updated <time> · imagery coverage — rendered from data already in the artifacts +
   attribution ledger. Doubles as SF's week-one sparse-data answer (an honest floor beats an empty
   feed pretending otherwise). Per-city by construction.
-- **D-G2 — Stable event IDs** (finder, before v1 ships): mint a deterministic content-derived `id`
+- ✅ **D-G2 — Stable event IDs** (SHIPPED — v1|-versioned recipe, venue-free + deterministic tiebreaks, both cities id-carrying; the ONE sanctioned Tampa amendment landed, new warm baseline c68491d4…): mint a deterministic content-derived `id`
   per event at emit (stable across re-runs, collision-checked at build; Tampa regression must show
   ONLY the added field). Zero UI change in v1 — it exists so every V2 share/link/ledger feature has
   identity ground to stand on. **Byte-identity caveat:** this intentionally amends the Tampa

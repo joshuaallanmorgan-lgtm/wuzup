@@ -29,7 +29,8 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
 import { lookup as dnsLookup } from 'node:dns/promises'
-import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 // city-agnostic: the box + roster anchors come from the active city config, the
@@ -58,12 +59,26 @@ const fullEvents = JSON.parse(fullRaw)
 // written in the same run as both json files; trust it whenever the app copy
 // and the finder output are byte-identical (the normal pipeline state), else
 // fall back to mtime and say so in the failure message.
+// D-G2: the finder artifact carries stable event ids AHEAD of the deployed
+// copy (ids mint at finder emit; app/public changes only via `npm run
+// deploy-city`). "Same artifact" for stamp-trust purposes = identical once
+// ids are ignored on BOTH sides — byte-identity resumes at the next deploy.
+const sansIds = (raw) => {
+  try {
+    const a = JSON.parse(raw)
+    if (!Array.isArray(a)) return raw
+    for (const e of a) if (e && typeof e === 'object') delete e.id
+    return JSON.stringify(a)
+  } catch {
+    return raw
+  }
+}
 const genRefMs = (() => {
   try {
     if (
       existsSync(FINDER_MD) &&
       existsSync(FINDER_JSON) &&
-      readFileSync(FINDER_JSON, 'utf8') === fullRaw
+      sansIds(readFileSync(FINDER_JSON, 'utf8')) === sansIds(fullRaw)
     ) {
       const m = readFileSync(FINDER_MD, 'utf8').match(/_Generated ([^·]+) ·/)
       const t = m ? new Date(m[1].trim()).getTime() : NaN
@@ -165,6 +180,12 @@ function schemaProblems(e, i) {
     else if (e[k] !== null && typeof e[k] !== want) p.push(`${id}: ${k} must be ${want}|null (got ${typeof e[k]})`)
   }
   if ((e.lat == null) !== (e.lng == null)) p.push(`${id}: lat/lng must be null together or set together`)
+  // D-G2 stable ids: 16-hex sha256 prefix, minted at finder emit. Absent on a
+  // pre-id deployed dataset (the field arrives via deploy-city); when present
+  // it must be well-formed. The all-or-nothing + uniqueness pins live in the
+  // dataset-level tests (a per-event validator can't see its siblings).
+  if (e.id !== undefined && (typeof e.id !== 'string' || !/^[0-9a-f]{16}$/.test(e.id)))
+    p.push(`${id}: id must be a 16-hex stable event id (got ${JSON.stringify(e.id)})`)
   return p
 }
 
@@ -272,6 +293,22 @@ test('finder fast-mode: exit 0, benchmarks green, output schema-valid', { timeou
     t.diagnostic(`schema spot-check indexes: ${picked.join(',')}`)
     const problems = picked.flatMap((i) => schemaProblems(fast[i], i))
     assert.equal(problems.length, 0, `fast-mode output schema problems:\n  ${problems.join('\n  ')}`)
+
+    // --- D-G2: EVERY freshly-emitted event carries a stable id, unique across
+    // the run — pins the minting LIVE at the emit choke point (the committed-
+    // artifact pins can't catch a regression that only bites fresh runs) ---
+    const badIds = fast.filter((e) => typeof e.id !== 'string' || !/^[0-9a-f]{16}$/.test(e.id))
+    assert.equal(
+      badIds.length,
+      0,
+      `${badIds.length} fast-mode events without a valid stable id: ` +
+        badIds.slice(0, 3).map((e) => `"${e.title}" id=${JSON.stringify(e.id)}`).join('; ')
+    )
+    assert.equal(
+      new Set(fast.map((e) => e.id)).size,
+      fast.length,
+      'fast-mode stable ids must be unique — the collision tiebreaks + truncated-hash check exist for exactly this'
+    )
   } finally {
     for (const [f, buf] of backups) writeFileSync(f, buf) // never leave fast-mode data behind
   }
@@ -334,6 +371,18 @@ test(`data invariants: full events.json (${fullEvents.length} events)`, (t) => {
   // hidden gems: curated shelf stays capped
   const gems = fullEvents.filter((e) => Array.isArray(e.tags) && e.tags.includes('hidden-gem')).length
   assert.ok(gems <= 24, `hidden-gem count ${gems} exceeds the cap of 24 — gem curation regressed`)
+
+  // D-G2: stable ids are all-or-nothing per dataset (mixed presence means a
+  // splice of pre- and post-id artifact generations — corruption, not a
+  // transition state) and unique when present. Format is schema-validated.
+  const withId = fullEvents.filter((e) => e.id !== undefined)
+  assert.ok(
+    withId.length === 0 || withId.length === fullEvents.length,
+    `stable ids are MIXED: ${withId.length}/${fullEvents.length} events carry an id — the dataset splices two artifact generations`
+  )
+  if (withId.length) {
+    assert.equal(new Set(withId.map((e) => e.id)).size, fullEvents.length, 'stable ids must be unique within the dataset')
+  }
 
   // full-file schema pass (cheap at this size; loud per-event messages)
   const problems = fullEvents.flatMap((e, i) => schemaProblems(e, i))
@@ -527,29 +576,60 @@ test('fail-closed: every shipped Mapillary cafe was re-verified', () => {
 
 // Stage D · D1 — the deploy seam. app/public data artifacts are written ONLY by
 // finder/deploy.mjs (`npm run deploy-city`), which copies exactly ONE city's set
-// from finder/output/<cityId>/. Guards: the deploy step exists, an artifact-less
-// city is refused LOUDLY (a CITY=sf-east-bay run can never blank Tampa's
-// deployment), and the legacy un-namespaced output paths stay dead.
-test('D1 deploy seam: deploy.mjs exists + refuses an artifact-less city + legacy paths gone', { timeout: 60_000 }, async () => {
+// from finder/output/<cityId>/. Guards: the deploy step exists, an incomplete
+// artifact set is refused LOUDLY, a COMPLETE set deploys whole (proven against a
+// scratch DEST — sf-east-bay's set is real now, and a live deploy of it here
+// would blank Tampa's deployment mid-test), and the legacy un-namespaced output
+// paths stay dead.
+test('D1 deploy seam: deploy.mjs exists + refuses an incomplete set + scratch-deploys a complete one + legacy paths gone', { timeout: 60_000 }, async () => {
   assert.ok(existsSync(path.join(ROOT, 'finder', 'deploy.mjs')), 'finder/deploy.mjs must exist (the ONE writer of app/public data artifacts)')
   const pkg = JSON.parse(readFileSync(path.join(ROOT, 'package.json'), 'utf8'))
   assert.equal(pkg.scripts['deploy-city'], 'node finder/deploy.mjs', 'the deploy-city npm script must run the deploy step')
-  // a REGISTERED city with no generated artifacts must be refused loudly — and
-  // the refusal must not have touched the deployed files (byte-check one).
   const guidesBefore = readFileSync(path.join(ROOT, 'app', 'public', 'guides.json'))
-  const res = await runNode('finder/deploy.mjs', { CITY: 'sf-east-bay' })
-  assert.notEqual(res.code, 0, `deploying a city with no artifacts must exit non-zero (got ${res.code}):\n${tail(res.out)}`)
-  assert.match(res.out, /REFUSING/, 'the refusal must be loud and name the problem')
-  assert.deepEqual(readFileSync(path.join(ROOT, 'app', 'public', 'guides.json')), guidesBefore,
-    'a refused deploy must leave the deployed artifacts untouched')
+  const scratch = mkdtempSync(path.join(tmpdir(), 'wuzup-deploy-seam-'))
+  try {
+    // (a) REFUSAL: a city with no artifacts must be refused loudly, touching
+    // nothing. Stage D sf-app: BOTH registered cities carry complete sets now,
+    // so the probe rides the DEPLOY_SRC verification seam — an empty scratch
+    // root IS "no artifacts", same checks, same code path, same loud exit.
+    const emptyRoot = path.join(scratch, 'empty-output')
+    mkdirSync(emptyRoot, { recursive: true })
+    const res = await runNode('finder/deploy.mjs', { CITY: 'sf-east-bay', DEPLOY_SRC: emptyRoot })
+    assert.notEqual(res.code, 0, `deploying a city with no artifacts must exit non-zero (got ${res.code}):\n${tail(res.out)}`)
+    assert.match(res.out, /REFUSING/, 'the refusal must be loud and name the problem')
+    assert.deepEqual(readFileSync(path.join(ROOT, 'app', 'public', 'guides.json')), guidesBefore,
+      'a refused deploy must leave the deployed artifacts untouched')
+    // (b) SUCCESS: sf-east-bay's real artifact set deploys whole into a scratch
+    // DEST — JSON lands byte-identical, the pre-imagery .gitkeep git seed never
+    // ships, and the REAL deployment (app/public = Tampa) still hasn't moved.
+    const dest = path.join(scratch, 'dest')
+    mkdirSync(dest, { recursive: true })
+    const ok = await runNode('finder/deploy.mjs', { CITY: 'sf-east-bay', DEPLOY_DEST: dest })
+    assert.equal(ok.code, 0, `deploying a complete artifact set must exit 0 (got ${ok.code}):\n${tail(ok.out)}`)
+    for (const f of ['events.json', 'places.json', 'guides.json']) {
+      assert.equal(readFileSync(path.join(dest, f), 'utf8'), readFileSync(path.join(ROOT, 'finder', 'output', 'sf-east-bay', f), 'utf8'),
+        `${f} must land byte-identical in the scratch deploy`)
+    }
+    assert.ok(existsSync(path.join(dest, 'place-img')) && statSync(path.join(dest, 'place-img')).isDirectory(),
+      'the scratch deploy must create place-img/')
+    assert.ok(!existsSync(path.join(dest, 'place-img', '.gitkeep')),
+      'the .gitkeep empty-dir git seed must never ship into a deployment')
+    assert.deepEqual(readFileSync(path.join(ROOT, 'app', 'public', 'guides.json')), guidesBefore,
+      'a scratch-DEST deploy must leave the real deployment untouched')
+  } finally {
+    rmSync(scratch, { recursive: true, force: true })
+  }
   // the legacy un-namespaced output files must not exist (and no writer recreates
   // them — the finder fast-mode run in test 1 would have, if a write path survived)
   for (const f of ['events.json', 'events.md', 'places.json', 'places.md', 'guides.json', 'place-img']) {
     assert.ok(!existsSync(path.join(ROOT, 'finder', 'output', f)), `legacy un-namespaced finder/output/${f} must not exist (outputs are per-city now)`)
   }
-  // the per-city artifact set is COMPLETE for the reference city (deploy's contract)
-  for (const f of ['events.json', 'places.json', 'guides.json', 'place-img']) {
-    assert.ok(existsSync(path.join(ROOT, 'finder', 'output', CITY_ID, f)), `finder/output/${CITY_ID}/${f} missing — the deployable set is incomplete`)
+  // the per-city artifact set is COMPLETE for BOTH registered cities (deploy's
+  // contract — Stage D sf-app: sf-east-bay is deployable from this commit on)
+  for (const city of ['tampa-bay', 'sf-east-bay']) {
+    for (const f of ['events.json', 'places.json', 'guides.json', 'place-img']) {
+      assert.ok(existsSync(path.join(ROOT, 'finder', 'output', city, f)), `finder/output/${city}/${f} missing — the deployable set is incomplete`)
+    }
   }
 })
 
@@ -628,24 +708,44 @@ test('D4 city seam: city.js config + lib re-export + finder mirror + no stray Ta
   // 2. lib.js re-exports the SAME object — importers and the seam can't fork
   assert.equal(libMod.CITY, cityMod.CITY, 'lib.js must re-export city.js CITY (same object, not a copy)')
   assert.equal(libMod.fmtLocale, cityMod.CITY.locale, 'fmtLocale must BE the config locale')
-  // 3. app config mirrors the finder config identity (no cross-layer import —
-  //    the app stays finder-free; this assertion is the only tie)
-  const finder = await import('../finder/cities/index.mjs')
-  assert.equal(cityMod.CITY.id, finder.meta.id, 'app city id must mirror finder meta.id')
-  assert.equal(cityMod.CITY.name, finder.meta.name, 'app city name must mirror finder meta.name')
-  assert.deepEqual(cityMod.CITY.center, finder.meta.center, 'app city center must mirror finder meta.center')
-  // 4. the honesty contract survived the lib.js → city.js move: every hero
-  //    entry keeps its full credit block, and the W4 scalar aliases still
-  //    mirror entry [0] (the Primer bg + attribution page depend on them)
-  for (const list of ['heroes', 'spotsHeroes']) {
-    for (const h of cityMod.CITY[list]) {
-      for (const field of ['url', 'credit', 'license', 'licenseUrl', 'page']) {
-        assert.ok(typeof h[field] === 'string' && h[field], `CITY.${list} entry must keep its ${field} (credits must not drop in the move)`)
+  // 3. EVERY app registry entry mirrors ITS finder config identity + heroes
+  //    (no cross-layer import — the app stays finder-free; this assertion is
+  //    the only tie). Stage D sf-app: iterates the full registry, so a second
+  //    city can't land with a drifted name/center or dropped hero credits.
+  //    The finder city modules import directly by path — index.mjs would only
+  //    resolve the CITY-env-selected one.
+  const entries = Object.entries(cityMod.CITIES)
+  assert.ok(entries.length >= 2, 'CITIES must carry tampa-bay + sf-east-bay (Stage D sf-app)')
+  for (const [key, appCity] of entries) {
+    const finderCity = await import(`../finder/cities/${key}.mjs`)
+    assert.equal(key, appCity.id, `CITIES['${key}'] key must equal its id`)
+    assert.equal(appCity.id, finderCity.meta.id, `${key}: app city id must mirror finder meta.id`)
+    assert.equal(appCity.name, finderCity.meta.name, `${key}: app city name must mirror finder meta.name`)
+    assert.deepEqual(appCity.center, finderCity.meta.center, `${key}: app city center must mirror finder meta.center`)
+    assert.equal(appCity.tz, finderCity.tz, `${key}: app city tz must mirror the finder tz (weather/day math)`)
+    assert.equal(appCity.region, finderCity.geocode.region, `${key}: app city region must mirror the finder geocode region`)
+    // 4. the honesty contract: every hero entry keeps its full credit block; and
+    //    where the finder config CARRIES verified hero records (sf-east-bay —
+    //    live-verified on Commons, STAGE_D_SF_ENDPOINTS.md §7) the app entry
+    //    mirrors them field-for-field. (Tampa's pair was hand-picked in W4 and
+    //    lives only in city.js — no finder record to mirror.) The W4 scalar
+    //    aliases still mirror entry [0] (the Primer bg + attribution page).
+    for (const list of ['heroes', 'spotsHeroes']) {
+      if (finderCity[list]) {
+        assert.equal(appCity[list].length, finderCity[list].length, `${key}: CITY.${list} must carry the finder config's verified set`)
       }
+      appCity[list].forEach((h, i) => {
+        for (const field of ['url', 'credit', 'license', 'licenseUrl', 'page']) {
+          assert.ok(typeof h[field] === 'string' && h[field], `${key}: CITY.${list}[${i}] must keep its ${field} (credits must not drop)`)
+          if (finderCity[list]) {
+            assert.equal(h[field], finderCity[list][i][field], `${key}: CITY.${list}[${i}].${field} drifted from the finder config's verified record`)
+          }
+        }
+      })
     }
+    assert.equal(appCity.hero, appCity.heroes[0].url, `${key}: CITY.hero alias must mirror heroes[0].url`)
+    assert.equal(appCity.spotsHero, appCity.spotsHeroes[0].url, `${key}: CITY.spotsHero alias must mirror spotsHeroes[0].url`)
   }
-  assert.equal(cityMod.CITY.hero, cityMod.CITY.heroes[0].url, 'CITY.hero alias must mirror heroes[0].url')
-  assert.equal(cityMod.CITY.spotsHero, cityMod.CITY.spotsHeroes[0].url, 'CITY.spotsHero alias must mirror spotsHeroes[0].url')
   // 5. literal sweeps over app/src (flat *.js/*.jsx — assets/ has no code):
   //    - 'wx-tampa-v1' only on the two migration paths (weather.js one-shot,
   //      storage.js LEGACY_KEYS)
@@ -668,6 +768,15 @@ test('D4 city seam: city.js config + lib re-export + finder mirror + no stray Ta
   for (const f of ['BubblePage.jsx', 'PlaceBubblePage.jsx', 'AddEvent.jsx', 'guides.js', 'Primer.jsx']) {
     assert.ok(!readFileSync(path.join(SRC, f), 'utf8').includes('Tampa'), `${f}: hardcoded 'Tampa' — interpolate CITY.name / CITY.shortName`)
   }
+  // Stage D sf-app: the attribution page spoke a hardcoded state name — caught
+  // LIVE on the first SF runtime proof ("Government data is Florida public
+  // records" rendered over California data, a false claim on the honesty page
+  // itself). It must interpolate CITY.region; no state literal may return.
+  const atText = readFileSync(path.join(SRC, 'AttributionPage.jsx'), 'utf8')
+  for (const state of ['Florida', 'California']) {
+    assert.ok(!atText.includes(state), `AttributionPage.jsx: hardcoded '${state}' — interpolate CITY.region`)
+  }
+  assert.ok(/\{CITY\.region\}/.test(atText), 'AttributionPage.jsx: the public-records line must interpolate CITY.region')
   const indexHtml = readFileSync(path.join(ROOT, 'app', 'index.html'), 'utf8')
   assert.ok(!indexHtml.includes('Tampa'), 'index.html: the title must use the %CITY_NAME% token (cityTitle plugin), not a hardcoded city')
   assert.ok(indexHtml.includes('%CITY_NAME%'), 'index.html: the %CITY_NAME% token must exist for the cityTitle plugin to fill')
@@ -860,6 +969,19 @@ test('3.75b: watch guides resolve to real keyword matches + honor the window', a
   // window gate
   assert.equal(watchGuideActive(wc, Date.parse('2026-06-20')), true, 'should be active mid-window')
   assert.equal(watchGuideActive(wc, Date.parse('2027-01-01')), false, 'should be inactive outside its window')
+  // Stage D sf-app: the PER-CITY artifact guides (finder/output/<city>/guides.json,
+  // what deploy-city ships) obey the same honesty shape — schemaVersion 1 and
+  // every watch guide carries a parseable window + non-empty keywords (a
+  // malformed guide silently no-shows in the app; keywords are the no-fabrication
+  // contract — a watch guide with none could only ever show invented picks).
+  for (const city of ['tampa-bay', 'sf-east-bay']) {
+    const doc = JSON.parse(readFileSync(path.join(ROOT, 'finder', 'output', city, 'guides.json'), 'utf8'))
+    assert.equal(doc.schemaVersion, 1, `${city} artifact guides.json schemaVersion must be 1`)
+    for (const g of (doc.guides || []).filter((x) => x.kind === 'watch')) {
+      assert.ok(g.window && Number.isFinite(Date.parse(g.window.start)) && Number.isFinite(Date.parse(g.window.end)), `${city} watch guide ${g.id}: unparseable window`)
+      assert.ok(Array.isArray(g.keywords) && g.keywords.length > 0, `${city} watch guide ${g.id}: empty keywords`)
+    }
+  }
 })
 
 // Phase 3.5 W7 — DEEPEN REC COVERAGE. New OSM classes (disc golf, skate parks,
@@ -1125,6 +1247,37 @@ test('app lint: eslint exits 0', { timeout: 300_000 }, async (t) => {
   const r = await lintP
   t.diagnostic(`eslint took ${r.secs}s`)
   assert.equal(r.code, 0, `app lint failed (exit ${r.code}):\n${tail(r.out)}`)
+})
+
+// Stage D sf-app — the SECOND city must BUILD. VITE_CITY=sf-east-bay was
+// fail-closed (unknown id → loud registry throw) until its entry landed; this
+// holds the door open and pins the two identity surfaces the build stamps:
+// the emitted index.html <title> and the manifest name must both carry the SF
+// name from the ONE registry. Cheap by measurement (rolldown builds in ~0.2s)
+// and isolated — a scratch --outDir, so the default (Tampa) build's app/dist
+// is never clobbered. Runs after the Tampa build test (node:test is
+// sequential in-file), so the two vite runs never overlap.
+test('Stage D sf-app: VITE_CITY=sf-east-bay builds — title + manifest carry the SF name', { timeout: 300_000 }, async (t) => {
+  startAppChecks()
+  await buildP // never overlap the Tampa build (shared caches, half the machine)
+  const outDir = mkdtempSync(path.join(tmpdir(), 'wuzup-sf-build-'))
+  try {
+    const r = await collect(
+      spawn(`npm --prefix app run build -- --outDir "${outDir}" --emptyOutDir`, {
+        cwd: ROOT,
+        shell: true,
+        env: { ...process.env, VITE_CITY: 'sf-east-bay' },
+      })
+    )
+    t.diagnostic(`sf build took ${r.secs}s`)
+    assert.equal(r.code, 0, `VITE_CITY=sf-east-bay build failed (exit ${r.code}):\n${tail(r.out)}`)
+    const html = readFileSync(path.join(outDir, 'index.html'), 'utf8')
+    assert.ok(html.includes('<title>Wuzup · SF & East Bay</title>'), 'the emitted index.html title must carry the SF name')
+    const manifest = JSON.parse(readFileSync(path.join(outDir, 'manifest.webmanifest'), 'utf8'))
+    assert.equal(manifest.name, 'Wuzup · SF & East Bay', 'the emitted manifest name must carry the SF name')
+  } finally {
+    rmSync(outDir, { recursive: true, force: true })
+  }
 })
 
 // ============================================================
@@ -3062,6 +3215,125 @@ test('finder ingest: cleanDescription strips leading Eventbrite "About this even
   const out = cleanDescription(long)
   assert.equal(out.length, 200, 'cap applies to the DE-CHROMED text')
   assert.ok(out.startsWith('xxx'), 'recovered characters are real text, not chrome')
+})
+
+// ============================================================
+// D-G2 — stable event ids (STAGE_D.md grafts; V2_VISION.md §8.6). The id is
+// a VERSIONED CONTRACT: sha256("v1|<cityId>|<titleKey>|<startDay>[|<venueKey>
+// [|<n>]]") → 16 hex. These units pin the recipe's survival guarantees
+// against the measured churn classes from the identity forensics: start
+// flips date-only↔timed (mint from the DAY), merged titles flip between
+// member variants (fold diacritics + stem), venue strings churn twice (mint
+// venue-FREE unless genuinely ambiguous), the emit array re-sorts every run
+// (minting must be order-independent).
+// ============================================================
+test('D-G2 stable ids: the recipe contract — versioned, day-based, folded, venue-free', async () => {
+  const { eventIdCanonical } = await import('../finder/finder.mjs')
+  const c = (e) => eventIdCanonical(e, 'tampa-bay')
+  // the exact canonical form is FROZEN (changing it = bumping the version prefix)
+  assert.equal(c({ title: 'Sunset Music Series', start: '2026-07-10' }), 'v1|tampa-bay|music serie sunset|2026-07-10')
+  // a date-only event that gains a time keeps its id (day-based minting)
+  assert.equal(
+    c({ title: 'Sunset Music Series', start: '2026-07-10T19:00:00-04:00' }),
+    c({ title: 'Sunset Music Series', start: '2026-07-10' }),
+    'date-only ↔ timed start flips must not move the id'
+  )
+  // diacritics fold for the id even though display titles keep them
+  assert.equal(
+    c({ title: 'Rosalía Oakland', start: '2026-07-06' }),
+    c({ title: 'Rosalia Oakland', start: '2026-07-06' }),
+    'Rosalía/Rosalia must mint ONE id (NFD fold)'
+  )
+  // stemming: the merge may legally pick a different member title run-to-run
+  assert.equal(c({ title: 'REALM Exhibition', start: '2026-07-06' }), c({ title: 'REALM Exhibit', start: '2026-07-06' }))
+  // token order, punctuation and stopwords never matter
+  assert.equal(c({ title: 'The Journey West!', start: '2026-07-07' }), c({ title: 'Journey — West', start: '2026-07-07' }))
+  // venue-free base: venue only ever enters as a collision tiebreak
+  assert.equal(
+    c({ title: 'Baby Time', start: '2026-07-02', venue: 'Brandon Regional Library' }),
+    c({ title: 'Baby Time', start: '2026-07-02', venue: 'Port Tampa City Library' })
+  )
+  // two cities can never share an id input
+  assert.notEqual(
+    eventIdCanonical({ title: 'Baby Time', start: '2026-07-02' }, 'sf-east-bay'),
+    c({ title: 'Baby Time', start: '2026-07-02' })
+  )
+})
+
+test('D-G2 stable ids: minting — order-independent, tiebreaks confined, hard-fail loud', async () => {
+  const { mintEventIds } = await import('../finder/finder.mjs')
+  const fixture = () => [
+    { title: 'Baby Time', start: '2026-07-02T10:15:00', venue: 'Brandon Regional Library', url: 'https://x/1' },
+    { title: 'Baby Time', start: '2026-07-02T14:00:00', venue: 'West Tampa Branch Library', url: 'https://x/2' },
+    { title: 'Jazz Night', start: '2026-07-02T20:00:00', venue: 'The Attic', url: 'https://x/3' },
+    // level-3 pair: same title+day+venue, distinguished only by url (the
+    // trolley-tour class — 1 real pair in Tampa, 0 in SF)
+    { title: 'Trolley Tour', start: '2026-07-04T09:00:00', venue: 'History Museum', url: 'https://x/4a' },
+    { title: 'Trolley Tour', start: '2026-07-04T09:00:00', venue: 'History Museum', url: 'https://x/4b' },
+  ]
+  const a = fixture()
+  const rep = mintEventIds(a, 'tampa-bay')
+  for (const e of a) assert.match(e.id, /^[0-9a-f]{16}$/, `"${e.title}" minted id ${JSON.stringify(e.id)}`)
+  assert.equal(new Set(a.map((e) => e.id)).size, a.length, 'minted ids must be unique')
+  assert.equal(rep.baseGroups, 2, 'two ambiguous title+day groups (Baby Time, Trolley Tour)')
+  assert.equal(rep.venueQualified, 2, 'the Baby Time pair resolves at the venue level')
+  assert.equal(rep.counterQualified, 2, 'the Trolley pair needs the level-3 counter')
+  // order independence: the emit array re-sorts by startMs every run — a
+  // reversed multiset must mint the exact same id per event
+  const b = fixture().reverse()
+  mintEventIds(b, 'tampa-bay')
+  const byUrl = new Map(b.map((e) => [e.url, e.id]))
+  for (const e of a) assert.equal(byUrl.get(e.url), e.id, `array order leaked into the id of "${e.title}" (${e.url})`)
+  // churn survival on an UNambiguous event: a venue rename (venue-free base)
+  // AND losing the clock (day-based) both leave the id untouched
+  const solo = [{ title: 'Jazz Night', start: '2026-07-02', venue: 'The Attic Rooftop (Renamed)', url: 'https://x/3' }]
+  mintEventIds(solo, 'tampa-bay')
+  assert.equal(solo[0].id, a[2].id, 'venue rename + date-only start must not move an unambiguous id')
+  // indistinguishable twins (every identity fact equal) must FAIL the build,
+  // never ship an arbitrary assignment
+  const twins = [
+    { title: 'Trolley Tour', start: '2026-07-04T09:00:00', venue: 'History Museum', url: 'https://x/same' },
+    { title: 'Trolley Tour', start: '2026-07-04T09:00:00', venue: 'History Museum', url: 'https://x/same' },
+  ]
+  assert.throws(() => mintEventIds(twins, 'tampa-bay'), /HARD COLLISION/, 'indistinguishable twins must fail loudly')
+})
+
+// D-G2 artifact pins: BOTH cities' committed finder artifacts carry the ids.
+// Bytes captured at module load — the fast-mode finder run overwrites (then
+// restores) the active city's artifact mid-suite; same hazard fullRaw dodges.
+const CITY_ID_ARTIFACTS = ['tampa-bay', 'sf-east-bay'].map((city) => {
+  const p = path.join(ROOT, 'finder', 'output', city, 'events.json')
+  return { city, raw: existsSync(p) ? readFileSync(p, 'utf8') : null }
+})
+
+test("D-G2 stable ids: both cities' committed artifacts — present, well-formed, unique, recipe-true", async () => {
+  const { mintEventIds } = await import('../finder/finder.mjs')
+  for (const { city, raw } of CITY_ID_ARTIFACTS) {
+    assert.ok(raw, `finder/output/${city}/events.json missing — BOTH cities ship stable ids (D-G2)`)
+    const events = JSON.parse(raw)
+    assert.ok(Array.isArray(events) && events.length > 0, `${city}: events.json is not a non-empty array`)
+    const bad = events.filter((e) => typeof e.id !== 'string' || !/^[0-9a-f]{16}$/.test(e.id))
+    assert.equal(
+      bad.length,
+      0,
+      `${city}: ${bad.length} events without a valid 16-hex stable id (first: "${bad[0] && bad[0].title}")`
+    )
+    assert.equal(new Set(events.map((e) => e.id)).size, events.length, `${city}: duplicate stable ids in the committed artifact`)
+    // recipe reproduction: re-minting the same multiset under the CURRENT
+    // recipe must reproduce every committed id exactly — a recipe edit
+    // without a version bump + artifact regeneration turns this red instead
+    // of silently orphaning every id already shipped or shared
+    const copy = JSON.parse(raw)
+    for (const e of copy) delete e.id
+    mintEventIds(copy, city)
+    const drift = copy.filter((e, i) => e.id !== events[i].id)
+    assert.equal(
+      drift.length,
+      0,
+      `${city}: ${drift.length} committed ids do not reproduce under the current recipe ` +
+        `(first: "${drift[0] && drift[0].title}") — bump ID_RECIPE_VERSION and regenerate the artifacts`
+    )
+  }
 })
 
 // ============================================================
