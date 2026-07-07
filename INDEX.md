@@ -15,12 +15,12 @@ All forward work is named by **lettered Stage** (ROADMAP's A–E road). The old 
 | **A** | Premium-feel pass | PREMIUM_PUNCH D1–D8 + A1–A6 token/primitive codification | ✅ merged (PR #4) |
 | **B** | Patch sprint | V1_PUNCHLIST Batches 1–5 + the never-hide deck-coverage fix | ✅ merged (PR #5) |
 | **C** | Deep Sweep | dead-code / perf / a11y / inert tokens / dedup — [STAGE_C.md](STAGE_C.md) | ✅ merged (PR #6) |
-| **C.5** | **Cohesion Pass** | the premium gap as 4 whole-cloth passes (data quality · app feel · one visual language · Aurora re-derivation) — ROADMAP §CURRENT | 🔨 **current** (branch `cohesion/pass`; rulings + back-button + deck physics ✅; finder/Aurora/Detail in flight) |
-| **D** | Multi-City | geo-refactor + city #2 = **SF & East Bay (reconfirmed 2026-07-01)**; imagery pre-banked | 🔨 **current** (branch stage-d/multicity: D1/D2/D4 landed, D3 configs+adapters landed; remaining = SF events source modules + the supervised imagery run) |
-| **E** | v1 Ship | holistic pass vs all refs · honesty audit · PWA/deploy/attribution · beta | ⏳ |
+| **C.5** | **Cohesion Pass** | the premium gap as 4 whole-cloth passes (data quality · app feel · one visual language · Aurora re-derivation) | ✅ merged (PR #7) |
+| **D** | Multi-City | geo-refactor + city #2 = **SF & East Bay (reconfirmed 2026-07-01)** + the two V2 grafts (D-G1 Coverage Card, D-G2 stable event IDs) | ✅ merged (PRs #8–#13) |
+| **E** | v1 Ship | PWA/dark/attribution (PRs #9/#10) · deploy topology + refresh automation · final path-trace + shippability REFUTE — [STAGE_E.md](STAGE_E.md) | 🔨 **current** (branch `stage-e/ship`; remaining post-merge: Pages enablement + first deploy; post-ship: the supervised SF imagery run) |
 | **v2** | Backlog | everything post-launch | → [BACKLOG.md](BACKLOG.md) |
 
-**Where we are right now:** the Cohesion Pass is **MERGED (PR #7)**; **Stage D Multi-City is CURRENT** on branch `stage-d/multicity` ([STAGE_D.md](STAGE_D.md)) — the D-DEP ruling (one deployment per city) is executed; remaining = the SF events source modules + the supervised imagery runbook run. **Fable 5 resumed leadership 2026-07-01** (single-session driver's seat; Josh's 10 rulings in ROADMAP §5).
+**Where we are right now (2026-07-06):** Stage D is **MERGED (PRs #8–#13)** — both cities build from one codebase, SF & East Bay has real data (743 events / 22 sources), the Coverage Card and stable event IDs are live. **Stage E v1 Ship is CURRENT** on branch `stage-e/ship` ([STAGE_E.md](STAGE_E.md)): deploy = GitHub Pages, Tampa at `/cj/`, SF at `/cj/sf/` (Fable ruling under Josh's delegated judgment, 2026-07-06); the weekly data-refresh workflow opens test-gated PRs. After the ship PR merges: enable Pages, first deploy, then Josh's supervised SF imagery run. **Fable 5 resumed leadership 2026-07-01** (single-session driver's seat; Josh's 10 rulings in ROADMAP §5).
 
 ## Dead-vocabulary crosswalk
 
@@ -45,6 +45,7 @@ All forward work is named by **lettered Stage** (ROADMAP's A–E road). The old 
 | [BACKLOG.md](BACKLOG.md) | v1/v2 idea intake + triage (incl. the still-empty Tier-0 orphan inventory table — populate during C5). |
 | **[STAGE_C.md](STAGE_C.md)** | Stage C execution plan-of-record (recovered kickoff + checkpoint status; shipped via PR #6). |
 | **[STAGE_D.md](STAGE_D.md)** | Stage D Multi-City execution plan-of-record (Addendum I packet + the 2026-07-01 pipeline forensics; ⚑D-DEP RESOLVED: one deployment per city). |
+| **[STAGE_E.md](STAGE_E.md)** | Stage E v1 Ship record: deploy topology (GitHub Pages `/cj/` + `/cj/sf/`), the two workflows, post-merge enablement steps, the places-pipeline cadence, the ship-gate results. |
 
 ### 🔵 REFERENCE — durable specs (consult, don't execute)
 | Doc | Purpose |
