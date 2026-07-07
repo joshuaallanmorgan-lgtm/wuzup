@@ -7,6 +7,18 @@ import react from '@vitejs/plugin-react'
 // var, which is the documented one-deployment-per-city knob.)
 import { CITY } from './src/city.js'
 
+// Stage E deploy-infra: BASE_PATH is the ONE subpath-hosting knob. GitHub
+// Pages serves a project site under /<repo>/ — Tampa builds with
+// BASE_PATH=/cj/ and SF with BASE_PATH=/cj/sf/ (two self-contained builds,
+// one deployment per city, D-DEP). Default '/' is a true no-op: the default
+// build's JS/CSS/HTML output stays byte-identical (verified against the
+// pre-change dist). Normalized to leading+trailing '/' exactly like vite's
+// own base normalization, so the manifest below and vite agree on the prefix.
+// (globalThis.process — the lint config is browser-globals-only; same pattern
+// as city.js. This file always runs in Node, where process is real.)
+const RAW_BASE = globalThis.process?.env?.BASE_PATH || '/'
+const BASE = (RAW_BASE.startsWith('/') ? '' : '/') + RAW_BASE + (RAW_BASE.endsWith('/') ? '' : '/')
+
 // Stage E (ship-shell): the installable-PWA manifest, generated from the SAME
 // city registry as the %CITY_NAME% title token — public/ can't carry it because
 // files there copy verbatim and the app name must follow VITE_CITY at build.
@@ -21,21 +33,25 @@ import { CITY } from './src/city.js'
 // light in dark mode is a known platform limitation (noted for Josh).
 // Icons: rendered from favicon.svg — the ⚑ Charles placeholder mark — via a
 // sharp scratch script; re-render when the real mark lands.
+// start_url/scope/icons ride BASE: vite's base only rewrites what it bundles,
+// and this manifest is emitted as a raw asset — its internals are the classic
+// base-path escapees (a /cj/ deployment would otherwise install an app whose
+// start_url and icons 404). At BASE '/' every value is byte-identical to before.
 const MANIFEST = JSON.stringify(
   {
     name: `Wuzup · ${CITY.name}`,
     short_name: 'Wuzup',
-    start_url: '/',
-    scope: '/',
+    start_url: BASE,
+    scope: BASE,
     display: 'standalone',
     orientation: 'portrait',
     background_color: '#faf6f1',
     theme_color: '#faf6f1',
     icons: [
-      { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
-      { src: '/icons/icon-maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
-      { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      { src: `${BASE}icons/icon-192.png`, sizes: '192x192', type: 'image/png' },
+      { src: `${BASE}icons/icon-512.png`, sizes: '512x512', type: 'image/png' },
+      { src: `${BASE}icons/icon-maskable-192.png`, sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+      { src: `${BASE}icons/icon-maskable-512.png`, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
   },
   null,
@@ -44,6 +60,7 @@ const MANIFEST = JSON.stringify(
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: BASE,
   plugins: [
     react(),
     {
@@ -62,9 +79,21 @@ export default defineConfig({
       generateBundle() {
         this.emitFile({ type: 'asset', fileName: 'manifest.webmanifest', source: MANIFEST })
       },
+      transformIndexHtml(html) {
+        // base-path escapee (verified with a BASE_PATH=/cj/ build): vite's HTML
+        // url rewriting only touches files it can resolve — favicon/icons/assets
+        // get the base prefix, but this plugin-emitted manifest doesn't exist on
+        // disk, so its <link href="/manifest.webmanifest"> ships un-prefixed and
+        // 404s under a subpath deployment. Prefix it here. At BASE '/' the
+        // replacement is the identity (byte-identical output).
+        return html.replaceAll('href="/manifest.webmanifest"', `href="${BASE}manifest.webmanifest"`)
+      },
       configureServer(server) {
         server.middlewares.use((req, res, next) => {
-          if (req.url === '/manifest.webmanifest' || req.url?.startsWith('/manifest.webmanifest?')) {
+          // configureServer middlewares run BEFORE vite's internal base-strip,
+          // so a BASE_PATH dev server sees the full /cj/… URL — normalize it.
+          const u = req.url?.startsWith(BASE) ? '/' + req.url.slice(BASE.length) : req.url
+          if (u === '/manifest.webmanifest' || u?.startsWith('/manifest.webmanifest?')) {
             res.setHeader('Content-Type', 'application/manifest+json')
             res.end(MANIFEST)
           } else next()

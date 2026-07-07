@@ -16,6 +16,13 @@
 import { useEffect, useSyncExternalStore } from 'react'
 import { milesBetween, normalizeTitle } from './lib.js'
 
+// Stage E base-path: the deployment base ('/' in dev + the default build;
+// '/cj/' or '/cj/sf/' under GitHub Pages). The ?.-form stays Node-safe (the
+// smoke harness imports this module; import.meta.env is undefined there) and
+// vite statically folds it to '/' at the default base — every use below
+// compiles away to the exact pre-Stage-E bytes.
+const BASE = import.meta.env?.BASE_URL ?? '/'
+
 // normalize a raw place into the UI shape the shared card/save/taste/recents
 // seams expect — the ONLY adaptation is aliasing name→title and address→venue
 // so cards.jsx (which reads e.title / e.venue / e.category / keyOf) renders a
@@ -29,7 +36,7 @@ export function normalizePlace(raw) {
   if (typeof raw.lat !== 'number' || typeof raw.lng !== 'number') return null
   const name = typeof raw.name === 'string' ? raw.name : ''
   if (!name) return null
-  return {
+  const p = {
     ...raw,
     kind: 'place',
     title: normalizeTitle(name), // cards.jsx reads e.title — alias so a place renders as a card (3.7P-35: clean SHOUTING/parens; gov/OSM names are already proper-case so this is mostly a no-op here)
@@ -42,6 +49,19 @@ export function normalizePlace(raw) {
     amenities: Array.isArray(raw.amenities) ? raw.amenities : [],
     sources: Array.isArray(raw.sources) ? raw.sources : [],
   }
+  // Stage E base-path: sign-verified cafe crops ship IN THE DATA as
+  // root-absolute '/place-img/<slug>.jpg' — deployment-relative paths the
+  // artifact contract pins (smoke: isLocalCafe). Under a subpath deployment
+  // they 404, so rebase them onto BASE here, the one place every consumer
+  // (cards, detail heroes, attribution, saved-snapshot re-normalization)
+  // already flows through. !startsWith(BASE) keeps it idempotent — saves.js
+  // snapshots re-enter normalizePlace carrying an already-rebased path. At
+  // the default base the BASE !== '/' guard is statically false and the whole
+  // block compiles away (the default build stays byte-identical).
+  if (BASE !== '/' && typeof p.image === 'string' && p.image.startsWith('/') && !p.image.startsWith(BASE)) {
+    p.image = BASE + p.image.slice(1)
+  }
+  return p
 }
 
 // ===== the eight Locations bubbles (S1). Each is a DESTINATION (a full
@@ -143,7 +163,10 @@ export function loadPlaces() {
   status = 'loading'
   rebuild()
   emit()
-  inflight = fetch('/places.json')
+  // Stage E base-path: BASE_URL-relative — root-absolute '/places.json' 404s
+  // under a subpath deployment (GitHub Pages /cj/); folds to the same literal
+  // at the default base.
+  inflight = fetch(BASE + 'places.json')
     .then((r) => {
       if (!r.ok) throw new Error('places http ' + r.status)
       return r.json()
