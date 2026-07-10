@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-07-06T06:45:26.389Z",
+  "fetchedAt": "2026-07-07T11:54:59.649Z",
   "byFile": {
     "File:Adam Rogers Park, San Francisco, California, US.jpg": {
       "file": "File:Adam Rogers Park, San Francisco, California, US.jpg",
@@ -1566,6 +1566,24 @@
       "licenseUrl": null,
       "sourceFamily": "wikidata-p18",
       "at": "2026-07-06T06:45:25.778Z"
+    },
+    "File:Diablo Foothills Regional Park - Castle Rock (East Bay Regional Park District) - panoramio.jpg": {
+      "file": "File:Diablo Foothills Regional Park - Castle Rock (East Bay Regional Park District) - panoramio.jpg",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3ADiablo%20Foothills%20Regional%20Park%20-%20Castle%20Rock%20(East%20Bay%20Regional%20Park%20District)%20-%20panoramio.jpg",
+      "author": "MARELBU",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceFamily": "wikidata-p373",
+      "at": "2026-07-07T11:54:52.147Z"
+    },
+    "File:Hikers on Mount Diablo.JPG": {
+      "file": "File:Hikers on Mount Diablo.JPG",
+      "fileUrl": "https://commons.wikimedia.org/wiki/File%3AHikers%20on%20Mount%20Diablo.JPG",
+      "author": "Michael Bass-Deschenes",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceFamily": "wikidata-p373",
+      "at": "2026-07-07T11:54:57.494Z"
     }
   }
 }

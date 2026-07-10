@@ -53,8 +53,11 @@ export const name = 'Visit St. Pete/Clearwater';
 const BASE = 'https://www.visitstpeteclearwater.com';
 const LISTING_URL = `${BASE}/events-festivals`;
 // D1: module caches live under the per-city cache dir (finder/cache/<cityId>/)
-const CACHE_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'cache', cityId, 'vspc-source.json');
-const TIMES_CACHE_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'cache', cityId, 'vspc-times.json');
+// '..', '..' — this module sits a level deeper since the Stage D module-
+// isolation split (finder/sources/ -> finder/sources/<cityId>/); the single
+// '..' was silently writing untracked finder/sources/cache/ (ship-gate catch).
+const CACHE_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'cache', cityId, 'vspc-source.json');
+const TIMES_CACHE_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'cache', cityId, 'vspc-times.json');
 const MAX_AGE_HOURS = 6;
 const DAYS_AHEAD = 45;
 const ENRICH_BUDGET = 40;          // detail pages per run, soonest events first

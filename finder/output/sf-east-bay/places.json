@@ -2,43 +2,6 @@
   "schemaVersion": 1,
   "places": [
     {
-      "key": "p|1",
-      "kind": "place",
-      "name": "1",
-      "placeType": "courts",
-      "classes": [
-        "courts"
-      ],
-      "category": "sports",
-      "lat": 37.8857462,
-      "lng": -122.2634618,
-      "address": "Berkeley",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 0,
-      "hidden": false
-    },
-    {
-      "key": "p|100",
-      "kind": "place",
-      "name": "100",
-      "placeType": "pier",
-      "classes": [
-        "pier"
-      ],
-      "category": "outdoors",
-      "lat": 37.8687688,
-      "lng": -122.496938,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 0,
-      "hidden": false
-    },
-    {
       "key": "p|1000-1100",
       "kind": "place",
       "name": "1000, 1100",
@@ -112,24 +75,6 @@
       "hidden": false
     },
     {
-      "key": "p|1200",
-      "kind": "place",
-      "name": "1200",
-      "placeType": "pier",
-      "classes": [
-        "pier"
-      ],
-      "category": "outdoors",
-      "lat": 37.8727333,
-      "lng": -122.4990825,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 0,
-      "hidden": false
-    },
-    {
       "key": "p|123-mission-plaza",
       "kind": "place",
       "name": "123 Mission Plaza",
@@ -170,24 +115,6 @@
       "hidden": false
     },
     {
-      "key": "p|150",
-      "kind": "place",
-      "name": "150",
-      "placeType": "pier",
-      "classes": [
-        "pier"
-      ],
-      "category": "outdoors",
-      "lat": 37.8692176,
-      "lng": -122.4971817,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 0,
-      "hidden": false
-    },
-    {
       "key": "p|15th-avenue-steps",
       "kind": "place",
       "name": "15th Avenue Steps",
@@ -210,24 +137,6 @@
         "OSM"
       ],
       "srcCount": 2,
-      "hiddenScore": 0,
-      "hidden": false
-    },
-    {
-      "key": "p|160",
-      "kind": "place",
-      "name": "160",
-      "placeType": "pier",
-      "classes": [
-        "pier"
-      ],
-      "category": "outdoors",
-      "lat": 37.8691626,
-      "lng": -122.4968171,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
       "hiddenScore": 0,
       "hidden": false
     },
@@ -294,43 +203,6 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
-      "hidden": false
-    },
-    {
-      "key": "p|2",
-      "kind": "place",
-      "name": "2",
-      "placeType": "courts",
-      "classes": [
-        "courts"
-      ],
-      "category": "sports",
-      "lat": 37.8857284,
-      "lng": -122.2632227,
-      "address": "Berkeley",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 0,
-      "hidden": false
-    },
-    {
-      "key": "p|200",
-      "kind": "place",
-      "name": "200",
-      "placeType": "pier",
-      "classes": [
-        "pier"
-      ],
-      "category": "outdoors",
-      "lat": 37.8699888,
-      "lng": -122.4966712,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -442,25 +314,6 @@
       "hidden": false
     },
     {
-      "key": "p|3",
-      "kind": "place",
-      "name": "3",
-      "placeType": "courts",
-      "classes": [
-        "courts"
-      ],
-      "category": "sports",
-      "lat": 37.8858448,
-      "lng": -122.2630343,
-      "address": "Berkeley",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 0,
-      "hidden": false
-    },
-    {
       "key": "p|3-way-russian-hill-view",
       "kind": "place",
       "name": "3-way Russian Hill view",
@@ -471,24 +324,6 @@
       "category": "outdoors",
       "lat": 37.798486,
       "lng": -122.4172351,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 0,
-      "hidden": false
-    },
-    {
-      "key": "p|350",
-      "kind": "place",
-      "name": "350",
-      "placeType": "pier",
-      "classes": [
-        "pier"
-      ],
-      "category": "outdoors",
-      "lat": 37.8693867,
-      "lng": -122.4957285,
       "sources": [
         "OSM"
       ],
@@ -516,24 +351,6 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": false
-    },
-    {
-      "key": "p|400",
-      "kind": "place",
-      "name": "400",
-      "placeType": "pier",
-      "classes": [
-        "pier"
-      ],
-      "category": "outdoors",
-      "lat": 37.870815,
-      "lng": -122.497346,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -636,24 +453,6 @@
       "hidden": false
     },
     {
-      "key": "p|500",
-      "kind": "place",
-      "name": "500",
-      "placeType": "pier",
-      "classes": [
-        "pier"
-      ],
-      "category": "outdoors",
-      "lat": 37.8711028,
-      "lng": -122.4975199,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 0,
-      "hidden": false
-    },
-    {
       "key": "p|6",
       "kind": "place",
       "name": "\"6 ½\"",
@@ -664,24 +463,6 @@
       "category": "outdoors",
       "lat": 37.8759338,
       "lng": -122.5083932,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 1,
-      "hidden": false
-    },
-    {
-      "key": "p|600",
-      "kind": "place",
-      "name": "600",
-      "placeType": "pier",
-      "classes": [
-        "pier"
-      ],
-      "category": "outdoors",
-      "lat": 37.8713786,
-      "lng": -122.4976965,
       "sources": [
         "OSM"
       ],
@@ -714,24 +495,6 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
-      "hidden": false
-    },
-    {
-      "key": "p|700",
-      "kind": "place",
-      "name": "700",
-      "placeType": "pier",
-      "classes": [
-        "pier"
-      ],
-      "category": "outdoors",
-      "lat": 37.8719445,
-      "lng": -122.4982754,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -841,7 +604,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": true
+      "hidden": false
     },
     {
       "key": "p|88th-avenue-mini-park",
@@ -906,24 +669,6 @@
         "ada"
       ],
       "isFree": false,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 0,
-      "hidden": false
-    },
-    {
-      "key": "p|a",
-      "kind": "place",
-      "name": "A",
-      "placeType": "pier",
-      "classes": [
-        "pier"
-      ],
-      "category": "outdoors",
-      "lat": 37.7667117,
-      "lng": -122.2845574,
       "sources": [
         "OSM"
       ],
@@ -1215,6 +960,25 @@
       ],
       "srcCount": 1,
       "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|adt-california-t-seg-7",
+      "kind": "place",
+      "name": "ADT - California - T - Seg 7",
+      "placeType": "trail",
+      "classes": [
+        "trail"
+      ],
+      "category": "outdoors",
+      "lat": 37.9118921,
+      "lng": -121.933591,
+      "operator": "American Discovery Trail Society",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
       "hidden": false
     },
     {
@@ -1643,6 +1407,28 @@
       ],
       "srcCount": 1,
       "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|alamo-creek-park",
+      "kind": "place",
+      "name": "Alamo Creek Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7244236,
+      "lng": -121.9110592,
+      "amenities": [
+        "playground",
+        "basketball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
       "hidden": false
     },
     {
@@ -3099,6 +2885,24 @@
       "key": "p|aquatic-park",
       "kind": "place",
       "name": "Aquatic Park",
+      "placeType": "playground",
+      "classes": [
+        "playground"
+      ],
+      "category": "family",
+      "lat": 37.7479196,
+      "lng": -121.9464967,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|aquatic-park-2",
+      "kind": "place",
+      "name": "Aquatic Park",
       "placeType": "park",
       "classes": [
         "park"
@@ -3349,6 +3153,28 @@
     },
     {
       "key": "p|arlington-park",
+      "kind": "place",
+      "name": "Arlington Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7481254,
+      "lng": -121.8924266,
+      "address": "3735 Knightsbridge Way, San Ramon",
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": true
+    },
+    {
+      "key": "p|arlington-park-2",
       "kind": "place",
       "name": "Arlington Park",
       "placeType": "park",
@@ -3702,6 +3528,30 @@
       "hidden": false
     },
     {
+      "key": "p|athan-downs",
+      "kind": "place",
+      "name": "Athan Downs",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7496318,
+      "lng": -121.9569276,
+      "amenities": [
+        "playground",
+        "tennis",
+        "basketball",
+        "volleyball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|athens-avalon-greens-terace",
       "kind": "place",
       "name": "Athens Avalon Greens Terace",
@@ -3968,24 +3818,6 @@
       "hidden": false
     },
     {
-      "key": "p|b",
-      "kind": "place",
-      "name": "B",
-      "placeType": "pier",
-      "classes": [
-        "pier"
-      ],
-      "category": "outdoors",
-      "lat": 37.7677085,
-      "lng": -122.2864463,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 0,
-      "hidden": false
-    },
-    {
       "key": "p|b-patisserie",
       "kind": "place",
       "name": "b Patisserie",
@@ -4050,6 +3882,29 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|bagel-bakery",
+      "kind": "place",
+      "name": "Bagel Bakery",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.7041184,
+      "lng": -121.9354628,
+      "address": "7168 Regional Street",
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
       "hidden": false
     },
     {
@@ -4523,6 +4378,27 @@
       "hidden": false
     },
     {
+      "key": "p|bark-and-ride",
+      "kind": "place",
+      "name": "Bark and Ride",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7709542,
+      "lng": -121.9194413,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|bark-park",
       "kind": "place",
       "name": "Bark Park",
@@ -4591,6 +4467,26 @@
       "lng": -122.2760148,
       "address": "Adeline Street",
       "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|basque-boulangerie-caf",
+      "kind": "place",
+      "name": "Basque Boulangerie Café",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.8212127,
+      "lng": -121.9994814,
+      "isFree": false,
+      "url": "https://www.basqueboulangerie.com/",
       "sources": [
         "OSM"
       ],
@@ -5477,6 +5373,28 @@
       "hidden": false
     },
     {
+      "key": "p|bellingham-square",
+      "kind": "place",
+      "name": "Bellingham Square",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7652776,
+      "lng": -121.899638,
+      "amenities": [
+        "playground",
+        "volleyball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|bello-coffee-tea",
       "kind": "place",
       "name": "Bello Coffee & Tea",
@@ -5997,12 +5915,13 @@
       "category": "food",
       "lat": 37.7516023,
       "lng": -122.4311708,
+      "address": "3966 24th Street",
       "isFree": false,
       "sources": [
         "OSM"
       ],
       "srcCount": 1,
-      "hiddenScore": 0,
+      "hiddenScore": 1,
       "hidden": false
     },
     {
@@ -6215,6 +6134,34 @@
       "hidden": false
     },
     {
+      "key": "p|bishop-ranch-open-space-regional-preserve",
+      "kind": "place",
+      "name": "Bishop Ranch Open Space Regional Preserve",
+      "placeType": "preserve",
+      "classes": [
+        "preserve"
+      ],
+      "category": "outdoors",
+      "lat": 37.75046937006208,
+      "lng": -121.97585033095866,
+      "url": "https://www.ebparks.org/parks/bishop/",
+      "designation": "Regional",
+      "operator": "East Bay Regional Park District",
+      "sources": [
+        "EBRPD Parks",
+        "OSM"
+      ],
+      "srcCount": 2,
+      "aliases": [
+        "Bishop Ranch Open Space Regional Preserve",
+        "Bishop Ranch Regional Open Space Preserve"
+      ],
+      "wikidata": "Q4917688",
+      "hiddenScore": 0,
+      "hidden": false,
+      "description": "Bishop Ranch Regional Preserve (BRRP), also known as Bishop Ranch Regional Open Space Preserve is a 444-acre (1.80 km2) regional park on a ridge top at the edge of San Ramon, California. It is near a residential area, west of San Ramon Valley Road and south of Bollinger Canyon Road."
+    },
+    {
       "key": "p|bite-me-sandwiches",
       "kind": "place",
       "name": "Bite Me Sandwiches",
@@ -6257,6 +6204,25 @@
       "srcCount": 1,
       "hiddenScore": 1,
       "hidden": false
+    },
+    {
+      "key": "p|black-diamond-mines-regional-preserve-land-bank",
+      "kind": "place",
+      "name": "Black Diamond Mines Regional Preserve - Land Bank",
+      "placeType": "preserve",
+      "classes": [
+        "preserve"
+      ],
+      "category": "outdoors",
+      "lat": 37.9726446,
+      "lng": -121.8830847,
+      "operator": "East Bay Regional Park District",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": true
     },
     {
       "key": "p|black-point-pier",
@@ -6318,6 +6284,24 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|blackhawk-logo",
+      "kind": "place",
+      "name": "Blackhawk logo",
+      "placeType": "garden",
+      "classes": [
+        "garden"
+      ],
+      "category": "outdoors",
+      "lat": 37.8213036,
+      "lng": -121.9168098,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -6793,7 +6777,55 @@
       "hidden": false
     },
     {
+      "key": "p|boba-bliss",
+      "kind": "place",
+      "name": "Boba Bliss",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.7227388,
+      "lng": -121.9412991,
+      "address": "8945 San Ramon Road",
+      "amenities": [
+        "wifi"
+      ],
+      "isFree": false,
+      "hours": "Su-Th 11:00-20:00;Fr-Sa 11:00-22:00",
+      "url": "https://www.bobablisscafe.com/",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
       "key": "p|boba-guys",
+      "kind": "place",
+      "name": "Boba Guys",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.7636636,
+      "lng": -121.959854,
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "hours": "Mo-Th 11:00-21:00; Fr-Sa 11:00-22:00; Su 11:00-18:00",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|boba-guys-2",
       "kind": "place",
       "name": "Boba Guys",
       "placeType": "cafe",
@@ -7104,6 +7136,34 @@
       "hidden": false
     },
     {
+      "key": "p|boone-acres-park",
+      "kind": "place",
+      "name": "Boone Acres Park",
+      "placeType": "park",
+      "classes": [
+        "park",
+        "courts"
+      ],
+      "category": "outdoors",
+      "lat": 37.7368051,
+      "lng": -121.9457671,
+      "amenities": [
+        "volleyball",
+        "playground",
+        "basketball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "aliases": [
+        "Boone Acres Park",
+        "Boone Acres volleyball court"
+      ],
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
       "key": "p|boorman-park",
       "kind": "place",
       "name": "Boorman Park",
@@ -7333,6 +7393,27 @@
       "hidden": false
     },
     {
+      "key": "p|brazil-quarry-park",
+      "kind": "place",
+      "name": "Brazil Quarry Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9608605,
+      "lng": -121.969391,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
       "key": "p|bread-n-chu",
       "kind": "place",
       "name": "Bread N' Chu",
@@ -7406,6 +7487,27 @@
     },
     {
       "key": "p|bret-harte-park",
+      "kind": "place",
+      "name": "Bret Harte Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.8237641,
+      "lng": -121.9877124,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|bret-harte-park-2",
       "kind": "place",
       "name": "Bret Harte Park",
       "placeType": "park",
@@ -8135,6 +8237,25 @@
       "hidden": false
     },
     {
+      "key": "p|brown-butter",
+      "kind": "place",
+      "name": "Brown Butter",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.8001655,
+      "lng": -121.9184505,
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|bruce-king-memorial-dog-park",
       "kind": "place",
       "name": "Bruce King Memorial Dog Park",
@@ -8166,6 +8287,27 @@
       "lng": -122.3922827,
       "isFree": false,
       "hours": "Mo-Su 11:30-18:00",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|buchanan-park",
+      "kind": "place",
+      "name": "Buchanan Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9997012,
+      "lng": -121.8897667,
+      "amenities": [
+        "playground"
+      ],
       "sources": [
         "OSM"
       ],
@@ -8606,24 +8748,6 @@
       "lat": 37.8648043,
       "lng": -122.2858574,
       "address": "Berkeley",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 0,
-      "hidden": false
-    },
-    {
-      "key": "p|c",
-      "kind": "place",
-      "name": "C",
-      "placeType": "pier",
-      "classes": [
-        "pier"
-      ],
-      "category": "outdoors",
-      "lat": 37.7668398,
-      "lng": -122.2871722,
       "sources": [
         "OSM"
       ],
@@ -9986,6 +10110,26 @@
       "hidden": false
     },
     {
+      "key": "p|cafe-meyers",
+      "kind": "place",
+      "name": "Cafe Meyers",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.7976939,
+      "lng": -121.9187921,
+      "address": "3468 Camino Tassajara, Danville",
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
       "key": "p|cafe-mystique",
       "kind": "place",
       "name": "Cafe Mystique",
@@ -10259,6 +10403,48 @@
       "hidden": false
     },
     {
+      "key": "p|cafe-tapioca",
+      "kind": "place",
+      "name": "Cafe Tapioca",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.70418,
+      "lng": -121.9351771,
+      "address": "7160 Regional Street",
+      "isFree": false,
+      "hours": "Mo-Su 11:00-22:00",
+      "url": "http://www.cafetapioca.com/",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|cafe-tazza",
+      "kind": "place",
+      "name": "Cafe Tazza",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.7053944,
+      "lng": -121.8817229,
+      "address": "4584 Dublin Boulevard, Dublin",
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": true
+    },
+    {
       "key": "p|cafe-teatro",
       "kind": "place",
       "name": "Cafe Teatro",
@@ -10484,6 +10670,25 @@
       "lng": -122.2664119,
       "isFree": false,
       "operator": "Cafenated",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|cafeteria",
+      "kind": "place",
+      "name": "Cafeteria",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.9490166,
+      "lng": -121.9682634,
+      "isFree": false,
       "sources": [
         "OSM"
       ],
@@ -10824,6 +11029,26 @@
       "hidden": false
     },
     {
+      "key": "p|calaveras-ridge-trail-lt-to-pr",
+      "kind": "place",
+      "name": "Calaveras Ridge Trail (LT to PR)",
+      "placeType": "trail",
+      "classes": [
+        "trail"
+      ],
+      "category": "outdoors",
+      "lat": 37.76733619286081,
+      "lng": -121.99844214936464,
+      "designation": "Regional",
+      "operator": "East Bay Regional Park District",
+      "sources": [
+        "EBRPD Parks"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|california",
       "kind": "place",
       "name": "California",
@@ -10992,6 +11217,24 @@
         "Camellia Gardens",
         "Camellia Garden"
       ],
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|campbell-green",
+      "kind": "place",
+      "name": "Campbell Green",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7042988,
+      "lng": -121.898584,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
       "hiddenScore": 0,
       "hidden": false
     },
@@ -11351,6 +11594,30 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|castle-rock-regional-recreation-area",
+      "kind": "place",
+      "name": "Castle Rock Regional Recreation Area",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.89215572956635,
+      "lng": -121.994325487063,
+      "amenities": [
+        "basketball",
+        "volleyball"
+      ],
+      "designation": "Regional",
+      "operator": "East Bay Regional Park District",
+      "sources": [
+        "EBRPD Parks"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -11722,6 +11989,26 @@
       "hidden": false
     },
     {
+      "key": "p|cccc-clubhouse",
+      "kind": "place",
+      "name": "CCCC Clubhouse",
+      "placeType": "courts",
+      "classes": [
+        "courts"
+      ],
+      "category": "sports",
+      "lat": 37.7861561,
+      "lng": -121.9621919,
+      "address": "711 Silver Lake Drive",
+      "operator": "Crow Canyon Country Club",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
       "key": "p|cedar-rose-park",
       "kind": "place",
       "name": "Cedar-Rose Park",
@@ -11758,6 +12045,27 @@
       "category": "outdoors",
       "lat": 37.767713,
       "lng": -122.4673017,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|centennial-park",
+      "kind": "place",
+      "name": "Centennial Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7259394,
+      "lng": -121.9468073,
+      "amenities": [
+        "playground"
+      ],
       "sources": [
         "OSM"
       ],
@@ -11997,6 +12305,29 @@
       "srcCount": 1,
       "wikidata": "Q49477635",
       "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|chagee",
+      "kind": "place",
+      "name": "Chagee",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.8975023,
+      "lng": -122.06031,
+      "address": "1500 Mount Diablo Boulevard, Walnut Creek",
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
       "hidden": false
     },
     {
@@ -12594,7 +12925,7 @@
         "Chilpancingo Dog Park"
       ],
       "hiddenScore": 3,
-      "hidden": true
+      "hidden": false
     },
     {
       "key": "p|china-basin-park",
@@ -12713,6 +13044,28 @@
         "Herb Garden"
       ],
       "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|chip-cookies",
+      "kind": "place",
+      "name": "Chip Cookies",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.7061514,
+      "lng": -121.9279674,
+      "address": "6851 Amador Plaza Road",
+      "isFree": false,
+      "hours": "Su-Th 10:00-22:00;Fr-Sa 10:00-00:00",
+      "url": "https://www.chipcookies.co/",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
       "hidden": false
     },
     {
@@ -12864,6 +13217,25 @@
       "hidden": false
     },
     {
+      "key": "p|city-of-clayton-open-space",
+      "kind": "place",
+      "name": "City of Clayton Open Space",
+      "placeType": "preserve",
+      "classes": [
+        "preserve"
+      ],
+      "category": "outdoors",
+      "lat": 37.9379363,
+      "lng": -121.9225237,
+      "operator": "City of Clayton",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": true
+    },
+    {
       "key": "p|city-racquet-shop",
       "kind": "place",
       "name": "City Racquet Shop",
@@ -13006,7 +13378,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": true
+      "hidden": false
     },
     {
       "key": "p|civic-center-plaza",
@@ -13054,6 +13426,24 @@
       "amenities": [
         "playground"
       ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|civilian-conservation-corps-cultural-preserve",
+      "kind": "place",
+      "name": "Civilian Conservation Corps Cultural Preserve",
+      "placeType": "preserve",
+      "classes": [
+        "preserve"
+      ],
+      "category": "outdoors",
+      "lat": 37.8590018,
+      "lng": -121.9332249,
       "sources": [
         "OSM"
       ],
@@ -13116,6 +13506,46 @@
       "category": "sports",
       "lat": 37.8357015,
       "lng": -122.2471515,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|clayton-community-park",
+      "kind": "place",
+      "name": "Clayton Community Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9293119,
+      "lng": -121.9194478,
+      "operator": "City of Clayton",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": true
+    },
+    {
+      "key": "p|clayton-park",
+      "kind": "place",
+      "name": "Clayton Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9408323,
+      "lng": -121.9378749,
+      "amenities": [
+        "playground"
+      ],
       "sources": [
         "OSM"
       ],
@@ -13920,6 +14350,27 @@
       "hidden": false
     },
     {
+      "key": "p|compass-point-park",
+      "kind": "place",
+      "name": "Compass Point Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7469489,
+      "lng": -121.8851236,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|compton-community-garden",
       "kind": "place",
       "name": "Compton Community Garden",
@@ -14046,7 +14497,31 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": true
+      "hidden": false
+    },
+    {
+      "key": "p|concord-park",
+      "kind": "place",
+      "name": "Concord Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9751695,
+      "lng": -121.9895159,
+      "amenities": [
+        "playground",
+        "tennis",
+        "basketball",
+        "pickleball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
     },
     {
       "key": "p|concord-skatepark",
@@ -14470,6 +14945,29 @@
       "hidden": false
     },
     {
+      "key": "p|country-fair-park",
+      "kind": "place",
+      "name": "Country Fair Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7531932,
+      "lng": -121.9401323,
+      "address": "320 Terrazzo Circle",
+      "amenities": [
+        "playground"
+      ],
+      "operator": "City of San Ramon",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
       "key": "p|courtland-creek-park",
       "kind": "place",
       "name": "Courtland Creek Park",
@@ -14529,6 +15027,29 @@
       "lat": 37.8799936,
       "lng": -122.5238144,
       "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|coyote-crossing",
+      "kind": "place",
+      "name": "Coyote Crossing",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7767347,
+      "lng": -121.9414196,
+      "amenities": [
+        "playground",
+        "tennis",
+        "basketball"
+      ],
       "sources": [
         "OSM"
       ],
@@ -14661,6 +15182,26 @@
       "description": "Crane Cove Park is a 7-acre (2.8 ha) urban park in Potrero Point, San Francisco, California, located on the city's east-facing waterfront at San Francisco's historic Pier 70. The park opened in 2020. The site used to be a shipbuilding site occupied by the Union Iron Works and the Bethlehem Shipbuilding Corporation."
     },
     {
+      "key": "p|creative-design-group-building",
+      "kind": "place",
+      "name": "Creative Design Group Building",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.6905063072776,
+      "lng": -121.88630075430193,
+      "designation": "Regional",
+      "operator": "East Bay Regional Park District",
+      "sources": [
+        "EBRPD Parks"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|creeks-to-peaks",
       "kind": "place",
       "name": "Creeks to Peaks",
@@ -14688,6 +15229,28 @@
         "park"
       ],
       "category": "outdoors",
+      "lat": 37.7701325,
+      "lng": -121.9233,
+      "amenities": [
+        "playground",
+        "basketball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|creekside-park-2",
+      "kind": "place",
+      "name": "Creekside Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
       "lat": 37.8983993,
       "lng": -122.3049625,
       "amenities": [
@@ -14706,7 +15269,7 @@
       "hidden": false
     },
     {
-      "key": "p|creekside-park-2",
+      "key": "p|creekside-park-3",
       "kind": "place",
       "name": "Creekside Park",
       "placeType": "park",
@@ -14991,6 +15554,30 @@
       "hidden": false
     },
     {
+      "key": "p|crossings-green-belt",
+      "kind": "place",
+      "name": "Crossings Green Belt",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9499116,
+      "lng": -121.9866277,
+      "amenities": [
+        "playground",
+        "tennis",
+        "basketball",
+        "pickleball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|crostini-java",
       "kind": "place",
       "name": "Crostini & Java",
@@ -15010,6 +15597,57 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|crow-canyon-gardens",
+      "kind": "place",
+      "name": "Crow Canyon Gardens",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7721158,
+      "lng": -121.9883336,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|crystyl-ranch",
+      "kind": "place",
+      "name": "Crystyl Ranch",
+      "placeType": "park",
+      "classes": [
+        "park",
+        "preserve",
+        "courts"
+      ],
+      "category": "outdoors",
+      "lat": 37.9320875,
+      "lng": -121.9759209,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "aliases": [
+        "Crystyl Ranch",
+        "Crystyl Ranch Open Space",
+        "Crystyl Ranch Tennis Courts",
+        "Crystyl Ranch Basketball",
+        "Crystyl Ranch Pickleball"
+      ],
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -15191,6 +15829,24 @@
       "lng": -122.4340593,
       "address": "2810 Diamond Street",
       "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|curry-point",
+      "kind": "place",
+      "name": "Curry Point",
+      "placeType": "viewpoint",
+      "classes": [
+        "viewpoint"
+      ],
+      "category": "outdoors",
+      "lat": 37.8519874,
+      "lng": -121.925223,
       "sources": [
         "OSM"
       ],
@@ -15450,6 +16106,24 @@
       "hidden": false
     },
     {
+      "key": "p|dana-hills-park",
+      "kind": "place",
+      "name": "Dana Hills Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9275606,
+      "lng": -121.9316751,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|dandelion-chocolate-factory-caf",
       "kind": "place",
       "name": "Dandelion Chocolate Factory & Café",
@@ -15467,6 +16141,52 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|danville-south-park",
+      "kind": "place",
+      "name": "Danville South Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.788603,
+      "lng": -121.9789071,
+      "amenities": [
+        "playground",
+        "basketball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|danville-station",
+      "kind": "place",
+      "name": "Danville Station",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7965564,
+      "lng": -121.9742319,
+      "amenities": [
+        "playground",
+        "tennis",
+        "shuffleboard",
+        "volleyball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -15519,6 +16239,28 @@
         "url": "https://commons.wikimedia.org/wiki/File%3AOpal%20Staniek%20Tot%20Lot.jpg",
         "sourceFamily": "wikidata-p18"
       }
+    },
+    {
+      "key": "p|dave-brubeck-park",
+      "kind": "place",
+      "name": "Dave Brubeck Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9765888,
+      "lng": -121.9858466,
+      "amenities": [
+        "playground",
+        "basketball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
     },
     {
       "key": "p|davenport-mini-park",
@@ -15747,6 +16489,25 @@
       "hidden": false
     },
     {
+      "key": "p|del-mar-dog-park",
+      "kind": "place",
+      "name": "Del Mar Dog Park",
+      "placeType": "dog_park",
+      "classes": [
+        "dog_park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7427046,
+      "lng": -121.9388455,
+      "address": "9867 Del Mar Drive",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|delah-coffee",
       "kind": "place",
       "name": "Delah Coffee",
@@ -15946,6 +16707,58 @@
       "hidden": false
     },
     {
+      "key": "p|diablo-foothills-regional-park",
+      "kind": "place",
+      "name": "Diablo Foothills Regional Park",
+      "placeType": "park",
+      "classes": [
+        "park",
+        "preserve"
+      ],
+      "category": "outdoors",
+      "lat": 37.88187642385031,
+      "lng": -121.99729103443673,
+      "url": "https://www.ebparks.org/parks/diablo_foothills/",
+      "designation": "Regional",
+      "operator": "East Bay Regional Park District",
+      "sources": [
+        "EBRPD Parks",
+        "OSM"
+      ],
+      "srcCount": 2,
+      "wikidata": "Q5270163",
+      "hiddenScore": 0,
+      "hidden": false,
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Diablo_Foothills_Regional_Park_-_Castle_Rock_%28East_Bay_Regional_Park_District%29_-_panoramio.jpg/1280px-Diablo_Foothills_Regional_Park_-_Castle_Rock_%28East_Bay_Regional_Park_District%29_-_panoramio.jpg",
+      "imageCredit": {
+        "author": "MARELBU",
+        "license": "CC BY 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+        "url": "https://commons.wikimedia.org/wiki/File%3ADiablo%20Foothills%20Regional%20Park%20-%20Castle%20Rock%20(East%20Bay%20Regional%20Park%20District)%20-%20panoramio.jpg",
+        "sourceFamily": "wikidata-p373"
+      },
+      "description": "Diablo Foothills Regional Park is a 1,060 acres (4.3 km2) regional park of the East Bay Regional Park District. It is located in Contra Costa County, in the East Bay region of northern California."
+    },
+    {
+      "key": "p|diablo-regional-trail",
+      "kind": "place",
+      "name": "Diablo Regional Trail",
+      "placeType": "trail",
+      "classes": [
+        "trail"
+      ],
+      "category": "outdoors",
+      "lat": 37.8618625,
+      "lng": -121.8906351,
+      "operator": "East Bay Regional Park District",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": true
+    },
+    {
       "key": "p|diablo-shadows-park",
       "kind": "place",
       "name": "Diablo Shadows Park",
@@ -15964,7 +16777,76 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": true
+      "hidden": false
+    },
+    {
+      "key": "p|diablo-vista-field",
+      "kind": "place",
+      "name": "Diablo Vista Field",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.798433,
+      "lng": -121.8950747,
+      "amenities": [
+        "playground",
+        "basketball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|diablo-vista-park",
+      "kind": "place",
+      "name": "Diablo Vista Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.791175,
+      "lng": -121.9217665,
+      "amenities": [
+        "playground",
+        "basketball",
+        "volleyball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|diablo-west-greenbelt",
+      "kind": "place",
+      "name": "Diablo West Greenbelt",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.8182669,
+      "lng": -121.9838387,
+      "amenities": [
+        "playground",
+        "tennis",
+        "basketball"
+      ],
+      "operator": "Diablo West Homeowner's Association",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
     },
     {
       "key": "p|diamond",
@@ -16385,6 +17267,29 @@
       "hidden": false
     },
     {
+      "key": "p|dolan-park",
+      "kind": "place",
+      "name": "Dolan Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7135552,
+      "lng": -121.9463425,
+      "amenities": [
+        "playground",
+        "basketball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "wikidata": "Q49483611",
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|dolores-outpost",
       "kind": "place",
       "name": "Dolores Outpost",
@@ -16447,6 +17352,36 @@
       "srcCount": 1,
       "hiddenScore": 0,
       "hidden": false
+    },
+    {
+      "key": "p|don-biddle-community-park",
+      "kind": "place",
+      "name": "Don Biddle Community Park",
+      "placeType": "park",
+      "classes": [
+        "park",
+        "garden"
+      ],
+      "category": "outdoors",
+      "lat": 37.708118,
+      "lng": -121.9045718,
+      "amenities": [
+        "playground",
+        "tennis",
+        "basketball"
+      ],
+      "isFree": false,
+      "fee": "50 USD registration + 50 USD per year for 1 plot",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "aliases": [
+        "Don Biddle Community Park",
+        "Don Biddle Community Garden"
+      ],
+      "hiddenScore": 3,
+      "hidden": true
     },
     {
       "key": "p|don-castro-regional-recreation-area",
@@ -16761,6 +17696,82 @@
       "hidden": false
     },
     {
+      "key": "p|dough-boy-s-donuts",
+      "kind": "place",
+      "name": "Dough Boy's Donuts",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.7070352,
+      "lng": -121.9354175,
+      "address": "7867 Amador Valley Boulevard, Dublin",
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|dougherty-elementary-playground",
+      "kind": "place",
+      "name": "Dougherty Elementary Playground",
+      "placeType": "playground",
+      "classes": [
+        "playground"
+      ],
+      "category": "family",
+      "lat": 37.7091787,
+      "lng": -121.8842571,
+      "operator": "Dougherty Elementary",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|dougherty-hills-dog-park",
+      "kind": "place",
+      "name": "Dougherty Hills Dog Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7175845,
+      "lng": -121.9147793,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|dougherty-hills-open-space",
+      "kind": "place",
+      "name": "Dougherty Hills Open Space",
+      "placeType": "preserve",
+      "classes": [
+        "preserve"
+      ],
+      "category": "outdoors",
+      "lat": 37.7235871,
+      "lng": -121.9179525,
+      "operator": "East Bay Regional Parks",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
       "key": "p|douglass-playground",
       "kind": "place",
       "name": "Douglass Playground",
@@ -17017,6 +18028,49 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|dublin-hills-regional-park",
+      "kind": "place",
+      "name": "Dublin Hills Regional Park",
+      "placeType": "park",
+      "classes": [
+        "park",
+        "preserve"
+      ],
+      "category": "outdoors",
+      "lat": 37.71235575193386,
+      "lng": -121.97106920157893,
+      "url": "https://www.ebparks.org/parks/dublin_hills/",
+      "designation": "Regional",
+      "operator": "East Bay Regional Park District",
+      "sources": [
+        "EBRPD Parks",
+        "OSM"
+      ],
+      "srcCount": 2,
+      "hiddenScore": 2,
+      "hidden": false
+    },
+    {
+      "key": "p|dublin-sports-grounds",
+      "kind": "place",
+      "name": "Dublin Sports Grounds",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7032078,
+      "lng": -121.9148724,
+      "address": "6700 Dublin Boulevard, Dublin",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "wikidata": "Q49484345",
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -17458,6 +18512,24 @@
       "hidden": false
     },
     {
+      "key": "p|easley-estates-park",
+      "kind": "place",
+      "name": "Easley Estates Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9372641,
+      "lng": -121.9298459,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|east-bay-skyline-national-recreation-trail",
       "kind": "place",
       "name": "East Bay Skyline National Recreation Trail",
@@ -17494,6 +18566,29 @@
       "srcCount": 1,
       "hiddenScore": 0,
       "hidden": false
+    },
+    {
+      "key": "p|east-branch-park",
+      "kind": "place",
+      "name": "East Branch Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7606904,
+      "lng": -121.8993395,
+      "address": "Harcourt Way, San Ramon",
+      "amenities": [
+        "playground",
+        "basketball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": true
     },
     {
       "key": "p|east-dock",
@@ -17962,6 +19057,24 @@
       "srcCount": 1,
       "hiddenScore": 3,
       "hidden": false
+    },
+    {
+      "key": "p|el-molino-park",
+      "kind": "place",
+      "name": "El Molino Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9335237,
+      "lng": -121.9283636,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": true
     },
     {
       "key": "p|el-paraiso",
@@ -18543,6 +19656,25 @@
       "hidden": false
     },
     {
+      "key": "p|esprit-townhomes-park",
+      "kind": "place",
+      "name": "Esprit Townhomes Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7060118,
+      "lng": -121.896512,
+      "address": "N Esprit Loop, Dublin",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": true
+    },
+    {
       "key": "p|estuary-park",
       "kind": "place",
       "name": "Estuary Park",
@@ -18591,6 +19723,25 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|eugene-o-neill-commemorative-park",
+      "kind": "place",
+      "name": "Eugene O'Neill Commemorative Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.8209061,
+      "lng": -121.996552,
+      "address": "Front Street",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -19079,6 +20230,24 @@
         "Fallen Bridge Park",
         "Fallen Bridge Mini Park"
       ],
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|falls-trail-loop",
+      "kind": "place",
+      "name": "Falls Trail Loop",
+      "placeType": "trail",
+      "classes": [
+        "trail"
+      ],
+      "category": "outdoors",
+      "lat": 37.9095493,
+      "lng": -121.9269593,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
       "hiddenScore": 0,
       "hidden": false
     },
@@ -19595,6 +20764,27 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|fire-truck-park",
+      "kind": "place",
+      "name": "Fire Truck Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7508648,
+      "lng": -121.8919187,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -20910,6 +22100,26 @@
       "hidden": false
     },
     {
+      "key": "p|galindo-creek-field-station",
+      "kind": "place",
+      "name": "Galindo Creek Field Station",
+      "placeType": "preserve",
+      "classes": [
+        "preserve"
+      ],
+      "category": "outdoors",
+      "lat": 37.9381147,
+      "lng": -121.9740376,
+      "url": "https://www.csueastbay.edu/galindocreek/",
+      "operator": "California State University Concord Campus",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|game-on",
       "kind": "place",
       "name": "Game on",
@@ -21167,6 +22377,32 @@
       "hidden": false
     },
     {
+      "key": "p|gatherings",
+      "kind": "place",
+      "name": "Gatherings",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.75939,
+      "lng": -121.9547438,
+      "address": "6111 Bollinger Canyon Road, San Ramon",
+      "amenities": [
+        "ada",
+        "outdoor-seating"
+      ],
+      "isFree": false,
+      "hours": "Mo-Th 06:30-15:00, Fr 06:30-14:00",
+      "url": "cafegatherings.com",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
       "key": "p|geary-cafe",
       "kind": "place",
       "name": "Geary Cafe",
@@ -21185,6 +22421,24 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|gehringer-park",
+      "kind": "place",
+      "name": "Gehringer Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.985493,
+      "lng": -121.9942947,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -22222,6 +23476,29 @@
       "hidden": false
     },
     {
+      "key": "p|golden-view-park",
+      "kind": "place",
+      "name": "Golden View Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7875793,
+      "lng": -121.9437197,
+      "amenities": [
+        "pier",
+        "playground",
+        "tennis"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|gondwana-circle",
       "kind": "place",
       "name": "Gondwana Circle",
@@ -22578,7 +23855,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": true
+      "hidden": false
     },
     {
       "key": "p|gratta-wines",
@@ -23033,6 +24310,25 @@
       "hidden": false
     },
     {
+      "key": "p|groveside-bistro",
+      "kind": "place",
+      "name": "Groveside Bistro",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.9406142,
+      "lng": -121.9347348,
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|gustin-ranch",
       "kind": "place",
       "name": "Gustin Ranch",
@@ -23087,60 +24383,6 @@
       "amenities": [
         "playground"
       ],
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 0,
-      "hidden": false
-    },
-    {
-      "key": "p|h1",
-      "kind": "place",
-      "name": "H1",
-      "placeType": "pier",
-      "classes": [
-        "pier"
-      ],
-      "category": "outdoors",
-      "lat": 37.7656058,
-      "lng": -122.2836041,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 0,
-      "hidden": false
-    },
-    {
-      "key": "p|h2",
-      "kind": "place",
-      "name": "H2",
-      "placeType": "pier",
-      "classes": [
-        "pier"
-      ],
-      "category": "outdoors",
-      "lat": 37.7652163,
-      "lng": -122.2833897,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 0,
-      "hidden": false
-    },
-    {
-      "key": "p|h3",
-      "kind": "place",
-      "name": "H3",
-      "placeType": "pier",
-      "classes": [
-        "pier"
-      ],
-      "category": "outdoors",
-      "lat": 37.7654625,
-      "lng": -122.2829363,
       "sources": [
         "OSM"
       ],
@@ -23597,6 +24839,29 @@
         "cafe"
       ],
       "category": "food",
+      "lat": 37.7977955,
+      "lng": -121.919616,
+      "address": "3450 Camino Tassajara, Danville",
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|happy-lemon-4",
+      "kind": "place",
+      "name": "Happy Lemon",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
       "lat": 37.8276988,
       "lng": -122.2505411,
       "address": "4214 Piedmont Avenue",
@@ -23613,7 +24878,7 @@
       "hidden": false
     },
     {
-      "key": "p|happy-lemon-4",
+      "key": "p|happy-lemon-5",
       "kind": "place",
       "name": "Happy Lemon",
       "placeType": "cafe",
@@ -23638,7 +24903,7 @@
       "hidden": false
     },
     {
-      "key": "p|happy-lemon-5",
+      "key": "p|happy-lemon-6",
       "kind": "place",
       "name": "Happy Lemon",
       "placeType": "cafe",
@@ -23662,7 +24927,7 @@
       "hidden": false
     },
     {
-      "key": "p|happy-lemon-6",
+      "key": "p|happy-lemon-7",
       "kind": "place",
       "name": "Happy Lemon",
       "placeType": "cafe",
@@ -23683,7 +24948,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": true
+      "hidden": false
     },
     {
       "key": "p|haraz-coffee-house",
@@ -24658,6 +25923,24 @@
       "hidden": false
     },
     {
+      "key": "p|heritage-park",
+      "kind": "place",
+      "name": "Heritage Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7001179,
+      "lng": -121.9385683,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
       "key": "p|heroic-italian",
       "kind": "place",
       "name": "Heroic Italian",
@@ -24932,6 +26215,29 @@
       "hidden": false
     },
     {
+      "key": "p|hidden-crest-park",
+      "kind": "place",
+      "name": "Hidden Crest Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7811625,
+      "lng": -121.9201327,
+      "address": "1672 Star Jasmine Drive, San Ramon",
+      "amenities": [
+        "playground"
+      ],
+      "operator": "City of San Ramon",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
       "key": "p|hidden-lakes-park",
       "kind": "place",
       "name": "Hidden Lakes Park",
@@ -24958,6 +26264,32 @@
     },
     {
       "key": "p|hidden-valley-park",
+      "kind": "place",
+      "name": "Hidden Valley Park",
+      "placeType": "park",
+      "classes": [
+        "park",
+        "preserve"
+      ],
+      "category": "outdoors",
+      "lat": 37.7659121,
+      "lng": -121.8895882,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "aliases": [
+        "Hidden Valley Park",
+        "Hidden Valley Open Space"
+      ],
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|hidden-valley-park-2",
       "kind": "place",
       "name": "Hidden Valley Park",
       "placeType": "park",
@@ -25019,6 +26351,63 @@
       "lat": 37.8020855,
       "lng": -122.2716559,
       "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|highlands-park",
+      "kind": "place",
+      "name": "Highlands Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9432596,
+      "lng": -121.9571677,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|highlands-park-2",
+      "kind": "place",
+      "name": "Highlands Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9963073,
+      "lng": -121.8817308,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|highlands-park-playground",
+      "kind": "place",
+      "name": "Highlands Park Playground",
+      "placeType": "playground",
+      "classes": [
+        "playground"
+      ],
+      "category": "family",
+      "lat": 37.9432317,
+      "lng": -121.9571082,
       "sources": [
         "OSM"
       ],
@@ -25161,7 +26550,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": true
+      "hidden": false
     },
     {
       "key": "p|hillcrest-knolls-park",
@@ -25419,7 +26808,7 @@
         "Holbrook Heights Community Playground"
       ],
       "hiddenScore": 3,
-      "hidden": true
+      "hidden": false
     },
     {
       "key": "p|holiday-highlands-park",
@@ -25442,7 +26831,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": true
+      "hidden": false
     },
     {
       "key": "p|hollow",
@@ -26438,6 +27827,24 @@
       "hidden": false
     },
     {
+      "key": "p|imagine-playground",
+      "kind": "place",
+      "name": "Imagine Playground",
+      "placeType": "playground",
+      "classes": [
+        "playground"
+      ],
+      "category": "family",
+      "lat": 37.7034283,
+      "lng": -121.9145272,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": true
+    },
+    {
       "key": "p|immigrant-point-overlook",
       "kind": "place",
       "name": "Immigrant Point Overlook",
@@ -26676,7 +28083,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": true
+      "hidden": false
     },
     {
       "key": "p|inspiration-point",
@@ -26756,6 +28163,27 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|inverness-park",
+      "kind": "place",
+      "name": "Inverness Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7540651,
+      "lng": -121.9561729,
+      "amenities": [
+        "basketball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -27549,6 +28977,28 @@
       "hidden": false
     },
     {
+      "key": "p|jazen-tea",
+      "kind": "place",
+      "name": "Jazen Tea",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.7766341,
+      "lng": -121.971086,
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
       "key": "p|jazzcaff",
       "kind": "place",
       "name": "Jazzcaffé",
@@ -27920,6 +29370,31 @@
         "cafe"
       ],
       "category": "food",
+      "lat": 37.7626941,
+      "lng": -121.9589892,
+      "address": "6000 Bollinger Canyon Road",
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "hours": "Mo-Su 06:30-20:00",
+      "url": "https://www.joejuice.com/",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|joe-the-juice-2",
+      "kind": "place",
+      "name": "Joe & The Juice",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
       "lat": 37.7904903,
       "lng": -122.399517,
       "address": "525 Market Street, San Francisco",
@@ -28217,6 +29692,25 @@
       "category": "outdoors",
       "lat": 37.9156002,
       "lng": -122.3874037,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|johnny-s-donuts",
+      "kind": "place",
+      "name": "Johnny's Donuts",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.7114994,
+      "lng": -121.9261352,
+      "isFree": false,
       "sources": [
         "OSM"
       ],
@@ -28776,6 +30270,25 @@
       "hidden": false
     },
     {
+      "key": "p|kamurocho",
+      "kind": "place",
+      "name": "Kamurocho",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.6995601,
+      "lng": -121.9037979,
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|kappas-marina-west-pier",
       "kind": "place",
       "name": "Kappas Marina West Pier",
@@ -29017,6 +30530,28 @@
       "hidden": false
     },
     {
+      "key": "p|ken-mercer-sports-park",
+      "kind": "place",
+      "name": "Ken Mercer Sports Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.6812109,
+      "lng": -121.8916062,
+      "address": "5800 Parkside Drive, Pleasanton",
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": true
+    },
+    {
       "key": "p|kennedy-grove-regional-recreation-area",
       "kind": "place",
       "name": "Kennedy Grove Regional Recreation Area",
@@ -29242,6 +30777,43 @@
       "hidden": false
     },
     {
+      "key": "p|kirker-creek-bark-park",
+      "kind": "place",
+      "name": "Kirker Creek Bark Park",
+      "placeType": "dog_park",
+      "classes": [
+        "dog_park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9965543,
+      "lng": -121.8927672,
+      "hours": "24/7",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|kirkwood-park",
+      "kind": "place",
+      "name": "Kirkwood Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9537457,
+      "lng": -121.9489481,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|kiss-of-matcha",
       "kind": "place",
       "name": "Kiss of Matcha",
@@ -29435,6 +31007,29 @@
       ],
       "srcCount": 1,
       "wikidata": "Q49511758",
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|kolb-park",
+      "kind": "place",
+      "name": "Kolb Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7180977,
+      "lng": -121.9298246,
+      "amenities": [
+        "playground",
+        "tennis"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "wikidata": "Q49511884",
       "hiddenScore": 0,
       "hidden": false
     },
@@ -30823,22 +32418,28 @@
       "hidden": false
     },
     {
-      "key": "p|las-trampas-to-mt-diablo-regional-trail",
+      "key": "p|las-trampas-to-mt-diablo-trail",
       "kind": "place",
-      "name": "Las Trampas to Mt. Diablo Regional Trail",
+      "name": "Las Trampas to Mt Diablo Trail",
       "placeType": "trail",
       "classes": [
         "trail"
       ],
       "category": "outdoors",
-      "lat": 37.8476334,
-      "lng": -122.0025571,
+      "lat": 37.853818962113266,
+      "lng": -121.99172992287289,
+      "designation": "Regional",
       "operator": "East Bay Regional Park District",
       "sources": [
+        "EBRPD Parks",
         "OSM"
       ],
-      "srcCount": 1,
-      "hiddenScore": 3,
+      "srcCount": 2,
+      "aliases": [
+        "Las Trampas to Mt Diablo Trail",
+        "Las Trampas to Mt. Diablo Regional Trail"
+      ],
+      "hiddenScore": 2,
       "hidden": false
     },
     {
@@ -31637,7 +33238,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": true
+      "hidden": false
     },
     {
       "key": "p|lime-ridge-trail-head",
@@ -31651,6 +33252,27 @@
       "lat": 37.9495963,
       "lng": -122.0086921,
       "address": "Concord",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|limerick-park",
+      "kind": "place",
+      "name": "Limerick Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7592809,
+      "lng": -121.8894712,
+      "amenities": [
+        "basketball"
+      ],
       "sources": [
         "OSM"
       ],
@@ -32494,6 +34116,25 @@
       "hidden": false
     },
     {
+      "key": "p|lot-25",
+      "kind": "place",
+      "name": "Lot 25",
+      "placeType": "preserve",
+      "classes": [
+        "preserve"
+      ],
+      "category": "outdoors",
+      "lat": 37.9225404,
+      "lng": -121.919776,
+      "operator": "Save Mount Diablo",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|lou-s-cafe",
       "kind": "place",
       "name": "Lou's Cafe",
@@ -32887,6 +34528,29 @@
       "hidden": false
     },
     {
+      "key": "p|lydia-lane-park",
+      "kind": "place",
+      "name": "Lydia Lane Park",
+      "placeType": "park",
+      "classes": [
+        "park",
+        "playground"
+      ],
+      "category": "outdoors",
+      "lat": 37.950604,
+      "lng": -121.9464033,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "aliases": [
+        "Lydia Lane Park",
+        "Lydia Lane Playground"
+      ],
+      "hiddenScore": 3,
+      "hidden": true
+    },
+    {
       "key": "p|lynn-lu-s-cafe",
       "kind": "place",
       "name": "Lynn & Lu's Cafe",
@@ -33273,6 +34937,26 @@
       }
     },
     {
+      "key": "p|mangini-ranch-educational-preserve",
+      "kind": "place",
+      "name": "Mangini Ranch Educational Preserve",
+      "placeType": "preserve",
+      "classes": [
+        "preserve"
+      ],
+      "category": "outdoors",
+      "lat": 37.9222462,
+      "lng": -121.9751643,
+      "url": "https://www.savemountdiablo.org/land-preservation/properties/mangini-ranch/",
+      "operator": "Save Mount Diablo",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|manny-s",
       "kind": "place",
       "name": "Manny's",
@@ -33315,6 +34999,28 @@
       "srcCount": 1,
       "wikidata": "Q49521370",
       "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|mape-memorial-park",
+      "kind": "place",
+      "name": "Mape Memorial Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7064951,
+      "lng": -121.9397087,
+      "amenities": [
+        "playground",
+        "volleyball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
       "hidden": false
     },
     {
@@ -33878,7 +35584,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": true
+      "hidden": false
     },
     {
       "key": "p|marshall-s-beach",
@@ -34105,6 +35811,24 @@
         "Mary Ann Sears Park",
         "Mary Ann Sears Park Playground"
       ],
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|mary-bowerman-trail-overlook",
+      "kind": "place",
+      "name": "Mary Bowerman Trail Overlook",
+      "placeType": "viewpoint",
+      "classes": [
+        "viewpoint"
+      ],
+      "category": "outdoors",
+      "lat": 37.8829422,
+      "lng": -121.9147888,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
       "hiddenScore": 0,
       "hidden": false
     },
@@ -34610,6 +36334,24 @@
       "hidden": false
     },
     {
+      "key": "p|meadow-creek-tennis-court",
+      "kind": "place",
+      "name": "Meadow Creek Tennis Court",
+      "placeType": "courts",
+      "classes": [
+        "courts"
+      ],
+      "category": "sports",
+      "lat": 37.8032791,
+      "lng": -121.9460115,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|meadow-homes-park",
       "kind": "place",
       "name": "Meadow Homes Park",
@@ -34665,6 +36407,26 @@
       "category": "outdoors",
       "lat": 37.7682723,
       "lng": -122.4693166,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|medleno-coffee-shop-and-roastery",
+      "kind": "place",
+      "name": "Medleno Coffee Shop and Roastery",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.8190459,
+      "lng": -121.9959527,
+      "address": "480 San Ramon Valley Boulevard",
+      "isFree": false,
       "sources": [
         "OSM"
       ],
@@ -34779,6 +36541,29 @@
         "park"
       ],
       "category": "outdoors",
+      "lat": 37.7585265,
+      "lng": -121.9704732,
+      "amenities": [
+        "playground",
+        "tennis",
+        "basketball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|memorial-park-3",
+      "kind": "place",
+      "name": "Memorial Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
       "lat": 37.8957842,
       "lng": -122.2908172,
       "amenities": [
@@ -34796,7 +36581,7 @@
       "hidden": false
     },
     {
-      "key": "p|memorial-park-3",
+      "key": "p|memorial-park-4",
       "kind": "place",
       "name": "Memorial Park",
       "placeType": "park",
@@ -34813,6 +36598,28 @@
         "OSM"
       ],
       "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|memorial-park-small-dog-park",
+      "kind": "place",
+      "name": "Memorial Park Small Dog Park",
+      "placeType": "dog_park",
+      "classes": [
+        "dog_park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7581986,
+      "lng": -121.970502,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "aliases": [
+        "Memorial Park Small Dog Park",
+        "Memorial Park Dog Run"
+      ],
       "hiddenScore": 0,
       "hidden": false
     },
@@ -35059,7 +36866,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": true
+      "hidden": false
     },
     {
       "key": "p|michelangelo-community-garden",
@@ -35133,7 +36940,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": true
+      "hidden": false
     },
     {
       "key": "p|middle-harbor-shoreline-park",
@@ -35257,6 +37064,27 @@
       ],
       "srcCount": 1,
       "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|mill-creek-hollow",
+      "kind": "place",
+      "name": "Mill Creek Hollow",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7758251,
+      "lng": -121.9895743,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
       "hidden": false
     },
     {
@@ -35749,6 +37577,24 @@
       "hidden": false
     },
     {
+      "key": "p|mitchell-creek-park",
+      "kind": "place",
+      "name": "Mitchell Creek Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9197543,
+      "lng": -121.9411899,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|mlk-playground",
       "kind": "place",
       "name": "MLK Playground",
@@ -35914,6 +37760,29 @@
       "hidden": false
     },
     {
+      "key": "p|moller-park",
+      "kind": "place",
+      "name": "Moller Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.6863126,
+      "lng": -121.9288059,
+      "address": "5500 Pleasant Hill Road, Pleasanton",
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "wikidata": "Q49527499",
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|mom-banh-mi",
       "kind": "place",
       "name": "Mom Banh Mi",
@@ -35976,6 +37845,28 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|monarch-park",
+      "kind": "place",
+      "name": "Monarch Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7753595,
+      "lng": -121.9094797,
+      "address": "8502 North Monarch Road, San Ramon",
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
       "hidden": false
     },
     {
@@ -36131,6 +38022,25 @@
       "hidden": false
     },
     {
+      "key": "p|monte-vista-tennis-courts",
+      "kind": "place",
+      "name": "Monte Vista Tennis Courts",
+      "placeType": "courts",
+      "classes": [
+        "courts"
+      ],
+      "category": "sports",
+      "lat": 37.8426358,
+      "lng": -121.9836322,
+      "address": "3131 Stone Valley Road, Danville",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
       "key": "p|monterey-colusa-park",
       "kind": "place",
       "name": "Monterey - Colusa Park",
@@ -36172,6 +38082,24 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|monterosso-park",
+      "kind": "place",
+      "name": "Monterosso Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7923393,
+      "lng": -121.892317,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -36446,6 +38374,29 @@
       "hidden": false
     },
     {
+      "key": "p|mosaic-park",
+      "kind": "place",
+      "name": "Mosaic Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7653665,
+      "lng": -121.9156854,
+      "address": "1001 South Wedgewood Road, San Ramon",
+      "amenities": [
+        "playground",
+        "basketball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
       "key": "p|moscone-dog-play-area",
       "kind": "place",
       "name": "moscone dog play area",
@@ -36690,6 +38641,55 @@
         "url": "https://commons.wikimedia.org/wiki/File%3AMount%20Davidson%20from%20Edgehill%20Mountain%2C%20August%202020.JPG",
         "sourceFamily": "wikidata-p18"
       }
+    },
+    {
+      "key": "p|mount-diablo-gateway",
+      "kind": "place",
+      "name": "Mount Diablo Gateway",
+      "placeType": "preserve",
+      "classes": [
+        "preserve"
+      ],
+      "category": "outdoors",
+      "lat": 37.9037077,
+      "lng": -121.9981424,
+      "operator": "Contra Costa County Public Works Department",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|mount-diablo-state-park",
+      "kind": "place",
+      "name": "Mount Diablo State Park",
+      "placeType": "preserve",
+      "classes": [
+        "preserve"
+      ],
+      "category": "outdoors",
+      "lat": 37.871747,
+      "lng": -121.9172602,
+      "url": "https://www.parks.ca.gov/mountdiablo",
+      "operator": "California Department of Parks and Recreation",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "wikidata": "Q13359059",
+      "hiddenScore": 0,
+      "hidden": false,
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Hikers_on_Mount_Diablo.JPG/1280px-Hikers_on_Mount_Diablo.JPG",
+      "imageCredit": {
+        "author": "Michael Bass-Deschenes",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "url": "https://commons.wikimedia.org/wiki/File%3AHikers%20on%20Mount%20Diablo.JPG",
+        "sourceFamily": "wikidata-p373"
+      },
+      "description": "Mount Diablo is a mountain of the Diablo Range, in Contra Costa County of the eastern San Francisco Bay Area in Northern California. It is south of Clayton and northeast of Danville. It is an isolated upthrust peak of 3,849 feet, visible from most of the San Francisco Bay Area."
     },
     {
       "key": "p|mount-sutro-open-space-reserve",
@@ -36990,6 +38990,36 @@
       "srcCount": 1,
       "hiddenScore": 1,
       "hidden": false
+    },
+    {
+      "key": "p|muirwood-park",
+      "kind": "place",
+      "name": "Muirwood Park",
+      "placeType": "park",
+      "classes": [
+        "park",
+        "dog_park",
+        "playground"
+      ],
+      "category": "outdoors",
+      "lat": 37.6834383,
+      "lng": -121.9171916,
+      "address": "4701 Muirwood Drive, Pleasanton",
+      "amenities": [
+        "ada",
+        "tennis",
+        "basketball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "aliases": [
+        "Muirwood Park",
+        "Muirwood Dog Park"
+      ],
+      "hiddenScore": 3,
+      "hidden": true
     },
     {
       "key": "p|mulford-gardens-park",
@@ -37490,6 +39520,27 @@
       "hidden": false
     },
     {
+      "key": "p|neuva-vista-butterfly-garden",
+      "kind": "place",
+      "name": "Neuva Vista Butterfly Garden",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9546188,
+      "lng": -121.9767872,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|nevin-park",
       "kind": "place",
       "name": "Nevin Park",
@@ -37603,6 +39654,24 @@
       ],
       "srcCount": 1,
       "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|newhall-community-park",
+      "kind": "place",
+      "name": "Newhall Community Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9566504,
+      "lng": -121.9841165,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
       "hidden": false
     },
     {
@@ -37996,6 +40065,25 @@
       "hidden": false
     },
     {
+      "key": "p|north-peak-ranch",
+      "kind": "place",
+      "name": "North Peak Ranch",
+      "placeType": "preserve",
+      "classes": [
+        "preserve"
+      ],
+      "category": "outdoors",
+      "lat": 37.9156386,
+      "lng": -121.8975895,
+      "operator": "Save Mount Diablo",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|north-point-isabel",
       "kind": "place",
       "name": "North Point Isabel",
@@ -38065,6 +40153,27 @@
         "North Richmond Shoreline"
       ],
       "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|north-valley-park",
+      "kind": "place",
+      "name": "North Valley Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9518955,
+      "lng": -121.9188798,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -38384,6 +40493,30 @@
       ],
       "srcCount": 1,
       "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|oak-hill-park",
+      "kind": "place",
+      "name": "Oak Hill Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.8410337,
+      "lng": -121.9853179,
+      "address": "3005 Stone Valley Road, Danville",
+      "amenities": [
+        "playground",
+        "basketball"
+      ],
+      "operator": "Town of Danville",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
       "hidden": false
     },
     {
@@ -39094,6 +41227,36 @@
       "hidden": false
     },
     {
+      "key": "p|old-ranch-park",
+      "kind": "place",
+      "name": "Old Ranch Park",
+      "placeType": "park",
+      "classes": [
+        "park",
+        "preserve"
+      ],
+      "category": "outdoors",
+      "lat": 37.7350636,
+      "lng": -121.9194804,
+      "address": "1000 Vista Monte Drive, San Ramon",
+      "amenities": [
+        "playground",
+        "basketball"
+      ],
+      "operator": "City of San Ramon",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "aliases": [
+        "Old Ranch Park",
+        "Old Ranch Summit",
+        "Old Ranch Open Space"
+      ],
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
       "key": "p|old-saint-hilary-s-open-space-preserve",
       "kind": "place",
       "name": "Old Saint Hilary's Open Space Preserve",
@@ -39132,6 +41295,24 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|old-tree-overlook",
+      "kind": "place",
+      "name": "Old Tree Overlook",
+      "placeType": "viewpoint",
+      "classes": [
+        "viewpoint"
+      ],
+      "category": "outdoors",
+      "lat": 37.7806195,
+      "lng": -121.887159,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -39264,6 +41445,24 @@
       "hidden": false
     },
     {
+      "key": "p|open-space",
+      "kind": "place",
+      "name": "Open Space",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7066542,
+      "lng": -121.8975914,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|oracle-park",
       "kind": "place",
       "name": "Oracle Park",
@@ -39327,6 +41526,27 @@
         "Orinda Oaks Dog Park"
       ],
       "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|osage-station-park",
+      "kind": "place",
+      "name": "Osage Station Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.8032922,
+      "lng": -121.9790896,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -39406,6 +41626,24 @@
       "hidden": false
     },
     {
+      "key": "p|outdoor-basketball",
+      "kind": "place",
+      "name": "Outdoor Basketball",
+      "placeType": "courts",
+      "classes": [
+        "courts"
+      ],
+      "category": "sports",
+      "lat": 37.7695398,
+      "lng": -121.9575179,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
       "key": "p|outdoor-courts",
       "kind": "place",
       "name": "Outdoor Courts",
@@ -39444,6 +41682,29 @@
         "Outpost Meadow",
         "The Outpost"
       ],
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|owens-plaza-park",
+      "kind": "place",
+      "name": "Owens Plaza Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.6950762,
+      "lng": -121.887973,
+      "amenities": [
+        "playground",
+        "tennis",
+        "basketball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
       "hiddenScore": 0,
       "hidden": false
     },
@@ -40756,6 +43017,7 @@
       "category": "food",
       "lat": 37.7513624,
       "lng": -122.4344716,
+      "address": "4108 24th Street",
       "isFree": false,
       "sources": [
         "OSM"
@@ -40888,6 +43150,76 @@
         "cafe"
       ],
       "category": "food",
+      "lat": 37.7976897,
+      "lng": -122.1822476,
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|peet-s-coffee-11",
+      "kind": "place",
+      "name": "Peet's Coffee",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.7993451,
+      "lng": -122.2167267,
+      "address": "3403 Fruitvale Avenue, Oakland",
+      "amenities": [
+        "wifi",
+        "takeaway"
+      ],
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|peet-s-coffee-12",
+      "kind": "place",
+      "name": "Peet's Coffee",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.8188597,
+      "lng": -121.99732,
+      "amenities": [
+        "outdoor-seating",
+        "takeaway"
+      ],
+      "isFree": false,
+      "hours": "Mo-Fr 05:00-18:00; Sa-Su 06:00-18:00",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|peet-s-coffee-13",
+      "kind": "place",
+      "name": "Peet's Coffee",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
       "lat": 37.8262554,
       "lng": -122.209038,
       "amenities": [
@@ -40903,7 +43235,7 @@
       "hidden": false
     },
     {
-      "key": "p|peet-s-coffee-11",
+      "key": "p|peet-s-coffee-14",
       "kind": "place",
       "name": "Peet's Coffee",
       "placeType": "cafe",
@@ -40931,7 +43263,7 @@
       "hidden": false
     },
     {
-      "key": "p|peet-s-coffee-12",
+      "key": "p|peet-s-coffee-15",
       "kind": "place",
       "name": "Peet's Coffee",
       "placeType": "cafe",
@@ -40953,7 +43285,7 @@
       "hidden": false
     },
     {
-      "key": "p|peet-s-coffee-13",
+      "key": "p|peet-s-coffee-16",
       "kind": "place",
       "name": "Peet's Coffee",
       "placeType": "cafe",
@@ -40984,7 +43316,7 @@
       "hidden": false
     },
     {
-      "key": "p|peet-s-coffee-14",
+      "key": "p|peet-s-coffee-17",
       "kind": "place",
       "name": "Peet's Coffee",
       "placeType": "cafe",
@@ -41006,7 +43338,7 @@
       "hidden": false
     },
     {
-      "key": "p|peet-s-coffee-15",
+      "key": "p|peet-s-coffee-18",
       "kind": "place",
       "name": "Peet's Coffee",
       "placeType": "cafe",
@@ -41039,7 +43371,7 @@
       "hidden": false
     },
     {
-      "key": "p|peet-s-coffee-16",
+      "key": "p|peet-s-coffee-19",
       "kind": "place",
       "name": "Peet's Coffee",
       "placeType": "cafe",
@@ -41053,75 +43385,6 @@
         "takeaway"
       ],
       "isFree": false,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 3,
-      "hidden": false
-    },
-    {
-      "key": "p|peet-s-coffee-17",
-      "kind": "place",
-      "name": "Peet's Coffee",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.8980191,
-      "lng": -122.0619028,
-      "amenities": [
-        "takeaway"
-      ],
-      "isFree": false,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 3,
-      "hidden": false
-    },
-    {
-      "key": "p|peet-s-coffee-18",
-      "kind": "place",
-      "name": "Peet's Coffee",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.8989257,
-      "lng": -122.500792,
-      "amenities": [
-        "takeaway"
-      ],
-      "isFree": false,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 1,
-      "hidden": false
-    },
-    {
-      "key": "p|peet-s-coffee-19",
-      "kind": "place",
-      "name": "Peet's Coffee",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.9246757,
-      "lng": -122.5180751,
-      "address": "77 Casa Buena Drive, Corte Madera",
-      "amenities": [
-        "takeaway"
-      ],
-      "isFree": false,
-      "hours": "Mo-Su 05:30-20:00",
-      "url": "https://www.peets.com/",
       "sources": [
         "OSM"
       ],
@@ -41160,6 +43423,75 @@
         "cafe"
       ],
       "category": "food",
+      "lat": 37.8980191,
+      "lng": -122.0619028,
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|peet-s-coffee-21",
+      "kind": "place",
+      "name": "Peet's Coffee",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.8989257,
+      "lng": -122.500792,
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|peet-s-coffee-22",
+      "kind": "place",
+      "name": "Peet's Coffee",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.9246757,
+      "lng": -122.5180751,
+      "address": "77 Casa Buena Drive, Corte Madera",
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "hours": "Mo-Su 05:30-20:00",
+      "url": "https://www.peets.com/",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|peet-s-coffee-23",
+      "kind": "place",
+      "name": "Peet's Coffee",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
       "lat": 37.9370193,
       "lng": -122.0250688,
       "amenities": [
@@ -41174,7 +43506,7 @@
       "hidden": false
     },
     {
-      "key": "p|peet-s-coffee-21",
+      "key": "p|peet-s-coffee-24",
       "kind": "place",
       "name": "Peet's Coffee",
       "placeType": "cafe",
@@ -41196,7 +43528,29 @@
       "hidden": false
     },
     {
-      "key": "p|peet-s-coffee-22",
+      "key": "p|peet-s-coffee-25",
+      "kind": "place",
+      "name": "Peet's Coffee",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.9514072,
+      "lng": -121.9567102,
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|peet-s-coffee-26",
       "kind": "place",
       "name": "Peet's Coffee",
       "placeType": "cafe",
@@ -41222,7 +43576,7 @@
       "hidden": false
     },
     {
-      "key": "p|peet-s-coffee-23",
+      "key": "p|peet-s-coffee-27",
       "kind": "place",
       "name": "Peet's Coffee",
       "placeType": "cafe",
@@ -41244,10 +43598,10 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": true
+      "hidden": false
     },
     {
-      "key": "p|peet-s-coffee-24",
+      "key": "p|peet-s-coffee-28",
       "kind": "place",
       "name": "Peet's Coffee",
       "placeType": "cafe",
@@ -41355,6 +43709,29 @@
         "cafe"
       ],
       "category": "food",
+      "lat": 37.7740407,
+      "lng": -121.9232889,
+      "amenities": [
+        "wifi",
+        "takeaway"
+      ],
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|peet-s-coffee-7",
+      "kind": "place",
+      "name": "Peet's Coffee",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
       "lat": 37.7784891,
       "lng": -122.276838,
       "address": "1901 Webster Street",
@@ -41370,7 +43747,32 @@
       "hidden": false
     },
     {
-      "key": "p|peet-s-coffee-7",
+      "key": "p|peet-s-coffee-8",
+      "kind": "place",
+      "name": "Peet's Coffee",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.7786505,
+      "lng": -121.9695955,
+      "amenities": [
+        "takeaway",
+        "ada",
+        "outdoor-seating",
+        "wifi"
+      ],
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|peet-s-coffee-9",
       "kind": "place",
       "name": "Peet's Coffee",
       "placeType": "cafe",
@@ -41398,52 +43800,6 @@
         "Peet's Coffee",
         "Earth's Coffee"
       ],
-      "hiddenScore": 1,
-      "hidden": false
-    },
-    {
-      "key": "p|peet-s-coffee-8",
-      "kind": "place",
-      "name": "Peet's Coffee",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.7976897,
-      "lng": -122.1822476,
-      "amenities": [
-        "takeaway"
-      ],
-      "isFree": false,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 1,
-      "hidden": false
-    },
-    {
-      "key": "p|peet-s-coffee-9",
-      "kind": "place",
-      "name": "Peet's Coffee",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.7993451,
-      "lng": -122.2167267,
-      "address": "3403 Fruitvale Avenue, Oakland",
-      "amenities": [
-        "wifi",
-        "takeaway"
-      ],
-      "isFree": false,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
       "hiddenScore": 1,
       "hidden": false
     },
@@ -41951,6 +44307,28 @@
         "cafe"
       ],
       "category": "food",
+      "lat": 37.8968683,
+      "lng": -122.064301,
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|philz-coffee-11",
+      "kind": "place",
+      "name": "Philz Coffee",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
       "lat": 37.926111,
       "lng": -122.5173515,
       "address": "403 Corte Madera Town Center, Corte Madera",
@@ -42030,6 +44408,30 @@
         "cafe"
       ],
       "category": "food",
+      "lat": 37.7630442,
+      "lng": -121.958156,
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "hours": "Mo-Su 05:30-19:00",
+      "url": "https://philzcoffee.com/",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|philz-coffee-5",
+      "kind": "place",
+      "name": "Philz Coffee",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
       "lat": 37.7755634,
       "lng": -122.3933972,
       "address": "201 Berry Street, San Francisco",
@@ -42050,7 +44452,7 @@
       "hidden": false
     },
     {
-      "key": "p|philz-coffee-5",
+      "key": "p|philz-coffee-6",
       "kind": "place",
       "name": "Philz Coffee",
       "placeType": "cafe",
@@ -42073,7 +44475,7 @@
       "hidden": false
     },
     {
-      "key": "p|philz-coffee-6",
+      "key": "p|philz-coffee-7",
       "kind": "place",
       "name": "Philz Coffee",
       "placeType": "cafe",
@@ -42099,7 +44501,7 @@
       "hidden": false
     },
     {
-      "key": "p|philz-coffee-7",
+      "key": "p|philz-coffee-8",
       "kind": "place",
       "name": "Philz Coffee",
       "placeType": "cafe",
@@ -42126,7 +44528,7 @@
       "hidden": false
     },
     {
-      "key": "p|philz-coffee-8",
+      "key": "p|philz-coffee-9",
       "kind": "place",
       "name": "Philz Coffee",
       "placeType": "cafe",
@@ -42148,26 +44550,28 @@
       "hidden": false
     },
     {
-      "key": "p|philz-coffee-9",
+      "key": "p|piccadilly-square-park",
       "kind": "place",
-      "name": "Philz Coffee",
-      "placeType": "cafe",
+      "name": "Piccadilly Square Park",
+      "placeType": "park",
       "classes": [
-        "cafe"
+        "park"
       ],
-      "category": "food",
-      "lat": 37.8968683,
-      "lng": -122.064301,
+      "category": "outdoors",
+      "lat": 37.7772836,
+      "lng": -121.8976529,
+      "address": "2503 Piccadilly Circle, San Ramon",
       "amenities": [
-        "takeaway"
+        "playground",
+        "basketball"
       ],
-      "isFree": false,
+      "operator": "San Ramon Parks & Community Services",
       "sources": [
         "OSM"
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": false
+      "hidden": true
     },
     {
       "key": "p|piccino-coffee-bar",
@@ -42920,6 +45324,27 @@
       "category": "outdoors",
       "lat": 37.9093315,
       "lng": -122.0026536,
+      "amenities": [
+        "tennis"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|pine-hollow-tennis-courts",
+      "kind": "place",
+      "name": "Pine Hollow Tennis Courts",
+      "placeType": "courts",
+      "classes": [
+        "courts"
+      ],
+      "category": "sports",
+      "lat": 37.9409456,
+      "lng": -121.9634315,
       "sources": [
         "OSM"
       ],
@@ -43247,6 +45672,24 @@
       "description": "Pioneer Park is a 4.82-acre (1.95 ha) public park crowning the top of Telegraph Hill in San Francisco, California. It was established in 1876 in celebration of the United States Centennial. Prior to establishment of the park, it was the site of the Marine Telegraph Station."
     },
     {
+      "key": "p|pioneer-play-area",
+      "kind": "place",
+      "name": "Pioneer Play Area",
+      "placeType": "playground",
+      "classes": [
+        "playground"
+      ],
+      "category": "family",
+      "lat": 37.7001549,
+      "lng": -121.9388273,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|piper-park",
       "kind": "place",
       "name": "Piper Park",
@@ -43331,6 +45774,24 @@
       "category": "family",
       "lat": 37.8575325,
       "lng": -122.2632257,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|play-yard",
+      "kind": "place",
+      "name": "Play Yard",
+      "placeType": "playground",
+      "classes": [
+        "playground"
+      ],
+      "category": "family",
+      "lat": 37.8369118,
+      "lng": -121.9708169,
       "sources": [
         "OSM"
       ],
@@ -43539,6 +46000,25 @@
       "category": "outdoors",
       "lat": 37.7667061,
       "lng": -122.4582025,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|plucked",
+      "kind": "place",
+      "name": "Plucked",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.776595,
+      "lng": -121.9706866,
+      "isFree": false,
       "sources": [
         "OSM"
       ],
@@ -44887,7 +47367,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": true
+      "hidden": false
     },
     {
       "key": "p|quargo-coffee",
@@ -44990,6 +47470,31 @@
       ],
       "isFree": false,
       "url": "http://quicklyusa.com/sanleandrowest.html",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|quickly-10",
+      "kind": "place",
+      "name": "Quickly",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.9785816,
+      "lng": -121.9924088,
+      "address": "4115 Concord Boulevard, Concord",
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "hours": "Mo-Fr 12:00-18:00",
+      "url": "http://quicklyusa.com/cohisc.html",
       "sources": [
         "OSM"
       ],
@@ -45195,7 +47700,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": true
+      "hidden": false
     },
     {
       "key": "p|quickly-kobe-bento",
@@ -45451,6 +47956,27 @@
       "operator": "San Francisco Recreation & Parks",
       "sources": [
         "SF Rec & Parks"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|ramona-park",
+      "kind": "place",
+      "name": "Ramona Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7492472,
+      "lng": -121.8872349,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
       ],
       "srcCount": 1,
       "hiddenScore": 0,
@@ -45771,6 +48297,28 @@
       "hidden": false
     },
     {
+      "key": "p|red-willow-park",
+      "kind": "place",
+      "name": "Red Willow Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7876665,
+      "lng": -121.9225859,
+      "amenities": [
+        "playground",
+        "tennis"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|redondo-playground",
       "kind": "place",
       "name": "Redondo Playground",
@@ -45864,6 +48412,24 @@
       "hidden": false
     },
     {
+      "key": "p|regency-woods-park",
+      "kind": "place",
+      "name": "Regency Woods Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9300075,
+      "lng": -121.9243694,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|regional-parks-botanic-garden",
       "kind": "place",
       "name": "Regional Parks Botanic Garden",
@@ -45892,6 +48458,30 @@
         "sourceFamily": "wikidata-p18"
       },
       "description": "The Regional Parks Botanic Garden is a 10-acre botanical garden located in Tilden Regional Park in the Berkeley Hills, east of Berkeley, California, in the United States. It showcases California native plants, and is open to the public. The garden was founded on January 1, 1940."
+    },
+    {
+      "key": "p|regional-parks-foundation-headquarters",
+      "kind": "place",
+      "name": "Regional Parks Foundation Headquarters",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.690263401493546,
+      "lng": -121.88606654491407,
+      "amenities": [
+        "playground",
+        "basketball"
+      ],
+      "designation": "Regional",
+      "operator": "East Bay Regional Park District",
+      "sources": [
+        "EBRPD Parks"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
     },
     {
       "key": "p|rehab-therapy-yard",
@@ -46038,6 +48628,31 @@
         "OSM"
       ],
       "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|richard-vahey-village-green-park",
+      "kind": "place",
+      "name": "Richard Vahey Village Green Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7280118,
+      "lng": -121.9300477,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "aliases": [
+        "Richard Vahey Village Green Park",
+        "Village Green Park"
+      ],
       "hiddenScore": 0,
       "hidden": false
     },
@@ -47092,6 +49707,24 @@
         "url": "https://commons.wikimedia.org/wiki/File%3AGolden%20Gate%20Park%20Rose%20Garden%201%202016-06-29.jpg",
         "sourceFamily": "wikidata-p18"
       }
+    },
+    {
+      "key": "p|rose-garden-3",
+      "kind": "place",
+      "name": "Rose Garden",
+      "placeType": "garden",
+      "classes": [
+        "garden"
+      ],
+      "category": "outdoors",
+      "lat": 37.8031388,
+      "lng": -121.9770526,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
     },
     {
       "key": "p|rossi-children-s-play-area",
@@ -48267,6 +50900,58 @@
       "hidden": false
     },
     {
+      "key": "p|san-ramon-central-park",
+      "kind": "place",
+      "name": "San Ramon Central Park",
+      "placeType": "park",
+      "classes": [
+        "park",
+        "courts"
+      ],
+      "category": "outdoors",
+      "lat": 37.766163,
+      "lng": -121.9548481,
+      "address": "Bollinger Canyon Road, San Ramon",
+      "amenities": [
+        "skate-park",
+        "playground",
+        "tennis",
+        "basketball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "aliases": [
+        "San Ramon Central Park",
+        "San Ramon Skate Park"
+      ],
+      "hiddenScore": 5,
+      "hidden": true
+    },
+    {
+      "key": "p|san-ramon-sports-park",
+      "kind": "place",
+      "name": "San Ramon Sports Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7518686,
+      "lng": -121.8962083,
+      "amenities": [
+        "playground",
+        "basketball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|sana-a-caf",
       "kind": "place",
       "name": "Sana'a Café",
@@ -48396,6 +51081,69 @@
       ],
       "srcCount": 1,
       "wikidata": "Q49324593",
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|sand-volleyball",
+      "kind": "place",
+      "name": "Sand Volleyball",
+      "placeType": "courts",
+      "classes": [
+        "courts"
+      ],
+      "category": "sports",
+      "lat": 37.7691765,
+      "lng": -121.9578509,
+      "amenities": [
+        "volleyball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|sand-volleyball-2",
+      "kind": "place",
+      "name": "Sand Volleyball",
+      "placeType": "courts",
+      "classes": [
+        "courts"
+      ],
+      "category": "sports",
+      "lat": 37.8142776,
+      "lng": -121.977882,
+      "amenities": [
+        "volleyball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|sand-volleyball-3",
+      "kind": "place",
+      "name": "Sand Volleyball",
+      "placeType": "courts",
+      "classes": [
+        "courts"
+      ],
+      "category": "sports",
+      "lat": 37.8432823,
+      "lng": -121.9845993,
+      "amenities": [
+        "volleyball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
       "hiddenScore": 0,
       "hidden": false
     },
@@ -48600,6 +51348,29 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|schaefer-ranch-park",
+      "kind": "place",
+      "name": "Schaefer Ranch Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7048315,
+      "lng": -121.9808149,
+      "amenities": [
+        "playground",
+        "tennis",
+        "basketball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -48861,6 +51632,25 @@
       "hidden": false
     },
     {
+      "key": "p|senior-center-park-gardens",
+      "kind": "place",
+      "name": "Senior Center Park Gardens",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7330448,
+      "lng": -121.9234883,
+      "operator": "City of San Ramon",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|sensory-garden",
       "kind": "place",
       "name": "Sensory Garden",
@@ -48871,6 +51661,24 @@
       "category": "outdoors",
       "lat": 37.8058441,
       "lng": -122.25811,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|sentinel-rock",
+      "kind": "place",
+      "name": "Sentinel Rock",
+      "placeType": "viewpoint",
+      "classes": [
+        "viewpoint"
+      ],
+      "category": "outdoors",
+      "lat": 37.8523903,
+      "lng": -121.9364895,
       "sources": [
         "OSM"
       ],
@@ -49132,6 +51940,28 @@
       "hidden": false
     },
     {
+      "key": "p|shannon-park",
+      "kind": "place",
+      "name": "Shannon Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7146756,
+      "lng": -121.9411409,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "wikidata": "Q49560369",
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|shapeshifters-cafe",
       "kind": "place",
       "name": "Shapeshifters Cafe",
@@ -49188,6 +52018,52 @@
         "cafe"
       ],
       "category": "food",
+      "lat": 37.7103922,
+      "lng": -121.927438,
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "hours": "Mo-Th 12:00-19:30;Fr-Su 12:00-21:00",
+      "url": "http://www.1992sharetea.com/",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|sharetea-3",
+      "kind": "place",
+      "name": "Sharetea",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.7747081,
+      "lng": -121.9776565,
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|sharetea-4",
+      "kind": "place",
+      "name": "Sharetea",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
       "lat": 37.7846198,
       "lng": -122.40338,
       "address": "San Francisco",
@@ -49206,7 +52082,7 @@
       "hidden": false
     },
     {
-      "key": "p|sharetea-3",
+      "key": "p|sharetea-5",
       "kind": "place",
       "name": "Sharetea",
       "placeType": "cafe",
@@ -49229,7 +52105,7 @@
       "hidden": false
     },
     {
-      "key": "p|sharetea-4",
+      "key": "p|sharetea-6",
       "kind": "place",
       "name": "Sharetea",
       "placeType": "cafe",
@@ -49251,7 +52127,7 @@
       "hidden": false
     },
     {
-      "key": "p|sharetea-5",
+      "key": "p|sharetea-7",
       "kind": "place",
       "name": "Sharetea",
       "placeType": "cafe",
@@ -49273,7 +52149,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": true
+      "hidden": false
     },
     {
       "key": "p|shaska",
@@ -49400,6 +52276,27 @@
       ],
       "srcCount": 1,
       "wikidata": "Q49560869",
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|sherwood-park",
+      "kind": "place",
+      "name": "Sherwood Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7500724,
+      "lng": -121.9020055,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
       "hiddenScore": 0,
       "hidden": false
     },
@@ -50287,6 +53184,30 @@
       "hidden": false
     },
     {
+      "key": "p|six-pillars-park",
+      "kind": "place",
+      "name": "Six Pillars Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7448517,
+      "lng": -121.8898348,
+      "address": "Windemere Parkway, San Ramon",
+      "amenities": [
+        "playground",
+        "basketball",
+        "skate-park"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 5,
+      "hidden": true
+    },
+    {
       "key": "p|sixty-third-street-mini-park",
       "kind": "place",
       "name": "Sixty-Third Street Mini-Park",
@@ -50410,6 +53331,26 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|skylarbistro",
+      "kind": "place",
+      "name": "SkylarBistro",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.940739,
+      "lng": -121.9347309,
+      "address": "6101 Center Street",
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -51203,6 +54144,29 @@
       "hidden": false
     },
     {
+      "key": "p|souyen-park",
+      "kind": "place",
+      "name": "Souyen Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7633675,
+      "lng": -121.9078555,
+      "address": "1548 Watermill Road, San Ramon",
+      "amenities": [
+        "playground",
+        "tennis"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
       "key": "p|spaulding-boatworks",
       "kind": "place",
       "name": "Spaulding Boatworks",
@@ -51598,6 +54562,28 @@
       "hidden": false
     },
     {
+      "key": "p|stagecoach-park",
+      "kind": "place",
+      "name": "Stagecoach Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.720055,
+      "lng": -121.918929,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "wikidata": "Q49565120",
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|stanford-avenue-park",
       "kind": "place",
       "name": "Stanford Avenue Park",
@@ -51711,15 +54697,18 @@
         "cafe"
       ],
       "category": "food",
-      "lat": 37.6959509,
-      "lng": -122.078044,
-      "address": "20663 Rustic Drive, Castro Valley",
+      "lat": 37.6952796,
+      "lng": -121.9291753,
+      "address": "1140 Stoneridge Mall Road, Pleasanton",
       "amenities": [
+        "ada",
         "takeaway",
-        "wifi"
+        "wifi",
+        "outdoor-seating"
       ],
       "isFree": false,
-      "url": "https://www.starbucks.com/store-locator/store/8831/20663-rustic-drive-20663-rustic-drive-castro-valley-ca-945465607-us",
+      "hours": "Mo 05:30-22:00;Tu-Fr 05:30-23:00;Sa-Su 06:00-22:00",
+      "url": "https://www.starbucks.com/store-locator/store/1038849/stoneridge-shopping-center-1-stoneridge-mall-road-e-124-pleasanton-ca-94588-u",
       "sources": [
         "OSM"
       ],
@@ -51736,600 +54725,24 @@
         "cafe"
       ],
       "category": "food",
-      "lat": 37.8258631,
-      "lng": -122.209353,
-      "address": "2080 Mountain Boulevard, Oakland",
+      "lat": 37.7750749,
+      "lng": -121.9224521,
+      "address": "11060 Bollinger Canyon Road, San Ramon",
       "amenities": [
-        "outdoor-seating",
         "wifi",
         "takeaway"
       ],
       "isFree": false,
-      "url": "https://www.starbucks.com/store-locator/store/1025421/2080-mountain-blvd-montclai-2080-mountain-blvd-oakland-ca-946112827-us",
+      "url": "https://www.starbucks.com/store-locator/store/6771/safeway-san-ramon-2712-11060-bollinger-canyon-rd-san-ramon-ca-945824959-u",
       "sources": [
         "OSM"
       ],
       "srcCount": 1,
-      "hiddenScore": 1,
+      "hiddenScore": 3,
       "hidden": false
     },
     {
       "key": "p|starbucks-11",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.8366655,
-      "lng": -122.2950153,
-      "address": "5767 Christie Avenue, Emeryville",
-      "amenities": [
-        "takeaway",
-        "wifi",
-        "ada"
-      ],
-      "isFree": false,
-      "hours": "Mo-Su 08:00-22:00",
-      "url": "https://www.starbucks.com/store-locator/store/16284/christie-shellmound-emeryv-5767-christie-avenue-emeryville-ca-946082412-us",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 1,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-12",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.8482374,
-      "lng": -122.0316813,
-      "address": "3225 Danville Boulevard, Alamo",
-      "amenities": [
-        "takeaway"
-      ],
-      "isFree": false,
-      "url": "https://www.starbucks.com/store-locator/store/12063/las-trampas-danville-blvd-3225-danville-boulevard-alamo-ca-945071913-us",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 3,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-13",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.858728,
-      "lng": -122.1244206,
-      "address": "470 Moraga Road, Moraga",
-      "amenities": [
-        "takeaway"
-      ],
-      "isFree": false,
-      "url": "https://www.starbucks.com/store-locator/store/1021090/moraga-rd-rheem-470-moraga-road-moraga-ca-945562209-us",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 3,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-14",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.8843473,
-      "lng": -122.1916099,
-      "address": "1 Camino Sobrante, Orinda",
-      "amenities": [
-        "takeaway"
-      ],
-      "isFree": false,
-      "url": "https://www.starbucks.com/store-locator/store/16556/camino-pablo-camino-sobrante-1-camino-sobrante-9-orinda-ca-945632317-us",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 1,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-15",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.8916911,
-      "lng": -122.1200456,
-      "address": "3547 A Mount Diablo Boulevard, Lafayette",
-      "amenities": [
-        "wifi",
-        "takeaway"
-      ],
-      "isFree": false,
-      "url": "https://www.starbucks.com/store-locator/store/8809/downtown-lafayette-oak-hill-3547-a-mt-diablo-blvd-lafayette-ca-945493890-us",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 3,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-16",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.8955616,
-      "lng": -122.0611268,
-      "address": "1340 Main Street, Walnut Creek",
-      "amenities": [
-        "takeaway",
-        "wifi",
-        "outdoor-seating"
-      ],
-      "isFree": false,
-      "hours": "Mo-Su 06:00-22:00",
-      "url": "https://www.starbucks.com/store-locator/store/15431/main-duncan-1340-main-street-walnut-creek-ca-945964603-us",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 3,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-17",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.9012106,
-      "lng": -122.2996777,
-      "address": "3090 El Cerrito Plaza, El Cerrito",
-      "amenities": [
-        "ada",
-        "outdoor-seating",
-        "wifi",
-        "takeaway"
-      ],
-      "isFree": false,
-      "hours": "Mo-Fr 05:00-21:30; Sa-Su 05:30-21:30",
-      "url": "https://www.starbucks.com/store-locator/store/12474/san-pablo-fairmount-el-cerrito-3090-el-cerrito-plaza-el-cerrito-plaza-el-cerrito-",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 1,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-18",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.9027981,
-      "lng": -122.5247402,
-      "address": "800 Strawberry Village, Mill Valley",
-      "amenities": [
-        "takeaway",
-        "wifi"
-      ],
-      "isFree": false,
-      "url": "https://www.starbucks.com/store-locator/store/1021953/strawberry-village-shopping-800-strawberry-village-205-mill-valley-ca-94941235",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 1,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-19",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.9199438,
-      "lng": -122.3475068,
-      "address": "2187 Meeker Avenue, Richmond",
-      "amenities": [
-        "takeaway"
-      ],
-      "isFree": false,
-      "url": "https://www.starbucks.com/store-locator/store/1019803/marina-bay-580-2187-meeker-ave-richmond-ca-948046410-us",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 3,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-2",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.7007082,
-      "lng": -122.4832114,
-      "address": "332, Daly City",
-      "amenities": [
-        "takeaway"
-      ],
-      "isFree": false,
-      "url": "https://www.starbucks.com/store-locator/store/8626/john-daly-westlake-center-332-westlake-center-332-daly-city-ca-940151431-us",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 1,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-20",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.9249302,
-      "lng": -122.0881627,
-      "address": "1544 Palos Verdes Mall, Palos Verdes Mall, Walnut Creek",
-      "amenities": [
-        "takeaway"
-      ],
-      "isFree": false,
-      "url": "https://www.starbucks.com/store-locator/store/14956/geary-camino-verde-1544-palos-verdes-mall-suite-44-walnut-creek-ca-94",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 3,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-21",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.9277338,
-      "lng": -122.5171522,
-      "address": "209 Corte Madera Town Center, Corte Madera",
-      "amenities": [
-        "wifi",
-        "takeaway"
-      ],
-      "isFree": false,
-      "hours": "Mo-Fr 17:30-08:00; Su 18:00-08:00; Sa 18:30-08:00",
-      "url": "https://www.starbucks.com/store-locator/store/69034/town-center-corte-madera-209-corte-madera-town-center-corte-madera-ca-94925",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 3,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-22",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.9286755,
-      "lng": -122.039707,
-      "address": "716 Bancroft Street, Walnut Creek",
-      "amenities": [
-        "ada",
-        "outdoor-seating",
-        "takeaway",
-        "wifi"
-      ],
-      "isFree": false,
-      "hours": "Mo-Fr 05:00-17:00; Sa,Su 06:00-17:00",
-      "url": "https://www.starbucks.com/store-locator/store/13314/treat-and-bancroft-716-bancroft-street-walnut-creek-ca-945981531-us",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 3,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-23",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.9286763,
-      "lng": -122.3213634,
-      "address": "11861 San Pablo Avenue, El Cerrito Home Depot",
-      "amenities": [
-        "ada",
-        "takeaway"
-      ],
-      "isFree": false,
-      "hours": "Mo-Sa 04:30-20:30; Su 05:30-20:30",
-      "url": "https://www.starbucks.com/store-locator/store/8902/san-pablo-wall-el-cerrito-11861-san-pablo-avenue-el-cerrito-ca-945301751-us",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 3,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-24",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.959232,
-      "lng": -122.0940095,
-      "amenities": [
-        "takeaway"
-      ],
-      "isFree": false,
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 0,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-25",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.9614239,
-      "lng": -122.3268266,
-      "address": "3300 San Pablo Dam Road, San Pablo",
-      "amenities": [
-        "takeaway"
-      ],
-      "isFree": false,
-      "hours": "Mo-Su 04:30-21:00",
-      "url": "https://www.starbucks.com/store-locator/store/1008982/san-pablo-dam-morrow-3300-san-pablo-dam-road-100-san-pablo-ca-948032724",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 3,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-26",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.9903188,
-      "lng": -122.3349942,
-      "address": "15521 San Pablo Avenue, Richmond",
-      "amenities": [
-        "takeaway"
-      ],
-      "isFree": false,
-      "url": "https://www.starbucks.com/store-locator/store/9288/richmond-pkwy-san-pablo-15521-san-pablo-avenue-a-1-richmond-ca-948065846-u",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 3,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-27",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.9913425,
-      "lng": -122.3023843,
-      "address": "1540 Fitzgerald Drive, Pinole",
-      "amenities": [
-        "takeaway"
-      ],
-      "isFree": false,
-      "url": "https://www.starbucks.com/store-locator/store/8829/fitzgerald-appian-pinole-1540-fitzgerald-drive-pinole-ca-945642229-us",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 3,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-28",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.9947761,
-      "lng": -122.1059464,
-      "address": "1051 Arnold Drive, Martinez",
-      "amenities": [
-        "takeaway"
-      ],
-      "isFree": false,
-      "url": "https://www.starbucks.com/store-locator/store/89996/arnold-morello-1051-arnold-drive-martinez-ca-945534103-us",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 3,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-3",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.7116372,
-      "lng": -122.1626807,
-      "address": "1209 Marina Boulevard, San Leandro",
-      "amenities": [
-        "takeaway",
-        "outdoor-seating"
-      ],
-      "isFree": false,
-      "url": "https://www.starbucks.com/store-locator/store/15945/marina-i-880-1209-marina-boulevard-suite-1209-san-leandro-ca-94",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 3,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-4",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.7359623,
-      "lng": -122.239082,
-      "address": "980 Island Drive, Alameda",
-      "amenities": [
-        "ada",
-        "outdoor-seating",
-        "takeaway"
-      ],
-      "isFree": false,
-      "url": "https://www.starbucks.com/store-locator/store/1031742/island-mecartney-980-island-dr-alameda-ca-945026759-us",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 1,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-5",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.7411879,
-      "lng": -122.3878147,
-      "amenities": [
-        "takeaway"
-      ],
-      "isFree": false,
-      "url": "https://www.starbucks.com/store-locator?map=37.728765,-122.382225,12z&place=3801%203rd%20St%2C%20San%20Francisco%2C%20CA%2094124%2C%20USA",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 1,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-6",
-      "kind": "place",
-      "name": "Starbucks",
-      "placeType": "cafe",
-      "classes": [
-        "cafe"
-      ],
-      "category": "food",
-      "lat": 37.7640254,
-      "lng": -122.2427792,
-      "address": "1364 Park Street, Alameda",
-      "amenities": [
-        "wifi",
-        "takeaway"
-      ],
-      "isFree": false,
-      "hours": "Mo-Fr 04:30-22:00; Sa 05:00-22:00; Su 05:30-21:30",
-      "url": "https://www.starbucks.com/store-locator/store/17592/park-central-alameda-1364-park-street-alameda-ca-945014542-us",
-      "sources": [
-        "OSM"
-      ],
-      "srcCount": 1,
-      "hiddenScore": 1,
-      "hidden": false
-    },
-    {
-      "key": "p|starbucks-7",
       "kind": "place",
       "name": "Starbucks",
       "placeType": "cafe",
@@ -52357,7 +54770,31 @@
       "hidden": false
     },
     {
-      "key": "p|starbucks-8",
+      "key": "p|starbucks-12",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.8005995,
+      "lng": -121.9197428,
+      "address": "4000 Blackhawk Plaza Circle, Danville",
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "url": "https://www.starbucks.com/store-locator/store/6364/blackhawk-plaza-4000-blackhawk-plaza-circle-a-1-danville-ca-945064",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-13",
       "kind": "place",
       "name": "Starbucks",
       "placeType": "cafe",
@@ -52379,6 +54816,735 @@
       "hidden": false
     },
     {
+      "key": "p|starbucks-14",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.8102585,
+      "lng": -121.990177,
+      "address": "730 Camino Ramon, Danville",
+      "amenities": [
+        "takeaway",
+        "outdoor-seating",
+        "wifi"
+      ],
+      "isFree": false,
+      "hours": "Mo-Fr 04:30-20:30; Sa 05:30-20:00; Su 06:00-19:30",
+      "url": "https://www.starbucks.com/store-locator/store/66438/sycamore-camino-ramon-730-camino-ramon-120-danville-ca-945264262-us",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-15",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.8258631,
+      "lng": -122.209353,
+      "address": "2080 Mountain Boulevard, Oakland",
+      "amenities": [
+        "outdoor-seating",
+        "wifi",
+        "takeaway"
+      ],
+      "isFree": false,
+      "url": "https://www.starbucks.com/store-locator/store/1025421/2080-mountain-blvd-montclai-2080-mountain-blvd-oakland-ca-946112827-us",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-16",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.8366655,
+      "lng": -122.2950153,
+      "address": "5767 Christie Avenue, Emeryville",
+      "amenities": [
+        "takeaway",
+        "wifi",
+        "ada"
+      ],
+      "isFree": false,
+      "hours": "Mo-Su 08:00-22:00",
+      "url": "https://www.starbucks.com/store-locator/store/16284/christie-shellmound-emeryv-5767-christie-avenue-emeryville-ca-946082412-us",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-17",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.8482374,
+      "lng": -122.0316813,
+      "address": "3225 Danville Boulevard, Alamo",
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "url": "https://www.starbucks.com/store-locator/store/12063/las-trampas-danville-blvd-3225-danville-boulevard-alamo-ca-945071913-us",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-18",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.858728,
+      "lng": -122.1244206,
+      "address": "470 Moraga Road, Moraga",
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "url": "https://www.starbucks.com/store-locator/store/1021090/moraga-rd-rheem-470-moraga-road-moraga-ca-945562209-us",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-19",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.8843473,
+      "lng": -122.1916099,
+      "address": "1 Camino Sobrante, Orinda",
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "url": "https://www.starbucks.com/store-locator/store/16556/camino-pablo-camino-sobrante-1-camino-sobrante-9-orinda-ca-945632317-us",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-2",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.6959509,
+      "lng": -122.078044,
+      "address": "20663 Rustic Drive, Castro Valley",
+      "amenities": [
+        "takeaway",
+        "wifi"
+      ],
+      "isFree": false,
+      "url": "https://www.starbucks.com/store-locator/store/8831/20663-rustic-drive-20663-rustic-drive-castro-valley-ca-945465607-us",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-20",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.8916911,
+      "lng": -122.1200456,
+      "address": "3547 A Mount Diablo Boulevard, Lafayette",
+      "amenities": [
+        "wifi",
+        "takeaway"
+      ],
+      "isFree": false,
+      "url": "https://www.starbucks.com/store-locator/store/8809/downtown-lafayette-oak-hill-3547-a-mt-diablo-blvd-lafayette-ca-945493890-us",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-21",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.8980649,
+      "lng": -122.060072,
+      "address": "1340 Main Street, Walnut Creek",
+      "amenities": [
+        "takeaway",
+        "wifi",
+        "outdoor-seating"
+      ],
+      "isFree": false,
+      "hours": "Mo-Su 06:00-22:00",
+      "url": "https://www.starbucks.com/store-locator/store/15431/main-duncan-1340-main-street-walnut-creek-ca-945964603-us",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-22",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.9012106,
+      "lng": -122.2996777,
+      "address": "3090 El Cerrito Plaza, El Cerrito",
+      "amenities": [
+        "ada",
+        "outdoor-seating",
+        "wifi",
+        "takeaway"
+      ],
+      "isFree": false,
+      "hours": "Mo-Fr 05:00-21:30; Sa-Su 05:30-21:30",
+      "url": "https://www.starbucks.com/store-locator/store/12474/san-pablo-fairmount-el-cerrito-3090-el-cerrito-plaza-el-cerrito-plaza-el-cerrito-",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-23",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.9027981,
+      "lng": -122.5247402,
+      "address": "800 Strawberry Village, Mill Valley",
+      "amenities": [
+        "takeaway",
+        "wifi"
+      ],
+      "isFree": false,
+      "url": "https://www.starbucks.com/store-locator/store/1021953/strawberry-village-shopping-800-strawberry-village-205-mill-valley-ca-94941235",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-24",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.9199438,
+      "lng": -122.3475068,
+      "address": "2187 Meeker Avenue, Richmond",
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "url": "https://www.starbucks.com/store-locator/store/1019803/marina-bay-580-2187-meeker-ave-richmond-ca-948046410-us",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-25",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.9249302,
+      "lng": -122.0881627,
+      "address": "1544 Palos Verdes Mall, Palos Verdes Mall, Walnut Creek",
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "url": "https://www.starbucks.com/store-locator/store/14956/geary-camino-verde-1544-palos-verdes-mall-suite-44-walnut-creek-ca-94",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-26",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.9277338,
+      "lng": -122.5171522,
+      "address": "209 Corte Madera Town Center, Corte Madera",
+      "amenities": [
+        "wifi",
+        "takeaway"
+      ],
+      "isFree": false,
+      "hours": "Mo-Fr 17:30-08:00; Su 18:00-08:00; Sa 18:30-08:00",
+      "url": "https://www.starbucks.com/store-locator/store/69034/town-center-corte-madera-209-corte-madera-town-center-corte-madera-ca-94925",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-27",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.9286755,
+      "lng": -122.039707,
+      "address": "716 Bancroft Street, Walnut Creek",
+      "amenities": [
+        "ada",
+        "outdoor-seating",
+        "takeaway",
+        "wifi"
+      ],
+      "isFree": false,
+      "hours": "Mo-Fr 05:00-17:00; Sa,Su 06:00-17:00",
+      "url": "https://www.starbucks.com/store-locator/store/13314/treat-and-bancroft-716-bancroft-street-walnut-creek-ca-945981531-us",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-28",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.9286763,
+      "lng": -122.3213634,
+      "address": "11861 San Pablo Avenue, El Cerrito Home Depot",
+      "amenities": [
+        "ada",
+        "takeaway"
+      ],
+      "isFree": false,
+      "hours": "Mo-Sa 04:30-20:30; Su 05:30-20:30",
+      "url": "https://www.starbucks.com/store-locator/store/8902/san-pablo-wall-el-cerrito-11861-san-pablo-avenue-el-cerrito-ca-945301751-us",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-29",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.9534164,
+      "lng": -121.9549575,
+      "address": "1536 Kirker Pass Road, Clayton Station",
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "url": "https://www.starbucks.com/store-locator/store/13348/clayton-station-1536-kirker-pass-road-a-clayton-ca-945171082-us",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-3",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.7007082,
+      "lng": -122.4832114,
+      "address": "332, Daly City",
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "url": "https://www.starbucks.com/store-locator/store/8626/john-daly-westlake-center-332-westlake-center-332-daly-city-ca-940151431-us",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-30",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.959232,
+      "lng": -122.0940095,
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-31",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.9614239,
+      "lng": -122.3268266,
+      "address": "3300 San Pablo Dam Road, San Pablo",
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "hours": "Mo-Su 04:30-21:00",
+      "url": "https://www.starbucks.com/store-locator/store/1008982/san-pablo-dam-morrow-3300-san-pablo-dam-road-100-san-pablo-ca-948032724",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-32",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.9646372,
+      "lng": -121.9930912,
+      "address": "4290 Clayton Road, Concord",
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "url": "https://www.starbucks.com/store-locator/store/1015724/treat-clayton-road-4290-clayton-rd-concord-ca-945212713-us",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-33",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.9903188,
+      "lng": -122.3349942,
+      "address": "15521 San Pablo Avenue, Richmond",
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "url": "https://www.starbucks.com/store-locator/store/9288/richmond-pkwy-san-pablo-15521-san-pablo-avenue-a-1-richmond-ca-948065846-u",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-34",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.9913425,
+      "lng": -122.3023843,
+      "address": "1540 Fitzgerald Drive, Pinole",
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "url": "https://www.starbucks.com/store-locator/store/8829/fitzgerald-appian-pinole-1540-fitzgerald-drive-pinole-ca-945642229-us",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-35",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.9947761,
+      "lng": -122.1059464,
+      "address": "1051 Arnold Drive, Martinez",
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "url": "https://www.starbucks.com/store-locator/store/89996/arnold-morello-1051-arnold-drive-martinez-ca-945534103-us",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-4",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.7116372,
+      "lng": -122.1626807,
+      "address": "1209 Marina Boulevard, San Leandro",
+      "amenities": [
+        "takeaway",
+        "outdoor-seating"
+      ],
+      "isFree": false,
+      "url": "https://www.starbucks.com/store-locator/store/15945/marina-i-880-1209-marina-boulevard-suite-1209-san-leandro-ca-94",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-5",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.7294682,
+      "lng": -121.93138,
+      "address": "9150 Alcosta Boulevard, San Ramon",
+      "amenities": [
+        "wifi",
+        "takeaway",
+        "outdoor-seating"
+      ],
+      "isFree": false,
+      "hours": "Mo-Fr 04:30-20:30; Sa-Su 05:00-20:00",
+      "url": "https://www.starbucks.com/store-locator/store/14787/alcosta-village-pkwy-9150-a-alcosta-blvd-san-ramon-ca-945833848-us",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-6",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.7359623,
+      "lng": -122.239082,
+      "address": "980 Island Drive, Alameda",
+      "amenities": [
+        "ada",
+        "outdoor-seating",
+        "takeaway"
+      ],
+      "isFree": false,
+      "url": "https://www.starbucks.com/store-locator/store/1031742/island-mecartney-980-island-dr-alameda-ca-945026759-us",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-7",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.7411879,
+      "lng": -122.3878147,
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "url": "https://www.starbucks.com/store-locator?map=37.728765,-122.382225,12z&place=3801%203rd%20St%2C%20San%20Francisco%2C%20CA%2094124%2C%20USA",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|starbucks-8",
+      "kind": "place",
+      "name": "Starbucks",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.7628773,
+      "lng": -121.960075,
+      "address": "6000 Bollinger Canyon Road, San Ramon",
+      "amenities": [
+        "outdoor-seating",
+        "wifi",
+        "takeaway"
+      ],
+      "isFree": false,
+      "hours": "Mo-Fr 04:30-21:30; Sa 05:00-21:30; Su 06:00-21:00",
+      "url": "https://www.starbucks.com/store-locator/store/1023443/city-center-bishop-ranch-6000-bollinger-canyon-rd-1500-san-ramon-ca-9458323",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
       "key": "p|starbucks-9",
       "kind": "place",
       "name": "Starbucks",
@@ -52387,22 +55553,21 @@
         "cafe"
       ],
       "category": "food",
-      "lat": 37.8239598,
-      "lng": -122.0038165,
-      "address": "1 Railroad Avenue, Danville",
+      "lat": 37.7640254,
+      "lng": -122.2427792,
+      "address": "1364 Park Street, Alameda",
       "amenities": [
-        "outdoor-seating",
         "wifi",
         "takeaway"
       ],
       "isFree": false,
-      "hours": "Mo-Fr 04:30-20:30; Sa 05:30-20:00; Su 06:00-19:30",
-      "url": "https://www.starbucks.com/store-locator/store/11072/railroad-love-1-railroad-blvd-danville-ca-945263873-us",
+      "hours": "Mo-Fr 04:30-22:00; Sa 05:00-22:00; Su 05:30-21:30",
+      "url": "https://www.starbucks.com/store-locator/store/17592/park-central-alameda-1364-park-street-alameda-ca-945014542-us",
       "sources": [
         "OSM"
       ],
       "srcCount": 1,
-      "hiddenScore": 3,
+      "hiddenScore": 1,
       "hidden": false
     },
     {
@@ -53187,6 +56352,27 @@
       "hidden": false
     },
     {
+      "key": "p|sunny-glen-recreational-area",
+      "kind": "place",
+      "name": "Sunny Glen Recreational Area",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7276729,
+      "lng": -121.9241211,
+      "amenities": [
+        "shuffleboard"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|sunnyside-conservatory",
       "kind": "place",
       "name": "Sunnyside Conservatory",
@@ -53290,6 +56476,29 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|sunrise-ridge-park",
+      "kind": "place",
+      "name": "Sunrise Ridge Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.77873,
+      "lng": -121.9910814,
+      "amenities": [
+        "playground",
+        "tennis",
+        "basketball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -53898,6 +57107,77 @@
       "hidden": false
     },
     {
+      "key": "p|sycamore",
+      "kind": "place",
+      "name": "Sycamore",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.8151743,
+      "lng": -121.9788413,
+      "amenities": [
+        "playground",
+        "tennis",
+        "basketball"
+      ],
+      "operator": "https://www.sycamorehomesassociation.com/",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|sycamore-valley-open-space-regional-preserve",
+      "kind": "place",
+      "name": "Sycamore Valley Open Space Regional Preserve",
+      "placeType": "preserve",
+      "classes": [
+        "preserve"
+      ],
+      "category": "outdoors",
+      "lat": 37.8043223873064,
+      "lng": -121.94107626495202,
+      "hours": "Mo-Su 05:00-22:00",
+      "url": "https://www.ebparks.org/parks/sycamore/default.htm#map",
+      "designation": "Regional",
+      "operator": "East Bay Regional Park District",
+      "sources": [
+        "EBRPD Parks",
+        "OSM"
+      ],
+      "srcCount": 2,
+      "wikidata": "Q7659611",
+      "hiddenScore": 0,
+      "hidden": false,
+      "description": "Sycamore Valley Regional Open Space Preserve is a regional park in Contra Costa County, California, outside of Danville, California, United States that is part of the East Bay Regional Parks (EBRPD) system."
+    },
+    {
+      "key": "p|sycamore-valley-park",
+      "kind": "place",
+      "name": "Sycamore Valley Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.8076787,
+      "lng": -121.9454804,
+      "amenities": [
+        "playground",
+        "basketball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
       "key": "p|sydney-g-walton-square",
       "kind": "place",
       "name": "Sydney G. Walton Square",
@@ -53962,6 +57242,50 @@
         "cafe"
       ],
       "category": "food",
+      "lat": 37.7302772,
+      "lng": -121.9298969,
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|t4-tea-for-u-2",
+      "kind": "place",
+      "name": "T4 Tea For U",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.7749807,
+      "lng": -121.9239753,
+      "amenities": [
+        "takeaway"
+      ],
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|t4-tea-for-u-3",
+      "kind": "place",
+      "name": "T4 Tea For U",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
       "lat": 37.801083,
       "lng": -122.270056,
       "amenities": [
@@ -53976,7 +57300,7 @@
       "hidden": false
     },
     {
-      "key": "p|t4-tea-for-u-2",
+      "key": "p|t4-tea-for-u-4",
       "kind": "place",
       "name": "T4 Tea For U",
       "placeType": "cafe",
@@ -54248,6 +57572,24 @@
       "hidden": false
     },
     {
+      "key": "p|tassajara-dog-park",
+      "kind": "place",
+      "name": "Tassajara Dog Park",
+      "placeType": "dog_park",
+      "classes": [
+        "dog_park"
+      ],
+      "category": "outdoors",
+      "lat": 37.743284,
+      "lng": -121.8834937,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|tassajara-park",
       "kind": "place",
       "name": "Tassajara Park",
@@ -54268,6 +57610,24 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
+      "hidden": false
+    },
+    {
+      "key": "p|tassajara-ridge-staging-area",
+      "kind": "place",
+      "name": "Tassajara Ridge Staging Area",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.743273,
+      "lng": -121.8839945,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -54866,6 +58226,24 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|tennis-and-pickleball",
+      "kind": "place",
+      "name": "Tennis and Pickleball",
+      "placeType": "courts",
+      "classes": [
+        "courts"
+      ],
+      "category": "sports",
+      "lat": 37.8019307,
+      "lng": -121.9805498,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -55620,6 +58998,24 @@
       "hidden": false
     },
     {
+      "key": "p|the-dog-house",
+      "kind": "place",
+      "name": "The Dog House",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.708235,
+      "lng": -121.894152,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|the-epicurean-trader",
       "kind": "place",
       "name": "The Epicurean Trader",
@@ -55713,6 +59109,24 @@
       "hidden": false
     },
     {
+      "key": "p|the-gallery",
+      "kind": "place",
+      "name": "The Gallery",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7082336,
+      "lng": -121.8936718,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|the-game-parlour",
       "kind": "place",
       "name": "The Game Parlour",
@@ -55791,6 +59205,24 @@
       "hidden": false
     },
     {
+      "key": "p|the-green-pedestrian-corridor",
+      "kind": "place",
+      "name": "The Green (Pedestrian Corridor)",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7078449,
+      "lng": -121.8973054,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|the-grind-cafe",
       "kind": "place",
       "name": "The Grind Cafe",
@@ -55813,6 +59245,63 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|the-grove",
+      "kind": "place",
+      "name": "The Grove",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9408822,
+      "lng": -121.9340911,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|the-gym",
+      "kind": "place",
+      "name": "The Gym",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7124204,
+      "lng": -121.8976698,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|the-hangout",
+      "kind": "place",
+      "name": "The Hangout",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7108825,
+      "lng": -121.8991733,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -55884,6 +59373,24 @@
       "hidden": false
     },
     {
+      "key": "p|the-kitchen",
+      "kind": "place",
+      "name": "The Kitchen",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7068539,
+      "lng": -121.8982207,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|the-landing-cafe",
       "kind": "place",
       "name": "The Landing Cafe",
@@ -55898,6 +59405,42 @@
         "outdoor-seating"
       ],
       "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|the-lawn",
+      "kind": "place",
+      "name": "The Lawn",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7071898,
+      "lng": -121.8943127,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|the-library",
+      "kind": "place",
+      "name": "The Library",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7073223,
+      "lng": -121.8949952,
       "sources": [
         "OSM"
       ],
@@ -55992,6 +59535,24 @@
       "hidden": false
     },
     {
+      "key": "p|the-lounge",
+      "kind": "place",
+      "name": "The Lounge",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7069986,
+      "lng": -121.9002526,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|the-market",
       "kind": "place",
       "name": "The Market",
@@ -56071,6 +59632,24 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|the-office",
+      "kind": "place",
+      "name": "The Office",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7082633,
+      "lng": -121.9001952,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -56158,6 +59737,24 @@
       "hidden": false
     },
     {
+      "key": "p|the-playground",
+      "kind": "place",
+      "name": "The Playground",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7116592,
+      "lng": -121.8948195,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|the-posh-bagel",
       "kind": "place",
       "name": "The Posh Bagel",
@@ -56225,6 +59822,27 @@
       "hidden": false
     },
     {
+      "key": "p|the-quenched-trailer",
+      "kind": "place",
+      "name": "The Quenched Trailer",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.9551696,
+      "lng": -121.9543079,
+      "address": "1555 Kirker Pass Road, Concord",
+      "isFree": false,
+      "hours": "Mo-Su 07:00-13:00",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": true
+    },
+    {
       "key": "p|the-radical-reading-room",
       "kind": "place",
       "name": "The Radical Reading Room",
@@ -56243,6 +59861,42 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|the-rec-center",
+      "kind": "place",
+      "name": "The Rec Center",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7083257,
+      "lng": -121.8994624,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|the-retreat",
+      "kind": "place",
+      "name": "The Retreat",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7069693,
+      "lng": -121.895644,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -56453,6 +60107,42 @@
       "hidden": false
     },
     {
+      "key": "p|the-town-square",
+      "kind": "place",
+      "name": "The Town Square",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7066729,
+      "lng": -121.8936446,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|the-track",
+      "kind": "place",
+      "name": "The Track",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7076892,
+      "lng": -121.8951619,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|the-velo-rouge-cafe",
       "kind": "place",
       "name": "The Velo Rouge Cafe",
@@ -56497,6 +60187,24 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|the-well",
+      "kind": "place",
+      "name": "The Well",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7085314,
+      "lng": -121.8979144,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -56564,6 +60272,24 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|thomas-ranch-tot-lot",
+      "kind": "place",
+      "name": "Thomas Ranch Tot Lot",
+      "placeType": "playground",
+      "classes": [
+        "playground"
+      ],
+      "category": "family",
+      "lat": 37.7686038,
+      "lng": -121.9970525,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -56668,6 +60394,26 @@
       "srcCount": 1,
       "hiddenScore": 0,
       "hidden": false
+    },
+    {
+      "key": "p|thurgood-marshall-regional-park",
+      "kind": "place",
+      "name": "Thurgood Marshall Regional Park",
+      "placeType": "preserve",
+      "classes": [
+        "preserve"
+      ],
+      "category": "outdoors",
+      "lat": 37.9894264,
+      "lng": -121.9684528,
+      "url": "https://www.ebparks.org/parks/thurgood-marshall",
+      "operator": "East Bay Regional Park District",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": true
     },
     {
       "key": "p|tiburon-ferry-terminal",
@@ -57022,7 +60768,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": true
+      "hidden": false
     },
     {
       "key": "p|toll-plaza-beach",
@@ -57210,6 +60956,45 @@
       ],
       "srcCount": 1,
       "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|tot-lot",
+      "kind": "place",
+      "name": "Tot Lot",
+      "placeType": "playground",
+      "classes": [
+        "playground"
+      ],
+      "category": "family",
+      "lat": 37.7832043,
+      "lng": -121.9716473,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|tous-les-jours",
+      "kind": "place",
+      "name": "Tous les Jours",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.707128,
+      "lng": -121.928924,
+      "address": "7151 Amador Plaza Road",
+      "isFree": false,
+      "url": "http://www.tljus.com/",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
       "hidden": false
     },
     {
@@ -57665,6 +61450,29 @@
         "Turk-Hyde Mini Park Playground",
         "Turk & Hyde Mini Park"
       ],
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|turtle-creek-park",
+      "kind": "place",
+      "name": "Turtle Creek Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9571426,
+      "lng": -121.9907532,
+      "amenities": [
+        "playground",
+        "tennis",
+        "basketball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
       "hiddenScore": 0,
       "hidden": false
     },
@@ -58496,6 +62304,31 @@
       "hidden": false
     },
     {
+      "key": "p|val-vista-park",
+      "kind": "place",
+      "name": "Val Vista Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.6866174,
+      "lng": -121.9131287,
+      "address": "7350 Johnson Drive, Pleasanton",
+      "amenities": [
+        "playground",
+        "skate-park"
+      ],
+      "operator": "City of Pleasanton",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "wikidata": "Q49573748",
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|valkyries-performance-center",
       "kind": "place",
       "name": "Valkyries Performance Center",
@@ -58525,6 +62358,28 @@
       "category": "outdoors",
       "lat": 37.8931394,
       "lng": -122.2430415,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|valley-view-park",
+      "kind": "place",
+      "name": "Valley View Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.776752,
+      "lng": -121.9185447,
+      "amenities": [
+        "playground",
+        "tennis"
+      ],
       "sources": [
         "OSM"
       ],
@@ -58879,6 +62734,26 @@
       "hidden": false
     },
     {
+      "key": "p|viera-north-peak",
+      "kind": "place",
+      "name": "Viera-North Peak",
+      "placeType": "preserve",
+      "classes": [
+        "preserve"
+      ],
+      "category": "outdoors",
+      "lat": 37.8854999,
+      "lng": -121.8887694,
+      "url": "https://www.savemountdiablo.org/land-preservation/properties/viera-north-peak/",
+      "operator": "Save Mount Diablo",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": true
+    },
+    {
       "key": "p|view-on-golden-gate-bridge-richardson-bay",
       "kind": "place",
       "name": "View on Golden Gate Bridge & Richardson Bay",
@@ -58889,6 +62764,27 @@
       "category": "outdoors",
       "lat": 37.8034799,
       "lng": -122.420047,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|viewpoint-drive-park",
+      "kind": "place",
+      "name": "Viewpoint Drive Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7936794,
+      "lng": -121.9079819,
+      "amenities": [
+        "playground"
+      ],
       "sources": [
         "OSM"
       ],
@@ -59051,6 +62947,29 @@
       "hidden": false
     },
     {
+      "key": "p|vitality-bowls",
+      "kind": "place",
+      "name": "Vitality Bowls",
+      "placeType": "cafe",
+      "classes": [
+        "cafe"
+      ],
+      "category": "food",
+      "lat": 37.7049556,
+      "lng": -121.8912288,
+      "address": "5272 Martinelli Way, Dublin",
+      "amenities": [
+        "ada"
+      ],
+      "isFree": false,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 3,
+      "hidden": true
+    },
+    {
       "key": "p|vive-la-tarte",
       "kind": "place",
       "name": "Vive La Tarte",
@@ -59206,6 +63125,27 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|walt-disney-park",
+      "kind": "place",
+      "name": "Walt Disney Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7406905,
+      "lng": -121.9373851,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -59659,6 +63599,27 @@
       "hidden": false
     },
     {
+      "key": "p|welshland-park",
+      "kind": "place",
+      "name": "Welshland Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7922235,
+      "lng": -121.8831827,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|wendell-park",
       "kind": "place",
       "name": "Wendell Park",
@@ -59873,6 +63834,24 @@
         "Westlake Playground"
       ],
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|westwood-park",
+      "kind": "place",
+      "name": "Westwood Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.9529548,
+      "lng": -121.9520565,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {
@@ -60227,7 +64206,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": true
+      "hidden": false
     },
     {
       "key": "p|wilma-chan-park",
@@ -60250,6 +64229,27 @@
       ],
       "srcCount": 1,
       "wikidata": "Q49520614",
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|windy-hill-park",
+      "kind": "place",
+      "name": "Windy Hill Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.7707921,
+      "lng": -121.9385988,
+      "amenities": [
+        "playground"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
       "hiddenScore": 0,
       "hidden": false
     },
@@ -60394,6 +64394,29 @@
       "hidden": false
     },
     {
+      "key": "p|woodland-hills-park",
+      "kind": "place",
+      "name": "Woodland Hills Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.999719,
+      "lng": -121.9049472,
+      "amenities": [
+        "playground",
+        "tennis",
+        "basketball"
+      ],
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
       "key": "p|woods-yard-park",
       "kind": "place",
       "name": "Woods Yard Park",
@@ -60438,6 +64461,25 @@
       ],
       "srcCount": 1,
       "wikidata": "Q49583037",
+      "hiddenScore": 0,
+      "hidden": false
+    },
+    {
+      "key": "p|woodthrush-park",
+      "kind": "place",
+      "name": "Woodthrush Park",
+      "placeType": "park",
+      "classes": [
+        "park"
+      ],
+      "category": "outdoors",
+      "lat": 37.6809817,
+      "lng": -121.8863448,
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "wikidata": "Q49583054",
       "hiddenScore": 0,
       "hidden": false
     },
@@ -61227,6 +65269,25 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
+      "hidden": false
+    },
+    {
+      "key": "p|young-canyon",
+      "kind": "place",
+      "name": "Young Canyon",
+      "placeType": "preserve",
+      "classes": [
+        "preserve"
+      ],
+      "category": "outdoors",
+      "lat": 37.9097376,
+      "lng": -121.9118835,
+      "operator": "Save Mount Diablo",
+      "sources": [
+        "OSM"
+      ],
+      "srcCount": 1,
+      "hiddenScore": 0,
       "hidden": false
     },
     {

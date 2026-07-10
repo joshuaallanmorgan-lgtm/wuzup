@@ -1,4 +1,4 @@
-# SF & East Bay Events — found 742 real events
+# SF & East Bay Events — found 743 real events
 
 _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents (SF Free), Eventbrite (SF Free), AllEvents (Oakland), Eventbrite (SF), AllEvents (Berkeley), Eventbrite (SF p2), AllEvents (Walnut Creek), Eventbrite (SF p3), Eventbrite (Oakland Free), Eventbrite (Oakland), Eventbrite (Oakland p2), Eventbrite (Oakland p3), Eventbrite (Berkeley Free), Eventbrite (Berkeley), Eventbrite (Walnut Creek Free), Eventbrite (Walnut Creek), DoTheBay, Meetup, SF Rec & Parks, UC Berkeley, Visit Oakland_
 
@@ -348,7 +348,6 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 
 ## Saturday, July 18
 
-- Makers Market™ Local Artist Street Fair @ Broadway Plaza · Broadway Plaza · _Free_ · 🔥68 · buzz 2 · (AllEvents (Walnut Creek)) · [details](https://allevents.in/walnut-creek/makers-market-local-artist-street-fair-broadway-plaza/100001981947658800)
 - **4:30 PM** — Major League Cricket in Bay Area San Francisco Unicorns · Oakland Coliseum · _—_ · 🔥63 · buzz 2 · (AllEvents (Oakland)) · [details](https://allevents.in/oakland/major-league-cricket-in-bay-area-san-francisco-unicorns/200030299982505)
 - Richmond Night Market · Clement Street · _Free_ · 🔥43 · buzz 1 · (AllEvents (SF Free)) · [details](https://allevents.in/san-francisco/richmond-night-market/100001992857539547)
 - The Circus is Coming to Town! The 2026 Hayes Valley Carnival · Proxy Walk-In Theater · _Free_ · 🔥43 · buzz 1 · (AllEvents (SF Free)) · [details](https://allevents.in/san-francisco/the-circus-is-coming-to-town-the-2026-hayes-valley-carnival/100001992438126070)
@@ -356,6 +355,7 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 - Yerba Buena Gardens Reggae Festival · Yerba Buena Gardens · _Free_ · 🔥43 · buzz 1 · (Eventbrite (SF Free)) · [details](https://www.eventbrite.com/e/yerba-buena-gardens-reggae-festival-tickets-1986846415112)
 - National Caviar Day by The Caviar Co. · The Caviar Co. · _Free_ · 🔥43 · buzz 1 · (Eventbrite (SF Free)) · [details](https://www.eventbrite.com/e/national-caviar-day-by-the-caviar-co-tickets-1992261456647)
 - Christian Singles Coffee Meet-up · Gratitude Coffee Bar · _Free_ · 🔥43 · buzz 1 · (Eventbrite (Walnut Creek Free)) · [details](https://www.eventbrite.com/e/christian-singles-coffee-meet-up-tickets-1990711647125)
+- Vuori Broadway Plaza x Pvolve · Vuori Broadway Plaza · _Free_ · 🔥43 · buzz 1 · (Eventbrite (Walnut Creek Free)) · [details](https://www.eventbrite.com/e/vuori-broadway-plaza-x-pvolve-tickets-1990053379228)
 - Free Film Screening in Concord, CA · CinemaWest Veranda LUXE IMAX, 4DX, ScreenX & Giant Screen · _Free_ · 🔥43 · buzz 1 · (Eventbrite (Walnut Creek Free)) · [details](https://www.eventbrite.com/e/free-film-screening-in-concord-ca-tickets-1991969883544)
 - LO SF Bay Area | Queer Caminata: Somos Familia · Orinda · _Free_ · 🔥43 · buzz 1 · (Eventbrite (Walnut Creek Free)) · [details](https://www.eventbrite.com/e/lo-sf-bay-area-queer-caminata-somos-familia-tickets-1987872465055)
 - **10:00 AM** — The Wardrobe Project Flea · Rockridge Bart Parking Lot · _Free_ · 🔥43 · buzz 1 · (Visit Oakland) · [details](https://www.visitoakland.com/event/the-wardrobe-project-flea/35277/)
@@ -371,6 +371,7 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 - PRINCESS: Homecoming w/ JULIE J · OASIS · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF p2)) · [details](https://www.eventbrite.com/e/princess-homecoming-w-julie-j-tickets-1992034859890)
 - AGI Summit 2026 | Where AGI Converges · July 18–19 · Palace of Fine Art · 3301 Lyon St · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF p2)) · [details](https://www.eventbrite.com/e/agi-summit-2026-where-agi-converges-july-1819-palace-of-fine-art-tickets-1985545163032)
 - Grateful Dead & the Allman Brothers Band Tributes... Live @ Retro Junkie! · Retro Junkie · _$17.85_ · 🔥38 · buzz 1 · (AllEvents (Walnut Creek)) · [details](https://allevents.in/walnut-creek/grateful-dead-and-the-allman-brothers-band-tributes-live-retro-junkie/100001990060804437)
+- Makers Market™ Local Artist Street Fair @ Broadway Plaza · Broadway Plaza · _—_ · 🔥38 · buzz 1 · (AllEvents (Walnut Creek)) · [details](https://allevents.in/walnut-creek/makers-market-local-artist-street-fair-broadway-plaza/100001981947658800)
 - LAVERN | Day Party at 620 Jones Terrace · Jones · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF p3)) · [details](https://www.eventbrite.com/e/lavern-day-party-at-620-jones-terrace-tickets-1988845095218)
 - Morphine Love Dion at Beaux in the Castro Saturday July 18th · Beaux · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF p3)) · [details](https://www.eventbrite.com/e/morphine-love-dion-at-beaux-in-the-castro-saturday-july-18th-tickets-1984929015117)
 - Brave New Voices Festival Day 4 · San Francisco War Memorial & Performing Arts Center HERBST Theater · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF p3)) · [details](https://www.eventbrite.com/e/brave-new-voices-festival-day-4-tickets-1990212616511)
@@ -495,7 +496,7 @@ _Generated 7/5/2026, 9:11:23 PM · sources: AllEvents (San Francisco), AllEvents
 
 ## Saturday, July 25
 
-- ACTV Studio IRL: Vuori Broadway Plaza x Barry's · Broadway Plaza · _Free_ · 🔥43 · buzz 1 · (Eventbrite (Walnut Creek Free)) · [details](https://www.eventbrite.com/e/actv-studio-irl-vuori-broadway-plaza-x-barrys-tickets-1992098504252)
+- ACTV Studio IRL: Vuori Broadway Plaza x Barry's · Vuori Broadway Plaza · _Free_ · 🔥43 · buzz 1 · (Eventbrite (Walnut Creek Free)) · [details](https://www.eventbrite.com/e/actv-studio-irl-vuori-broadway-plaza-x-barrys-tickets-1992098504252)
 - Orchids in the Park 2026 - Summer Sale - July 25 & July 26 · SF County Fair Building · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF)) · [details](https://www.eventbrite.com/e/orchids-in-the-park-2026-summer-sale-july-25-july-26-tickets-1988526536400)
 - Ballet22: Summer Season 2026 · The Cowell Theater at Pier 2 · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF)) · [details](https://www.eventbrite.com/e/ballet22-summer-season-2026-tickets-1493443322179)
 - Mixologi's Annual Summer Day Party - July 25th · Jones · _—_ · 🔥38 · buzz 1 · (Eventbrite (SF)) · [details](https://www.eventbrite.com/e/mixologis-annual-summer-day-party-july-25th-tickets-1992726285964)

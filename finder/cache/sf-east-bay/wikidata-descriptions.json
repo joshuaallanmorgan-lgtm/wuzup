@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-07-06T06:47:39.677Z",
+  "fetchedAt": "2026-07-07T11:55:04.803Z",
   "byQid": {
     "Q49471862": {
       "description": null,
@@ -1915,6 +1915,66 @@
       "description": null,
       "title": null,
       "at": "2026-07-06T06:47:39.547Z"
+    },
+    "Q4917688": {
+      "description": "Bishop Ranch Regional Preserve (BRRP), also known as Bishop Ranch Regional Open Space Preserve is a 444-acre (1.80 km2) regional park on a ridge top at the edge of San Ramon, California. It is near a residential area, west of San Ramon Valley Road and south of Bollinger Canyon Road.",
+      "title": "Bishop Ranch Regional Preserve",
+      "at": "2026-07-07T11:54:59.956Z"
+    },
+    "Q5270163": {
+      "description": "Diablo Foothills Regional Park is a 1,060 acres (4.3 km2) regional park of the East Bay Regional Park District. It is located in Contra Costa County, in the East Bay region of northern California.",
+      "title": "Diablo Foothills Regional Park",
+      "at": "2026-07-07T11:55:00.687Z"
+    },
+    "Q49483611": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-07T11:55:01.024Z"
+    },
+    "Q49484345": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-07T11:55:01.240Z"
+    },
+    "Q49511884": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-07T11:55:01.463Z"
+    },
+    "Q49527499": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-07T11:55:01.664Z"
+    },
+    "Q13359059": {
+      "description": "Mount Diablo is a mountain of the Diablo Range, in Contra Costa County of the eastern San Francisco Bay Area in Northern California. It is south of Clayton and northeast of Danville. It is an isolated upthrust peak of 3,849 feet, visible from most of the San Francisco Bay Area.",
+      "title": "Mount Diablo",
+      "at": "2026-07-07T11:55:01.944Z"
+    },
+    "Q49560369": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-07T11:55:02.218Z"
+    },
+    "Q49565120": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-07T11:55:03.884Z"
+    },
+    "Q7659611": {
+      "description": "Sycamore Valley Regional Open Space Preserve is a regional park in Contra Costa County, California, outside of Danville, California, United States that is part of the East Bay Regional Parks (EBRPD) system.",
+      "title": "Sycamore Valley Regional Open Space Preserve",
+      "at": "2026-07-07T11:55:04.247Z"
+    },
+    "Q49573748": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-07T11:55:04.463Z"
+    },
+    "Q49583054": {
+      "description": null,
+      "title": null,
+      "at": "2026-07-07T11:55:04.678Z"
     }
   }
 }

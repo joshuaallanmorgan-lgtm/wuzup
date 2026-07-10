@@ -178,13 +178,13 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
 
   // ===== detail hero image: preload + 300ms fade over the dark placeholder =====
   const [loadedSrc, setLoadedSrc] = useState(null)
-  const [heroFailed, setHeroFailed] = useState(false)
+  const [failedSrc, setFailedSrc] = useState(null)
   useEffect(() => {
     if (!e.image) return
     const src = e.image
     const img = new Image()
     img.onload = () => setLoadedSrc(src)
-    img.onerror = () => setHeroFailed(true) // dead URL → fall back to category-art
+    img.onerror = () => setFailedSrc(src) // dead URL → fall back to category-art
     img.src = src
     return () => {
       img.onload = null
@@ -192,8 +192,12 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
     }
   }, [e.image])
   const imgOk = loadedSrc === e.image
-  // a real photo that loads → image hero; no image OR a broken URL → art hero
-  const heroArt = !e.image || heroFailed
+  // a real photo that loads → image hero; no image OR a broken URL → art hero.
+  // failedSrc is compared against the CURRENT image (same derivation as imgOk):
+  // a boolean here latched across More-like-this hops — a dead poster on event
+  // A forced the art hero onto every event opened after it in this mounted
+  // detail (Stage E ship gate — surfaced chasing the VSPC hotlink-block finds).
+  const heroArt = !e.image || failedSrc === e.image
   // WS2 detail-rebuild: the hero time badge — GemRow's exact honesty gate (never
   // on an ongoing run, only a real start time; '' renders nothing).
   const heroTime = !e._ongoing ? timeOf(e.start) : ''
