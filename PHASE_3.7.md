@@ -906,6 +906,11 @@ _End of amendment._
 ---
 
 # ADDENDUM G (2026-06-15) — The Activity Evidence Layer (the honest popularity engine)
+
+> **PROPOSED SUCCESSOR (2026-07-06):** [planning/v2/quality-engine.md](planning/v2/quality-engine.md)
+> proposes absorbing this addendum's spine (incl. the G.7 builder prompt) and resolving ⚑D-EVID in
+> §13.1. Pending Josh's ruling, this remains the historical source and neither doc is build authority.
+
 _From GPT's read-only research (verified against the code). This is the **honest mechanism that unblocks sourced rankings** (FB-A / §6.2 / §B.2-row-6, which the builder correctly pulled as fabricated). Premise: don't stuff more into the finder (it's already strong) — add a **separate, deterministic evidence layer beside it** that records "what public evidence says this is worth considering," so the UI can say "guide-backed" / "mentioned by 3 local guides" without pretending Wuzup personally knows "the best." **Ambitious underneath, humble on the surface.**_
 
 ## G.1 Why it fits (verified)

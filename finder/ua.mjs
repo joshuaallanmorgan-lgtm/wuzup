@@ -10,4 +10,4 @@
 // Per-city SOURCE modules (finder/sources/*.mjs) keep their own UA strings —
 // they are rewritten per city by design (STAGE_D D2/D3).
 export const PRODUCT_UA =
-  'Wuzup/1.0 (local events+places discovery app; https://github.com/joshuaallanmorgan-lgtm/cj)';
+  'Wuzup/1.0 (local events+places discovery app; https://github.com/joshuaallanmorgan-lgtm/wuzup)';

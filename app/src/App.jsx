@@ -81,6 +81,8 @@ export default function App() {
 function Shell() {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [loadCycle, setLoadCycle] = useState(0)
   const [bootVis, setBootVis] = useState(false) // boot overlay gated 300ms (no flash on fast loads)
   const [coords, setCoords] = useState(null)
   // 3.7P-21: location is opt-in via Settings → Data & privacy (no inline gate).
@@ -118,15 +120,20 @@ function Shell() {
   const [staleHidden, setStaleHidden] = useState(false) // ✕ dismiss (this load only)
   // M2b: one retry with backoff before giving up — a transient blip on a weak
   // network shouldn't cost the whole session. The boot overlay stays up across
-  // the backoff (we ARE still trying); after the second failure the existing
-  // honest empty state takes over. Non-OK responses throw so a 404/500 retries
-  // too (the old .json() would have rejected on the error page anyway).
+  // the backoff (we ARE still trying); after the second failure an explicit
+  // error + manual retry takes over — a failed fetch is never presented as an
+  // honestly empty city. Non-OK responses throw so a 404/500 retries too.
+  const retryEvents = useCallback(() => {
+    setLoadError(false)
+    setLoading(true)
+    setLoadCycle((n) => n + 1)
+  }, [])
   useEffect(() => {
     let on = true
     let timer
     const load = (attempt) => {
       // Stage E base-path: BASE_URL-relative, never root-absolute — under a
-      // subpath deployment (GitHub Pages /cj/) '/events.json' 404s. Vite
+      // subpath deployment (GitHub Pages /wuzup/) '/events.json' 404s. Vite
       // statically folds this to '/events.json' at the default base (no-op).
       fetch(import.meta.env.BASE_URL + 'events.json')
         .then((r) => {
@@ -137,6 +144,7 @@ function Shell() {
             if (!Number.isNaN(lm)) setDataAt(lm)
             if (!Number.isNaN(lm) && Date.now() - lm > STALE_MS) setStaleAt(lm)
             setEvents(Array.isArray(d) ? d : [])
+            setLoadError(false)
             setLoading(false)
           })
         })
@@ -145,6 +153,7 @@ function Shell() {
           if (attempt === 0) timer = setTimeout(() => load(1), RETRY_MS)
           else {
             setEvents([])
+            setLoadError(true)
             setLoading(false)
           }
         })
@@ -154,7 +163,7 @@ function Shell() {
       on = false
       clearTimeout(timer)
     }
-  }, [])
+  }, [loadCycle])
   useEffect(() => {
     const t = setTimeout(() => setBootVis(true), 300)
     return () => clearTimeout(t)
@@ -294,7 +303,7 @@ function Shell() {
           <section className="page page-hot">
             {/* Events — the browse (search + filter + event sections). Now lazy
                 (Home is the boot tab), mounts on first visit to the Events tab. */}
-            {visited.has('hot') && <HotView events={norm} anchors={anchors} loading={loading} />}
+            {visited.has('hot') && <HotView events={norm} anchors={anchors} loading={loading} loadError={loadError} />}
           </section>
           <section className="page">
             {/* Sprint S: the Spots tab — lazy-mounted; its own /places.json fetch
@@ -310,6 +319,14 @@ function Shell() {
           </section>
         </div>
         <TabBar active={active} onTab={goTo} inert={inertAll} />
+        {/* Keep transport failure globally visible above event subpages/detail.
+            First-open onboarding stays topmost; the alert appears when it closes. */}
+        {loadError && primer && (
+          <div className="load-note" role="alert" inert={inertAll}>
+            <span className="load-txt">Events couldn’t load. Check your connection.</span>
+            <button className="load-retry" onClick={retryEvents}>Try again</button>
+          </div>
+        )}
         {/* M2a: quiet staleness disclosure — one line, dismissible, never blocks
             (z 1200: subpages/detail/primer all render over it) */}
         {staleAt != null && !staleHidden && (

@@ -1,14 +1,19 @@
 # INDEX — the planning-doc map (start here)
 
 > **What this is:** the single map of every planning doc, so we never again wonder "which plan is real?"
-> **The one master plan = [ROADMAP.md](ROADMAP.md).** **Idea intake = [BACKLOG.md](BACKLOG.md).** Everything else is execution detail, durable reference, or history.
-> Maintained by the project cop. _Established 2026-06-22 · re-synced 2026-07-01 (Fable 5 takeover)._
+> **Current product plan = [planning/v2/V2_VISION.md](planning/v2/V2_VISION.md).**
+> **v1 as-built authority = [ROADMAP.md](ROADMAP.md).** **Idea intake = [BACKLOG.md](BACKLOG.md).**
+> Everything else is execution detail, durable reference, or history.
+> Maintained by the project cop. _Established 2026-06-22 · re-synced 2026-07-14 for the GPT handoff._
 
 ---
 
 ## The one naming spine (lettered Stages — use these words only)
 
-All forward work is named by **lettered Stage** (ROADMAP's A–E road). The old numbered Stages (R/1/1.5/2/2.5/3/4) and all Phase/Sprint/3.7x numbers are **retired to history** (kept on disk, banner-ed, not executed from).
+Wuzup v1 was delivered through the **lettered Stage A–E spine** below. Those stages are now the
+completed v1 record, not names for new work. Current development follows the Day Engine plan and its
+named workstreams in `planning/v2/`; the old numbered Stages (R/1/1.5/2/2.5/3/4) and all
+Phase/Sprint/3.7x numbers remain retired history.
 
 | Stage | Name | What it is | Status |
 |---|---|---|---|
@@ -17,10 +22,16 @@ All forward work is named by **lettered Stage** (ROADMAP's A–E road). The old 
 | **C** | Deep Sweep | dead-code / perf / a11y / inert tokens / dedup — [STAGE_C.md](STAGE_C.md) | ✅ merged (PR #6) |
 | **C.5** | **Cohesion Pass** | the premium gap as 4 whole-cloth passes (data quality · app feel · one visual language · Aurora re-derivation) | ✅ merged (PR #7) |
 | **D** | Multi-City | geo-refactor + city #2 = **SF & East Bay (reconfirmed 2026-07-01)** + the two V2 grafts (D-G1 Coverage Card, D-G2 stable event IDs) | ✅ merged (PRs #8–#13) |
-| **E** | v1 Ship | PWA/dark/attribution (PRs #9/#10) · deploy topology + refresh automation · final path-trace + shippability REFUTE — [STAGE_E.md](STAGE_E.md) | 🔨 **current** (branch `stage-e/ship`; remaining post-merge: Pages enablement + first deploy; post-ship: the supervised SF imagery run) |
-| **v2** | Backlog | everything post-launch | → [BACKLOG.md](BACKLOG.md) |
+| **E** | v1 Ship | PWA/dark/attribution (PRs #9/#10) · deploy topology + refresh automation · final path-trace + shippability REFUTE — [STAGE_E.md](STAGE_E.md) | ✅ merged (PR #14, `f3a9589`) · production repair verified 2026-07-14 |
+| **v2** | Day Engine | Compose → Decide → Keep, with Layer Zero first and Reach in parallel | ▶ **current plan** — [V2_VISION.md](planning/v2/V2_VISION.md) |
 
-**Where we are right now (2026-07-06):** Stage D is **MERGED (PRs #8–#13)** — both cities build from one codebase, SF & East Bay has real data (743 events / 22 sources), the Coverage Card and stable event IDs are live. **Stage E v1 Ship is CURRENT** on branch `stage-e/ship` ([STAGE_E.md](STAGE_E.md)): deploy = GitHub Pages, Tampa at `/cj/`, SF at `/cj/sf/` (Fable ruling under Josh's delegated judgment, 2026-07-06); the weekly data-refresh workflow opens test-gated PRs. After the ship PR merges: enable Pages, first deploy, then Josh's supervised SF imagery run. **Fable 5 resumed leadership 2026-07-01** (single-session driver's seat; Josh's 10 rulings in ROADMAP §5).
+**Where we are right now (2026-07-14):** v1 code is complete through Stage E. PR #14 merged at
+`f3a9589`; the repository is now `joshuaallanmorgan-lgtm/wuzup`. A post-rename Pages artifact briefly
+referenced the old `/cj/*` base and rendered blank; a fresh deploy was dispatched and both production
+builds are verified in a real browser at `/wuzup/` and `/wuzup/sf/`, with city-specific data and no
+console errors. The weekly refresh workflow opens test-gated PRs and its first scheduled-cycle proof
+is still outstanding. Current work is the handoff closeout plus the first bounded post-ship fixes;
+V2's Day Engine is the plan of record. Human-only follow-up remains the supervised SF imagery pass.
 
 ## Dead-vocabulary crosswalk
 
@@ -37,15 +48,21 @@ All forward work is named by **lettered Stage** (ROADMAP's A–E road). The old 
 
 ## Doc registry
 
-### 🟢 LIVE — the plan + current execution
+### 🟢 LIVE — current plan + intake
 | Doc | Purpose |
 |---|---|
-| **[ROADMAP.md](ROADMAP.md)** | ⭐ The master plan. The Stage spine, binding contracts (§1), the 2026-07-01 rulings (§5), the takeover process (§4). **Authority.** |
+| **[planning/v2/V2_VISION.md](planning/v2/V2_VISION.md)** | ⭐ Current product plan. The Day Engine, Layer Zero, release spine, rulings, and parallel Everywhere/City Foundry track. **Authority for forward product work.** |
+| **[ROADMAP.md](ROADMAP.md)** | Completed v1 road and as-built authority: Stage spine, binding contracts, rulings, and delivery record. |
 | [INDEX.md](INDEX.md) | This map. |
-| [BACKLOG.md](BACKLOG.md) | v1/v2 idea intake + triage (incl. the still-empty Tier-0 orphan inventory table — populate during C5). |
-| **[STAGE_C.md](STAGE_C.md)** | Stage C execution plan-of-record (recovered kickoff + checkpoint status; shipped via PR #6). |
-| **[STAGE_D.md](STAGE_D.md)** | Stage D Multi-City execution plan-of-record (Addendum I packet + the 2026-07-01 pipeline forensics; ⚑D-DEP RESOLVED: one deployment per city). |
-| **[STAGE_E.md](STAGE_E.md)** | Stage E v1 Ship record: deploy topology (GitHub Pages `/cj/` + `/cj/sf/`), the two workflows, post-merge enablement steps, the places-pipeline cadence, the ship-gate results. |
+| [BACKLOG.md](BACKLOG.md) | Post-v1 idea intake, operational closeout, and v2 triage. |
+| [planning/v2/README.md](planning/v2/README.md) | V2 workstream registry and spec-status rules. |
+
+### ✅ COMPLETED v1 execution records
+| Doc | Purpose |
+|---|---|
+| **[STAGE_C.md](STAGE_C.md)** | Stage C Deep Sweep execution record (shipped via PR #6). |
+| **[STAGE_D.md](STAGE_D.md)** | Stage D Multi-City execution record (shipped via PRs #8–#13). |
+| **[STAGE_E.md](STAGE_E.md)** | Stage E v1 Ship as-built and operational-closeout record: `/wuzup/` topology, workflows, ship gates, rename repair, and remaining first-cycle proof. |
 
 ### 🔵 REFERENCE — durable specs (consult, don't execute)
 | Doc | Purpose |
@@ -68,7 +85,7 @@ All forward work is named by **lettered Stage** (ROADMAP's A–E road). The old 
 | [MASTER_PLAN.md](MASTER_PLAN.md) | Gen 2 — Waves / Sprints G–N | North-star prose. |
 | [MASTER_PLAN2.md](MASTER_PLAN2.md) | Gen 3 — Phases 1–4 / Sprints O–Y | Rich as-built log. |
 | [PHASE_3.5.md](PHASE_3.5.md) · [PHASE_3.6.md](PHASE_3.6.md) | Gen 4 — shipped | |
-| [PHASE_3.7.md](PHASE_3.7.md) | Gen 4 — 3.71–3.78 + addenda | **Still holds the live Stage-D build packet** (Addendum I / §15). |
+| [PHASE_3.7.md](PHASE_3.7.md) | Gen 4 — 3.71–3.78 + addenda | Historical source for the shipped Stage-D packet (Addendum I / §15); Addendum G is absorbed by the Quality Engine spec. |
 | [W5_W8_PROPOSAL.md](W5_W8_PROPOSAL.md) | Gen 4 satellite | Ratified into 3.6. |
 | [LONG_TERM.md](LONG_TERM.md) | the old backlog | Triaged into BACKLOG. |
 | [PREMIUM_PUNCH.md](PREMIUM_PUNCH.md) | Stage A source doc | §0 D1–D8 record; §2 promoted into DESIGN_SYSTEM. ⚠️ §1's checkboxes under-report ship-state (~11 shipped items unticked) — trust §0's reconciliation + render checks, not §1 boxes. |
@@ -77,13 +94,13 @@ All forward work is named by **lettered Stage** (ROADMAP's A–E road). The old 
 | `*_GRIND.md` · `*_PHASE2.md` (Profile/Home/Events/Spots/Plan) | Stage-1-era per-screen pass | Shipped; record which reference each screen was matched against. |
 | [FLOWS_GRIND.md](FLOWS_GRIND.md) · [EVENTS_GRIND.md](EVENTS_GRIND.md) etc. | (same family) | |
 
-_Not planning docs: `app/README.md`, `finder/output/{events,places}.md` (generated data digests), `/planning/v2/` (v2 spec workshop — [planning/v2/README.md](planning/v2/README.md))._
+_Not planning docs: `app/README.md` and `finder/output/{events,places}.md` (generated data digests)._
 
 ---
 
 ## House rules (project-cop conventions)
-1. **One spine.** New work is named by lettered Stage. Don't invent a new numbering scheme — extend the Stage model or add to BACKLOG.
-2. **ROADMAP is the only plan-of-record.** If a doc and ROADMAP disagree, ROADMAP wins. Superseded docs get a banner, never silent deletion.
-3. **Ideas go to BACKLOG**, tagged `v1` or `v2`. v2 ideas worth developing get a spec in `/planning/v2/` — built in parallel, never polluting the v1 plan.
+1. **One current spine.** Forward product work follows `planning/v2/V2_VISION.md`; A–E remain the completed v1 vocabulary.
+2. **Authority is time-scoped.** `ROADMAP.md` wins for v1 as-built facts; `V2_VISION.md` wins for forward product planning. Superseded docs get a banner, never silent deletion.
+3. **Ideas go to BACKLOG.** Material v2 ideas get a spec in `/planning/v2/` and an explicit status before implementation.
 4. **Execution plans live in repo docs** (STAGE_C.md-style), never only in session prompts — a stage's granular plan must survive any session's death.
-5. **Doc edits ship with the work.** Status headers (this file + ROADMAP §CURRENT) update in the same commit that changes the status.
+5. **Doc edits ship with the work.** Status headers (this file + ROADMAP's completion/current-plan headers) update in the same commit that changes the status.

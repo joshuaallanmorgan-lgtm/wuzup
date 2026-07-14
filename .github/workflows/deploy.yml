@@ -1,7 +1,7 @@
 # Stage E deploy-infra — the GitHub Pages deploy (ruling: deploy = GitHub Pages,
-# repo joshuaallanmorgan-lgtm/cj). Topology: TWO self-contained builds, one
-# deployment per city (D-DEP) — Tampa at the project-site root (/cj/), SF as
-# its own complete standalone build at /cj/sf/. No runtime city switching:
+# repo joshuaallanmorgan-lgtm/wuzup). Topology: TWO self-contained builds, one
+# deployment per city (D-DEP) — Tampa at the project-site root (/wuzup/), SF as
+# its own complete standalone build at /wuzup/sf/. No runtime city switching:
 # each build carries its own data, manifest, icons, and BASE_PATH.
 #
 # The per-city loop below is the EXACT sequence verified locally (stage → build
@@ -46,7 +46,7 @@ jobs:
         run: npm --prefix app ci
 
       # BASE_PATH derives from the repo name — a rename keeps the site working
-      # without touching this file ('/cj/' today).
+      # without touching this file ('/wuzup/' today).
       - name: Stage + build Tampa Bay (site root)
         env:
           REPO_NAME: ${{ github.event.repository.name }}

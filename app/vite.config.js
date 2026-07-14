@@ -9,7 +9,7 @@ import { CITY } from './src/city.js'
 
 // Stage E deploy-infra: BASE_PATH is the ONE subpath-hosting knob. GitHub
 // Pages serves a project site under /<repo>/ — Tampa builds with
-// BASE_PATH=/cj/ and SF with BASE_PATH=/cj/sf/ (two self-contained builds,
+// BASE_PATH=/wuzup/ and SF with BASE_PATH=/wuzup/sf/ (two self-contained builds,
 // one deployment per city, D-DEP). Default '/' is a true no-op: the default
 // build's JS/CSS/HTML output stays byte-identical (verified against the
 // pre-change dist). Normalized to leading+trailing '/' exactly like vite's
@@ -35,7 +35,7 @@ const BASE = (RAW_BASE.startsWith('/') ? '' : '/') + RAW_BASE + (RAW_BASE.endsWi
 // sharp scratch script; re-render when the real mark lands.
 // start_url/scope/icons ride BASE: vite's base only rewrites what it bundles,
 // and this manifest is emitted as a raw asset — its internals are the classic
-// base-path escapees (a /cj/ deployment would otherwise install an app whose
+// base-path escapees (a /wuzup/ deployment would otherwise install an app whose
 // start_url and icons 404). At BASE '/' every value is byte-identical to before.
 const MANIFEST = JSON.stringify(
   {
@@ -80,7 +80,7 @@ export default defineConfig({
         this.emitFile({ type: 'asset', fileName: 'manifest.webmanifest', source: MANIFEST })
       },
       transformIndexHtml(html) {
-        // base-path escapee (verified with a BASE_PATH=/cj/ build): vite's HTML
+        // base-path escapee (verified with a BASE_PATH=/wuzup/ build): vite's HTML
         // url rewriting only touches files it can resolve — favicon/icons/assets
         // get the base prefix, but this plugin-emitted manifest doesn't exist on
         // disk, so its <link href="/manifest.webmanifest"> ships un-prefixed and
@@ -91,7 +91,7 @@ export default defineConfig({
       configureServer(server) {
         server.middlewares.use((req, res, next) => {
           // configureServer middlewares run BEFORE vite's internal base-strip,
-          // so a BASE_PATH dev server sees the full /cj/… URL — normalize it.
+          // so a BASE_PATH dev server sees the full /wuzup/… URL — normalize it.
           const u = req.url?.startsWith(BASE) ? '/' + req.url.slice(BASE.length) : req.url
           if (u === '/manifest.webmanifest' || u?.startsWith('/manifest.webmanifest?')) {
             res.setHeader('Content-Type', 'application/manifest+json')
