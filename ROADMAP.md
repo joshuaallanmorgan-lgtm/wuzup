@@ -2,7 +2,7 @@
 
 > **This is the completed v1 record.** It supersedes `PHASE_3.7.md` for v1 as-built facts;
 > that file remains history + original detailed spec. Current product development is governed by
-> [planning/v2/V2_VISION.md](planning/v2/V2_VISION.md).
+> [planning/v2/V2_PLAN.md](planning/v2/V2_PLAN.md).
 >
 > _Created 2026-06-17, at the close of Stage R (the visual rework)._
 > _Doc map + naming spine = [INDEX.md](INDEX.md). Idea intake (v1/v2) = [BACKLOG.md](BACKLOG.md). Maintained by the project cop._
@@ -93,7 +93,7 @@ stage. Workstreams as planned:
 
 ### Stage D — Multi-City ✅ DONE (merged via PRs #8–#13, 2026-07-05/06) *(was Stage 3)* — **granular plan-of-record = [STAGE_D.md](STAGE_D.md)** (city #2 = SF & East Bay, ruling #9; ⚑D-DEP RESOLVED: one deployment per city, build-time selection — switcher was deferred from v1) — per-city event/place data (new source modules) · per-city config/copy/theming · multi-tenant artifacts. The big pre-ship expansion. **Imagery was pre-banked (2026-06-26 multi-city lock):** the finder's region became one city config (no longer a hard-coded Tampa bbox) and the Mapillary + Aurora pipeline runs for any city with all honesty guards baked in. **Two V2 grafts landed here (Fable rulings 2026-07-05, [planning/v2/V2_VISION.md](planning/v2/V2_VISION.md) §8.6): D-G1 Coverage Card ("what we know here" — SF's honest week-one answer) and D-G2 stable event IDs (deterministic content-derived `id` minted at finder emit; zero v1 UI change; the identity substrate every V2 share/ledger feature needs).**
 
-### Stage E — V1 Ship ✅ MERGED *(was Stage 4)* — **granular record = [STAGE_E.md](STAGE_E.md)** (PR #14, `f3a9589`: the three delegated finder rulings · base-path-safe app · GitHub Pages deploy topology `/wuzup/` + `/wuzup/sf/` · weekly data-refresh PR automation · final path-trace ×2 cities ×2 schemes + adversarial shippability REFUTE). A fresh workflow dispatch repaired the stale pre-rename `/cj/*` Pages artifact on 2026-07-14 and both city builds are browser-verified. **V2 plan of record = [planning/v2/V2_VISION.md](planning/v2/V2_VISION.md)** (the Day Engine: Compose → Decide → Keep; Layer Zero first; Reach parallel).
+### Stage E — V1 Ship ✅ MERGED *(was Stage 4)* — **granular record = [STAGE_E.md](STAGE_E.md)** (PR #14, `f3a9589`: the three delegated finder rulings · base-path-safe app · GitHub Pages deploy topology `/wuzup/` + `/wuzup/sf/` · weekly data-refresh PR automation · final path-trace ×2 cities ×2 schemes + adversarial shippability REFUTE). A fresh workflow dispatch repaired the stale pre-rename `/cj/*` Pages artifact on 2026-07-14 and both city builds are browser-verified. **V2 plan of record = [planning/v2/V2_PLAN.md](planning/v2/V2_PLAN.md)**; the Fable Day Engine vision is retained as nonbinding concept research.
 
 *(This re-sequences the original §2 — Premium + Patches now precede Deep Sweep. The Stage definitions for Deep Sweep / Multi-City / v1 Ship below still hold.)*
 
@@ -271,14 +271,13 @@ No structural or flow changes — same screens, better finish. Distinct from Sta
 
 ### v2 plan (current after v1)
 
-> Plan of record: [planning/v2/V2_VISION.md](planning/v2/V2_VISION.md). Workstream registry and
+> Plan of record: [planning/v2/V2_PLAN.md](planning/v2/V2_PLAN.md). Workstream registry and
 > decision status: [planning/v2/README.md](planning/v2/README.md).
 
-The Day Engine's atomic object is a day, expressed through **Compose → Decide → Keep**. Layer Zero
-lands the operational, URL/identity, installability, durability, coverage, accessibility, and privacy
-substrates first. The proposed Quality Engine supplies build-time corpus quality; the proposed Feel
-Substrate supplies shared interaction craft. The Everywhere/City Foundry Reach track runs in parallel
-to feature releases rather than waiting until the end.
+V2 is a core-product improvement release. H0 closes data/deploy/runtime trust; E0 improves event and
+spot relevance; U0 completes and premiumizes existing surfaces; I0 improves truthful licensed imagery;
+and L0 builds the City Foundry and honest United States coverage. The five lanes share the operating
+contract in [planning/v2/V2_COORDINATION.md](planning/v2/V2_COORDINATION.md).
 
 ---
 
