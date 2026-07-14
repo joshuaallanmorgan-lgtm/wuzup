@@ -3,7 +3,8 @@
 
 > **Plan of record for V2** — synthesized 2026-07-05 by Fable 5 from a 21-agent visioning fleet
 > (6 ground recon · 10 visionary concepts · 3 adversarial judges · 2 stress critics; ~1.4M tokens).
-> Plan-only: nothing here is scheduled until v1 ships (Stage D → E). Adjudication sheet at the bottom.
+> V1 shipped through Stage E; V2 kickoff now depends on the operational/data gates below rather than
+> unfinished launch code. Adjudication sheet at the bottom.
 > Raw fleet output: workflow `wf_90b6eaba-e15`.
 
 ---
@@ -40,7 +41,7 @@ top-3** — the uncontested spine. The rest of the verdict:
 | **Move-In Day** (craft/PWA) | Re-read as **Layer Zero substrate**, not a concept — PWA, real URLs, on-device notifications feed every other movement |
 | **The Regular** (editorial) | **CUT as a workstream** — permanent human editorial labor that doubles per city. Its *claim-compiler + Receipts-Everywhere* survive as a design-system primitive |
 | **The Sunlit Atlas** (map) | **Map stays parked.** Grafts taken mapless: honest crow-flies distance labels + the "couldn't place these" shelf |
-| **Wuzup Passport** (traveler) | Deferred to v2.x — but its **Coverage Card** ("what we know here · N sources · updated 6:04 PM") should be pulled INTO Stage D now |
+| **Wuzup Passport** (traveler) | Deferred to v2.x; its **Coverage Card** ("what we know here · N sources · updated 6:04 PM") landed in Stage D and is now the Reach honesty surface |
 | **Ground Truth** (city OS) | v3 horizon. (Scoring-integrity note: the judges scored 9 of 10 — this one's digest truncated; reviewed in synthesis, its near-term pieces overlap grafts already taken, its Vouches network is a v3 question) |
 
 ## 3. The three movements
@@ -55,7 +56,10 @@ top-3** — the uncontested spine. The rest of the verdict:
 - **The Ingredient Foundry** — the enabling pipeline, and the proven pattern at scale: **AI at build
   time, static at runtime.** Agents pre-compute per-item daypart-fit, weather-fit, evidence-cited vibe
   tags, and a distance-bounded pairing graph. (The imagery pipeline already proved this pattern with
-  sign-verification; the Foundry is its generalization.)
+  sign-verification; the Foundry is its generalization.) Its **proposed first stage is corpus quality**
+  — spec'd in [quality-engine.md](quality-engine.md), pending ratification. The dependency is binding
+  even while the mechanism is not: enriching a stale duplicate amplifies the defect, so an accepted
+  quality gate must run before every other Foundry enrichment.
 - **The Weekend Brief** — Home's calm-morning tenant: the weather call, the 2–3 genuinely scarce things
   this weekend, three day-shapes. Generated at data refresh, personalized on-device.
 - **Tonight scope** (Golden Hour, folded in) — after ~4pm the composer answers "give me a *tonight*":
@@ -103,40 +107,51 @@ top-3** — the uncontested spine. The rest of the verdict:
 The completeness critic's verdict: *"all ten concepts design the Saturday-morning demo and skip the
 Tuesday-3am product."* Layer Zero is the non-optional workstream that precedes every killer feature:
 
-1. **Public hosting + CI deploy** — there is NO deploy target in the repo today; the finder runs on a
-   scheduled task on Josh's logged-in Windows PC. Move builds+finder to CI cron; resolves with Stage D's
-   ⚑D-DEP. **This is also v1-ship work (Stage E) — V2 just makes it existential.**
-2. **The fragment-URL router** — spend the inert-URL break **exactly once**, as shared substrate:
+1. **Public hosting + CI deploy — LANDED in Stage E.** GitHub Pages, PR CI, and the weekly refresh-PR
+   workflow are merged. The post-rename production repair is verified; the first full scheduled
+   refresh → PR → merge → deploy cycle is the remaining operational proof.
+2. **The fragment-URL router — PENDING.** Spend the inert-URL break **exactly once**, as shared substrate:
    real addresses for tabs/events/spots/guides/day-plans; share-sheet + deep links + notification taps
    + PWA shortcuts all ride it. Privacy posture: payload lives in the `#fragment`, which never reaches
    a server.
-3. **Stable event IDs** — events.json rows have no `id`; every share/link/ledger feature needs one.
-   Cheap to mint now in the finder, expensive to retrofit. **Recommend pulling into Stage D/E.**
-4. **Event-image posture** — 95% of event images are hotlinked third-party URLs (privacy leak + link
+3. **Stable event IDs — LANDED in Stage D.** Deterministic content-derived IDs are emitted,
+   collision-checked, and enforced by smoke tests. Runtime persisted stores still use the legacy
+   `keyOf` identity seam; migrating those stores is separate work and must preserve existing saves.
+4. **Event-image posture — PENDING.** Most event images are hotlinked third-party URLs (privacy leak + link
    rot). Build-time proxy/resize into self-hosted assets, like place-img already does.
-5. **PWA substrate** (Move-In Day, re-read): manifest + service worker + offline shell ("Offline ·
-   showing Friday 4:53 PM data" — the honest pattern already exists) + the install ceremony + **House
+5. **PWA substrate — PARTIAL.** Manifest/installability landed in Stage E. Service worker + offline
+   shell ("Offline · showing Friday 4:53 PM data") + the install ceremony + **House
    Calls** on-device notifications, **honestly tiered** (the Notification Triggers API is dead:
    periodic-background-sync best-effort on Chromium/Android, badge + in-app fallback on iOS, stated
    plainly in Settings).
-6. **Durability + containment** — `navigator.storage.persist()` (Safari ITP purges localStorage after
+6. **Durability + containment — PENDING.** `navigator.storage.persist()` (Safari ITP purges localStorage after
    7 days idle — fatal to a memory product), ErrorBoundaries (today one exception white-screens the
    app), the Vault as the backstop.
-7. **Budgets + floors** — per-city payload budget (≤4MB raw / ~800KB gz) + a mid-Android boot budget;
+7. **Budgets + floors — PARTIAL.** The Coverage Card and sparse-city groundwork landed; per-city
+   payload/boot budgets and per-feature floors remain. Target: ≤4MB raw / ~800KB gz plus a mid-Android boot budget;
    **every V2 feature ships a sparse-city spec** (SF-week-one floor: a 2-event Tonight, an 8-card deck,
    composer slots that admit "not enough data yet" honestly).
-8. **A11y as acceptance** — keyboard/switch alternative for the deck (now a primary door), focus order
+8. **A11y as acceptance — V2 EXTENSION PENDING.** Keyboard/switch alternative for the deck (now a primary door), focus order
    on new sheets, share-card alt text. Extends the existing discipline, not polish.
-9. **The privacy amendment, drafted with content** — what leaves the phone: nothing by default; a link
-   carries only what you chose to share, encoded in a fragment; photos never leave the device without
-   the Vault export. One page, Josh-ratified.
+9. **The privacy amendment — RATIFIED by ruling #2; implementation extensions pending.** What leaves
+   the phone: nothing by default; a link carries only what you chose to share, encoded in a fragment;
+   photos never leave the device without the Vault export.
+
+**The Feel Substrate (proposed sibling — pending ruling):** [premium-ui.md](premium-ui.md) proposes a
+second cross-cutting substrate workstream beside Layer Zero — the motion/touch/materials/loading/
+ceremony grammar every admitted feature speaks. It interleaves with Layer Zero by construction (the
+fragment router (item 2) and navigation feel must be designed together or the back-button system gets
+built twice; the service worker rides item 5), and its defect-amplifying surfaces (receipts chrome,
+composer slots) sit downstream of an accepted quality gate per §5. Status: spec, awaiting the threshold
+ruling (premium-ui §7.0) — this paragraph is a pointer, not a ruling; §8's rulings stand unmodified.
 
 ## 5. The dependency gate
 
 Every V2 honesty surface — receipts, stamps, freshness chips, "Confirmed ×3" — **amplifies data
-defects**: a beautiful receipt over a stale duplicate is worse than no receipt. So V2 kickoff is gated
-on the data-quality bar holding through Stage D/E (venue canonicalization, dedup, freshness ops on CI).
-Per the premium-gap diagnosis: data quality is layer one, always.
+defects**: a beautiful receipt over a stale duplicate is worse than no receipt. Stage D/E supplied the
+initial floor; V2 kickoff is now gated on production/refresh proof plus a ratified, measurable
+data-quality mechanism. The Quality Engine spec is the current proposal, not a silently ratified
+workstream. Per the premium-gap diagnosis: data quality is layer one, always.
 
 **Recurring-ops honesty** (the scarcest currency is Josh-time, not code): v2.0 is designed to add
 **zero standing human ops** — no hourly builds, no editorial pipeline, no moderation queue. The only
@@ -148,6 +163,10 @@ review at city onboarding).
 - **v2.0 — "Give me a Saturday"**: Layer Zero + Movement I core (Foundry, composer, Brief, Tonight
   scope) + couch-mode Match Deck + Pass-the-Day links + the merged Ledger v1 (Close the Day, Passport,
   2–3 Honest Sets, the Vault) + Receipts-Everywhere primitive.
+- **The Reach track (§10 — the Everywhere mandate) runs in PARALLEL to the feature releases**: the
+  City Foundry's preparatory audits/design can start now; implementation begins at R1 only after
+  R0 and §5's kickoff gates clear. Reach milestones R1–R4 then land on their own cadence, gated in
+  Josh-hours, independent of v2.0/v2.1 feature scope.
 - **v2.1**: async co-swipe + Who's In? · Seasonal Quests · Your Year Here recaps + share cards ·
   Reality Ledger insights · Dusk (warm dark mode) · big-canvas layouts.
 - **v2.x rulings (each needs its own future decision)**: Crew Relay (3+ person, E2EE, the first
@@ -169,7 +188,7 @@ candidate lists; the deck keeps its coverage proof) · no pay-for-placement, eve
 shouty (zero-is-silence survives everywhere; milestones are Kind) · taste reorders, never filters ·
 **zero backend in v2.0** · no accounts.
 
-## 8. Adjudication — ✅ RESOLVED 2026-07-05 (Josh delegated all 7 to Fable; rulings below are binding for V2 planning)
+## 8. Adjudication — ✅ EIGHT RULINGS (2026-07-05; first seven delegated to Fable, #8 issued directly by Josh)
 
 1. **The spine — RATIFIED.** V2 = Compose / Decide / Keep; the Day is the atomic object; the admission
    test is binding on every feature, no exceptions. *(Basis: the only triple-consensus verdict in a
@@ -183,20 +202,18 @@ shouty (zero-is-silence survives everywhere; milestones are Kind) · taste reord
    future feature wanting Home real estate must displace one of these two by ruling, not squeeze in.
    The name-free greeting and zero-is-silence survive both tenants.
 4. **Planner-as-tab-root — RESOLVED YES, scoped to V2.** In V2 the Plan tab becomes the concierge's
-   home room (composer + the Keep ledger in one room). **No V1 churn** — the shipped logbook model
-   stands untouched through Stage E; this ruling activates at V2 kickoff.
+   home room (composer + the Keep ledger in one room). **No V1 churn occurred** — the shipped logbook
+   model stood untouched through Stage E; this ruling activates at V2 kickoff.
 5. **Zero-backend v2.0 — CONFIRMED.** No accounts, no server state, no push infrastructure in v2.0.
    Standing posture for later: the first backend Wuzup ever buys should be the *smallest possible*
    (the E2EE Crew Relay blob is the likeliest candidate) and only after v2.0's couch-mode + link
    sharing proves the demand. Each candidate gets its own ruling.
-6. **Both grafts — APPROVED AND PULLED INTO THE ROAD** (verified against the repo 2026-07-05: events
-   carry NO id field; STAGE_D.md has no coverage scope — both are real):
-   - **Coverage Card → Stage D**: a small honest "what we know here" surface (N events · M sources ·
-     updated <time> · imagery coverage) — doubling as SF's week-one sparse-data answer. Slots into the
-     remaining D3 work.
-   - **Stable event IDs → the finder, before v1 ships**: mint a deterministic `id` per event at emit
-     (content-derived hash — stable across re-runs, collision-checked), carried into events.json.
-     Zero UI change in v1; it exists so every V2 share/link/ledger feature has ground to stand on.
+6. **Both grafts — APPROVED AND LANDED IN STAGE D.** The original audit found neither capability;
+   the resulting work shipped before v1:
+   - **Coverage Card:** the honest "what we know here" surface (events · sources · freshness · imagery)
+     now doubles as SF's sparse-data answer and the binding Reach honesty surface.
+   - **Stable event IDs:** the finder emits deterministic, collision-checked IDs. V1 made no routing
+     change; the IDs exist so V2 share/link/ledger features have stable ground.
 7. **Charles's lanes — DIRECTION SET, non-blocking, Charles holds the refinement pen.** Ratified as
    *default direction* he can override during V2 design: Aurora-as-ink for Passport stamps (derive
    from the existing per-place artseed hues; monochrome ink treatment); Day Cards / share cards /
@@ -205,6 +222,13 @@ shouty (zero-is-silence survives everywhere; milestones are Kind) · taste reord
    ratified token set); the Match Deck overlap reveal is **the one sanctioned big celebration moment**
    in the app (everything else stays Kind-Milestone restrained). None of these block Layer Zero or
    any engineering.
+8. **The Everywhere mandate — ISSUED BY JOSH DIRECTLY (2026-07-05).** V2 must expand to at minimum
+   the full United States, eventually global — ≥50% honest coverage minimum, as close to 100% as
+   possible, with non-covered locations clearly marked. Design + feasibility verified by a 5-agent
+   fleet (`wf_cef30911-863`); the full mechanism is §10. Two consequences ruled with it: **D-DEP is
+   superseded at V2 scale** (one app + runtime city resolution — kept as-ruled through v1), and the
+   **Coverage Card (D-G1) is promoted from a nice-to-have to the binding honesty surface** of the
+   whole expansion.
 
 ## 9. The privacy amendment (one page, ratified with ruling #2)
 
@@ -226,9 +250,120 @@ cloud: your data is yours to carry, back up, and move.
 zero-knowledge (the server, if any ever exists, can never read what it relays). Any feature that
 cannot meet that bar doesn't ship.
 
+## 10. The Everywhere mandate (ruling #8 — Josh, 2026-07-05)
+
+> **"V2 has to expand locations. At minimum full United States. Eventually global. Ideally at minimum
+> 50% honest coverage and clearly marked locations we are not in — ideally as close to 100% as possible."**
+
+Designed + feasibility-verified by a 5-agent fleet against the actual repo (`wf_cef30911-863`).
+The one-line verdict: **feasible, static-first, and the honesty contract is what makes it scalable —
+"clearly marked where we're not" isn't the compromise, it's the mechanism.** The Coverage Card (D-G1)
+becomes the binding honesty surface of the whole expansion: every locale visibly declares what Wuzup
+knows there (sources · counts · freshness · imagery), so a thin city ships proudly instead of lying.
+
+### 10.1 The coverage math (Census CBSA vintage-2024, computed — not eyeballed)
+
+US population 340.1M. Cumulative MSA shares: **top 50 metros = 55.2%** · top 100 ≈ 65–70% · top 300 =
+83.6% · + 538 micropolitans = 94.7% · rural outside any CBSA ≈ 5.3%. Today (Tampa + SF) = **2.4%**.
+So: **the 50% bar = ONE automated metro stack run ~50 times** — not hundreds of hand-built cities.
+"Close to 100%" = tiered: T2 top-300 (83.6%) + T3 floor over all CBSAs (94.7%) + T3 any-US-point
+(100% geographic, with the below-floor honestly marked). Population-honest caveat, stated plainly:
+~100% means everyone gets *something honest*; the share who get something *rich* is the T1+T2 band.
+
+### 10.2 The tier ladder (what "honest coverage" means at each rung)
+
+- **T1 — Flagship (5–15 cities):** the current hand-built model — full source scouting, human-reviewed
+  gazetteer, Mapillary sign-verified imagery, editorial seeds. Tampa + SF are T1.
+- **T2 — Metro (the top ~50→300):** the automated national stack + platform adapters + auto-gazetteer +
+  agent-fleet gates with sampled human audit. **No Mapillary** (the manual-heavy gate is a flagship
+  luxury — Commons/Wikidata + Aurora are already fail-closed automated; skipping Mapillary below T1
+  loses ~5–15% cafe-photo yield and zero honesty).
+- **T3 — Floor (any US point):** config-only national sources — OSM places (global by construction) +
+  Ticketmaster/SeatGeek radius + AllEvents/Meetup/Eventbrite-pages + weather + Aurora. Thin but honest;
+  the Coverage Card leads the experience ("New here: 87 events from 3 sources · updated Tuesday").
+- **T0 — Not here yet:** the clearly-marked honest absence — works anywhere on Earth (weather still
+  renders), names the nearest covered cities, and carries a "raise your city" demand signal. (The
+  demand *counter* would be the one tiny infra exception — a v2.x ruling per rule #5; v2.0 ships a
+  share/mailto signal instead.)
+
+### 10.3 The mechanism (why this is real, verified against the repo)
+
+1. **Platform adapters, not city modules.** Of Tampa's 17 event sources, only ~4 are true one-offs —
+   the rest are instances of ~10 national PLATFORM patterns (Simpleview DMO ≈500+ "Visit X" bureaus ·
+   The Events Calendar WP-REST, the most common events plugin in America · LibraryMarket/BiblioCommons/
+   LibCal library platforms — Tampa's **#1 source by volume is a library platform** · CivicPlus RSS,
+   the dominant small-town municipal CMS · DoStuff network (~20 metros) · Trumba/Localist/LiveWhale
+   universities · ArcGIS/Socrata open-data · Meetup/AllEvents/Eventbrite JSON-LD). SF already proved
+   the inversion: 3 of its 7 sources were pure config swaps, 1 a base-URL swap, 1 a same-platform port.
+   Invert `finder/sources/<city>/` into `finder/platforms/` + per-metro endpoint configs.
+2. **Two free national APIs we already identified but don't use:** Ticketmaster Discovery (free key,
+   lat/lng radius — the only honest path into big-venue inventory) + SeatGeek Platform. These cover
+   exactly the big-ticket gap the platform adapters don't.
+3. **The agentic metro scout** — the STAGE_D endpoint-verification method, industrialized: given a
+   metro, an agent fleet fingerprints its platform stack (which CMS runs city hall, which platform the
+   libraries use, which DMO), verifies endpoints live, and emits the config. Proven at n=2 in ~1–2
+   days each; automatable because it's exactly what agents already did by hand.
+4. **The auto-gazetteer, honesty-safe by asymmetry** (the fleet's decisive discovery): over-promoting
+   an area word only demotes a real photo to the Aurora floor (coverage loss — safe); under-promoting
+   risks wrong photos (breach). So: generate from Census TIGER + GNIS + OSM place nodes (verified live:
+   every tested metro has them), **promote everything**, and run the deterministic roster collision
+   check — which mechanically reproduced **11/11** of the traps the human SF review hand-caught. Agent
+   review exists only to *recover coverage*, never to protect honesty.
+5. **Agent-fleet gates with sampled human audit.** The REFUTE pattern (which caught 4 FPs a self-review
+   passed, and the 45/453 deck carousel) becomes the standing gate: two independent name-blind agent
+   passes, default-reject, calibrated per capture-regime with 100% human eyeball on the first 2–3
+   cities of each regime, then random 20-item Josh samples. Sampling math stated honestly: a 20-item
+   sample alone catches a 5% defect rate ~64% of the time — acceptable *only* stacked on the
+   default-reject agent gates, and the Coverage Card must frame T2 imagery honestly.
+6. **Architecture: one app, N artifact sets.** `/cities/index.json` coverage manifest (~12KB gz) +
+   `/cities/<id>/{events,places,city}.json`; a client-side location router (fragment prefix →
+   remembered city → optional geolocate → point-in-bbox → nearest → T0); **city switch = set fragment
+   + reload** (preserves every single-city module assumption); fragment URLs extend to
+   `#/c/<cityId>/e/<stableEventId>` on the D-G2 IDs. **D-DEP is superseded at V2 scale** (ruled in
+   §8.8; stands through v1). Economics: ~1.7GB total at 300 cities ≈ **<$5/month** on R2+Pages; CI
+   matrix with tiered cadence (T1 daily · T2 2–3×/week · T3 weekly); manifest-flip-last so a failed
+   build can never dark-ship a broken city.
+7. **The City Foundry** — the one-time machine (~13–18 builder-weeks; the repo's velocity says weeks,
+   not quarters): adapter library · auto-scout harness · auto-gazetteer · agent-gate harness · CI
+   matrix + rot canaries (expected-volume bands, schema-drift detection, auto tier-demotion — a
+   dormant source demotes the city's Coverage Card instead of shipping thin data silently) · config
+   generation from Census shapefiles · key vault + per-source politeness scheduler. After the Foundry:
+   **T2 metro ≈ 15–25 agent-hours + 30–45 Josh-MINUTES; T3 ≈ 1–3 agent-hours + ~2 Josh-minutes
+   amortized** (vs. today's 8–12 builder-days + 4–8 Josh-hours).
+
+### 10.4 The ramp (gated in Josh-hours, the true scarce currency)
+
+**R0** close v1 production/refresh proof plus the supervised SF imagery pass (SF code/data is already
+complete; n=2 tells us which abstractions are real — never build the Foundry from n=1) → **R1** Foundry
+build → **R2** 10 metros at ~1/week, chosen for platform overlap
+(DoStuff cities: Austin, Chicago, Denver, Seattle, Nashville…; strong Simpleview DMOs), 100% human
+audit while calibrating → **R3** 50 metros at 3–5/week = **the 50% mandate met** (entry gate: 30 days
+green refresh ops at 10 metros) → **R4** 100 → 300 + the T3 floor everywhere (entry gates: rot-SLO
+met; Josh standing audit ≤2 hrs/week measured, auto-pause on sustained excess; no city >50%
+single-source). **Global = v2.x horizon**: OSM/Commons/Mapillary/Open-Meteo/Meetup/AllEvents are
+already global, Ticketmaster covers ~20+ countries — anglosphere first; locale/units/language work is
+the real cost, deferred to its own ruling.
+
+### 10.5 The honest risks (recorded, not hidden)
+
+**Eventbrite concentration is THE systemic risk** — the projected volume backbone everywhere, with no
+public API since 2020 (city-page JSON-LD reads only); mitigation = source-diversity guard (no city
+ships >50% single-source) + the platform-adapter breadth. **ToS posture needs its own ruling** before
+R2: AllEvents/Meetup/DoStuff/Eventbrite page-reads are ToS-gray at 50 metros in a way they aren't at
+2 — decide the posture (politeness budgets, robots respect, partnership outreach where offered) as a
+named V2 ruling. **Public Overpass/Nominatim will rate-limit a 40-city build** — self-hosted Overpass
+or Geofabrik planet-extract batch is a hard R2 prerequisite. **n=2 generalization risk** — Tampa and
+SF are both rich coastal metros; R2's ten cities are the real test. **Tiered staleness is an honesty
+exposure** — a weekly-refresh T3 city will show dead events for up to 7 days; the Coverage Card's
+freshness line is the binding mitigation. **Agent-gate self-pass bias** — the standing lesson; hence
+default-reject, independence, calibration, and sampled human audit stacked. **Josh-time overload is
+the true failure mode** — every gate queues on one human; hence the ramp gates are expressed in
+measured Josh-hours with auto-pause.
+
 ---
 
 *Appendix — the full fleet output (all 10 concepts, 3 judge scorecards, 2 stress reports) lives in the
-workflow record `wf_90b6eaba-e15`. Scoring-integrity note, recorded honestly: 9 of 10 concepts reached
-the judges (one digest truncation); two arrived truncated; the verdict stands on triple-consensus of
-the three independent judges, and the unscored concept was reviewed in synthesis.*
+workflow record `wf_90b6eaba-e15`; the Everywhere-mandate design fleet in `wf_cef30911-863`.
+Scoring-integrity note, recorded honestly: 9 of 10 concepts reached the judges (one digest
+truncation); two arrived truncated; the verdict stands on triple-consensus of the three independent
+judges, and the unscored concept was reviewed in synthesis.*

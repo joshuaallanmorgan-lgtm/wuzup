@@ -1,15 +1,20 @@
-# Wuzup — Road to v1
+# Wuzup — v1 as-built roadmap
 
-> **This is the working master plan.** It supersedes `PHASE_3.7.md`, which is retained as
-> history + the original detailed spec. When this doc and 3.7 disagree, **this doc wins.**
-> Maintained by the plan-scout; the builder executes punch lists derived from it.
+> **This is the completed v1 record.** It supersedes `PHASE_3.7.md` for v1 as-built facts;
+> that file remains history + original detailed spec. Current product development is governed by
+> [planning/v2/V2_VISION.md](planning/v2/V2_VISION.md).
 >
 > _Created 2026-06-17, at the close of Stage R (the visual rework)._
 > _Doc map + naming spine = [INDEX.md](INDEX.md). Idea intake (v1/v2) = [BACKLOG.md](BACKLOG.md). Maintained by the project cop._
 
 ---
 
-## ▶ CURRENT ROAD TO V1 (2026-07-06 — Stage E v1 Ship ◀ CURRENT — [STAGE_E.md](STAGE_E.md))
+## ✅ V1 ROAD COMPLETE (2026-07-14 — Stages A–E merged; [STAGE_E.md](STAGE_E.md))
+
+Stage E merged through PR #14 at `f3a9589`. GitHub Pages is live at `/wuzup/` and `/wuzup/sf/`;
+both city builds were redeployed and browser-verified after the repository rename. The remaining
+items are operational proof and post-ship follow-ups, not unfinished v1 code: first scheduled refresh
+cycle, the supervised SF imagery pass, and the bounded finder/test hardening tracked in Stage E.
 
 > **Takeover note (2026-07-01):** Fable 5 resumed leadership (single-session driver's seat — see §4).
 > Josh's mandate: the idea phase is over; **cohesion over punch lists** — the exit test for all
@@ -23,7 +28,7 @@ Events-full (+4 sections), Spots-full (themed sections + chips), the **cafe data
 cafes → real Coffee & Hang), and **Tinder** ("Tune your taste" on Events + Spots). The big structure +
 content is built and matches the mockups' **content** — but not yet their **premium feel.**
 
-**What's left to v1 is FEEL → cleanup → expansion → ship, in this order:**
+**The completed v1 sequence was FEEL → cleanup → expansion → ship, in this order:**
 
 ### Stage A — PREMIUM-FEEL PASS ✅ DONE (merged to main via PR #4, 2026-06-28)
 Driven by **[`PREMIUM_PUNCH.md`](PREMIUM_PUNCH.md)** (Josh's playtest notes ∪ a 7-lens diagnostic —
@@ -86,9 +91,9 @@ stage. Workstreams as planned:
    (count-preserving); the promised `icon` text-forward row form for photoless places; shorter photoless
    detail heroes; warmer hue bands; a targeted honest-photo pass on the ~30–60 marquee top-rail places.
 
-### Stage D — Multi-City ✅ DONE (merged via PRs #8–#13, 2026-07-05/06) *(was Stage 3)* — **granular plan-of-record = [STAGE_D.md](STAGE_D.md)** (city #2 = SF & East Bay, ruling #9; ⚑D-DEP RESOLVED: one deployment per city, build-time selection — switcher is v2) — per-city event/place data (new source modules) · per-city config/copy/theming · multi-tenant artifacts. The big pre-ship expansion. **Imagery already pre-banked (2026-06-26 multi-city lock):** the finder's region is now ONE city config (no longer a hard-coded Tampa bbox) and the Mapillary + Aurora pipeline runs for any city with all honesty guards baked in — so Stage D's remaining work is the data sources + per-city config/copy (no switcher — D-DEP), NOT the imagery. **+ two V2 grafts pulled in (Fable rulings 2026-07-05, [planning/v2/V2_VISION.md](planning/v2/V2_VISION.md) §8.6): D-G1 Coverage Card ("what we know here" — SF's honest week-one answer) and D-G2 stable event IDs (deterministic content-derived `id` minted at finder emit; zero v1 UI change; the identity substrate every V2 share/ledger feature needs).**
+### Stage D — Multi-City ✅ DONE (merged via PRs #8–#13, 2026-07-05/06) *(was Stage 3)* — **granular plan-of-record = [STAGE_D.md](STAGE_D.md)** (city #2 = SF & East Bay, ruling #9; ⚑D-DEP RESOLVED: one deployment per city, build-time selection — switcher was deferred from v1) — per-city event/place data (new source modules) · per-city config/copy/theming · multi-tenant artifacts. The big pre-ship expansion. **Imagery was pre-banked (2026-06-26 multi-city lock):** the finder's region became one city config (no longer a hard-coded Tampa bbox) and the Mapillary + Aurora pipeline runs for any city with all honesty guards baked in. **Two V2 grafts landed here (Fable rulings 2026-07-05, [planning/v2/V2_VISION.md](planning/v2/V2_VISION.md) §8.6): D-G1 Coverage Card ("what we know here" — SF's honest week-one answer) and D-G2 stable event IDs (deterministic content-derived `id` minted at finder emit; zero v1 UI change; the identity substrate every V2 share/ledger feature needs).**
 
-### Stage E — V1 Ship ◀ CURRENT *(was Stage 4)* — **granular record = [STAGE_E.md](STAGE_E.md)** (branch `stage-e/ship`, 2026-07-06: the three delegated finder rulings · base-path-safe app · GitHub Pages deploy topology `/cj/` + `/cj/sf/` · the weekly data-refresh workflow · the final path-trace ×2 cities ×2 schemes + adversarial shippability REFUTE). Original charter: holistic pass (full app vs all refs + the premium bar) · final contract/honesty audit (post-bending) · perf/build hardening → ship. **Then V2 — plan of record = [planning/v2/V2_VISION.md](planning/v2/V2_VISION.md) ("The Day Engine": Compose/Decide/Keep; all 7 adjudication items RESOLVED 2026-07-05 — the spine is ratified, v2.0 is zero-backend, Layer Zero first).** *(The old "v2 = the parked map etc." note is superseded — the map STAYS parked per the V2 rulings; the real v2 is the Day Engine.)*
+### Stage E — V1 Ship ✅ MERGED *(was Stage 4)* — **granular record = [STAGE_E.md](STAGE_E.md)** (PR #14, `f3a9589`: the three delegated finder rulings · base-path-safe app · GitHub Pages deploy topology `/wuzup/` + `/wuzup/sf/` · weekly data-refresh PR automation · final path-trace ×2 cities ×2 schemes + adversarial shippability REFUTE). A fresh workflow dispatch repaired the stale pre-rename `/cj/*` Pages artifact on 2026-07-14 and both city builds are browser-verified. **V2 plan of record = [planning/v2/V2_VISION.md](planning/v2/V2_VISION.md)** (the Day Engine: Compose → Decide → Keep; Layer Zero first; Reach parallel).
 
 *(This re-sequences the original §2 — Premium + Patches now precede Deep Sweep. The Stage definitions for Deep Sweep / Multi-City / v1 Ship below still hold.)*
 
@@ -116,7 +121,7 @@ There are **no surfaces left in the old pre-Stage-R style.**
    Profile sub-pages). They are styled, not matched.
 3. **The aggressive push left code debt** — dead CSS, duplicated markup, paths that need
    re-verification after the churn.
-4. **Features, multi-city, and shipping are still ahead.**
+4. **Historical baseline note:** at this point in the record, features, multi-city, and shipping were still ahead; all later landed through Stage E.
 
 **Honest scope to v1: ~12–16 calendar weeks at a part-time pace (~60–80 focused dev-hours, overlapping).**
 This is a multi-week road, not a few patches. We are NOT "almost at the next phase."
@@ -264,12 +269,16 @@ No structural or flow changes — same screens, better finish. Distinct from Sta
 - **Full path-trace bug hunt:** walk every navigable path in the app and confirm it works; backend
   cleanup; no P1/P2 bugs. (Re-runs the Stage 2 sweep against the shipped build.)
 
-### v2 Backlog (explicitly post-v1)
+### v2 plan (current after v1)
 
-> Tracked + triaged in [BACKLOG.md](BACKLOG.md); specs developed early in `/planning/v2/`.
+> Plan of record: [planning/v2/V2_VISION.md](planning/v2/V2_VISION.md). Workstream registry and
+> decision status: [planning/v2/README.md](planning/v2/README.md).
 
-Evidence layer (P9 + scoring), more cities (NYC / Austin / Seattle / Puerto Rico), deeper gamification,
-expanded dayparts, event series, user photos, NL-search expansion, community features, offline mode.
+The Day Engine's atomic object is a day, expressed through **Compose → Decide → Keep**. Layer Zero
+lands the operational, URL/identity, installability, durability, coverage, accessibility, and privacy
+substrates first. The proposed Quality Engine supplies build-time corpus quality; the proposed Feel
+Substrate supplies shared interaction craft. The Everywhere/City Foundry Reach track runs in parallel
+to feature releases rather than waiting until the end.
 
 ---
 
@@ -400,7 +409,8 @@ self-runs the adversarial verify → Josh eyeballs → sign-off or notes → nex
 9. **City #2 = SF & East Bay: RECONFIRMED** — the 06-26 "undecided" memory entry was a context-loss artifact, not a Josh decision; the 06-16 resolution + Addendum I packet stand.
 10. **Name-free time-of-day greeting on Home: APPROVED** — "Saturday morning in Tampa Bay" style; no fabricated name (honesty contract holds). *(Cohesion Pass.)*
 
-Also resolved: the **Cohesion Pass** is inserted between Stage C and Stage D (see §CURRENT); the
+Also resolved: the **Cohesion Pass** was inserted between Stage C and Stage D (see the completed-stage
+status at the top of this record); the
 single-session Fable process replaces the two-session Architect/Builder split (§4).
 
 ### Resolved 2026-07-02 (post-Cohesion)

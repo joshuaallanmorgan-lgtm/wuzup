@@ -1,19 +1,27 @@
-# /planning/v2 — the v2 workshop
+# /planning/v2 — the V2 plan and workstream registry
 
-> **Purpose:** a place to develop **v2 ideas into real specs while v1 is still being built** — without touching the v1 plan.
-> Nothing here is part of v1. When v1 ships, this folder becomes the opening of the v2 plan.
-> Source of ideas = the **v2** section of [../../BACKLOG.md](../../BACKLOG.md). Master plan (v1) = [../../ROADMAP.md](../../ROADMAP.md).
+> **Current plan of record:** [V2_VISION.md](V2_VISION.md).
+> V1 is shipped; [../../ROADMAP.md](../../ROADMAP.md) is its as-built history. New ideas enter
+> [../../BACKLOG.md](../../BACKLOG.md). A supporting spec may propose a workstream, but cannot expand
+> the ratified plan or resolve an owner decision by itself.
 
 ## How it works
-1. An idea gets tagged `v2` in [BACKLOG.md](../../BACKLOG.md).
-2. When we want to develop it early, it gets its own file here: `planning/v2/<idea>.md`.
-3. Each spec carries a **status**: `stub` (one paragraph) → `spec` (scoped, decisions flagged) → `ready` (build-ready when v1 ships).
-4. v2 specs may reference v1 code/docs, but **must not add work to any v1 Stage**. If a v2 idea turns out to be needed for launch, the project cop moves it to `v1` in BACKLOG and into a Stage — deliberately, not by accident.
+
+1. [V2_VISION.md](V2_VISION.md) owns the product spine, rulings, release shape, and V2/V3 boundary.
+2. Supporting specs explain a workstream and flag decisions; they do not become binding by being detailed.
+3. Each spec carries a status: `stub` → `spec` → `ready` → `building` → `shipped`.
+4. Implementation begins when its material rulings are resolved, or when it is an explicitly bounded
+   post-ship hardening fix that does not pre-empt a product choice.
+5. Code, current artifacts, reproducible tests, and repo-visible decision records outrank stale prose.
 
 ## Specs
+
 | File | Status | One-liner |
 |---|---|---|
-| [smart-engine.md](smart-engine.md) | stub | App learns (likes/swipe/settings/onboarding) → ties back into event + spot generation + tiering. The v2 centerpiece. |
-| [guides-and-rankings.md](guides-and-rankings.md) | stub | Top-10 popular + hidden-gem lists by interest; our own honest rankings → community-influenced (IMDB × Letterboxd × Finch). |
+| [V2_VISION.md](V2_VISION.md) | **current** | The Day Engine: Compose → Decide → Keep; Layer Zero first; Reach/City Foundry in parallel. |
+| [smart-engine.md](smart-engine.md) | stub · rescope pending | On-device taste signals → bounded personal reorder/tiering over a quality-ordered base. |
+| [guides-and-rankings.md](guides-and-rankings.md) | stub | Honest popular + hidden-gem lists by interest; deeper successor to shipped guides-lite. |
+| [quality-engine.md](quality-engine.md) | spec · pending ratification | Proposed build-time corpus-quality stage and candidate mechanism for the binding quality gate. |
+| [premium-ui.md](premium-ui.md) | spec · threshold pending | Proposed Feel Substrate for shared motion/touch/material/loading/ceremony grammar. |
 
-_Next candidates from BACKLOG: more-cities, social-layer, in-app-ticketing._
+_Reach is already mandated in V2_VISION §10. Social/community and ticketing remain unscheduled ideas._

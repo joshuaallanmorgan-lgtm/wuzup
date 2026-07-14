@@ -1,6 +1,6 @@
 # STAGE E — v1 Ship (plan-of-record + as-built record)
 
-> **Status: 🔨 CURRENT** · branch `stage-e/ship` · 2026-07-06/07
+> **Status: ✅ MERGED / CODE COMPLETE** · PR #14 · `f3a9589` · operational record updated 2026-07-14
 > Charter (ROADMAP §2): final contract/honesty audit · deploy + refresh automation · the
 > full-app ship gate → **Wuzup v1 live**. Stage D (multi-city, PRs #8–#13) is the floor this
 > stands on. Josh's standing instruction for this stage (2026-07-06): *"Let's finish V1 today.
@@ -41,8 +41,8 @@
 
 | City | URL path | Build |
 |---|---|---|
-| Tampa Bay | `/cj/` | `CITY=tampa-bay node finder/deploy.mjs` → `VITE_CITY=tampa-bay BASE_PATH=/cj/ npm --prefix app run build` → `_site/` |
-| SF & East Bay | `/cj/sf/` | same pipeline with `sf-east-bay` + `BASE_PATH=/cj/sf/` → `_site/sf/` |
+| Tampa Bay | `/wuzup/` | `CITY=tampa-bay node finder/deploy.mjs` → `VITE_CITY=tampa-bay BASE_PATH=/wuzup/ npm --prefix app run build` → `_site/` |
+| SF & East Bay | `/wuzup/sf/` | same pipeline with `sf-east-bay` + `BASE_PATH=/wuzup/sf/` → `_site/sf/` |
 
 Why Pages: zero-backend (matches the v2.0 ruling), free, PR-previewable via workflows, no
 new accounts/secrets — and D-DEP holds (each build is one city, selected at build time; no
@@ -65,16 +65,16 @@ plugin; committed `/place-img/` URLs are rebased idempotently in `normalizePlace
   refresh PRs previously reached the merge button with zero checks): lint · Tampa build ·
   SF build · `npm test`, each step's exit code direct.
 
-### Post-merge enablement (operator steps, in order)
-1. Enable Pages with the Actions source: `gh api -X POST repos/{owner}/{repo}/pages -f build_type=workflow`
-   (or Settings → Pages → Source: **GitHub Actions**).
-2. Settings → Actions → General → ✅ **"Allow GitHub Actions to create and approve pull
-   requests"** (refresh.yml's PR step fails loudly until this is on).
-3. First deploy: merge triggers `deploy.yml` (or dispatch it); verify live at
-   `https://<owner>.github.io/cj/` and `…/cj/sf/`.
-4. First-run-only truths no local probe can prove: Playwright on the runner, live source
-   yields, cron delivery, and Pages' `Last-Modified` header feeding the stale banner —
-   watch the first cycle.
+### Operational closeout (as-built)
+1. ✅ Pages uses the Actions source and the Stage-E deployment completed.
+2. ✅ A fresh manual dispatch on 2026-07-14 repaired the repository-rename incident: the old Pages
+   artifact still referenced `/cj/*`, so every asset 404'd after `cj` became `wuzup`. The new build
+   derives `/wuzup/*`; all emitted Tampa and SF assets returned 200.
+3. ✅ Real mobile-browser verification covered Tampa's five tabs, an event-detail/back flow, and the
+   SF city build. Both city-specific datasets rendered with no console errors.
+4. ⏳ First scheduled refresh-cycle proof remains outstanding: runner Playwright, current live-source
+   yields, cron delivery, automated PR creation, and the resulting merge/deploy must be observed as
+   one full cycle. The first Thursday schedule after ship is 2026-07-16 09:23 UTC.
 
 ## E3 — PWA · dark mode · attribution (landed earlier in the Stage E arc)
 PR #9 (⚑X3 attribution page, license-audited, all counts derived + anti-drift tripwire) and
@@ -89,7 +89,7 @@ flaky-in-CI kind; and refresh.yml's "imagery untouched" contract stays simple by
 writer out entirely. Cadence: **operator-run, at need** (config/bbox changes, junk-name
 healing, a quarterly freshen) — `CITY=<id> node finder/places.mjs`, eyeball the diff digest,
 commit with the ship gates green. The runbook for events refreshes stays REFRESH.md.
-*Applied on this branch:* SF places regenerated post-bbox-widen + post-name-guard — the 13
+*Applied in the merged Stage-E branch:* SF places regenerated post-bbox-widen + post-name-guard — the 13
 pure-number junk cards are gone and the Mt. Diablo / east-Concord corridor materialized (see
 the commit for exact counts). Tampa untouched (0 junk names, no bbox change).
 
@@ -120,14 +120,14 @@ the fixes that landed on this branch:
   floor, and the weekly refresh inherits the ban. VSPC remains an event SOURCE; only its
   image CDN is banned. Applied via a full LIVE Tampa refresh (the REFRESH.md operator flow —
   a warm regen can't produce the shipping artifact: killed-fetch sources drop listings), so
-  v1 launches on day-fresh data (1,665 → 1,642 events, zero dead posters, benchmarks green
+  v1 launched on day-fresh data (1,665 → 1,642 events, zero dead posters, benchmarks green
   except the two disclosed ambers). Warm baseline re-proven ×2 deterministic at the new
   stamp — and with every cache fresh, warm == live byte-for-byte again. (hcplc.libnet.info
   deliberately NOT banned: 4/93 posters dead vs 89 healthy — the app fallbacks absorb the 4.)
 - the UT non-event guard caught its tenth staff row ("Supplier Invoices/Procurement Cards" —
   the gov-noise-0 benchmark tripped on the fresh pull; regex extended).
 
-## Disclosed deferrals (v1 ships with these, eyes open)
+## Disclosed deferrals (v1 shipped with these, eyes open)
 - Diacritic title-split shared rule (Rosalía class) — shared fix would byte-break Tampa; deferred.
 - SF `other`=42 vs the Tampa-tuned ≤40 ratchet — eyeballed, genuine events.
 - Tampa place-adapters un-gated (box-drop safe; wasted fetches only).
@@ -137,7 +137,7 @@ the fixes that landed on this branch:
   filters `>= today` at runtime; weekly refresh rotates them out.
 - Watch-guide window: the World Cup guide honestly deactivates 2026-07-19; the shelf empties
   until a new watch guide ships (⚑Josh/Charles: next guide).
-- Same-origin localStorage: `/cj/` and `/cj/sf/` share one github.io origin, so USER-scoped
+- Same-origin localStorage: `/wuzup/` and `/wuzup/sf/` share one github.io origin, so USER-scoped
   state (primer, taste, saves) persists across both cities. Deliberate: taste is the user's,
   not the city's; saves are keyed by city-distinct event keys so they never cross-resolve;
   CITY-scoped data (weather) is already namespaced per city (`wx-{id}-v1`, D4). Revisit only
@@ -153,3 +153,7 @@ the fixes that landed on this branch:
 - ⚑**Charles:** the real mark/favicon (placeholder ⚑ ships) · DRAFT copy passes · warmed
   greens · medallion tints · the 9 drawn glyphs.
 - First-cycle watches (E2 §post-merge list) + the v2 road: [planning/v2/V2_VISION.md](planning/v2/V2_VISION.md).
+- Finder fast-mode merge coverage: the former live `buzz >= 2` assertion depended on incidental
+  three-source overlap and expired with its July 7–11 events. The full current corpus still proves
+  cross-family merging; the handoff branch replaces the brittle canary with a deterministic merge
+  fixture and keeps live output as a diagnostic.
