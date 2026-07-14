@@ -38,7 +38,7 @@ const cityOf = (addr) => {
   return null
 }
 
-export default function HotView({ events, anchors, loading }) {
+export default function HotView({ events, anchors, loading, loadError = false }) {
   const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, openGuide, openEvFilters, openDeck, goTo } = useNav()
   const wx = useContext(WxContext) // access weather without prop threading
   const scrollRef = useRef(null)
@@ -459,7 +459,7 @@ export default function HotView({ events, anchors, loading }) {
             />
           </section>
         )}
-        {!loading && upcoming.length === 0 && (
+        {!loading && !loadError && upcoming.length === 0 && (
           <div className="empty">
             Nothing here right now — check back soon.
             {/* B1: places are always here — a premium hop to Spots (DRAFT copy ⚑ Charles) */}

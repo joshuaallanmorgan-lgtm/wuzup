@@ -37,6 +37,7 @@ import { fileURLToPath } from 'node:url'
 // place/category vocab from the canonical taxonomy (categories.js) — so a new city
 // doesn't fail the build on hard-coded Tampa values.
 import { bbox as CITY_BBOX, rosterBenchmark as CITY_ROSTER, cityId as CITY_ID } from '../finder/cities/index.mjs'
+import { fuzzyMerge } from '../finder/finder.mjs'
 import { PLACETYPE_HUE, CATEGORY_HUES } from '../app/src/categories.js'
 import * as deckdeal from '../app/src/deckdeal.js'
 import * as gesture from '../app/src/deckgesture.js'
@@ -209,6 +210,54 @@ test('per-city source-module dirs exist with their full rosters', () => {
   assert.ok(existsSync(path.join(ROOT, 'finder', 'sources', '_shared.mjs')), '_shared.mjs stays at finder/sources/ root')
 })
 
+test('finder fuzzy merge: cross-family consensus is deterministic', () => {
+  const fixture = [
+    {
+      title: 'Fixture Community Concert',
+      start: '2030-07-18T19:00:00-04:00',
+      venue: 'Fixture Hall',
+      source: 'Eventbrite (Tampa)',
+    },
+    {
+      title: 'Fixture Community Concert',
+      start: '2030-07-18T19:00:00-04:00',
+      venue: 'Fixture Hall',
+      source: 'Eventbrite (Free)',
+    },
+    {
+      title: 'Fixture Community Concert',
+      start: '2030-07-18T19:00:00-04:00',
+      venue: 'Fixture Hall',
+      source: 'City of Tampa',
+    },
+    {
+      title: 'Fixture Community Concert',
+      start: '2030-07-18T19:00:00-04:00',
+      venue: 'Unrelated Pavilion',
+      source: 'I Love the Burg',
+    },
+  ]
+
+  const merged = fuzzyMerge(fixture)
+  assert.equal(merged.length, 2, 'same-title events at unrelated venues must remain separate')
+  const consensus = merged.find((e) => e.venue === 'Fixture Hall')
+  const separate = merged.find((e) => e.venue === 'Unrelated Pavilion')
+  assert.ok(consensus && separate, 'fixture must preserve both venue identities')
+  assert.equal(consensus.sources.length, 3, 'same-family variants remain attributed after collapsing')
+  assert.equal(consensus.buzz, 2, 'buzz counts Eventbrite once plus the independent city source')
+  assert.equal(separate.buzz, 1, 'an unrelated-venue listing remains a one-family event')
+})
+
+test('full city artifacts: unclassified category share stays under 8%', () => {
+  for (const cityId of ['tampa-bay', 'sf-east-bay']) {
+    const file = path.join(ROOT, 'finder', 'output', cityId, 'events.json')
+    const events = JSON.parse(readFileSync(file, 'utf8'))
+    const other = events.filter((e) => e.category === 'other').length
+    const share = events.length ? other / events.length : 1
+    assert.ok(share <= 0.08, `${cityId} 'other' share ${(share * 100).toFixed(2)}% (${other}/${events.length}) exceeds 8%`)
+  }
+})
+
 test('finder fast-mode: exit 0, benchmarks green, output schema-valid', { timeout: 360_000 }, async (t) => {
   // in-memory backup of everything the finder overwrites — INCLUDING the
   // committed source caches (Cohesion REFUTE finding: the fast-mode run
@@ -237,7 +286,6 @@ test('finder fast-mode: exit 0, benchmarks green, output schema-valid', { timeou
       'hidden gems:',
       'coords outside Tampa Bay box:',
       'non-nightlife events starting 01:00–05:59:',
-      "'other' category:",
       'gov-noise titles',
       'fully-ended events in output:',
     ]
@@ -249,20 +297,21 @@ test('finder fast-mode: exit 0, benchmarks green, output schema-valid', { timeou
         `benchmark REGRESSED (not ✅): "${line.trim()}" — fix the data path before shipping`
       )
     }
-    // buzz>=2 needs the skipped render/extra sources to hit its real threshold
-    // (3); in fast mode we assert the line exists and the MERGE still produces
-    // at least one cross-source event — 0 means the merge mechanism broke.
+    const otherLine = res.out.split(/\r?\n/).find((l) => l.includes("'other' category:"))
+    assert.ok(otherLine, "'other' benchmark line missing from finder output")
+    t.diagnostic(`fast-mode source-mix diagnostic: ${otherLine.trim()} (full artifacts are ratio-gated)`)
+    // Live overlap is a corpus/source-health diagnostic, not a deterministic
+    // merge contract: two healthy source sets may simply have no currently
+    // overlapping future listings. The pure fixture above pins the mechanism.
     const buzzLine = res.out.split(/\r?\n/).find((l) => l.includes('events with buzz >= 2:'))
     assert.ok(buzzLine, 'buzz >= 2 benchmark line missing from finder output')
     const buzzN = Number(buzzLine.match(/buzz >= 2:\s*(\d+)/)?.[1])
-    // buzz (cross-source merge) + the source-count floor below depend on the LIVE
-    // sources landing; OFFLINE they collapse. Probe once: hold the line when online
-    // (a real merge/source regression must still fail), gate with a diagnostic when not.
+    // Source-count floors still depend on live sources; DNS gates that check.
     const online = await isOnline()
     if (online) {
-      assert.ok(buzzN >= 1, `cross-source merge produced ${buzzN} buzz>=2 events in fast mode (expected >= 1): "${buzzLine.trim()}"`)
+      t.diagnostic(`ONLINE — live fast-mode cross-family overlaps: ${buzzN} (corpus diagnostic; merge behavior is fixture-tested)`)
     } else {
-      t.diagnostic(`OFFLINE — gating the buzz>=2 cross-source-merge assertion (got ${buzzN})`)
+      t.diagnostic(`OFFLINE — live fast-mode cross-family overlaps unavailable (got ${buzzN}); merge behavior is fixture-tested`)
     }
     // sponsored is render-sourced: fast mode prints the ⚠️ offline variant
     assert.ok(
@@ -886,6 +935,12 @@ test('3.75: guide selectors are pure, honest, and resolve to real matches', asyn
   assert.ok(got.every((p) => p.placeType === 'beach'), 'beach-day returned a non-beach')
   // graceful: a guide with no data resolves to an empty (honest) list, not a throw
   assert.deepEqual(resolveGuide(guideById['rainy-day'], { events: [], places: [], anchors: {} }), [], 'empty ctx → empty guide')
+  // canonical taxonomy is `art` (not `arts`): both indoor and evening intentions
+  // must include real art listings. This pins the seam against categories.js.
+  const art = { title: 'Gallery After Dark', category: 'art', start: '2030-07-18T19:00:00-04:00' }
+  const artCtx = { events: [art], places: [], anchors: {} }
+  assert.deepEqual(resolveGuide(guideById['rainy-day'], artCtx), [art], 'rainy-day includes canonical art events')
+  assert.deepEqual(resolveGuide(guideById['date-night'], artCtx), [art], 'date-night includes canonical art events')
 })
 
 // 3.7P-7 (FB-03): each guide declares a `domain` and HONORS it — an events-domain
@@ -1281,7 +1336,7 @@ test('Stage D sf-app: VITE_CITY=sf-east-bay builds — title + manifest carry th
 })
 
 // Stage E deploy-infra — base-path safety, the SOURCE pin. GitHub Pages serves
-// the app under /cj/ (Tampa) and /cj/sf/ (SF); a root-absolute '/events.json'
+// the app under /wuzup/ (Tampa) and /wuzup/sf/ (SF); a root-absolute '/events.json'
 // fetch 404s there. Every runtime data fetch must ride import.meta.env.BASE_URL
 // (which vite statically folds back to the identical root-absolute literal at
 // the default base — the default build is byte-identical, verified at land).
@@ -1309,13 +1364,15 @@ test('Stage E base-path: no root-absolute fetch literals in app/src — data fet
 })
 
 // Stage E deploy-infra — the BASE_PATH build itself. Builds once with
-// BASE_PATH=/cj/ (exactly what the Pages deploy workflow ships for Tampa) into
+// BASE_PATH=/wuzup/ (exactly what the Pages deploy workflow ships for Tampa) into
 // a scratch outDir and pins every base-path surface that has ever escaped:
 // index.html links (the plugin-emitted manifest href was vite-invisible), the
 // manifest's OWN start_url/scope/icons (raw asset — vite never rewrites its
 // internals), the CSS @font-face public URL, and the folded fetch literals in
 // the bundle. Cheap by measurement (rolldown builds in ~0.3s).
-test('Stage E base-path: BASE_PATH=/cj/ build rebases every runtime surface', { timeout: 300_000 }, async (t) => {
+const DEPLOY_BASE = '/wuzup/'
+const DEPLOY_PREFIX = DEPLOY_BASE.slice(0, -1)
+test(`Stage E base-path: BASE_PATH=${DEPLOY_BASE} build rebases every runtime surface`, { timeout: 300_000 }, async (t) => {
   startAppChecks()
   await buildP // never overlap another vite run
   const outDir = mkdtempSync(path.join(tmpdir(), 'wuzup-basepath-build-'))
@@ -1324,36 +1381,36 @@ test('Stage E base-path: BASE_PATH=/cj/ build rebases every runtime surface', { 
       spawn(`npm --prefix app run build -- --outDir "${outDir}" --emptyOutDir`, {
         cwd: ROOT,
         shell: true,
-        env: { ...process.env, BASE_PATH: '/cj/' },
+        env: { ...process.env, BASE_PATH: DEPLOY_BASE },
       })
     )
     t.diagnostic(`BASE_PATH build took ${r.secs}s`)
-    assert.equal(r.code, 0, `BASE_PATH=/cj/ build failed (exit ${r.code}):\n${tail(r.out)}`)
+    assert.equal(r.code, 0, `BASE_PATH=${DEPLOY_BASE} build failed (exit ${r.code}):\n${tail(r.out)}`)
     // index.html: every ref base-prefixed, none left at the root
     const html = readFileSync(path.join(outDir, 'index.html'), 'utf8')
-    for (const ref of ['href="/cj/favicon.svg"', 'href="/cj/manifest.webmanifest"', 'href="/cj/apple-touch-icon.png"']) {
+    for (const ref of [`href="${DEPLOY_PREFIX}/favicon.svg"`, `href="${DEPLOY_PREFIX}/manifest.webmanifest"`, `href="${DEPLOY_PREFIX}/apple-touch-icon.png"`]) {
       assert.ok(html.includes(ref), `index.html must carry ${ref}`)
     }
-    assert.ok(!/(href|src)="\/(?!cj\/)/.test(html),
-      'index.html carries a root-absolute href/src outside /cj/ — a base-path escapee')
+    assert.ok(!/(href|src)="\/(?!wuzup\/)/.test(html),
+      `index.html carries a root-absolute href/src outside ${DEPLOY_BASE} — a base-path escapee`)
     // the manifest's internals (raw asset — vite rewrites nothing inside it)
     const manifest = JSON.parse(readFileSync(path.join(outDir, 'manifest.webmanifest'), 'utf8'))
-    assert.equal(manifest.start_url, '/cj/', 'manifest start_url must be the base')
-    assert.equal(manifest.scope, '/cj/', 'manifest scope must be the base')
+    assert.equal(manifest.start_url, DEPLOY_BASE, 'manifest start_url must be the base')
+    assert.equal(manifest.scope, DEPLOY_BASE, 'manifest scope must be the base')
     for (const icon of manifest.icons) {
-      assert.ok(icon.src.startsWith('/cj/icons/'), `manifest icon ${icon.src} must be base-prefixed`)
+      assert.ok(icon.src.startsWith(`${DEPLOY_PREFIX}/icons/`), `manifest icon ${icon.src} must be base-prefixed`)
     }
     // the @font-face public URL in the emitted CSS
     const assets = readdirSync(path.join(outDir, 'assets'))
     const css = readFileSync(path.join(outDir, 'assets', assets.find((f) => f.endsWith('.css'))), 'utf8')
-    assert.ok(css.includes('url(/cj/fonts/inter-var-latin.woff2)'), 'the CSS @font-face URL must be base-prefixed')
+    assert.ok(css.includes(`url(${DEPLOY_PREFIX}/fonts/inter-var-latin.woff2)`), 'the CSS @font-face URL must be base-prefixed')
     assert.ok(!css.includes('url(/fonts/'), 'the CSS still carries a root-absolute /fonts/ URL')
     // the folded fetch literals in the app bundle
     const bundle = assets.filter((f) => f.startsWith('index-') && f.endsWith('.js'))
       .map((f) => readFileSync(path.join(outDir, 'assets', f), 'utf8')).join('\n')
     for (const a of ['events.json', 'places.json', 'guides.json']) {
       const esc = a.replace('.', '\\.')
-      assert.ok(new RegExp(`fetch\\((['"\`])/cj/${esc}\\1\\)`).test(bundle), `bundle must fetch /cj/${a}`)
+      assert.ok(new RegExp(`fetch\\((['"\`])${DEPLOY_PREFIX}/${esc}\\1\\)`).test(bundle), `bundle must fetch ${DEPLOY_PREFIX}/${a}`)
       assert.ok(!new RegExp(`fetch\\((['"\`])/${esc}\\1\\)`).test(bundle), `bundle still fetches root-absolute /${a}`)
     }
   } finally {
@@ -3566,6 +3623,19 @@ test('Stage E dark mode: the ladder exists, covers the core tokens, and every pi
   atLeast(DANGER, CARD, 4.5, 'dark danger on card')
   atLeast(PROSE, CARD, 4.5, 'dark prose on card')
   atLeast('#ffffff', '#bb5719', 4.5, 'white on --cta (must hold on ANY canvas)')
+})
+
+test('post-ship honesty: event fetch failure is distinct from a genuinely empty city', () => {
+  const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
+  const css = readFileSync(path.join(ROOT, 'app', 'src', 'App.css'), 'utf8')
+  const hot = readFileSync(path.join(ROOT, 'app', 'src', 'HotView.jsx'), 'utf8')
+  assert.ok(/const \[loadError, setLoadError\] = useState\(false\)/.test(app), 'App tracks fetch failure separately from events=[]')
+  assert.ok(/setLoadError\(true\)/.test(app), 'the exhausted retry path enters the explicit error state')
+  assert.ok(/setLoadCycle\(\(n\) => n \+ 1\)/.test(app), 'the error state offers a real manual re-fetch')
+  assert.ok(/loadError && primer/.test(app) && /className="load-note" role="alert"/.test(app) && /onClick=\{retryEvents\}/.test(app), 'the load error is announced after onboarding and retryable')
+  assert.ok(/\.load-note \{[\s\S]*?z-index: 2050;/.test(css), 'the global load error stays above event subpages and detail instead of exposing false empty copy')
+  assert.ok(/loadError=\{loadError\}/.test(app), 'App tells Events whether the empty array came from a fetch failure')
+  assert.ok(/!loading && !loadError && upcoming\.length === 0/.test(hot), 'HotView empty copy is reserved for a successful empty dataset')
 })
 
 test('Stage E dark mode: straggler seams hold — no resurrected light literals, ink-on-gold pinned, decks untouched', () => {

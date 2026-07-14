@@ -14,9 +14,9 @@ import { daypartOf } from './weekend.js'
 import { keyOf } from './lib.js'
 
 // indoor-ish categories — a good backup when the forecast turns
-const INDOOR = new Set(['arts', 'theatre', 'comedy', 'music', 'nightlife', 'food', 'family', 'market', 'community'])
+const INDOOR = new Set(['art', 'theatre', 'comedy', 'music', 'nightlife', 'food', 'family', 'market', 'community'])
 // an easy-night-out cut (not a raw category filter — an intention)
-const DATE_CATS = new Set(['food', 'music', 'theatre', 'arts', 'nightlife'])
+const DATE_CATS = new Set(['food', 'music', 'theatre', 'art', 'nightlife'])
 // TOUCHUP P1: "catch the game" content — genuine sports-watch events (watch
 // parties, finals, pregames), keyword-matched so the destination is honestly
 // sports-bar fare, not the whole sports+nightlife bucket (which dragged in
@@ -167,7 +167,7 @@ export function loadGuides() {
   _gstatus = 'loading'
   _gemit()
   // Stage E base-path: BASE_URL-relative fetch — root-absolute '/guides.json'
-  // 404s under a subpath deployment (GitHub Pages /cj/). The ?.-form stays
+  // 404s under a subpath deployment (GitHub Pages /wuzup/). The ?.-form stays
   // Node-safe (smoke imports this module; import.meta.env is undefined there)
   // and vite still folds it to the same '/guides.json' literal at base '/'.
   _ginflight = fetch((import.meta.env?.BASE_URL ?? '/') + 'guides.json')

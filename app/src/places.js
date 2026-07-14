@@ -17,7 +17,7 @@ import { useEffect, useSyncExternalStore } from 'react'
 import { milesBetween, normalizeTitle } from './lib.js'
 
 // Stage E base-path: the deployment base ('/' in dev + the default build;
-// '/cj/' or '/cj/sf/' under GitHub Pages). The ?.-form stays Node-safe (the
+// '/wuzup/' or '/wuzup/sf/' under GitHub Pages). The ?.-form stays Node-safe (the
 // smoke harness imports this module; import.meta.env is undefined there) and
 // vite statically folds it to '/' at the default base — every use below
 // compiles away to the exact pre-Stage-E bytes.
@@ -164,7 +164,7 @@ export function loadPlaces() {
   rebuild()
   emit()
   // Stage E base-path: BASE_URL-relative — root-absolute '/places.json' 404s
-  // under a subpath deployment (GitHub Pages /cj/); folds to the same literal
+  // under a subpath deployment (GitHub Pages /wuzup/); folds to the same literal
   // at the default base.
   inflight = fetch(BASE + 'places.json')
     .then((r) => {
