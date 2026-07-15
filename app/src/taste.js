@@ -88,7 +88,7 @@
 // NOTE: plain .js file (same rule as lib.js) — no JSX. Deliberately imports
 // nothing from lib.js so saves.js / lib.js can depend on this file cycle-free.
 import { useSyncExternalStore } from 'react'
-import { PREFIX, lsGet, lsRemove, lsSet } from './storage.js'
+import { lsGet, lsRemove, lsSet, physicalKey } from './storage.js'
 import { categoryById } from './categories.js' // registry id set (plain .js, no cycle) — V3 pref validation
 import { NON_GEM_RE } from './lib.js' // 3.7P-39: a job/career fair is never a "💎 Hidden gem"
 
@@ -320,7 +320,7 @@ function persist() {
 // cross-tab: a signal recorded in another tab folds in (never fires in the writing tab)
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (ev) => {
-    if (ev.key !== PREFIX + KEY && ev.key !== null) return
+    if (ev.key !== physicalKey(KEY) && ev.key !== null) return
     profile = load()
     emit()
   })
@@ -793,9 +793,10 @@ export function setWhenPref(when) {
 // is module-private by design. The two-step confirm lives with the CALLER
 // (SettingsPage) — this function is the already-confirmed wipe.
 export function resetTaste() {
+  const persisted = lsRemove(KEY)
   profile = empty()
-  lsRemove(KEY)
   emit()
+  return persisted
 }
 
 // RANK NUDGE — BOUNDED. In [0, 18] total: 15 × (catScore/25) × confidence,

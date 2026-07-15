@@ -26,7 +26,7 @@
 // createElement.
 import { createElement as h, useState, useSyncExternalStore } from 'react'
 import { DAY, Icon, keyOf, normalize } from './lib.js'
-import { PREFIX, lsGet, lsSet } from './storage.js'
+import { lsGet, lsSet, physicalKey } from './storage.js'
 import { recordSignal } from './taste.js'
 import './saves.css'
 
@@ -84,11 +84,11 @@ function commitBeen(list) {
 // cross-tab: another tab toggled (prefixed-key match) or cleared storage (key null)
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (ev) => {
-    if (ev.key === PREFIX + KEY || ev.key === null) {
+    if (ev.key === physicalKey(KEY) || ev.key === null) {
       store = mk(loadMap())
       emit()
     }
-    if (ev.key === PREFIX + BEEN_KEY || ev.key === null) {
+    if (ev.key === physicalKey(BEEN_KEY) || ev.key === null) {
       been = loadBeen()
       emitBeen()
     }

@@ -14,7 +14,7 @@
 import { useMemo } from 'react'
 import { CITY } from './lib.js'
 import { useNav } from './nav.jsx'
-import { lsGet } from './storage.js'
+import { globalGet } from './storage.js'
 import { useSaves, useBeenThere } from './saves.js'
 import { loadDayPlans, loadDayHistory, didDays, dayEntryFor, PARTS } from './dayplan.js'
 import './profile.css'
@@ -41,7 +41,7 @@ export default function ProfileView({ anchors }) {
   // — so an edit saved in Edit Profile reflects on return (same seam as planCount).
   const name = useMemo(() => {
     void page
-    return lsGet(NAME_KEY) || ''
+    return globalGet(NAME_KEY) || ''
   }, [page])
 
   // S1-P3: honest lifetime stats from the REAL stores — never hardcoded. Saves +

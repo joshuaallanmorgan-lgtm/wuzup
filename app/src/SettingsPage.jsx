@@ -35,7 +35,7 @@ export default function SettingsPage({ events, dataMeta, primer, onPrimerDone, l
   const { closePage: onClose, openAttribution } = useNav()
   const [retaking, setRetaking] = useState(false)
   const [arming, setArming] = useState(false) // reset's two-step confirm
-  const [wiped, setWiped] = useState(false) // honest one-line receipt after a reset
+  const [resetStatus, setResetStatus] = useState(null)
 
   // events + distinct source FAMILIES in the fetched dataset — the shared
   // coverage.js derivation (one tally, spoken here, on Home's Coverage Card,
@@ -45,11 +45,14 @@ export default function SettingsPage({ events, dataMeta, primer, onPrimerDone, l
   const sourceHealth = dataMeta?.sourceHealth?.status
 
   const doReset = () => {
-    resetTaste() // wipes taste-v1 + the in-memory profile (taste.js owns both)
-    lsRemove('fmn-seen-v1') // Find My Night's no-repeat memory starts over too
-    lsRemove('deck-last-v1') // "wipe everything" includes the deck's rated-card memory
+    const outcomes = [
+      resetTaste(), // wipes taste-v1 + the in-memory profile (taste.js owns both)
+      lsRemove('fmn-seen-v1'), // Find My Night's no-repeat memory starts over too
+      lsRemove('deck-last-v1'), // includes the deck's rated-card memory
+    ]
+    const persisted = outcomes.every(Boolean)
     setArming(false)
-    setWiped(true)
+    setResetStatus(persisted ? 'persisted' : 'session-only')
   }
 
   return (
@@ -90,7 +93,7 @@ export default function SettingsPage({ events, dataMeta, primer, onPrimerDone, l
           <div className="st-over">Reset</div>
           <div className="st-rows">
             {!arming ? (
-              <button className="st-row st-row-danger" onClick={() => { setWiped(false); setArming(true) }}>
+              <button className="st-row st-row-danger" onClick={() => { setResetStatus(null); setArming(true) }}>
                 <span className="st-row-main">
                   <span className="st-row-title">Start fresh</span>
                   <span className="st-row-sub">Wipe what this phone learned — saves &amp; plans stay</span>
@@ -112,7 +115,13 @@ export default function SettingsPage({ events, dataMeta, primer, onPrimerDone, l
               </div>
             )}
             {/* WS3 §9: engineered sprout (inherits the sage .st-wiped color), not 🌱 */}
-            {wiped && <div className="st-wiped">Wiped. The next tap starts the new you. <Icon.sprout className="meta-ic" aria-hidden /></div>}
+            {resetStatus === 'persisted' && <div className="st-wiped">Wiped. The next tap starts the new you. <Icon.sprout className="meta-ic" aria-hidden /></div>}
+            {resetStatus === 'session-only' && (
+              <div className="st-reset-error" role="alert">
+                Cleared for this visit, but your browser could not save the reset.
+                Some preferences may return after you close Wuzup.
+              </div>
+            )}
           </div>
         </section>
 

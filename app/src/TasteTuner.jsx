@@ -12,8 +12,9 @@
 // stays discoverable; re-entry (re-mount) keeps that collapsed state.
 import { useCallback, useState } from 'react'
 import { CardImg, featuredChips, spotChips } from './cards.jsx'
+import { CITY } from './city.js'
 
-const DISMISS_KEY = (kind) => `wuzup-tune-dismissed-${kind}`
+const DISMISS_KEY = (kind) => `wuzup-tune-dismissed-${CITY.id}-${kind}`
 const readDismissed = (kind) => {
   try {
     return sessionStorage.getItem(DISMISS_KEY(kind)) === '1'

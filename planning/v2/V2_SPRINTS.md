@@ -1,6 +1,6 @@
 # Wuzup V2 - active sprint map
 
-> **Status:** owner-ratified execution map; Sprint 2 active - 2026-07-15
+> **Status:** owner-ratified execution map; Sprint 3 active - 2026-07-15
 >
 > **Authority:** subordinate to [V2_PLAN.md](V2_PLAN.md). This file translates the current scope and
 > dependency queue into delivery cycles; it does not admit features that the plan parks in V3.
@@ -315,6 +315,30 @@ Committed scope:
 
 **Exit gate:** cross-city isolation, three non-city timezones, DST, corrupt storage, quota failure, refresh,
 and migration tests pass; planner operations are idempotent and survive reload.
+
+#### Sprint 3 city-storage foundation receipt - 2026-07-15 (yellow)
+
+- **City isolation is now the default durable-state contract:** logical app keys map to versioned
+  `twh:v2:c:<city-id>:` keys. Saves, recents, taste, plans, history, custom events, and the other existing
+  stores inherit the active city through one storage seam; profile name/bio are the only explicit global
+  exception. Storage-event listeners use the same canonical physical keys, taste-tuner fatigue is city-scoped,
+  and Tampa's old weather key cannot be claimed by SF.
+- **Legacy migration is deterministic and rollback-safe:** unscoped V1 bytes default to Tampa, V1's canonical
+  root city, while an existing valid known-city ownership receipt remains authoritative. Copying is
+  destination-first, idempotent, and copy-only; corrupt, wrong-version, and unknown-city receipts repair to
+  the deterministic owner, and a failed repair remains closed until persistence succeeds. A forced
+  re-entrant Tampa/SF first-load test proves both cities cannot inherit the same legacy bundle.
+- **Quota, deletion, and malformed data fail honestly:** V2 values use an escaped envelope, so arbitrary user
+  text cannot collide with deletion metadata; persistent tombstones prevent copy-only legacy bytes from
+  resurrecting after reset. Failed writes remain usable only in the active session and return `false`.
+  Settings now distinguishes a durable reset from a browser-blocked session-only reset, while malformed
+  custom-event rows such as `[null]` are filtered before normalization instead of crashing launch.
+- **Verification is green and independently reviewed:** focused city-storage tests pass 12/12; app lint and
+  production build pass; the complete serial root gate passes 214/214, including finder, exact artifact
+  staging, Tampa/SF and base-path builds, relevance, imagery, location, product-truth, and runtime contracts.
+- **Sprint 3 remains yellow:** city-local clock/actionability/DST/ICS behavior, stable-ID dual-read migration,
+  atomic reactive planner snapshots, and truthful geolocation permission state remain in the committed
+  Sprint 3 scope.
 
 ### Sprint 4 - P0 core journeys and the browser release harness
 

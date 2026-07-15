@@ -6,7 +6,7 @@
 import { useState } from 'react'
 import { CITY, Icon } from './lib.js'
 import { useNav } from './nav.jsx'
-import { lsGet, lsSet } from './storage.js'
+import { globalGet, globalSet } from './storage.js'
 import './profile.css'
 
 const NAME_KEY = 'profile-name-v1'
@@ -21,12 +21,12 @@ const PersonIc = () => (
 
 export default function EditProfilePage() {
   const { closePage: onClose, openInterests } = useNav()
-  const [name, setName] = useState(() => lsGet(NAME_KEY) || '')
-  const [bio, setBio] = useState(() => lsGet(BIO_KEY) || '')
+  const [name, setName] = useState(() => globalGet(NAME_KEY) || '')
+  const [bio, setBio] = useState(() => globalGet(BIO_KEY) || '')
   const initial = name ? name.trim()[0].toUpperCase() : ''
   const save = () => {
-    lsSet(NAME_KEY, (name || '').trim().slice(0, 40))
-    lsSet(BIO_KEY, (bio || '').trim().slice(0, BIO_MAX))
+    globalSet(NAME_KEY, (name || '').trim().slice(0, 40))
+    globalSet(BIO_KEY, (bio || '').trim().slice(0, BIO_MAX))
     onClose()
   }
 

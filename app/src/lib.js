@@ -868,16 +868,26 @@ export const Icon = {
 // path as fetched events; tag 'added-by-you' drives the provenance label).
 export const MY_EVENTS_KEY = 'my-events-v1' // stored as twh:my-events-v1 via storage.js
 export const MY_SOURCE = 'Added by you'
+export function validMyEvent(value) {
+  return value
+    && typeof value === 'object'
+    && !Array.isArray(value)
+    && typeof value.title === 'string'
+    && value.title.trim().length > 0
+    && typeof value.start === 'string'
+    && /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2})?)?/.test(value.start)
+}
 export function loadMyEvents() {
   try {
     const v = JSON.parse(lsGet(MY_EVENTS_KEY))
-    return Array.isArray(v) ? v : []
+    return Array.isArray(v) ? v.filter(validMyEvent) : []
   } catch {
     return [] // missing key / corrupt JSON / private mode — never crash the boot
   }
 }
 export function saveMyEvents(list) {
-  lsSet(MY_EVENTS_KEY, JSON.stringify(list)) // guarded in storage.js — session state still works
+  const valid = Array.isArray(list) ? list.filter(validMyEvent) : []
+  lsSet(MY_EVENTS_KEY, JSON.stringify(valid)) // guarded in storage.js — session state still works
 }
 // strip normalize()'s computed _fields → a clean schema-v2 object (an
 // undo-restored event persists as raw data, identical to a fresh submission)

@@ -21,7 +21,7 @@
 // NOTE: plain .js file (same rule as lib.js/saves.js) — no JSX.
 import { useSyncExternalStore } from 'react'
 import { keyOf } from './lib.js'
-import { PREFIX, lsGet, lsSet } from './storage.js'
+import { lsGet, lsSet, physicalKey } from './storage.js'
 
 const KEY = 'recents-v1' // stored as twh:recents-v1 via storage.js
 const CAP = 12
@@ -57,7 +57,7 @@ function persist() {
 // cross-tab: a view recorded in another tab folds in (never fires in the writing tab)
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (ev) => {
-    if (ev.key !== PREFIX + KEY && ev.key !== null) return
+    if (ev.key !== physicalKey(KEY) && ev.key !== null) return
     keys = load()
     rebuild()
     emit()

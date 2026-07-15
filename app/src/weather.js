@@ -28,7 +28,7 @@ const FETCH_TIMEOUT = 10000 // 10s
 // 'twh:wx-tampa-v1' in storage.js (it stays on that LEGACY_KEYS list), then
 // lands here. Cache payload shape + TTL are unchanged — only the key moved.
 const LEGACY_WX_KEY = 'wx-tampa-v1'
-if (CACHE_KEY !== LEGACY_WX_KEY) {
+if (CITY.id === 'tampa-bay' && CACHE_KEY !== LEGACY_WX_KEY) {
   const old = lsGet(LEGACY_WX_KEY)
   if (old !== null) {
     // storage.js's destructive-sequence rule (REFUTE nit): remove the legacy

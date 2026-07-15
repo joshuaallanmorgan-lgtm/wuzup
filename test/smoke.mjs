@@ -2357,7 +2357,7 @@ test('PROFILE_GRIND (final): title + white identity card + pencil + 6 menu cards
   assert.ok(/\.pf-id-card\s*\{[^}]*background:\s*var\(--card\)/.test(css), 'P2: the identity card is WHITE (var(--card), not --cta)')
   assert.ok(!/\.pf-name-block\s*\{[^}]*background:\s*var\(--cta\)/.test(css), 'P2: the colored --cta identity block is gone')
   // honest name + on-device store; no fabricated person / mock numbers
-  assert.ok(/profile-name-v1/.test(pv) && /lsGet\(NAME_KEY\)/.test(pv), 'the display name is read on-device (profile-name-v1); the write moved to Edit Profile')
+  assert.ok(/profile-name-v1/.test(pv) && /globalGet\(NAME_KEY\)/.test(pv), 'the display name is read from the intentional cross-city profile scope; the write moved to Edit Profile')
   assert.ok(/Add your name/.test(pv) && !/'Alex'/.test(pv), 'name defaults to "Add your name" — never a fabricated name')
   assert.ok(/\{CITY\.name\}/.test(pv), 'city = the app active-city label (CITY.name)')
   assert.ok(!/\b47\b|>128<|>23</.test(pv), 'no hardcoded mock stat numbers (real counts only)')
@@ -2412,7 +2412,7 @@ test('PROFILE_PHASE2: net-new drill-ins (Edit Profile · Help & Feedback) wired 
   assert.ok(!/onClick: \(\) => \{\}/.test(pv), 'no dead no-op onClick remains on the Profile menu')
   // Edit Profile: writes the on-device name; honest stubs (never a fabricated person)
   const ep = readFileSync(path.join(ROOT, 'app', 'src', 'EditProfilePage.jsx'), 'utf8')
-  assert.ok(/lsSet\(NAME_KEY/.test(ep) && /profile-name-v1/.test(ep), 'Edit Profile writes the on-device name (profile-name-v1)')
+  assert.ok(/globalSet\(NAME_KEY/.test(ep) && /profile-name-v1/.test(ep), 'Edit Profile writes the on-device cross-city profile name (profile-name-v1)')
   assert.ok(!/'Alex'/.test(ep) && /(Coming soon|Soon)/.test(ep), 'Edit Profile uses honest placeholders, never a fabricated person')
   // Help & Feedback: real mailto actions, not fake UI
   const hf = readFileSync(path.join(ROOT, 'app', 'src', 'HelpFeedbackPage.jsx'), 'utf8')
