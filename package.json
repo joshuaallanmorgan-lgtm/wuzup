@@ -9,7 +9,8 @@
     "deploy-city": "node finder/deploy.mjs",
     "dev-city": "node finder/dev-city.mjs",
     "test:artifact": "node --test test/artifact-trust.mjs",
-    "test": "node --test --test-concurrency=1 test/artifact-trust.mjs test/smoke.mjs"
+    "test:u0": "node --test test/u0-truth.mjs",
+    "test": "node --test --test-concurrency=1 test/artifact-trust.mjs test/u0-truth.mjs test/smoke.mjs"
   },
   "keywords": [],
   "author": "",

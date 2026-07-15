@@ -39,9 +39,9 @@ import CalibrationDeck, { PlacesDeck } from './CalibrationDeck.jsx'
 import LensDeck from './LensDeck.jsx'
 import './App.css'
 
-function TabBar({ active, onTab, inert }) {
+function TabBar({ active, onTab, inert, hidden }) {
   return (
-    <nav className="tabbar" inert={inert}>
+    <nav className="tabbar" inert={inert} aria-hidden={hidden} aria-label="Primary navigation">
       {VIEWS.map((v, i) => {
         const I = Icon[v.id]
         return (
@@ -49,6 +49,7 @@ function TabBar({ active, onTab, inert }) {
             key={v.id}
             className={'tab' + (active === i ? ' active' : '') + (v.id === 'hot' ? ' tab-hot' : '')}
             onClick={() => onTab(i)}
+            aria-current={active === i ? 'page' : undefined}
           >
             <I className="tab-ic" width="24" height="24" />
             <span className="tab-label">{v.label}</span>
@@ -67,6 +68,34 @@ function TabBar({ active, onTab, inert }) {
 // never shows (graceful, no fake claims).
 const RETRY_MS = 2500
 const STALE_MS = 48 * 3600 * 1000
+const FOCUSABLE = [
+  'button:not([disabled])',
+  'a[href]',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',')
+
+function focusLayer(root, preferred) {
+  if (!root || root.contains(document.activeElement)) return
+  const target =
+    (preferred ? root.querySelector(preferred) : null) ||
+    root.querySelector('[data-initial-focus]') ||
+    root.querySelector('[autofocus]') ||
+    root.querySelector(FOCUSABLE) ||
+    root
+  target.focus?.({ preventScroll: true })
+}
+
+function restoreLayerFocus(target, fallbackRoot) {
+  const validTarget = target?.isConnected && !target.closest?.('[inert]') ? target : null
+  const fallback =
+    fallbackRoot?.querySelector?.('[aria-current="page"]') ||
+    fallbackRoot?.querySelector?.(FOCUSABLE) ||
+    fallbackRoot
+  ;(validTarget || fallback)?.focus?.({ preventScroll: true })
+}
 // the banner's day label (weekday <6d, date beyond) lives in coverage.js now —
 // dayStamp — shared with the D-G1 Coverage Card's "updated {day}" line.
 
@@ -94,6 +123,14 @@ function Shell() {
   // mount and passes the when-preference down for the H2 greeting flavor.
   const [primer, setPrimer] = useState(() => loadPrimerState())
   const coordsRef = useRef(null)
+  const appRef = useRef(null)
+  const pageLayerRef = useRef(null)
+  const pageReturnFocusRef = useRef(null)
+  const pageFocusOpenRef = useRef(false)
+  const detailReturnFocusRef = useRef(null)
+  const detailFocusOpenRef = useRef(false)
+  const baseTriggerRef = useRef(null)
+  const pageTriggerRef = useRef(null)
 
   // navigation (nav.js): tab index + pager wiring, visited set (lazy tab
   // mounting, O1), subpage union, detail, map focus
@@ -110,6 +147,73 @@ function Shell() {
     closePage,
     detail,
   } = useNav()
+
+  // Remember both keyboard focus and pointer launchers. Some browsers do not
+  // focus a clicked button, so pointer capture supplies a reliable return
+  // target when a subpage or detail layer closes.
+  const rememberTrigger = useCallback((ev) => {
+    const target = ev.target instanceof Element ? ev.target.closest(FOCUSABLE) : null
+    if (!(target instanceof HTMLElement) || target.closest('.detail')) return
+    if (target.closest('.subpage')) pageTriggerRef.current = target
+    else baseTriggerRef.current = target
+  }, [])
+
+  // Full-page overlays replace one another in a single DOM slot. Focus enters
+  // each new page, but its original base-page launcher is retained until the
+  // overlay actually unmounts after the close animation.
+  useEffect(() => {
+    const wasOpen = pageFocusOpenRef.current
+    const isOpen = Boolean(page)
+    if (isOpen && !wasOpen) {
+      const active = document.activeElement instanceof HTMLElement &&
+        document.activeElement !== document.body &&
+        !document.activeElement.closest('.subpage')
+        ? document.activeElement
+        : null
+      pageReturnFocusRef.current = baseTriggerRef.current?.isConnected ? baseTriggerRef.current : active
+    }
+    pageFocusOpenRef.current = isOpen
+
+    let frame
+    if (isOpen) {
+      frame = requestAnimationFrame(() => {
+        if (!document.querySelector('.detail')) focusLayer(pageLayerRef.current)
+      })
+    } else if (wasOpen) {
+      const target = pageReturnFocusRef.current
+      pageReturnFocusRef.current = null
+      frame = requestAnimationFrame(() => restoreLayerFocus(target, appRef.current))
+    }
+    return () => cancelAnimationFrame(frame)
+  }, [page])
+
+  // Details stack above either the active tab or a subpage. Every new detail
+  // receives focus at Back; closing restores the exact card/control that opened
+  // it whenever that element still exists and is no longer inert.
+  useEffect(() => {
+    const wasOpen = detailFocusOpenRef.current
+    const isOpen = Boolean(detail)
+    if (isOpen && !wasOpen) {
+      const active = document.activeElement instanceof HTMLElement &&
+        document.activeElement !== document.body &&
+        !document.activeElement.closest('.detail')
+        ? document.activeElement
+        : null
+      const layerTrigger = page ? pageTriggerRef.current : baseTriggerRef.current
+      detailReturnFocusRef.current = layerTrigger?.isConnected ? layerTrigger : active
+    }
+    detailFocusOpenRef.current = isOpen
+
+    let frame
+    if (isOpen) {
+      frame = requestAnimationFrame(() => focusLayer(document.querySelector('.detail'), '.detail-back'))
+    } else if (wasOpen) {
+      const target = detailReturnFocusRef.current
+      detailReturnFocusRef.current = null
+      frame = requestAnimationFrame(() => restoreLayerFocus(target, pageLayerRef.current || appRef.current))
+    }
+    return () => cancelAnimationFrame(frame)
+  }, [detail, page])
 
   // the snapshot's Last-Modified ms (null when the header is absent) — the
   // stale banner reads it through staleAt; Settings' "Events updated {when}"
@@ -281,48 +385,49 @@ function Shell() {
   // not activate) the obscured app behind it — the pager AND the floating
   // chrome (tabbar, 🎲 FAB) gate on this (audit prep #6). The 🎨 pill used to
   // gate here too — retired in P1; display mode now lives in Settings.
-  const inertAll = !primer ? true : undefined
+  const baseCovered = !primer || Boolean(page) || Boolean(detail)
+  const baseInert = baseCovered ? true : undefined
 
   return (
     <WxContext.Provider value={wx}>
-      <div className="app">
+      <div className="app" ref={appRef} onFocusCapture={rememberTrigger} onPointerDownCapture={rememberTrigger}>
         {/* O1 lazy mounting: every section SHELL renders (scroll-snap needs all
             N page widths) but children mount on FIRST VISIT only — Home is
             the boot tab (eager); the rest mount when first reached (tap or
             swipe). Mounted-once tabs STAY mounted so their state (calendar
             selection, etc.) survives tab hops.
             Adding a tab = one VIEWS entry (nav.jsx) + one section here. */}
-        <div className="pager" ref={attachPager} onScroll={onPagerScroll} inert={inertAll}>
+        <div className="pager" ref={attachPager} onScroll={onPagerScroll} inert={baseInert} aria-hidden={baseCovered || undefined}>
           {/* Stage R nav restructure (§P.5): Home · Events · Spots · Plan · Profile.
               Home is the boot tab (index 0, eager); the rest mount on first visit.
               The map is parked for v1 (D8) — no Map tab and no {type:'map'} sub-view. */}
-          <section className="page page-hot">
+          <section className="page page-hot" aria-label={VIEWS[0].label} aria-hidden={active !== 0} inert={active !== 0 ? true : undefined}>
             {/* dataAt (D-G1): the Coverage Card colophon's "updated" line */}
             <HomeView events={norm} anchors={anchors} wx={wx} dataAt={dataAt} />
           </section>
-          <section className="page page-hot">
+          <section className="page page-hot" aria-label={VIEWS[1].label} aria-hidden={active !== 1} inert={active !== 1 ? true : undefined}>
             {/* Events — the browse (search + filter + event sections). Now lazy
                 (Home is the boot tab), mounts on first visit to the Events tab. */}
             {visited.has('hot') && <HotView events={norm} anchors={anchors} loading={loading} loadError={loadError} />}
           </section>
-          <section className="page">
+          <section className="page" aria-label={VIEWS[2].label} aria-hidden={active !== 2} inert={active !== 2 ? true : undefined}>
             {/* Sprint S: the Spots tab — lazy-mounted; its own /places.json fetch
                 (places.js) fires on first visit, never at boot. */}
             {visited.has('locations') && <LocationsView coords={coords} />}
           </section>
-          <section className="page">
+          <section className="page" aria-label={VIEWS[3].label} aria-hidden={active !== 3} inert={active !== 3 ? true : undefined}>
             {/* Plan (id 'calendar') */}
             {visited.has('calendar') && <CalendarView events={norm} anchors={anchors} wx={wx} />}
           </section>
-          <section className="page">
+          <section className="page" aria-label={VIEWS[4].label} aria-hidden={active !== 4} inert={active !== 4 ? true : undefined}>
             {visited.has('profile') && <ProfileView events={norm} anchors={anchors} primer={primer} />}
           </section>
         </div>
-        <TabBar active={active} onTab={goTo} inert={inertAll} />
+        <TabBar active={active} onTab={goTo} inert={baseInert} hidden={baseCovered || undefined} />
         {/* Keep transport failure globally visible above event subpages/detail.
             First-open onboarding stays topmost; the alert appears when it closes. */}
         {loadError && primer && (
-          <div className="load-note" role="alert" inert={inertAll}>
+          <div className="load-note" role="alert" inert={baseInert} aria-hidden={baseCovered || undefined}>
             <span className="load-txt">Events couldn’t load. Check your connection.</span>
             <button className="load-retry" onClick={retryEvents}>Try again</button>
           </div>
@@ -330,7 +435,7 @@ function Shell() {
         {/* M2a: quiet staleness disclosure — one line, dismissible, never blocks
             (z 1200: subpages/detail/primer all render over it) */}
         {staleAt != null && !staleHidden && (
-          <div className="stale-note" role="status" inert={inertAll}>
+          <div className="stale-note" role="status" inert={baseInert} aria-hidden={baseCovered || undefined}>
             <span className="stale-txt">Events from {dayStamp(staleAt)} — they may have changed</span>
             <button className="stale-x" onClick={() => setStaleHidden(true)} aria-label="Dismiss">
               ✕
@@ -341,7 +446,13 @@ function Shell() {
             entirely). The Deck + day-fill deck are the surviving decide-for-me
             surfaces. */}
         {page && (
-          <div className={'subpage' + (pageClosing ? ' subpage-closing' : '')}>
+          <div
+            className={'subpage' + (pageClosing ? ' subpage-closing' : '')}
+            ref={pageLayerRef}
+            tabIndex={-1}
+            inert={detail ? true : undefined}
+            aria-hidden={detail ? true : undefined}
+          >
             {page.type === 'bubble' && (
               <BubblePage
                 bubble={page.bubble}

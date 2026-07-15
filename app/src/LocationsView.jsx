@@ -211,11 +211,12 @@ export default function LocationsView({ coords }) {
             when located). Tap → PlaceDetail (where "Make this my plan" lives). */}
         {nearSpots.length > 0 && (
           <section className="sec">
-            {/* SP-L3: "Recommended near you" — carousel of SpotCards, closest with real photos first. */}
+            {/* Distance language appears only with a real location fix. Without
+                one, this is simply a transparent entry into the current catalog. */}
             <SecHead
-              overline="Worth a visit"
-              title="Recommended near you"
-              sub={coords ? 'Closest to you right now' : railReady(taste) ? 'Based on what you have tapped' : 'Local favorites to explore'}
+              overline={coords ? 'Near your location' : 'Start exploring'}
+              title={coords ? 'Nearby places to explore' : 'Places to explore'}
+              sub={coords ? 'Nearby options with available photos shown first' : railReady(taste) ? 'Ordered using what you have tapped' : 'A starting point from the current catalog'}
               onSeeAll={scrollToEverything}
             />
             <div className="home-picks">
@@ -228,11 +229,11 @@ export default function LocationsView({ coords }) {
 
         {driveSpots.length >= 2 && (
           <section className="sec">
-            {/* SP-L3: "Worth the drive" — excellent spots not in the near-you set. */}
+            {/* This is the next unused batch, not evidence of trip-worthiness. */}
             <SecHead
-              overline="A bit further out"
-              title="Worth the drive"
-              sub="Excellent spots a short trip away."
+              overline="Keep browsing"
+              title="More places to explore"
+              sub="More from the current catalog."
               onSeeAll={scrollToEverything}
             />
             <div className="home-picks">

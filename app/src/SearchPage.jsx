@@ -39,6 +39,7 @@ import {
   parseQuery,
   recordSearchRecent,
   removeSearchRecent,
+  resolveSearchScope,
   searchEvents,
   searchGuides,
   searchPlaces,
@@ -65,10 +66,9 @@ export default function SearchPage({ events, anchors, coords }) {
   const [dq, setDq] = useState('') // debounced ~120ms — drives the matcher
   const [recents, setRecents] = useState(loadSearchRecents)
   const [tab, setTab] = useState('all') // 3.7P-41: result-type scope (all/events/spots)
-  useEffect(() => {
-    const t = setTimeout(() => setDq(q), 120)
-    return () => clearTimeout(t)
-  }, [q])
+  const updateQuery = useCallback((value) => {
+    setQ(value)
+  }, [])
 
   // searchable pool: upcoming (span-aware) plus undated events; _dist attached
   // when App already has a location fix (RowFeed's showDist) — passive only
@@ -93,6 +93,25 @@ export default function SearchPage({ events, anchors, coords }) {
     }))
   }, [places, coords])
 
+  // Debounce the matcher and reconcile the selected scope against the same
+  // next-query counts in one timer. A still-valid scope stays selected; only a
+  // scope that disappeared resets to All.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const nextParsed = parseQuery(q, anchors)
+      const counts = nextParsed.empty
+        ? { events: 0, spots: 0, guides: 0 }
+        : {
+            events: searchEvents(pool, anchors, q).length,
+            spots: searchPlaces(placePool, anchors, q).length,
+            guides: searchGuides(GUIDES, q, anchors).length,
+          }
+      setDq(q)
+      setTab((current) => resolveSearchScope(current, counts))
+    }, 120)
+    return () => clearTimeout(t)
+  }, [q, pool, placePool, anchors])
+
   const parsed = useMemo(() => parseQuery(dq, anchors), [dq, anchors])
   const results = useMemo(
     // Phase 3.5: a date-only browse ("tonight"/"friday") may tilt by taste; a
@@ -113,6 +132,11 @@ export default function SearchPage({ events, anchors, coords }) {
   )
   const hasQ = !parsed.empty
   const total = results.length + placeResults.length + guideResults.length
+  const activeTab = resolveSearchScope(tab, {
+    events: results.length,
+    spots: placeResults.length,
+    guides: guideResults.length,
+  })
   // Stage R section labels (benchmark): events split into "Best matches" (the
   // top relevance-ranked hits — TRUE because searchEvents sorts by match score on
   // a TEXT query) + "Other events" (the rest). A DATE-ONLY browse isn't relevance-
@@ -162,11 +186,11 @@ export default function SearchPage({ events, anchors, coords }) {
   }
 
   const run = (s) => {
-    setQ(s) // chips run their query visibly in the input
+    updateQuery(s) // chips run their query visibly in the input
     inputRef.current?.focus()
   }
   const clear = () => {
-    setQ('')
+    updateQuery('')
     inputRef.current?.focus()
   }
 
@@ -189,12 +213,12 @@ export default function SearchPage({ events, anchors, coords }) {
             aria-label="Search events"
             autoFocus
             value={q}
-            onChange={(ev) => setQ(ev.target.value)}
+            onChange={(ev) => updateQuery(ev.target.value)}
             onKeyDown={(ev) => {
               // Escape clears the query first; a second Escape closes the page (App)
               if (ev.key === 'Escape' && q) {
                 ev.stopPropagation()
-                setQ('')
+                updateQuery('')
               }
               if (ev.key === 'Enter') submit()
             }}
@@ -226,9 +250,9 @@ export default function SearchPage({ events, anchors, coords }) {
                 .map((t) => (
                   <button
                     key={t.id}
-                    className={'srch-tab' + (tab === t.id ? ' on' : '')}
+                    className={'srch-tab' + (activeTab === t.id ? ' on' : '')}
                     onClick={() => setTab(t.id)}
-                    aria-pressed={tab === t.id}
+                    aria-pressed={activeTab === t.id}
                   >
                     {t.label} <span className="srch-tab-n">{t.n}</span>
                   </button>
@@ -238,12 +262,12 @@ export default function SearchPage({ events, anchors, coords }) {
                 ResultCard renders GemRow per event + SpotCard per place, so this
                 mixed feed splits itself per item. Not on the Guides tab (a guide
                 isn't a RowFeed item). key resets paging per query+tab. */}
-            {tab !== 'guides' && (
+            {activeTab !== 'guides' && (
               <RowFeed
-                key={dq.trim() + '|' + tab}
+                key={dq.trim() + '|' + activeTab}
                 sections={[
-                  ...(tab === 'all' || tab === 'events' ? eventSection : []),
-                  ...(tab === 'all' || tab === 'spots' ? placeSection : []),
+                  ...(activeTab === 'all' || activeTab === 'events' ? eventSection : []),
+                  ...(activeTab === 'all' || activeTab === 'spots' ? placeSection : []),
                 ]}
                 stagger
                 scrollRootRef={pgRef}
@@ -252,7 +276,7 @@ export default function SearchPage({ events, anchors, coords }) {
             )}
             {/* Guides — real GuidePages whose name/pov matched the query; shown in
                 the All feed (after events/spots) and as the dedicated Guides tab. */}
-            {(tab === 'all' || tab === 'guides') && guideResults.length > 0 && (
+            {(activeTab === 'all' || activeTab === 'guides') && guideResults.length > 0 && (
               <section className="sec">
                 <SecHead overline="Collections" title="Guides" />
                 <div className="intent-grid">

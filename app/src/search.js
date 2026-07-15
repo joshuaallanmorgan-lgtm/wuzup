@@ -324,6 +324,15 @@ export function searchGuides(guides, query, anchors) {
   return hits.map((h) => h.g)
 }
 
+// A result scope is valid only while that kind still has results. Query edits
+// can remove the selected scope; render All immediately so a nonzero total can
+// never sit above an empty body, then let SearchPage synchronize its state.
+export function resolveSearchScope(scope, counts = {}) {
+  if (scope === 'all') return 'all'
+  if (!['events', 'spots', 'guides'].includes(scope)) return 'all'
+  return Number(counts[scope] || 0) > 0 ? scope : 'all'
+}
+
 // ---- recent searches ('search-recents-v1' → twh:search-recents-v1) ----
 export const SEARCH_RECENTS_KEY = 'search-recents-v1'
 const RECENTS_CAP = 8

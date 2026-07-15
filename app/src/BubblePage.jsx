@@ -22,6 +22,7 @@ import { RowFeed } from './cards.jsx'
 import LensNav from './LensNav.jsx'
 import { tasteNudge } from './taste.js'
 import { DeckThisButton } from './LensDeck.jsx'
+import { matchesEventFilters } from './eventFilters.js'
 import './bubble.css'
 
 // TOUCHUP P2: ref-matched result headers for the time/free/near filters (the
@@ -76,6 +77,7 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
     const up = events
       .filter((e) => e._day != null && (e._endDay ?? e._day) >= anchors.todayTs)
       .map((e) => ({ ...e, _clamp: Math.max(e._day, anchors.todayTs) }))
+    if (bubble.kind === 'filters') return up.filter((e) => matchesEventFilters(e, bubble.filters, anchors))
     if (bubble.kind === 'time') {
       if (bubble.value === 'tonight') return up.filter((e) => e._tonight)
       // TOUCHUP P2: tomorrow = events that START tomorrow (a clean single-day list;
@@ -137,11 +139,15 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
           <div className="pg-count">
             {count.toLocaleString(fmtLocale)} event{count === 1 ? '' : 's'} in {CITY.name}
           </div>
-          <div className="bub-tag">{TAGLINES[bubble.id] || 'Picked fresh for you.'}</div>
+          <div className="bub-tag">
+            {bubble.kind === 'filters'
+              ? `Matching ${bubble.filterLabels?.join(' · ') || 'your selected filters'}`
+              : TAGLINES[bubble.id] || 'Browse the current listings.'}
+          </div>
           {/* Q2: this lens, as a finite swipe deck — explicit tap only.
               'sort' (Near Me) is the whole upcoming list: a four-digit
               "deck" is no decision aid, so that one gets no entry. */}
-          {count > 0 && bubble.kind !== 'sort' && (
+          {count > 0 && bubble.kind !== 'sort' && bubble.kind !== 'filters' && (
             <div className="bub-deckthis">
               <DeckThisButton lens={{ kind: 'bubble', bubble }} />
             </div>
@@ -171,7 +177,9 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
           <RowFeed sections={sections} stagger scrollRootRef={pgRef} onSelect={onSelect} />
         ) : (
           <div className="empty">
-            {EMPTIES[bubble.id] || `No ${bubble.label.toLowerCase()} listed right now.`}
+            {bubble.kind === 'filters'
+              ? 'No events match every selected filter.'
+              : EMPTIES[bubble.id] || `No ${bubble.label.toLowerCase()} listed right now.`}
             <br />
             New events land every time the finder runs — check back soon.
             {/* B1: a premium way back to the full feed (DRAFT copy ⚑ Charles) */}

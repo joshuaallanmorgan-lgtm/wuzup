@@ -122,6 +122,49 @@ expired, and hash-invalid sets are rejected by automated tests.
   removal of HTTP `Last-Modified` freshness, CI approval receipts, and the scheduled-refresh-to-production
   proof. Sprint 1 may define compatible seams but does not claim those exits early.
 
+#### Sprint 1 lane-start receipt - 2026-07-14 (yellow)
+
+- **H0-A committed:** `84a54b447fc480b46f2b601270fdd60a0ec8c404` is the independently reviewed
+  artifact-trust foundation. The worktree was clean immediately after commit; H0 remains operationally
+  honest that the current July 6-7 snapshots are expired and source-unverified.
+- **U0 independent truth/accessibility slice implemented and independently reviewed:** event filters now apply
+  `When AND Price AND Category` through one pure predicate, including chip-ID-to-category-value translation;
+  Search renders and resets through a valid result scope; every inactive pager page is `inert` and
+  `aria-hidden`; covered layers are hidden/inert; focus enters and returns from subpages/details; the filter
+  dialog traps focus; primary navigation exposes the current page; and Spots no longer calls an unlocated/
+  photo-first batch “Recommended near you” or the next unused batch “Worth the drive.” Focused U0 tests
+  pass 3/3, app lint/build and diff hygiene are green, and a fresh 390x844 system-Edge journey verified filter
+  entry/trap/return, Search scope preserve/reset/render and exact opener return, detail entry/exact-card return,
+  and inactive-page isolation. The durable checked-in browser version remains scheduled with Sprint 4's
+  Playwright seam rather than being hidden as an unscheduled prerequisite.
+- **Current full-gate receipt:** 140/141 checks pass. The only failure is the unchanged live fast-finder
+  corpus-health floor: two consecutive online runs produced 148 events against the 150 minimum. All finder
+  benchmarks, artifact checks, U0 checks, lint, Tampa/SF builds, and base-path checks otherwise pass. The
+  150-event gate was not weakened; Sprint 1 remains yellow until source health recovers or the corpus defect
+  is diagnosed.
+- **E0 inventory captured:** the current product has more than twenty independent rank paths. Frozen replay
+  reproduced Tampa Home leading with a rehabilitation-hospital opening and document-automation promo, plus
+  an SF New York-address workshop and a July-2026-to-December-2027 phantom range. The dependency-safe next
+  slice is artifact-pinned Tampa/SF event-and-spot fixtures, context labels, actual-surface baseline orders,
+  and pure evaluation metrics; production score weights and runtime wiring remain gated to Sprints 5-6.
+- **I0 inventory captured:** event image fields cover 1,439/1,642 Tampa rows and 678/743 SF rows, but collapse
+  to 630 and 534 unique URLs with no retained event image credit/provenance. Real place imagery is only
+  139/2,163 Tampa and 177/2,888 SF. Two known contextual/wrong place images were identified; all 35 Tampa
+  Mapillary JPEGs are 900x600 while receipts claim width 1280; and the documented transcription workflow
+  emits field names that Stage B does not read, forcing ordinary supervised SF candidates to zero. The next
+  bounded slice is a deterministic image report plus schema/dimension/trust tests and correction of known
+  wrong images before a supervised 40-60-item SF batch.
+- **L0 inventory captured:** H0 supplies the reusable city artifact identity, but runtime identity remains
+  compile-time, data stores and persistence are unkeyed, browser time is device-local, URLs are not durable,
+  and finder/CI/deploy contain two-city assumptions. `finder/places.mjs` also loads Florida-only adapters on
+  SF runs. The dependency-safe next slice is a pure synthetic location resolver and versioned cities-index
+  contract that separates resolved locality from artifact pack, coverage tier from health, and metro depth
+  from an honest thin/not-covered nationwide floor. React, workflows, and live crawling stay untouched.
+- **Sprint 1 remains yellow:** land the E0 frozen evaluation foundation; land the
+  I0 deterministic report and pipeline-contract fixes, then complete the supervised SF batch; land the L0
+  synthetic resolver/contract; and record the owner freshness-SLA decision. None of these findings promote
+  Sprint 5-6 ranking integration, Sprint 2 runtime loading, or public expansion into Sprint 1.
+
 ### Sprint 2 - H0-A production-byte trust and runtime data states
 
 **Outcome:** CI, deployment, and the browser agree on exactly which data is live and how failure is shown.

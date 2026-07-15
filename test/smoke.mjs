@@ -2273,7 +2273,7 @@ test('3.7P-41 §N Search: NL example prompts + result-type tabs', () => {
   // 0-match Guides tab hidden). Events split into "Best matches" / "Other events".
   assert.ok(/srch-tabs/.test(sp) && /id: 'events'/.test(sp) && /id: 'spots'/.test(sp) && /id: 'guides'/.test(sp), 'Search has All/Events/Spots/Guides result tabs')
   assert.ok(/t\.id === 'all' \|\| t\.n > 0/.test(sp), 'a result tab is only offered when it has matches (no dead empty tab)')
-  assert.ok(/tab === 'all' \|\| tab === 'events' \? eventSection/.test(sp), 'the active tab scopes which groups render')
+  assert.ok(/activeTab === 'all' \|\| activeTab === 'events' \? eventSection/.test(sp), 'the validated active tab scopes which groups render')
   assert.ok(/label: 'Best matches'/.test(sp) && /label: 'Other events'/.test(sp) && /Spots that fit/.test(sp), 'sections are labelled Best matches / Other events / Spots that fit')
   assert.ok(/searchGuides\(GUIDES/.test(sp) && /openGuide\(g\)/.test(sp), 'the Guides scope searches real GUIDES and opens their GuidePage')
   const srch = readFileSync(path.join(ROOT, 'app', 'src', 'search.js'), 'utf8')
