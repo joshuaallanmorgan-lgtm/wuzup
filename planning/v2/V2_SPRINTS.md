@@ -189,6 +189,21 @@ expired, and hash-invalid sets are rejected by automated tests.
   supervised 40-60-item SF batch, correction of known contextual/wrong images, dimension receipt repair, and
   owner licensing/storage/proxy/attribution decisions remain.
 
+#### Sprint 1 L0 execution receipt - 2026-07-15 (yellow)
+
+- **Synthetic location contract implemented:** a pure, self-identifying version-1 cities index validates city,
+  timezone, bounding-box, coverage, artifact-pack, fallback, and US-region facts. Deterministic resolution uses
+  query, then `/cities/<id-or-alias>`, then coordinates, and uses the default only when no explicit signal exists.
+- **Honest load boundary established:** healthy unexpired flagship packs may load; degraded/unknown packs carry
+  stable warnings; expired/failed packs refuse with stable codes; thin and not-covered fallbacks have no invented
+  artifact URL. The 20/20 focused L0 tests also reject decoded URL traversal, inherited schema values, and
+  incomplete shard/count sets, and prove that an injected later plan time refuses a previously ready expired pack;
+  Tampa/SF, the `sf` alias, contiguous US, Alaska, Hawaii, outside-region, explicit-unknown, invalid-coordinate,
+  identity-forgery, pack-state, and purity cases remain covered.
+- **Sprint 1 remains yellow:** the fixture and regional boxes are synthetic contract data only. No React/runtime,
+  finder/deploy, workflow, crawl, production-artifact, or public-location change landed, and this receipt does not
+  claim full-US data coverage or complete Sprint 1.
+
 ### Sprint 2 - H0-A production-byte trust and runtime data states
 
 **Outcome:** CI, deployment, and the browser agree on exactly which data is live and how failure is shown.
