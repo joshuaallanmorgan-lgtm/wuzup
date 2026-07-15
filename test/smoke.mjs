@@ -11,8 +11,7 @@
 //      must never leave the app pointing at the small fast-mode dataset.
 //   2. data invariants    — on the CURRENT full app/public/events.json, captured
 //      at module load (i.e. before the finder run can touch it). "Ended" is
-//      measured against the GENERATION stamp parsed from events.md (file
-//      mtime lies after any byte-identical restore — see generationTime());
+//      measured against its hash-bound artifact-manifest generation receipt;
 //      the invariant is "the finder wrote no already-ended events", not
 //      "no event has ended since". Windows note: node --test wall-clock can
 //      exceed the runner-reported time (spawned npm shells linger after the
@@ -36,13 +35,16 @@ import { fileURLToPath } from 'node:url'
 // place/category vocab from the canonical taxonomy (categories.js) — so a new city
 // doesn't fail the build on hard-coded Tampa values.
 import { bbox as CITY_BBOX, rosterBenchmark as CITY_ROSTER, cityId as CITY_ID } from '../finder/cities/index.mjs'
+import { verifyArtifactSet } from '../finder/artifact-manifest.mjs'
 import { fallbackReasonForStage, fuzzyMerge } from '../finder/finder.mjs'
+import { eventTime } from '../shared/city-time.mjs'
 import { PLACETYPE_HUE, CATEGORY_HUES } from '../app/src/categories.js'
 import * as deckdeal from '../app/src/deckdeal.js'
 import * as gesture from '../app/src/deckgesture.js'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const APP_EVENTS = path.join(ROOT, 'app', 'public', 'events.json')
+const APP_PUBLIC = path.join(ROOT, 'app', 'public')
+const APP_EVENTS = path.join(APP_PUBLIC, 'events.json')
 // D1 multi-tenant artifacts: the finder writes finder/output/<cityId>/…
 const FINDER_JSON = path.join(ROOT, 'finder', 'output', CITY_ID, 'events.json')
 const FINDER_MD = path.join(ROOT, 'finder', 'output', CITY_ID, 'events.md')
@@ -56,44 +58,23 @@ const STATIC_SOURCE_NAMES = new Set(
 assert.ok(existsSync(APP_EVENTS), `missing ${APP_EVENTS} — run "npm run refresh" first; the app has no data`)
 const fullRaw = readFileSync(APP_EVENTS, 'utf8')
 const fullEvents = JSON.parse(fullRaw)
-// "Ended" must be judged against the dataset's GENERATION time. File mtime is
-// untrustworthy here — any restore (this harness's own finally-restore, cp,
-// git checkout) rewrites identical content with a fresh mtime and would make
-// honest-at-write-time events read as "ended". The finder stamps the real
-// generation moment into events.md ("_Generated 6/10/2026, 12:21:37 PM · …_"),
-// written in the same run as both json files; trust it whenever the app copy
-// and the finder output are byte-identical (the normal pipeline state), else
-// fall back to mtime and say so in the failure message.
-// D-G2: the finder artifact carries stable event ids AHEAD of the deployed
-// copy (ids mint at finder emit; app/public changes only via `npm run
-// deploy-city`). "Same artifact" for stamp-trust purposes = identical once
-// ids are ignored on BOTH sides — byte-identity resumes at the next deploy.
-const sansIds = (raw) => {
-  try {
-    const a = JSON.parse(raw)
-    if (!Array.isArray(a)) return raw
-    for (const e of a) if (e && typeof e === 'object') delete e.id
-    return JSON.stringify(a)
-  } catch {
-    return raw
-  }
-}
-const genRefMs = (() => {
-  try {
-    if (
-      existsSync(FINDER_MD) &&
-      existsSync(FINDER_JSON) &&
-      sansIds(readFileSync(FINDER_JSON, 'utf8')) === sansIds(fullRaw)
-    ) {
-      const m = readFileSync(FINDER_MD, 'utf8').match(/_Generated ([^·]+) ·/)
-      const t = m ? new Date(m[1].trim()).getTime() : NaN
-      if (!Number.isNaN(t)) return { ms: t, src: 'events.md generation stamp' }
-    }
-  } catch {
-    /* unreadable sidecar — fall through to mtime */
-  }
-  return { ms: statSync(APP_EVENTS).mtimeMs, src: 'file mtime (no matching events.md stamp!)' }
-})()
+// "Ended" must be judged against immutable generation provenance bound to
+// these exact bytes. Freshness is intentionally not required here: this gate
+// asks whether the artifact was honest when written, while stale-data UX and
+// deployment gates own whether it is current enough to serve.
+const fullArtifactVerification = verifyArtifactSet({
+  root: APP_PUBLIC,
+  expectedCityId: CITY_ID,
+})
+assert.ok(
+  fullArtifactVerification.ok,
+  `app/public artifact verification failed: ${fullArtifactVerification.problems.join(' · ')}`,
+)
+const fullManifest = fullArtifactVerification.manifest
+const fullEventReceipt = fullManifest.artifacts.events
+const fullTimeZone = fullManifest.timeZone
+const generationMs = Date.parse(fullEventReceipt.generatedAt)
+assert.ok(Number.isFinite(generationMs), `invalid events generatedAt '${fullEventReceipt.generatedAt}'`)
 
 // ---------- helpers ----------
 function collect(child) {
@@ -121,19 +102,6 @@ function staticAcquisitionUnavailable(sources, expectedNames) {
   return receipts.every((source) => source.cached === true && source.fallbackReason === 'live-error')
 }
 
-// mirrors finder.mjs endedAtMs: date-only → exclusive next-midnight; timed
-// no-end → start + 3h assumed duration
-const ASSUMED_MS = 3 * 3600 * 1000
-function endedAtMs(e) {
-  const s = String(e.end || e.start || '')
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-    const [y, m, d] = s.split('-').map(Number)
-    return new Date(y, m - 1, d + 1).getTime()
-  }
-  const t = Date.parse(s)
-  if (Number.isNaN(t)) return NaN
-  return e.end ? t : t + ASSUMED_MS
-}
 const startHourOf = (s) => {
   const m = String(s || '').match(/T(\d{2}):/)
   return m ? Number(m[1]) : null
@@ -370,6 +338,33 @@ test('finder fast-mode: exit 0, benchmarks green, output schema-valid', { timeou
     // --- fast output exists and schema-validates: 20 random spot checks ---
     const fast = JSON.parse(readFileSync(FINDER_JSON, 'utf8'))
     assert.ok(Array.isArray(fast) && fast.length > 0, `finder/output/${CITY_ID}/events.json is not a non-empty array`)
+    const fastReceipt = runManifest.artifacts.events
+    const fastGenerationMs = Date.parse(fastReceipt.generatedAt)
+    assert.ok(Number.isFinite(fastGenerationMs), `fast manifest has invalid generatedAt '${fastReceipt.generatedAt}'`)
+    assert.equal(runManifest.generatedAt, fastReceipt.generatedAt, 'manifest generation aliases must agree')
+    assert.equal(fastReceipt.count, fast.length, 'fast manifest count must bind the emitted events array')
+
+    const fastCanonical = fast.map((event) => ({
+      event,
+      time: eventTime(event, { timeZone: runManifest.timeZone }),
+    }))
+    const fastInvalid = fastCanonical.filter(({ time }) => !time.ok)
+    assert.equal(
+      fastInvalid.length,
+      0,
+      `fresh finder output contains invalid event times: ${fastInvalid.slice(0, 5)
+        .map(({ event, time }) => `${event.id} "${event.title}" start=${event.start} end=${event.end} (${time.error})`)
+        .join('; ')}`,
+    )
+    const fastEnded = fastCanonical.filter(({ time }) => time.ok && time.endAt <= fastGenerationMs)
+    assert.equal(
+      fastEnded.length,
+      0,
+      `fresh finder output contains events ended at generation: ${fastEnded.slice(0, 5)
+        .map(({ event, time }) => `${event.id} "${event.title}" endAt=${new Date(time.endAt).toISOString()}`)
+        .join('; ')}`,
+    )
+
     const picked = []
     const count = Math.min(20, fast.length)
     // deterministic, evenly-spaced spot-check indices (was Math.random — flaky: a
@@ -428,25 +423,39 @@ test(`data invariants: full events.json (${fullEvents.length} events)`, (t) => {
     `junk-hour events (non-nightlife, 01:00–05:59 start): ${junk.slice(0, 5).map((e) => `"${e.title}" @ ${e.start}`).join('; ')}`
   )
 
-  // zero ended AS OF the dataset's generation time — the finder must never
-  // OUTPUT an already-over event; events ending after the snapshot is the
-  // stale-data banner's territory, not a data bug
-  // this invariant needs a TRUSTWORTHY generation reference. When the events.md
-  // stamp is missing/mismatched we fall back to file mtime, which a byte-identical
-  // restore or a git checkout rewrites to ~now (the Windows wall-clock quirk),
-  // making honest-at-write events read as already-ended. Hold the assertion when
-  // the real stamp is available; gate it (diagnostic, not red) in the degraded state.
-  const ended = fullEvents.filter((e) => !(endedAtMs(e) > genRefMs.ms))
-  if (genRefMs.src.startsWith('events.md')) {
-    assert.equal(
-      ended.length,
-      0,
-      `events already ended at generation time (${new Date(genRefMs.ms).toISOString()}, via ${genRefMs.src}): ` +
-        ended.slice(0, 5).map((e) => `"${e.title}" start=${e.start} end=${e.end}`).join('; ')
-    )
-  } else {
-    t.diagnostic(`generation stamp unavailable (using ${genRefMs.src}) — gating the ended-at-generation invariant (${ended.length} would-be-flagged)`)
-  }
+  // Zero valid rows ended AS OF the exact artifact's immutable generation
+  // time. Invalid legacy rows are explicit debt, not silently counted as
+  // ended; exact equality forces this ratchet to shrink when data is healed
+  // and rejects every new invalid row.
+  const fullCanonical = fullEvents.map((event) => ({
+    event,
+    time: eventTime(event, { timeZone: fullTimeZone }),
+  }))
+  const invalidDebt = fullCanonical
+    .filter(({ time }) => !time.ok)
+    .map(({ event, time }) => `${event.id}:${time.error}`)
+    .sort()
+  const expectedInvalidDebt = CITY_ID === 'tampa-bay'
+    ? [
+        '8be54b345ccd237e:end-before-start',
+        'ea7a370fe7fb7a46:end-before-start',
+      ].sort()
+    : []
+  assert.deepEqual(
+    invalidDebt,
+    expectedInvalidDebt,
+    `invalid event-time debt changed: ${invalidDebt.join(', ') || 'none'}`,
+  )
+
+  const ended = fullCanonical.filter(({ time }) => time.ok && time.endAt <= generationMs)
+  assert.equal(
+    ended.length,
+    0,
+    `events already ended at generation time (${new Date(generationMs).toISOString()}, hash-bound manifest): ` +
+      ended.slice(0, 5).map(({ event, time }) =>
+        `${event.id} "${event.title}" start=${event.start} end=${event.end} endAt=${new Date(time.endAt).toISOString()}`,
+      ).join('; '),
+  )
 
   // sponsored: the field exists (boolean) on EVERY event — labels can only
   // render if the data carries the flag (never-unlabeled invariant)
@@ -3454,6 +3463,16 @@ test('D-G2 stable ids: the recipe contract — versioned, day-based, folded, ven
   assert.notEqual(
     eventIdCanonical({ title: 'Baby Time', start: '2026-07-02' }, 'sf-east-bay'),
     c({ title: 'Baby Time', start: '2026-07-02' })
+  )
+  assert.match(
+    c({ title: 'Night Market', start: '2026-07-15T01:00:00+02:00' }),
+    /\|2026-07-15$/,
+    'stable id v1 must retain the literal publisher day even when the city day differs',
+  )
+  assert.equal(
+    c({ title: 'Mystery', start: 'July 15, 2026 7:00 PM' }),
+    'v1|tampa-bay|mystery|tbd',
+    'non-ISO dates must never mint a device-timezone-dependent identity day',
   )
 })
 

@@ -393,6 +393,36 @@ and migration tests pass; planner operations are idempotent and survive reload.
   atomic reactive planner snapshots, and truthful geolocation permission state remain.
   The two refused Tampa offset ranges still require upstream correction rather than silent reinterpretation.
 
+#### Sprint 3 finder city-time integration receipt - 2026-07-15 (yellow)
+
+- **Post-ingest generation now shares the city-time contract:** `finder/time.mjs` owns published identity days,
+  canonical city days, generation context, actionability, calendar distance, and interval merge selection. The
+  finder captures `Date.now()` once at run start and reuses that epoch for admission, today/weekend labels,
+  imminence scoring, source-health receipt time, `generatedAt`, and the ended-output benchmark.
+- **Intervals fail closed without sacrificing valid corroboration:** merge selection validates an end against both
+  its publisher's own start and the chosen merged start, falls back to the latest deterministic valid member pair,
+  and retains an invalid pair only when every explicit member is invalid. Adversarial regressions cover invalid-
+  end laundering, valid-member poisoning, reversed input order, midnight-exclusive ends, and assumed ranges that
+  cross midnight. Dedupe and span guards now consume the full canonical interval's `startDay`/`endDay`.
+- **Identity compatibility is explicit:** stable-ID recipe `v1` continues to mint from the literal published ISO
+  day, even when an offset-bearing instant projects onto a different city day. Non-ISO dates deterministically use
+  `tbd`; product grouping, recurrence, tags, display days, sorting, and expiry use canonical city semantics.
+- **Generation-time evidence is hash-bound:** the smoke gate no longer parses locale-formatted `events.md` or
+  falls back to file modification time. It verifies the exact `app/public` artifact manifest, ratchets Tampa's two
+  known `end-before-start` rows, requires zero ended valid rows at immutable generation time, and requires every
+  fresh fast-finder row to be canonical and actionable at its own receipt time.
+- **Verification is green and independently approved:** focused finder city-time tests pass 12/12; the complete
+  serial root gate passes 262/262, including the real fast finder, exact artifact trust, Tampa/SF and base-path
+  builds, app lint, and all browser-time contracts. Tampa remains SHA-256 `a8df0d0c...f875d090` (1,642 rows) and
+  SF remains `84981a8e...873b1d8` (743 rows); `app/public` still matches the pinned Tampa bytes.
+- **The boundary is deliberately narrow:** this receipt proves the post-ingest finder core, not every network
+  adapter. `render.mjs` plus ten Tampa adapters still contain host-calendar derivation. Their queued follow-up is
+  shared source-clock/run-epoch propagation, two mechanical adapter batches, render-date isolation, isolated
+  St. Pete recurrence, and a three-device-timezone fixture ratchet before any end-to-end invariance claim.
+- **Sprint 3 remains yellow:** complete the adapter/render follow-up, stable-ID dual-read migration, atomic reactive
+  planner snapshots, and truthful geolocation permission state. The two pinned Tampa invalid rows remain explicit
+  artifact debt until a newly generated artifact removes them; they are never silently reinterpreted.
+
 ### Sprint 4 - P0 core journeys and the browser release harness
 
 **Outcome:** every known release blocker is fixed through the real browser journey, not only a source seam.

@@ -7,6 +7,12 @@
 // - fetchWithTimeout(url, options?, timeoutMs?) is plain fetch + AbortController;
 //   pass headers (user-agent etc.) through options like a normal fetch call.
 
+import {
+  addCalendarDays,
+  cityMidnightMs,
+  dayIdAt,
+} from '../../shared/city-time.mjs';
+
 export const DEFAULT_TIMEOUT_MS = 20000;
 
 // Superset of the entity tables that had drifted across the 8 modules,
@@ -95,17 +101,22 @@ export async function fetchWithTimeout(url, options = {}, timeoutMs = DEFAULT_TI
 // Pass the `tz` exported by the module's own city config
 // (finder/cities/<cityId>.mjs) — the config stays the single source of truth.
 
-// 'YYYY-MM-DD' of an instant on the tz's wall clock (en-CA formats ISO-style).
+function instantMs(instant) {
+  const epochMs = instant instanceof Date ? instant.getTime() : instant;
+  if (!Number.isFinite(epochMs)) throw new TypeError('instant must be a valid Date or finite epoch');
+  return epochMs;
+}
+
+// 'YYYY-MM-DD' of an instant on the tz's wall clock.
 export function dayInTz(tz, instant = new Date()) {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
-  }).format(instant);
+  return dayIdAt(instantMs(instant), tz);
 }
 
 // UTC offset string ('-07:00' / '-08:00' / ...) in effect in tz at an instant.
 export function offsetInTz(tz, instant = new Date()) {
+  const epochMs = instantMs(instant);
   const part = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'longOffset' })
-    .formatToParts(instant)
+    .formatToParts(new Date(epochMs))
     .find((p) => p.type === 'timeZoneName');
   const m = /GMT([+-]\d{2}:\d{2})/.exec(part?.value || '');
   return m ? m[1] : '+00:00';
@@ -114,6 +125,7 @@ export function offsetInTz(tz, instant = new Date()) {
 // Offset in effect in tz on a 'YYYY-MM-DD' calendar day (probed at noon UTC,
 // away from the 2 a.m. DST switch hours — mirrors finder.mjs cityOffsetFor).
 export function offsetForDay(tz, dayStr) {
+  addCalendarDays(dayStr, 0);
   return offsetInTz(tz, new Date(`${dayStr}T12:00:00Z`));
 }
 
@@ -121,8 +133,7 @@ export function offsetForDay(tz, dayStr) {
 // noon-probe offset is re-checked at the constructed instant so a midnight
 // across a DST switch resolves to the offset actually in effect.
 export function midnightInTz(tz, dayStr) {
-  const guess = new Date(`${dayStr}T00:00:00.000${offsetForDay(tz, dayStr)}`);
-  return new Date(`${dayStr}T00:00:00.000${offsetInTz(tz, guess)}`);
+  return new Date(cityMidnightMs(dayStr, tz));
 }
 
 // Local ISO stamp ('YYYY-MM-DDTHH:MM:SS±HH:MM') of a UTC instant on the tz's
@@ -138,6 +149,5 @@ export function isoInTz(tz, instant) {
 
 // 'YYYY-MM-DD' + n days, pure UTC math (no local-TZ surprises).
 export function addDaysStr(dayStr, days) {
-  const [y, m, d] = dayStr.split('-').map(Number);
-  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+  return addCalendarDays(dayStr, days);
 }
