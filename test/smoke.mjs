@@ -47,6 +47,7 @@ const APP_EVENTS = path.join(ROOT, 'app', 'public', 'events.json')
 // D1 multi-tenant artifacts: the finder writes finder/output/<cityId>/…
 const FINDER_JSON = path.join(ROOT, 'finder', 'output', CITY_ID, 'events.json')
 const FINDER_MD = path.join(ROOT, 'finder', 'output', CITY_ID, 'events.md')
+const FINDER_MANIFEST = path.join(ROOT, 'finder', 'output', CITY_ID, 'artifact-manifest.json')
 
 // ---------- capture the CURRENT full dataset BEFORE anything can mutate it ----------
 assert.ok(existsSync(APP_EVENTS), `missing ${APP_EVENTS} — run "npm run refresh" first; the app has no data`)
@@ -271,7 +272,7 @@ test('finder fast-mode: exit 0, benchmarks green, output schema-valid', { timeou
     return d.isDirectory() ? walkJson(p) : d.name.endsWith('.json') ? [p] : []
   })
   const cacheFiles = existsSync(cacheDir) ? walkJson(cacheDir) : []
-  const backups = [APP_EVENTS, FINDER_JSON, FINDER_MD, ...cacheFiles]
+  const backups = [APP_EVENTS, FINDER_JSON, FINDER_MD, FINDER_MANIFEST, ...cacheFiles]
     .filter((f) => existsSync(f))
     .map((f) => [f, readFileSync(f)])
   let res
@@ -676,7 +677,7 @@ test('D1 deploy seam: deploy.mjs exists + refuses an incomplete set + scratch-de
   // the per-city artifact set is COMPLETE for BOTH registered cities (deploy's
   // contract — Stage D sf-app: sf-east-bay is deployable from this commit on)
   for (const city of ['tampa-bay', 'sf-east-bay']) {
-    for (const f of ['events.json', 'places.json', 'guides.json', 'place-img']) {
+    for (const f of ['events.json', 'places.json', 'guides.json', 'artifact-manifest.json', 'place-img']) {
       assert.ok(existsSync(path.join(ROOT, 'finder', 'output', city, f)), `finder/output/${city}/${f} missing — the deployable set is incomplete`)
     }
   }

@@ -21,11 +21,18 @@
 // under 24h serve re-runs instantly; the weekly cron always goes live).
 
 import { writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { enrichPlacesWithImages } from './places-images.mjs';
 import { enrichPlacesWithDescriptions } from './places-descriptions.mjs';
-import { bbox as TB_BOX, govOrder as GOV_ORDER, touristCentroids as TOURIST_CENTROIDS, cityId, meta as CITY_META } from './cities/index.mjs';
+import { bbox as TB_BOX, govOrder as GOV_ORDER, touristCentroids as TOURIST_CENTROIDS, cityId, meta as CITY_META, tz as CITY_TZ } from './cities/index.mjs';
+import {
+  atomicWriteFileSync,
+  invalidateManifest,
+  summarizeSourceHealth,
+  writeManifest,
+} from './artifact-manifest.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 // D1 multi-tenant artifacts: outputs AND caches are namespaced per city (a
@@ -627,9 +634,13 @@ async function main() {
   console.log(`  📝 descriptions: +${descStats.set} from Wikipedia (${descStats.noArticle}/${descStats.candidates} wikidata places have no article)`);
 
   // ---- write outputs --------------------------------------------------------
+  const generatedAt = new Date().toISOString();
+  const runId = `places-${cityId}-${randomUUID()}`;
+  const sourceHealth = summarizeSourceHealth(report, { runId, checkedAt: generatedAt });
   mkdirSync(OUT, { recursive: true });
+  const previousManifest = invalidateManifest(OUT, { expectedCityId: cityId, expectedTimeZone: CITY_TZ });
   const payload = { schemaVersion: 1, places };
-  writeFileSync(join(OUT, 'places.json'), JSON.stringify(payload, null, 2));
+  atomicWriteFileSync(join(OUT, 'places.json'), `${JSON.stringify(payload, null, 2)}\n`);
 
   const typeDist = {};
   for (const p of places) typeDist[p.placeType] = (typeDist[p.placeType] || 0) + 1;
@@ -643,7 +654,7 @@ async function main() {
   // City name from the active config — byte-identical for Tampa (meta.name
   // is 'Tampa Bay'), honest for every other city's artifact.
   let md = `# ${CITY_META.name} Places — ${places.length} real places\n\n`;
-  md += `_Generated ${new Date().toLocaleString('en-US')} · sources: ${report.map((r) => r.source).join(', ')}_\n\n`;
+  md += `_Generated ${new Date(generatedAt).toLocaleString('en-US', { timeZone: CITY_TZ })} · sources: ${report.map((r) => r.source).join(', ')}_\n\n`;
   md += `## Summary\n\n`;
   md += `- Total places: ${places.length}\n`;
   md += `- By type: ${Object.entries(typeDist).sort((a, b) => b[1] - a[1]).map(([t, n]) => `${t} ${n}`).join(' · ')}\n`;
@@ -661,7 +672,7 @@ async function main() {
   for (const p of places.filter((x) => x.srcCount >= 3).slice(0, 25)) {
     md += `- **${p.name}** — ${p.placeType} · sources: ${p.sources.join(', ')}\n`;
   }
-  writeFileSync(join(OUT, 'places.md'), md);
+  atomicWriteFileSync(join(OUT, 'places.md'), md);
 
   // D1: the app's copy (app/public/places.json — the second lazy fetch) is
   // written ONLY by the deploy step (`npm run deploy-city`, finder/deploy.mjs).
@@ -740,6 +751,16 @@ async function main() {
   }
 
   console.log('──────────────────────────────────────────');
+  const manifest = writeManifest({
+    root: OUT,
+    cityId,
+    timeZone: CITY_TZ,
+    previousManifest,
+    componentReceipts: {
+      places: { generatedAt, runId, provenance: 'finder-run', sourceHealth },
+    },
+  });
+  console.log(`  Sealed: ${manifest.buildId}`);
   console.log(`  Wrote: finder/output/${cityId}/places.json  (structured, schema v1)`);
   console.log(`  Wrote: finder/output/${cityId}/places.md    (readable + hidden shelf for the eyeball pass)`);
   console.log('  (ship into the app with: npm run deploy-city)');

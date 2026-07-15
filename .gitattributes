@@ -1,2 +1,7 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Artifact identities hash the bytes users actually receive. Pin deployable
+# JSON to LF so Windows and Linux checkouts produce the same SHA-256 values.
+finder/output/**/*.json text eol=lf
+app/public/*.json text eol=lf

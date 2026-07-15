@@ -28,7 +28,8 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, copyFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { area as cityArea, cafe as cityCafe, imagery as cityImagery, cityId } from './cities/index.mjs';
+import { area as cityArea, cafe as cityCafe, imagery as cityImagery, cityId, tz as CITY_TZ } from './cities/index.mjs';
+import { invalidateManifest } from './artifact-manifest.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -39,6 +40,7 @@ const REVIEW = path.join(CROP_DIR, '_review');
 // city's crops (the old app/public/place-img target deleted Tampa's 35 ships on
 // any other city's run). deploy.mjs is what copies the dir into app/public/.
 const PLACE_IMG = path.join(ROOT, 'finder', 'output', cityId, 'place-img');
+const OUTPUT_ROOT = path.join(ROOT, 'finder', 'output', cityId);
 const MAP_CACHE = path.join(ROOT, 'finder', 'cache', cityId, 'place-mapillary-images.json');
 
 // thresholds: config DEFAULTS (per active city), env vars still override at runtime.
@@ -270,6 +272,7 @@ if (SHIP) {
   // diff (idempotent timestamps); a genuinely new ship gets NOW.
   const prev = existsSync(MAP_CACHE) ? JSON.parse(readFileSync(MAP_CACHE, 'utf8')) : { byKey: {} };
   const prevByKey = prev.byKey || {};
+  invalidateManifest(OUTPUT_ROOT, { expectedCityId: cityId, expectedTimeZone: CITY_TZ, preservePending: true });
   if (existsSync(PLACE_IMG)) rmSync(PLACE_IMG, { recursive: true, force: true });
   mkdirSync(PLACE_IMG, { recursive: true });
   const byKey = {};
@@ -357,4 +360,7 @@ writeFileSync(path.join(REVIEW, '_verdicts.json'), JSON.stringify({
 }, null, 2));
 
 console.log(`SHIPPED ${shipped.length}/${totalCafes} cafes (${pct(shipped.length, totalCafes)}%) · TierA ${tierA.length} (lenient ${lenientA.length}) · TierB ${tierB.length} · ${SHIP ? 'CACHE+JPEGs WRITTEN' : 'report only (no --ship)'}`);
+if (SHIP) {
+  console.log('artifact manifest remains invalid pending places-images.mjs; deploy-city will refuse the intermediate image tree');
+}
 console.log('reject tally:', JSON.stringify(tally));

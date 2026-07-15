@@ -1,6 +1,7 @@
 # Wuzup V2 — implementation coordination packet
 
-> **Status:** Gate Zero verified; base commit pending; implementation has not started.
+> **Status:** archived coordination experiment. Gate Zero is `V2_BASE_SHA=e7782d9`; active Sprint 1
+> execution and receipts now live in `V2_SPRINTS.md` under the sole-builder operating model.
 > **Authority:** subordinate to `V2_PLAN.md` and `ADVERSARIAL_AUDIT_2026-07-14.md` once those
 > source-task artifacts are integrated into the implementation base.
 
@@ -44,7 +45,8 @@ No worker may infer that a clean checkout in its own task means the source-task 
 - `git diff --check`: pass.
 - Expected H0 diagnostic remains visible: the current default artifact has no matching immutable
   generation stamp, so the ended-at-generation invariant is gated rather than falsely certified.
-- Remaining Gate Zero action: commit this planning-only set and record that commit as `V2_BASE_SHA`.
+- Gate Zero planning was committed as `e7782d9`; that commit is the shared `V2_BASE_SHA` unless the
+  architect records a tested successor before implementation begins.
 
 ## 3. Five-chat operating model
 

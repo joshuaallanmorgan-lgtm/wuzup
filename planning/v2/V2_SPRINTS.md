@@ -1,0 +1,427 @@
+# Wuzup V2 - active sprint map
+
+> **Status:** owner-ratified execution map; Sprint 1 active - 2026-07-14
+>
+> **Authority:** subordinate to [V2_PLAN.md](V2_PLAN.md). This file translates the current scope and
+> dependency queue into delivery cycles; it does not admit features that the plan parks in V3.
+
+## Executive answer
+
+The minimum credible V2 program is a short Sprint 0 closeout plus **17 two-week sprints**. The nominal
+elapsed time is about **35 weeks** if every gate passes on the first attempt. Five lanes run in parallel,
+so the sprint count is driven by integration order and validation time, not by adding every lane's effort
+end to end.
+
+The schedule driver is honest United States coverage. The app, finder, deployment path, runtime state,
+relevance model, imagery policy, and two-city product must become trustworthy before new locations are
+published. Location architecture and source work can develop in parallel, but rollout cannot bypass those
+gates.
+
+This estimate assumes:
+
+- Sprint 0 takes no more than three working days; Sprints 1-17 are two weeks each.
+- H0, E0, U0, I0, and L0 are logical workstreams, not persistent chats. The V2 Architect is the sole
+  integration owner and uses temporary in-task subagents only for read-only review or disjoint bounded work.
+- A failed exit gate extends the current sprint; the program does not declare a partial gate green.
+- "Full US" means any location resolves to truthful flagship, metro, thin, or not-covered behavior. It
+  does not promise flagship depth in every market.
+- Numeric relevance, imagery, and city thresholds remain proposed until the owner ratifies the baselines.
+- Validation may use privacy-preserving product-health measurement or explicit research sessions, but it
+  cannot be replaced by internal opinion.
+
+## Dependency spine
+
+```text
+S0 base lock
+  -> S1-S2 artifact trust
+  -> S3 runtime truth and durable state
+  -> S4 all P0 journeys
+  -> S5-S6 quality + credible first screen
+  -> S7-S10 whole existing product
+  -> S11-S12 two-city beta
+  -> S13-S15 diverse-city pilot and soak
+  -> S16 nationwide public beta
+  -> S17 V2.0 general availability
+```
+
+Imagery and location-foundry work begin in Sprint 1 and continue behind these gates. They are not deferred
+until Sprint 13; only their public expansion is deferred.
+
+## Foundation and trust
+
+### Sprint 0 - Baseline correction and program lock (up to three days)
+
+**Outcome:** every worker starts from the same real base, with the same scope and decision queue.
+
+Committed scope:
+
+- Record `e7782d9` as the provisional `V2_BASE_SHA` and reconcile stale coordination status.
+- Re-run the root gate, app lint/build, and `git diff --check`; preserve the current 129/129 receipt or
+  record its tested successor.
+- Capture starting artifact hashes and baseline quality, source, image, payload, accessibility, and core-
+  journey reports.
+- Open the owner decision log and schedule the freshness, planner-semantics, ranking, imagery, hosting,
+  and source-policy rulings at their last safe decision points.
+- Create bounded `imagery.md` and `us-coverage.md` specs without expanding V2 scope.
+
+**Exit gate:** one pinned base, green verification, current docs agree, missing decisions have owners and
+deadlines, and no worker depends on inaccessible prior-agent context.
+
+### Sprint 1 - H0-A artifact contract and atomic generation
+
+**Outcome:** the finder can produce a self-identifying, immutable city artifact set.
+
+Committed scope:
+
+- Define the shared artifact schema: schema version, city, IANA timezone, run/build ID, generated and
+  expiry times, source health, counts, shards, and hashes.
+- Emit the contract at the finder choke point and replace direct partial writes with atomic publication.
+- Add selected-city staging for local development and deterministic negative fixtures.
+- Start E0 frozen Tampa/SF rank and dedupe fixtures plus rank-path inventory.
+- Start U0's independent filter, Search-scope, inert/focus, and false-copy fixes away from shared hotspots.
+- Complete the I0 inventory and supervised SF imagery closeout; inventory L0's compile-time city assumptions.
+
+**Exit gate:** the same frozen input produces the same identified bytes; wrong-city, partial, malformed,
+expired, and hash-invalid sets are rejected by automated tests.
+
+#### Sprint 1 execution receipt - 2026-07-14 (yellow)
+
+- **Operating model:** the V2 Architect is the sole builder on `codex/v2-sprint-1`; temporary in-task
+  subagents are read-only or receive disjoint, bounded work. The earlier persistent H0/E0/U0/I0/L0 task
+  experiment was stopped to remove worktree/sidebar instability. The five labels remain lanes in this map,
+  not five required sidebar tasks.
+- **Pinned base:** `e7782d9ad70b12a435344ec676b7cc9dd34a6ff3`; the pre-implementation root gate passed
+  129/129 with app lint/build and both city builds green.
+- **Evidence captured:** Tampa's current finder `events.json` is 1,642 rows with stable IDs while the
+  previously deployed `app/public/events.json` is 1,665 rows without them. Their SHA-256 hashes differ,
+  proving the exact-byte guard is necessary rather than theoretical.
+- **H0-A foundation implemented in this branch:** each city has a versioned sidecar with content-addressed
+  `buildId`, exact-sidecar `manifestId`, city/IANA timezone, component run/provenance/freshness receipts,
+  explicit shard seam, source health, byte/count hashes, and a sorted image-tree hash. Primary event/place
+  writers publish through temp-and-rename, invalidate the old trust pointer before mutation, and seal the
+  manifest last. A successful finder run issues a new run receipt even when payload bytes are unchanged;
+  legacy snapshots remain explicitly `unknown` rather than being relabeled healthy or fresh. Supported
+  derived imagery/description writers also invalidate before mutation and require an explicit reseal. The
+  two-stage Mapillary flow keeps a non-public recovery receipt while its image-only intermediate state is
+  untrusted; `places-images` publishes only after place references and image files agree.
+- **Staging and refusal implemented:** local development locks `CITY` and `VITE_CITY`, launches Vite directly
+  through Node on Windows, and stages only a verified selected-city set. Deploy verifies source and destination
+  identities, removes the old pointer before flat-file publication, and leaves no manifest after an injected
+  interruption. Wrong-city, missing-member, malformed-schema, invalid-expiry, expired, forged-prior,
+  missing-local-image-reference, and hash-invalid sets fail closed.
+- **Verification successor:** focused artifact contract 9/9; complete root gate 138/138, including finder,
+  lint, Tampa/SF builds, base-path builds, exact-byte staging, and the real Windows Vite launch probe.
+- **Current artifact posture:** Tampa build `65a75e81...` and SF build `df88fafe...` are honestly receipted from
+  legacy July 6-7 snapshots. Both are expired under the proposed 48-hour event max age and retain source health
+  `unknown`; strict freshness/source flags therefore refuse them. This branch does not claim a refresh occurred.
+- **Sprint 1 gate remains yellow:** ratify the freshness SLA; keep render/cache provenance conservative until
+  those adapters expose exact live/cache age receipts; and land the committed E0 fixture/rank inventory, U0
+  independent truth/accessibility fixes, I0 inventory/SF imagery closeout, and L0 compile-time city-assumption
+  inventory.
+- **Held for Sprint 2 by design:** browser `loading | ready | stale | offline | error | empty` repository,
+  removal of HTTP `Last-Modified` freshness, CI approval receipts, and the scheduled-refresh-to-production
+  proof. Sprint 1 may define compatible seams but does not claim those exits early.
+
+### Sprint 2 - H0-A production-byte trust and runtime data states
+
+**Outcome:** CI, deployment, and the browser agree on exactly which data is live and how failure is shown.
+
+Committed scope:
+
+- Make CI approve exact city bytes; make deploy validate those bytes and publish the manifest last.
+- Add one runtime artifact repository for events and places with `loading`, `ready`, `stale`, `offline`,
+  `error`, and `empty` states plus retry/recovery.
+- Stop deriving freshness from HTTP `Last-Modified`; expose immutable generation age and source health.
+- Prove one scheduled refresh PR and its resulting deployment end to end.
+- Freeze the imagery receipt/credit schema and resolve the licensing/storage/proxy policy needed for build
+  work; let L0 extend, rather than fork, the H0 manifest.
+
+**Exit gate:** production hashes equal the approved hashes, stale/mixed/partial artifacts fail closed, a UI-
+only deploy cannot change the data date, and the scheduled refresh has a repo-visible receipt.
+
+### Sprint 3 - H0-B city time, identity, persistence, and planner state
+
+**Outcome:** time and user state mean the same thing across cities, devices, reloads, and refreshes.
+
+Committed scope:
+
+- Add one city clock and one actionable/ended-event predicate; correct all-day, range, DST, and ICS behavior.
+- Migrate from title/URL-derived keys to stable IDs with dual-read, idempotent migration.
+- Add versioned, city-scoped storage with schema validation and corrupt/quota recovery.
+- Add atomic, reactive planner operations and retained snapshots.
+- Correct geolocation permission state so denial or failure never appears enabled.
+
+**Exit gate:** cross-city isolation, three non-city timezones, DST, corrupt storage, quota failure, refresh,
+and migration tests pass; planner operations are idempotent and survive reload.
+
+### Sprint 4 - P0 core journeys and the browser release harness
+
+**Outcome:** every known release blocker is fixed through the real browser journey, not only a source seam.
+
+Committed scope:
+
+- Render current/future items in My Plans and make add, duplicate, confirmed-slot, undo, remove, and planned-
+  state semantics canonical.
+- Make category, date, and price filters combine; reset invalid Search scope truthfully.
+- Make inactive pages and covered layers inert; repair focus return and back behavior.
+- Add an ErrorBoundary, validated storage loads, fetch timeout/retry, and honest error-versus-empty treatment.
+- Remove or correct unsupported `Open now`, `near you`, freshness, and other recommendation claims.
+- Add Playwright core journeys, axe checks, and the first failure/time/state matrix.
+
+**Exit gate:** every audit P0 has an automated regression; the complete first-visit -> find -> add -> Day/
+Calendar/Profile/My Plans -> remove journey passes in Tampa and SF with no console error.
+
+## Relevance and the existing product
+
+### Sprint 5 - E0 corpus quality, source health, and signal foundation
+
+**Outcome:** the corpus and evidence needed for honest ranking exist before ranking is tuned.
+
+Committed scope:
+
+- Add source-health SLOs, recurrence/range normalization, canonical duplicate/series identity, decision-field
+  confidence, and source-concentration reporting.
+- Capture organizer, status, raw categories, description length, image rank, OSM provenance/brand, government
+  backing, and the other currently discarded signals.
+- Start the retained snapshot/signals archive for velocity and organizer/source track record.
+- Fix deterministic quality-floor defects and assert count preservation and payload budgets.
+- Run the owner labeling session; ratify the relevance/gem rubric, demote-versus-drop policy, tier language,
+  and numeric evaluation targets.
+- Begin the licensed image ingest/validation/fallback pipeline and L0 platform-adapter interfaces.
+
+**Exit gate:** zero cancelled, ended, wrong-market, known-junk, or known false-merge rows appear in a sampled
+top 50 per flagship city, or the city is explicitly labelled limited; baseline category/dedupe/source reports
+and frozen human judgments are reproducible.
+
+### Sprint 6 - E0 common rank contract and Credible First Screen
+
+**Outcome:** a new user sees three defensible choices and can make a real plan in about one minute.
+
+Committed scope:
+
+- Build one pure rank API that keeps corpus quality, objective context, and personal taste separate.
+- Emit honest tiers, diversity controls, and short reason codes while preserving full-catalog reachability.
+- Integrate the shared selector into Home's primary recommendations and the Events lead shelf.
+- Apply the truthful image hierarchy: exact item, verified venue/place, clearly contextual licensed image,
+  then honest Aurora fallback.
+- Ship browse-first entry, immediate local value, a decisive lead feed, and confirmed date/daypart plan add.
+- Complete premium loading/failure/empty, responsive, and accessible treatment for this first slice.
+
+**Exit gate:** Tampa and sparse SF each show three credible, diverse, non-expired, non-duplicate, correctly
+located choices with supported reasons; a new user reaches a visible plan in about 60 seconds; all legitimate
+inventory remains reachable.
+
+The optional build-time model judgment gate is **not** scheduled by default. It enters a later sprint only
+if a frozen evaluation shows deterministic rules cannot meet the ratified bar and the model materially lifts
+precision while remaining pinned, cached, versioned, costed, schema-validated, and fail-closed.
+
+### Sprint 7 - Unified objective discovery and truthful Spots
+
+**Outcome:** every existing discovery surface uses the same objective truth instead of a shelf-specific score.
+
+Committed scope:
+
+- Route Home, Tonight, Events, browse, Search defaults, Guides-lite, deck candidates, Plan suggestions, Spots,
+  and activities through the common rank contract.
+- Simplify Events from repeated shelves into a decisive ranked experience without hiding the catalog.
+- Add source/category/neighborhood diversity, honest evidence-tier claim language, and recurrence control.
+- Give Spots a real activity, amenity, quality, distance, hours-confidence, and quality-over-distance model.
+- Complete ratified quality phase-two work such as rank fusion, diversity re-ranking, gem slots, and fuzzy
+  dedupe only where frozen tests justify it.
+
+**Exit gate:** there is no second quality model in a surface; `near`, `recommended`, `worth the drive`, `gem`,
+and superlative labels map to inspectable math/evidence; ranking, category, dedupe, source-diversity, and never-
+hide gates pass.
+
+### Sprint 8 - Bounded personal relevance and taste loop
+
+**Outcome:** Wuzup meaningfully reorders good inventory for a person without making inventory disappear.
+
+Committed scope:
+
+- Use existing onboarding, interests, saves, plans, deck verdicts, went/skipped feedback, daypart, price,
+  distance, weather, novelty, and repetition in an explainable on-device taste model.
+- Keep the quality-ordered feed as cold start and apply bounded, signed personal adjustments above it.
+- Improve deck dealing, feedback transparency, and candidate coverage; reskin the existing deck without
+  creating a new co-swipe or social product.
+- Apply the personal layer consistently to events and places while keeping source/category diversity.
+
+**Exit gate:** strong positive/negative preferences move at least four matching items into/out of the real
+first 20, no category or source owns more than half of an unfiltered top 20, muted inventory remains reachable,
+and corrupt/no taste data falls back cleanly to objective quality.
+
+### Sprint 9 - Existing-flow depth and durable user value
+
+**Outcome:** the existing planner, guides, Search, Saves, and Profile turn discovery into durable value.
+
+Committed scope:
+
+- Give Plan/Day 3-6 complementary suggestions, honest reasons, reroll, and weather/distance/taste fit with
+  no planned or duplicate suggestion.
+- Enrich Guides-lite with truthful covers, freshness, sourced reasoning, and item resolution; do not create
+  community rankings.
+- Make Search, Saves, Profile, and user-added items kind-correct and complete.
+- Add durable event/place/plan routes and sharing plus full local-state export/import.
+- Replace placeholder support with a correction flow carrying item ID, source, and problem.
+
+**Exit gate:** detail and plan state survive refresh and can be shared; export/import round-trips supported
+state; planner suggestions are complementary and duplicate-free; no guide makes an unearned ranking claim.
+
+### Sprint 10 - Premium completion, accessibility, performance, and flagship imagery
+
+**Outcome:** every existing path reads and behaves like one finished product.
+
+Committed scope:
+
+- Finish shared Page, navigation/tabs, dialog/sheet, toast, chip, calendar, and card-action primitives.
+- Finish one motion/touch/focus/loading/icon grammar with reduced-motion support.
+- Complete light/dark, error/empty/loading, long-copy, small-mobile, tablet, and desktop behavior for every
+  existing surface; no new big-canvas product is admitted.
+- Add route/data splitting, defer the place index, keep content readable while imagery loads, and enforce
+  payload/boot budgets.
+- Complete privacy/CSP/referrer truth and make the offline posture explicit.
+- Reach the ratified flagship imagery targets and run the independent 100-image identity/credit audit.
+
+**Exit gate:** WCAG 2.2 AA and keyboard/screen-reader/switch journeys pass; 320, 390, 768, and 1440 px visual
+checks pass; no console error or measurable performance regression; imagery has zero wrong-place or uncredited
+items in the audit; the owner approves the premium existing-product pass.
+
+## Validation and United States coverage
+
+### Sprint 11 - Controlled Tampa/SF beta, cycle one
+
+**Outcome:** real use starts testing whether the product is trustworthy and useful, not merely attractive.
+
+Committed scope:
+
+- Run the full artifact, browser, failure, time, accessibility, and responsive release suite.
+- Use privacy-preserving health measurement or explicit research sessions to establish time to credible option,
+  time to first plan/save, source-link success, corrections, empty searches, duplicate exposure, and repeat use.
+- Fix every new P0 immediately and triage P1 findings against the V2 contract.
+- Keep L0 candidate cities private while foundry, source, hosting, and policy work continues.
+
+**Exit gate:** no open P0, green refresh/deploy SLOs, a reproducible beta report, and no evidence that the core
+first-value promise is false.
+
+### Sprint 12 - Controlled Tampa/SF beta, cycle two and pilot go/no-go
+
+**Outcome:** enough elapsed operation exists to decide whether expansion is responsible.
+
+Committed scope:
+
+- Complete a second beta cycle or the ratified equivalent set of observed research sessions.
+- Repair trust, relevance, planner, imagery, accessibility, and performance regressions.
+- Ratify the city-launch gates, national-source API/ToS posture, hosting/cadence, and operating budget.
+- Freeze the diverse 5-10-market pilot cohort and rollback/auto-demotion rules.
+
+**Exit gate:** the ratified trust and repeat-use signals pass, the entire two-city release gate is green, and
+the owner records an explicit go/no-go for public pilot expansion.
+
+### Sprint 13 - City Foundry integration and private diverse-market proof
+
+**Outcome:** the L0 work developed since Sprint 1 becomes one operational system.
+
+Committed scope:
+
+- Integrate runtime manifest/shards, location resolution, reusable platform adapters, per-location configs,
+  auto-gazetteer, source-health/politeness controls, tiered cadence, and manifest-last publication.
+- Make the Coverage Card derive sources, counts, freshness, imagery, and thin/not-covered status.
+- Build the selected 5-10 diverse markets privately across inland, small, and data-poor regimes.
+- Validate timezone/weather routing, payload budgets, cross-city guards, image receipts, and operating cost.
+
+**Exit gate:** every pilot market either meets its ratified launch gate or renders an honest limited state;
+there is no cross-city contamination, bespoke app code, policy breach, or unbounded owner-ops requirement.
+
+### Sprint 14 - Public 5-10-market pilot, cycle one
+
+**Outcome:** the foundry faces live source drift and public use at more than two cities.
+
+Committed scope:
+
+- Publish the approved pilot cohort with coverage/freshness disclosure and automatic demotion on source failure.
+- Closely audit the first cities in each source/capture regime, including links, dates, categories, images, and
+  recommendation evidence.
+- Measure refresh reliability, source concentration, corrections, payloads, owner time, and per-city cost.
+
+**Exit gate:** two weeks of green pilot operation, no silent thin-data regression, no severe identity/image
+breach, and a bounded correction/rollback path.
+
+### Sprint 15 - Pilot soak and private nationwide floor
+
+**Outcome:** the pilot proves repeatability while the honest any-US floor is tested privately.
+
+Committed scope:
+
+- Complete roughly 30 days of pilot operation or the owner-ratified equivalent reliability window.
+- Generate the nationwide thin/not-covered floor and test resolution across all 50 states plus DC.
+- Exercise representative urban, micropolitan, rural, border, timezone, sparse-source, and no-coverage points.
+- Confirm that owner audit time, source costs, refresh cadence, and storage/hosting stay within ratified bands.
+
+**Exit gate:** the pilot reliability window passes; every state plus DC resolves privately; the nationwide
+artifacts are sharded and truthful; no systemic source family or cost makes rollout unsustainable.
+
+### Sprint 16 - Full-US public beta
+
+**Outcome:** any US location works honestly in the real runtime system.
+
+Committed scope:
+
+- Publish the nationwide flagship/metro/thin/not-covered ladder with Coverage Card truth on every path.
+- Run national cross-city, timezone, weather, storage-isolation, payload, source-health, and image-provenance
+  regressions.
+- Repair beta findings without weakening launch gates or presenting thin coverage as flagship depth.
+
+**Exit gate:** all 50 states plus DC resolve; thin locations degrade usefully; freshness and coverage are visible;
+there is no cross-city contamination; metro depth requires config/adapters rather than app forks; H/E/U/I gates
+remain green under national loading.
+
+### Sprint 17 - V2.0 release certification and general availability
+
+**Outcome:** V2 exits as one supportable product, not as parallel experiments.
+
+Committed scope:
+
+- Run the complete immutable-artifact, core-browser, failure, time, accessibility, responsive, imagery, ranking,
+  and national-location suite against release bytes.
+- Close beta defects, prove rollback/recovery, publish runbooks and concise before/after reports, and update the
+  plan/registry status in the same change.
+- Record every numeric gate and policy ruling; do not silently implement unresolved owner decisions.
+
+**Exit gate:** every H, E, U, I, L, and F exit in [V2_PLAN.md](V2_PLAN.md) passes; production bytes equal tested
+bytes; no P0/P1 launch blocker remains; the owner gives the final product and visual go/no-go.
+
+## Parallel lane map
+
+| Lane | Primary build sprints | Validation/rollout sprints |
+|---|---|---|
+| H0 Trust | S1-S4 | S5-S17 operational gates |
+| E0 Relevance | S1 fixtures, S5-S8 build | S9-S17 tuning/regression |
+| U0/F0 Product | S1 independent fixes, S4, S6-S10 | S11-S17 beta remediation |
+| I0 Imagery | S1-S2 inventory/policy, S5-S10 pipeline/breadth | S13-S17 national receipts/audits |
+| L0 Locations | S1 inventory, S2-S10 architecture/foundry | S13-S16 pilot/nationwide rollout |
+| QA/release | S0 onward | S11-S17 full certification |
+
+## Owner decision calendar
+
+| Decision | Last safe point |
+|---|---|
+| First-value promise and V3 parking list | Before S1 starts |
+| Freshness SLA and stale/refusal behavior | Before S1 contract freezes |
+| Canonical quick-add and My Plans semantics | Before S3 planner store freezes |
+| Image license, attribution, contextual-use, storage/proxy policy | Before S2 pipeline implementation |
+| Relevance/gem rubric, chain/drop posture, tier language, numeric gates | During S5, before S6 integration |
+| Smart Engine scope = bounded on-device reorder over objective quality | Before S8 |
+| Beta measurement/research and privacy posture | Before S11 |
+| National-source API/ToS, hosting, cadence, city gates, operating budget | Before S13 |
+| Optional model-judgment gate | Only after a failed deterministic frozen eval |
+
+## Explicitly outside this sprint train
+
+The current plan does not authorize a separate sprint for the productized Day Engine/"Give me a Saturday,"
+Weekend Brief, Tonight Board, Plan takeover, co-swipe/Who's In/Pass-the-Day, Passport/recaps/Vault, accounts,
+friends, reviews, community rankings, runtime LLM concierge, push digest, in-app ticketing, map revival, Trip
+Mode, global expansion, elaborate ceremonies, or new big-canvas products.
+
+The archived 50%-population metro-depth ambition is also not a V2.0 exit in the current plan. After V2.0,
+metro-depth rollout can use repeatable V2.x expansion sprints, with a separately ratified market count and gate.
+Likewise, no V2.1 Dusk/big-canvas/recap sprint is scheduled unless the owner explicitly promotes it.

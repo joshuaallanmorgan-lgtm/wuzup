@@ -5,8 +5,11 @@
   "main": "index.js",
   "scripts": {
     "refresh": "node finder/finder.mjs",
+    "manifest-city": "node finder/build-manifest.mjs",
     "deploy-city": "node finder/deploy.mjs",
-    "test": "node --test test/smoke.mjs"
+    "dev-city": "node finder/dev-city.mjs",
+    "test:artifact": "node --test test/artifact-trust.mjs",
+    "test": "node --test --test-concurrency=1 test/artifact-trust.mjs test/smoke.mjs"
   },
   "keywords": [],
   "author": "",

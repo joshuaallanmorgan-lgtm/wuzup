@@ -19,7 +19,8 @@
 | File | Status | One-liner |
 |---|---|---|
 | [V2_PLAN.md](V2_PLAN.md) | **current** | GPT hardening plus relevance, premium existing UI, full-US locations, imagery, and bounded feature enrichment. |
-| [V2_COORDINATION.md](V2_COORDINATION.md) | ready | Architect/control-room packet for H0, E0, U0, I0, and L0. |
+| [V2_SPRINTS.md](V2_SPRINTS.md) | **active** | Dependency-gated Sprint 0 plus 17 two-week build, beta, pilot, nationwide, and release cycles; current execution receipts live here. |
+| [V2_COORDINATION.md](V2_COORDINATION.md) | archive | Five-task coordination experiment; logical lane ownership remains useful, but persistent sidebar workers were retired. |
 | [V2_VISION.md](V2_VISION.md) | archive | Fable Day Engine concept research; optional product ideas are nonbinding/V3. |
 | [smart-engine.md](smart-engine.md) | stub · rescope pending | On-device taste signals → bounded personal reorder/tiering over a quality-ordered base. |
 | [guides-and-rankings.md](guides-and-rankings.md) | stub | Honest popular + hidden-gem lists by interest; deeper successor to shipped guides-lite. |

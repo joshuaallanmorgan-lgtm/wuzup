@@ -1,0 +1,448 @@
+{
+  "schemaVersion": 1,
+  "cityId": "tampa-bay",
+  "timeZone": "America/New_York",
+  "runId": "legacy-tampa-bay-events-a8df0d0cefb461c6",
+  "generatedAt": "2026-07-07T12:25:56.000Z",
+  "expiresAt": "2026-07-09T12:25:56.000Z",
+  "maxAgeHours": 48,
+  "assembledAt": "2026-07-15T01:59:37.406Z",
+  "provenance": "legacy-markdown",
+  "sourceHealth": {
+    "status": "unknown",
+    "runId": "legacy-tampa-bay-events-a8df0d0cefb461c6",
+    "checkedAt": "2026-07-07T12:25:56.000Z",
+    "total": 26,
+    "healthy": 0,
+    "degraded": 0,
+    "failed": 0,
+    "unknown": 26,
+    "sources": [
+      {
+        "name": "Eventbrite (Free)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (Tampa)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (Tampa p2)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (Tampa p3)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (St. Pete)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (St. Pete p2)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (St. Pete p3)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (St. Pete Free)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (Clearwater)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (Clearwater p2)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (Clearwater p3)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (Clearwater Free)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "I Love the Burg",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Tampa Bay Events",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "AllEvents",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Do813",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Don't Tell Comedy",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Hillsborough Libraries",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Meetup",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Pinellas County",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "City of St. Petersburg",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "City of Tampa",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Univ. of Tampa",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Visit Tampa Bay",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Visit St. Pete/Clearwater",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "WMNF 88.5 + render",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      }
+    ],
+    "note": "Legacy artifact predates persisted per-source run receipts."
+  },
+  "artifacts": {
+    "events": {
+      "file": "events.json",
+      "sha256": "a8df0d0cefb461c6e417092b42de20067cf4f1bfb68314e5e91c4f70f875d090",
+      "bytes": 1532112,
+      "count": 1642,
+      "runId": "legacy-tampa-bay-events-a8df0d0cefb461c6",
+      "generatedAt": "2026-07-07T12:25:56.000Z",
+      "expiresAt": "2026-07-09T12:25:56.000Z",
+      "maxAgeHours": 48,
+      "provenance": "legacy-markdown",
+      "sourceHealth": {
+        "status": "unknown",
+        "runId": "legacy-tampa-bay-events-a8df0d0cefb461c6",
+        "checkedAt": "2026-07-07T12:25:56.000Z",
+        "total": 26,
+        "healthy": 0,
+        "degraded": 0,
+        "failed": 0,
+        "unknown": 26,
+        "sources": [
+          {
+            "name": "Eventbrite (Free)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (Tampa)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (Tampa p2)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (Tampa p3)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (St. Pete)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (St. Pete p2)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (St. Pete p3)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (St. Pete Free)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (Clearwater)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (Clearwater p2)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (Clearwater p3)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (Clearwater Free)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "I Love the Burg",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Tampa Bay Events",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "AllEvents",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Do813",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Don't Tell Comedy",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Hillsborough Libraries",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Meetup",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Pinellas County",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "City of St. Petersburg",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "City of Tampa",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Univ. of Tampa",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Visit Tampa Bay",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Visit St. Pete/Clearwater",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "WMNF 88.5 + render",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          }
+        ],
+        "note": "Legacy artifact predates persisted per-source run receipts."
+      }
+    },
+    "places": {
+      "file": "places.json",
+      "sha256": "749eed658f2df7c8f9d175391ba06518c7b88168f4e27afab0a63ff647e3a57b",
+      "bytes": 1358383,
+      "count": 2163,
+      "runId": "legacy-tampa-bay-places-749eed658f2df7c8",
+      "generatedAt": "2026-06-24T23:14:45.000Z",
+      "expiresAt": "2026-07-24T23:14:45.000Z",
+      "maxAgeHours": 720,
+      "provenance": "legacy-markdown",
+      "sourceHealth": {
+        "status": "unknown",
+        "runId": "legacy-tampa-bay-places-749eed658f2df7c8",
+        "checkedAt": "2026-06-24T23:14:45.000Z",
+        "total": 7,
+        "healthy": 0,
+        "degraded": 0,
+        "failed": 0,
+        "unknown": 7,
+        "sources": [
+          {
+            "name": "FDEP State Parks",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "FWC Boat Ramps",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Hillsborough County Parks",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "OSM",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Pinellas Park Points",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "SWFWMD Recreation",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Tampa Parks",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          }
+        ],
+        "note": "Legacy artifact predates persisted per-source run receipts."
+      }
+    },
+    "guides": {
+      "file": "guides.json",
+      "sha256": "d0a239aa8e0655198d19f01e9f42af7c1359dc69244e1fffe0c69b0046aa43c4",
+      "bytes": 452,
+      "count": 1,
+      "runId": "legacy-tampa-bay-guides-d0a239aa8e065519",
+      "generatedAt": null,
+      "expiresAt": null,
+      "maxAgeHours": null,
+      "provenance": "unknown"
+    }
+  },
+  "placeImages": {
+    "dir": "place-img",
+    "sha256": "a53552023e420f9e40486b528849748873d1fbcf30a76ecc7ba1c02c743cfcf3",
+    "bytes": 2294979,
+    "count": 35
+  },
+  "shards": [],
+  "buildId": "sha256:65a75e81823893d24051e99387364d1b1ab450be748f6dc58cc58c14d61d5381",
+  "manifestId": "sha256:035cb1eed7e67d143c4b0739d8dd3c2373bd3af2e85562aad0fc4895651615b1"
+}

@@ -16,11 +16,17 @@
 //       SKIP_EXTRA=1  node finder/finder.mjs   (skip the finder/sources/*.mjs modules)
 
 import { writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync } from 'node:fs';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { bbox as TB_BOX, geocodeViewbox, tz as CITY_TZ, geocode as CITY_GEO, cityId, meta as CITY_META, priors as CITY_PRIORS } from './cities/index.mjs';
 import { PRODUCT_UA } from './ua.mjs';
+import {
+  atomicWriteFileSync,
+  invalidateManifest,
+  summarizeSourceHealth,
+  writeManifest,
+} from './artifact-manifest.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 // D1 multi-tenant artifacts: every output AND every cache is namespaced per
@@ -1959,13 +1965,18 @@ async function main() {
         }
         all.push(...mapped);
         renderOk = true;
-        report.push({ source: 'Render sources', found: mapped.length, ok: true });
+        // render.mjs currently owns its cache fallback internally and does not
+        // expose whether these rows were live or cached. Record that uncertainty
+        // conservatively instead of laundering it into a healthy receipt.
+        report.push({ source: 'Render sources', found: mapped.length, ok: true, status: 'degraded' });
         console.log(`  ✅ ${'Render sources'.padEnd(26)} ${mapped.length} events`);
       }
     } else {
+      report.push({ source: 'Render sources', found: 0, ok: false, status: 'degraded', error: 'disabled by SKIP_RENDER=1' });
       console.log(`  ⏭️  ${'Render sources'.padEnd(26)} skipped (SKIP_RENDER=1)`);
     }
   } catch (e) {
+    report.push({ source: 'Render sources', found: 0, ok: false, error: String(e.message || e) });
     console.log(`  ⚠️  ${'Render sources'.padEnd(26)} unavailable (${e.message || e}) — continuing without them`);
   }
 
@@ -2048,6 +2059,7 @@ async function main() {
       }
     }
   } else {
+    report.push({ source: 'Extra source modules', found: 0, ok: false, status: 'degraded', error: 'disabled by SKIP_EXTRA=1' });
     console.log(`  ⏭️  ${'Extra source modules'.padEnd(26)} skipped (SKIP_EXTRA=1)`);
   }
 
@@ -2407,8 +2419,12 @@ async function main() {
     sponsored: count((e) => e.sponsored === true),
   };
 
+  const generatedAt = new Date().toISOString();
+  const runId = `events-${cityId}-${randomUUID()}`;
+  const sourceHealth = summarizeSourceHealth(report, { runId, checkedAt: generatedAt });
   mkdirSync(OUT, { recursive: true });
-  writeFileSync(join(OUT, 'events.json'), JSON.stringify(events, null, 2));
+  const previousManifest = invalidateManifest(OUT, { expectedCityId: cityId, expectedTimeZone: CITY_TZ });
+  atomicWriteFileSync(join(OUT, 'events.json'), `${JSON.stringify(events, null, 2)}\n`);
 
   // Human-readable markdown, grouped by display day. Ongoing events (started
   // in the past, still running) group under TODAY so stale month-old headings
@@ -2419,7 +2435,7 @@ async function main() {
   // City name from the active config — byte-identical for Tampa (meta.name
   // is 'Tampa Bay'), honest for every other city's artifact.
   let md = `# ${CITY_META.name} Events — found ${events.length} real events\n\n`;
-  md += `_Generated ${new Date().toLocaleString('en-US', { timeZone: CITY_TZ })} · sources: ${allSourceNames.join(', ')}${renderOk ? ' + render' : ''}_\n\n`;
+  md += `_Generated ${new Date(generatedAt).toLocaleString('en-US', { timeZone: CITY_TZ })} · sources: ${allSourceNames.join(', ')}${renderOk ? ' + render' : ''}_\n\n`;
   md += `## Summary\n\n`;
   md += `- Tonight: ${counts.tonight}\n`;
   md += `- This weekend: ${counts.weekend}\n`;
@@ -2452,7 +2468,7 @@ async function main() {
       md += `- ${time ? `**${time}** — ` : ''}${e.title}${where} · _${fmtPrice(e)}_ · 🔥${e.hotScore} · buzz ${e.buzz}${sponsored}${ongoing} · (${e.source})${link}\n`;
     }
   }
-  writeFileSync(join(OUT, 'events.md'), md);
+  atomicWriteFileSync(join(OUT, 'events.md'), md);
 
   // D1: the finder never writes the app's copy directly — `npm run deploy-city`
   // (finder/deploy.mjs) is the ONE writer of app/public data artifacts.
@@ -2550,6 +2566,16 @@ async function main() {
     }
   }
   console.log('──────────────────────────────────────────');
+  const manifest = writeManifest({
+    root: OUT,
+    cityId,
+    timeZone: CITY_TZ,
+    previousManifest,
+    componentReceipts: {
+      events: { generatedAt, runId, provenance: 'finder-run', sourceHealth },
+    },
+  });
+  console.log(`  Sealed: ${manifest.buildId}`);
   console.log(`  Wrote: finder/output/${cityId}/events.json  (structured)`);
   console.log(`  Wrote: finder/output/${cityId}/events.md    (readable)`);
   console.log('');
