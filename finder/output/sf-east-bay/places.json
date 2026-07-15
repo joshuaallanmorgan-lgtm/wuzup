@@ -7773,15 +7773,7 @@
       ],
       "wikidata": "Q4116375",
       "hiddenScore": 0,
-      "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/East_Bay_Life_Guard_Training.JPG/1280px-East_Bay_Life_Guard_Training.JPG",
-      "imageCredit": {
-        "author": "LasPo rocks",
-        "license": "CC0",
-        "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-        "url": "https://commons.wikimedia.org/wiki/File%3AEast%20Bay%20Life%20Guard%20Training.JPG",
-        "sourceFamily": "wikidata-p18"
-      }
+      "hidden": false
     },
     {
       "key": "p|briones-valley-viewpoint",
@@ -15677,14 +15669,6 @@
       "wikidata": "Q5192966",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/East_Bay_Life_Guard_Training.JPG/1280px-East_Bay_Life_Guard_Training.JPG",
-      "imageCredit": {
-        "author": "LasPo rocks",
-        "license": "CC0",
-        "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-        "url": "https://commons.wikimedia.org/wiki/File%3AEast%20Bay%20Life%20Guard%20Training.JPG",
-        "sourceFamily": "wikidata-p18"
-      },
       "description": "Cull Canyon Regional Recreation Area (CCRRA) is a regional park located in Castro Valley, Alameda County, California. It is part of the East Bay Regional Park District (EBRPD) system."
     },
     {

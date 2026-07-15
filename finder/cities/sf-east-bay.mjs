@@ -113,9 +113,10 @@ export const touristCentroids = [
 // comment block at the bottom of this file — a human review promotes them here.
 export const area = '';
 
-// Wikidata P18/P373 entity-image conflations to exclude (per-city; fills in as
-// the imagery pass finds them — starts empty like every honesty verdict set).
-export const qidDeny = [];
+// Wikidata P18/P373 entity-image conflations to exclude. Both entities resolve
+// to a lifeguard-training photo: related context, but not an exact photo of the
+// named trail or recreation area. Exact-place imagery fails closed to art.
+export const qidDeny = ['Q4116375', 'Q5192966'];
 
 // Mapillary cafe-imagery honesty (the OFFLINE Stage-B harness; per-city).
 export const cafe = {

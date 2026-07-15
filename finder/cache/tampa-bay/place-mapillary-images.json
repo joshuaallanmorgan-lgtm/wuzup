@@ -4,7 +4,8 @@
     "p|banyan-coffee-co": {
       "id": "522934939993817",
       "image": "/place-img/banyan-coffee-co.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "jcox",
@@ -18,7 +19,8 @@
     "p|beangood-coffee": {
       "id": "974016848499650",
       "image": "/place-img/beangood-coffee.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "allen",
@@ -32,7 +34,8 @@
     "p|buddy-brew-coffee": {
       "id": "206701701094933",
       "image": "/place-img/buddy-brew-coffee.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "jackdripper",
@@ -46,7 +49,8 @@
     "p|cafe-1001-and-creative-catering-company": {
       "id": "2776152355980246",
       "image": "/place-img/cafe-1001-and-creative-catering-company.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "coleman",
@@ -60,7 +64,8 @@
     "p|di-coffee-bar": {
       "id": "3993411867382548",
       "image": "/place-img/di-coffee-bar.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "jackdripper",
@@ -74,7 +79,8 @@
     "p|foundation-coffee-company": {
       "id": "484893932562446",
       "image": "/place-img/foundation-coffee-company.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "jackdripper",
@@ -88,7 +94,8 @@
     "p|grassroots-kava": {
       "id": "1169192823501228",
       "image": "/place-img/grassroots-kava.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "samsamples",
@@ -102,7 +109,8 @@
     "p|gypsysouls-coffeehouse-redington": {
       "id": "225871448998975",
       "image": "/place-img/gypsysouls-coffeehouse-redington.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "fdot_vl",
@@ -116,7 +124,8 @@
     "p|indian-shores-coffee": {
       "id": "1342952362741418",
       "image": "/place-img/indian-shores-coffee.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "fdot_vl",
@@ -130,7 +139,8 @@
     "p|kahwa-south": {
       "id": "920674348728641",
       "image": "/place-img/kahwa-south.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "samsamples",
@@ -144,7 +154,8 @@
     "p|kaleisia-tea-lounge": {
       "id": "1071050807021320",
       "image": "/place-img/kaleisia-tea-lounge.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "laye",
@@ -158,7 +169,8 @@
     "p|madison-avenue-cafe-and-deli": {
       "id": "652353633233497",
       "image": "/place-img/madison-avenue-cafe-and-deli.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "networklanman",
@@ -172,7 +184,8 @@
     "p|neighborhood-joe": {
       "id": "218242623086011",
       "image": "/place-img/neighborhood-joe.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "nfgusedautoparts",
@@ -186,7 +199,8 @@
     "p|nina-s-cafe-on-the-beach": {
       "id": "3257252564502403",
       "image": "/place-img/nina-s-cafe-on-the-beach.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "fdot_vl",
@@ -200,7 +214,8 @@
     "p|parkside-cafe": {
       "id": "1889082411246868",
       "image": "/place-img/parkside-cafe.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "lvl5",
@@ -214,7 +229,8 @@
     "p|pineapple-espresso": {
       "id": "2988536004759309",
       "image": "/place-img/pineapple-espresso.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "nfgusedautoparts",
@@ -228,7 +244,8 @@
     "p|raining-berries": {
       "id": "456553075449221",
       "image": "/place-img/raining-berries.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "samsamples",
@@ -242,7 +259,8 @@
     "p|starbucks-18": {
       "id": "753205092012301",
       "image": "/place-img/starbucks-18.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "samsamples",
@@ -256,7 +274,8 @@
     "p|starbucks-22": {
       "id": "158391199514303",
       "image": "/place-img/starbucks-22.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "fdot_vl",
@@ -270,7 +289,8 @@
     "p|starbucks-25": {
       "id": "1224995091291079",
       "image": "/place-img/starbucks-25.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "fdot_vl",
@@ -284,7 +304,8 @@
     "p|starbucks-29": {
       "id": "1676967175824433",
       "image": "/place-img/starbucks-29.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "fdot_vl",
@@ -298,7 +319,8 @@
     "p|starbucks-30": {
       "id": "379979213355234",
       "image": "/place-img/starbucks-30.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "lvl5",
@@ -312,7 +334,8 @@
     "p|starbucks-37": {
       "id": "936707000397501",
       "image": "/place-img/starbucks-37.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "fdot_vl",
@@ -326,7 +349,8 @@
     "p|starbucks-38": {
       "id": "827550541208634",
       "image": "/place-img/starbucks-38.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "fdot_vl",
@@ -340,7 +364,8 @@
     "p|starbucks-44": {
       "id": "479138580021201",
       "image": "/place-img/starbucks-44.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "cory_spatialnetworks_com",
@@ -354,7 +379,8 @@
     "p|starbucks-48": {
       "id": "4013967625346366",
       "image": "/place-img/starbucks-48.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "fdot_vl",
@@ -368,7 +394,8 @@
     "p|starbucks-52": {
       "id": "844951273067945",
       "image": "/place-img/starbucks-52.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "fdot_vl",
@@ -382,7 +409,8 @@
     "p|starbucks-57": {
       "id": "377027563659438",
       "image": "/place-img/starbucks-57.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "jackdripper",
@@ -396,7 +424,8 @@
     "p|starbucks-7": {
       "id": "1188296658285250",
       "image": "/place-img/starbucks-7.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "jpace",
@@ -410,7 +439,8 @@
     "p|starbucks-75": {
       "id": "957714605056349",
       "image": "/place-img/starbucks-75.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "samsamples",
@@ -424,7 +454,8 @@
     "p|swann-avenue-market-cafe": {
       "id": "619259266713896",
       "image": "/place-img/swann-avenue-market-cafe.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "PalauanReich",
@@ -438,7 +469,8 @@
     "p|tenth-street-coffee": {
       "id": "650653606780814",
       "image": "/place-img/tenth-street-coffee.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "jcox",
@@ -452,7 +484,8 @@
     "p|the-bikery": {
       "id": "468856554227142",
       "image": "/place-img/the-bikery.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "nfgusedautoparts",
@@ -466,7 +499,8 @@
     "p|the-sandwich-on-main": {
       "id": "2904712599776057",
       "image": "/place-img/the-sandwich-on-main.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "cory_spatialnetworks_com",
@@ -480,7 +514,8 @@
     "p|whistle-stop-caf": {
       "id": "4309207739089763",
       "image": "/place-img/whistle-stop-caf.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "jackdripper",

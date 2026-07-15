@@ -6,7 +6,7 @@
   "generatedAt": "2026-07-06T04:11:23.000Z",
   "expiresAt": "2026-07-08T04:11:23.000Z",
   "maxAgeHours": 48,
-  "assembledAt": "2026-07-15T01:59:37.659Z",
+  "assembledAt": "2026-07-15T14:27:36.844Z",
   "provenance": "legacy-markdown",
   "sourceHealth": {
     "status": "unknown",
@@ -312,8 +312,8 @@
     },
     "places": {
       "file": "places.json",
-      "sha256": "1f42b49ee860b3ad2a5a887192eaa0b77689ab457f4671b28bdda85c4a39ad78",
-      "bytes": 1531847,
+      "sha256": "3266d7bd41c784fb2a87295a17498c7a6194ea93ba2b37555bdb713c89774646",
+      "bytes": 1530924,
       "count": 2888,
       "runId": "legacy-sf-east-bay-places-1f42b49ee860b3ad",
       "generatedAt": "2026-07-07T15:01:25.000Z",
@@ -413,6 +413,6 @@
     "count": 0
   },
   "shards": [],
-  "buildId": "sha256:df88fafec557c009b195a845332273f006a074fc12dbe0d97292777e0a1bd4cb",
-  "manifestId": "sha256:1690a379633d3a7117ee167a8600d27a151d650bfad66ae9efa010af47c2740a"
+  "buildId": "sha256:7b025d648b008ee914eefbc0df65cc20b2ec783d405db8958779eb11ce35a0d7",
+  "manifestId": "sha256:64bb1151dc6ab947689ac5fa661b563ce5951c7c1098a7c1733884ddccccddf9"
 }

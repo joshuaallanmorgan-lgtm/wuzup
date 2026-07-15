@@ -11,6 +11,7 @@ import {
   mapillaryCropFailsClosed,
   normalizeMapillaryCropGuard,
 } from '../finder/mapillary-contract.mjs'
+import { qidDeny as sfQidDeny } from '../finder/cities/sf-east-bay.mjs'
 import {
   auditCityImagery,
   IMAGERY_FINDING_CODES,
@@ -18,17 +19,19 @@ import {
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const IMAGE_EXTENSIONS = new Set(['.avif', '.jpeg', '.jpg', '.png', '.webp'])
+const SF_CONTEXTUAL_IMAGE_QIDS = ['Q4116375', 'Q5192966']
+const SF_LIFEGUARD_IMAGE = 'East_Bay_Life_Guard_Training.JPG'
 const PINNED_ARTIFACTS = {
   'tampa-bay': {
     buildId: 'sha256:65a75e81823893d24051e99387364d1b1ab450be748f6dc58cc58c14d61d5381',
     events: 'a8df0d0cefb461c6e417092b42de20067cf4f1bfb68314e5e91c4f70f875d090',
     places: '749eed658f2df7c8f9d175391ba06518c7b88168f4e27afab0a63ff647e3a57b',
-    receipt: 'dae5b0c8b13b4bfe74db98640a2d82569222a360649e02290af744d70d0fc31b',
+    receipt: 'f0fd946135801ced6786d3bc6b46c3ae8235bde1999ce2c8fd44a064885bd29c',
   },
   'sf-east-bay': {
-    buildId: 'sha256:df88fafec557c009b195a845332273f006a074fc12dbe0d97292777e0a1bd4cb',
+    buildId: 'sha256:7b025d648b008ee914eefbc0df65cc20b2ec783d405db8958779eb11ce35a0d7',
     events: '84981a8ec48f0245e23e168fb63bc2071cceb5e1eda4e115828264a92873b1d8',
-    places: '1f42b49ee860b3ad2a5a887192eaa0b77689ab457f4671b28bdda85c4a39ad78',
+    places: '3266d7bd41c784fb2a87295a17498c7a6194ea93ba2b37555bdb713c89774646',
     receipt: null,
   },
 }
@@ -182,16 +185,45 @@ test('SF has no shipped local place JPEGs', async () => {
   assert.equal(report.mapillaryReceipts.available, false)
 })
 
-test('Tampa receipt dimensions disagree with the shipped local JPEGs', async () => {
+test('known SF contextual lifeguard images fail closed to the art floor', async () => {
+  const places = await readRows('sf-east-bay', 'places')
+  const attributions = JSON.parse(await readFile(
+    path.join(ROOT, 'finder', 'cache', 'sf-east-bay', 'attributions.json'),
+    'utf8',
+  ))
+  const affected = places.filter((place) => SF_CONTEXTUAL_IMAGE_QIDS.includes(place.wikidata))
+
+  for (const qid of SF_CONTEXTUAL_IMAGE_QIDS) assert.ok(sfQidDeny.includes(qid), `${qid} must remain denied`)
+  assert.equal(affected.length, SF_CONTEXTUAL_IMAGE_QIDS.length)
+  for (const place of affected) {
+    assert.equal(place.image, undefined, `${place.key} must not present a contextual training photo as exact`)
+    assert.equal(place.imageCredit, undefined, `${place.key} must not retain credit for an image it no longer ships`)
+  }
+  assert.equal(places.some((place) => String(place.image || '').includes(SF_LIFEGUARD_IMAGE)), false)
+  assert.equal(Object.keys(attributions.byFile).some((file) => file.includes('East Bay Life Guard Training')), false)
+  assert.equal(
+    attributions.fetchedAt,
+    '2026-07-07T11:54:59.649Z',
+    'offline attribution pruning must not fabricate a new source-fetch timestamp',
+  )
+})
+
+test('Tampa Mapillary receipts match the shipped local JPEG dimensions', async () => {
   const report = await auditCityImagery({ repoRoot: ROOT, cityId: 'tampa-bay' })
   const codes = new Set(report.findings.map((finding) => finding.code))
+  const receipt = JSON.parse(await readFile(
+    path.join(ROOT, 'finder', 'cache', 'tampa-bay', 'place-mapillary-images.json'),
+    'utf8',
+  ))
 
   assert.ok(report.mapillaryReceipts.entryCount > 0)
   assert.equal(report.mapillaryReceipts.dimensionsChecked, report.mapillaryReceipts.entryCount)
-  assert.equal(report.mapillaryReceipts.dimensionMismatches.length, report.mapillaryReceipts.entryCount)
-  assert.ok(report.mapillaryReceipts.dimensionMismatches.some((mismatch) =>
-    mismatch.expected.width === 1280 && mismatch.actual.width === 900))
-  assert.ok(codes.has(IMAGERY_FINDING_CODES.LOCAL_IMAGE_DIMENSION_MISMATCH))
+  assert.equal(report.mapillaryReceipts.dimensionMismatches.length, 0)
+  for (const [key, entry] of Object.entries(receipt.byKey)) {
+    assert.equal(entry.width, 900, `${key} receipt width must match its local JPEG`)
+    assert.equal(entry.height, 600, `${key} receipt height must match its local JPEG`)
+  }
+  assert.equal(codes.has(IMAGERY_FINDING_CODES.LOCAL_IMAGE_DIMENSION_MISMATCH), false)
 })
 
 test('audit reports stable findings for missing and broken local image files', async () => {

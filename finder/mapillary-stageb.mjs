@@ -29,6 +29,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, copyFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import sharp from 'sharp';
 import { area as cityArea, cafe as cityCafe, imagery as cityImagery, cityId, tz as CITY_TZ } from './cities/index.mjs';
 import { invalidateManifest } from './artifact-manifest.mjs';
 import { hasMapillaryGuardSignals, mapillaryCropFailsClosed } from './mapillary-contract.mjs';
@@ -278,10 +279,15 @@ if (SHIP) {
     const src = path.join(ROOT, r.cropPath);
     const dst = path.join(PLACE_IMG, `${r.slug}.jpg`);
     copyFileSync(src, dst);
+    const metadata = await sharp(dst).metadata();
+    if (!Number.isInteger(metadata.width) || !Number.isInteger(metadata.height)) {
+      throw new Error(`shipped crop dimensions unavailable for ${r.key}`);
+    }
     byKey[r.key] = {
       id: String(r.mapId),
       image: `/place-img/${r.slug}.jpg`,
-      width: 1280,
+      width: metadata.width,
+      height: metadata.height,
       license: 'CC BY-SA 4.0',
       licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
       author: r.creator || 'Mapillary contributor',

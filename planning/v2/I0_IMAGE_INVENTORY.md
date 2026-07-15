@@ -1,6 +1,6 @@
 # I0 imagery trust inventory
 
-> **Status:** Sprint 1 deterministic measurement and compatibility foundation; supervised SF imagery remains
+> **Status:** Sprint 1 deterministic measurement and compatibility foundation; supervised SF imagery remains pending
 >
 > **Authority:** [V2_PLAN.md](V2_PLAN.md) and [V2_SPRINTS.md](V2_SPRINTS.md). This inventory does not authorize
 > a crawl, a generated-artifact rewrite, or public imagery expansion.
@@ -81,17 +81,32 @@ canonical-LF text hash, so an artifact refresh must deliberately update this bas
 | Place/local metric | Tampa Bay | SF/East Bay |
 |---|---:|---:|
 | Total places | 2,163 | 2,888 |
-| Image-bearing | 139 (6.4263%) | 177 (6.1288%) |
-| Local / remote | 35 / 104 | 0 / 177 |
-| Dedicated provenance or credit | 139 | 177 |
+| Image-bearing | 139 (6.4263%) | 175 (6.0596%) |
+| Local / remote | 35 / 104 | 0 / 175 |
+| Dedicated provenance or credit | 139 | 175 |
 | Shipped local image files | 35 | 0 |
 | Missing / broken local files | 0 / 0 | 0 / 0 |
 | Mapillary receipt entries | 35 | 0 (receipt absent) |
-| Dimension checks / mismatches | 35 / 35 | 0 / 0 |
+| Dimension checks / mismatches | 35 / 0 | 0 / 0 |
 
-Every Tampa Mapillary receipt records width 1280 while every corresponding readable local JPEG is 900x600.
-The audit surfaces all 35 mismatches but deliberately does not rewrite either the receipts or generated image
-artifacts. SF has a tracked `.gitkeep` only; it has no shipped local place JPEGs and no Mapillary receipt.
+The original inventory found every Tampa Mapillary receipt recording width 1280 while every corresponding
+readable local JPEG was 900x600. The July 15 repair derives width and height from the copied JPEG in Stage B
+and corrects all 35 retained receipts to 900x600, so the mismatch finding is now absent. SF still has a tracked
+`.gitkeep` only; it has no shipped local place JPEGs and no Mapillary receipt.
+
+## Deterministic trust-debt repair - 2026-07-15
+
+SF QIDs `Q4116375` and `Q5192966` both resolved to `East Bay Life Guard Training.JPG`. The photo is related
+to the park operator/program but is not an exact photo of either the Briones-to-Mt-Diablo trail or Cull Canyon
+destination. Both QIDs now fail closed through the city deny list. Offline image enrichment removed the two
+place image/credit claims, pruned the unused attribution, and resealed the city set as build
+`sha256:7b025d648b008ee914eefbc0df65cc20b2ec783d405db8958779eb11ce35a0d7` without changing event bytes,
+place count, or any other image selection. Offline attribution pruning preserves the prior source `fetchedAt`
+instead of making local ledger maintenance look like a new remote fetch.
+
+The focused I0 contract now pins the corrected SF place bytes and Tampa receipt bytes, asserts that the
+lifeguard image is absent, and requires every retained Tampa receipt to match the readable local JPEG. Stage B
+reads actual copied-file metadata for all future receipts instead of assuming a requested source width.
 
 ## Stage-B schema drift and compatibility fix
 
@@ -112,11 +127,10 @@ output formats, and force-keep/force-drop verdicts are unchanged.
 
 This foundation is not the supervised batch. Before that batch ships:
 
-1. Resolve the two known contextual/wrong place-image findings in a separately authorized artifact change.
-2. Ratify licensing, storage/proxy, attribution, and contextual-image policy; the audit does not choose policy.
-3. Run the name-blind workflow on the planned supervised 40-60-item SF set, then adversarially review identity,
+1. Ratify licensing, storage/proxy, attribution, and contextual-image policy; the audit does not choose policy.
+2. Run the name-blind workflow on the planned supervised 40-60-item SF set, then adversarially review identity,
    pylon/dominance, credit, and crop quality rather than trusting a positive first pass.
-4. Re-run this audit against the proposed receipt/local files, correct dimension receipts, and publish/reseal
+3. Re-run this audit against the proposed receipt/local files and publish/reseal
    the city artifact only through the artifact-trust path.
 
 ## Explicit non-claims

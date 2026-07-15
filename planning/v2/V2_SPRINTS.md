@@ -225,10 +225,30 @@ expired, and hash-invalid sets are rejected by automated tests.
   finder, Tampa/SF and base-path builds, app lint, and deterministic failure-branch coverage. The gate repair
   passed separate spec and code-quality reviews; `git diff --check` was clean and the finder backup/restore left
   no generated-data drift.
-- **Sprint 1 remains yellow by the ratified all-or-nothing rule:** the supervised 40-60-item SF imagery batch,
-  known contextual/wrong-image corrections, Tampa dimension-receipt repair, and owner freshness plus imagery
-  policy decisions remain open. Sprint 2 implementation does not inherit a false green status from the completed
-  artifact/relevance/product-truth/location foundations.
+- **Sprint 1 remains yellow by the ratified all-or-nothing rule:** the supervised 40-60-item SF imagery batch
+  and owner freshness plus imagery-policy decisions remain open. Sprint 2 implementation does not inherit a false
+  green status from the completed artifact/relevance/product-truth/location foundations.
+
+#### Sprint 1 I0 trust-debt remediation receipt - 2026-07-15 (yellow)
+
+- **Known false/contextual SF image claims are removed:** `Q4116375` and `Q5192966` both supplied the same East
+  Bay lifeguard-training photo for different named destinations. The city deny list now sends both places to the
+  honest art floor; offline enrichment removed their image/credit fields, pruned the unused attribution, and
+  resealed the 2,888-place artifact without changing event bytes or any other image selection. The prune preserves
+  the prior source-fetch timestamp rather than fabricating freshness. SF now has 175 credited remote place images
+  rather than 177.
+- **Mapillary dimensions are truthful and future-safe:** all 35 retained Tampa receipts now match their readable
+  900x600 local JPEGs, eliminating all 35 `LOCAL_IMAGE_DIMENSION_MISMATCH` findings. Stage B records actual copied
+  JPEG width and height for future supervised runs instead of hardcoding a requested 1280-pixel source width.
+- **Focused verification is green:** `npm run test:i0` passes 14/14; the updated tests pin both corrected byte sets,
+  require the two SF QIDs and lifeguard image to remain off-artifact, and require every Tampa receipt dimension to
+  match its local file. Artifact trust and E0 focused gates also remain green, and the complete root successor
+  passes 184/184 with finder, lint, Tampa/SF builds, and base-path checks included.
+- **The remaining batch is externally gated, not silently simulated:** no SF Mapillary crop directory, candidate
+  manifest, transcription set, receipt, or local JPEG exists. Candidate generation needs network access and a
+  Mapillary token; shipping also requires name-blind transcription, independent adversarial review, a human
+  eyeball, and the owner imagery-policy ruling. Until those inputs exist, SF stays on verified Commons images plus
+  the art floor and Sprint 1 remains yellow.
 
 ### Sprint 2 - H0-A production-byte trust and runtime data states
 

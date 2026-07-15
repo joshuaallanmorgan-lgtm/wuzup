@@ -604,7 +604,9 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
     writeFileSync(GEO_CACHE_FILE, JSON.stringify(geoCache, null, 2));
   }
   if (attribDirty) {
-    attrib.fetchedAt = new Date().toISOString();
+    // The ledger also changes during an offline prune. Preserve source-fetch
+    // provenance unless this run actually contacted a remote image resolver.
+    if (stats.fetched > 0 || stats.geoFetched > 0) attrib.fetchedAt = new Date().toISOString();
     writeFileSync(ATTRIB_FILE, JSON.stringify(attrib, null, 2));
   }
   return stats;
