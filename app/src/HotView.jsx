@@ -4,7 +4,7 @@
 // EVENTS_GRIND: Tonight carousel → vertical GemRow "Tonight's best bets" +
 // new "This weekend" section (day-grouped GemRow); both gain honest _why lines.
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { BUBBLES, CAT_BUBBLES, CITY, Icon, LENS_BUBBLES, dayLabel, fmtLocale, hotDesc, keyOf, orderDay, tonightModel } from './lib.js'
+import { addDayTs, BUBBLES, CAT_BUBBLES, cityHour, CITY, Icon, LENS_BUBBLES, dayLabel, fmtLocale, hotDesc, keyOf, orderDay, tonightModel, weekdayIndex } from './lib.js'
 import LensNav from './LensNav.jsx'
 import TasteTuner from './TasteTuner.jsx'
 import { curateFeed, collapseSeries } from './curate.js'
@@ -18,8 +18,6 @@ import { DeckThisButton } from './LensDeck.jsx'
 import SearchBarButton from './SearchBarButton.jsx'
 import { whyFits } from './weekend.js'
 import { dateKey } from './weather.js'
-
-const DAY_MS = 86400000
 
 // derive a neighborhood/city from a US address ("…, City, ZIP") — the last
 // non-ZIP, non-state, non-street segment. null when not confidently parseable
@@ -74,7 +72,7 @@ export default function HotView({ events, anchors, loading, loadError = false })
     }
   }, [])
 
-  const tonight = useMemo(() => tonightModel(upcoming, anchors, new Date(nowMs)), [upcoming, anchors, nowMs])
+  const tonight = useMemo(() => tonightModel(upcoming, anchors, nowMs), [upcoming, anchors, nowMs])
 
   const { watchGuides } = useGuides()
   const activeWatch = useMemo(
@@ -132,7 +130,8 @@ export default function HotView({ events, anchors, loading, loadError = false })
     () => session.slice(0, 3).map((k) => byKey.get(k)).filter(Boolean),
     [session, byKey]
   )
-  const daypart = new Date(nowMs).getHours() >= 17 || new Date(nowMs).getHours() < 5 ? 'tonight' : 'today'
+  const nowHour = cityHour(nowMs)
+  const daypart = nowHour >= 17 || nowHour < 5 ? 'tonight' : 'today'
   const recap =
     session.length >= 3 ? (
       <div className="recap">
@@ -166,8 +165,8 @@ export default function HotView({ events, anchors, loading, loadError = false })
     const nudge = (ev) => tasteNudge(ev, taste)
     const out = []
     for (let off = 1; off <= 14 && out.length < 2; off++) {
-      const ts = anchors.todayTs + off * DAY_MS
-      const dow = new Date(ts).getDay()
+      const ts = addDayTs(anchors.todayTs, off)
+      const dow = weekdayIndex(ts)
       if (dow !== 5 && dow !== 6) continue
       const evs = upcoming.filter((e) => e._day === ts)
       if (evs.length === 0) continue

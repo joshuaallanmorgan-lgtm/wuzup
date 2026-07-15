@@ -15,7 +15,7 @@
 //
 // ALL COPY IS DRAFT for Charles (inventory in the sprint report).
 import { useMemo, useState } from 'react'
-import { CITY, fmtLocale, Icon } from './lib.js'
+import { CITY, formatCityInstant, Icon } from './lib.js'
 import { coverageStats, dayStamp } from './coverage.js'
 import { useNav } from './nav.jsx'
 import { lsRemove } from './storage.js'
@@ -27,7 +27,7 @@ import './settings.css'
 // 6 days, date beyond — coverage.js) with the clock added — settings is where
 // precision belongs
 const fmtUpdated = (ms) =>
-  `${dayStamp(ms)} · ${new Date(ms).toLocaleTimeString(fmtLocale, { hour: 'numeric', minute: '2-digit' })}`
+  `${dayStamp(ms)} · ${formatCityInstant(ms, { hour: 'numeric', minute: '2-digit' })}`
 
 export default function SettingsPage({ events, dataMeta, primer, onPrimerDone, locationAllowed, onAllowLocation }) {
   // openAttribution (Stage E ⚑X3): the About row → Data & photo credits page

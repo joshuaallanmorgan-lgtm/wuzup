@@ -25,7 +25,7 @@
 // NOTE: plain .js file (same rule as lib.js) — NO JSX; SaveHeart uses
 // createElement.
 import { createElement as h, useState, useSyncExternalStore } from 'react'
-import { DAY, Icon, keyOf, normalize } from './lib.js'
+import { Icon, addDayTs, eventLifecycle, keyOf, normalize } from './lib.js'
 import { lsGet, lsSet, physicalKey } from './storage.js'
 import { recordSignal } from './taste.js'
 import './saves.css'
@@ -159,6 +159,7 @@ export function snapshotFor(e) {
     // the labeling invariant survives a dataset refresh: a vanished
     // sponsored save must still wear its disclosure everywhere
     sponsored: e.sponsored === true,
+    status: e.status ?? null,
   }
   // Sprint S: a saved PLACE must reopen as PlaceDetail with a correct ♥.
   // Places are NEVER in the events norm, so shelfItems can't re-resolve a
@@ -210,6 +211,8 @@ export function groupShelfByTime(shelf, anchors) {
   const now = anchors.todayTs
   const groups = [
     { key: 'upcoming', label: 'Upcoming', items: [] },
+    { key: 'unavailable', label: 'No longer available', items: [] },
+    { key: 'today', label: 'Earlier today', items: [] },
     { key: 'yesterday', label: 'Yesterday', items: [] },
     { key: 'week', label: 'Earlier this week', items: [] },
     { key: 'older', label: 'Saved earlier', items: [] },
@@ -217,16 +220,20 @@ export function groupShelfByTime(shelf, anchors) {
   for (const item of shelf) {
     if (!item.past) {
       groups[0].items.push(item)
-    } else {
-      const endDay = item.e._endDay ?? item.e._day ?? 0
-      if (endDay >= now - DAY) groups[1].items.push(item)
-      else if (endDay >= now - 6 * DAY) groups[2].items.push(item)
-      else groups[3].items.push(item)
+      continue
     }
+    if (item.lifecycle?.code !== 'ended') {
+      groups[1].items.push(item)
+      continue
+    }
+    const endDay = item.e._endDay ?? item.e._day ?? 0
+    if (endDay >= now) groups[2].items.push(item)
+    else if (endDay >= addDayTs(now, -1)) groups[3].items.push(item)
+    else if (endDay >= addDayTs(now, -6)) groups[4].items.push(item)
+    else groups[5].items.push(item)
   }
-  return groups.filter((g) => g.items.length > 0)
+  return groups.filter((group) => group.items.length > 0)
 }
-
 // Saved-shelf items: the live event when its key still exists in the dataset,
 // otherwise the stored snapshot (normalized so cards/detail render it fine).
 // Past saves wear past:true (grey + "happened") and drop off the shelf 7 days
@@ -240,12 +247,13 @@ export function shelfItems(list, events, anchors) {
   for (const s of list) {
     const e = byKey.get(s.key) ?? normalize({ ...s.snapshot }, anchors)
     const endDay = e._endDay ?? e._day
-    const past = e._day != null && endDay < anchors.todayTs
-    if (past && endDay < anchors.todayTs - 7 * DAY) {
+    const lifecycle = eventLifecycle(e)
+    const past = e.kind !== 'place' && !lifecycle.actionable
+    if (lifecycle.code === 'ended' && endDay != null && endDay < addDayTs(anchors.todayTs, -7)) {
       expired.push(s.key) // storage matches what's shown — no orphaned records
       continue
     }
-    out.push({ e, past })
+    out.push({ e, past, lifecycle })
   }
   if (expired.length) {
     // shelfItems runs during render — defer the prune so the store never

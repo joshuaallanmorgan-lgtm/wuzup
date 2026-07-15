@@ -10,7 +10,7 @@
 // a rail swap remounts and scroll resets.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNav } from './nav.jsx'
-import { DAY, dayKey, fmtLocale, hotDesc, Icon, keyOf, parseDate, priceLabel, timeOf } from './lib.js'
+import { addDayTs, calendarDayDistance, cityHour, dayKey, formatDayTs, hotDesc, Icon, keyOf, priceLabel, timeOf } from './lib.js'
 import { eventIcs } from './share.js'
 import { CATEGORY_EMOJI, HeatBadge, SecHead, TonightCard, auroraStyle, hueFor } from './cards.jsx'
 import { SaveHeart, useSaves } from './saves.js'
@@ -35,27 +35,25 @@ function timeRange(start, end) {
 }
 
 // short "Fri, Jun 12" for ranges (long-form dayKey stays on single days)
-const fmtShort = (ts) =>
-  new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'short', month: 'short', day: 'numeric' })
+const fmtShort = (ts) => formatDayTs(ts, { weekday: 'short', month: 'short', day: 'numeric' })
 
 // 3.7P-34 — the days an event can be planned onto: each day of its run that is
 // today-or-later, capped at two weeks. A single-day event yields exactly its own
 // day (never an arbitrary one — that would misrepresent when it happens); a
 // multi-day / ongoing run offers each open day so the user picks which to plan.
 function eventPlanDays(e, anchors) {
-  if (e._day == null) return []
+  if (e._actionable !== true || e._day == null) return []
   const start = Math.max(e._day, anchors.todayTs)
   // an OPEN-ENDED ongoing run (tagged ongoing, no real end date so _endDay === _day)
   // is available through the planning horizon like a place; a dated/multi-day run
   // clamps to its actual end so it can never be planned past when it runs.
   const openEnded = e._ongoing && (e._endDay == null || e._endDay <= e._day)
   const end = openEnded ? Infinity : (e._endDay ?? e._day)
-  const d0 = new Date(start)
   const out = []
   for (let i = 0; i < 14; i++) {
-    const ts = new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() + i).getTime()
+    const ts = addDayTs(start, i)
     if (ts > end) break
-    out.push({ ts, label: ts === anchors.todayTs ? 'Today' : ts === anchors.tomorrowTs ? 'Tomorrow' : new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'long' }) })
+    out.push({ ts, label: ts === anchors.todayTs ? 'Today' : ts === anchors.tomorrowTs ? 'Tomorrow' : formatDayTs(ts, { weekday: 'long' }) })
   }
   return out
 }
@@ -106,10 +104,12 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
   // the title-block eyebrow (WS2 detail-rebuild); `when` (long form) stays
   // byte-identical for the When fact row. One branch block so they can't desync.
   let when, whenShort
-  const DAY_MS = 86400000
   // overnight show (ends ≤6 AM the next day) reads as one evening, not a "range"
   const overnight = !!(
-    e.end && /T\d/.test(e.end) && e._endDay - e._day === DAY_MS && parseDate(e.end)?.getHours() <= 6
+    e._time?.ok &&
+    e._time.kind === 'timed' &&
+    calendarDayDistance(e._day, e._endDay) === 1 &&
+    cityHour(e._time.endAt) <= 6
   )
   if (e._ongoing) {
     when = 'Ongoing' + (e._endDay != null && e._endDay !== e._day ? ' · through ' + fmtShort(e._endDay) : '')
@@ -228,7 +228,7 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
       if (take(upcoming.filter((x) => x.category === e.category).sort(hotDesc))) return picks
     }
     const vibes = new Set((e.tags || []).filter((t) => !GENERIC_TAGS.has(t)))
-    const nearTime = (x) => e._day == null || Math.abs(x._day - e._day) <= 3 * DAY
+    const nearTime = (x) => e._day == null || Math.abs(calendarDayDistance(e._day, x._day)) <= 3
     take(
       upcoming
         .filter((x) => nearTime(x) && (vibes.size === 0 || x.tags.some((t) => vibes.has(t))))

@@ -478,6 +478,16 @@
 }
 .gem-add:active,
 .spotcard-add:active { transform: scale(0.96); }
+.gem-lifecycle {
+  position: absolute;
+  right: 12px;
+  bottom: 15px;
+  z-index: 2;
+  color: var(--muted);
+  font-size: var(--t-meta);
+  font-weight: 700;
+  line-height: 1;
+}
 /* cross-day on-image badge: stacked DAY over TIME (Sat / 7:00 PM) */
 .gem-time-stack { display: flex; flex-direction: column; align-items: center; line-height: 1.05; padding-top: 4px; padding-bottom: 4px; }
 .gem-time-day { font-size: 8px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; }

@@ -12,7 +12,7 @@
 // ALL COPY IS DRAFT for Charles.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNav } from './nav.jsx'
-import { fmtLocale, Icon, keyOf } from './lib.js'
+import { addDayTs, formatDayTs, Icon, keyOf } from './lib.js'
 import { SecHead, TonightCard, artEmoji, auroraStyle, spotChips } from './cards.jsx'
 import { SaveHeart, useSaves } from './saves.js'
 import { dateKey } from './weather.js'
@@ -67,15 +67,14 @@ const AMENITY_LABELS = {
 }
 const amenityChip = (a) => AMENITY_LABELS[a] || ['•', a.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())]
 
-const wdLong = (ts) => new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'long' })
+const wdLong = (ts) => formatDayTs(ts, { weekday: 'long' })
 
 // upcoming days for the Make-this-my-plan picker: today + the next 13 days
 // (two weeks of horizon — the same supply window the day screen plans into).
 function planDays(anchors) {
   const out = []
-  const d0 = new Date(anchors.todayTs)
   for (let i = 0; i < 14; i++) {
-    const ts = new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() + i).getTime()
+    const ts = addDayTs(anchors.todayTs, i)
     out.push({ ts, label: ts === anchors.todayTs ? 'Today' : ts === anchors.tomorrowTs ? 'Tomorrow' : wdLong(ts) })
   }
   return out
@@ -138,9 +137,8 @@ export default function PlaceDetail({ e, anchors, wx }) {
     const outdoorish = ['outdoors'].includes(e.category) || ['park', 'beach', 'preserve', 'trail', 'viewpoint', 'pier', 'dog_park', 'garden'].includes(e.placeType)
     if (!outdoorish) return null
     const noun = e.placeType === 'beach' ? 'beach' : e.placeType === 'trail' || e.placeType === 'preserve' ? 'trail' : 'park'
-    const d0 = new Date(anchors.todayTs)
     for (let i = 0; i < 7; i++) {
-      const ts = new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() + i).getTime()
+      const ts = addDayTs(anchors.todayTs, i)
       const w = wx[dateKey(ts)]
       if (w && (w.emoji === '☀️' || w.emoji === '⛅') && (w.rain == null || w.rain < 40)) {
         const when = ts === anchors.todayTs ? 'today' : ts === anchors.tomorrowTs ? 'tomorrow' : wdLong(ts)

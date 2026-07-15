@@ -4,16 +4,20 @@ import { fileURLToPath } from 'node:url'
 import test from 'node:test'
 import {
   addCalendarDays,
+  calendarDayDiff,
   cityClock,
   cityMidnightMs,
   coversDay,
   dayIdAt,
+  daysInMonth,
   eventActionability,
   daypartOfTime,
   eventAvailability,
   eventTime,
+  monthStart,
   parseZonedDateTime,
   weekdayOf,
+  zonedDateTimeParts,
 } from '../shared/city-time.mjs'
 
 const NY = 'America/New_York'
@@ -28,6 +32,16 @@ test('calendar-day arithmetic is independent of elapsed-hour length', () => {
   assert.throws(() => addCalendarDays('2026-02-30', 1), /invalid calendar day/i)
 })
 
+test('month grids and day distances use calendar identity, not elapsed hours', () => {
+  assert.equal(monthStart('2026-01-31'), '2026-01-01')
+  assert.equal(monthStart('2026-01-31', 1), '2026-02-01')
+  assert.equal(monthStart('2026-01-31', -1), '2025-12-01')
+  assert.equal(daysInMonth('2026-02-12'), 28)
+  assert.equal(daysInMonth('2028-02-12'), 29)
+  assert.equal(calendarDayDiff('2026-03-07', '2026-03-09'), 2)
+  assert.equal(calendarDayDiff('2026-11-02', '2026-10-31'), -2)
+})
+
 test('city clocks use the city zone rather than the device zone', () => {
   const nowMs = Date.parse('2026-07-15T05:30:00Z')
   assert.deepEqual(
@@ -40,6 +54,14 @@ test('city clocks use the city zone rather than the device zone', () => {
   )
   assert.equal(dayIdAt(nowMs, NY), '2026-07-15')
   assert.equal(dayIdAt(nowMs, LA), '2026-07-14')
+  assert.deepEqual(zonedDateTimeParts(nowMs, NY), {
+    year: 2026,
+    month: 7,
+    day: 15,
+    hour: 1,
+    minute: 30,
+    second: 0,
+  })
 })
 
 test('all-day intervals honor 23-hour and 25-hour DST days', () => {

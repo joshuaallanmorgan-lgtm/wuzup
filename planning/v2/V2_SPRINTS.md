@@ -362,6 +362,31 @@ and migration tests pass; planner operations are idempotent and survive reload.
   city-aware labels/dayparts/weather/Open Now, and TZID ICS still need to delegate to this contract before the
   Sprint 3 time gate is complete.
 
+#### Sprint 3 browser city-time integration receipt - 2026-07-15 (yellow)
+
+- **Discovery now has one actionable inventory:** browser normalization delegates start/end, range, status,
+  and exact expiry to the shared city-time contract. Home, Events, Search, guides, notifications, and settings
+  receive only actionable rows; Calendar, My Plans, My Saves, and day history retain ended snapshots.
+- **The live clock is city-owned:** the shell refreshes at the selected city's midnight, after foregrounding,
+  and at the next exact actionability boundary. Labels, day anchors, tonight/late mode, weekend fit, and ternary
+  dayparts no longer inherit the device timezone.
+- **Weather and supported Open Now claims are city-correct:** forecast keys use the city day, stated hours use
+  the city clock, unknown hours stay closed, and explicit overnight ranges remain open after midnight only
+  until their stated closing time.
+- **Calendar exports now preserve the city contract:** timed ICS rows carry the selected city's IANA `TZID`,
+  all-day rows use an exclusive `DTEND`, stable event IDs produce stable UIDs, stamps are coherent, and UTF-8
+  lines fold at RFC 5545's 75-octet boundary. Invalid or dateless inventory fails closed.
+- **Legacy calendar state migrates without changing meaning:** V1 device-midnight plan, history, conversion, and
+  weekend keys rekey through a durable source-timezone basis before any data mutation. Collision merging,
+  binary-to-ternary conversion, quota retry, corrupt metadata, and cross-device restart cases are idempotent.
+- **Cross-device evidence is executable:** browser, share, and migration projections are byte-identical with Los
+  Angeles, Honolulu, and Tokyo device zones. Focused time/ICS/migration tests pass 33/33 and the complete serial
+  root gate passes 247/247, including finder, artifact trust, Tampa/SF and base-path builds, lint, and existing
+  product contracts. Independent review approved the migration boundary after its singleton legacy case was fixed.
+- **Sprint 3 remains yellow:** finder generation-time expiry and city-day derivation, stable-ID dual-read migration,
+  atomic reactive planner snapshots, and truthful geolocation permission state remain.
+  The two refused Tampa offset ranges still require upstream correction rather than silent reinterpretation.
+
 ### Sprint 4 - P0 core journeys and the browser release harness
 
 **Outcome:** every known release blocker is fixed through the real browser journey, not only a source seam.

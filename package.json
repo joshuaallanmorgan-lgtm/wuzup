@@ -12,11 +12,14 @@
     "test:h0-runtime": "node --test test/runtime-artifacts.mjs",
     "test:h0-storage": "node --test test/city-storage.mjs",
     "test:h0-time": "node --test test/city-time.mjs",
+    "test:h0-time-app": "node --test test/city-time-app.mjs",
+    "test:h0-time-share": "node --test test/share-city-time.mjs",
+    "test:h0-day-keys": "node --test test/day-key-migration.mjs",
     "test:e0": "node --test test/relevance-eval.mjs",
     "test:i0": "node --test test/imagery-trust.mjs",
     "test:l0": "node --test test/location-resolver.mjs",
     "test:u0": "node --test test/u0-truth.mjs",
-    "test": "node --test --test-concurrency=1 test/artifact-trust.mjs test/runtime-artifacts.mjs test/city-storage.mjs test/city-time.mjs test/relevance-eval.mjs test/u0-truth.mjs test/imagery-trust.mjs test/location-resolver.mjs test/smoke.mjs"
+    "test": "node --test --test-concurrency=1 test/artifact-trust.mjs test/runtime-artifacts.mjs test/city-storage.mjs test/city-time.mjs test/city-time-app.mjs test/share-city-time.mjs test/day-key-migration.mjs test/relevance-eval.mjs test/u0-truth.mjs test/imagery-trust.mjs test/location-resolver.mjs test/smoke.mjs"
   },
   "keywords": [],
   "author": "",

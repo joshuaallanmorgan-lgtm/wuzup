@@ -15,7 +15,8 @@
 // sources[], srcCount, osm?, wikidata?, aliases?, hiddenScore, hidden }.
 import { useMemo } from 'react'
 import { runtimeArtifacts, useArtifact } from './artifacts.js'
-import { milesBetween, normalizeTitle } from './lib.js'
+import { CITY, milesBetween, normalizeTitle } from './lib.js'
+import { cityClock } from '../../shared/city-time.mjs'
 
 // Stage E base-path: the deployment base ('/' in dev + the default build;
 // '/wuzup/' or '/wuzup/sf/' under GitHub Pages). The ?.-form stays Node-safe (the
@@ -74,12 +75,19 @@ const hasAmenity = (p, a) => p.amenities.includes(a)
 // honest "Open now" from a place's STATED hours: sunrise/sunset & dawn/dusk read
 // as daylight, explicit time ranges parse, 24/7 is always; a place with UNKNOWN
 // hours is NEVER claimed open (no fabrication). Heuristic but grounded in real data.
-export function isOpenNow(p) {
+export function isOpenNow(p, { nowMs = Date.now(), timeZone = CITY.tz } = {}) {
   const h = (p.hours || '').toLowerCase().trim()
   if (!h) return false
+  // Weekday schedules and closure exceptions need a complete opening-hours
+  // parser. Fail closed before the 24/7 shortcut so contradictory source
+  // text never becomes a confident Open Now claim.
+  if (/\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekdays?|weekends?|closed|off|except)\b/i.test(h)) return false
   if (/24\/7|24 hours|always/.test(h)) return true
-  const now = new Date()
-  const hr = now.getHours() + now.getMinutes() / 60
+  const clock = cityClock({ timeZone, nowMs })
+  // OSM weekday clauses need a complete opening-hours parser. Until that
+  // contract lands, fail closed instead of applying one day's range every day.
+  if (/(?:^|[;,\s])(?:mo|tu|we|th|fr|sa|su)(?=$|[\s,;-])/i.test(h)) return false
+  const hr = clock.cityHour + clock.cityMinute / 60
   const daylight = hr >= 6.5 && hr <= 20
   if (/sunrise|sunset|dawn|dusk|daytime|daylight/.test(h) && !/\d/.test(h)) return daylight
   const m = h.match(/(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)?\s*(?:-|–|to|until)\s*(?:(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)?|sunset|dusk)/)
@@ -94,7 +102,8 @@ export function isOpenNow(p) {
     const open = h24(m[1], m[2], m[3])
     let close = m[4] ? h24(m[4], m[5], m[6]) : 20 // "…to sunset" ≈ 20:00
     if (close <= open) close += 24
-    return hr >= open && hr <= close
+    const point = close > 24 && hr < open ? hr + 24 : hr
+    return point >= open && point < close
   }
   if (/sunset|dusk/.test(h)) return daylight
   return false

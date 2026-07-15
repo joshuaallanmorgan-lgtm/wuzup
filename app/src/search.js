@@ -43,7 +43,7 @@
 // must read the same on every phone) so one prolific source can't own the
 // first screen. Text queries stay on pure relevance.
 import { categoryById } from './categories.js'
-import { orderDay } from './lib.js'
+import { addDayTs, orderDay, weekdayIndex } from './lib.js'
 import { lsGet, lsRemove, lsSet } from './storage.js'
 
 // case + diacritic folding ("José" matches "jose") — the class is the literal
@@ -63,9 +63,8 @@ const CONNECTORS = new Set(['this', 'next', 'on'])
 // "trivia friday" typed ON a Friday means tonight). Built via Date components,
 // never todayTs + n*86400000 — DST would shear the midnight alignment off _day.
 function nextWeekdayTs(todayTs, idx) {
-  const d = new Date(todayTs)
-  const off = (idx - d.getDay() + 7) % 7
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + off).getTime()
+  const off = (idx - weekdayIndex(todayTs) + 7) % 7
+  return addDayTs(todayTs, off)
 }
 
 // does the event's day span cover [start..end]? (single days use start===end)

@@ -194,6 +194,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.dpg-card-status { font-weight: 700; }
 .dpg-card-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 3px; }
 .dpg-chip {
   padding: 2px 9px;

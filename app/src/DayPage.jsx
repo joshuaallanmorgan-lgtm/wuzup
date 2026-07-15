@@ -31,7 +31,7 @@
 //
 // ALL COPY IS DRAFT for Charles (inventory in the sprint report).
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { fmtLocale, Icon, keyOf, timeOf } from './lib.js'
+import { eventLifecycle, formatDayTs, Icon, keyOf, timeOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { CardImg, SponsoredTag, featuredChips } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
@@ -53,9 +53,9 @@ import { dateKey, CONDITION } from './weather.js'
 import PickerSheet from './PickerSheet.jsx'
 import './day.css'
 
-const wdLong = (ts) => new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'long' })
+const wdLong = (ts) => formatDayTs(ts, { weekday: 'long' })
 
-export default function DayPage({ ts, events, anchors, wx }) {
+export default function DayPage({ ts, events, availableEvents = events, anchors, wx }) {
   // openCalendarPicker is the Plan Phase 2 date-picker opener; in Phase 1 the
   // tappable day-selector wires to it (guarded `?.` — a no-op until Phase 2 adds
   // it to nav). openDay still drives keyed remounts from the picker once it lands.
@@ -154,7 +154,7 @@ export default function DayPage({ ts, events, anchors, wx }) {
   // Tomorrow / weekday) + the short date feed the tappable day selector, which
   // opens the date picker (Plan Phase 2). day-plan keys stay ts-keyed.
   const dayLabel = ts === anchors.todayTs ? 'Today' : ts === anchors.tomorrowTs ? 'Tomorrow' : wdLong(ts)
-  const monthDay = new Date(ts).toLocaleDateString(fmtLocale, { month: 'short', day: 'numeric' })
+  const monthDay = formatDayTs(ts, { month: 'short', day: 'numeric' })
 
   // weather: the 16-day forecast map (App-owned). No entry for this day +
   // a live map = the day is past coverage → say so honestly instead of
@@ -192,7 +192,7 @@ export default function DayPage({ ts, events, anchors, wx }) {
     [wxMoodToday]
   )
   const agenda = useMemo(() => {
-    const list = events.filter(
+    const list = availableEvents.filter(
       (e) =>
         e._day != null &&
         (e._endDay ?? e._day) >= anchors.todayTs &&
@@ -200,19 +200,19 @@ export default function DayPage({ ts, events, anchors, wx }) {
     )
     list.sort((a, b) => tasteNudge(b, taste) + wxBonus(b) - (tasteNudge(a, taste) + wxBonus(a)) || a._t - b._t)
     return list
-  }, [events, anchors, ts, taste, wxBonus])
+  }, [availableEvents, anchors, ts, taste, wxBonus])
   // the honest basis line — only claims a signal that actually informed the order
   const hasTaste = railReady(taste)
   const suggSub = hasTaste && w ? 'Based on weather and your likes' : hasTaste ? 'Based on what you like' : w ? "Based on the day's weather" : 'Everything on for this day'
 
   // ===== slots: the picker's resolution pool (same wiring as WB) =====
   const upcoming = useMemo(
-    () => events.filter((e) => e._day != null && (e._endDay ?? e._day) >= anchors.todayTs),
-    [events, anchors]
+    () => availableEvents.filter((e) => e._day != null && (e._endDay ?? e._day) >= anchors.todayTs),
+    [availableEvents, anchors]
   )
   const { list: savedList } = useSaves()
   const savedEvents = useMemo(
-    () => shelfItems(savedList, events, anchors).filter((x) => !x.past).map((x) => x.e),
+    () => shelfItems(savedList, events, anchors).filter((x) => !x.past && (x.e.kind === 'place' || x.e._actionable === true)).map((x) => x.e),
     [savedList, events, anchors]
   )
   // Sprint S: a slot can hold a PLACE (Make-this-my-plan writes a 'p|' key),
@@ -226,9 +226,10 @@ export default function DayPage({ ts, events, anchors, wx }) {
     const m = new Map()
     for (const e of savedEvents) m.set(keyOf(e), e) // snapshots first…
     for (const e of upcoming) m.set(keyOf(e), e) // …live events win
+    for (const e of events) m.set(keyOf(e), e)
     if (Array.isArray(placeList)) for (const p of placeList) m.set(p.key, p) // …places too
     return m
-  }, [upcoming, savedEvents, placeList])
+  }, [events, upcoming, savedEvents, placeList])
   const resolveSlot = useCallback(
     (k) => {
       const e = k ? byKey.get(k) : null
@@ -310,7 +311,11 @@ export default function DayPage({ ts, events, anchors, wx }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [resolveSlot, entry.slots.morning, entry.slots.afternoon, entry.slots.night]
   )
-  const canShare = shareEntries.length > 0
+  const shareableEntries = useMemo(
+    () => shareEntries.filter(({ e }) => e.kind === 'place' || eventLifecycle(e).actionable),
+    [shareEntries]
+  )
+  const canShare = shareableEntries.length > 0
 
   const [toast, setToast] = useState(null)
   const toastTRef = useRef(null)
@@ -366,7 +371,7 @@ export default function DayPage({ ts, events, anchors, wx }) {
   }
   const shareDay = async () => {
     if (!canShare) return
-    const text = shareDayText(ts, shareEntries)
+    const text = shareDayText(ts, shareableEntries)
     if (!text) return
     // the .ics: one VEVENT per slotted entry. A PLACE has no date, so it
     // produces no VEVENT (share.js vevent guards it) — a place-only day would
@@ -374,7 +379,7 @@ export default function DayPage({ ts, events, anchors, wx }) {
     // which is a small lie. Only build the file when at least one slotted entry
     // is actually dated (an event). navigator.share carries it where supported;
     // the human text (which DOES include the place) is the universal payload.
-    const datedEntries = shareEntries.filter((x) => x.e && x.e.start)
+    const datedEntries = shareableEntries.filter((x) => x.e && x.e.start)
     let file = null
     if (datedEntries.length) {
       try {
@@ -417,6 +422,7 @@ export default function DayPage({ ts, events, anchors, wx }) {
     const partLow = DAYPART[part].label.toLowerCase()
     const art = part === 'afternoon' ? 'an' : 'a' // "an afternoon" (vowel sound)
     const chips = e ? featuredChips(e) : []
+    const lifecycle = e ? eventLifecycle(e) : null
     const timeBadge = e && e.kind !== 'place' && daypartOf(e) !== 'any' ? timeOf(e.start) : null
     const whenLine = e
       ? e.kind === 'place'
@@ -437,7 +443,9 @@ export default function DayPage({ ts, events, anchors, wx }) {
               <span className="dpg-card-main">
                 <span className="dpg-card-title">{e.title}</span>
                 {e.venue && <span className="dpg-card-venue"><Icon.pin className="meta-ic" aria-hidden /> {e.venue}</span>}
-                {whenLine && <span className="dpg-card-meta">{whenLine}</span>}
+                {lifecycle && !lifecycle.actionable ? (
+                  <span className="dpg-card-meta dpg-card-status">{lifecycle.label}</span>
+                ) : whenLine ? <span className="dpg-card-meta">{whenLine}</span> : null}
                 {chips.length > 0 && (
                   <span className="dpg-card-chips">
                     {chips.map((c, i) => (

@@ -22,6 +22,8 @@
 // already loaded (didSet from didDays(been); restTsList via restDayList below),
 // plus `anchors` for "today". Same posture as dayplan.js / taste.js, so a Node
 // sim can prove every claim.
+import { CITY } from './city.js'
+import { addCalendarDays, cityMidnightMs, dayIdAt } from '../../shared/city-time.mjs'
 
 export const GRACE_DAYS = 1 // act today OR yesterday and a live streak still holds
 
@@ -29,8 +31,7 @@ export const GRACE_DAYS = 1 // act today OR yesterday and a live streak still ho
 // consecutive local midnights are 23h/25h apart, which would falsely break a
 // streak; this matters for Pacific cities as much as Eastern).
 function prevMidnight(ts) {
-  const d = new Date(ts)
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1).getTime()
+  return cityMidnightMs(addCalendarDays(dayIdAt(ts, CITY.tz), -1), CITY.tz)
 }
 
 // collect rest-day local-midnight timestamps from the live plans map + the

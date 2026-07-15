@@ -3,7 +3,7 @@
 // NAVIGATION state (active tab, subpage union, detail open/close + VT morph,
 // map focus) lives in nav.js (Sprint O6) — components reach it via useNav().
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Icon, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, saveMyEvents } from './lib.js'
+import { Icon, currentEvents, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, saveMyEvents } from './lib.js'
 import { dayStamp } from './coverage.js'
 import { useArtifact } from './artifacts.js'
 import { NavProvider, VIEWS, useNav } from './nav.jsx'
@@ -269,31 +269,31 @@ function Shell() {
   // anchors must track the real clock: an app left open past midnight (or
   // resumed from background the next day) would otherwise show yesterday's
   // "Today". Recompute when the tab becomes visible and shortly after each
-  // local midnight; only re-set state when the day actually rolled over.
+  // city midnight; event-end boundaries are scheduled separately below.
   const [anchors, setAnchors] = useState(() => makeAnchors())
   useEffect(() => {
-    const refresh = () => setAnchors((prev) => {
-      const next = makeAnchors()
-      return next.todayTs === prev.todayTs ? prev : next
-    })
+    const refresh = () => setAnchors(makeAnchors())
+    let midnightTimer
+    const scheduleMidnight = () => {
+      clearTimeout(midnightTimer)
+      const clock = makeAnchors()
+      const delay = Math.max(250, clock.nextMidnightMs + 1000 - Date.now())
+      midnightTimer = setTimeout(() => {
+        refresh()
+        scheduleMidnight()
+      }, delay)
+    }
     const onVis = () => {
-      if (document.visibilityState === 'visible') refresh()
+      if (document.visibilityState !== 'visible') return
+      refresh()
+      scheduleMidnight()
     }
     document.addEventListener('visibilitychange', onVis)
-    let timer
-    const schedule = () => {
-      const now = new Date()
-      // 30s past local midnight (cushion for clock skew / timer coalescing)
-      const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 30)
-      timer = setTimeout(() => {
-        refresh()
-        schedule()
-      }, next.getTime() - now.getTime())
-    }
-    schedule()
+    refresh()
+    scheduleMidnight()
     return () => {
       document.removeEventListener('visibilitychange', onVis)
-      clearTimeout(timer)
+      clearTimeout(midnightTimer)
     }
   }, [])
   // "Added by you" events (Sprint C MVP): raw schema-v2 objects from the
@@ -320,7 +320,23 @@ function Shell() {
     const k = keyOf(e)
     setMyEvents(() => loadMyEvents().filter((x) => keyOf(x) !== k))
   }, [])
-  const norm = useMemo(() => [...events, ...myEvents].map((e) => normalize(e, anchors)), [events, myEvents, anchors])
+  const normalized = useMemo(
+    () => [...events, ...myEvents].map((event) => normalize(event, anchors)),
+    [events, myEvents, anchors]
+  )
+  const norm = useMemo(() => currentEvents(normalized), [normalized])
+  useEffect(() => {
+    const nowMs = Date.now()
+    const nextActionabilityMs = normalized.reduce((next, event) => {
+      if (event?._actionable !== true) return next
+      const endAt = event?._time?.endAt
+      return Number.isFinite(endAt) && endAt < next ? endAt : next
+    }, Infinity)
+    if (!Number.isFinite(nextActionabilityMs)) return undefined
+    const delay = Math.min(2_147_000_000, Math.max(250, nextActionabilityMs + 1000 - nowMs))
+    const timer = setTimeout(() => setAnchors(makeAnchors()), delay)
+    return () => clearTimeout(timer)
+  }, [normalized])
 
   // 16-day Tampa forecast, fetched ONCE at App level: DayPage (prop), PlaceDetail
   // (beach-day fit), DetailPage (event-day weather) and outdoor feed rows
@@ -410,10 +426,10 @@ function Shell() {
           </section>
           <section className="page" aria-label={VIEWS[3].label} aria-hidden={active !== 3} inert={active !== 3 ? true : undefined}>
             {/* Plan (id 'calendar') */}
-            {visited.has('calendar') && <CalendarView events={norm} anchors={anchors} wx={wx} />}
+            {visited.has('calendar') && <CalendarView events={normalized} anchors={anchors} wx={wx} />}
           </section>
           <section className="page" aria-label={VIEWS[4].label} aria-hidden={active !== 4} inert={active !== 4 ? true : undefined}>
-            {visited.has('profile') && <ProfileView events={norm} anchors={anchors} primer={primer} />}
+            {visited.has('profile') && <ProfileView events={normalized} anchors={anchors} primer={primer} />}
           </section>
         </div>
         <TabBar active={active} onTab={goTo} inert={baseInert} hidden={baseCovered || undefined} />
@@ -482,7 +498,7 @@ function Shell() {
                  (page.ts alone never changes at midnight — review LOW-1; the
                  remount re-runs the archive sweep so a now-past day stops
                  offering slots) */
-              <DayPage key={page.ts + '-' + anchors.todayTs} ts={page.ts} events={norm} anchors={anchors} wx={wx} />
+              <DayPage key={page.ts + '-' + anchors.todayTs} ts={page.ts} events={normalized} availableEvents={norm} anchors={anchors} wx={wx} />
             )}
             {/* Plan Phase 2: the DayPage day-selector's date picker (quick list +
                 Full-calendar grid); selecting a date → openDay (replaces this page) */}
@@ -495,8 +511,8 @@ function Shell() {
               <SettingsPage events={norm} dataMeta={eventArtifact.meta} primer={primer} onPrimerDone={setPrimer} locationAllowed={locAllowed} onAllowLocation={setLocationAllowed} />
             )}
             {/* Stage R (Profile rework): the two new Profile drill-ins, single-slot */}
-            {page.type === 'myplans' && <MyPlansPage events={norm} anchors={anchors} />}
-            {page.type === 'mysaves' && <MySavesPage events={norm} anchors={anchors} />}
+            {page.type === 'myplans' && <MyPlansPage events={normalized} anchors={anchors} />}
+            {page.type === 'mysaves' && <MySavesPage events={normalized} anchors={anchors} />}
             {/* PROFILE_PHASE2: net-new single-slot Profile drill-ins */}
             {page.type === 'editprofile' && <EditProfilePage />}
             {page.type === 'helpfeedback' && <HelpFeedbackPage />}

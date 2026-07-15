@@ -14,7 +14,7 @@ import { createContext, memo, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { CATEGORY_EMOJI, CATEGORY_HUES, PLACETYPE_EMOJI, PLACETYPE_HUE } from './categories.js'
 import { auroraVars, medallionHue } from './artseed.js'
-import { Icon, dayLabelLoose, dayLoose, fmtLocale, keyOf, makeAnchors, priceLabel, startLabel, timeOf } from './lib.js'
+import { Icon, dayLabelLoose, dayLoose, eventLifecycle, formatDayTs, keyOf, makeAnchors, priceLabel, startLabel, timeOf } from './lib.js'
 import { ACTIVITIES } from './places.js'
 import { imageMode, photoFirst } from './imageMode.js'
 import { daypartOf, DAYPART, fillOrder } from './weekend.js'
@@ -54,17 +54,27 @@ export function CardToastHost() {
 // item — never clobbering a filled slot, and confirm via the module toast. The
 // SAME loadDayPlans → withSlot seam DayPage + FeaturedCard use (daypartOf → slot).
 function addToPlan(e) {
-  const anchors = makeAnchors(new Date())
+  if (e.kind !== 'place' && e._actionable !== true) {
+    cardToast(eventLifecycle(e).label || 'This event is no longer available')
+    return false
+  }
+  const anchors = makeAnchors()
   const dayTs = Math.max(e._day ?? anchors.todayTs, anchors.todayTs)
   const map = loadDayPlans(anchors)
+  const eventKey = keyOf(e)
+  const alreadyPlanned = Object.values(map).some((day) => Object.values(day?.slots || {}).includes(eventKey))
+  if (alreadyPlanned) {
+    cardToast('Already in your plan')
+    return false
+  }
   const cur = dayEntryFor(map[String(dayTs)])
   const target = fillOrder(e).find((p) => !(cur && cur.slots[p])) // natural daypart first ('any' → morning)
   if (!target) {
     cardToast('That day is full — clear a slot first')
     return false
   }
-  saveDayPlans(withSlot(map, dayTs, target, keyOf(e)))
-  const when = dayTs === anchors.todayTs ? 'today' : new Date(dayTs).toLocaleDateString(fmtLocale, { weekday: 'long' })
+  saveDayPlans(withSlot(map, dayTs, target, eventKey))
+  const when = dayTs === anchors.todayTs ? 'today' : formatDayTs(dayTs, { weekday: 'long' })
   cardToast(`${DAYPART[target].emoji} Added to ${when} ${DAYPART[target].label.toLowerCase()}`)
   return true // PREMIUM A4: lets the Add button morph to its "✓ Added" confirmation
 }
@@ -383,23 +393,19 @@ export function FeaturedCard({ e, onSelect, onAdd }) {
   )
 }
 
-const startOfTodayMs = () => {
-  const d = new Date()
-  d.setHours(0, 0, 0, 0)
-  return d.getTime()
-}
-
+const startOfTodayMs = () => makeAnchors().todayTs
 // GemRow — the canonical EVENT card (CARD polish, ref-events-full). A light card
 // surface holds: [image (on-image badge) · two-line meta · neutral chips] then a
 // right RAIL with the outline SaveHeart over a self-contained "Add to plan" pill
 // (writes the real day-plan). The on-image badge stacks DAY-over-TIME for a future
 // day (Sat / 7:00 PM); today's events show time only. Real fields only.
 export function GemRow({ e, onSelect }) {
+  const lifecycle = eventLifecycle(e)
   const time = e.kind !== 'place' && !e._ongoing ? timeOf(e.start) : null
   const timeRange =
     e.kind !== 'place' && !e._ongoing ? [timeOf(e.start), e.end ? timeOf(e.end) : null].filter(Boolean).join(' – ') : null
   const dayShort =
-    time && e._day != null && e._day !== startOfTodayMs() ? new Date(e._day).toLocaleDateString(fmtLocale, { weekday: 'short' }) : null
+    time && e._day != null && e._day !== startOfTodayMs() ? formatDayTs(e._day, { weekday: 'short' }) : null
   const chips = featuredChips(e)
   const when = [dayLoose(e), timeRange].filter(Boolean).join(' · ')
   // CARD_LOCK: a COLLAPSED recurring series wears its honest "+ N more …" stamp
@@ -451,7 +457,11 @@ export function GemRow({ e, onSelect }) {
       {/* D4: a bare stroke heart at the card's top-right corner (over the body, not
           the image); D2/CTA: a real "Add to plan" button pinned bottom-right. */}
       <SaveHeart e={e} bare />
-      <AddButton e={e} className="gem-add" label="Add to plan" ariaLabel={`Add ${e.title} to your plan`} />
+      {lifecycle.actionable ? (
+        <AddButton e={e} className="gem-add" label="Add to plan" ariaLabel={`Add ${e.title} to your plan`} />
+      ) : (
+        <span className="gem-lifecycle">{lifecycle.label}</span>
+      )}
     </div>
   )
 }

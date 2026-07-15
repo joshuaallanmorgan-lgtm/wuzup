@@ -9,7 +9,7 @@
 // mount so counts stay live; each openDay replaces this subpage (single-slot),
 // back → the Profile tab. DRAFT copy — ⚑ Charles.
 import { useMemo } from 'react'
-import { Icon, dayLoose, fmtLocale, keyOf, normalize, rawOf } from './lib.js'
+import { Icon, dayLoose, formatDayTs, keyOf, monthStartTs as cityMonthStartTs, normalize, rawOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { GemRow, SponsoredTag } from './cards.jsx'
 import { DAYPART } from './weekend.js'
@@ -28,8 +28,7 @@ import {
 import { usePlaces, isPlaceKey } from './places.js'
 import './profile.css'
 
-const fmtShort = (ts) =>
-  new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'short', month: 'short', day: 'numeric' })
+const fmtShort = (ts) => formatDayTs(ts, { weekday: 'short', month: 'short', day: 'numeric' })
 
 export default function MyPlansPage({ events, anchors }) {
   const { closePage: onClose, openDetail: onSelect, openDay } = useNav()
@@ -84,16 +83,10 @@ export default function MyPlansPage({ events, anchors }) {
 
   // gentle ledger (all derived, never new stores)
   const dids = useMemo(() => didDays(been), [been])
-  const monthStart = useMemo(() => {
-    const d = new Date(anchors.todayTs)
-    return new Date(d.getFullYear(), d.getMonth(), 1).getTime()
-  }, [anchors.todayTs])
-  const nextMonthStart = useMemo(() => {
-    const d = new Date(monthStart)
-    return new Date(d.getFullYear(), d.getMonth() + 1, 1).getTime()
-  }, [monthStart])
+  const monthStart = useMemo(() => cityMonthStartTs(anchors.todayTs), [anchors.todayTs])
+  const nextMonthStart = useMemo(() => cityMonthStartTs(anchors.todayTs, 1), [anchors.todayTs])
   const daysOut = daysOutInMonth(dids, monthStart, nextMonthStart)
-  const monthName = new Date(anchors.todayTs).toLocaleDateString(fmtLocale, { month: 'long' })
+  const monthName = formatDayTs(anchors.todayTs, { month: 'long' })
   const firsts = useMemo(() => varietyFirsts(been), [been])
   const monthReality = useMemo(
     () => computeMonthReality(loadDayHistory(), dids, monthStart, nextMonthStart),

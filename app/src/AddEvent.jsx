@@ -8,7 +8,7 @@
 // confusable with sourced data. Footer exports my-events as JSON — the seed of
 // the future submission pipeline (PLAN.md Sprint C).
 import { useEffect, useRef, useState } from 'react'
-import { BUBBLES, CITY, dayTs, Icon, keyOf, MY_SOURCE } from './lib.js'
+import { BUBBLES, CITY, dayIdOf, dayTs, Icon, keyOf, MY_SOURCE } from './lib.js'
 import { useNav } from './nav.jsx'
 import { recordSignal } from './taste.js'
 import { fillOrder } from './weekend.js'
@@ -22,12 +22,7 @@ const CATS = [
   { value: 'other', label: 'Other', emoji: '⭐', hue: 220 },
 ]
 
-const pad = (n) => String(n).padStart(2, '0')
-const isoDay = (ts) => {
-  const d = new Date(ts)
-  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
-}
-
+const isoDay = (ts) => dayIdOf(ts)
 // URL shape if present: scheme optional (https:// assumed), dotted host required
 function checkUrl(v) {
   const s = (v || '').trim()

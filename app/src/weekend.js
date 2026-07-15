@@ -13,7 +13,15 @@
 //       (dayplan.migrateWeekendPlan is the ONLY remaining reader of PLAN_KEY).
 // The retired pieces — loadPlan/savePlan (Sprint U-c) and loadHistory/archivePlan/
 // shareText/visibleWeekend/filledCount (3.7P-8) — are gone; see git history.
-import { keyOf } from './lib.js'
+import { CITY, keyOf } from './lib.js'
+import {
+  addCalendarDays,
+  cityMidnightMs,
+  coversDay,
+  dayIdAt,
+  daypartOfTime,
+  eventTime,
+} from '../../shared/city-time.mjs'
 
 export const PLAN_KEY = 'weekend-plan-v1' // stored as twh:weekend-plan-v1 via storage.js
 export const DAY_IDS = ['fri', 'sat', 'sun']
@@ -23,11 +31,11 @@ export const SUGGEST_MAX = 8
 // --- the weekend window ---
 // makeAnchors (lib.js) already picks the Fri–Sun window containing-or-after
 // today: Mon–Thu → this coming Fri; Fri/Sat/Sun → the in-progress weekend.
-// weekendDays expands wkStartTs to the three day timestamps with the date
-// constructor (NOT +DAY ms) so a DST hop can never misalign a midnight.
+// weekendDays expands the city-local Friday ID with calendar arithmetic (NOT
+// +DAY ms), so a DST hop can never misalign one of the three city midnights.
 export function weekendDays(anchors) {
-  const d0 = new Date(anchors.wkStartTs)
-  return [0, 1, 2].map((i) => new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() + i).getTime())
+  const startDay = anchors.wkStartDay ?? dayIdAt(anchors.wkStartTs, CITY.tz)
+  return [0, 1, 2].map((i) => cityMidnightMs(addCalendarDays(startDay, i), CITY.tz))
 }
 // the columns to SHOW: already-finished weekend days drop (Sat → [sat, sun];
 // Sun → [sun]); today itself stays — "this weekend incl. today's remaining days".
@@ -47,11 +55,8 @@ export function visibleWeekend(anchors) {
 //   morning plan) → night. No clocked time (date-only) → 'any' — shown in ALL
 //   THREE pickers (flagged "Anytime") and defaulting to morning when auto-routed.
 export function daypartOf(e) {
-  if (!/T\d/.test(e.start || '')) return 'any'
-  const h = new Date(e.start).getHours()
-  if (h >= 5 && h < 13) return 'morning'
-  if (h >= 13 && h < 17) return 'afternoon'
-  return 'night'
+  const canonical = e?._time?.ok ? e._time : eventTime(e, { timeZone: CITY.tz })
+  return daypartOfTime(canonical)
 }
 
 // --- the three dayparts: ONE source of truth for slot label + emoji, in the
@@ -82,7 +87,9 @@ export function fillOrder(e) {
 // an event fits a day when its start..end span covers that day — a Saturday
 // pick can legitimately be a 3-week exhibit that runs through this weekend
 export function fitsDay(e, ts) {
-  return e._day != null && e._day <= ts && (e._endDay ?? e._day) >= ts
+  const canonical = e?._time?.ok ? e._time : eventTime(e, { timeZone: CITY.tz })
+  const day = typeof ts === 'string' ? ts : dayIdAt(ts, CITY.tz)
+  return coversDay(canonical, day)
 }
 export function fitsSlot(e, ts, part) {
   if (!fitsDay(e, ts)) return false

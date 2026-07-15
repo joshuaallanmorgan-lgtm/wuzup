@@ -6,12 +6,20 @@
 // planning the past, the Calendar rule). The grid math mirrors CalendarView's.
 // ALL COPY IS DRAFT for Charles.
 import { useMemo, useState } from 'react'
-import { fmtLocale, Icon } from './lib.js'
+import {
+  addDayTs,
+  dayNumber,
+  daysInCityMonth,
+  formatDayTs,
+  Icon,
+  monthStartTs,
+  weekdayIndex,
+} from './lib.js'
 import { useNav } from './nav.jsx'
 import './calpicker.css'
 
-const wdShort = (ts) => new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'short' })
-const monthDayOf = (ts) => new Date(ts).toLocaleDateString(fmtLocale, { month: 'short', day: 'numeric' })
+const wdShort = (ts) => formatDayTs(ts, { weekday: 'short' })
+const monthDayOf = (ts) => formatDayTs(ts, { month: 'short', day: 'numeric' })
 const DOW = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
 // a small calendar glyph for the quick-list rows (matches the day-selector icon)
@@ -30,9 +38,8 @@ export default function CalendarPickerPage({ ts, anchors }) {
 
   // quick list: today + the next 6 days, relative labels, today-or-later
   const quick = useMemo(() => {
-    const d0 = new Date(anchors.todayTs)
     return [0, 1, 2, 3, 4, 5, 6].map((i) => {
-      const t = new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() + i).getTime()
+      const t = addDayTs(anchors.todayTs, i)
       const rel = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : wdShort(t)
       return { ts: t, label: `${rel}, ${monthDayOf(t)}` }
     })
@@ -40,18 +47,17 @@ export default function CalendarPickerPage({ ts, anchors }) {
 
   // the displayed month (clamped at the current month — no planning the past)
   const month = useMemo(() => {
-    const base = new Date(anchors.todayTs)
-    return new Date(base.getFullYear(), base.getMonth() + monthOff, 1)
+    return monthStartTs(anchors.todayTs, monthOff)
   }, [anchors, monthOff])
   const cells = useMemo(() => {
-    const firstDow = month.getDay()
-    const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate()
+    const firstDow = weekdayIndex(month)
+    const daysInMonth = daysInCityMonth(month)
     const out = []
     for (let i = 0; i < firstDow; i++) out.push(null)
-    for (let d = 1; d <= daysInMonth; d++) out.push(new Date(month.getFullYear(), month.getMonth(), d).getTime())
+    for (let d = 1; d <= daysInMonth; d++) out.push(addDayTs(month, d - 1))
     return out
   }, [month])
-  const monthLabel = month.toLocaleDateString(fmtLocale, { month: 'long', year: 'numeric' })
+  const monthLabel = formatDayTs(month, { month: 'long', year: 'numeric' })
 
   const pick = (t) => {
     if (t >= anchors.todayTs) openDay(t) // openDay replaces this page (single-slot union)
@@ -104,7 +110,7 @@ export default function CalendarPickerPage({ ts, anchors }) {
                     onClick={() => pick(t)}
                     aria-current={t === cur ? 'date' : undefined}
                   >
-                    {new Date(t).getDate()}
+                    {dayNumber(t)}
                   </button>
                 )
               )}

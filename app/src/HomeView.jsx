@@ -5,7 +5,7 @@
 // HOME_GRIND + HOME_PHASE2: bell→notifications, forecast link, GemRow tonight,
 // Quick actions grid. DRAFT copy — ⚑ Charles.
 import { useEffect, useMemo, useState } from 'react'
-import { BUBBLES, CITY, keyOf, tonightModel } from './lib.js'
+import { BUBBLES, cityHour, CITY, keyOf, tonightModel } from './lib.js'
 import { coverageStats, isSparse } from './coverage.js'
 import CoverageCard from './CoverageCard.jsx'
 import NextDays from './NextDays.jsx'
@@ -49,7 +49,7 @@ export default function HomeView({ events, anchors, wx, dataMeta }) {
   )
 
   // H-L4: tonight model → top 3 picks for the "Tonight's top picks" section
-  const tonight = useMemo(() => tonightModel(upcoming, anchors, new Date(nowMs)), [upcoming, anchors, nowMs])
+  const tonight = useMemo(() => tonightModel(upcoming, anchors, nowMs), [upcoming, anchors, nowMs])
   const topPicks = useMemo(() => tonight.items.slice(0, 3).map((x) => x.e), [tonight])
 
   // weather line: city + temp + condition (city always visible; forecast appended on load)
@@ -62,7 +62,7 @@ export default function HomeView({ events, anchors, wx, dataMeta }) {
   // NAME-FREE (H3's honesty objection was the fabricated "Alex", not warmth
   // itself — real time-of-day, no invented identity). Tracks nowMs, so it
   // rolls over with the tab-return/10-min tick. Copy DRAFT ⚑ Charles.
-  const hour = new Date(nowMs).getHours()
+  const hour = cityHour(nowMs)
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
 
   // D-G1 promotion gate (coverage.js): a sparse week-one city promotes the

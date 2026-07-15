@@ -6,22 +6,21 @@
 //   • a weekend roundup (a true count of this weekend's listings)
 // If none of those produce anything, the honest "all caught up" empty state shows.
 import { useMemo } from 'react'
-import { BUBBLES, CITY, fmtLocale, Icon, keyOf } from './lib.js'
+import { addDayTs, BUBBLES, calendarDayDistance, CITY, fmtLocale, formatDayTs, Icon, keyOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { CardImg } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
 import { CONDITION, dateKey } from './weather.js'
 import './notifications.css'
 
-const DAY_MS = 86400000
 const WEEKEND_BUBBLE = BUBBLES.find((b) => b.id === 'weekend')
 const RAINY = new Set(['🌧️', '⛈️', '🌦️'])
 
 const relDay = (ts, todayTs) => {
-  const d = Math.round((ts - todayTs) / DAY_MS)
+  const d = calendarDayDistance(todayTs, ts)
   if (d <= 0) return 'today'
   if (d === 1) return 'tomorrow'
-  return new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'long' })
+  return formatDayTs(ts, { weekday: 'long' })
 }
 
 export default function NotificationsPage({ events = [], anchors, wx }) {
@@ -37,7 +36,7 @@ export default function NotificationsPage({ events = [], anchors, wx }) {
       if (past) continue
       const day = e._clamp ?? e._day
       if (day == null) continue
-      const offset = Math.round((day - anchors.todayTs) / DAY_MS)
+      const offset = calendarDayDistance(anchors.todayTs, day)
       if (offset < 0 || offset > 3) continue
       out.push({
         id: 'save-' + keyOf(e),
@@ -51,7 +50,7 @@ export default function NotificationsPage({ events = [], anchors, wx }) {
     // 2) a real weather heads-up — first rainy/stormy day in the next 3
     if (wx) {
       for (let i = 0; i <= 3; i++) {
-        const ts = anchors.todayTs + i * DAY_MS
+        const ts = addDayTs(anchors.todayTs, i)
         const w = wx[dateKey(ts)]
         if (w && (RAINY.has(w.emoji) || (w.rain != null && w.rain >= 50))) {
           out.push({

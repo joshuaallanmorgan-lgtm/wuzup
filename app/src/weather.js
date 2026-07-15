@@ -9,6 +9,7 @@
 
 import { lsGet, lsSet, lsRemove } from './storage.js'
 import { CITY, Icon } from './lib.js'
+import { dayIdAt } from '../../shared/city-time.mjs'
 
 // query location + timezone come from the city config (D4) — for Tampa the URL
 // is byte-identical to the old hardcoded one (America/New_York encodes the same).
@@ -84,9 +85,7 @@ export const WX_GLYPH = {
 
 // local-time day timestamp → 'YYYY-MM-DD' (matches the API's daily.time keys)
 export function dateKey(ts) {
-  const d = new Date(ts)
-  const p = (n) => String(n).padStart(2, '0')
-  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate())
+  return dayIdAt(ts, CITY.tz)
 }
 
 // "🌧️ Showers likely · high 93° · 47% rain" — null when no forecast for the

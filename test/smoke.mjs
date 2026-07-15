@@ -1058,8 +1058,10 @@ test('3.75b: watch guides resolve to real keyword matches + honor the window', a
     'a matched event contains none of the keywords (resolver is fabricating)'
   )
   // window gate
-  assert.equal(watchGuideActive(wc, Date.parse('2026-06-20')), true, 'should be active mid-window')
-  assert.equal(watchGuideActive(wc, Date.parse('2027-01-01')), false, 'should be inactive outside its window')
+  assert.equal(watchGuideActive(wc, lib.dayTs('2026-06-20')), true, 'should be active mid-window')
+  assert.equal(watchGuideActive(wc, lib.dayTs(wc.window.end)), true, 'inclusive final city day stays active')
+  assert.equal(watchGuideActive(wc, lib.addDayTs(lib.dayTs(wc.window.end), 1)), false, 'day after the window is inactive')
+  assert.equal(watchGuideActive(wc, lib.dayTs('2027-01-01')), false, 'should be inactive outside its window')
   // Stage D sf-app: the PER-CITY artifact guides (finder/output/<city>/guides.json,
   // what deploy-city ships) obey the same honesty shape — schemaVersion 1 and
   // every watch guide carries a parseable window + non-empty keywords (a
@@ -1477,6 +1479,7 @@ test(`Stage E base-path: BASE_PATH=${DEPLOY_BASE} build rebases every runtime su
 //    guarded, so importing them here is supported by design)
 // ============================================================
 const lib = await import('../app/src/lib.js')
+const cityMs = (iso) => lib.parseDate(iso)?.getTime()
 const weekend = await import('../app/src/weekend.js')
 const taste = await import('../app/src/taste.js')
 const share = await import('../app/src/share.js')
@@ -1517,7 +1520,7 @@ const ev = (over = {}) => ({
   ...over,
 })
 const N = (raw, anchors) => lib.normalize(raw, anchors)
-const AN = lib.makeAnchors(new Date(2026, 5, 10, 12, 0)) // Wed Jun 10 2026, noon
+const AN = lib.makeAnchors(cityMs('2026-06-10T12:00:00')) // Wed Jun 10 2026, city noon
 
 test('orderDay: count-preserving on 3 synthetic shapes + de-flood property', () => {
   // shape 1 — single-source flood (the library case): same family+category
@@ -1579,7 +1582,7 @@ test('tonightModel: future-first ordering, started sink, late-night fold-in', ()
   ]
   // 7 PM: futures lead hot-desc (date-only today is a future all-day plan),
   // started sinks below despite the highest hotScore, tomorrow excluded
-  const m1 = lib.tonightModel(up, AN, new Date(2026, 5, 10, 19, 0))
+  const m1 = lib.tonightModel(up, AN, cityMs('2026-06-10T19:00:00'))
   assert.deepEqual(
     m1.items.map((x) => x.e.title),
     ['future-b', 'dateonly-today', 'future-a', 'started-hot'],
@@ -1588,7 +1591,7 @@ test('tonightModel: future-first ordering, started sink, late-night fold-in', ()
   assert.equal(m1.futureN, 2, 'futureN counts TIMED not-yet-started events only')
   assert.equal(m1.late, false)
   // 22:30 with <3 timed futures: late mode folds in tomorrow 16–22h, withDate
-  const m2 = lib.tonightModel(up, AN, new Date(2026, 5, 10, 22, 30))
+  const m2 = lib.tonightModel(up, AN, cityMs('2026-06-10T22:30:00'))
   assert.equal(m2.late, true, 'late mode must trigger after 22:00 with < 3 timed futures')
   assert.deepEqual(
     m2.items.map((x) => x.e.title),
@@ -1616,26 +1619,29 @@ test('daypartOf: boundary hours (ternary morning/afternoon/night)', () => {
 // path must stay byte-for-byte the old DetailPage output; the day path must
 // emit one VEVENT per slotted entry inside ONE VCALENDAR.
 test('share.js: eventIcs is a single well-formed VEVENT, eventsIcs is multi', () => {
+  const nowMs = Date.parse('2026-07-15T16:00:00Z')
   const timed = N(ev({ title: 'Vinyl Night', start: '2026-06-13T19:00:00', venue: 'The Attic' }), AN)
   const dated = N(ev({ title: 'Art Walk', start: '2026-06-14', venue: 'Riverwalk' }), AN)
-  const one = share.eventIcs(timed)
+  const one = share.eventIcs(timed, { nowMs })
   assert.ok(one.startsWith('BEGIN:VCALENDAR\r\n') && one.endsWith('END:VCALENDAR\r\n'), 'single ICS must be a full VCALENDAR')
   assert.equal((one.match(/BEGIN:VEVENT/g) || []).length, 1, 'eventIcs must contain exactly one VEVENT')
-  assert.ok(one.includes('DTSTART:20260613T190000'), 'timed event must emit local floating DTSTART')
+  assert.ok(one.includes('DTSTART;TZID=America/New_York:20260613T190000'), 'timed event must emit a city-zoned DTSTART')
+  assert.ok(one.includes('DTEND;TZID=America/New_York:20260613T220000'), 'timed event must emit its canonical end')
+  assert.ok(one.includes('DTSTAMP:20260715T160000Z'), 'injected stamp must be deterministic')
   assert.ok(one.includes('SUMMARY:Vinyl Night'), 'SUMMARY must carry the title')
   // multi: two slotted entries → two VEVENTs, one envelope
-  const many = share.eventsIcs([timed, dated])
+  const many = share.eventsIcs([timed, dated], { nowMs })
   assert.equal((many.match(/BEGIN:VCALENDAR/g) || []).length, 1, 'eventsIcs must wrap ONE VCALENDAR')
   assert.equal((many.match(/BEGIN:VEVENT/g) || []).length, 2, 'eventsIcs must emit one VEVENT per entry')
   assert.equal((many.match(/END:VEVENT/g) || []).length, 2, 'every VEVENT must be closed')
   assert.ok(many.includes('DTSTART;VALUE=DATE:20260614'), 'date-only entry must be all-day')
   // empty list is still a valid (empty) calendar — never throws
-  const none = share.eventsIcs([])
+  const none = share.eventsIcs([], { nowMs })
   assert.equal((none.match(/BEGIN:VEVENT/g) || []).length, 0, 'empty plan ICS has no VEVENTs')
 })
 
 test('share.js: shareDayText composes ☀️/🌙 lines, null on nothing to share', () => {
-  const dayTs = new Date(2026, 5, 13).getTime()
+  const dayTs = lib.dayTs('2026-06-13')
   const day = N(ev({ title: 'Beach', start: '2026-06-13T10:00:00', venue: 'Fort De Soto' }), AN)
   const night = N(ev({ title: 'Show', start: '2026-06-13T20:00:00', venue: 'Orpheum' }), AN)
   const txt = share.shareDayText(dayTs, [{ part: 'afternoon', e: day }, { part: 'night', e: night }])
@@ -2600,19 +2606,19 @@ test('places: a saved place round-trips (snapshot carries kind+key → PlaceDeta
 })
 
 test('weekend window: Fri–Sun for 3 different start days', () => {
-  const wd = (d) => new Date(d).getDay()
+  const wd = (d) => lib.weekdayIndex(d)
   // Wednesday → upcoming Fri 12 / Sat 13 / Sun 14
-  const wed = lib.makeAnchors(new Date(2026, 5, 10))
+  const wed = lib.makeAnchors(cityMs('2026-06-10T12:00:00'))
   assert.deepEqual(weekend.weekendDays(wed).map(wd), [5, 6, 0], 'weekend days must be Fri/Sat/Sun')
-  assert.equal(new Date(wed.wkStartTs).getDate(), 12, 'Wed Jun 10 → weekend starts Fri Jun 12')
+  assert.equal(lib.dayNumber(wed.wkStartTs), 12, 'Wed Jun 10 → weekend starts Fri Jun 12')
   assert.equal(weekend.visibleWeekend(wed).length, 3, 'midweek: all 3 weekend days visible')
   // Saturday → the IN-PROGRESS weekend (Fri 13 was yesterday) — Fri column drops
-  const sat = lib.makeAnchors(new Date(2026, 5, 13))
-  assert.equal(new Date(sat.wkStartTs).getDate(), 12, 'Sat Jun 13 → weekend started Fri Jun 12')
+  const sat = lib.makeAnchors(cityMs('2026-06-13T12:00:00'))
+  assert.equal(lib.dayNumber(sat.wkStartTs), 12, 'Sat Jun 13 → weekend started Fri Jun 12')
   assert.deepEqual(weekend.visibleWeekend(sat).map((d) => d.id), ['sat', 'sun'], 'on Saturday the spent Friday drops')
   // Sunday → still the in-progress weekend, only Sunday remains
-  const sun = lib.makeAnchors(new Date(2026, 5, 14))
-  assert.equal(new Date(sun.wkStartTs).getDate(), 12, 'Sun Jun 14 → weekend started Fri Jun 12')
+  const sun = lib.makeAnchors(cityMs('2026-06-14T12:00:00'))
+  assert.equal(lib.dayNumber(sun.wkStartTs), 12, 'Sun Jun 14 → weekend started Fri Jun 12')
   assert.deepEqual(weekend.visibleWeekend(sun).map((d) => d.id), ['sun'], 'on Sunday only Sunday remains')
   // window math: a Saturday event is _weekend, a Monday event is not
   assert.equal(N(ev({ start: '2026-06-13' }), wed)._weekend, true, 'Saturday event must be _weekend')

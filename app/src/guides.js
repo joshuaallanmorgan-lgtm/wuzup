@@ -11,7 +11,8 @@
 // Plain .js (no JSX, Node-importable for the smoke harness). DRAFT copy — ⚑ Charles.
 import { useEffect, useSyncExternalStore } from 'react'
 import { daypartOf } from './weekend.js'
-import { keyOf } from './lib.js'
+import { CITY, keyOf } from './lib.js'
+import { addCalendarDays, cityMidnightMs } from '../../shared/city-time.mjs'
 
 // indoor-ish categories — a good backup when the forecast turns
 const INDOOR = new Set(['art', 'theatre', 'comedy', 'music', 'nightlife', 'food', 'family', 'market', 'community'])
@@ -205,12 +206,15 @@ export function useGuides(enabled = true) {
 // a watch guide is "active" only inside its window (honest — never advertise a
 // World Cup guide in October).
 export function watchGuideActive(guide, nowTs) {
-  if (!guide || guide.kind !== 'watch' || !guide.window) return false
-  const start = Date.parse(guide.window.start)
-  const end = Date.parse(guide.window.end)
-  return Number.isFinite(start) && Number.isFinite(end) && nowTs >= start && nowTs <= end
+  if (!guide || guide.kind !== 'watch' || !guide.window || !Number.isFinite(nowTs)) return false
+  try {
+    const start = cityMidnightMs(guide.window.start, CITY.tz)
+    const endExclusive = cityMidnightMs(addCalendarDays(guide.window.end, 1), CITY.tz)
+    return nowTs >= start && nowTs < endExclusive
+  } catch {
+    return false
+  }
 }
-
 // resolve a watch guide against the LIVE events — matches a keyword in the event's
 // title / description / venue (case-insensitive). Real listings only; no curated
 // picks to fabricate. De-dups on the canonical key.

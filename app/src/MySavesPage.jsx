@@ -59,9 +59,9 @@ export default function MySavesPage({ events, anchors }) {
             <div key={g.key} className="ms-group">
               <div className="ms-group-label">{g.label}</div>
               <div className="pf-rows">
-                {g.items.map(({ e, past }) => (
+                {g.items.map(({ e, past, lifecycle }) => (
                   <div key={keyOf(e)} className={'pf-item' + (past ? ' pf-past' : '')}>
-                    {past && <span className="pf-happened">Happened</span>}
+                    {past && <span className="pf-happened">{lifecycle?.label || 'Unavailable'}</span>}
                     <GemRow e={e} onSelect={onSelect} />
                   </div>
                 ))}

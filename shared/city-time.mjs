@@ -75,6 +75,10 @@ function zonedParts(epochMs, timeZone) {
   }
 }
 
+export function zonedDateTimeParts(epochMs, timeZone) {
+  return zonedParts(epochMs, timeZone)
+}
+
 function partsDayId(parts) {
   const pad = (value) => String(value).padStart(2, '0')
   return `${String(parts.year).padStart(4, '0')}-${pad(parts.month)}-${pad(parts.day)}`
@@ -164,6 +168,21 @@ export function weekdayOf(dayId) {
 
 export function dayIdAt(epochMs, timeZone) {
   return partsDayId(zonedParts(epochMs, timeZone))
+}
+
+export function cityHourAt(epochMs, timeZone) {
+  return zonedParts(epochMs, timeZone).hour
+}
+
+export function formatInstant(epochMs, { timeZone, locale = 'en-US', ...options } = {}) {
+  requireTimeZone(timeZone)
+  if (!Number.isFinite(epochMs)) throw new TypeError('epochMs must be finite')
+  return new Intl.DateTimeFormat(locale, { timeZone, ...options }).format(new Date(epochMs))
+}
+
+export function formatDay(dayId, { timeZone, locale = 'en-US', ...options } = {}) {
+  requireDayId(dayId)
+  return formatInstant(cityMidnightMs(dayId, timeZone), { timeZone, locale, ...options })
 }
 
 export function parseZonedDateTime(value, timeZone, { disambiguation = 'earlier' } = {}) {
@@ -404,6 +423,33 @@ export function cityClock({ timeZone, nowMs = Date.now() } = {}) {
     weekendStart,
     weekendEnd,
     cityHour: parts.hour,
+    cityMinute: parts.minute,
     nextMidnightMs: cityMidnightMs(tomorrow, timeZone),
   }
+}
+
+export function monthStart(dayId, offset = 0) {
+  requireDayId(dayId)
+  if (!Number.isInteger(offset)) throw new TypeError('calendar-month offset must be an integer')
+  const [year, month] = dayId.split('-').map(Number)
+  const absoluteMonth = year * 12 + month - 1 + offset
+  const nextYear = Math.floor(absoluteMonth / 12)
+  const nextMonth = ((absoluteMonth % 12) + 12) % 12 + 1
+  if (nextYear < 0 || nextYear > 9999) {
+    throw new RangeError('calendar-month result is outside supported years')
+  }
+  return String(nextYear).padStart(4, '0') + '-' + String(nextMonth).padStart(2, '0') + '-01'
+}
+
+export function calendarDayDiff(fromDayId, toDayId) {
+  requireDayId(fromDayId)
+  requireDayId(toDayId)
+  const from = Date.parse(fromDayId + 'T00:00:00Z')
+  const to = Date.parse(toDayId + 'T00:00:00Z')
+  return (to - from) / 86400000
+}
+
+export function daysInMonth(dayId) {
+  const start = monthStart(dayId)
+  return calendarDayDiff(start, monthStart(start, 1))
 }

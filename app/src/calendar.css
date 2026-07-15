@@ -251,6 +251,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.cal-sel-status { flex: 0 0 auto; font-size: var(--t-meta-sm); font-weight: 700; color: var(--muted); }
 .cal-sel-open { flex: 1; font-size: var(--t-meta); font-weight: 600; color: var(--muted); }
 .cal-sel-x {
   flex: 0 0 auto;

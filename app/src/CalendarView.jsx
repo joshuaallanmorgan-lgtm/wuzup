@@ -26,7 +26,16 @@
 // the day screen); WB stays reachable from Profile. ALL NEW COPY IS DRAFT for
 // Charles (inventory in the sprint report).
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { fmtLocale, keyOf } from './lib.js'
+import {
+  addDayTs,
+  dayNumber,
+  daysInCityMonth,
+  eventLifecycle,
+  formatDayTs,
+  keyOf,
+  monthStartTs as cityMonthStartTs,
+  weekdayIndex,
+} from './lib.js'
 import { useNav } from './nav.jsx'
 import { useBeenThere } from './saves.js'
 import { fitsDay, DAYPART } from './weekend.js'
@@ -98,11 +107,10 @@ export default function CalendarView({ events, anchors, wx }) {
   // S1-C3 retired the "N days out in {month}" stat, so daysOut/daysOutInMonth are
   // gone too — the RICH ledger (days-out, variety firsts, past-days journal) lives
   // in Profile → My plans, unduplicated.
-  const base = new Date(anchors.todayTs)
-  const month = new Date(base.getFullYear(), base.getMonth() + monthOff, 1)
-  const monthStartTs = month.getTime()
-  const nextMonthStartTs = new Date(month.getFullYear(), month.getMonth() + 1, 1).getTime()
-  const monthName = month.toLocaleDateString(fmtLocale, { month: 'long' })
+  const monthStartTs = cityMonthStartTs(anchors.todayTs, monthOff)
+  const nextMonthStartTs = cityMonthStartTs(anchors.todayTs, monthOff + 1)
+  const month = monthStartTs
+  const monthName = formatDayTs(month, { month: 'long' })
 
   // FB-13 (3.7P-3): the calm this-month rhythm strip — a few glanceable FACTS
   // from existing data only. NO streak, NO counting-up juice (that's 3.7P-4); each
@@ -163,15 +171,14 @@ export default function CalendarView({ events, anchors, wx }) {
   }, [events, placeList])
 
   // ===== the month canvas =====
-  const monthTitle = month.toLocaleDateString(fmtLocale, { month: 'long', year: 'numeric' })
+  const monthTitle = formatDayTs(month, { month: 'long', year: 'numeric' })
   // R-C2: the picker offers this month + the next 12 (future-only, matching the
   // prev/next clamp) so a selection can never push monthOff out of grid range.
   const monthOptions = useMemo(() => {
-    const b = new Date(anchors.todayTs)
     const out = []
     for (let o = 0; o <= 12; o++) {
-      const m = new Date(b.getFullYear(), b.getMonth() + o, 1)
-      out.push({ off: o, label: m.toLocaleDateString(fmtLocale, { month: 'long', year: 'numeric' }) })
+      const m = cityMonthStartTs(anchors.todayTs, o)
+      out.push({ off: o, label: formatDayTs(m, { month: 'long', year: 'numeric' }) })
     }
     return out
   }, [anchors.todayTs])
@@ -202,11 +209,11 @@ export default function CalendarView({ events, anchors, wx }) {
       monthBtnRef.current?.focus()
     }
   }, [pickerOpen])
-  const firstDow = month.getDay()
-  const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate()
+  const firstDow = weekdayIndex(month)
+  const daysInMonth = daysInCityMonth(month)
   const cells = []
   for (let i = 0; i < firstDow; i++) cells.push(null)
-  for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(month.getFullYear(), month.getMonth(), d).getTime())
+  for (let d = 1; d <= daysInMonth; d++) cells.push(addDayTs(month, d - 1))
 
   // the selected day for the caption — defaults to today (in the current month)
   // or the first day of a navigated month, so the caption always has a subject.
@@ -218,7 +225,7 @@ export default function CalendarView({ events, anchors, wx }) {
   const selRest = restDays.has(sel)
   const selWent = dids.has(sel)
   const selPast = sel < anchors.todayTs
-  const selTitle = new Date(sel).toLocaleDateString(fmtLocale, { weekday: 'long', month: 'long', day: 'numeric' })
+  const selTitle = formatDayTs(sel, { weekday: 'long', month: 'long', day: 'numeric' })
 
   // ===== 3.7P-17: the inline day panel (selected day → bottom panel) =====
   // resolve a slot key → live event/place (a place fits any day; a date-gated
@@ -362,7 +369,7 @@ export default function CalendarView({ events, anchors, wx }) {
                 // swaps to that day (no popover, never blocks tapping the next day).
                 onClick={() => setSelKey(ts)}
               >
-                <span className="mnum">{new Date(ts).getDate()}</span>
+                <span className="mnum">{dayNumber(ts)}</span>
                 {/* the ONE quiet personal mark, mutually exclusive by rule:
                     a did-day wears a calm check stamp (a plan that became a
                     thing you did), else a planned day wears a teal underline,
@@ -407,12 +414,14 @@ export default function CalendarView({ events, anchors, wx }) {
                 <div className="cal-sel-slots">
                   {selSlots.map(({ part, e }) => {
                     const when = DAYPART[part].label
+                    const lifecycleLabel = e && e.kind !== 'place' && e._actionable !== true ? eventLifecycle(e).label : null
                     return (
                       <div className={'cal-sel-slot' + (e ? ' filled' : '')} key={part} aria-label={`${when}: ${e ? e.title || e.name : 'open'}`}>
                         <span className="cal-sel-when" aria-hidden>{DAYPART[part].emoji} {when}</span>
                         {e ? (
                           <>
                             <span className="cal-sel-what" aria-hidden>{e.title || e.name}</span>
+                            {lifecycleLabel && <span className="cal-sel-status">{lifecycleLabel}</span>}
                             <button className="cal-sel-x pressable" onClick={() => clearSlot(sel, part)} aria-label={`Clear ${e.title || e.name} from ${when.toLowerCase()}`}>✕</button>
                           </>
                         ) : (
