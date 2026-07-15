@@ -18,7 +18,7 @@ export default function MySavesPage({ events, anchors }) {
   const tabRefs = useRef([])
 
   const filtered = useMemo(() => {
-    if (filter === 'Upcoming') return shelf.filter((x) => !x.past)
+    if (filter === 'Upcoming') return shelf.filter((x) => !x.unavailable)
     if (filter === 'Past') return shelf.filter((x) => x.past)
     return shelf
   }, [shelf, filter])
@@ -59,9 +59,9 @@ export default function MySavesPage({ events, anchors }) {
             <div key={g.key} className="ms-group">
               <div className="ms-group-label">{g.label}</div>
               <div className="pf-rows">
-                {g.items.map(({ e, past, lifecycle }) => (
-                  <div key={keyOf(e)} className={'pf-item' + (past ? ' pf-past' : '')}>
-                    {past && <span className="pf-happened">{lifecycle?.label || 'Unavailable'}</span>}
+                {g.items.map(({ e, unavailable, lifecycle }) => (
+                  <div key={keyOf(e)} className={'pf-item' + (unavailable ? ' pf-past' : '')}>
+                    {unavailable && <span className="pf-happened">{lifecycle?.label || 'Unavailable'}</span>}
                     <GemRow e={e} onSelect={onSelect} />
                   </div>
                 ))}

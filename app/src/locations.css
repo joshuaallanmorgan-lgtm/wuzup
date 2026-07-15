@@ -86,6 +86,12 @@
   transform: scale(0.985);
   box-shadow: 0 3px 12px rgba(var(--accent-rgb), 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
+.loc-plan-cta:disabled {
+  color: var(--muted);
+  background: var(--surface-2);
+  box-shadow: none;
+  cursor: default;
+}
 
 /* ===== 3.7P-24 field-guide elements (§N spot detail) ===== */
 /* Stage R: name + meta now sit BELOW the clean hero photo on light. */

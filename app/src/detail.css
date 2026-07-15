@@ -311,3 +311,15 @@ a.d-row { text-decoration: none; color: inherit; }
   }
   .detail-toast { color: var(--bg); }
 }
+.detail-lifecycle {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-top: 2px;
+  padding: 6px 10px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--t-small);
+  font-weight: 800;
+}

@@ -36,7 +36,7 @@ const cityOf = (addr) => {
   return null
 }
 
-export default function HotView({ events, anchors, loading, loadError = false }) {
+export default function HotView({ events, retainedEvents = events, anchors, loading, loadError = false }) {
   const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, openGuide, openEvFilters, openDeck, goTo } = useNav()
   const wx = useContext(WxContext) // access weather without prop threading
   const scrollRef = useRef(null)
@@ -85,7 +85,7 @@ export default function HotView({ events, anchors, loading, loadError = false })
   const tuneSamples = useMemo(() => [...upcoming].sort(hotDesc).slice(0, 2), [upcoming])
 
   const { list: savedList } = useSaves()
-  const shelf = useMemo(() => shelfItems(savedList, events, anchors), [savedList, events, anchors])
+  const shelf = useMemo(() => shelfItems(savedList, retainedEvents, anchors), [savedList, retainedEvents, anchors])
   const shelfOn = shelf.length > 0
 
   const taste = useTaste()
@@ -339,9 +339,9 @@ export default function HotView({ events, anchors, loading, loadError = false })
               sub="Your saves, ready when you are."
             />
             <div className="carousel carousel-stagger">
-              {shelf.map(({ e, past }) => (
-                <div key={keyOf(e)} className={'shelf-item' + (past ? ' shelf-past' : '')}>
-                  {past && <span className="shelf-happened">Happened</span>}
+              {shelf.map(({ e, unavailable, lifecycle }) => (
+                <div key={keyOf(e)} className={'shelf-item' + (unavailable ? ' shelf-past' : '')}>
+                  {unavailable && <span className="shelf-happened">{lifecycle.label}</span>}
                   <TonightCard e={e} onSelect={onSelect} withDate />
                 </div>
               ))}

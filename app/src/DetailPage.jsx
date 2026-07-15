@@ -10,13 +10,13 @@
 // a rail swap remounts and scroll resets.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNav } from './nav.jsx'
-import { addDayTs, calendarDayDistance, cityHour, dayKey, formatDayTs, hotDesc, Icon, keyOf, priceLabel, timeOf } from './lib.js'
+import { addDayTs, calendarDayDistance, cityHour, dayKey, eventLifecycle, formatDayTs, hotDesc, Icon, keyOf, priceLabel, timeOf } from './lib.js'
 import { eventIcs } from './share.js'
 import { CATEGORY_EMOJI, HeatBadge, SecHead, TonightCard, auroraStyle, hueFor } from './cards.jsx'
 import { SaveHeart, useSaves } from './saves.js'
 import { whyReasons } from './taste.js'
 import { daypartOf, DAYPART, wxMood } from './weekend.js'
-import { loadDayPlans, saveDayPlans, withSlot, dayEntryFor, PARTS } from './dayplan.js'
+import { findPlannedItem, loadDayPlans, planItem, saveDayPlans, dayEntryFor, PARTS } from './dayplan.js'
 import { CONDITION, dateKey } from './weather.js'
 import './detail.css'
 import './locations.css' // 3.7P-34: the shared "Add to day" sheet (.loc-plan-*) lives here
@@ -99,6 +99,7 @@ function whyProse(e, w) {
 export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, onRestoreMine }) {
   // navigation via useNav (O6): close/swap/map-handoff + the open-state flags
   const { closing, vtOpen: vt, closeDetail: onClose, openDetail: onSelect } = useNav()
+  const lifecycle = eventLifecycle(e)
   // ===== WHEN: end-date honesty (multi-day ranges, same-day time ranges, ongoing) =====
   // whenShort is the SAME honest WHEN in short form ("Fri, Jun 19 · 7:00 PM") for
   // the title-block eyebrow (WS2 detail-rebuild); `when` (long form) stays
@@ -174,7 +175,7 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         .join(' · ')
     : null
   // the Why-this-fits sentence — needs the event-day forecast (w) above
-  const whyLine = whyProse(e, w)
+  const whyLine = lifecycle.actionable ? whyProse(e, w) : null
 
   // ===== detail hero image: preload + 300ms fade over the dark placeholder =====
   const [loadedSrc, setLoadedSrc] = useState(null)
@@ -270,6 +271,10 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
   const [planning, setPlanning] = useState(false)
   const [planDayTs, setPlanDayTs] = useState(null)
   const [plansVersion, setPlansVersion] = useState(0)
+  const planned = useMemo(() => {
+    void plansVersion
+    return findPlannedItem(loadDayPlans(anchors), keyOf(e))
+  }, [anchors, e, plansVersion])
   // Plan Phase 2 (flows-2 p2): the add-to-day sheet is select-then-confirm — the
   // user picks a daypart, then taps "Add to {day}". selPart holds the pick; null
   // until they choose (the natural free daypart is the rendered default).
@@ -310,9 +315,12 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
   const addToPlan = (part) => {
     if (curDay == null) return
     const map = loadDayPlans(anchors)
-    const entry = dayEntryFor(map[String(curDay)])
-    if (entry && entry.slots[part]) return // never clobber a filled slot
-    saveDayPlans(withSlot(map, curDay, part, keyOf(e)))
+    const result = planItem(map, curDay, part, keyOf(e))
+    if (result.code !== 'added') {
+      flash(result.code === 'already-planned' ? 'Already in your plan' : 'That slot is taken')
+      return
+    }
+    saveDayPlans(result.map)
     setPlansVersion((v) => v + 1)
     const dl = planDays.find((d) => d.ts === curDay)?.label || ''
     flash(`Added to ${dl} ${DAYPART[part].emoji} ✓`)
@@ -435,7 +443,7 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         </button>
         {/* ♥ save toggle (saves.js) — heat badge slides left of it via saves.css */}
         <SaveHeart e={e} big />
-        <HeatBadge e={e} />
+        {lifecycle.actionable && <HeatBadge e={e} />}
         {/* WS2 detail-rebuild: the refs' TIME BADGE, bottom-left on the hero —
             solid --cta fill + white text (D.0-R compliant, 4.68:1; the refs'
             light-orange fill fails AA with white). Card .imgbadge geometry,
@@ -455,6 +463,11 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         <div className="detail-head">
           <div className="detail-eyebrow">{whenShort}</div>
           <h1 className="detail-title">{e.title}</h1>
+          {!lifecycle.actionable && (
+            <div className={'detail-lifecycle detail-lifecycle-' + lifecycle.code} role="status">
+              {lifecycle.label}
+            </div>
+          )}
           {whereMain && <div className="detail-venue">{whereMain}</div>}
           {(e.category !== 'other' || priceLabel(e)) && (
             <div className="detail-chips">
@@ -544,9 +557,9 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
             computed upstream — never fabricated), and the ICS download rides as
             the "Add to calendar" row (my call: the row family beats a stray lone
             button). Share stays in the hero chrome (R-HD2). Copy DRAFT ⚑ Charles. */}
-        {((canPlan && e.url) || mapsUrl || e.start) && (
+        {((lifecycle.actionable && e.url) || mapsUrl || (lifecycle.actionable && e.start)) && (
           <div className="detail-links">
-            {canPlan && e.url && (
+            {lifecycle.actionable && e.url && (
               <a className="dlink" href={e.url} target="_blank" rel="noreferrer">
                 <span className="dlink-ic" aria-hidden><Icon.tag /></span>
                 <span className="dlink-main">
@@ -565,7 +578,7 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
                 <span className="dlink-go" aria-hidden>›</span>
               </a>
             )}
-            {e.start && (
+            {lifecycle.actionable && e.start && (
               <button className="dlink" onClick={downloadIcs}>
                 <span className="dlink-ic" aria-hidden><Icon.calendar /></span>
                 <span className="dlink-main">
@@ -694,12 +707,15 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         >
           {saved ? '♥ Saved' : '♡ Save'}
         </button>
-        {canPlan ? (
+        {planned ? (
+          <button className="loc-plan-cta detail-actionbar-cta" disabled>
+            ✓ In your plan
+          </button>
+        ) : canPlan ? (
           <button className="loc-plan-cta detail-actionbar-cta" ref={planBtnRef} onClick={() => setPlanning(true)}>
             ＋ {addLabel}
           </button>
-        ) : (
-          e.url && (
+        ) : lifecycle.actionable && e.url ? (
             <a className="loc-plan-cta detail-actionbar-cta" href={e.url} target="_blank" rel="noreferrer">
               {e.isFree === true || !(e.price > 0) ? (
                 <>
@@ -711,8 +727,9 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
                 </>
               )}
             </a>
-          )
-        )}
+        ) : !lifecycle.actionable ? (
+          <button className="loc-plan-cta detail-actionbar-cta" disabled>{lifecycle.label}</button>
+        ) : null}
       </div>
     </div>
   )

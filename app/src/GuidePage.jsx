@@ -16,7 +16,7 @@ import { RowFeed } from './cards.jsx'
 import LensNav from './LensNav.jsx'
 import { usePlaces, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES } from './places.js'
 import { resolveGuide, resolveWatchGuide } from './guides.js'
-import { loadDayPlans, saveDayPlans, withSlot } from './dayplan.js'
+import { dayEntryFor, loadDayPlans, PARTS, planItem, saveDayPlans } from './dayplan.js'
 import './bubble.css'
 
 export default function GuidePage({ guide, events, anchors }) {
@@ -65,7 +65,13 @@ export default function GuidePage({ guide, events, anchors }) {
   // ⚑PLAN-P0: a place is daypart 'any' → the morning slot (the day's start).
   const planDay = () => {
     const place = items.find((it) => it.kind === 'place')
-    if (place) saveDayPlans(withSlot(loadDayPlans(anchors), anchors.wkStartTs, 'morning', place.key))
+    if (place) {
+      const map = loadDayPlans(anchors)
+      const entry = dayEntryFor(map[String(anchors.wkStartTs)])
+      const target = PARTS.find((part) => !entry?.slots[part])
+      const result = target ? planItem(map, anchors.wkStartTs, target, place.key) : null
+      if (result?.code === 'added') saveDayPlans(result.map)
+    }
     openDay(anchors.wkStartTs)
   }
 

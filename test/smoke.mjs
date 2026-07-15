@@ -2183,15 +2183,15 @@ test('PREMIUM A4: elevation scale + motion (depth tokens, press, btn-primary, ad
 // demoted to a secondary util action. A dated event plans onto ITS OWN day.
 test('3.7P-34 event-detail: planner-first Add-to-day CTA + demoted event link', () => {
   const dp = readFileSync(path.join(ROOT, 'app', 'src', 'DetailPage.jsx'), 'utf8')
-  assert.ok(/from '\.\/dayplan\.js'/.test(dp) && /withSlot/.test(dp) && /dayEntryFor/.test(dp), 'DetailPage imports the day-plan seams')
+  assert.ok(/from '\.\/dayplan\.js'/.test(dp) && /planItem/.test(dp) && /dayEntryFor/.test(dp), 'DetailPage imports the safe day-plan seams')
   assert.ok(/daypartOf/.test(dp), 'uses daypartOf for the natural slot suggestion')
   // Stage R: the primary is now an honest day-specific label (Add to tonight /
   // Add to Friday night) in a two-button action bar (Save + Add). canPlan gates it.
   assert.ok(/＋ \{addLabel\}/.test(dp) && /canPlan \?/.test(dp), 'the primary CTA is the planner Add when the event can be planned')
   assert.ok(/Add to tonight/.test(dp) && /Add to \$\{d0\.label\}/.test(dp), 'the Add label is day-specific + honest (event own day + natural daypart)')
   assert.ok(/detail-actionbar/.test(dp) && /detail-save-btn/.test(dp), 'the bottom bar pairs Save + the primary (two-button)')
-  assert.ok(/if \(entry && entry\.slots\[part\]\) return/.test(dp), 'addToPlan never clobbers a filled slot')
-  assert.ok(/canPlan \? \(/.test(dp) && /e\.url && \(/.test(dp), 'the official event / ticket link is the fallback primary for a non-plannable event')
+  assert.ok(/planItem\(map, curDay, part, keyOf\(e\)\)/.test(dp) && /result\.code !== 'added'/.test(dp), 'addToPlan rejects occupied slots and duplicate items')
+  assert.ok(/lifecycle\.actionable && e\.url/.test(dp) && /!lifecycle\.actionable \?/.test(dp), 'event and ticket actions disappear when retained inventory is unavailable')
   assert.ok(/function eventPlanDays/.test(dp) && /Math\.max\(e\._day, anchors\.todayTs\)/.test(dp), 'plan days are clamped to the event run (its own day), never arbitrary')
   assert.ok(/aria-modal="true"/.test(dp) && /planSheetRef/.test(dp) && /planBtnRef\.current\?\.focus\(\)/.test(dp), 'the add-to-day sheet is a focus-managed dialog (focus in + return to trigger)')
 })

@@ -43,6 +43,8 @@ import {
   dayEntryFor,
   emptyDay,
   loadDayPlans,
+  plannedItemKeys,
+  planItem,
   saveDayPlans,
   withClearedSlot,
   withRest,
@@ -80,6 +82,7 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
     if (!detail) setPlans(loadDayPlans(anchors))
   }, [detail, anchors])
   const entry = dayEntryFor(plans[String(ts)]) ?? emptyDay()
+  const plannedKeys = useMemo(() => plannedItemKeys(plans), [plans])
   const rest = entry.state === 'rest'
   // 3.7P-4b: a satisfying gold pop on the slot you just filled (Recipe A, the
   // savePop curve in --accent — planning earns NO --reward violet per the ban
@@ -196,24 +199,29 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
       (e) =>
         e._day != null &&
         (e._endDay ?? e._day) >= anchors.todayTs &&
-        Math.max(e._day, anchors.todayTs) === ts
+        Math.max(e._day, anchors.todayTs) === ts &&
+        !plannedKeys.has(keyOf(e))
     )
     list.sort((a, b) => tasteNudge(b, taste) + wxBonus(b) - (tasteNudge(a, taste) + wxBonus(a)) || a._t - b._t)
     return list
-  }, [availableEvents, anchors, ts, taste, wxBonus])
+  }, [availableEvents, anchors, ts, taste, wxBonus, plannedKeys])
   // the honest basis line — only claims a signal that actually informed the order
   const hasTaste = railReady(taste)
   const suggSub = hasTaste && w ? 'Based on weather and your likes' : hasTaste ? 'Based on what you like' : w ? "Based on the day's weather" : 'Everything on for this day'
 
   // ===== slots: the picker's resolution pool (same wiring as WB) =====
   const upcoming = useMemo(
-    () => availableEvents.filter((e) => e._day != null && (e._endDay ?? e._day) >= anchors.todayTs),
-    [availableEvents, anchors]
+    () => availableEvents.filter((e) =>
+      e._day != null && (e._endDay ?? e._day) >= anchors.todayTs && !plannedKeys.has(keyOf(e))
+    ),
+    [availableEvents, anchors, plannedKeys]
   )
   const { list: savedList } = useSaves()
   const savedEvents = useMemo(
-    () => shelfItems(savedList, events, anchors).filter((x) => !x.past && (x.e.kind === 'place' || x.e._actionable === true)).map((x) => x.e),
-    [savedList, events, anchors]
+    () => shelfItems(savedList, events, anchors)
+      .filter((x) => !x.unavailable && (x.e.kind === 'place' || x.e._actionable === true) && !plannedKeys.has(keyOf(x.e)))
+      .map((x) => x.e),
+    [savedList, events, anchors, plannedKeys]
   )
   // Sprint S: a slot can hold a PLACE (Make-this-my-plan writes a 'p|' key),
   // not just an event. Fold the lazy-loaded places into the resolver map so a
@@ -290,7 +298,13 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
   const assign = (e) => {
     if (!picker) return
     const part = picker
-    setPlans(withSlot(plans, ts, part, keyOf(e))) // withSlot clears any rest mark
+    const result = planItem(plans, ts, part, keyOf(e))
+    if (result.code !== 'added') {
+      flash(result.code === 'already-planned' ? 'Already in your plan' : 'That slot is taken')
+      closeSheet()
+      return
+    }
+    setPlans(result.map)
     setJustFilled(part) // 3.7P-4b: pop the slot that just got a plan
     clearTimeout(fillTRef.current)
     fillTRef.current = setTimeout(() => setJustFilled(null), 460)
@@ -332,11 +346,12 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
     const dp = daypartOf(e)
     const part = dp === 'any' ? 'morning' : dp // 'any' (places/date-only) → the day's start
     const label = DAYPART[part].label.toLowerCase()
-    if (entry.slots[part]) {
-      flash(`Your ${label} slot is taken — clear it first`)
+    const result = planItem(plans, ts, part, keyOf(e))
+    if (result.code !== 'added') {
+      flash(result.code === 'already-planned' ? 'Already in your plan' : `Your ${label} slot is taken — clear it first`)
       return
     }
-    setPlans(withSlot(plans, ts, part, keyOf(e)))
+    setPlans(result.map)
     setJustFilled(part)
     clearTimeout(fillTRef.current)
     fillTRef.current = setTimeout(() => setJustFilled(null), 460)

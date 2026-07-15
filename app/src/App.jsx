@@ -417,7 +417,7 @@ function Shell() {
           <section className="page page-hot" aria-label={VIEWS[1].label} aria-hidden={active !== 1} inert={active !== 1 ? true : undefined}>
             {/* Events — the browse (search + filter + event sections). Now lazy
                 (Home is the boot tab), mounts on first visit to the Events tab. */}
-            {visited.has('hot') && <HotView events={norm} anchors={anchors} loading={loading} loadError={unavailable} />}
+            {visited.has('hot') && <HotView events={norm} retainedEvents={normalized} anchors={anchors} loading={loading} loadError={unavailable} />}
           </section>
           <section className="page" aria-label={VIEWS[2].label} aria-hidden={active !== 2} inert={active !== 2 ? true : undefined}>
             {/* Sprint S: the Spots tab — lazy-mounted; its own /places.json fetch
@@ -518,7 +518,7 @@ function Shell() {
             {page.type === 'helpfeedback' && <HelpFeedbackPage />}
             {/* HOME_PHASE2: Forecast + Notifications */}
             {page.type === 'forecast' && <ForecastPage anchors={anchors} wx={wx} />}
-            {page.type === 'notifications' && <NotificationsPage events={norm} anchors={anchors} wx={wx} />}
+            {page.type === 'notifications' && <NotificationsPage events={norm} retainedEvents={normalized} anchors={anchors} wx={wx} />}
             {/* EVENTS_PHASE2: Filters bottom-sheet */}
             {page.type === 'evfilters' && <FiltersSheet />}
             {/* Stage E (⚑X3): Settings → Data & photo credits — single-slot

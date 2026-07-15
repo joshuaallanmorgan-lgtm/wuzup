@@ -82,6 +82,8 @@ export function isOpenNow(p, { nowMs = Date.now(), timeZone = CITY.tz } = {}) {
   // parser. Fail closed before the 24/7 shortcut so contradictory source
   // text never becomes a confident Open Now claim.
   if (/\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekdays?|weekends?|closed|off|except)\b/i.test(h)) return false
+  if (/\b(?:mon|tue(?:s)?|wed|thu(?:r|rs)?|fri|sat|sun)\b/i.test(h)) return false
+  if (/\b(?:m|t|w|th|f|sa|su)\s*(?:-|–|to)\s*(?:m|t|w|th|f|sa|su)\b/i.test(h)) return false
   if (/24\/7|24 hours|always/.test(h)) return true
   const clock = cityClock({ timeZone, nowMs })
   // OSM weekday clauses need a complete opening-hours parser. Until that

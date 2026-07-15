@@ -18,7 +18,7 @@ import { SaveHeart, useSaves } from './saves.js'
 import { dateKey } from './weather.js'
 import { usePlaces, ACTIVITIES } from './places.js'
 import { DAYPART } from './weekend.js'
-import { loadDayPlans, saveDayPlans, withSlot, dayEntryFor, PARTS } from './dayplan.js'
+import { findPlannedItem, loadDayPlans, planItem, saveDayPlans, dayEntryFor, PARTS } from './dayplan.js'
 import './locations.css'
 
 // normalized amenity vocabulary → human label + emoji (DRAFT for Charles).
@@ -215,6 +215,10 @@ export default function PlaceDetail({ e, anchors, wx }) {
   const [planning, setPlanning] = useState(false)
   const [planDay, setPlanDay] = useState(anchors.todayTs)
   const [plansVersion, setPlansVersion] = useState(0) // bump to re-read filled state after a write
+  const planned = useMemo(() => {
+    void plansVersion
+    return findPlannedItem(loadDayPlans(anchors), e.key)
+  }, [anchors, e.key, plansVersion])
   // Plan Phase 2 (flows-2 p2): select-then-confirm — selPart holds the chosen
   // daypart, then "Add to {day}" commits. A place is 'any' → morning is the default.
   const [selPart, setSelPart] = useState(null)
@@ -253,9 +257,12 @@ export default function PlaceDetail({ e, anchors, wx }) {
 
   const addToPlan = (part) => {
     const map = loadDayPlans(anchors)
-    const entry = dayEntryFor(map[String(planDay)])
-    if (entry && entry.slots[part]) return // never clobber a filled slot
-    saveDayPlans(withSlot(map, planDay, part, e.key))
+    const result = planItem(map, planDay, part, e.key)
+    if (result.code !== 'added') {
+      flash(result.code === 'already-planned' ? 'Already in your plan' : 'That slot is taken')
+      return
+    }
+    saveDayPlans(result.map)
     setPlansVersion((v) => v + 1)
     const dlabel = days.find((d) => d.ts === planDay)?.label || ''
     flash(`Added to ${dlabel} ${DAYPART[part].emoji} ✓`)
@@ -484,9 +491,13 @@ export default function PlaceDetail({ e, anchors, wx }) {
         >
           {saved ? '♥ Saved' : '♡ Save'}
         </button>
-        <button className="loc-plan-cta detail-actionbar-cta" ref={planCtaRef} onClick={() => setPlanning(true)}>
-          ＋ Make this my plan
-        </button>
+        {planned ? (
+          <button className="loc-plan-cta detail-actionbar-cta" disabled>✓ In your plan</button>
+        ) : (
+          <button className="loc-plan-cta detail-actionbar-cta" ref={planCtaRef} onClick={() => setPlanning(true)}>
+            ＋ Make this my plan
+          </button>
+        )}
       </div>
 
       {/* Make-this-my-plan sheet */}

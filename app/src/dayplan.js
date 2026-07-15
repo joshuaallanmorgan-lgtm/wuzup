@@ -402,6 +402,45 @@ export function withSlot(map, dayTs, part, key) {
   return { ...map, [k]: { ...cur, state: null, slots: { ...cur.slots, [part]: key } } }
 }
 
+// The one safe add operation for every planner entry point. Low-level
+// `withSlot` remains available for deliberate moves, but new items must not
+// overwrite a slot or appear twice elsewhere in the plan.
+export function findPlannedItem(map, key) {
+  if (!map || typeof map !== 'object' || Array.isArray(map) || typeof key !== 'string' || !key) return null
+  for (const rawDayTs of Object.keys(map)) {
+    const dayTs = Number(rawDayTs)
+    const entry = Number.isInteger(dayTs) && dayTs > 0 ? dayEntryFor(map[rawDayTs]) : null
+    if (!entry) continue
+    for (const part of PARTS) if (entry.slots[part] === key) return { dayTs, part }
+  }
+  return null
+}
+
+export function plannedItemKeys(map) {
+  const keys = new Set()
+  if (!map || typeof map !== 'object' || Array.isArray(map)) return keys
+  for (const stored of Object.values(map)) {
+    const entry = dayEntryFor(stored)
+    if (!entry) continue
+    for (const part of PARTS) if (entry.slots[part]) keys.add(entry.slots[part])
+  }
+  return keys
+}
+
+export function planItem(map, dayTs, part, key) {
+  if (
+    !map || typeof map !== 'object' || Array.isArray(map)
+    || !Number.isInteger(dayTs) || dayTs <= 0
+    || !PARTS.includes(part)
+    || typeof key !== 'string' || !key
+  ) return { code: 'invalid', map }
+  const existing = findPlannedItem(map, key)
+  if (existing) return { code: 'already-planned', map, existing }
+  const entry = dayEntryFor(map[String(dayTs)])
+  if (entry?.slots[part]) return { code: 'slot-taken', map, occupiedBy: entry.slots[part] }
+  return { code: 'added', map: withSlot(map, dayTs, part, key), existing: null }
+}
+
 export function withClearedSlot(map, dayTs, part) {
   const k = String(dayTs)
   const cur = dayEntryFor(map[k])

@@ -23,7 +23,7 @@ const relDay = (ts, todayTs) => {
   return formatDayTs(ts, { weekday: 'long' })
 }
 
-export default function NotificationsPage({ events = [], anchors, wx }) {
+export default function NotificationsPage({ events = [], retainedEvents = events, anchors, wx }) {
   const { closePage, openDetail, openBubble, openForecast } = useNav()
   const { list: savedList } = useSaves()
 
@@ -31,9 +31,9 @@ export default function NotificationsPage({ events = [], anchors, wx }) {
     const out = []
 
     // 1) saved events coming up in the next 3 days
-    const shelf = shelfItems(savedList, events, anchors)
-    for (const { e, past } of shelf) {
-      if (past) continue
+    const shelf = shelfItems(savedList, retainedEvents, anchors)
+    for (const { e, lifecycle } of shelf) {
+      if (!lifecycle.actionable) continue
       const day = e._clamp ?? e._day
       if (day == null) continue
       const offset = calendarDayDistance(anchors.todayTs, day)
@@ -81,7 +81,7 @@ export default function NotificationsPage({ events = [], anchors, wx }) {
     }
 
     return out
-  }, [savedList, events, anchors, wx, openDetail, openBubble, openForecast])
+  }, [savedList, events, retainedEvents, anchors, wx, openDetail, openBubble, openForecast])
 
   return (
     <div className="pg notif-pg">

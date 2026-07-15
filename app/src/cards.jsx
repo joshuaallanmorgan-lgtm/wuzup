@@ -18,7 +18,7 @@ import { Icon, dayLabelLoose, dayLoose, eventLifecycle, formatDayTs, keyOf, make
 import { ACTIVITIES } from './places.js'
 import { imageMode, photoFirst } from './imageMode.js'
 import { daypartOf, DAYPART, fillOrder } from './weekend.js'
-import { dayEntryFor, loadDayPlans, saveDayPlans, withSlot } from './dayplan.js'
+import { dayEntryFor, findPlannedItem, loadDayPlans, planItem, saveDayPlans } from './dayplan.js'
 import { SaveHeart, useSaves } from './saves.js'
 import './cards.css'
 
@@ -62,8 +62,7 @@ function addToPlan(e) {
   const dayTs = Math.max(e._day ?? anchors.todayTs, anchors.todayTs)
   const map = loadDayPlans(anchors)
   const eventKey = keyOf(e)
-  const alreadyPlanned = Object.values(map).some((day) => Object.values(day?.slots || {}).includes(eventKey))
-  if (alreadyPlanned) {
+  if (findPlannedItem(map, eventKey)) {
     cardToast('Already in your plan')
     return false
   }
@@ -73,7 +72,12 @@ function addToPlan(e) {
     cardToast('That day is full — clear a slot first')
     return false
   }
-  saveDayPlans(withSlot(map, dayTs, target, eventKey))
+  const result = planItem(map, dayTs, target, eventKey)
+  if (result.code !== 'added') {
+    cardToast(result.code === 'already-planned' ? 'Already in your plan' : 'That slot is taken')
+    return false
+  }
+  saveDayPlans(result.map)
   const when = dayTs === anchors.todayTs ? 'today' : formatDayTs(dayTs, { weekday: 'long' })
   cardToast(`${DAYPART[target].emoji} Added to ${when} ${DAYPART[target].label.toLowerCase()}`)
   return true // PREMIUM A4: lets the Add button morph to its "✓ Added" confirmation
@@ -300,6 +304,7 @@ export function SecHead({ overline, title, sub, onSeeAll }) {
 }
 
 export function TonightCard({ e, onSelect, withDate = false }) {
+  const lifecycle = eventLifecycle(e)
   // withDate: shelf/cross-day contexts where the DATE is the headline fact.
   // Ongoing events show "Ongoing" (dayLoose), never their weeks-old start date;
   // the uniqueness filter stops it doubling with startLabel's own "Ongoing".
@@ -311,7 +316,7 @@ export function TonightCard({ e, onSelect, withDate = false }) {
     <button className="tcard pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
       <CardImg e={e} className="tcard-img">
         <SaveHeart e={e} />
-        <HeatBadge e={e} />
+        {lifecycle.actionable && <HeatBadge e={e} />}
       </CardImg>
       <div className="tcard-title">{e.title}</div>
       <div className={'tcard-meta' + startedCls(meta)}>{meta || 'Details inside'}</div>

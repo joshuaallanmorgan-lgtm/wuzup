@@ -22,6 +22,7 @@ import {
 } from '../app/src/lib.js'
 import { daypartOf, fitsDay } from '../app/src/weekend.js'
 import { isOpenNow } from '../app/src/places.js'
+import { emptyDay, findPlannedItem, planItem } from '../app/src/dayplan.js'
 import { dateKey } from '../app/src/weather.js'
 
 const NOW_MS = Date.parse('2026-07-15T16:00:00Z')
@@ -134,7 +135,7 @@ test('retained events expose honest lifecycle labels and cannot be re-planned', 
 
   const cards = readFileSync(new URL('../app/src/cards.jsx', import.meta.url), 'utf8')
   assert.ok(cards.includes("e.kind !== 'place' && e._actionable !== true"))
-  assert.ok(cards.includes('alreadyPlanned'))
+  assert.ok(cards.includes('findPlannedItem'))
   assert.ok(cards.includes('<span className="gem-lifecycle">'))
   const saves = readFileSync(new URL('../app/src/saves.js', import.meta.url), 'utf8')
   assert.ok(saves.includes('eventLifecycle(e)'))
@@ -147,6 +148,73 @@ test('retained events expose honest lifecycle labels and cannot be re-planned', 
   assert.ok(dayPage.includes('shareableEntries'))
   const calendar = readFileSync(new URL('../app/src/CalendarView.jsx', import.meta.url), 'utf8')
   assert.ok(calendar.includes('eventLifecycle(e).label'))
+})
+test('every planner entry point rejects duplicate items and occupied slots', () => {
+  const today = 1_752_549_600_000
+  const tomorrow = 1_752_636_000_000
+  const existing = {
+    ...emptyDay(),
+    slots: { morning: 'e|existing', afternoon: null, night: null },
+  }
+  const map = { [String(today)]: existing }
+
+  const occupied = planItem(map, today, 'morning', 'e|new')
+  assert.equal(occupied.code, 'slot-taken')
+  assert.equal(occupied.map, map)
+
+  const duplicate = planItem(map, tomorrow, 'night', 'e|existing')
+  assert.equal(duplicate.code, 'already-planned')
+  assert.equal(duplicate.map, map)
+  assert.deepEqual(duplicate.existing, { dayTs: today, part: 'morning' })
+  assert.deepEqual(findPlannedItem(map, 'e|existing'), { dayTs: today, part: 'morning' })
+
+  const added = planItem(map, today, 'afternoon', 'e|new')
+  assert.equal(added.code, 'added')
+  assert.equal(added.map[String(today)].slots.afternoon, 'e|new')
+  assert.equal(map[String(today)].slots.afternoon, null)
+
+  for (const file of ['AddEvent.jsx', 'cards.jsx', 'DayPage.jsx', 'DetailPage.jsx', 'GuidePage.jsx', 'PlaceDetail.jsx']) {
+    const source = readFileSync(new URL('../app/src/' + file, import.meta.url), 'utf8')
+    assert.match(source, /planItem\(/, `${file} must use the shared safe planner operation`)
+    assert.doesNotMatch(source, /saveDayPlans\(withSlot\(/, `${file} must not bypass planner safety`)
+  }
+  const dayPage = readFileSync(new URL('../app/src/DayPage.jsx', import.meta.url), 'utf8')
+  assert.match(dayPage, /plannedItemKeys/)
+})
+test('retained cancellation state outranks an older saved snapshot', () => {
+  const anchors = makeAnchors(NOW_MS)
+  const raw = {
+    id: 'cancelled-live',
+    title: 'Future show',
+    start: '2026-07-16T19:00:00',
+    url: 'https://example.test/future-show',
+  }
+  const cancelled = normalize({ ...raw, status: 'cancelled' }, anchors)
+  assert.equal(eventLifecycle(cancelled).code, 'cancelled')
+
+  const app = readFileSync(new URL('../app/src/App.jsx', import.meta.url), 'utf8')
+  assert.match(app, /<HotView[^>]*events=\{norm\}[^>]*retainedEvents=\{normalized\}/s)
+  assert.match(app, /<NotificationsPage[^>]*events=\{norm\}[^>]*retainedEvents=\{normalized\}/s)
+  const hot = readFileSync(new URL('../app/src/HotView.jsx', import.meta.url), 'utf8')
+  assert.match(hot, /shelfItems\(savedList, retainedEvents, anchors\)/)
+  assert.match(hot, /lifecycle\.label/)
+  const notifications = readFileSync(new URL('../app/src/NotificationsPage.jsx', import.meta.url), 'utf8')
+  assert.match(notifications, /shelfItems\(savedList, retainedEvents, anchors\)/)
+  assert.match(notifications, /!lifecycle\.actionable/)
+  const plans = readFileSync(new URL('../app/src/MyPlansPage.jsx', import.meta.url), 'utf8')
+  assert.match(plans, /lifecycle\.code !== 'ended'/)
+  const saves = readFileSync(new URL('../app/src/saves.js', import.meta.url), 'utf8')
+  assert.match(saves, /const past = lifecycle\.code === 'ended'/)
+  assert.match(saves, /const unavailable = !lifecycle\.actionable/)
+  assert.match(saves, /out\.push\(\{ e, past, unavailable, lifecycle \}\)/)
+})
+test('retained event detail gates stale actions behind lifecycle state', () => {
+  const source = readFileSync(new URL('../app/src/DetailPage.jsx', import.meta.url), 'utf8')
+  assert.match(source, /eventLifecycle\(e\)/)
+  assert.match(source, /lifecycle\.actionable && e\.start/)
+  assert.match(source, /lifecycle\.actionable && e\.url/)
+  assert.match(source, /detail-lifecycle/)
+  assert.match(source, /lifecycle\.label/)
 })
 test('weather keys and Open Now use the city clock, including overnight ranges', () => {
   assert.equal(dateKey(Date.parse('2026-07-15T02:00:00Z')), '2026-07-14')
@@ -164,6 +232,9 @@ test('weather keys and Open Now use the city clock, including overnight ranges',
   assert.equal(isOpenNow({ hours: 'Monday - Friday 10 am - 8:30 pm' }, { nowMs: NOW_MS }), false)
   assert.equal(isOpenNow({ hours: 'Dawn to Dusk, Closed Wednesdays' }, { nowMs: NOW_MS }), false)
   assert.equal(isOpenNow({ hours: '24/7 off closed for summer cleaning' }, { nowMs: NOW_MS }), false)
+  assert.equal(isOpenNow({ hours: 'Everyday M - F 12 - 10 pm Fri - Sat 8 am - 5 pm' }, {
+    nowMs: Date.parse('2026-07-19T01:00:00Z'),
+  }), false)
 })
 
 test('app time projections are byte-identical across device timezones', () => {

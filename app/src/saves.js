@@ -218,12 +218,12 @@ export function groupShelfByTime(shelf, anchors) {
     { key: 'older', label: 'Saved earlier', items: [] },
   ]
   for (const item of shelf) {
-    if (!item.past) {
-      groups[0].items.push(item)
+    if (item.unavailable && item.lifecycle?.code !== 'ended') {
+      groups[1].items.push(item)
       continue
     }
-    if (item.lifecycle?.code !== 'ended') {
-      groups[1].items.push(item)
+    if (!item.past) {
+      groups[0].items.push(item)
       continue
     }
     const endDay = item.e._endDay ?? item.e._day ?? 0
@@ -248,12 +248,13 @@ export function shelfItems(list, events, anchors) {
     const e = byKey.get(s.key) ?? normalize({ ...s.snapshot }, anchors)
     const endDay = e._endDay ?? e._day
     const lifecycle = eventLifecycle(e)
-    const past = e.kind !== 'place' && !lifecycle.actionable
+    const past = lifecycle.code === 'ended'
+    const unavailable = !lifecycle.actionable
     if (lifecycle.code === 'ended' && endDay != null && endDay < addDayTs(anchors.todayTs, -7)) {
       expired.push(s.key) // storage matches what's shown — no orphaned records
       continue
     }
-    out.push({ e, past, lifecycle })
+    out.push({ e, past, unavailable, lifecycle })
   }
   if (expired.length) {
     // shelfItems runs during render — defer the prune so the store never

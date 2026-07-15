@@ -9,7 +9,7 @@
 // mount so counts stay live; each openDay replaces this subpage (single-slot),
 // back → the Profile tab. DRAFT copy — ⚑ Charles.
 import { useMemo } from 'react'
-import { Icon, dayLoose, formatDayTs, keyOf, monthStartTs as cityMonthStartTs, normalize, rawOf } from './lib.js'
+import { eventLifecycle, Icon, dayLoose, formatDayTs, keyOf, monthStartTs as cityMonthStartTs, normalize, rawOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { GemRow, SponsoredTag } from './cards.jsx'
 import { DAYPART } from './weekend.js'
@@ -102,8 +102,8 @@ export default function MyPlansPage({ events, anchors }) {
   const prompts = useMemo(() => {
     const out = []
     const seen = new Set()
-    for (const { e, past } of shelf) {
-      if (!past) continue
+    for (const { e, lifecycle } of shelf) {
+      if (lifecycle.code !== 'ended') continue
       const k = keyOf(e)
       if (answered.has(k) || seen.has(k)) continue
       seen.add(k)
@@ -111,8 +111,10 @@ export default function MyPlansPage({ events, anchors }) {
     }
     for (const b of been) {
       if (b.status || !b.snapshot || answered.has(b.key) || seen.has(b.key)) continue
+      const e = normalize({ ...b.snapshot }, anchors)
+      if (eventLifecycle(e).code !== 'ended') continue
       seen.add(b.key)
-      out.push({ key: b.key, e: normalize({ ...b.snapshot }, anchors), snapshot: b.snapshot })
+      out.push({ key: b.key, e, snapshot: b.snapshot })
     }
     return out
   }, [shelf, been, answered, savedByKey, anchors])

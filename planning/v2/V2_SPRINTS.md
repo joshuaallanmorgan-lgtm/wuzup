@@ -381,8 +381,14 @@ and migration tests pass; planner operations are idempotent and survive reload.
   binary-to-ternary conversion, quota retry, corrupt metadata, and cross-device restart cases are idempotent.
 - **Cross-device evidence is executable:** browser, share, and migration projections are byte-identical with Los
   Angeles, Honolulu, and Tokyo device zones. Focused time/ICS/migration tests pass 33/33 and the complete serial
-  root gate passes 247/247, including finder, artifact trust, Tampa/SF and base-path builds, lint, and existing
+  root gate passes 250/250, including finder, artifact trust, Tampa/SF and base-path builds, lint, and existing
   product contracts. Independent review approved the migration boundary after its singleton legacy case was fixed.
+- **The adversarial browser follow-up is closed:** ambiguous weekday-abbreviation hours now fail closed instead of
+  making a false Open Now claim; every add entry point rejects occupied slots and cross-slot/day duplicates;
+  already-planned items leave Day suggestions; saved shelves and notifications resolve retained live lifecycle
+  state; only genuinely ended events trigger attendance prompts; and unavailable details remove calendar/ticket
+  actions in favor of an explicit status. Focused browser-time tests pass 12/12 and targeted re-review found no
+  remaining P0/P1 in these journeys.
 - **Sprint 3 remains yellow:** finder generation-time expiry and city-day derivation, stable-ID dual-read migration,
   atomic reactive planner snapshots, and truthful geolocation permission state remain.
   The two refused Tampa offset ranges still require upstream correction rather than silent reinterpretation.

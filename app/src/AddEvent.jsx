@@ -12,7 +12,7 @@ import { BUBBLES, CITY, dayIdOf, dayTs, Icon, keyOf, MY_SOURCE } from './lib.js'
 import { useNav } from './nav.jsx'
 import { recordSignal } from './taste.js'
 import { fillOrder } from './weekend.js'
-import { dayEntryFor, loadDayPlans, saveDayPlans, withSlot } from './dayplan.js'
+import { dayEntryFor, loadDayPlans, planItem, saveDayPlans } from './dayplan.js'
 import './addevent.css'
 
 // 12 category chips: the 11 real categories (canonical emoji/label/hue from
@@ -87,7 +87,8 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
     const order = fillOrder(raw) // natural daypart first, then the rest ('any' → morning-first)
     const target = order.find((p) => !(cur && cur.slots[p])) // first free slot in preference order
     if (!target) return // every slot filled — never overwrite silently
-    saveDayPlans(withSlot(map, presetTs, target, k)) // withSlot clears any rest mark
+    const result = planItem(map, presetTs, target, k)
+    if (result.code === 'added') saveDayPlans(result.map)
   }
 
   const submit = (ev) => {
