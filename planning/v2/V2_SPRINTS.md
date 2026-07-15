@@ -340,6 +340,28 @@ and migration tests pass; planner operations are idempotent and survive reload.
   atomic reactive planner snapshots, and truthful geolocation permission state remain in the committed
   Sprint 3 scope.
 
+#### Sprint 3 city-time contract foundation receipt - 2026-07-15 (yellow)
+
+- **One device-independent calendar contract now exists:** `shared/city-time.mjs` owns IANA city-day identity,
+  calendar-day arithmetic, zoneless and strict offset-bearing parsing, DST gap rejection and fold disambiguation,
+  all-day/inclusive-range boundaries, half-open timed coverage, bounded assumed ends, city clocks, dayparts,
+  status-aware actionability, and a single raw-event actionability wrapper. It does not use the host device zone.
+- **The contract is deterministic and fast enough for runtime integration:** serialized results are byte-identical
+  with the device configured for Los Angeles, Honolulu, and Tokyo. Cached formatters and per-city/day offset
+  candidates reduce a full Tampa plus SF canonicalization pass from roughly 5.1 seconds to about 105 ms in the
+  Node benchmark (68.9 ms for 1,642 Tampa rows; 35.8 ms for 743 SF rows).
+- **Corpus posture is explicit:** SF canonicalizes 743/743. Tampa canonicalizes 1,640/1,642; the two refused rows
+  contain explicit offset-bearing end instants earlier than their starts. They remain fail-closed for upstream
+  correction rather than being silently reinterpreted. Same-day reversed *zoneless* clocks may infer a bounded
+  overnight end and record that inference; explicit instants stay authoritative.
+- **Verification is green and independently reviewed:** focused city-time tests pass 15/15; app lint and syntax/
+  diff checks pass; the complete serial root gate passes 229/229. The tests cover 23/25-hour days, DST gaps/folds,
+  strict offsets, exact expiry, equal-time assumed ends, overnight handling, mixed precision, status URLs,
+  inclusive and half-open day coverage, and cross-device-zone invariance.
+- **This is a foundation, not a runtime claim:** browser normalization, root actionable inventory, finder expiry,
+  city-aware labels/dayparts/weather/Open Now, and TZID ICS still need to delegate to this contract before the
+  Sprint 3 time gate is complete.
+
 ### Sprint 4 - P0 core journeys and the browser release harness
 
 **Outcome:** every known release blocker is fixed through the real browser journey, not only a source seam.
