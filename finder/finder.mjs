@@ -1928,7 +1928,7 @@ async function main() {
       if (renderMod.city && renderMod.city !== cityId) {
         console.log(`  ⏭️  ${'Render sources'.padEnd(26)} skipped (render.mjs is ${renderMod.city}-only; CITY=${cityId})`);
       } else {
-        const rEvents = await renderMod.scrapeRenderSources();
+        const rEvents = await renderMod.scrapeRenderSources({ nowMs: runEpoch });
         const mapped = (Array.isArray(rEvents) ? rEvents : [])
           .map(normalizeRenderEvent)
           .filter((e) => e && e.title && e.start);
@@ -1990,7 +1990,7 @@ async function main() {
         const mod = await import(pathToFileURL(join(srcDir, file)).href);
         label = mod.name || modBase;
         if (typeof mod.fetchEvents !== 'function') throw new Error('module has no fetchEvents() export');
-        const raw = await mod.fetchEvents();
+        const raw = await mod.fetchEvents({ nowMs: runEpoch });
         sourceStage = 'processing';
         const mapped = (Array.isArray(raw) ? raw : [])
           .map((r) => normalizeModuleEvent(r, label))

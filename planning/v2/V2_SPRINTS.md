@@ -423,6 +423,21 @@ and migration tests pass; planner operations are idempotent and survive reload.
   planner snapshots, and truthful geolocation permission state. The two pinned Tampa invalid rows remain explicit
   artifact debt until a newly generated artifact removes them; they are never silently reinterpreted.
 
+#### Sprint 3 source-clock propagation receipt - 2026-07-15 (yellow)
+
+- **One injected clock now reaches every adapter boundary:** the finder passes its immutable `runEpoch` to render
+  and every city source module. Shared `sourceWindow` and `sourceStartDay` helpers require a finite epoch, use IANA
+  city days and calendar arithmetic across DST, and fail closed on malformed or unrepresentable starts.
+- **Legacy source APIs remain compatible:** Do813 and DoTheBay accept the new options object without turning it into
+  a corrupt base URL, while retaining their no-argument and explicit string-base calls. No adapter output or cache
+  was regenerated in this foundation slice.
+- **Verification is green and independently approved:** source-clock tests pass 7/7 across Los Angeles, Honolulu,
+  and Tokyo device zones; the full serial gate passes 269/269 and artifact hashes remain pinned. Review found no
+  P0/P1 within this propagation/helper/options-compatibility scope.
+- **No premature invariance claim:** existing adapters and render still need to consume `nowMs` internally. The next
+  commits migrate the mechanical local-calendar and timestamp batches, isolate render dates and St. Pete recurrence,
+  then add an all-target static/fixture ratchet before this part of Sprint 3 can turn green.
+
 ### Sprint 4 - P0 core journeys and the browser release harness
 
 **Outcome:** every known release blocker is fixed through the real browser journey, not only a source seam.

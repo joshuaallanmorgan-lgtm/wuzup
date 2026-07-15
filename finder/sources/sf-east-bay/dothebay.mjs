@@ -107,7 +107,8 @@ function mapEvent(e, base) {
   };
 }
 
-export async function fetchEvents(base = BASE) {
+export async function fetchEvents(options = {}) {
+  const base = typeof options === 'string' ? options : options.base || BASE;
   // Window bounds as CITY-day strings — begin_date is a local calendar day,
   // so plain string comparison is exact (no Date parsing, no machine tz).
   const t0 = dayInTz(CITY_TZ);

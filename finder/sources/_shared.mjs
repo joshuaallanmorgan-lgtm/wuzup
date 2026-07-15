@@ -11,6 +11,7 @@ import {
   addCalendarDays,
   cityMidnightMs,
   dayIdAt,
+  eventTime,
 } from '../../shared/city-time.mjs';
 
 export const DEFAULT_TIMEOUT_MS = 20000;
@@ -110,6 +111,23 @@ function instantMs(instant) {
 // 'YYYY-MM-DD' of an instant on the tz's wall clock.
 export function dayInTz(tz, instant = new Date()) {
   return dayIdAt(instantMs(instant), tz);
+}
+
+export function sourceWindow(tz, nowMs, daysAhead) {
+  if (!Number.isFinite(nowMs)) throw new TypeError('nowMs must be finite');
+  if (!Number.isInteger(daysAhead) || daysAhead < 0) {
+    throw new TypeError('daysAhead must be a non-negative integer');
+  }
+  const today = dayInTz(tz, nowMs);
+  return {
+    today,
+    lastDay: addCalendarDays(today, daysAhead),
+  };
+}
+
+export function sourceStartDay(tz, value) {
+  const canonical = eventTime({ start: value }, { timeZone: tz });
+  return canonical.ok ? canonical.startDay : null;
 }
 
 // UTC offset string ('-07:00' / '-08:00' / ...) in effect in tz at an instant.

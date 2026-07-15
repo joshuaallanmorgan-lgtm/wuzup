@@ -90,7 +90,8 @@ function mapEvent(e, base) {
   };
 }
 
-export async function fetchEvents(base = BASE) {
+export async function fetchEvents(options = {}) {
+  const base = typeof options === 'string' ? options : options.base || BASE;
   const today = new Date();
   const t0 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const t1 = new Date(t0.getTime() + WINDOW_DAYS * 86400000);
