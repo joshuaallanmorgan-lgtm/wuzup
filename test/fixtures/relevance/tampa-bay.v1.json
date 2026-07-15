@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 1,
+  "fixtureId": "tampa-bay-relevance-v1",
+  "judgmentStatus": "draft-owner-review",
+  "origin": {
+    "cityId": "tampa-bay",
+    "timeZone": "America/New_York",
+    "manifestId": "sha256:035cb1eed7e67d143c4b0739d8dd3c2373bd3af2e85562aad0fc4895651615b1",
+    "buildId": "sha256:65a75e81823893d24051e99387364d1b1ab450be748f6dc58cc58c14d61d5381",
+    "eventsSha256": "a8df0d0cefb461c6e417092b42de20067cf4f1bfb68314e5e91c4f70f875d090",
+    "placesSha256": "749eed658f2df7c8f9d175391ba06518c7b88168f4e27afab0a63ff647e3a57b",
+    "eventsGeneratedAt": "2026-07-07T12:25:56.000Z",
+    "placesGeneratedAt": "2026-06-24T23:14:45.000Z"
+  },
+  "limitations": [
+    "This is an expired artifact replay, not a claim about current Tampa inventory.",
+    "Actionability and quality labels are frozen contextual judgments, not production fields.",
+    "Canonical and series IDs are fixture annotations because the artifact does not retain them."
+  ],
+  "cases": [
+    {
+      "caseId": "tampa-home-top-picks-evening",
+      "context": { "caseType": "surface-order", "surface": "home.top-picks", "kind": "event", "asOf": "2026-07-14T20:30:00-04:00", "prefix": 3, "intent": "broad-discovery" },
+      "candidates": [
+        {
+          "id": "88f35f96991ea446",
+          "display": { "title": "Grand Opening Pinellas County Rehabilitation Hospital" },
+          "facets": { "sourceFamily": "Eventbrite", "category": "community", "venueOrOperator": "pinellas-county-rehabilitation-hospital" },
+          "groups": { "canonicalId": null, "seriesId": null },
+          "labels": { "relevance": 0, "actionable": false, "knownBad": false, "gem": "no" },
+          "evidence": ["Low-value institutional promotion for a broad local-discovery lead.", "Date-only at the frozen evening context."]
+        },
+        {
+          "id": "e7f09c78fa4ae916",
+          "display": { "title": "AI-Powered Document Automation Open House" },
+          "facets": { "sourceFamily": "Eventbrite", "category": "other", "venueOrOperator": "document-automation-vendor" },
+          "groups": { "canonicalId": null, "seriesId": null },
+          "labels": { "relevance": 0, "actionable": false, "knownBad": false, "gem": "no" },
+          "evidence": ["Vendor open house with weak broad-discovery value.", "Date-only at the frozen evening context."]
+        },
+        {
+          "id": "bed42d23cc766fa0",
+          "display": { "title": "J. Cole" },
+          "facets": { "sourceFamily": "AllEvents", "category": "music", "venueOrOperator": "benchmark-international-arena" },
+          "groups": { "canonicalId": null, "seriesId": null },
+          "labels": { "relevance": 2, "actionable": false, "knownBad": false, "gem": "no" },
+          "evidence": ["Credible arena concert, but the artifact has no usable time."]
+        },
+        {
+          "id": "d77bd132fedec261",
+          "display": { "title": "Gallery @ 2607 Presents: Made in Florida" },
+          "facets": { "sourceFamily": "Hillsborough Libraries", "category": "art", "venueOrOperator": "hcplc" },
+          "groups": { "canonicalId": "tampa:made-in-florida:andrews", "seriesId": "tampa:hcplc:made-in-florida" },
+          "labels": { "relevance": 1, "actionable": false, "knownBad": false, "gem": "insufficient" },
+          "evidence": ["Legitimate library exhibit, but date-only and one of several same-series rows."]
+        },
+        {
+          "id": "29868ba926ae0e40",
+          "display": { "title": "Ne-Yo Highway 79 CD In-Store Signing at Daddy Kool Records" },
+          "facets": { "sourceFamily": "AllEvents", "category": "music", "venueOrOperator": "daddy-kool-records" },
+          "groups": { "canonicalId": null, "seriesId": null },
+          "labels": { "relevance": 2, "actionable": false, "knownBad": false, "gem": "insufficient" },
+          "evidence": ["Specific local music appearance with plausible broad appeal, but no usable time."]
+        },
+        {
+          "id": "b07fd6278d7d1c4d",
+          "display": { "title": "Tampa St.Pete Speed Dating for Singles Age 20s/30s" },
+          "facets": { "sourceFamily": "Eventbrite", "category": "nightlife", "venueOrOperator": "city-dog-cantina" },
+          "groups": { "canonicalId": null, "seriesId": null },
+          "labels": { "relevance": 2, "actionable": false, "knownBad": false, "gem": "no" },
+          "evidence": ["Specific social event for a bounded audience, but no usable time."]
+        }
+      ],
+      "baseline": {
+        "selector": "HomeView.topPicks via tonightModel",
+        "projectionOf": "frozen full surface order",
+        "rankedIds": ["88f35f96991ea446", "e7f09c78fa4ae916", "bed42d23cc766fa0", "d77bd132fedec261", "29868ba926ae0e40", "b07fd6278d7d1c4d"],
+        "gemClaimIds": []
+      }
+    },
+    {
+      "caseId": "tampa-spots-unlocated-photo-first",
+      "context": { "caseType": "surface-order", "surface": "spots.broad-unlocated", "kind": "place", "asOf": "2026-07-14T18:01:00-04:00", "prefix": 3, "intent": "broad-discovery" },
+      "candidates": [
+        {
+          "id": "p|jungle-prada-de-navarez-park",
+          "display": { "title": "Jungle Prada De Navarez Park" },
+          "facets": { "sourceFamily": "Pinellas Park Points", "category": "outdoors", "venueOrOperator": "public-park" },
+          "groups": { "canonicalId": "p|jungle-prada-de-navarez-park", "seriesId": null },
+          "labels": { "relevance": 3, "actionable": true, "knownBad": false, "gem": "insufficient" },
+          "evidence": ["Three sources, exact image credit, hours, address, and amenities."]
+        },
+        {
+          "id": "p|coquina-beach-boat-ramp-south",
+          "display": { "title": "Coquina Beach Boat Ramp South" },
+          "facets": { "sourceFamily": "FWC Boat Ramps", "category": "outdoors", "venueOrOperator": "boat-ramp" },
+          "groups": { "canonicalId": "p|coquina-beach-boat-ramp-south", "seriesId": null },
+          "labels": { "relevance": 1, "actionable": true, "knownBad": false, "gem": "insufficient" },
+          "evidence": ["Valid but niche boat ramp promoted to broad rank two by photo/free ordering."]
+        },
+        {
+          "id": "p|crews-lake-wilderness-park",
+          "display": { "title": "Crews Lake Wilderness Park" },
+          "facets": { "sourceFamily": "FWC Boat Ramps", "category": "outdoors", "venueOrOperator": "public-park" },
+          "groups": { "canonicalId": "p|crews-lake-wilderness-park", "seriesId": null },
+          "labels": { "relevance": 3, "actionable": true, "knownBad": false, "gem": "insufficient" },
+          "evidence": ["Two sources, address, image, and description."]
+        },
+        {
+          "id": "p|morris-bridge-park",
+          "display": { "title": "Morris Bridge Park" },
+          "facets": { "sourceFamily": "FWC Boat Ramps", "category": "outdoors", "venueOrOperator": "public-park" },
+          "groups": { "canonicalId": "p|morris-bridge-park", "seriesId": null },
+          "labels": { "relevance": 3, "actionable": true, "knownBad": false, "gem": "insufficient" },
+          "evidence": ["Corroborated public park with a destination-quality image."]
+        },
+        {
+          "id": "p|ballast-point-park-public-boat-ramp",
+          "display": { "title": "Ballast Point Park Public Boat Ramp" },
+          "facets": { "sourceFamily": "FWC Boat Ramps", "category": "outdoors", "venueOrOperator": "boat-ramp" },
+          "groups": { "canonicalId": "p|ballast-point-park-public-boat-ramp", "seriesId": null },
+          "labels": { "relevance": 1, "actionable": true, "knownBad": false, "gem": "insufficient" },
+          "evidence": ["Valid niche facility; weak lead choice for an unlocated broad-discovery surface."]
+        },
+        {
+          "id": "p|egmont-key-state-park",
+          "display": { "title": "Egmont Key State Park" },
+          "facets": { "sourceFamily": "FDEP State Parks", "category": "outdoors", "venueOrOperator": "state-park" },
+          "groups": { "canonicalId": "p|egmont-key-state-park", "seriesId": null },
+          "labels": { "relevance": 3, "actionable": true, "knownBad": false, "gem": "no" },
+          "evidence": ["Recognizable public destination with an exact image and address."]
+        }
+      ],
+      "baseline": {
+        "selector": "LocationsView photoFirst without coordinates",
+        "projectionOf": "frozen full surface order",
+        "rankedIds": ["p|jungle-prada-de-navarez-park", "p|coquina-beach-boat-ramp-south", "p|crews-lake-wilderness-park", "p|morris-bridge-park", "p|ballast-point-park-public-boat-ramp", "p|egmont-key-state-park"],
+        "gemClaimIds": []
+      }
+    },
+    {
+      "caseId": "tampa-canonical-and-series-projection",
+      "context": { "caseType": "defect-projection", "surface": "events.audited-defect-projection", "kind": "event", "asOf": "2026-07-14T18:01:00-04:00", "prefix": 5, "intent": "dedupe-measurement" },
+      "candidates": [
+        {
+          "id": "272197b22d8549b6",
+          "display": { "title": "Chicago and Styx" },
+          "facets": { "sourceFamily": "AllEvents", "category": "music", "venueOrOperator": "midflorida-credit-union-amphitheatre" },
+          "groups": { "canonicalId": "tampa:chicago-styx:2026-07-15T19:00", "seriesId": null },
+          "labels": { "relevance": 3, "actionable": true, "knownBad": false, "gem": "no" },
+          "evidence": ["Credible concert; observed at curated-feed position one for July 15."]
+        },
+        {
+          "id": "a3791965cdd85cc7",
+          "display": { "title": "Chicago & Styx - The Windy Cities 2026 Tour" },
+          "facets": { "sourceFamily": "Visit Tampa Bay", "category": "music", "venueOrOperator": "midflorida-credit-union-amphitheatre" },
+          "groups": { "canonicalId": "tampa:chicago-styx:2026-07-15T19:00", "seriesId": null },
+          "labels": { "relevance": 3, "actionable": true, "knownBad": false, "gem": "no" },
+          "evidence": ["Same concert under a variant title/venue label; observed at position ten."]
+        },
+        {
+          "id": "ba269db087406b05",
+          "display": { "title": "Baby Time" },
+          "facets": { "sourceFamily": "Hillsborough Libraries", "category": "community", "venueOrOperator": "hcplc" },
+          "groups": { "canonicalId": "tampa:baby-time:jimmie-b-keel:2026-07-14T10:15", "seriesId": "tampa:hcplc:baby-time" },
+          "labels": { "relevance": 2, "actionable": false, "knownBad": false, "gem": "no" },
+          "evidence": ["Legitimate recurring program, ended before the frozen context."]
+        },
+        {
+          "id": "01686728d639cbca",
+          "display": { "title": "Baby Time" },
+          "facets": { "sourceFamily": "Hillsborough Libraries", "category": "community", "venueOrOperator": "hcplc" },
+          "groups": { "canonicalId": "tampa:baby-time:riverview:2026-07-14T10:15", "seriesId": "tampa:hcplc:baby-time" },
+          "labels": { "relevance": 2, "actionable": false, "knownBad": false, "gem": "no" },
+          "evidence": ["Same recurring program and time at another library; also ended."]
+        },
+        {
+          "id": "2a7a63a5b5671c4d",
+          "display": { "title": "Baby Time" },
+          "facets": { "sourceFamily": "Hillsborough Libraries", "category": "community", "venueOrOperator": "hcplc" },
+          "groups": { "canonicalId": "tampa:baby-time:new-tampa:2026-07-15T10:15", "seriesId": "tampa:hcplc:baby-time" },
+          "labels": { "relevance": 2, "actionable": true, "knownBad": false, "gem": "no" },
+          "evidence": ["Future occurrence demonstrating useful inventory plus series-flood risk."]
+        }
+      ],
+      "baseline": {
+        "selector": "audited rank-position projection",
+        "projectionOf": "two observed duplicate positions plus three recurring-series rows",
+        "rankedIds": ["272197b22d8549b6", "a3791965cdd85cc7", "ba269db087406b05", "01686728d639cbca", "2a7a63a5b5671c4d"],
+        "gemClaimIds": []
+      }
+    }
+  ]
+}

@@ -147,6 +147,13 @@ expired, and hash-invalid sets are rejected by automated tests.
   an SF New York-address workshop and a July-2026-to-December-2027 phantom range. The dependency-safe next
   slice is artifact-pinned Tampa/SF event-and-spot fixtures, context labels, actual-surface baseline orders,
   and pure evaluation metrics; production score weights and runtime wiring remain gated to Sprints 5-6.
+- **E0 frozen evaluation foundation implemented:** `shared/relevance-eval.mjs` now provides a pure,
+  count-preserving evaluator with nDCG, precision, known-bad leakage, actionability leakage, source/category/
+  operator diversity, canonical/series duplicate lower bounds, and scoped gem-claim metrics. Versioned Tampa
+  and SF fixtures pin artifact hashes, event/place generation timestamps, case type, context, candidate
+  labels, actual surface orders, and diagnostic-only defect projections. `npm run test:e0` passes 7/7 and
+  validates wrapper schema, exact permutations, hash-gated raw artifact facts, and receipt metrics. Labels
+  remain `draft-owner-review`; no runtime ranking weights or production selectors were changed.
 - **I0 inventory captured:** event image fields cover 1,439/1,642 Tampa rows and 678/743 SF rows, but collapse
   to 630 and 534 unique URLs with no retained event image credit/provenance. Real place imagery is only
   139/2,163 Tampa and 177/2,888 SF. Two known contextual/wrong place images were identified; all 35 Tampa
@@ -160,7 +167,7 @@ expired, and hash-invalid sets are rejected by automated tests.
   SF runs. The dependency-safe next slice is a pure synthetic location resolver and versioned cities-index
   contract that separates resolved locality from artifact pack, coverage tier from health, and metro depth
   from an honest thin/not-covered nationwide floor. React, workflows, and live crawling stay untouched.
-- **Sprint 1 remains yellow:** land the E0 frozen evaluation foundation; land the
+- **Sprint 1 remains yellow:** land the
   I0 deterministic report and pipeline-contract fixes, then complete the supervised SF batch; land the L0
   synthetic resolver/contract; and record the owner freshness-SLA decision. None of these findings promote
   Sprint 5-6 ranking integration, Sprint 2 runtime loading, or public expansion into Sprint 1.
