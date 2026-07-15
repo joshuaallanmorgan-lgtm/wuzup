@@ -1878,6 +1878,18 @@ async function auditImages(events) {
   return results;
 }
 
+const SOURCE_FALLBACK_BY_STAGE = Object.freeze({
+  'live-fetch': 'live-error',
+  'source-adapter': 'source-error',
+  processing: 'processing-error',
+});
+
+export function fallbackReasonForStage(stage) {
+  const reason = SOURCE_FALLBACK_BY_STAGE[stage];
+  if (!reason) throw new Error(`unknown source stage '${stage}'`);
+  return reason;
+}
+
 async function main() {
   console.log(`\n🔎 ${CITY_META.name} Event Finder — pulling real events from free sources...\n`);
   const all = [];
@@ -1887,6 +1899,7 @@ async function main() {
   mkdirSync(CACHE, { recursive: true });
   for (const src of SOURCES) {
     const cacheFile = join(CACHE, slugify(src.name) + '.json');
+    let sourceStage = 'live-fetch';
     try {
       // Optional per-source politeness gap (manifest `waitMs`): the SF
       // manifest paces its Eventbrite pages — cold bursts from a fresh IP get
@@ -1894,6 +1907,7 @@ async function main() {
       // Tampa's manifest carries no waitMs, so its behavior is unchanged.
       if (src.waitMs) await sleep(src.waitMs);
       const html = await fetchHtml(src.url);
+      sourceStage = 'processing';
       const blocks = ldJsonBlocks(html);
       const nodes = [];
       for (const b of blocks) collectEvents(b, nodes);
@@ -1910,13 +1924,19 @@ async function main() {
         try { cached = JSON.parse(readFileSync(cacheFile, 'utf8')); } catch { /* corrupt — treat empty as real */ }
         if (Array.isArray(cached) && cached.length > 0) {
           all.push(...cached);
-          report.push({ source: src.name, found: cached.length, ok: false, cached: true });
+          report.push({ source: src.name, found: cached.length, ok: false, cached: true, fallbackReason: 'live-empty' });
           console.log(`  ⚠️  ${src.name.padEnd(26)} ${cached.length} events (cached — live returned 0, cache kept)`);
           continue;
         }
       }
       all.push(...events);
-      writeFileSync(cacheFile, JSON.stringify(events)); // remember last good pull
+      try {
+        writeFileSync(cacheFile, JSON.stringify(events)); // remember last good pull
+      } catch (e) {
+        report.push({ source: src.name, found: events.length, ok: false, status: 'degraded', error: `cache write failed: ${e.message || e}` });
+        console.log(`  ⚠️  ${src.name.padEnd(26)} ${events.length} live events (cache write failed: ${e.message || e})`);
+        continue;
+      }
       report.push({ source: src.name, found: events.length, ok: true });
       console.log(`  ✅ ${src.name.padEnd(26)} ${events.length} events`);
     } catch (e) {
@@ -1926,7 +1946,14 @@ async function main() {
         try {
           const cached = JSON.parse(readFileSync(cacheFile, 'utf8'));
           all.push(...cached);
-          report.push({ source: src.name, found: cached.length, ok: false, cached: true });
+          report.push({
+            source: src.name,
+            found: cached.length,
+            ok: false,
+            cached: true,
+            fallbackReason: fallbackReasonForStage(sourceStage),
+            error: String(e.message || e),
+          });
           console.log(`  ⚠️  ${src.name.padEnd(26)} ${cached.length} events (cached — live failed: ${e.message || e})`);
           continue;
         } catch {
@@ -2008,11 +2035,13 @@ async function main() {
       const modBase = file.replace(/\.mjs$/, '');
       const cacheFile = join(CACHE, modBase + '.json');
       let label = modBase;
+      let sourceStage = 'source-adapter';
       try {
         const mod = await import(pathToFileURL(join(srcDir, file)).href);
         label = mod.name || modBase;
         if (typeof mod.fetchEvents !== 'function') throw new Error('module has no fetchEvents() export');
         const raw = await mod.fetchEvents();
+        sourceStage = 'processing';
         const mapped = (Array.isArray(raw) ? raw : [])
           .map((r) => normalizeModuleEvent(r, label))
           .filter((e) => e && e.title && e.start);
@@ -2031,13 +2060,20 @@ async function main() {
           if (Array.isArray(cached) && cached.length > 0) {
             all.push(...cached);
             moduleNames.push(label);
-            report.push({ source: label, found: cached.length, ok: false, cached: true });
+            report.push({ source: label, found: cached.length, ok: false, cached: true, fallbackReason: 'live-empty' });
             console.log(`  ⚠️  ${label.padEnd(26)} ${cached.length} events (cached — live returned 0, cache kept)`);
             continue;
           }
         }
         all.push(...mapped);
-        writeFileSync(cacheFile, JSON.stringify(mapped)); // remember last good pull
+        try {
+          writeFileSync(cacheFile, JSON.stringify(mapped)); // remember last good pull
+        } catch (e) {
+          moduleNames.push(label);
+          report.push({ source: label, found: mapped.length, ok: false, status: 'degraded', error: `cache write failed: ${e.message || e}` });
+          console.log(`  ⚠️  ${label.padEnd(26)} ${mapped.length} live events (cache write failed: ${e.message || e})`);
+          continue;
+        }
         moduleNames.push(label);
         report.push({ source: label, found: mapped.length, ok: true });
         console.log(`  ✅ ${label.padEnd(26)} ${mapped.length} events`);
@@ -2047,7 +2083,14 @@ async function main() {
             const cached = JSON.parse(readFileSync(cacheFile, 'utf8'));
             all.push(...cached);
             moduleNames.push(label);
-            report.push({ source: label, found: cached.length, ok: false, cached: true });
+            report.push({
+              source: label,
+              found: cached.length,
+              ok: false,
+              cached: true,
+              fallbackReason: fallbackReasonForStage(sourceStage),
+              error: String(e.message || e),
+            });
             console.log(`  ⚠️  ${label.padEnd(26)} ${cached.length} events (cached — live failed: ${e.message || e})`);
             continue;
           } catch {

@@ -58,6 +58,19 @@ test('artifact manifest is deterministic and verifies exact selected-city bytes'
   assert.equal(checked.manifest.sourceHealth.status, 'unknown', 'legacy source health is explicit, never relabeled healthy');
 }));
 
+test('source-health receipts preserve why a cached fallback was used', () => {
+  const health = summarizeSourceHealth([
+    { source: 'Transport failure', found: 20, ok: false, cached: true, fallbackReason: 'live-error', error: 'fetch failed' },
+    { source: 'Parser returned zero', found: 12, ok: false, cached: true, fallbackReason: 'live-empty' },
+    { source: 'Live source', found: 8, ok: true },
+  ], { runId: 'events-fixture-run', checkedAt: '2026-07-15T12:00:00.000Z' });
+
+  assert.equal(health.sources[0].fallbackReason, 'live-error');
+  assert.equal(health.sources[0].error, 'fetch failed');
+  assert.equal(health.sources[1].fallbackReason, 'live-empty');
+  assert.equal(health.sources[2].fallbackReason, undefined);
+});
+
 test('a genuine run receipt refreshes unchanged content without changing its build id', () => withScratch((scratch) => {
   const set = fixture(scratch);
   const runId = 'events-tampa-bay-test-run';

@@ -40,6 +40,7 @@ export const ARTIFACT_SPECS = Object.freeze({
 });
 
 const HEALTH_STATUSES = new Set(['healthy', 'degraded', 'failed', 'unknown']);
+const FALLBACK_REASONS = new Set(['live-empty', 'live-error', 'source-error', 'processing-error']);
 const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000;
 
 export function sha256(bytes) {
@@ -88,6 +89,7 @@ export function summarizeSourceHealth(report, { runId, checkedAt }) {
       status,
       rows,
       cached,
+      ...(FALLBACK_REASONS.has(row?.fallbackReason) ? { fallbackReason: row.fallbackReason } : {}),
       ...(row?.error ? { error: String(row.error) } : {}),
     };
   });
@@ -420,6 +422,7 @@ function sourceHealthProblems(health, expectedRunId, label) {
       else counts[source.status] += 1;
       if (source?.rows != null && !validCount(source.rows)) problems.push(`${label}.sources[${index}].rows is invalid`);
       if (source?.cached != null && typeof source.cached !== 'boolean') problems.push(`${label}.sources[${index}].cached is invalid`);
+      if (source?.fallbackReason != null && !FALLBACK_REASONS.has(source.fallbackReason)) problems.push(`${label}.sources[${index}].fallbackReason is invalid`);
     }
     for (const field of ['healthy', 'degraded', 'failed', 'unknown']) {
       if (health[field] !== counts[field]) problems.push(`${label}.${field} does not match source receipts`);

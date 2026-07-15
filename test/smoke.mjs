@@ -28,7 +28,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
-import { lookup as dnsLookup } from 'node:dns/promises'
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
@@ -37,7 +36,7 @@ import { fileURLToPath } from 'node:url'
 // place/category vocab from the canonical taxonomy (categories.js) — so a new city
 // doesn't fail the build on hard-coded Tampa values.
 import { bbox as CITY_BBOX, rosterBenchmark as CITY_ROSTER, cityId as CITY_ID } from '../finder/cities/index.mjs'
-import { fuzzyMerge } from '../finder/finder.mjs'
+import { fallbackReasonForStage, fuzzyMerge } from '../finder/finder.mjs'
 import { PLACETYPE_HUE, CATEGORY_HUES } from '../app/src/categories.js'
 import * as deckdeal from '../app/src/deckdeal.js'
 import * as gesture from '../app/src/deckgesture.js'
@@ -48,6 +47,10 @@ const APP_EVENTS = path.join(ROOT, 'app', 'public', 'events.json')
 const FINDER_JSON = path.join(ROOT, 'finder', 'output', CITY_ID, 'events.json')
 const FINDER_MD = path.join(ROOT, 'finder', 'output', CITY_ID, 'events.md')
 const FINDER_MANIFEST = path.join(ROOT, 'finder', 'output', CITY_ID, 'artifact-manifest.json')
+const STATIC_SOURCE_NAMES = new Set(
+  JSON.parse(readFileSync(path.join(ROOT, 'finder', 'cities', `${CITY_ID}.sources.json`), 'utf8'))
+    .map((source) => source.name)
+)
 
 // ---------- capture the CURRENT full dataset BEFORE anything can mutate it ----------
 assert.ok(existsSync(APP_EVENTS), `missing ${APP_EVENTS} — run "npm run refresh" first; the app has no data`)
@@ -110,21 +113,12 @@ const runNode = (script, env) =>
 const runNpm = (cmdline) => collect(spawn(cmdline, { cwd: ROOT, shell: true }))
 const tail = (s, n = 30) => s.split(/\r?\n/).slice(-n).join('\n')
 
-// network gate: the finder fast-mode pulls from live sources (Nominatim geocode +
-// static feeds). When the box is OFFLINE the yield collapses and the source-count
-// + cross-source-merge assertions go falsely red. A quick DNS probe (no HTTP load,
-// no rate-limit) lets those hold the line when online and downgrade to a diagnostic
-// when not — "gate when offline, never silently delete the assertion".
-async function isOnline() {
-  for (const host of ['one.one.one.one', 'dns.google']) {
-    try {
-      await dnsLookup(host)
-      return true
-    } catch {
-      /* try the next probe host */
-    }
-  }
-  return false
+function staticAcquisitionUnavailable(sources, expectedNames) {
+  if (!Array.isArray(sources) || !(expectedNames instanceof Set)) return false
+  const receipts = sources.filter((source) => expectedNames.has(source?.name))
+  if (receipts.length !== expectedNames.size) return false
+  if (new Set(receipts.map((source) => source.name)).size !== expectedNames.size) return false
+  return receipts.every((source) => source.cached === true && source.fallbackReason === 'live-error')
 }
 
 // mirrors finder.mjs endedAtMs: date-only → exclusive next-midnight; timed
@@ -249,6 +243,29 @@ test('finder fuzzy merge: cross-family consensus is deterministic', () => {
   assert.equal(separate.buzz, 1, 'an unrelated-venue listing remains a one-family event')
 })
 
+test('finder source fallback causes fail closed outside transport acquisition', () => {
+  assert.equal(fallbackReasonForStage('live-fetch'), 'live-error')
+  assert.equal(fallbackReasonForStage('source-adapter'), 'source-error')
+  assert.equal(fallbackReasonForStage('processing'), 'processing-error')
+  assert.throws(() => fallbackReasonForStage('cache-write'), /unknown source stage/)
+
+  const expected = new Set(['A', 'B'])
+  const transportFailures = [
+    { name: 'A', cached: true, fallbackReason: 'live-error' },
+    { name: 'B', cached: true, fallbackReason: 'live-error' },
+  ]
+  assert.equal(staticAcquisitionUnavailable(transportFailures, expected), true)
+  assert.equal(staticAcquisitionUnavailable([
+    transportFailures[0],
+    { name: 'B', cached: true, fallbackReason: 'processing-error' },
+  ], expected), false, 'post-fetch processing errors must keep the count floor active')
+  assert.equal(staticAcquisitionUnavailable([
+    transportFailures[0],
+    { name: 'B', cached: true, fallbackReason: 'live-empty' },
+  ], expected), false, 'parse-zero fallbacks must keep the count floor active')
+  assert.equal(staticAcquisitionUnavailable([transportFailures[0]], expected), false, 'missing receipts fail closed')
+})
+
 test('full city artifacts: unclassified category share stays under 8%', () => {
   for (const cityId of ['tampa-bay', 'sf-east-bay']) {
     const file = path.join(ROOT, 'finder', 'output', cityId, 'events.json')
@@ -307,13 +324,7 @@ test('finder fast-mode: exit 0, benchmarks green, output schema-valid', { timeou
     const buzzLine = res.out.split(/\r?\n/).find((l) => l.includes('events with buzz >= 2:'))
     assert.ok(buzzLine, 'buzz >= 2 benchmark line missing from finder output')
     const buzzN = Number(buzzLine.match(/buzz >= 2:\s*(\d+)/)?.[1])
-    // Source-count floors still depend on live sources; DNS gates that check.
-    const online = await isOnline()
-    if (online) {
-      t.diagnostic(`ONLINE — live fast-mode cross-family overlaps: ${buzzN} (corpus diagnostic; merge behavior is fixture-tested)`)
-    } else {
-      t.diagnostic(`OFFLINE — live fast-mode cross-family overlaps unavailable (got ${buzzN}); merge behavior is fixture-tested`)
-    }
+    t.diagnostic(`fast-mode cross-family overlaps: ${buzzN} (corpus diagnostic; merge behavior is fixture-tested)`)
     // sponsored is render-sourced: fast mode prints the ⚠️ offline variant
     assert.ok(
       res.out.includes('sponsored (promoted) cltampa events'),
@@ -322,13 +333,37 @@ test('finder fast-mode: exit 0, benchmarks green, output schema-valid', { timeou
     const totalLine = res.out.split(/\r?\n/).find((l) => l.includes('TOTAL upcoming events:'))
     assert.ok(totalLine, 'TOTAL upcoming events line missing from finder output')
     const totalN = Number(totalLine.match(/TOTAL upcoming events:\s*(\d+)/)?.[1])
-    if (online) {
+    const runManifest = JSON.parse(readFileSync(FINDER_MANIFEST, 'utf8'))
+    const sourceReceiptSummary = runManifest.sourceHealth.sources
+      .map((source) => `${source.name}=${source.status}/${source.rows}${source.cached ? `/cached/${source.fallbackReason || 'unknown'}` : ''}`)
+      .join(', ')
+    const sourceAcquisitionSummary = res.out.split(/\r?\n/)
+      .filter((line) => line.includes('cached — live'))
+      .map((line) => line.trim())
+      .join(' | ')
+    const staticReceipts = runManifest.sourceHealth.sources
+      .filter((source) => STATIC_SOURCE_NAMES.has(source.name))
+    assert.equal(
+      staticReceipts.length,
+      STATIC_SOURCE_NAMES.size,
+      `fast-mode manifest is missing static source receipts; got: ${sourceReceiptSummary}`
+    )
+    assert.equal(
+      new Set(staticReceipts.map((source) => source.name)).size,
+      STATIC_SOURCE_NAMES.size,
+      `fast-mode manifest has duplicate static source receipts; got: ${sourceReceiptSummary}`
+    )
+    const acquisitionUnavailable = staticAcquisitionUnavailable(
+      runManifest.sourceHealth.sources,
+      STATIC_SOURCE_NAMES
+    )
+    if (!acquisitionUnavailable) {
       assert.ok(
         totalN >= 150,
-        `fast-mode static sources produced only ${totalN} events (expect ~250; >= 150 floor) — sources or caches are failing`
+        `fast-mode static sources produced only ${totalN} events (expect ~250; >= 150 floor) — sources or caches are failing; receipts: ${sourceReceiptSummary}; acquisitions: ${sourceAcquisitionSummary}`
       )
     } else {
-      t.diagnostic(`OFFLINE — gating the source-count floor (got ${totalN}, expect ~250 online)`)
+      t.diagnostic(`LIVE ACQUISITION UNAVAILABLE — all ${staticReceipts.length} static sources used cache after errors; gating the source-count floor (got ${totalN}, expect ~250 from a live pull)`)
     }
     t.diagnostic(`fast-mode events: ${totalN}, buzz>=2: ${buzzN}`)
 
