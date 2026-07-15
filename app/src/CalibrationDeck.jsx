@@ -399,10 +399,12 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
 // usePlaces fetches only because this wrapper is mounted only when the Spots Tinder
 // is open (App gates on page.kind==='places').
 export function PlacesDeck({ onClose, closeLabel = 'Done' }) {
-  const { places, status } = usePlaces(true)
+  const { places, status, recover, recoverLabel } = usePlaces(true)
   if (status === 'ready' && Array.isArray(places) && places.length) {
     return <CalibrationDeck kind="places" places={places} onClose={onClose} closeLabel={closeLabel} />
   }
+  const loading = status === 'idle' || status === 'loading'
+  const unavailable = ['stale', 'offline', 'error'].includes(status)
   return (
     <div className="pg deck">
       <header className="pg-head deck-head">
@@ -416,7 +418,24 @@ export function PlacesDeck({ onClose, closeLabel = 'Done' }) {
           <div className="deck-empty-emoji" aria-hidden>
             🃏
           </div>
-          <p>{status === 'error' ? "Couldn't load spots right now — try again in a moment." : 'Loading spots…'}</p>
+          <p role={loading ? 'status' : unavailable ? 'alert' : undefined}>
+            {loading
+              ? 'Loading spots…'
+              : status === 'empty' || (status === 'ready' && places?.length === 0)
+                ? 'No spots are available here yet.'
+                : status === 'stale'
+                  ? 'These spot listings are too old to use safely.'
+                  : status === 'offline'
+                    ? 'You’re offline. Spots weren’t loaded.'
+                    : status === 'error'
+                      ? "Couldn't verify spots right now."
+                      : 'Spots are unavailable right now.'}
+          </p>
+          {unavailable && recover && (
+            <button className="deck-done-btn pressable" onClick={recover}>
+              {recoverLabel}
+            </button>
+          )}
           <button className="deck-done-btn pressable" onClick={onClose}>
             {closeLabel}
           </button>

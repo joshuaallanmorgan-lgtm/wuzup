@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, saveMyEvents } from './lib.js'
 import { dayStamp } from './coverage.js'
+import { useArtifact } from './artifacts.js'
 import { NavProvider, VIEWS, useNav } from './nav.jsx'
 import Primer, { loadPrimerState } from './Primer.jsx'
 import { WxContext, CardToastHost } from './cards.jsx'
@@ -60,14 +61,8 @@ function TabBar({ active, onTab, inert, hidden }) {
   )
 }
 
-// M2 resilience constants: one retry on a failed boot fetch, and the
-// staleness threshold for the quiet "events from {day}" banner. events.json
-// ships no generatedAt field (finder-owned schema), so the banner reads the
-// HTTP Last-Modified header off the fetch response instead — static hosts and
-// vite preview both send it; when the header is absent the banner simply
-// never shows (graceful, no fake claims).
-const RETRY_MS = 2500
-const STALE_MS = 48 * 3600 * 1000
+// Artifact acquisition, bounded retry, exact-byte verification, and immutable
+// freshness live in artifacts.js. App consumes its public state only.
 const FOCUSABLE = [
   'button:not([disabled])',
   'a[href]',
@@ -86,6 +81,28 @@ function focusLayer(root, preferred) {
     root.querySelector(FOCUSABLE) ||
     root
   target.focus?.({ preventScroll: true })
+}
+
+function EventUnavailablePage({ status, meta, onBack, recover, recoverLabel }) {
+  const generated = meta?.generatedAt ? Date.parse(meta.generatedAt) : null
+  return (
+    <div className="pg">
+      <header className="pg-head">
+        <button className="pg-back" onClick={onBack} aria-label="Back">
+          <Icon.chevron />
+        </button>
+        <h1 className="pg-head-title">Events unavailable</h1>
+      </header>
+      <div className="empty" role="alert">
+        {status === 'stale'
+          ? `Listings from ${Number.isFinite(generated) ? dayStamp(generated) : 'the last refresh'} are too old to show.`
+          : status === 'offline'
+            ? 'You’re offline. Event listings weren’t loaded.'
+            : 'Event listings couldn’t be verified right now.'}
+        {recover && <button className="empty-cta" onClick={recover}>{recoverLabel}</button>}
+      </div>
+    </div>
+  )
 }
 
 function restoreLayerFocus(target, fallbackRoot) {
@@ -108,10 +125,22 @@ export default function App() {
 }
 
 function Shell() {
-  const [events, setEvents] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [loadError, setLoadError] = useState(false)
-  const [loadCycle, setLoadCycle] = useState(0)
+  const eventArtifact = useArtifact('events')
+  // Subscribe without activating the lazy place artifact. This lets the shell
+  // close a retained remote place detail if its verified snapshot expires or
+  // fails while open, without adding a places fetch to app boot.
+  const placeArtifact = useArtifact('places', false)
+  const events = useMemo(
+    () => (Array.isArray(eventArtifact.data) ? eventArtifact.data : []),
+    [eventArtifact.data]
+  )
+  const loading = eventArtifact.status === 'idle' || eventArtifact.status === 'loading'
+  const unavailable = ['stale', 'offline', 'error'].includes(eventArtifact.status)
+  const placesUnavailable = ['stale', 'offline', 'error'].includes(placeArtifact.status)
+  const transportError = eventArtifact.status === 'offline' || eventArtifact.status === 'error'
+  const generatedAt = eventArtifact.meta?.generatedAt
+  const dataAt = generatedAt ? Date.parse(generatedAt) : null
+  const staleAt = eventArtifact.status === 'stale' && Number.isFinite(dataAt) ? dataAt : null
   const [bootVis, setBootVis] = useState(false) // boot overlay gated 300ms (no flash on fast loads)
   const [coords, setCoords] = useState(null)
   // 3.7P-21: location is opt-in via Settings → Data & privacy (no inline gate).
@@ -145,8 +174,24 @@ function Shell() {
     openSettings,
     openDeck,
     closePage,
+    closeDetail,
     detail,
   } = useNav()
+  const remotePageBlocked = unavailable && Boolean(page) && (
+    page.type === 'bubble'
+    || page.type === 'notifications'
+    || (page.type === 'guide' && page.guide?.domain === 'events')
+    || (page.type === 'deck' && page.kind !== 'places')
+    || page.type === 'lensdeck'
+  )
+
+  useEffect(() => {
+    const remoteEventOpen = detail
+      && detail.kind !== 'place'
+      && !detail.tags?.includes('added-by-you')
+    const remotePlaceOpen = detail?.kind === 'place'
+    if ((unavailable && remoteEventOpen) || (placesUnavailable && remotePlaceOpen)) closeDetail()
+  }, [closeDetail, detail, placesUnavailable, unavailable])
 
   // Remember both keyboard focus and pointer launchers. Some browsers do not
   // focus a clicked button, so pointer capture supplies a reliable return
@@ -215,59 +260,8 @@ function Shell() {
     return () => cancelAnimationFrame(frame)
   }, [detail, page])
 
-  // the snapshot's Last-Modified ms (null when the header is absent) — the
-  // stale banner reads it through staleAt; Settings' "Events updated {when}"
-  // line reads it directly (P1: lifted to state instead of a second fetch)
-  const [dataAt, setDataAt] = useState(null)
-  // M2a stale-data banner: Last-Modified ms when the snapshot is > 48h old
-  const [staleAt, setStaleAt] = useState(null)
-  const [staleHidden, setStaleHidden] = useState(false) // ✕ dismiss (this load only)
-  // M2b: one retry with backoff before giving up — a transient blip on a weak
-  // network shouldn't cost the whole session. The boot overlay stays up across
-  // the backoff (we ARE still trying); after the second failure an explicit
-  // error + manual retry takes over — a failed fetch is never presented as an
-  // honestly empty city. Non-OK responses throw so a 404/500 retries too.
-  const retryEvents = useCallback(() => {
-    setLoadError(false)
-    setLoading(true)
-    setLoadCycle((n) => n + 1)
-  }, [])
-  useEffect(() => {
-    let on = true
-    let timer
-    const load = (attempt) => {
-      // Stage E base-path: BASE_URL-relative, never root-absolute — under a
-      // subpath deployment (GitHub Pages /wuzup/) '/events.json' 404s. Vite
-      // statically folds this to '/events.json' at the default base (no-op).
-      fetch(import.meta.env.BASE_URL + 'events.json')
-        .then((r) => {
-          if (!r.ok) throw new Error('http ' + r.status)
-          const lm = Date.parse(r.headers.get('last-modified') || '')
-          return r.json().then((d) => {
-            if (!on) return
-            if (!Number.isNaN(lm)) setDataAt(lm)
-            if (!Number.isNaN(lm) && Date.now() - lm > STALE_MS) setStaleAt(lm)
-            setEvents(Array.isArray(d) ? d : [])
-            setLoadError(false)
-            setLoading(false)
-          })
-        })
-        .catch(() => {
-          if (!on) return
-          if (attempt === 0) timer = setTimeout(() => load(1), RETRY_MS)
-          else {
-            setEvents([])
-            setLoadError(true)
-            setLoading(false)
-          }
-        })
-    }
-    load(0)
-    return () => {
-      on = false
-      clearTimeout(timer)
-    }
-  }, [loadCycle])
+  const recoverEvents = eventArtifact.recover
+  const recoverEventsLabel = eventArtifact.recoverLabel
   useEffect(() => {
     const t = setTimeout(() => setBootVis(true), 300)
     return () => clearTimeout(t)
@@ -402,13 +396,12 @@ function Shell() {
               Home is the boot tab (index 0, eager); the rest mount on first visit.
               The map is parked for v1 (D8) — no Map tab and no {type:'map'} sub-view. */}
           <section className="page page-hot" aria-label={VIEWS[0].label} aria-hidden={active !== 0} inert={active !== 0 ? true : undefined}>
-            {/* dataAt (D-G1): the Coverage Card colophon's "updated" line */}
-            <HomeView events={norm} anchors={anchors} wx={wx} dataAt={dataAt} />
+            <HomeView events={norm} anchors={anchors} wx={wx} dataMeta={eventArtifact.meta} />
           </section>
           <section className="page page-hot" aria-label={VIEWS[1].label} aria-hidden={active !== 1} inert={active !== 1 ? true : undefined}>
             {/* Events — the browse (search + filter + event sections). Now lazy
                 (Home is the boot tab), mounts on first visit to the Events tab. */}
-            {visited.has('hot') && <HotView events={norm} anchors={anchors} loading={loading} loadError={loadError} />}
+            {visited.has('hot') && <HotView events={norm} anchors={anchors} loading={loading} loadError={unavailable} />}
           </section>
           <section className="page" aria-label={VIEWS[2].label} aria-hidden={active !== 2} inert={active !== 2 ? true : undefined}>
             {/* Sprint S: the Spots tab — lazy-mounted; its own /places.json fetch
@@ -426,20 +419,21 @@ function Shell() {
         <TabBar active={active} onTab={goTo} inert={baseInert} hidden={baseCovered || undefined} />
         {/* Keep transport failure globally visible above event subpages/detail.
             First-open onboarding stays topmost; the alert appears when it closes. */}
-        {loadError && primer && (
-          <div className="load-note" role="alert" inert={baseInert} aria-hidden={baseCovered || undefined}>
-            <span className="load-txt">Events couldn’t load. Check your connection.</span>
-            <button className="load-retry" onClick={retryEvents}>Try again</button>
+        {transportError && primer && !remotePageBlocked && (
+          <div className={'load-note' + (page || detail ? ' is-layered' : '')} role="alert">
+            <span className="load-txt">
+              {eventArtifact.status === 'offline'
+                ? 'You’re offline. Events weren’t loaded.'
+                : 'Events couldn’t be verified right now.'}
+            </span>
+            {recoverEvents && (<button className="load-retry" onClick={recoverEvents}>{recoverEventsLabel}</button>)}
           </div>
         )}
-        {/* M2a: quiet staleness disclosure — one line, dismissible, never blocks
-            (z 1200: subpages/detail/primer all render over it) */}
-        {staleAt != null && !staleHidden && (
-          <div className="stale-note" role="status" inert={baseInert} aria-hidden={baseCovered || undefined}>
-            <span className="stale-txt">Events from {dayStamp(staleAt)} — they may have changed</span>
-            <button className="stale-x" onClick={() => setStaleHidden(true)} aria-label="Dismiss">
-              ✕
-            </button>
+        {/* Expired bytes are identified but never rendered as current inventory. */}
+        {staleAt != null && primer && !remotePageBlocked && (
+          <div className={'stale-note' + (page || detail ? ' is-layered' : '')} role="alert">
+            <span className="stale-txt">Event listings were last refreshed {dayStamp(staleAt)} and are too old to show.</span>
+            {recoverEvents && (<button className="load-retry" onClick={recoverEvents}>Check again</button>)}
           </div>
         )}
         {/* Phase 3.5: the 🎲 Find-My-Night FAB is retired (Josh: remove the dice
@@ -453,6 +447,16 @@ function Shell() {
             inert={detail ? true : undefined}
             aria-hidden={detail ? true : undefined}
           >
+            {remotePageBlocked ? (
+              <EventUnavailablePage
+                status={eventArtifact.status}
+                meta={eventArtifact.meta}
+                onBack={closePage}
+                recover={recoverEvents}
+                recoverLabel={recoverEventsLabel}
+              />
+            ) : (
+              <>
             {page.type === 'bubble' && (
               <BubblePage
                 bubble={page.bubble}
@@ -488,7 +492,7 @@ function Shell() {
                 their `from` origin, so the trio feels stacked without stack
                 state (the 7-screen Interview retired into the editor, Q2d) */}
             {page.type === 'settings' && (
-              <SettingsPage events={norm} dataAt={dataAt} primer={primer} onPrimerDone={setPrimer} locationAllowed={locAllowed} onAllowLocation={setLocationAllowed} />
+              <SettingsPage events={norm} dataMeta={eventArtifact.meta} primer={primer} onPrimerDone={setPrimer} locationAllowed={locAllowed} onAllowLocation={setLocationAllowed} />
             )}
             {/* Stage R (Profile rework): the two new Profile drill-ins, single-slot */}
             {page.type === 'myplans' && <MyPlansPage events={norm} anchors={anchors} />}
@@ -504,8 +508,8 @@ function Shell() {
             {/* Stage E (⚑X3): Settings → Data & photo credits — single-slot
                 REPLACE; its back affordance reopens Settings. Every credit line
                 derives from norm / places.json / the city config at render.
-                dataAt (D-G1) feeds the Coverage Card header's "updated" line. */}
-            {page.type === 'attribution' && <AttributionPage events={norm} dataAt={dataAt} />}
+                immutable artifact metadata feeds the Coverage Card. */}
+            {page.type === 'attribution' && <AttributionPage events={norm} dataMeta={eventArtifact.meta} />}
             {page.type === 'interests' && <InterestEditor from={page.from} />}
             {/* Sprint V2/V3: the "why your feed looks like this" + mute/boost
                 panel — opened from Settings, back returns there (the `from`
@@ -540,6 +544,8 @@ function Shell() {
             {page.type === 'lensdeck' && (
               <LensDeck lens={page.lens} events={norm} anchors={anchors} />
             )}
+              </>
+            )}
           </div>
         )}
         {/* H1: first open only — Primer persists its own state + seeds taste;
@@ -565,7 +571,7 @@ function Shell() {
             the shared detail layer serves BOTH kinds — a place (kind:'place')
             opens PlaceDetail, an event opens DetailPage; openDetail's taste +
             recents seams are generic (keyOf/category) so both record correctly. */}
-        {detail && detail.kind === 'place' && (
+        {detail && detail.kind === 'place' && !placesUnavailable && (
           <PlaceDetail key={keyOf(detail)} e={detail} anchors={anchors} wx={wx} />
         )}
         {detail && detail.kind !== 'place' && (

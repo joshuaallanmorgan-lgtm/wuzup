@@ -84,7 +84,14 @@ export default function SearchPage({ events, anchors, coords }) {
   // T2: the places pool — the SAME lazy /places.json store the Locations tab
   // uses (usePlaces fires the one-shot fetch on first mount of this page).
   // _dist is attached for the distance pill the same way events get it.
-  const { places } = usePlaces()
+  const {
+    places,
+    status: placeStatus,
+    recover: recoverPlaces,
+    recoverLabel: recoverPlacesLabel,
+  } = usePlaces()
+  const placesPending = placeStatus === 'idle' || placeStatus === 'loading'
+  const placesUnavailable = ['stale', 'offline', 'error'].includes(placeStatus)
   const placePool = useMemo(() => {
     if (!Array.isArray(places)) return []
     return places.map((p) => ({
@@ -231,10 +238,25 @@ export default function SearchPage({ events, anchors, coords }) {
         </div>
       </header>
       <div className="pg-body">
+        {hasQ && placesPending && (
+          <div className="empty empty-sm" role="status">Checking spot results…</div>
+        )}
+        {placesUnavailable && (
+          <div className="empty empty-sm" role="alert">
+            {placeStatus === 'stale'
+              ? 'Spot results are too old to show.'
+              : placeStatus === 'offline'
+                ? 'You’re offline. Spot results weren’t loaded.'
+                : 'Spot results couldn’t be verified.'}
+            {recoverPlaces && (
+              <button className="empty-cta" onClick={recoverPlaces}>{recoverPlacesLabel}</button>
+            )}
+          </div>
+        )}
         {hasQ && total > 0 && (
           <>
             <div className="srch-count">
-              {total.toLocaleString(fmtLocale)} result{total === 1 ? '' : 's'} for “{dq.trim()}”
+              {total.toLocaleString(fmtLocale)} verified result{total === 1 ? '' : 's'} for “{dq.trim()}”
             </div>
             {/* 3.7P-41 → Stage R (§N screen 9): result-type tabs scope the union —
                 All · Events · Spots · Guides. Only tabs that have results are
@@ -298,7 +320,7 @@ export default function SearchPage({ events, anchors, coords }) {
             )}
           </>
         )}
-        {hasQ && total === 0 && (
+        {hasQ && total === 0 && !placesPending && !placesUnavailable && (
           <div className="empty">
             No matches.
             <br />

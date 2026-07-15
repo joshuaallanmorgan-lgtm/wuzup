@@ -12,6 +12,7 @@
 // of this tab, never at boot, never merged into the events feed. DRAFT copy ⚑ Charles.
 import { useMemo, useRef } from 'react'
 import { fmtLocale } from './lib.js'
+import { dayStamp } from './coverage.js'
 import { useNav } from './nav.jsx'
 import { SecHead, SpotCard, IntentTile, RowFeed, SkeletonRow, photoFirst } from './cards.jsx'
 import { GUIDES } from './guides.js'
@@ -55,7 +56,9 @@ export default function LocationsView({ coords }) {
   // FB-03 (3.7P-7): the Spots page shows SPOTS + MIXED guides (Beach day, Free
   // outdoor reset) — the place-domain guides.
   const spotGuides = GUIDES.filter((g) => g.domain === 'spots' || g.domain === 'mixed')
-  const { places, status } = usePlaces()
+  const { places, status, recover, recoverLabel, meta: placeMeta } = usePlaces()
+  const placeDataAt = placeMeta?.generatedAt ? Date.parse(placeMeta.generatedAt) : null
+  const placeHealth = placeMeta?.sourceHealth?.status
   const saves = useSaves()
   const taste = useTaste()
   // See-all on Recommended / Worth the drive scrolls to the full Everything list
@@ -134,7 +137,7 @@ export default function LocationsView({ coords }) {
 
   const everything = useMemo(() => [{ label: null, items: all }], [all])
 
-  if (status === 'loading' || places === null) {
+  if (status === 'idle' || status === 'loading') {
     return (
       <div className="hot-scroll">
         <header className="loc-head">
@@ -150,16 +153,26 @@ export default function LocationsView({ coords }) {
       </div>
     )
   }
-  if (status === 'error' || all.length === 0) {
+  if (['stale', 'offline', 'error'].includes(status) || all.length === 0) {
     return (
       <div className="hot-scroll">
         <header className="loc-head">
           <h1 className="loc-head-title">Spots</h1>
         </header>
         <div className="empty">
-          {status === 'error'
-            ? "Couldn't load places right now — check back in a moment."
-            : 'No places on the map yet — check back soon.'}
+          {status === 'stale'
+            ? 'These place listings are too old to show safely.'
+            : status === 'offline'
+              ? 'You’re offline. Places weren’t loaded.'
+              : status === 'error'
+                ? "Couldn't verify places right now."
+                : 'No places are available here yet.'}
+          {Number.isFinite(placeDataAt) && (
+            <div className="loc-data-note">Last verified snapshot: {dayStamp(placeDataAt)}</div>
+          )}
+          {status !== 'empty' && all.length === 0 && recover && (
+            <button className="empty-cta" onClick={recover}>{recoverLabel}</button>
+          )}
         </div>
       </div>
     )
@@ -175,6 +188,12 @@ export default function LocationsView({ coords }) {
       <header className="loc-head">
         <h1 className="loc-head-title">Spots</h1>
         <div className="loc-head-sub">Parks, beaches, trails and quiet corners.</div>
+        <div className="loc-data-note">
+          {Number.isFinite(placeDataAt) && <>Data from {dayStamp(placeDataAt)}</>}
+          {placeHealth === 'healthy' && <> · source check complete</>}
+          {placeHealth === 'degraded' && <> · some sources unavailable</>}
+          {placeHealth === 'unknown' && <> · source check unavailable</>}
+        </div>
         <SearchBarButton placeholder="Search spots — beaches, trails, dog parks…" onClick={openSearch} ariaLabel="Search spots" />
       </header>
 

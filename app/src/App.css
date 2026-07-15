@@ -677,16 +677,16 @@
 /* ===== boot (gated 300ms in JS; topmost chrome) ===== */
 .boot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--bg); color: var(--muted); font-weight: 700; z-index: 2100; }
 
-/* ===== M2a stale-data banner: quiet one-liner, top of the frame. z 1200 =
-   above the tabbar (1100), below subpages (1500) / detail (2000) / primer
-   (1900) — anything the user opens covers it; it never blocks a thing. ===== */
+/* ===== Verified-data alert: stays operable above subpages/detail so an
+   unavailable corpus cannot masquerade as a successful empty result. The
+   primer gates rendering until onboarding has closed. ===== */
 .stale-note,
 .load-note {
   position: fixed;
   top: calc(10px + env(safe-area-inset-top));
   left: 50%;
   transform: translateX(-50%);
-  z-index: 1200;
+  z-index: 2050;
   display: flex;
   align-items: center;
   gap: 2px;
@@ -713,11 +713,12 @@
   cursor: pointer;
 }
 .load-note {
-  /* Event subpages/detail must not hide a transport failure and expose their
-     successful-empty copy as though the city genuinely had no listings. */
-  z-index: 2050;
   gap: var(--sp-sm);
   padding-right: 12px;
+}
+.stale-note.is-layered,
+.load-note.is-layered {
+  top: calc(64px + env(safe-area-inset-top));
 }
 .load-retry {
   flex: none;

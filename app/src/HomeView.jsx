@@ -21,7 +21,7 @@ const NATURE_ACT = ACTIVITIES.find((a) => a.id === 'act-trails')
 const MARKETS_GUIDE = GUIDES.find((g) => g.id === 'markets')
 const SPORTS_BARS_GUIDE = GUIDES.find((g) => g.id === 'sports-bars')
 
-export default function HomeView({ events, anchors, wx, dataAt }) {
+export default function HomeView({ events, anchors, wx, dataMeta }) {
   const { openDetail: onSelect, openNotifications, openForecast, openBubble, openPlaceBubble, openGuide } = useNav()
 
   // re-seed on tab return + every 10 min (tonight-window awareness)
@@ -93,7 +93,7 @@ export default function HomeView({ events, anchors, wx, dataAt }) {
             one extra honest sentence. Tampa's data must never render this. */}
         {sparse && (
           <section className="sec cov-home">
-            <CoverageCard events={events} dataAt={dataAt} promoted />
+            <CoverageCard events={events} dataMeta={dataMeta} promoted />
           </section>
         )}
         <section className="sec">
@@ -140,7 +140,7 @@ export default function HomeView({ events, anchors, wx, dataAt }) {
             under the last section — what we know, from whom, as of when. */}
         {!sparse && (
           <section className="sec cov-home">
-            <CoverageCard events={events} dataAt={dataAt} />
+            <CoverageCard events={events} dataMeta={dataMeta} />
           </section>
         )}
       </div>

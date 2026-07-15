@@ -1,6 +1,6 @@
 # Wuzup V2 - active sprint map
 
-> **Status:** owner-ratified execution map; Sprint 1 active - 2026-07-14
+> **Status:** owner-ratified execution map; Sprint 2 active - 2026-07-15
 >
 > **Authority:** subordinate to [V2_PLAN.md](V2_PLAN.md). This file translates the current scope and
 > dependency queue into delivery cycles; it does not admit features that the plan parks in V3.
@@ -266,6 +266,40 @@ Committed scope:
 
 **Exit gate:** production hashes equal the approved hashes, stale/mixed/partial artifacts fail closed, a UI-
 only deploy cannot change the data date, and the scheduled refresh has a repo-visible receipt.
+
+#### Sprint 2 runtime and production-byte receipt - 2026-07-15 (yellow)
+
+- **One browser repository now owns event and place artifacts:** it fetches one immutable manifest, verifies
+  city, IANA timezone, schema, run/build/manifest identities, timestamps, source health, exact byte count,
+  SHA-256, row count, and minimum payload shape before exposing anything. Events load at boot while places
+  remain lazy; concurrent loads coalesce, retry refreshes every active kind atomically, a late old response
+  cannot overwrite a newer generation, and a kind first requested during refresh joins the new manifest.
+- **Runtime truth is explicit and time-aware:** `loading`, `ready`, `stale`, `offline`, `error`, and verified
+  `empty` are distinct. Expired or failed-source rows are withheld, live ready data transitions to stale when
+  its immutable expiry passes, malformed/future/non-object manifests fail closed, transport retry is bounded,
+  and HTTP `Last-Modified` no longer participates in freshness. Immutable generation date and degraded/unknown
+  source health are disclosed for both events and places.
+- **The production-byte chain is closed:** Vite refuses a wrong-city, partial, hash-invalid, or caller-
+  overridden staged set before building, embeds the verified staged `manifestId` into browser JavaScript, and
+  copies that same public tree. CI and Pages deployment run a post-build verifier for Tampa and SF that requires
+  source bytes, built bytes, built manifest, and the browser-embedded approval ID to agree before publication.
+  The runtime then refuses any self-consistent live manifest that differs from the build-approved ID.
+- **Failure UX was exercised rather than source-inspected only:** event-only subpages replace false zero-result
+  copy with one actionable unavailable page; mixed surfaces retain a foreground disclosure; retryable failures
+  offer Retry while a build-ID/integrity mismatch offers Reload Wuzup so an old tab can acquire the new bundle;
+  remote event detail closes if its backing artifact becomes unavailable; the Spots calibration flow handles every terminal state;
+  and place freshness/source health appear on Spots, Coverage, and Credits. A local mobile browser pass confirmed
+  one visible accessibility-tree alert, enabled Back and Retry controls with non-overlapping bounds, immutable
+  place provenance, and zero console errors.
+- **Verification is green:** focused runtime 15/15 and artifact trust 11/11; app lint and production build pass;
+  Tampa post-build verification approves `035cb1...615b1`; staged SF builds from its own scratch public tree and
+  proves its embedded identity; the complete serial root gate passes 202/202, including finder, exact staging,
+  Tampa/SF, base-path, relevance, imagery, location, product-truth, build, and lint contracts.
+- **Sprint 2 remains yellow:** the committed Tampa event snapshot is correctly refused as stale (generated July
+  7 under the 48-hour max age), and source health remains conservative where old receipts cannot prove a live
+  run. A scheduled refresh PR plus resulting production deployment still needs a repo-visible end-to-end receipt,
+  and the owner licensing/storage/proxy policy required for the imagery pipeline remains unresolved. Neither
+  missing external proof is relabeled complete by this code receipt.
 
 ### Sprint 3 - H0-B city time, identity, persistence, and planner state
 

@@ -1,11 +1,34 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { verifyArtifactSet } from '../finder/artifact-manifest.mjs'
 // the build-time city config (D4). In this Node context city.js selects via
 // process.env.VITE_CITY — the same env var that selects inside the bundle —
 // so the tab title always names the city the build ships. (A VITE_CITY set
 // only in a .env file would not reach this import; select via the real env
 // var, which is the documented one-deployment-per-city knob.)
 import { CITY } from './src/city.js'
+
+const APP_ROOT = dirname(fileURLToPath(import.meta.url))
+const PUBLIC_DIR = resolve(globalThis.process?.env?.WUZUP_PUBLIC_DIR || resolve(APP_ROOT, 'public'))
+const verifiedArtifacts = verifyArtifactSet({
+  root: PUBLIC_DIR,
+  expectedCityId: CITY.id,
+  expectedTimeZone: CITY.tz,
+})
+if (!verifiedArtifacts.ok) {
+  throw new Error(
+    `Vite refused unverified ${CITY.id} public data at ${PUBLIC_DIR}: ${verifiedArtifacts.problems.join(' · ')}`
+  )
+}
+const APPROVED_MANIFEST_ID = verifiedArtifacts.manifest.manifestId
+const suppliedManifestId = globalThis.process?.env?.VITE_ARTIFACT_MANIFEST_ID
+if (suppliedManifestId && suppliedManifestId !== APPROVED_MANIFEST_ID) {
+  throw new Error(
+    `Vite refused VITE_ARTIFACT_MANIFEST_ID='${suppliedManifestId}'; staged bytes require '${APPROVED_MANIFEST_ID}'`
+  )
+}
 
 // Stage E deploy-infra: BASE_PATH is the ONE subpath-hosting knob. GitHub
 // Pages serves a project site under /<repo>/ — Tampa builds with
@@ -61,6 +84,10 @@ const MANIFEST = JSON.stringify(
 // https://vite.dev/config/
 export default defineConfig({
   base: BASE,
+  publicDir: PUBLIC_DIR,
+  define: {
+    'import.meta.env.VITE_ARTIFACT_MANIFEST_ID': JSON.stringify(APPROVED_MANIFEST_ID),
+  },
   plugins: [
     react(),
     {

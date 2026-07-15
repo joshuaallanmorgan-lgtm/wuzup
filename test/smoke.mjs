@@ -28,7 +28,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -1348,16 +1348,21 @@ test('app lint: eslint exits 0', { timeout: 300_000 }, async (t) => {
 // and isolated — a scratch --outDir, so the default (Tampa) build's app/dist
 // is never clobbered. Runs after the Tampa build test (node:test is
 // sequential in-file), so the two vite runs never overlap.
-test('Stage D sf-app: VITE_CITY=sf-east-bay builds — title + manifest carry the SF name', { timeout: 300_000 }, async (t) => {
+test('Stage D sf-app: staged SF bytes build with their exact approved manifest', { timeout: 300_000 }, async (t) => {
   startAppChecks()
   await buildP // never overlap the Tampa build (shared caches, half the machine)
-  const outDir = mkdtempSync(path.join(tmpdir(), 'wuzup-sf-build-'))
+  const scratch = mkdtempSync(path.join(tmpdir(), 'wuzup-sf-build-'))
+  const publicDir = path.join(scratch, 'public')
+  const outDir = path.join(scratch, 'dist')
   try {
+    cpSync(path.join(ROOT, 'app', 'public'), publicDir, { recursive: true })
+    const staged = await runNode('finder/deploy.mjs', { CITY: 'sf-east-bay', DEPLOY_DEST: publicDir })
+    assert.equal(staged.code, 0, `SF staging failed (exit ${staged.code}):\n${tail(staged.out)}`)
     const r = await collect(
       spawn(`npm --prefix app run build -- --outDir "${outDir}" --emptyOutDir`, {
         cwd: ROOT,
         shell: true,
-        env: { ...process.env, VITE_CITY: 'sf-east-bay' },
+        env: { ...process.env, VITE_CITY: 'sf-east-bay', WUZUP_PUBLIC_DIR: publicDir },
       })
     )
     t.diagnostic(`sf build took ${r.secs}s`)
@@ -1366,13 +1371,25 @@ test('Stage D sf-app: VITE_CITY=sf-east-bay builds — title + manifest carry th
     assert.ok(html.includes('<title>Wuzup · SF & East Bay</title>'), 'the emitted index.html title must carry the SF name')
     const manifest = JSON.parse(readFileSync(path.join(outDir, 'manifest.webmanifest'), 'utf8'))
     assert.equal(manifest.name, 'Wuzup · SF & East Bay', 'the emitted manifest name must carry the SF name')
+    const approved = JSON.parse(readFileSync(path.join(publicDir, 'artifact-manifest.json'), 'utf8')).manifestId
+    const bundle = readdirSync(path.join(outDir, 'assets'))
+      .filter((file) => file.endsWith('.js'))
+      .map((file) => readFileSync(path.join(outDir, 'assets', file), 'utf8'))
+      .join('\n')
+    assert.ok(bundle.includes(approved), 'the SF browser bundle must embed its staged manifestId')
+    const proof = await collect(spawn(
+      process.execPath,
+      [path.join(ROOT, 'finder', 'verify-app-build.mjs'), outDir],
+      { cwd: ROOT, env: { ...process.env, CITY: 'sf-east-bay' } }
+    ))
+    assert.equal(proof.code, 0, `SF production-byte proof failed (exit ${proof.code}):\n${tail(proof.out)}`)
   } finally {
-    rmSync(outDir, { recursive: true, force: true })
+    rmSync(scratch, { recursive: true, force: true })
   }
 })
 
 // Stage E deploy-infra — base-path safety, the SOURCE pin. GitHub Pages serves
-// the app under /wuzup/ (Tampa) and /wuzup/sf/ (SF); a root-absolute '/events.json'
+// the app under /wuzup/ (Tampa) and /wuzup/sf/ (SF); a root-absolute data
 // fetch 404s there. Every runtime data fetch must ride import.meta.env.BASE_URL
 // (which vite statically folds back to the identical root-absolute literal at
 // the default base — the default build is byte-identical, verified at land).
@@ -1385,12 +1402,11 @@ test('Stage E base-path: no root-absolute fetch literals in app/src — data fet
   }
   assert.deepEqual(offenders, [],
     `root-absolute fetch literal(s) in app/src — these 404 under a subpath deployment: ${offenders.join(', ')}`)
-  // the three data artifacts are fetched BASE_URL-relative (the folding pattern)
-  for (const [f, artifact] of [['App.jsx', 'events.json'], ['places.js', 'places.json'], ['guides.js', 'guides.json']]) {
-    const src = readFileSync(path.join(srcDir, f), 'utf8')
-    assert.ok(src.includes(`+ '${artifact}'`) && src.includes('import.meta.env'),
-      `${f} must fetch ${artifact} via import.meta.env BASE_URL + '${artifact}'`)
-  }
+  const artifactSrc = readFileSync(path.join(srcDir, 'artifacts.js'), 'utf8')
+  assert.ok(/const BASE = import\.meta\.env\?\.BASE_URL \?\? '\/'/.test(artifactSrc), 'the artifact repository derives its base from Vite')
+  assert.ok(/joinUrl\(baseUrl, MANIFEST_FILE\)/.test(artifactSrc) && /joinUrl\(baseUrl, entry\.file\)/.test(artifactSrc), 'manifest, events, and places share the BASE_URL-relative join')
+  const guidesSrc = readFileSync(path.join(srcDir, 'guides.js'), 'utf8')
+  assert.ok(guidesSrc.includes("+ 'guides.json'") && guidesSrc.includes('import.meta.env'), 'guides remain BASE_URL-relative')
   // the data-embedded /place-img/ crop paths get rebased in normalizePlace —
   // the ONE choke point every consumer (cards/detail/attribution/saved
   // snapshots) flows through
@@ -1441,13 +1457,14 @@ test(`Stage E base-path: BASE_PATH=${DEPLOY_BASE} build rebases every runtime su
     const css = readFileSync(path.join(outDir, 'assets', assets.find((f) => f.endsWith('.css'))), 'utf8')
     assert.ok(css.includes(`url(${DEPLOY_PREFIX}/fonts/inter-var-latin.woff2)`), 'the CSS @font-face URL must be base-prefixed')
     assert.ok(!css.includes('url(/fonts/'), 'the CSS still carries a root-absolute /fonts/ URL')
-    // the folded fetch literals in the app bundle
+    // the repository folds the base once, then joins manifest-declared files.
     const bundle = assets.filter((f) => f.startsWith('index-') && f.endsWith('.js'))
       .map((f) => readFileSync(path.join(outDir, 'assets', f), 'utf8')).join('\n')
-    for (const a of ['events.json', 'places.json', 'guides.json']) {
+    assert.ok(bundle.includes(DEPLOY_BASE), `bundle must carry the folded ${DEPLOY_BASE} repository base`)
+    for (const a of ['artifact-manifest.json', 'events.json', 'places.json', 'guides.json']) {
       const esc = a.replace('.', '\\.')
-      assert.ok(new RegExp(`fetch\\((['"\`])${DEPLOY_PREFIX}/${esc}\\1\\)`).test(bundle), `bundle must fetch ${DEPLOY_PREFIX}/${a}`)
-      assert.ok(!new RegExp(`fetch\\((['"\`])/${esc}\\1\\)`).test(bundle), `bundle still fetches root-absolute /${a}`)
+      assert.ok(bundle.includes(a), `bundle must carry the ${a} runtime member`)
+      assert.ok(!new RegExp(`(['"\`])/${esc}\\1`).test(bundle), `bundle still carries root-absolute /${a}`)
     }
   } finally {
     rmSync(outDir, { recursive: true, force: true })
@@ -3663,14 +3680,16 @@ test('Stage E dark mode: the ladder exists, covers the core tokens, and every pi
 
 test('post-ship honesty: event fetch failure is distinct from a genuinely empty city', () => {
   const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
+  const artifacts = readFileSync(path.join(ROOT, 'app', 'src', 'artifacts.js'), 'utf8')
   const css = readFileSync(path.join(ROOT, 'app', 'src', 'App.css'), 'utf8')
   const hot = readFileSync(path.join(ROOT, 'app', 'src', 'HotView.jsx'), 'utf8')
-  assert.ok(/const \[loadError, setLoadError\] = useState\(false\)/.test(app), 'App tracks fetch failure separately from events=[]')
-  assert.ok(/setLoadError\(true\)/.test(app), 'the exhausted retry path enters the explicit error state')
-  assert.ok(/setLoadCycle\(\(n\) => n \+ 1\)/.test(app), 'the error state offers a real manual re-fetch')
-  assert.ok(/loadError && primer/.test(app) && /className="load-note" role="alert"/.test(app) && /onClick=\{retryEvents\}/.test(app), 'the load error is announced after onboarding and retryable')
-  assert.ok(/\.load-note \{[\s\S]*?z-index: 2050;/.test(css), 'the global load error stays above event subpages and detail instead of exposing false empty copy')
-  assert.ok(/loadError=\{loadError\}/.test(app), 'App tells Events whether the empty array came from a fetch failure')
+  assert.ok(/useArtifact\('events'\)/.test(app), 'App consumes the verified runtime repository')
+  assert.ok(/eventArtifact\.status === 'offline' \|\| eventArtifact\.status === 'error'/.test(app), 'transport/integrity failure remains separate from empty')
+  assert.ok(/status: 'empty'/.test(artifacts) && /status: error\.code === 'OFFLINE' \? 'offline' : 'error'/.test(artifacts), 'the repository has distinct empty/offline/error states')
+  assert.ok(/transportError && primer && !remotePageBlocked/.test(app) && /className=\{'load-note'/.test(app) && /onClick=\{recoverEvents\}/.test(app), 'the load error is announced after onboarding with a usable recovery action')
+  assert.ok(/remotePageBlocked[\s\S]*?<EventUnavailablePage/.test(app), 'event-only subpages replace false empty results with an actionable unavailable state')
+  assert.ok(/\.stale-note,[\s\S]*?\.load-note \{[\s\S]*?z-index: 2050;/.test(css), 'the global data alert stays above mixed subpages and detail instead of exposing false empty copy')
+  assert.ok(/loadError=\{unavailable\}/.test(app), 'App tells Events when inventory is unavailable rather than genuinely empty')
   assert.ok(/!loading && !loadError && upcoming\.length === 0/.test(hot), 'HotView empty copy is reserved for a successful empty dataset')
 })
 
@@ -3719,20 +3738,20 @@ test('Stage E dark mode: straggler seams hold — no resurrected light literals,
 // ============================================================================
 const stripComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '')
 
-test('D-G1 coverage: wired — App hands dataAt, Home carries both forms in their positions, attribution carries the header', () => {
+test('D-G1 coverage: wired — App hands immutable metadata, Home carries both forms, attribution carries the header', () => {
   const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
-  assert.ok(/<HomeView events=\{norm\} anchors=\{anchors\} wx=\{wx\} dataAt=\{dataAt\}/.test(app), 'App hands dataAt to HomeView — the "updated" line is the REAL Last-Modified ms, never a guess')
-  assert.ok(/<AttributionPage events=\{norm\} dataAt=\{dataAt\}/.test(app), 'App hands dataAt to AttributionPage (the header form)')
+  assert.ok(/<HomeView events=\{norm\} anchors=\{anchors\} wx=\{wx\} dataMeta=\{eventArtifact\.meta\}/.test(app), 'App hands manifest metadata to HomeView')
+  assert.ok(/<AttributionPage events=\{norm\} dataMeta=\{eventArtifact\.meta\}/.test(app), 'App hands manifest metadata to AttributionPage')
   const home = readFileSync(path.join(ROOT, 'app', 'src', 'HomeView.jsx'), 'utf8')
   assert.ok(/import CoverageCard from '\.\/CoverageCard\.jsx'/.test(home), 'Home imports the card')
   assert.ok(/isSparse\(coverageStats\(events\)\.events\)/.test(home), "Home's placement decision rides coverage.js (one derivation, no local magic number)")
   assert.ok(/\{sparse && \(/.test(home) && /\{!sparse && \(/.test(home), 'ONE card: promoted (sparse) XOR colophon (rich) — never both')
-  const promotedAt = home.indexOf('<CoverageCard events={events} dataAt={dataAt} promoted />')
+  const promotedAt = home.indexOf('<CoverageCard events={events} dataMeta={dataMeta} promoted />')
   assert.ok(promotedAt !== -1, 'the sparse form renders promoted')
   assert.ok(promotedAt < home.indexOf('title="Your next days"'), 'the promoted form leads Home (above the first section) — the week-one honest floor')
   assert.ok(home.indexOf('title="Quick actions"') < home.indexOf('{!sparse && ('), 'the rich-city colophon sits under the LAST section')
   const at = readFileSync(path.join(ROOT, 'app', 'src', 'AttributionPage.jsx'), 'utf8')
-  assert.ok(/<CoverageCard events=\{events\} dataAt=\{dataAt\} \/>/.test(at), 'the attribution page mounts the card as its summary header')
+  assert.ok(/<CoverageCard events=\{events\} dataMeta=\{dataMeta\} \/>/.test(at), 'the attribution page mounts the card as its summary header')
   assert.ok(at.indexOf('<CoverageCard') < at.indexOf('Event listings'), 'the header sits above the per-source breakdown sections')
 })
 
@@ -3745,7 +3764,9 @@ test('D-G1 coverage: every number DERIVES — no hardcoded names/counts/city, no
   assert.ok(/p\.image && p\.imageCredit/.test(cov), 'imagery coverage counts REAL credited photos only (the attribution-ledger predicate)')
   assert.ok(/usePlaces\(false\)/.test(cc), 'the card SUBSCRIBES to the places store but never triggers the ~1.2MB fetch (usePlaces(false) — Home pays nothing at boot)')
   // honesty guards
-  assert.ok(/dataAt != null &&/.test(cc), '"updated" renders ONLY when Last-Modified existed (absent header = no claim — the stale-banner grace)')
+  assert.ok(/dataMeta\?\.generatedAt/.test(cc) && /Number\.isFinite\(dataAt\)/.test(cc), 'the data date renders only from a valid immutable generatedAt')
+  assert.ok(/sourceHealth === 'degraded'/.test(cc) && /sourceHealth === 'unknown'/.test(cc), 'source-health limitations are disclosed instead of hidden')
+  assert.ok(!/Last-Modified|last-modified/.test(cc), 'host file timestamps never drive coverage freshness')
   assert.ok(/stats\.events === 0\) return null/.test(cc), 'zero loaded events renders NOTHING (a failed fetch is not a sparse city)')
   assert.ok(/CITY\.shortName/.test(cc), 'the sparse sentence interpolates CITY.shortName (per-city by construction)')
   // the anti-drift tripwire (attribution precedent): nothing real is hand-typed

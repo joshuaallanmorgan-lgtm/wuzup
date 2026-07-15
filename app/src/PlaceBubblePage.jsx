@@ -40,7 +40,7 @@ const TAGLINES = {
 
 export default function PlaceBubblePage({ bubble }) {
   const { openDetail: onSelect, closePage: onClose, openPlaceBubble } = useNav()
-  const { places, status } = usePlaces()
+  const { places, status, recover, recoverLabel } = usePlaces()
   const taste = useTaste()
   const pgRef = useRef(null)
 
@@ -85,9 +85,18 @@ export default function PlaceBubblePage({ bubble }) {
           <RowFeed sections={sections} stagger scrollRootRef={pgRef} onSelect={onSelect} />
         ) : (
           <div className="empty">
-            {status === 'loading'
+            {status === 'idle' || status === 'loading'
               ? 'Loading…'
-              : `${bubble.emoji} No ${bubble.label.toLowerCase()} mapped yet — the bay keeps growing.`}
+              : status === 'stale'
+                ? 'These place listings are too old to show safely.'
+                : status === 'offline'
+                  ? 'You’re offline. Places weren’t loaded.'
+                  : status === 'error'
+                    ? "Couldn't verify places right now."
+                    : `${bubble.emoji} No ${bubble.label.toLowerCase()} mapped yet.`}
+            {['stale', 'offline', 'error'].includes(status) && recover && (
+              <button className="empty-cta" onClick={recover}>{recoverLabel}</button>
+            )}
           </div>
         )}
       </div>

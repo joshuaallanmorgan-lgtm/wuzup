@@ -12,9 +12,8 @@
 //   · The attribution page, as its summary header (the sections below break
 //     the same numbers down).
 //
-// Honesty rails: counts real, never inflated; "updated" renders ONLY when the
-// boot fetch carried a Last-Modified stamp (absent header = no claim, the
-// stale-banner grace); the spots/photos line renders ONLY once the places
+// Honesty rails: counts real, never inflated; the data date and source health
+// come only from the verified immutable artifact manifest; the spots/photos line renders ONLY once the places
 // layer is loaded — usePlaces(false) subscribes without ever triggering the
 // ~1.2MB fetch (Home must not pay it at boot; the attribution page already
 // pays it for its own sections); zero loaded events = render nothing (the
@@ -28,11 +27,18 @@ import './coverage.css'
 
 const fmtN = (n) => n.toLocaleString(fmtLocale)
 
-export default function CoverageCard({ events, dataAt, promoted = false }) {
+export default function CoverageCard({ events, dataMeta, promoted = false }) {
   const stats = useMemo(() => coverageStats(events), [events])
+  const dataAt = dataMeta?.generatedAt ? Date.parse(dataMeta.generatedAt) : null
+  const sourceHealth = dataMeta?.sourceHealth?.status
   // subscribe-only: speak the places layer when another surface loaded it
-  const { places, status } = usePlaces(false)
-  const ph = useMemo(() => (status === 'ready' ? photoStats(places) : null), [places, status])
+  const { places, status, meta: placeMeta } = usePlaces(false)
+  const ph = useMemo(
+    () => (status === 'ready' || status === 'empty' ? photoStats(places || []) : null),
+    [places, status]
+  )
+  const placeDataAt = placeMeta?.generatedAt ? Date.parse(placeMeta.generatedAt) : null
+  const placeHealth = placeMeta?.sourceHealth?.status
   if (stats.events === 0) return null
   return (
     <div className="cov">
@@ -46,12 +52,17 @@ export default function CoverageCard({ events, dataAt, promoted = false }) {
       <div className="cov-line">
         <span className="num">{fmtN(stats.events)}</span> event{stats.events === 1 ? '' : 's'} from{' '}
         <span className="num">{fmtN(stats.sources)}</span> local source{stats.sources === 1 ? '' : 's'}
-        {dataAt != null && <span className="cov-dim"> · updated {dayStamp(dataAt)}</span>}
+        {Number.isFinite(dataAt) && <span className="cov-dim"> · data from {dayStamp(dataAt)}</span>}
+        {sourceHealth === 'degraded' && <span className="cov-dim"> · some sources unavailable</span>}
+        {sourceHealth === 'unknown' && <span className="cov-dim"> · source check unavailable</span>}
       </div>
       {ph && (
         <div className="cov-line">
           <span className="num">{fmtN(ph.spots)}</span> spots · <span className="num">{fmtN(ph.photos)}</span> with
           real photos
+          {Number.isFinite(placeDataAt) && <span className="cov-dim"> · data from {dayStamp(placeDataAt)}</span>}
+          {placeHealth === 'degraded' && <span className="cov-dim"> · some place sources unavailable</span>}
+          {placeHealth === 'unknown' && <span className="cov-dim"> · place source check unavailable</span>}
         </div>
       )}
     </div>

@@ -7,12 +7,18 @@ import { fileURLToPath } from 'node:url';
 import { cityId } from './cities/index.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const appRoot = join(ROOT, 'app');
 if (process.env.VITE_CITY && process.env.VITE_CITY !== cityId) {
   console.error(`dev-city: REFUSING conflicting CITY='${cityId}' and VITE_CITY='${process.env.VITE_CITY}'`);
   process.exit(1);
 }
 
-const env = { ...process.env, CITY: cityId, VITE_CITY: cityId };
+const env = {
+  ...process.env,
+  CITY: cityId,
+  VITE_CITY: cityId,
+  WUZUP_PUBLIC_DIR: process.env.DEPLOY_DEST || join(appRoot, 'public'),
+};
 const stage = spawnSync(process.execPath, ['finder/deploy.mjs'], { cwd: ROOT, env, stdio: 'inherit' });
 if (stage.status !== 0) process.exit(stage.status ?? 1);
 console.log(`dev-city: staged '${cityId}' and locked VITE_CITY='${cityId}'`);
@@ -25,7 +31,6 @@ if (!existsSync(viteCli)) {
   console.error('dev-city: Vite is not installed (run npm install in app/)');
   process.exit(1);
 }
-const appRoot = join(ROOT, 'app');
 const viteArgs = process.env.DEV_LAUNCH_PROBE === '1'
   ? ['build', '--outDir', process.env.DEV_PROBE_OUT || join(appRoot, 'dist-probe')]
   : process.argv.slice(2);

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -16,6 +16,7 @@ import {
   verifyArtifactSet,
   writeManifest,
 } from '../finder/artifact-manifest.mjs';
+import { verifyAppBuild } from '../finder/verify-app-build.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const FIXED_ASSEMBLED_AT = '2026-07-14T14:00:00.000Z';
@@ -455,7 +456,49 @@ test('selected-city local staging locks CITY and VITE_CITY to one artifact set',
     encoding: 'utf8',
   });
   assert.equal(run.status, 0, `${run.stdout}\n${run.stderr}`);
-  assert.equal(existsSync(join(scratch, 'vite-probe', 'index.html')), true, 'probe must build the real app root');
+  const probeRoot = join(scratch, 'vite-probe');
+  assert.equal(existsSync(join(probeRoot, 'index.html')), true, 'probe must build the real app root');
+  const probeScripts = readdirSync(join(probeRoot, 'assets'))
+    .filter((file) => file.endsWith('.js'))
+    .map((file) => readFileSync(join(probeRoot, 'assets', file), 'utf8'))
+    .join('\n');
+  assert.match(probeScripts, new RegExp(sf.manifest.manifestId), 'browser JavaScript must embed the staged manifest id');
+  const proof = verifyAppBuild({
+    sourceRoot: dest,
+    builtRoot: probeRoot,
+    expectedCityId: sf.cityId,
+    expectedTimeZone: sf.timeZone,
+  });
+  assert.equal(proof.ok, true, proof.problems.join('\n'));
+
+  run = spawnSync(process.execPath, ['finder/dev-city.mjs'], {
+    cwd: ROOT,
+    env: {
+      ...process.env,
+      CITY: sf.cityId,
+      DEPLOY_SRC: output,
+      DEPLOY_DEST: dest,
+      DEV_LAUNCH_PROBE: '1',
+      DEV_PROBE_OUT: join(scratch, 'vite-refusal'),
+      VITE_ARTIFACT_MANIFEST_ID: `sha256:${'0'.repeat(64)}`,
+    },
+    encoding: 'utf8',
+  });
+  assert.notEqual(run.status, 0, 'a caller-supplied manifest id must not override staged bytes');
+  assert.match(`${run.stdout}${run.stderr}`, /Vite refused VITE_ARTIFACT_MANIFEST_ID/);
   const appPackage = JSON.parse(readFileSync(join(ROOT, 'app', 'package.json'), 'utf8'));
   assert.match(appPackage.scripts.dev, /dev-city\.mjs/, 'the legacy app dev command must route through selected-city staging');
 }));
+
+test('CI and deploy verify each built city before publication', () => {
+  const config = readFileSync(join(ROOT, 'app', 'vite.config.js'), 'utf8');
+  assert.match(config, /verifyArtifactSet/);
+  assert.match(config, /WUZUP_PUBLIC_DIR/);
+  assert.match(config, /VITE_ARTIFACT_MANIFEST_ID/);
+  for (const workflow of ['ci.yml', 'deploy.yml']) {
+    const source = readFileSync(join(ROOT, '.github', 'workflows', workflow), 'utf8');
+    for (const city of ['tampa-bay', 'sf-east-bay']) {
+      assert.match(source, new RegExp(`CITY=${city} node finder/verify-app-build\\.mjs app/dist`));
+    }
+  }
+});

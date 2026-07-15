@@ -13,7 +13,8 @@
 // name, placeType, classes[], category, lat, lng, address?, description?,
 // amenities[]?, isFree?, fee?, hours?, url?, phone?, designation?, operator?,
 // sources[], srcCount, osm?, wikidata?, aliases?, hiddenScore, hidden }.
-import { useEffect, useSyncExternalStore } from 'react'
+import { useMemo } from 'react'
+import { runtimeArtifacts, useArtifact } from './artifacts.js'
 import { milesBetween, normalizeTitle } from './lib.js'
 
 // Stage E base-path: the deployment base ('/' in dev + the default build;
@@ -142,62 +143,15 @@ export const ACTIVITIES = [
   { id: 'act-hidden', emoji: '💎', label: 'Hidden gems', hue: 285, match: (p) => p.hidden === true },
 ]
 
-// ===== module-level singleton store (same shape contract as saves.js) =====
-let places = null // null = not loaded yet; [] or [...] once a fetch resolves
-let status = 'idle' // 'idle' | 'loading' | 'ready' | 'error'
-let inflight = null
-const listeners = new Set()
-const emit = () => listeners.forEach((l) => l())
-
-// a stable snapshot object so useSyncExternalStore sees a new identity only on
-// real change (a fresh object per emit, never per render — getSnapshot returns
-// the cached one)
-let snap = { places, status }
-const rebuild = () => {
-  snap = { places, status }
+const normalizePlacesDocument = (data, status) => {
+  if (status === 'empty') return []
+  if (!Array.isArray(data?.places)) return null
+  return data.places.map(normalizePlace).filter(Boolean)
 }
 
 export function loadPlaces() {
-  if (status === 'ready') return Promise.resolve(places)
-  if (inflight) return inflight
-  status = 'loading'
-  rebuild()
-  emit()
-  // Stage E base-path: BASE_URL-relative — root-absolute '/places.json' 404s
-  // under a subpath deployment (GitHub Pages /wuzup/); folds to the same literal
-  // at the default base.
-  inflight = fetch(BASE + 'places.json')
-    .then((r) => {
-      if (!r.ok) throw new Error('places http ' + r.status)
-      return r.json()
-    })
-    .then((doc) => {
-      const list = Array.isArray(doc?.places) ? doc.places : []
-      places = list.map(normalizePlace).filter(Boolean)
-      status = 'ready'
-      rebuild()
-      emit()
-      return places
-    })
-    .catch(() => {
-      // graceful: the tab shows an honest "couldn't load" state, never a crash
-      places = []
-      status = 'error'
-      rebuild()
-      emit()
-      return places
-    })
-    .finally(() => {
-      inflight = null
-    })
-  return inflight
+  return runtimeArtifacts.load('places').then((state) => normalizePlacesDocument(state.data, state.status))
 }
-
-const subscribe = (l) => {
-  listeners.add(l)
-  return () => listeners.delete(l)
-}
-const getSnapshot = () => snap
 
 // usePlaces(enabled = true) — subscribes to the store and, when enabled,
 // triggers the one-shot lazy load on first mount. Returns { places:
@@ -207,16 +161,12 @@ const getSnapshot = () => snap
 // actually holds a 'p|' key. LocationsView / PlaceBubblePage / PlaceDetail
 // leave it true (they exist to show places).
 export function usePlaces(enabled = true) {
-  const s = useSyncExternalStore(subscribe, getSnapshot)
-  // trigger the lazy load from an EFFECT, never during render — loadPlaces
-  // synchronously emit()s to subscribers, and doing that mid-render is the
-  // "setState while rendering another component" anti-pattern (it warned ×6
-  // from MapView). The effect re-checks live status so a second consumer
-  // mounting after the fetch started never double-fires.
-  useEffect(() => {
-    if (enabled && getSnapshot().status === 'idle') loadPlaces()
-  }, [enabled])
-  return s
+  const artifact = useArtifact('places', enabled)
+  const places = useMemo(
+    () => normalizePlacesDocument(artifact.data, artifact.status),
+    [artifact.data, artifact.status]
+  )
+  return { ...artifact, places }
 }
 
 // ===== selectors (pure; used by LocationsView's sections) =====

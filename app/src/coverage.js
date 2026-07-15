@@ -5,7 +5,7 @@
 // · updated <time> · imagery coverage. Its contract is the ATTRIBUTION page's
 // contract (the anti-drift precedent): every number DERIVES at render time from
 // the data the app already loads — the events array App fetched, the places
-// store the Spots tab shares, the Last-Modified stamp the boot fetch carried.
+// store the Spots tab shares, and the immutable manifest the repository verified.
 // Nothing here is hand-typed, nothing is ever inflated, and an absent input
 // makes a line DISAPPEAR rather than fabricate (the stale-banner grace).
 //

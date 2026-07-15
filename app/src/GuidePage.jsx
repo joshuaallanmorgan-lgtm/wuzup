@@ -24,7 +24,15 @@ export default function GuidePage({ guide, events, anchors }) {
   const pgRef = useRef(null)
   const isSpots = guide?.domain === 'spots' // a spots guide gets the place lenses
   // load places only for guides that need them (lazy ~1.2MB fetch, like Spots)
-  const { places } = usePlaces(!!guide?.needsPlaces)
+  const {
+    places,
+    status: placeStatus,
+    recover: recoverPlaces,
+    recoverLabel: recoverPlacesLabel,
+  } = usePlaces(!!guide?.needsPlaces)
+  const placesRequired = Boolean(guide?.needsPlaces)
+  const placesPending = placesRequired && (placeStatus === 'idle' || placeStatus === 'loading')
+  const placesUnavailable = placesRequired && ['stale', 'offline', 'error'].includes(placeStatus)
 
   const upcoming = useMemo(
     () => events.filter((e) => e._day != null && (e._endDay ?? e._day) >= anchors.todayTs),
@@ -73,10 +81,12 @@ export default function GuidePage({ guide, events, anchors }) {
             {guide.title}
           </h1>
           <div className="pg-count">
-            {items.length} {items.length === 1 ? 'idea' : 'ideas'}
+            {placesPending
+              ? 'Checking spot ideas…'
+              : `${items.length} ${placesUnavailable ? 'available ' : ''}${items.length === 1 ? 'idea' : 'ideas'}`}
           </div>
           <div className="bub-tag">{guide.pov}</div>
-          {guide.plannable && items.length > 0 && (
+          {guide.plannable && items.some((item) => item.kind === 'place') && (
             <button className="guide-plan-cta" onClick={planDay}>
               ＋ Plan a day around this
             </button>
@@ -97,9 +107,25 @@ export default function GuidePage({ guide, events, anchors }) {
         onFilter={isSpots ? undefined : openEvFilters}
       />
       <div className="pg-body">
-        {items.length > 0 ? (
+        {items.length > 0 && (
           <RowFeed sections={sections} scrollRootRef={pgRef} onSelect={onSelect} />
-        ) : (
+        )}
+        {placesPending && (
+          <div className="empty empty-sm" role="status">Checking spot ideas…</div>
+        )}
+        {placesUnavailable && (
+          <div className="empty empty-sm" role="alert">
+            {placeStatus === 'stale'
+              ? 'Spot ideas are too old to show.'
+              : placeStatus === 'offline'
+                ? 'You’re offline. Spot ideas weren’t loaded.'
+                : 'Spot ideas couldn’t be verified.'}
+            {recoverPlaces && (
+              <button className="empty-cta" onClick={recoverPlaces}>{recoverPlacesLabel}</button>
+            )}
+          </div>
+        )}
+        {items.length === 0 && !placesPending && !placesUnavailable && (
           <div className="empty">
             Nothing fits this guide right now — check back soon.
           </div>

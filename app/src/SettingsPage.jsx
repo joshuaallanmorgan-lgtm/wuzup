@@ -3,7 +3,7 @@
 // LEFT for the InterestEditor). Shows nothing it can't honestly do: the
 // taste tools (read-only summary, Customize interests, primer retake,
 // calibration deck, a sober two-step reset), data provenance (the
-// Last-Modified stamp App's fetch already carries + a live source count) and
+// immutable generated/source-health metadata + a live source count) and
 // an about stub Phase 4 will fill. NO email, NO account fields, NO dead
 // buttons — every row does the thing it says.
 //
@@ -29,7 +29,7 @@ import './settings.css'
 const fmtUpdated = (ms) =>
   `${dayStamp(ms)} · ${new Date(ms).toLocaleTimeString(fmtLocale, { hour: 'numeric', minute: '2-digit' })}`
 
-export default function SettingsPage({ events, dataAt, primer, onPrimerDone, locationAllowed, onAllowLocation }) {
+export default function SettingsPage({ events, dataMeta, primer, onPrimerDone, locationAllowed, onAllowLocation }) {
   // openAttribution (Stage E ⚑X3): the About row → Data & photo credits page
   // (single-slot REPLACE; its back affordance reopens Settings)
   const { closePage: onClose, openAttribution } = useNav()
@@ -41,6 +41,8 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone, loc
   // coverage.js derivation (one tally, spoken here, on Home's Coverage Card,
   // and on the attribution page's header)
   const { events: evCount, sources: srcCount } = useMemo(() => coverageStats(events), [events])
+  const dataAt = dataMeta?.generatedAt ? Date.parse(dataMeta.generatedAt) : null
+  const sourceHealth = dataMeta?.sourceHealth?.status
 
   const doReset = () => {
     resetTaste() // wipes taste-v1 + the in-memory profile (taste.js owns both)
@@ -142,9 +144,10 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone, loc
             <div className="st-line">
               {evCount} events from {srcCount} local source{srcCount === 1 ? '' : 's'}
             </div>
-            {/* Last-Modified is host-dependent; absent header = no claim made.
-                Demoted to a quiet line (it's provenance, not a headline). */}
-            {dataAt != null && <div className="st-line st-dim">Updated {fmtUpdated(dataAt)}</div>}
+            {Number.isFinite(dataAt) && <div className="st-line st-dim">Listings generated {fmtUpdated(dataAt)}</div>}
+            {sourceHealth === 'healthy' && <div className="st-line st-dim">Source check complete</div>}
+            {sourceHealth === 'degraded' && <div className="st-line st-dim">Some sources were unavailable</div>}
+            {sourceHealth === 'unknown' && <div className="st-line st-dim">Source check unavailable for this snapshot</div>}
             <div className="st-line st-dim">Everything lives on this phone — no account, nothing leaves it.</div>
           </div>
         </section>
