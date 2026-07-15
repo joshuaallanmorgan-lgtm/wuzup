@@ -204,6 +204,32 @@ expired, and hash-invalid sets are rejected by automated tests.
   finder/deploy, workflow, crawl, production-artifact, or public-location change landed, and this receipt does not
   claim full-US data coverage or complete Sprint 1.
 
+#### Sprint 1 integrated gate receipt - 2026-07-15 (yellow)
+
+- **All five foundation lanes are committed on the integration branch:** H0 `84a54b4`, U0 `254eb4e`, E0
+  `72e2f87`, I0 `d4f7ded`, and L0 `c87eccf`. Their focused contracts, deterministic fixtures, and independent
+  spec/quality reviews are retained as the Sprint 1 baseline; no runtime ranking, public city expansion, or
+  unsupported imagery claim was smuggled into the foundation.
+- **The last root-gate failure was diagnosed rather than threshold-weakened:** the July 7 static cache contains
+  280 raw rows, of which 167 remain actionable on July 15 and 148 remain after merge/dedupe. All 14 configured
+  static sources failed live fetch and used cache, while the old DNS-only probe incorrectly called the run
+  online. I Love the Burg and Tampa Bay Events had already decayed to zero actionable cached rows; the result
+  was a stale-cache fingerprint, not a merge regression.
+- **Acquisition truth is now part of the immutable receipt:** `f6dd910` records `live-empty`, `live-error`,
+  opaque source-adapter errors, and post-fetch processing errors separately. The unchanged `>=150` live corpus
+  floor is bypassed only when the exact complete static-source set used cache after true fetch failures. A
+  parser-zero, processing error, missing/duplicate receipt, mixed live/cached run, or viable partial live run
+  remains fail-closed. Cache-write failure retains the live rows and reports degraded health instead of adding
+  duplicate cached rows.
+- **Integrated verification is green:** `npm test` passes 183/183, including artifact trust, E0, U0, I0, L0,
+  finder, Tampa/SF and base-path builds, app lint, and deterministic failure-branch coverage. The gate repair
+  passed separate spec and code-quality reviews; `git diff --check` was clean and the finder backup/restore left
+  no generated-data drift.
+- **Sprint 1 remains yellow by the ratified all-or-nothing rule:** the supervised 40-60-item SF imagery batch,
+  known contextual/wrong-image corrections, Tampa dimension-receipt repair, and owner freshness plus imagery
+  policy decisions remain open. Sprint 2 implementation does not inherit a false green status from the completed
+  artifact/relevance/product-truth/location foundations.
+
 ### Sprint 2 - H0-A production-byte trust and runtime data states
 
 **Outcome:** CI, deployment, and the browser agree on exactly which data is live and how failure is shown.
