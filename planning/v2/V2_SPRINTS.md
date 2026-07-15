@@ -172,6 +172,23 @@ expired, and hash-invalid sets are rejected by automated tests.
   synthetic resolver/contract; and record the owner freshness-SLA decision. None of these findings promote
   Sprint 5-6 ranking integration, Sprint 2 runtime loading, or public expansion into Sprint 1.
 
+#### Sprint 1 I0 execution receipt - 2026-07-15 (yellow)
+
+- **Deterministic inventory implemented:** `shared/imagery-audit.mjs` now reports event URL reuse/provenance,
+  place coverage/credit, local references and decodability, Mapillary receipts, and receipt-versus-file
+  dimensions without network access or mutation. The focused `npm run test:i0` gate passes 13/13 against
+  pinned Tampa/SF artifacts plus synthetic missing/broken-file cases.
+- **Baseline reproduced:** both cities have zero self-hosted event imagery and no dedicated event image
+  provenance. Tampa has 35 readable local Mapillary JPEGs with 35 receipt-width mismatches; SF still has zero
+  shipped local place JPEGs and no Mapillary receipt.
+- **Stage-B drift fixed compatibly:** the ship guard and `reVerified` receipt now prefer the workflow's current
+  `isDirectoryOrPylon` / `cafeIsDominantSubject` / `otherBusinessNameOnSign` fields while accepting legacy
+  `rj*` aliases. Missing booleans, pylons, and named conflicting-business crops still fail closed; ranking,
+  thresholds, output formats, and forced verdicts did not change.
+- **Sprint 1 remains yellow:** this receipt is the deterministic I0 foundation, not an imagery closeout. The
+  supervised 40-60-item SF batch, correction of known contextual/wrong images, dimension receipt repair, and
+  owner licensing/storage/proxy/attribution decisions remain.
+
 ### Sprint 2 - H0-A production-byte trust and runtime data states
 
 **Outcome:** CI, deployment, and the browser agree on exactly which data is live and how failure is shown.

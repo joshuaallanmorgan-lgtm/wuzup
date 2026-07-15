@@ -2,7 +2,8 @@
 // finder/mapillary-stageb.mjs — STRICT deterministic ship-gate for the vision pass.
 //
 // Stage A (agent, name-blind) transcribed each crop → { signsRead, confidence,
-// isCafeStorefront, otherBusinessNameOnSign, imageQuality, sceneNote }. Stage B
+// isCafeStorefront, otherBusinessNameOnSign, isDirectoryOrPylon,
+// cafeIsDominantSubject, imageQuality, sceneNote }. Stage B
 // (here, name-AWARE, deterministic) decides ship/no-ship in TWO tiers:
 //
 //   • TIER A — the cafe's own identity is IN the image (name-match). LENIENT in
@@ -30,6 +31,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { area as cityArea, cafe as cityCafe, imagery as cityImagery, cityId, tz as CITY_TZ } from './cities/index.mjs';
 import { invalidateManifest } from './artifact-manifest.mjs';
+import { hasMapillaryGuardSignals, mapillaryCropFailsClosed } from './mapillary-contract.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -127,30 +129,26 @@ const RANK = { phrase3: 6, phrase2: 5, token: 4, number: 4, tokenPartial: 3, non
 const STRONG = new Set(['phrase3', 'phrase2', 'token', 'number']); // vs LENIENT tier
 
 // a crop is INELIGIBLE for EITHER tier (the multi-city lock, 2026-06-26). The two
-// guard signals come from a name-blind re-judge pass and are kept in rj* fields,
-// SEPARATE from the original sign-read so the reviewed matches/confidence are
-// preserved (re-transcribing introduced noise that dropped real ships). A crop fails
+// guard signals come from the name-blind transcription. The current workflow fields
+// take precedence, with rj* aliases retained for older saved transcriptions. A crop
+// fails
 // when it's a multi-tenant DIRECTORY/PYLON that merely LISTS businesses (the 2
 // Starbucks pylons), OR a DIFFERENT business is the dominant subject — encoded as
-// rjDominant===false AND a specific OTHER business is named (so a non-coffee food
+// cafeIsDominantSubject===false AND a specific OTHER business is named (so a
+// non-coffee food
 // venue like "The Sandwich on Main", whose own sign just isn't a coffee cafe, is
 // NOT false-dropped; only a genuine other-business hero like La Casa's tattoo shop is).
-const hasBiz = (x) => x != null && !/^(none|null|n\/?a|no|na)$/i.test(String(x).trim());
-// a crop carries a re-judge guard verdict only when BOTH name-blind fields are present.
-const hasGuardSignal = (cr) => typeof cr.rjPylon === 'boolean' && typeof cr.rjDominant === 'boolean';
 // FAIL CLOSED: a crop with NO re-judge signal CANNOT ship. A skipped or incomplete
 // re-judge must DISABLE its crops, not silently disable the pylon + dominant guards —
 // the fail-OPEN bug was the exact failure mode behind the 4 Tampa false positives. The
 // guarantee that every shipped crop was re-verified is enforced again at ship time
 // (the cache records reVerified) and asserted in the smoke harness.
-const guardFail = (cr) => !hasGuardSignal(cr) || cr.rjPylon === true || (cr.rjDominant === false && hasBiz(cr.rjOtherBiz));
-
 // ---- evaluate one cafe across its crops → a tier-A or tier-B ship, or reject --
 // bypassGuards: a force-KEEP cafe (Josh's explicit call) is exempt from the pylon/
 // dominant guards (a faint-wordmark storefront can read as "not dominant").
 function evalCafe(rec, crops, cropMetaByI, bypassGuards = false) {
   const q = (cr) => (cr.imageQuality ?? cr.confidence ?? 0.5);
-  const eligible = (cr) => bypassGuards || !guardFail(cr);
+  const eligible = (cr) => bypassGuards || !mapillaryCropFailsClosed(cr);
   // Tier A candidates: a name-match at/above the confidence floor, on an eligible crop
   const tierA = [];
   for (const cr of crops) {
@@ -226,7 +224,7 @@ for (const [rid, rec] of Object.entries(map)) {
   rows.push({
     rid, key: rec.key, name: rec.name, slug,
     // the honesty receipt: did the CHOSEN crop carry a re-judge guard verdict? (fail-closed)
-    reVerified: v ? (typeof (chosenCrop || {}).rjPylon === 'boolean' && typeof (chosenCrop || {}).rjDominant === 'boolean') : null,
+    reVerified: v ? hasMapillaryGuardSignals(chosenCrop) : null,
     nCandidates: man.nCandidates ?? null, nPersp: man.nPersp ?? null, nPano: man.nPano ?? null,
     ship: !!v, tier: v ? v.tier : null, matchKind: v ? v.matchKind : 'none',
     matched: v ? v.matched : null, lenient: v ? !!v.lenient : false,
