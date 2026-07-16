@@ -1,0 +1,11 @@
+{
+  "events": [
+    { "title": "Prior day", "begin_date": "2026-03-07", "tz_adjusted_begin_date": "2026-03-07T20:00:00-05:00", "permalink": "/prior" },
+    { "title": "Today boundary", "begin_date": "2026-03-08", "tz_adjusted_begin_date": "2026-03-08T03:30:00-04:00", "permalink": "/today" },
+    { "title": "Last-day boundary", "begin_date": "2026-04-22", "tz_adjusted_begin_date": "2026-04-22T19:00:00-04:00", "permalink": "/last" },
+    { "title": "After window", "begin_date": "2026-04-23", "tz_adjusted_begin_date": "2026-04-23T19:00:00-04:00", "permalink": "/after" },
+    { "title": "Malformed", "begin_date": "not-a-day", "tz_adjusted_begin_date": "not-a-date", "permalink": "/malformed" },
+    { "title": "Nonexistent wall time", "begin_date": "2026-03-08", "tz_adjusted_begin_date": "2026-03-08T02:30:00-05:00", "permalink": "/nonexistent" }
+  ],
+  "paging": { "total_pages": 1 }
+}

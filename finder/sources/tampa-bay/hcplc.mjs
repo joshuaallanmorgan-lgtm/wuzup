@@ -1,6 +1,7 @@
 // Hillsborough County Public Library Cooperative events (libnet calendar API).
 import { pathToFileURL } from 'node:url';
-import { decodeEntities, stripHtml, truncate, fetchWithTimeout } from '../_shared.mjs';
+import { decodeEntities, stripHtml, truncate, fetchWithTimeout, sourceStartDay, sourceWindow } from '../_shared.mjs';
+import { tz as CITY_TZ } from '../../cities/tampa-bay.mjs';
 
 export const name = 'Hillsborough Libraries';
 
@@ -63,11 +64,6 @@ function branchLocation(...candidates) {
   return null;
 }
 
-function localYmd(d) {
-  const p = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-}
-
 // "2026-06-10 00:00:00" -> "2026-06-10T00:00:00" (local library time)
 function toIso(s) {
   if (!s || typeof s !== 'string') return null;
@@ -82,24 +78,29 @@ function isAllDay(item) {
   return /^all\s*day$/i.test(String(item.time_string || '').trim());
 }
 
-export async function fetchEvents() {
-  const today = new Date();
+export async function fetchEvents(options = {}) {
+  const config = options || {};
+  const nowMs = config.nowMs ?? Date.now();
+  const fetchImpl = config.fetchImpl ?? globalThis.fetch;
+  const { today, lastDay } = sourceWindow(CITY_TZ, nowMs, WINDOW_DAYS);
   const req = JSON.stringify({
     private: false,
-    date: localYmd(today),
+    date: today,
     days: 30,
     locations: '',
     ages: '',
     types: '',
   });
   const url = `${API_BASE}?event_type=0&req=${encodeURIComponent(req)}`;
-  const res = await fetchWithTimeout(url, { headers: { 'user-agent': USER_AGENT } });
+  const res = await fetchWithTimeout(
+    url,
+    { headers: { 'user-agent': USER_AGENT } },
+    undefined,
+    fetchImpl,
+  );
   if (!res.ok) throw new Error(`Hillsborough Libraries: HTTP ${res.status}`);
   const data = await res.json();
   if (!Array.isArray(data)) throw new Error('Hillsborough Libraries: unexpected response shape (not an array)');
-
-  const windowStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const windowEnd = new Date(windowStart.getTime() + WINDOW_DAYS * 86400000);
 
   const events = [];
   for (const item of data) {
@@ -108,9 +109,8 @@ export async function fetchEvents() {
 
     let start = toIso(item.event_start);
     if (!start) continue;
-    const startDate = new Date(start);
-    if (Number.isNaN(startDate.getTime())) continue;
-    if (startDate < windowStart || startDate > windowEnd) continue;
+    const startDay = sourceStartDay(CITY_TZ, start);
+    if (!startDay || startDay < today || startDay > lastDay) continue;
 
     // Skip purely-virtual programs when identifiable.
     const place = `${item.location || ''} ${item.library || ''} ${item.venues || ''}`;

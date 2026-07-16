@@ -1,0 +1,9 @@
+[
+  { "title": "Prior library event", "event_start": "2026-03-07 10:00:00", "event_end": "2026-03-07 11:00:00", "location": "Brandon Regional Library" },
+  { "title": "Today library event", "event_start": "2026-03-08 03:30:00", "event_end": "2026-03-08 04:30:00", "location": "Brandon Regional Library" },
+  { "title": "Last-day exhibit", "event_start": "2026-04-22 00:00:00", "event_end": "2026-04-23 23:59:00", "time_string": "All day", "location": "Brandon Regional Library" },
+  { "title": "After library window", "event_start": "2026-04-23 10:00:00", "event_end": "2026-04-23 11:00:00", "location": "Brandon Regional Library" },
+  { "title": "Malformed library event", "event_start": "2026-02-30 10:00:00", "location": "Brandon Regional Library" },
+  { "title": "Nonexistent library time", "event_start": "2026-03-08 02:30:00", "location": "Brandon Regional Library" },
+  { "title": "Virtual library event", "event_start": "2026-03-08 12:00:00", "location": "Online Zoom" }
+]

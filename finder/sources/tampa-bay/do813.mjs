@@ -17,7 +17,8 @@
 // that costs one request while dormant and revives automatically if the
 // metro is restaffed. Parser mechanics were verified against the identical
 // live schema on do312:  node finder/sources/tampa-bay/do813.mjs https://do312.com
-import { fetchWithTimeout, cleanText } from '../_shared.mjs';
+import { fetchWithTimeout, cleanText, sourceStartDay, sourceWindow } from '../_shared.mjs';
+import { tz as CITY_TZ } from '../../cities/tampa-bay.mjs';
 
 export const name = 'Do813';
 
@@ -91,10 +92,11 @@ function mapEvent(e, base) {
 }
 
 export async function fetchEvents(options = {}) {
-  const base = typeof options === 'string' ? options : options.base || BASE;
-  const today = new Date();
-  const t0 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const t1 = new Date(t0.getTime() + WINDOW_DAYS * 86400000);
+  const config = typeof options === 'string' ? { base: options } : options || {};
+  const base = config.base || BASE;
+  const nowMs = config.nowMs ?? Date.now();
+  const fetchImpl = config.fetchImpl ?? globalThis.fetch;
+  const { today, lastDay } = sourceWindow(CITY_TZ, nowMs, WINDOW_DAYS);
   const seen = new Set();
   const events = [];
 
@@ -105,6 +107,7 @@ export async function fetchEvents(options = {}) {
         `${base}/events.json?page=${page}`,
         { headers: { 'user-agent': UA, accept: 'application/json' } },
         25000,
+        fetchImpl,
       );
       if (!res.ok) throw new Error('HTTP ' + res.status);
       json = await res.json();
@@ -117,8 +120,8 @@ export async function fetchEvents(options = {}) {
       if (raw?.past === true) continue;
       const ev = mapEvent(raw, base);
       if (!ev) continue;
-      const day = new Date(ev.start.slice(0, 10) + 'T00:00:00');
-      if (day < t0 || day > t1) continue; // skip already-running ("ongoing") and far-future
+      const day = sourceStartDay(CITY_TZ, ev.start);
+      if (!day || day < today || day > lastDay) continue; // skip already-running ("ongoing") and far-future
       if (seen.has(ev.url)) continue;
       seen.add(ev.url);
       events.push(ev);

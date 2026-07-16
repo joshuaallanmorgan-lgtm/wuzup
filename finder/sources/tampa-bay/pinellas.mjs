@@ -1,6 +1,7 @@
 // Pinellas County government calendar (The Events Calendar / tribe REST API).
 import { pathToFileURL } from 'node:url';
-import { decodeEntities, stripHtml, truncate, fetchWithTimeout } from '../_shared.mjs';
+import { decodeEntities, stripHtml, truncate, fetchWithTimeout, sourceStartDay, sourceWindow } from '../_shared.mjs';
+import { tz as CITY_TZ } from '../../cities/tampa-bay.mjs';
 
 export const name = 'Pinellas County';
 
@@ -28,11 +29,6 @@ function mapCategory(categories) {
     if (/library/i.test(n)) return 'family';
   }
   return null;
-}
-
-function localYmd(d) {
-  const p = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
 // "2026-06-10 08:30:00" -> "2026-06-10T08:30:00"
@@ -63,15 +59,22 @@ function buildAddress(venue) {
   return parts.length ? parts.join(', ') : null;
 }
 
-export async function fetchEvents() {
-  const today = new Date();
-  const startParam = localYmd(today);
+export async function fetchEvents(options = {}) {
+  const config = options || {};
+  const nowMs = config.nowMs ?? Date.now();
+  const fetchImpl = config.fetchImpl ?? globalThis.fetch;
+  const { today, lastDay } = sourceWindow(CITY_TZ, nowMs, WINDOW_DAYS);
 
   const all = [];
   let totalPages = 1;
   for (let page = 1; page <= Math.min(MAX_PAGES, totalPages); page++) {
-    const url = `${API_BASE}?per_page=${PER_PAGE}&page=${page}&start_date=${startParam}`;
-    const res = await fetchWithTimeout(url, { headers: { 'user-agent': USER_AGENT } });
+    const url = `${API_BASE}?per_page=${PER_PAGE}&page=${page}&start_date=${today}`;
+    const res = await fetchWithTimeout(
+      url,
+      { headers: { 'user-agent': USER_AGENT } },
+      undefined,
+      fetchImpl,
+    );
     if (!res.ok) {
       if (page === 1) throw new Error(`Pinellas County: HTTP ${res.status}`);
       console.warn(`Pinellas County: page ${page} returned HTTP ${res.status}; using ${all.length} events fetched so far`);
@@ -88,9 +91,6 @@ export async function fetchEvents() {
     if (!data.next_rest_url) break;
   }
 
-  const windowStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const windowEnd = new Date(windowStart.getTime() + WINDOW_DAYS * 86400000);
-
   const events = [];
   for (const item of all) {
     const title = decodeEntities(stripHtml(item.title || ''));
@@ -101,9 +101,8 @@ export async function fetchEvents() {
 
     const start = toIso(item.start_date);
     if (!start) continue;
-    const startDate = new Date(start);
-    if (Number.isNaN(startDate.getTime())) continue;
-    if (startDate < windowStart || startDate > windowEnd) continue;
+    const startDay = sourceStartDay(CITY_TZ, start);
+    if (!startDay || startDay < today || startDay > lastDay) continue;
 
     const venue = item.venue && typeof item.venue === 'object' && !Array.isArray(item.venue) ? item.venue : null;
     const lat = venue && venue.geo_lat != null && venue.geo_lat !== '' ? Number(venue.geo_lat) : null;

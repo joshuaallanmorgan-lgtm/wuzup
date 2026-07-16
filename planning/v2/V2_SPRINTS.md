@@ -438,6 +438,25 @@ and migration tests pass; planner operations are idempotent and survive reload.
   commits migrate the mechanical local-calendar and timestamp batches, isolate render dates and St. Pete recurrence,
   then add an all-target static/fixture ratchet before this part of Sprint 3 can turn green.
 
+#### Sprint 3 Tampa HTTP source-time receipt - 2026-07-15 (yellow)
+
+- **Four host-calendar adapters now consume the finder clock:** Do813, Don't Tell Comedy, Hillsborough Libraries,
+  and Pinellas County derive requests, yearless dates, and inclusive admission windows from one injected epoch and
+  Tampa's configured IANA zone. Invalid and DST-gap wall times fail closed; Do813's string-base CLI/API remains
+  compatible; Pinellas paging and partial-success behavior are unchanged.
+- **Raw source fixtures prove the boundary rather than normalized cache output:** deterministic API/HTML fixtures cover
+  the prior day, exact city today, exact day `+45`, the following day, malformed dates, the spring-forward gap,
+  year rollover, leap-day rollover, virtual rows, all-day projection, cross-page loading, and duplicate city listings.
+  A fetch-injection seam keeps these parser tests isolated from network availability and shared global state.
+- **Verification is green and independently approved:** focused source-time tests pass 13/13 and the complete serial
+  gate passes 275/275, including the live-finder diagnostic, app lint/build, Tampa/SF builds, and artifact contracts.
+  LA, Honolulu, and Tokyo probes emit byte-identical adapter results. Tampa remains SHA-256
+  `a8df0d0c...f875d090`, SF remains `84981a8e...873b1d8`, and `app/public` still matches the pinned Tampa bytes.
+- **Sprint 3 remains yellow:** this receipt covers four HTTP adapters only. The remaining timestamp-oriented adapters,
+  DoTheBay's run-epoch consumption, VSPC's product-calendar window, render-date isolation, St. Pete recurrence, and the
+  final all-target ratchet remain before adapter-level city-time is complete; identity, planner, and geolocation work
+  also remain in Sprint 3.
+
 ### Sprint 4 - P0 core journeys and the browser release harness
 
 **Outcome:** every known release blocker is fixed through the real browser journey, not only a source seam.

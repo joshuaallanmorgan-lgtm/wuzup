@@ -4,7 +4,7 @@
 //
 // Contract notes for module authors:
 // - decodeEntities/stripHtml/truncate/cleanText are pure string helpers.
-// - fetchWithTimeout(url, options?, timeoutMs?) is plain fetch + AbortController;
+// - fetchWithTimeout(url, options?, timeoutMs?, fetchImpl?) is plain fetch + AbortController;
 //   pass headers (user-agent etc.) through options like a normal fetch call.
 
 import {
@@ -85,11 +85,16 @@ export function cleanText(html, maxLen = 250) {
   return truncate(text, maxLen);
 }
 
-export async function fetchWithTimeout(url, options = {}, timeoutMs = DEFAULT_TIMEOUT_MS) {
+export async function fetchWithTimeout(
+  url,
+  options = {},
+  timeoutMs = DEFAULT_TIMEOUT_MS,
+  fetchImpl = globalThis.fetch,
+) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await fetch(url, { redirect: 'follow', ...options, signal: controller.signal });
+    return await fetchImpl(url, { redirect: 'follow', ...options, signal: controller.signal });
   } finally {
     clearTimeout(timer);
   }
