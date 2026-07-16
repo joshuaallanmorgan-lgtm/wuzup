@@ -729,6 +729,30 @@ and migration tests pass; planner operations are idempotent and survive reload.
   store, pure activity/custom/saved schemas, and then runtime providers. V1 bytes remain the rollback source until
   each valid destination is durably committed, so Sprint 3 remains yellow.
 
+#### Sprint 3 truthful location-permission runtime receipt - 2026-07-16 (yellow)
+
+- **Permission intent and effective use are separate:** one city-scoped controller owns disabled, desired,
+  requesting, granted, denied, unavailable, and error states. A legacy `location-allowed-v1` value becomes
+  unverified intent only; it never appears enabled until a fresh coordinate succeeds. Denial, revocation,
+  timeout, synchronous browser failure, invalid coordinates, storage failure, disable-during-request, and late
+  callbacks all fail closed while session-only success remains explicitly labelled.
+- **Every surface now consumes one reactive truth:** `LocationProvider` owns the controller lifecycle and shared
+  request promise; App, Settings, and the existing distance lens no longer maintain independent permission flags
+  or call `navigator.geolocation` directly. Settings exposes `aria-pressed` only for effective grant, status
+  changes are live-announced, and the distance doorway shares the same pending, denied, retry, and revocation state.
+- **A valid browser fix is not automatically a local-product fix:** Tampa and SF app boxes are pinned exactly to
+  the finder sanity boxes. Only granted coordinates inside the active market become `usableCoords`; an out-of-
+  market fix remains an honest browser grant but cannot drive current-city sorting. Without usable coordinates the
+  page says `Events across <city>`; with them it says `Events by day and distance` and `Closest within each day`,
+  matching the actual day-first then distance-within-day ordering.
+- **Verification and review are green:** the registered location gate passes 33/33; app lint and production build
+  pass; the complete serial repository gate passes 506/506, including the exact Tampa/SF box mirror and the UI
+  false-claim contracts. Independent adversarial re-review records **SHIP** with no P0/P1 remaining.
+- **Sprint 3 remains yellow:** the shared custom-event, saves/Been, recents, and deck destinations still need to
+  land before the global stable-identity cutover. Full runtime city resolution remains an L0 follow-up; this slice
+  deliberately gates only the current two shipped market packs. A behavioral StrictMode rejection test, bounded
+  Permissions-query wait, denial recovery without change events, and resume-age refresh remain bounded P2 work.
+
 ### Sprint 4 - P0 core journeys and the browser release harness
 
 **Outcome:** every known release blocker is fixed through the real browser journey, not only a source seam.

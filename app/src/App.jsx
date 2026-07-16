@@ -1,5 +1,5 @@
 // App — the DATA shell: events fetch + normalize, anchors, weather, my-events,
-// geolocation (requestCoords) and the primer gate. All
+// shared location state, and the primer gate. All
 // NAVIGATION state (active tab, subpage union, detail open/close + VT morph,
 // map focus) lives in nav.js (Sprint O6) — components reach it via useNav().
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -7,11 +7,11 @@ import { Icon, currentEvents, keyOf, loadMyEvents, makeAnchors, normalize, rawOf
 import { dayStamp } from './coverage.js'
 import { useArtifact } from './artifacts.js'
 import { NavProvider, VIEWS, useNav } from './nav.jsx'
+import { LocationProvider, useLocationPermission } from './LocationProvider.jsx'
 import { PlannerProvider } from './PlannerProvider.jsx'
 import Primer, { loadPrimerState } from './Primer.jsx'
 import { WxContext, CardToastHost } from './cards.jsx'
 import { getForecast } from './weather.js'
-import { lsGet, lsSet } from './storage.js'
 import HomeView from './HomeView.jsx'
 import HotView from './HotView.jsx'
 import LocationsView from './LocationsView.jsx'
@@ -120,12 +120,16 @@ function restoreLayerFocus(target, fallbackRoot) {
 export default function App() {
   return (
     <NavProvider>
-      <Shell />
+      <LocationProvider>
+        <Shell />
+      </LocationProvider>
     </NavProvider>
   )
 }
 
 function Shell() {
+  const location = useLocationPermission()
+  const coords = location.usableCoords
   const eventArtifact = useArtifact('events')
   // Subscribe without activating the lazy place artifact. This lets the shell
   // close a retained remote place detail if its verified snapshot expires or
@@ -143,16 +147,12 @@ function Shell() {
   const dataAt = generatedAt ? Date.parse(generatedAt) : null
   const staleAt = eventArtifact.status === 'stale' && Number.isFinite(dataAt) ? dataAt : null
   const [bootVis, setBootVis] = useState(false) // boot overlay gated 300ms (no flash on fast loads)
-  const [coords, setCoords] = useState(null)
-  // 3.7P-21: location is opt-in via Settings → Data & privacy (no inline gate).
-  // The pref persists; on a later boot we re-fetch silently (the browser already
-  // remembers the grant) so "Near you" surfaces without re-prompting each visit.
-  const [locAllowed, setLocAllowed] = useState(() => lsGet('location-allowed-v1') === '1')
+  // Location permission, intent, and the session-only coordinate fix come from
+  // one city-scoped controller. Only a currently granted fix reaches sorting.
   // H1 mood primer: mounts while no stored state exists (first open only).
   // Primer.jsx owns the primer store + the taste seeding; App only gates the
   // mount and passes the when-preference down for the H2 greeting flavor.
   const [primer, setPrimer] = useState(() => loadPrimerState())
-  const coordsRef = useRef(null)
   const appRef = useRef(null)
   const pageLayerRef = useRef(null)
   const pageReturnFocusRef = useRef(null)
@@ -359,44 +359,6 @@ function Shell() {
     }
   }, [])
 
-  // geolocation lifted into App so any page can ask: resolves to coords or null
-  // (denied / unsupported). Last fix is cached and also exposed via the coords prop.
-  const requestCoords = useCallback(() => {
-    return new Promise((resolve) => {
-      if (coordsRef.current) return resolve(coordsRef.current)
-      if (!navigator.geolocation) return resolve(null)
-      navigator.geolocation.getCurrentPosition(
-        (p) => {
-          const c = { lat: p.coords.latitude, lng: p.coords.longitude }
-          coordsRef.current = c
-          setCoords(c)
-          resolve(c)
-        },
-        () => resolve(null)
-      )
-    })
-  }, [])
-
-  // 3.7P-21: on boot, if location was previously allowed, re-fetch silently (the
-  // browser remembers the grant → no prompt) so "Near you" is ready everywhere.
-  useEffect(() => {
-    if (lsGet('location-allowed-v1') === '1') requestCoords()
-  }, [requestCoords]) // requestCoords is stable (useCallback []) → runs once on mount
-  // the Settings toggle: enabling fetches once (the browser prompt fires here);
-  // disabling forgets the cached fix so "Near you" stops surfacing. On-device only.
-  const setLocationAllowed = useCallback(
-    (on) => {
-      setLocAllowed(on)
-      lsSet('location-allowed-v1', on ? '1' : '0')
-      if (on) requestCoords()
-      else {
-        coordsRef.current = null
-        setCoords(null)
-      }
-    },
-    [requestCoords]
-  )
-
   // inert while the primer overlay is up: Tab must not reach (and Enter must
   // not activate) the obscured app behind it — the pager AND the floating
   // chrome (tabbar, 🎲 FAB) gate on this (audit prep #6). The 🎨 pill used to
@@ -490,7 +452,6 @@ function Shell() {
                 events={norm}
                 anchors={anchors}
                 coords={coords}
-                requestCoords={requestCoords}
               />
             )}
             {/* Sprint S: a tapped Locations bubble → its filtered place list */}
@@ -519,7 +480,7 @@ function Shell() {
                 their `from` origin, so the trio feels stacked without stack
                 state (the 7-screen Interview retired into the editor, Q2d) */}
             {page.type === 'settings' && (
-              <SettingsPage events={norm} dataMeta={eventArtifact.meta} primer={primer} onPrimerDone={setPrimer} locationAllowed={locAllowed} onAllowLocation={setLocationAllowed} />
+              <SettingsPage events={norm} dataMeta={eventArtifact.meta} primer={primer} onPrimerDone={setPrimer} />
             )}
             {/* Stage R (Profile rework): the two new Profile drill-ins, single-slot */}
             {page.type === 'myplans' && <MyPlansPage events={normalized} anchors={anchors} />}

@@ -17,6 +17,7 @@
 import { useMemo, useState } from 'react'
 import { CITY, formatCityInstant, Icon } from './lib.js'
 import { coverageStats, dayStamp } from './coverage.js'
+import { useLocationPermission } from './LocationProvider.jsx'
 import { useNav } from './nav.jsx'
 import { lsRemove } from './storage.js'
 import { resetTaste } from './taste.js'
@@ -29,10 +30,30 @@ import './settings.css'
 const fmtUpdated = (ms) =>
   `${dayStamp(ms)} · ${formatCityInstant(ms, { hour: 'numeric', minute: '2-digit' })}`
 
-export default function SettingsPage({ events, dataMeta, primer, onPrimerDone, locationAllowed, onAllowLocation }) {
+function locationStatusCopy(location) {
+  if (location.status === 'granted') {
+    if (!location.inMarket) {
+      return `On, but your current location is outside ${CITY.name}. Distance sorting stays off.`
+    }
+    return location.durability === 'session-only'
+      ? 'On for this visit. Your browser could not remember the setting.'
+      : 'On. Nearby results use this device’s current location.'
+  }
+  if (location.status === 'requesting') return 'Waiting for your browser’s location response…'
+  if (location.status === 'denied') {
+    return 'Blocked in browser settings. Wuzup is not using your location.'
+  }
+  if (location.status === 'unavailable') return 'Location is unavailable in this browser.'
+  if (location.status === 'error') return 'Location is off because the last request failed. You can try again.'
+  if (location.status === 'desired') return 'Off until you confirm location access with your browser.'
+  return 'Off. Turn it on to sort nearby results by distance.'
+}
+
+export default function SettingsPage({ events, dataMeta, primer, onPrimerDone }) {
   // openAttribution (Stage E ⚑X3): the About row → Data & photo credits page
   // (single-slot REPLACE; its back affordance reopens Settings)
   const { closePage: onClose, openAttribution } = useNav()
+  const location = useLocationPermission()
   const [retaking, setRetaking] = useState(false)
   const [arming, setArming] = useState(false) // reset's two-step confirm
   const [resetStatus, setResetStatus] = useState(null)
@@ -134,17 +155,17 @@ export default function SettingsPage({ events, dataMeta, primer, onPrimerDone, l
           <div className="st-rows">
             <button
               className="st-row st-row-toggle"
-              onClick={() => onAllowLocation(!locationAllowed)}
-              aria-pressed={!!locationAllowed}
-              aria-label="Allow location"
+              onClick={() => location.enabled ? location.disable() : location.request()}
+              aria-pressed={location.enabled}
+              aria-label={location.enabled ? 'Turn off location' : 'Use current location'}
             >
               <span className="st-row-main">
-                <span className="st-row-title">Allow location</span>
-                <span className="st-row-sub">
-                  Surfaces “Near you” spots, sorted by distance. On-device only — the browser asks once.
+                <span className="st-row-title">Use current location</span>
+                <span className="st-row-sub" aria-live="polite">
+                  {locationStatusCopy(location)}
                 </span>
               </span>
-              <span className={'st-switch' + (locationAllowed ? ' on' : '')} aria-hidden>
+              <span className={'st-switch' + (location.enabled ? ' on' : '')} aria-hidden>
                 <span className="st-switch-knob" />
               </span>
             </button>

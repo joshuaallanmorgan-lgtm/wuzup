@@ -7,7 +7,6 @@
 //   events        — normalized events (all of them; filtering is this page's job)
 //   anchors       — { todayTs, tomorrowTs, wkStartTs, wkEndTs }
 //   coords        — last known { lat, lng } | null (App-held)
-//   requestCoords — () => Promise<{lat,lng}|null>; asks geolocation via App
 // Detail-open (stacks on top) + close-slide-out come from useNav() (O6).
 //
 // Filter semantics: kind 'time' → _tonight/_weekend, 'free' → _free, 'cat' →
@@ -15,8 +14,9 @@
 // user grants location (never hide events: no coords ≠ no list). Day-grouped
 // (Today/Tomorrow/weekday), hotScore desc within a day, RowFeed pages ~30 rows
 // via IntersectionObserver rooted at this page's own .pg scroller.
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef } from 'react'
 import { CITY, dayLabel, fmtLocale, hotDesc, Icon, milesBetween, orderDay, LENS_BUBBLES, CAT_BUBBLES } from './lib.js'
+import { useLocationPermission } from './LocationProvider.jsx'
 import { useNav } from './nav.jsx'
 import { RowFeed } from './cards.jsx'
 import LensNav from './LensNav.jsx'
@@ -33,7 +33,6 @@ const HEADERS = {
   tomorrow: "Tomorrow's events",
   weekend: 'The weekend',
   free: 'Free events',
-  near: 'Near you',
 }
 
 // one-line personality per bubble (Charles: every destination gets a wink)
@@ -42,7 +41,6 @@ const TAGLINES = {
   tomorrow: 'Get a head start on tomorrow.',
   weekend: 'Friday to Sunday, fully loaded.',
   free: 'Your wallet stays home.',
-  near: 'Good times, walking distance.',
   music: `Turn it up, ${CITY.shortName}.`,
   food: 'Come hungry. Leave happy.',
   outdoors: 'Vitamin D included.',
@@ -63,13 +61,12 @@ const EMPTIES = {
   tomorrow: 'Nothing listed for tomorrow yet — check back soon.',
   weekend: 'Nothing on the weekend yet — check back soon.',
   free: 'No free events listed right now.',
-  near: 'Nothing nearby right now.',
 }
 
-export default function BubblePage({ bubble, events, anchors, coords, requestCoords }) {
+export default function BubblePage({ bubble, events, anchors, coords }) {
   const { openDetail: onSelect, closePage: onClose, openBubble, openEvFilters } = useNav()
+  const location = useLocationPermission()
   const pgRef = useRef(null) // the scrolling ancestor — RowFeed's IO root
-  const [locState, setLocState] = useState('idle') // 'idle' | 'asking' | 'denied'
   const near = bubble.kind === 'sort'
 
   // this page builds its own upcoming list (normalize doesn't add _clamp)
@@ -119,11 +116,27 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
 
   const count = filtered.length
 
-  const locate = async () => {
-    setLocState('asking')
-    const c = await requestCoords() // success flows back in via the coords prop
-    if (!c) setLocState('denied')
-  }
+  const locate = () => location.status === 'granted'
+    ? location.refresh()
+    : location.request()
+  const locationCopy =
+    location.status === 'denied'
+      ? 'Location is blocked in your browser — showing the whole area instead.'
+      : location.status === 'unavailable'
+        ? 'Location is unavailable here — showing the whole area instead.'
+      : location.status === 'error'
+          ? 'Couldn’t get your location — showing the whole area instead.'
+          : location.status === 'granted' && !location.inMarket
+            ? `Your current location is outside ${CITY.name} — showing the whole area instead.`
+            : `${CITY.name} is big — narrow it to what’s near you.`
+  const heading = near
+    ? coords ? 'Events by day and distance' : `Events across ${CITY.name}`
+    : HEADERS[bubble.id] || bubble.label
+  const tagline = near
+    ? coords
+      ? 'Closest within each day. Check the venue before you go.'
+      : 'Browse the current listings without a distance claim.'
+    : TAGLINES[bubble.id] || 'Browse the current listings.'
 
   return (
     <div className="pg" ref={pgRef} style={{ '--bh': bubble.hue }}>
@@ -134,7 +147,7 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
         <div className="bub-band-main">
           <h1 className="bub-title">
             <span className="bub-emoji">{bubble.emoji}</span>
-            {HEADERS[bubble.id] || bubble.label}
+            {heading}
           </h1>
           <div className="pg-count">
             {count.toLocaleString(fmtLocale)} event{count === 1 ? '' : 's'} in {CITY.name}
@@ -142,7 +155,7 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
           <div className="bub-tag">
             {bubble.kind === 'filters'
               ? `Matching ${bubble.filterLabels?.join(' · ') || 'your selected filters'}`
-              : TAGLINES[bubble.id] || 'Browse the current listings.'}
+              : tagline}
           </div>
           {/* Q2: this lens, as a finite swipe deck — explicit tap only.
               'sort' (Near Me) is the whole upcoming list: a four-digit
@@ -160,16 +173,22 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
       <div className="pg-body">
         {near && !coords && count > 0 && (
           <div className="bub-locate">
-            <div className="bub-locate-txt">
-              {locState === 'denied'
-                ? /* the denied list is diversity-ordered (orderDay), not hotScore-
-                     desc — don't claim "hottest first" (DRAFT for Charles) */
-                  "Couldn't find your location — showing the whole bay instead."
-                : `${CITY.name} is big — narrow it to what's near you.`}
+            <div className="bub-locate-txt" role="status" aria-live="polite">
+              {locationCopy}
             </div>
-            <button className="bub-locate-btn" onClick={locate} disabled={locState === 'asking'}>
+            <button
+              className="bub-locate-btn"
+              onClick={locate}
+              disabled={location.status === 'requesting' || location.status === 'denied'}
+            >
               {/* WS3 §9: engineered pin, not the 📍 chrome emoji */}
-              {locState === 'asking' ? 'Locating…' : <><Icon.pin className="btn-ic" aria-hidden /> Use my location</>}
+              {location.status === 'requesting'
+                ? 'Locating…'
+                : location.status === 'denied'
+                  ? 'Location blocked'
+                  : location.status === 'granted'
+                    ? 'Refresh location'
+                    : <><Icon.pin className="btn-ic" aria-hidden /> Use my location</>}
             </button>
           </div>
         )}
@@ -179,7 +198,9 @@ export default function BubblePage({ bubble, events, anchors, coords, requestCoo
           <div className="empty">
             {bubble.kind === 'filters'
               ? 'No events match every selected filter.'
-              : EMPTIES[bubble.id] || `No ${bubble.label.toLowerCase()} listed right now.`}
+              : near
+                ? `No current events listed across ${CITY.name}.`
+                : EMPTIES[bubble.id] || `No ${bubble.label.toLowerCase()} listed right now.`}
             <br />
             New events land every time the finder runs — check back soon.
             {/* B1: a premium way back to the full feed (DRAFT copy ⚑ Charles) */}

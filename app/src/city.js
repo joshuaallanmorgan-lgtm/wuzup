@@ -39,6 +39,7 @@ export const CITIES = {
     // city center — the single source for the weather query + the map default
     // view (consolidated from weather.js + MapView.jsx in W4).
     center: { lat: 27.95, lng: -82.46 },
+    bbox: { south: 27.3, north: 28.6, west: -83.3, east: -81.9 },
     heroes: [
       {
         url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Tampa_Skyline_-_Eric_Statzer.jpg/960px-Tampa_Skyline_-_Eric_Statzer.jpg',
@@ -80,6 +81,7 @@ export const CITIES = {
     locale: 'en-US',
     tz: 'America/Los_Angeles', // mirrors the finder tz (weather.js forecast query)
     center: { lat: 37.84, lng: -122.25 }, // mirrors finder meta.center
+    bbox: { south: 37.68, north: 38.00, west: -122.53, east: -121.88 },
     heroes: [
       {
         url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/GoldenGateBridge-001.jpg/960px-GoldenGateBridge-001.jpg',
