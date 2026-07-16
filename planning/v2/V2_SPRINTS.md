@@ -751,6 +751,26 @@ and migration tests pass; planner operations are idempotent and survive reload.
   still need their bounded schemas, source adapters, stores, providers, and coherent consumer cutovers. Every
   product surface must expose the engine's session-only or retry state honestly, so Sprint 3 remains yellow.
 
+#### Sprint 3 retained activity-state foundation receipt - 2026-07-16 (yellow)
+
+- **Recents and calibration memories now have one kind-safe destination contract:** the V2 city document keeps
+  recents, event-deck history, and place-deck history separate, with independent 12/30/30 caps. Attached,
+  missing, and ambiguous references remain explicit; an event/place alias collision cannot silently select the
+  first catalog row or leak one product kind into another.
+- **Migration preserves the user's newest evidence without inventing inventory:** V1 deck arrays retain their
+  oldest-to-newest FIFO meaning, cap from the newest tail, and let the last duplicate position win. Historical
+  identity seeds contribute alias evidence only; they cannot manufacture a live row after an event or place has
+  left the current catalog.
+- **Hostile input is bounded before identity expansion:** catalog and seed scans, aliases, candidates, strings,
+  references, document bytes, and nesting depth all have deterministic limits. Wrong-version, wrong-city,
+  malformed, oversized, or cross-kind rows fail closed, while valid sibling evidence remains copy-safe and
+  migration output remains deterministic.
+- **Verification and review are green:** the activity and identity suites pass 33/33; targeted app lint and diff
+  hygiene pass. Independent adversarial repair review records **SHIP** with no P0/P1 remaining.
+- **Runtime memory is not cut over yet:** this pure schema still needs an atomic store/source adapter, provider,
+  and one coherent replacement of the current recents and event/place deck readers and writers. V1 bytes remain
+  untouched for rollback, and Sprint 3 remains yellow.
+
 #### Sprint 3 truthful location-permission runtime receipt - 2026-07-16 (yellow)
 
 - **Permission intent and effective use are separate:** one city-scoped controller owns disabled, desired,
