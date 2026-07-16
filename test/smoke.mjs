@@ -2134,13 +2134,17 @@ test('PREMIUM A2: D1 uniform height · tall image · bare heart · real CTA · s
 
 // PREMIUM A4 — the depth (elevation scale) + motion systems. Locks: the ranked
 // shadow tokens + their assignment, the press-tighten, the shared primary recipe,
-// and the motion set (add-morph, skeleton, blur-up, carousel stagger, tab settle,
+// and the motion set (confirmed planner sheet, skeleton, blur-up, carousel stagger, tab settle,
 // symmetric sheet close) — every motion reduced-motion-safe.
-test('PREMIUM A4: elevation scale + motion (depth tokens, press, btn-primary, add-morph, skeleton, blur-up, reduced-motion)', () => {
+test('PREMIUM A4: elevation scale + motion (depth tokens, press, confirmed planner sheet, skeleton, blur-up, reduced-motion)', () => {
   const idx = readFileSync(path.join(ROOT, 'app', 'src', 'index.css'), 'utf8')
   const cardsCss = readFileSync(path.join(ROOT, 'app', 'src', 'cards.css'), 'utf8')
   const appCss = readFileSync(path.join(ROOT, 'app', 'src', 'App.css'), 'utf8')
   const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
+  const detail = readFileSync(path.join(ROOT, 'app', 'src', 'DetailPage.jsx'), 'utf8')
+  const placeDetail = readFileSync(path.join(ROOT, 'app', 'src', 'PlaceDetail.jsx'), 'utf8')
+  const day = readFileSync(path.join(ROOT, 'app', 'src', 'DayPage.jsx'), 'utf8')
+  const dayCss = readFileSync(path.join(ROOT, 'app', 'src', 'day.css'), 'utf8')
   const saves = readFileSync(path.join(ROOT, 'app', 'src', 'saves.css'), 'utf8')
   const nav = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
 
@@ -2166,11 +2170,16 @@ test('PREMIUM A4: elevation scale + motion (depth tokens, press, btn-primary, ad
   // hero vignette gained a radial layer
   assert.ok(/\.detail-hero-grad\s*\{[\s\S]*?radial-gradient/.test(appCss), 'the detail hero scrim layers a radial vignette')
 
-  // MOTION: the add-to-plan confirmation morph
-  assert.ok(/function AddButton/.test(cards) && /is-added/.test(cards), 'the Add button morphs (AddButton + is-added)')
-  assert.ok(/return true \/\/ PREMIUM A4|return true/.test(cards) && /addToPlan\(e\)\)/.test(cards), 'addToPlan reports success so the button can confirm')
-  assert.ok(/@keyframes cardToastIn/.test(cardsCss), 'the card toast has a real entrance')
-  assert.ok(/\.is-added\b[\s\S]*?animation:\s*slotPop/.test(cardsCss), 'a successful add plays the gold slotPop')
+  // MOTION + trust: card CTAs are doorways, then a focus-managed sheet confirms
+  // the exact day/daypart. The filled slot owns the gold confirmation beat.
+  assert.ok(/function AddButton/.test(cards) && /else openDetail\(e\)/.test(cards), 'an unplanned card opens detail instead of silently writing a slot')
+  assert.ok(/planned && plannedPlacement[\s\S]*?openDay\(plannedPlacement\.dayTs\)/.test(cards), 'a planned card becomes a reactive View-plan doorway')
+  for (const [name, src] of [['DetailPage', detail], ['PlaceDetail', placeDetail]]) {
+    assert.ok(/planClosing/.test(src) && /className=\{'loc-plan-wrap' \+ \(planClosing \? ' closing' : ''\)\}/.test(src), `${name} plays the symmetric sheet close`)
+    assert.ok(/reduced \? 0 : 240/.test(src), `${name} makes the sheet close instant under reduced motion`)
+    assert.ok(/aria-modal="true"/.test(src) && /aria-busy=\{planPending \|\| undefined\}/.test(src), `${name} exposes modal + pending state during the confirmed write`)
+  }
+  assert.ok(/setJustFilled\(part\)/.test(day) && /\.dpg-filled\.pop\s*\{\s*animation:\s*slotPop/.test(dayCss), 'a confirmed fill plays slotPop on the destination slot')
   // skeleton + blur-up
   assert.ok(/export function SkeletonRow/.test(cards) && /@keyframes skel/.test(cardsCss), 'first-load skeleton (SkeletonRow + .skel shimmer)')
   assert.ok(/\.imgbox-img\s*\{[\s\S]*?filter:\s*blur\(8px\)/.test(cardsCss), 'image blur-up settle on load')
@@ -2192,14 +2201,18 @@ test('PREMIUM A4: elevation scale + motion (depth tokens, press, btn-primary, ad
 // demoted to a secondary util action. A dated event plans onto ITS OWN day.
 test('3.7P-34 event-detail: planner-first Add-to-day CTA + demoted event link', () => {
   const dp = readFileSync(path.join(ROOT, 'app', 'src', 'DetailPage.jsx'), 'utf8')
-  assert.ok(/from '\.\/dayplan\.js'/.test(dp) && /planItem/.test(dp) && /dayEntryFor/.test(dp), 'DetailPage imports the safe day-plan seams')
+  assert.ok(/usePlanner/.test(dp) && /status: plannerStatus/.test(dp), 'DetailPage reads the reactive atomic planner provider')
+  assert.ok(!/\bloadDayPlans\b|\bsaveDayPlans\b|\bplanItem\b|\bdayEntryFor\b/.test(dp), 'DetailPage has no V1 planner reader/writer path')
   assert.ok(/daypartOf/.test(dp), 'uses daypartOf for the natural slot suggestion')
   // Stage R: the primary is now an honest day-specific label (Add to tonight /
   // Add to Friday night) in a two-button action bar (Save + Add). canPlan gates it.
   assert.ok(/＋ \{addLabel\}/.test(dp) && /canPlan \?/.test(dp), 'the primary CTA is the planner Add when the event can be planned')
   assert.ok(/Add to tonight/.test(dp) && /Add to \$\{d0\.label\}/.test(dp), 'the Add label is day-specific + honest (event own day + natural daypart)')
   assert.ok(/detail-actionbar/.test(dp) && /detail-save-btn/.test(dp), 'the bottom bar pairs Save + the primary (two-button)')
-  assert.ok(/planItem\(map, curDay, part, keyOf\(e\)\)/.test(dp) && /result\.code !== 'added'/.test(dp), 'addToPlan rejects occupied slots and duplicate items')
+  assert.ok(/await add\(e, \{ dayTs: curDay, part \}\)/.test(dp), 'the confirmed action sends the exact selected day and daypart')
+  assert.ok(/code === 'duplicate'/.test(dp) && /code === 'slot-occupied'/.test(dp) && /code === 'rest-conflict'/.test(dp), 'addToPlan surfaces duplicate, occupied-slot, and rest conflicts')
+  assert.ok(/planned && plannedPlacement/.test(dp) && /openDay\(plannedPlacement\.dayTs\)/.test(dp) && />\s*View plan\s*</.test(dp), 'a planned event routes to its exact stored day instead of offering Add again')
+  assert.ok(/plannerReady/.test(dp) && /Loading plans/.test(dp) && /Plans unavailable/.test(dp), 'non-ready planner states cannot expose an enabled false-success CTA')
   assert.ok(/lifecycle\.actionable && e\.url/.test(dp) && /!lifecycle\.actionable \?/.test(dp), 'event and ticket actions disappear when retained inventory is unavailable')
   assert.ok(/function eventPlanDays/.test(dp) && /Math\.max\(e\._day, anchors\.todayTs\)/.test(dp), 'plan days are clamped to the event run (its own day), never arbitrary')
   assert.ok(/aria-modal="true"/.test(dp) && /planSheetRef/.test(dp) && /planBtnRef\.current\?\.focus\(\)/.test(dp), 'the add-to-day sheet is a focus-managed dialog (focus in + return to trigger)')
@@ -2296,11 +2309,12 @@ test('3.7P-23b §N Home: "Your next days" stack + title header + weather line', 
   assert.ok(/nowMs/.test(home) && /tonightModel\(/.test(home), 'V1 H3: nowMs is KEPT — it still feeds tonightModel (not just the retired greeting)')
   assert.ok(/wxLine/.test(home), 'the Home header shows the real weather line when loaded')
   const nd = readFileSync(path.join(ROOT, 'app', 'src', 'NextDays.jsx'), 'utf8')
-  assert.ok(/loadDayPlans/.test(nd) && /dayEntryFor/.test(nd), 'NextDays reads the real day-plan store')
+  assert.ok(/usePlanner/.test(nd) && /const \{[^}]*\bstatus\b[^}]*\bgetDay\b[^}]*\} = usePlanner\(\)/.test(nd), 'NextDays subscribes to planner status and the reactive day model')
+  assert.ok(/status === 'durable' \|\| status === 'session-only'/.test(nd), 'NextDays distinguishes ready planner data from loading/unavailable states')
+  assert.ok(/const day = getDay\(d\.ts\)/.test(nd) && /const n = day\.slots\.length/.test(nd), 'each card derives its rest/filled state from the provider day model')
+  assert.ok(!/\bloadDayPlans\b|\bdayEntryFor\b|\bemptyDay\b/.test(nd), 'NextDays has no stale V1 read or fallback object')
   assert.ok(/wxMood|CONDITION/.test(nd), 'NextDays derives its weather line from the real forecast only')
-  assert.ok(/\?\? emptyDay\(\)/.test(nd), 'an unplanned day falls back to emptyDay (no null crash)')
   assert.ok(/openDay\(/.test(nd), 'a day card opens its DayPage (the Discover→Plan bridge)')
-  assert.ok(/void page/.test(nd), 'plan-state re-reads on the subpage edge (stays fresh)')
 })
 
 test('3.7P-23c §N Home: tonight GemRow picks + Quick actions grid (HOME_GRIND)', () => {
@@ -2327,7 +2341,7 @@ test('3.7P-24 §N Spots: SpotCard carousel sections + compact place Everything (
   assert.ok(/sections={everything}/.test(loc) && !/sections={everything} compact/.test(loc), 'CARD_LOCK: the place Everything feed renders the canonical SpotCard rows (no compact)')
   const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
   assert.ok(/const isPlace = e\.kind === 'place'/.test(cards) && /spotChips\(e\)\.map/.test(cards), 'FeaturedCard is place-aware (activity-first meta + amenity chips)')
-  assert.ok(/\{onAdd && <button className="featc-act featc-add"/.test(cards), 'the inline Add only renders when onAdd is provided (places open the detail to pick a day)')
+  assert.ok(/\{onAdd && \([\s\S]*?<AddButton[\s\S]*?className="featc-act featc-add"/.test(cards), 'the inline planner doorway only renders when onAdd is provided (places open detail to confirm a day)')
   // SP-L1: SpotCard gains honest bestFor line
   assert.ok(/spotBestFor/.test(cards) && /spotcard-bestfor/.test(cards), 'SpotCard renders SP-L1 bestFor line')
 })
@@ -2353,9 +2367,11 @@ test('S1-P3: the Profile header stats-trio is computed from real stores (re-adde
   // The drill-ins keep their own counts too.
   const pv = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
   assert.ok(/pf-stats/.test(pv), 'the header stats-trio is present (S1-P3)')
-  assert.ok(/loadDayPlans\(/.test(pv) && /didDays\(/.test(pv) && /useSaves\(/.test(pv), 'the trio is computed from real stores (plans / days-out / saves)')
+  assert.ok(/usePlanner\(\)/.test(pv) && /filledDayCount:\s*planCount/.test(pv), 'the plan stat subscribes to the atomic planner filled-day count')
+  assert.ok(/didDays\(/.test(pv) && /useSaves\(/.test(pv), 'the days-out and saves stats still derive from their real stores')
+  assert.ok(!/\bloadDayPlans\b|\bdayEntryFor\b/.test(pv), 'Profile has no stale V1 planner read')
   const mp = readFileSync(path.join(ROOT, 'app', 'src', 'MyPlansPage.jsx'), 'utf8')
-  assert.ok(/plansCount/.test(mp) && /PARTS\.some\(\(p\) => e\.slots\[p\]\)/.test(mp), 'My plans count = distinct filled days across all dayparts (PARTS-iterated; no hardcoded day/night)')
+  assert.ok(/filledDayCount:\s*plansCount/.test(mp), 'My Plans uses the provider count of distinct filled active and historical days')
   const ms = readFileSync(path.join(ROOT, 'app', 'src', 'MySavesPage.jsx'), 'utf8')
   assert.ok(/shelf\.length/.test(ms), 'My saves count = the real saved-shelf length')
   assert.ok(!/\b47\b|>128<|>23</.test(pv), 'no hardcoded stat numbers')
@@ -2920,30 +2936,24 @@ test('S1-C2: the morning-after recap is off the Calendar; "went" still rides mar
   assert.ok(!/recordSignal\(/.test(daySrc), 'DayPage must record NO taste signal for slotting (only "went" feeds taste, v1)')
 })
 
-// Sprint S follow-up — a SLOTTED PLACE ('p|' key) must resolve in the U-d
-// surfaces, not just on DayPage. CalendarView's morning-after card and
-// ProfileView's past-days journal both build their key→title maps from `events`
-// only; a place is NEVER in `events`, so each must fold the lazily-loaded
-// places in (gated on a place key, the DayPage pattern) or a slotted place
-// degrades to the generic "did you make it out?" / "no longer listed". These
-// are grep wiring asserts (the views can't import into Node — they pull in JSX
-// and CSS), same approach as the CalendarView wiring test above.
-test('Sprint S: Calendar + Profile fold lazy places into their slot resolvers (gated)', () => {
-  const calSrc = readFileSync(path.join(ROOT, 'app', 'src', 'CalendarView.jsx'), 'utf8')
-  // S1-C2: the morning-after card is gone — the inline day panel is the remaining
-  // place-slot resolver. The fetch is GATED on a place key in the SELECTED day
-  // (never unconditional; an event-only/empty selection pays no ~1.2MB fetch).
-  assert.ok(/isPlaceKey\(selEntry\.slots\[p\]\)/.test(calSrc), 'CalendarView gates the places fetch on a place key in the selected day')
-  assert.ok(/usePlaces\(hasSelPlaceKey\)/.test(calSrc), 'CalendarView lazily loads places only when the selected day holds a place key')
-  // …and folds them into the shared resolver so a slotted place NAMES itself
-  assert.ok(/for \(const p of placeList\) m\.set\(p\.key, p\)/.test(calSrc), 'CalendarView must fold places into the byKey resolver')
+// Sprint S follow-up — a slotted place must resolve through the provider catalog
+// on every planner surface. Calendar may activate the places layer only when its
+// selected slot needs one; My Plans can always render the retained slot snapshot
+// while the provider subscribes to (but does not boot-fetch) the shared catalog.
+test('Sprint S: provider-backed planner surfaces keep place slots named without an eager boot fetch', () => {
+  const providerSrc = readFileSync(path.join(ROOT, 'app', 'src', 'PlannerProvider.jsx'), 'utf8')
+  assert.ok(/usePlaces\(false\)/.test(providerSrc), 'PlannerProvider subscribes to places without activating the large artifact at boot')
+  assert.ok(/places: placeList/.test(providerSrc), 'loaded places are folded into the one planner catalog')
 
-  // Stage R: the days/journal (with its place-slot resolver) moved to the My plans
-  // subpage; the gated lazy-places fold lives there now.
+  const calSrc = readFileSync(path.join(ROOT, 'app', 'src', 'CalendarView.jsx'), 'utf8')
+  assert.ok(/slot\.ref\?\.kind === 'place'/.test(calSrc), 'Calendar gates place activation from the selected provider slot reference')
+  assert.ok(/usePlaces\(hasSelPlaceRef\)/.test(calSrc), 'Calendar activates places only when a selected slot requires them')
+  assert.ok(/const e = slot\?\.item/.test(calSrc), 'Calendar renders the provider-resolved live or retained item')
+
   const mpSrc = readFileSync(path.join(ROOT, 'app', 'src', 'MyPlansPage.jsx'), 'utf8')
-  assert.ok(/isPlaceKey\(/.test(mpSrc), 'MyPlansPage must gate the places fetch on a place key in a plan/journal slot')
-  assert.ok(/usePlaces\(hasPlaceKey\)/.test(mpSrc), 'MyPlansPage must lazily load places only when a slotted place is present')
-  assert.ok(/for \(const p of placeList\) m\.set\(p\.key, p\.title\)/.test(mpSrc), 'MyPlansPage must fold place titles into titleByKey (no "no longer listed" for a live place)')
+  assert.ok(/slot\?\.item\?\.title \|\| slot\?\.item\?\.name/.test(mpSrc), 'My Plans names place slots from the provider item or retained snapshot')
+  assert.ok(/resolution === 'missing'/.test(mpSrc) && /resolution === 'ambiguous'/.test(mpSrc), 'unresolved identity is labeled instead of blanking the plan')
+  assert.ok(!/usePlaces\(/.test(mpSrc), 'My Plans does not duplicate place loading or resolver ownership')
 })
 
 // Sprint U-d — the --reward ledger names the did-day conversion (moment #6).

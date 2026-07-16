@@ -4,11 +4,9 @@
 // it in the sliding .subpage overlay as { type: 'guide', guide }.
 //
 // A guide is a curated VIEW (resolveGuide shows ALL its matches — never-hide
-// holds). Place-based guides ("Beach day", "Free outdoor reset") carry a "Plan a
-// day around this" action that seeds the top always-there place into the upcoming
-// weekend and opens that DayPage — the Discover→Plan bridge, made a one-tap move.
-// Only PLACES are ever pre-seeded (always-there); a date-pinned event is never
-// dropped onto an arbitrary day. DRAFT copy — ⚑ Charles.
+// holds). Plannable guides carry an explicit doorway to the upcoming weekend's
+// DayPage. Opening that day never seeds an item; placement still requires the
+// planner's visible day/daypart confirmation. DRAFT copy — ⚑ Charles.
 import { useMemo, useRef } from 'react'
 import { Icon, LENS_BUBBLES, CAT_BUBBLES } from './lib.js'
 import { useNav } from './nav.jsx'
@@ -16,7 +14,6 @@ import { RowFeed } from './cards.jsx'
 import LensNav from './LensNav.jsx'
 import { usePlaces, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES } from './places.js'
 import { resolveGuide, resolveWatchGuide } from './guides.js'
-import { dayEntryFor, loadDayPlans, PARTS, planItem, saveDayPlans } from './dayplan.js'
 import './bubble.css'
 
 export default function GuidePage({ guide, events, anchors }) {
@@ -59,21 +56,7 @@ export default function GuidePage({ guide, events, anchors }) {
     return [{ label: null, items }]
   }, [items, guide])
 
-  // "Plan a day around this": seed the top always-there PLACE into the upcoming
-  // weekend's morning slot, then open it. If the guide has no place (event-only),
-  // just open the weekend day to plan — never pre-seed a date-pinned event.
-  // ⚑PLAN-P0: a place is daypart 'any' → the morning slot (the day's start).
-  const planDay = () => {
-    const place = items.find((it) => it.kind === 'place')
-    if (place) {
-      const map = loadDayPlans(anchors)
-      const entry = dayEntryFor(map[String(anchors.wkStartTs)])
-      const target = PARTS.find((part) => !entry?.slots[part])
-      const result = target ? planItem(map, anchors.wkStartTs, target, place.key) : null
-      if (result?.code === 'added') saveDayPlans(result.map)
-    }
-    openDay(anchors.wkStartTs)
-  }
+  const planDay = () => openDay(Math.max(anchors.todayTs, anchors.wkStartTs))
 
   return (
     <div className="pg" ref={pgRef} style={{ '--bh': guide.hue ?? 30 }}>
@@ -92,9 +75,9 @@ export default function GuidePage({ guide, events, anchors }) {
               : `${items.length} ${placesUnavailable ? 'available ' : ''}${items.length === 1 ? 'idea' : 'ideas'}`}
           </div>
           <div className="bub-tag">{guide.pov}</div>
-          {guide.plannable && items.some((item) => item.kind === 'place') && (
+          {guide.plannable && (
             <button className="guide-plan-cta" onClick={planDay}>
-              ＋ Plan a day around this
+              Plan this day
             </button>
           )}
           {/* 3.75b: show the provenance — for a Watch Guide this discloses that the

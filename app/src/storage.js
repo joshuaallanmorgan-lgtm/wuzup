@@ -75,11 +75,36 @@ export function createStorageScope({ backend = null, backendProvider = null, cit
   const selectedCity = checkedCityId(cityId)
   const memory = new Map()
 
-  const getBackend = () => {
+  const resolveBackend = () => {
     try {
-      return backend || backendProvider?.() || globalThis.localStorage || null
-    } catch {
-      return null
+      const storage = backend || backendProvider?.() || globalThis.localStorage || null
+      if (!storage || typeof storage.getItem !== 'function') {
+        return {
+          status: 'io-error',
+          error: new Error('Storage backend is unavailable'),
+        }
+      }
+      return { status: 'ok', storage }
+    } catch (error) {
+      return { status: 'io-error', error }
+    }
+  }
+
+  const getBackend = () => {
+    const resolved = resolveBackend()
+    return resolved.status === 'ok' ? resolved.storage : null
+  }
+
+  const peekRaw = (key) => {
+    const resolved = resolveBackend()
+    if (resolved.status !== 'ok') return resolved
+    try {
+      const value = resolved.storage.getItem(key)
+      return value === null
+        ? { status: 'missing', value: null }
+        : { status: 'ok', value }
+    } catch (error) {
+      return { status: 'io-error', error }
     }
   }
 
@@ -152,6 +177,61 @@ export function createStorageScope({ backend = null, backendProvider = null, cit
     return decodeValue(rawGet(destination))
   }
 
+  const peekDurableFor = (key, scope) => {
+    const destination = physicalKey(key, { scope, cityId: selectedCity })
+    const read = peekRaw(destination)
+    if (read.status !== 'ok') return read
+    return {
+      status: 'ok',
+      value: decodeValue(read.value),
+      source: 'destination',
+    }
+  }
+
+  const peekLegacyOwner = () => {
+    const read = peekRaw(LEGACY_OWNER_KEY)
+    if (read.status === 'io-error') return read
+    if (read.status === 'missing') {
+      return { status: 'ok', ownerCityId: LEGACY_FALLBACK_CITY_ID }
+    }
+    try {
+      const receipt = JSON.parse(read.value)
+      return {
+        status: 'ok',
+        ownerCityId: validOwnerReceipt(receipt)
+          ? receipt.ownerCityId
+          : LEGACY_FALLBACK_CITY_ID,
+      }
+    } catch {
+      return { status: 'ok', ownerCityId: LEGACY_FALLBACK_CITY_ID }
+    }
+  }
+
+  const peekLegacyValue = (key) => {
+    const prefixed = peekRaw(LEGACY_PREFIX + key)
+    if (prefixed.status === 'ok' || prefixed.status === 'io-error') return prefixed
+    return peekRaw(key)
+  }
+
+  const peekFor = (key, scope) => {
+    const logical = checkedKey(key)
+    const destination = peekDurableFor(logical, scope)
+    if (destination.status !== 'missing') return destination
+
+    const legacy = peekLegacyValue(logical)
+    if (legacy.status !== 'ok') return legacy
+    if (scope === 'city') {
+      const owner = peekLegacyOwner()
+      if (owner.status !== 'ok') return owner
+      if (owner.ownerCityId !== selectedCity) return { status: 'missing', value: null }
+    }
+    return {
+      status: 'ok',
+      value: legacy.value,
+      source: 'legacy',
+    }
+  }
+
   const setFor = (key, value, scope) => {
     const destination = physicalKey(key, { scope, cityId: selectedCity })
     const encoded = encodeValue(value)
@@ -193,6 +273,12 @@ export function createStorageScope({ backend = null, backendProvider = null, cit
     cityId: selectedCity,
     prefix: `twh:v${STORAGE_VERSION}:c:${selectedCity}:`,
     get: (key) => getFor(key, 'city'),
+    // Strict, side-effect-free reads for atomic migrations. These probes never
+    // consult the session fallback, claim/repair legacy ownership, copy legacy
+    // bytes, or write tombstones. Callers can distinguish an absent key from a
+    // backend that denied or failed the read.
+    peek: (key) => peekFor(key, 'city'),
+    peekDurable: (key) => peekDurableFor(key, 'city'),
     // Physical V2 bytes only: no session-memory fallback, legacy read/copy, or
     // ownership claim. Atomic stores use this to verify that a write actually
     // landed durably rather than merely becoming session-readable.

@@ -32,32 +32,27 @@ import {
   daysInCityMonth,
   eventLifecycle,
   formatDayTs,
-  keyOf,
   monthStartTs as cityMonthStartTs,
   weekdayIndex,
 } from './lib.js'
 import { useNav } from './nav.jsx'
+import { usePlanner } from './PlannerProvider.jsx'
+import { PLANNER_PARTS as PARTS } from './planner-core.js'
 import { useBeenThere } from './saves.js'
-import { fitsDay, DAYPART } from './weekend.js'
-import { restDayList, rhythmSummary } from './gamify.js'
+import { DAYPART } from './weekend.js'
+import { rhythmSummary } from './gamify.js'
 import {
-  dayEntryFor,
   didDays,
-  emptyDay,
-  hasContent,
-  loadDayHistory,
-  loadDayPlans,
   monthReality,
-  PARTS,
-  saveDayPlans,
-  withClearedSlot,
 } from './dayplan.js'
-import { usePlaces, isPlaceKey } from './places.js'
+import { usePlaces } from './places.js'
 import NextDays from './NextDays.jsx'
 import './calendar.css'
 
-export default function CalendarView({ events, anchors, wx }) {
-  const { openDay, page } = useNav()
+export default function CalendarView({ anchors, wx }) {
+  const { openDay } = useNav()
+  const { status: plannerStatus, activeDays, history, getDay, remove, durability } = usePlanner()
+  const plannerReady = plannerStatus === 'durable' || plannerStatus === 'session-only'
   const [selKey, setSelKey] = useState(null) // the TAPPED day (null = none); drives the inline bottom panel
   const [monthOff, setMonthOff] = useState(0)
   // R-C2: month-picker popover state + refs (dropdown focus + focus-return)
@@ -66,34 +61,27 @@ export default function CalendarView({ events, anchors, wx }) {
   const pickerRef = useRef(null)
   const pickerWasOpen = useRef(false) // R-C2: drives post-commit focus-return
   // 3.7P-17: the day detail is an INLINE bottom panel (replaces the FB-12 popover)
-  // — tapping a day swaps the bottom content in place, never blocking the next
-  // tap. planTick re-reads the (non-reactive) plan store after an inline remove.
-  const [planTick, setPlanTick] = useState(0)
+  // — tapping a day swaps the bottom content in place, never blocking the next tap.
 
   // FB-11 (3.7P-3): the per-day grid weather emoji was retired — it didn't aid a
   // decision on this surface (the grid answers "what am I doing", not "what's the
   // weather"). Decision-useful weather stays where it helps: the DayPage forecast
   // line, PlaceDetail beach-day fit, and event-day weather in DetailPage.
 
-  // ===== the personal day-plan store — the grid's quiet marks =====
-  // localStorage isn't reactive — plans only change inside the day/WB subpages,
-  // so re-reading on every subpage open/close edge (`page` flips null ↔ object)
-  // keeps the marks honest; the read is one small JSON parse.
-  const dayPlans = useMemo(() => {
-    void page // re-read trigger (see above)
-    void planTick // …and after an inline remove from the peek
-    return loadDayPlans(anchors)
-  }, [anchors, page, planTick])
+  // ===== the reactive personal planner — the grid's quiet marks =====
+  const plannerDays = useMemo(() => [...history, ...activeDays], [activeDays, history])
   const plannedDays = useMemo(() => {
     const s = new Set()
-    for (const [k, e] of Object.entries(dayPlans)) if (hasContent(e) && e.state !== 'rest') s.add(Number(k))
+    for (const day of plannerDays) {
+      if (day.state !== 'rest' && PARTS.some((part) => day.slots?.[part])) s.add(day.dayTs)
+    }
     return s
-  }, [dayPlans])
+  }, [plannerDays])
   const restDays = useMemo(() => {
     const s = new Set()
-    for (const [k, e] of Object.entries(dayPlans)) if (e.state === 'rest') s.add(Number(k))
+    for (const day of plannerDays) if (day.state === 'rest') s.add(day.dayTs)
     return s
-  }, [dayPlans])
+  }, [plannerDays])
 
   // DID-DAYS — days you actually went out (been-there 'went', keyed by
   // snapshot.start). This is the logbook's quiet check stamp: a plan that
@@ -118,9 +106,8 @@ export default function CalendarView({ events, anchors, wx }) {
   // monthReality derivation with Profile (dayplan.js) so the surfaces can't drift
   // — Calendar shows it as a glanceable stat, Profile as a narrative line.
   const reality = useMemo(() => {
-    void page // history is non-reactive — re-read on subpage edges (like the card)
-    return monthReality(loadDayHistory(), dids, monthStartTs, nextMonthStartTs)
-  }, [page, dids, monthStartTs, nextMonthStartTs])
+    return monthReality(history, dids, monthStartTs, nextMonthStartTs)
+  }, [history, dids, monthStartTs, nextMonthStartTs])
   const plannedAhead = useMemo(
     () => [...plannedDays].filter((ts) => ts >= anchors.todayTs).length,
     [plannedDays, anchors.todayTs]
@@ -130,9 +117,8 @@ export default function CalendarView({ events, anchors, wx }) {
   // drift. The streak is the gamification headline; the juice (the increment beat)
   // lands in 3.7P-4b.
   const rhythm = useMemo(() => {
-    void page // history is non-reactive — re-read on subpage edges (like the card/reality)
-    return rhythmSummary(dids, restDayList(dayPlans, loadDayHistory()), anchors)
-  }, [page, dids, dayPlans, anchors])
+    return rhythmSummary(dids, [...restDays], anchors)
+  }, [dids, restDays, anchors])
   // up to four calm facts — your rhythm, what you did, follow-through, what's coming.
   // Each pushed ONLY when it's a real positive record. DRAFT copy (Charles).
   const rhythmStats = []
@@ -159,16 +145,9 @@ export default function CalendarView({ events, anchors, wx }) {
   // the selected day's entry — read it so places are folded into the resolver only
   // when a slot actually holds a place key (the lazy gate; an event-only or empty
   // selection pays no ~1.2MB places fetch). Drives the inline day panel.
-  const selEntry = selKey != null ? (dayEntryFor(dayPlans[String(selKey)]) ?? emptyDay()) : null
-  const hasSelPlaceKey = selEntry ? PARTS.some((p) => isPlaceKey(selEntry.slots[p])) : false
-  const { places: placeList } = usePlaces(hasSelPlaceKey)
-  // key → live event/place, used by the inline day-peek's slot resolver.
-  const byKey = useMemo(() => {
-    const m = new Map()
-    for (const e of events) m.set(keyOf(e), e)
-    if (Array.isArray(placeList)) for (const p of placeList) m.set(p.key, p)
-    return m
-  }, [events, placeList])
+  const selectedDay = selKey != null ? getDay(selKey) : null
+  const hasSelPlaceRef = selectedDay?.slots.some((slot) => slot.ref?.kind === 'place') === true
+  usePlaces(hasSelPlaceRef)
 
   // ===== the month canvas =====
   const monthTitle = formatDayTs(month, { month: 'long', year: 'numeric' })
@@ -228,26 +207,31 @@ export default function CalendarView({ events, anchors, wx }) {
   const selTitle = formatDayTs(sel, { weekday: 'long', month: 'long', day: 'numeric' })
 
   // ===== 3.7P-17: the inline day panel (selected day → bottom panel) =====
-  // resolve a slot key → live event/place (a place fits any day; a date-gated
-  // event that no longer falls on this day reads as "open", never a stale key).
-  const resolveSelSlot = (key, dayTs) => {
-    const e = key ? byKey.get(key) : null
-    if (!e) return null
-    if (e.kind === 'place') return e
-    return fitsDay(e, dayTs) ? e : null
-  }
-  // clear a single filled slot from the inline panel. withClearedSlot drops it
-  // (deleting the day if it empties), persists, and planTick re-reads so the grid
-  // marks AND the panel reflect it.
-  const clearSlot = (dayTs, part) => {
-    saveDayPlans(withClearedSlot(dayPlans, dayTs, part))
-    setPlanTick((t) => t + 1)
+  const [planNotice, setPlanNotice] = useState(null)
+  const clearSlot = async (dayTs, slot) => {
+    if (!plannerReady || dayTs < anchors.todayTs || !slot || selectedDay?.source !== 'active') return
+    const result = await remove({ ...slot, dayTs })
+    const code = result?.conflict?.reducerCode || result?.code
+    if (!result?.changed) {
+      setPlanNotice(code === 'planner-rebase-conflict' || code === 'item-conflict'
+        ? 'Your plan changed — open the day and try again.'
+        : "Couldn't update your plan.")
+      return
+    }
+    setPlanNotice(
+      result.durability === 'session-only' || (!result.durability && durability === 'session-only')
+        ? "Removed for this visit, but your browser couldn't save it."
+        : null
+    )
   }
   // the inline panel appears ONLY once a day in the DISPLAYED month is tapped
   // (default = nothing tapped = blank bottom, no "tap to plan" nag).
   const panelOpen = selKey != null && selInView
-  const selSlots = selEntry && panelOpen ? PARTS.map((part) => ({ part, e: resolveSelSlot(selEntry.slots[part], sel) })) : []
-  const selFilled = selSlots.some((s) => s.e)
+  const selectedByPart = new Map((selectedDay?.slots || []).map((slot) => [slot.part, slot]))
+  const selSlots = selectedDay && panelOpen
+    ? PARTS.map((part) => ({ part, slot: selectedByPart.get(part) || null }))
+    : []
+  const selFilled = selectedDay?.slots.length > 0
 
   return (
     <div className="cal-wrap">
@@ -256,7 +240,7 @@ export default function CalendarView({ events, anchors, wx }) {
           {/* Stage R: the screen name (benchmark top). The dynamic month
               ("June 2025") lives in the month nav below (.mon-title) — kept there
               rather than duplicated here. */}
-          <h2 className="loc-head-title">Calendar</h2>
+          <h2 className="loc-head-title">Plan</h2>
           {/* W6 (⚑U-WKND): the Weekend pill is RETIRED. Planning happens by
               tapping a day (the month grid / day-rail open the richer day
               screen); a redundant calendar entry to the legacy multi-day
@@ -340,6 +324,7 @@ export default function CalendarView({ events, anchors, wx }) {
             onClick={() => {
               setMonthOff(0)
               setSelKey(anchors.todayTs)
+              setPlanNotice(null)
             }}
           >
             Today
@@ -367,7 +352,10 @@ export default function CalendarView({ events, anchors, wx }) {
                 }
                 // 3.7P-17: tapping a day just selects it → the inline bottom panel
                 // swaps to that day (no popover, never blocks tapping the next day).
-                onClick={() => setSelKey(ts)}
+                onClick={() => {
+                  setSelKey(ts)
+                  setPlanNotice(null)
+                }}
               >
                 <span className="mnum">{dayNumber(ts)}</span>
                 {/* the ONE quiet personal mark, mutually exclusive by rule:
@@ -412,17 +400,29 @@ export default function CalendarView({ events, anchors, wx }) {
             ) : (
               selFilled && (
                 <div className="cal-sel-slots">
-                  {selSlots.map(({ part, e }) => {
+                  {selSlots.map(({ part, slot }) => {
+                    const e = slot?.item
                     const when = DAYPART[part].label
-                    const lifecycleLabel = e && e.kind !== 'place' && e._actionable !== true ? eventLifecycle(e).label : null
+                    const title = e?.title || e?.name || 'Saved plan'
+                    const lifecycleLabel = slot?.resolution === 'missing'
+                      ? 'No longer listed · saved copy'
+                      : slot?.resolution === 'ambiguous'
+                        ? 'Needs review · saved copy'
+                        : slot?.resolution === 'retained'
+                          ? 'Saved copy'
+                          : e && e.kind !== 'place' && e._actionable !== true
+                            ? eventLifecycle(e).label
+                            : null
                     return (
-                      <div className={'cal-sel-slot' + (e ? ' filled' : '')} key={part} aria-label={`${when}: ${e ? e.title || e.name : 'open'}`}>
+                      <div className={'cal-sel-slot' + (slot ? ' filled' : '')} key={part} aria-label={`${when}: ${slot ? title : 'open'}`}>
                         <span className="cal-sel-when" aria-hidden>{DAYPART[part].emoji} {when}</span>
-                        {e ? (
+                        {slot ? (
                           <>
-                            <span className="cal-sel-what" aria-hidden>{e.title || e.name}</span>
+                            <span className="cal-sel-what" aria-hidden>{title}</span>
                             {lifecycleLabel && <span className="cal-sel-status">{lifecycleLabel}</span>}
-                            <button className="cal-sel-x pressable" onClick={() => clearSlot(sel, part)} aria-label={`Clear ${e.title || e.name} from ${when.toLowerCase()}`}>✕</button>
+                            {plannerReady && !selPast && selectedDay?.source === 'active' && (
+                              <button className="cal-sel-x pressable" onClick={() => clearSlot(sel, slot)} aria-label={`Clear ${title} from ${when.toLowerCase()}`}>✕</button>
+                            )}
                           </>
                         ) : (
                           <span className="cal-sel-open" aria-hidden>Open</span>
@@ -433,7 +433,8 @@ export default function CalendarView({ events, anchors, wx }) {
                 </div>
               )
             )}
-            {!selPast && (
+            {planNotice && <div className="cal-sel-status" role="status" aria-live="polite">{planNotice}</div>}
+            {!selPast && (selFilled || selRest || plannerReady) && (
               <button className="cal-sel-full pressable" onClick={() => openDay(sel)}>
                 {selFilled || selRest ? 'Open full day' : 'Plan this day'} <span aria-hidden>→</span>
               </button>

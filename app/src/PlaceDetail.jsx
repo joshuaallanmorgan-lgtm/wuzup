@@ -12,13 +12,14 @@
 // ALL COPY IS DRAFT for Charles.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNav } from './nav.jsx'
+import { usePlanner } from './PlannerProvider.jsx'
+import { PLANNER_PARTS as PARTS } from './planner-core.js'
 import { addDayTs, formatDayTs, Icon, keyOf } from './lib.js'
 import { SecHead, TonightCard, artEmoji, auroraStyle, spotChips } from './cards.jsx'
 import { SaveHeart, useSaves } from './saves.js'
 import { dateKey } from './weather.js'
 import { usePlaces, ACTIVITIES } from './places.js'
 import { DAYPART } from './weekend.js'
-import { findPlannedItem, loadDayPlans, planItem, saveDayPlans, dayEntryFor, PARTS } from './dayplan.js'
 import './locations.css'
 
 // normalized amenity vocabulary → human label + emoji (DRAFT for Charles).
@@ -81,7 +82,14 @@ function planDays(anchors) {
 }
 
 export default function PlaceDetail({ e, anchors, wx }) {
-  const { closing, vtOpen: vt, closeDetail: onClose, openDetail: onSelect } = useNav()
+  const { closing, vtOpen: vt, closeDetail: onClose, openDetail: onSelect, openDay } = useNav()
+  const {
+    status: plannerStatus,
+    add,
+    getDay,
+    isPlanned,
+    placement,
+  } = usePlanner()
   const { places } = usePlaces()
   const { has: hasSave, toggle: toggleSave } = useSaves()
   const saved = hasSave(e)
@@ -209,29 +217,35 @@ export default function PlaceDetail({ e, anchors, wx }) {
   }
 
   // ===== Make this my plan — the place→day-plan bridge (S2). A sheet picks a
-  // day + daypart; on pick we write the place KEY into that day's slot via the
-  // dayplan.js seams (withSlot clears any rest mark). NEVER CLOBBERS: a filled
-  // slot is shown taken and is not overwritable. =====
+  // day + daypart and the atomic planner confirms the write. NEVER CLOBBERS: a
+  // filled slot is shown taken and is not overwritable. =====
   const [planning, setPlanning] = useState(false)
   const [planDay, setPlanDay] = useState(anchors.todayTs)
-  const [plansVersion, setPlansVersion] = useState(0) // bump to re-read filled state after a write
-  const planned = useMemo(() => {
-    void plansVersion
-    return findPlannedItem(loadDayPlans(anchors), e.key)
-  }, [anchors, e.key, plansVersion])
+  const [planPending, setPlanPending] = useState(false)
+  const planned = isPlanned(e)
+  const plannedPlacement = placement(e)
+  const plannerReady = plannerStatus === 'durable' || plannerStatus === 'session-only'
+  const plannerUnavailableLabel = plannerStatus === 'idle' || plannerStatus === 'initializing'
+    ? 'Loading plans…'
+    : 'Plans unavailable'
   // Plan Phase 2 (flows-2 p2): select-then-confirm — selPart holds the chosen
   // daypart, then "Add to {day}" commits. A place is 'any' → morning is the default.
   const [selPart, setSelPart] = useState(null)
   const planSheetRef = useRef(null)
   const planCtaRef = useRef(null)
+  const planPendingRef = useRef(false)
   const days = useMemo(() => planDays(anchors), [anchors])
+  const currentPlanDay = days.some((day) => day.ts === planDay)
+    ? planDay
+    : days[0]?.ts ?? anchors.todayTs
   const filled = useMemo(() => {
-    // read the current entry for the selected day to disable taken slots
-    void plansVersion
-    const map = loadDayPlans(anchors)
-    const entry = dayEntryFor(map[String(planDay)])
-    return { ...Object.fromEntries(PARTS.map((p) => [p, entry?.slots[p] || null])), rest: entry?.state === 'rest' }
-  }, [planDay, anchors, plansVersion])
+    const day = getDay(currentPlanDay)
+    const occupied = new Map(day.slots.map((slot) => [slot.part, slot]))
+    return {
+      ...Object.fromEntries(PARTS.map((part) => [part, occupied.get(part) || null])),
+      rest: day.state === 'rest',
+    }
+  }, [currentPlanDay, getDay])
   // the effective selected daypart: the user's pick when free, else morning (the
   // 'any' default), else the first free slot
   const sel = selPart && !filled[selPart] ? selPart : !filled.morning ? 'morning' : PARTS.find((p) => !filled[p]) || null
@@ -249,24 +263,59 @@ export default function PlaceDetail({ e, anchors, wx }) {
         setPlanning(false)
         setPlanClosing(false)
         setSelPart(null)
-        planCtaRef.current?.focus() // WCAG 2.4.3: focus returns to the trigger
+        const restoreFocus = () => planCtaRef.current?.focus()
+        if (typeof requestAnimationFrame === 'function') requestAnimationFrame(restoreFocus)
+        else setTimeout(restoreFocus, 0)
       },
       reduced ? 0 : 240
     )
   }
 
-  const addToPlan = (part) => {
-    const map = loadDayPlans(anchors)
-    const result = planItem(map, planDay, part, e.key)
-    if (result.code !== 'added') {
-      flash(result.code === 'already-planned' ? 'Already in your plan' : 'That slot is taken')
-      return
+  const addToPlan = async (part) => {
+    if (!plannerReady || planPendingRef.current || planClosing) return
+    planPendingRef.current = true
+    setPlanPending(true)
+    try {
+      const result = await add(e, { dayTs: currentPlanDay, part })
+      const code = result?.conflict?.reducerCode || result?.code
+      if (code === 'duplicate' || code === 'already-planned') {
+        flash('Already in your plan')
+        closePlanning()
+        return
+      }
+      if (code === 'slot-occupied') {
+        flash('That time is already planned')
+        return
+      }
+      if (code === 'rest-conflict') {
+        flash("That's a quiet day — clear the rest mark first")
+        return
+      }
+      if (result?.changed && result.durability === 'session-only') {
+        flash("Added for this visit, but your browser couldn't save it")
+        closePlanning()
+        return
+      }
+      if (!result?.changed || result?.persisted !== true) {
+        flash(code === 'planner-rebase-conflict'
+          ? 'Your plan changed — check this day and try again'
+          : "Couldn't add this to your plan")
+        return
+      }
+      const dlabel = days.find((d) => d.ts === currentPlanDay)?.label || ''
+      flash(`Added to ${dlabel} ${DAYPART[part].emoji} ✓`)
+      closePlanning()
+    } catch {
+      flash("Couldn't add this to your plan")
+    } finally {
+      planPendingRef.current = false
+      setPlanPending(false)
     }
-    saveDayPlans(result.map)
-    setPlansVersion((v) => v + 1)
-    const dlabel = days.find((d) => d.ts === planDay)?.label || ''
-    flash(`Added to ${dlabel} ${DAYPART[part].emoji} ✓`)
-    closePlanning()
+  }
+  const viewPlan = () => {
+    if (!plannedPlacement) return
+    openDay(plannedPlacement.dayTs)
+    onClose()
   }
   // 3.7P-34 review: the plan sheet is a focus-managed modal (was role=dialog only —
   // Escape fell through to nav and closed the WHOLE page). Mirrors DetailPage's
@@ -302,7 +351,11 @@ export default function PlaceDetail({ e, anchors, wx }) {
       {/* 3.7P-22: shared .detail shell — hero + body scroll inside .detail-scroll
           (PlaceDetail has no bottom CTA, but needs the wrapper since .detail is now
           a flex column with the scroll on the inner element). */}
-      <div className="detail-scroll">
+      <div
+        className="detail-scroll"
+        inert={planning || planClosing ? true : undefined}
+        aria-hidden={planning || planClosing || undefined}
+      >
       <div
         className={'detail-hero' + (heroArt ? ' imgbox-art' : '')}
         style={
@@ -483,7 +536,11 @@ export default function PlaceDetail({ e, anchors, wx }) {
           primary "Make this my plan" (gold, dark ink). A flex sibling OUTSIDE
           .detail-scroll (the P22 bottom-bar pattern), so it never overlaps the
           scrolling content. planCtaRef stays on the trigger (focus return). */}
-      <div className="detail-actionbar">
+      <div
+        className="detail-actionbar"
+        inert={planning || planClosing ? true : undefined}
+        aria-hidden={planning || planClosing || undefined}
+      >
         <button
           className={'detail-save-btn' + (saved ? ' on' : '')}
           onClick={() => toggleSave(e)}
@@ -491,11 +548,17 @@ export default function PlaceDetail({ e, anchors, wx }) {
         >
           {saved ? '♥ Saved' : '♡ Save'}
         </button>
-        {planned ? (
-          <button className="loc-plan-cta detail-actionbar-cta" disabled>✓ In your plan</button>
-        ) : (
+        {planned && plannedPlacement ? (
+          <button className="loc-plan-cta detail-actionbar-cta" ref={planCtaRef} onClick={viewPlan}>View plan</button>
+        ) : planned ? (
+          <button className="loc-plan-cta detail-actionbar-cta" ref={planCtaRef} disabled>In your plan</button>
+        ) : plannerReady ? (
           <button className="loc-plan-cta detail-actionbar-cta" ref={planCtaRef} onClick={() => setPlanning(true)}>
             ＋ Make this my plan
+          </button>
+        ) : (
+          <button className="loc-plan-cta detail-actionbar-cta" ref={planCtaRef} disabled>
+            {plannerUnavailableLabel}
           </button>
         )}
       </div>
@@ -504,7 +567,16 @@ export default function PlaceDetail({ e, anchors, wx }) {
       {planning && (
         <div className={'loc-plan-wrap' + (planClosing ? ' closing' : '')}>
           <button className="loc-scrim" onClick={closePlanning} aria-label="Close" />
-          <div className="loc-plan-sheet" role="dialog" aria-modal="true" aria-label="Add to a day" tabIndex={-1} ref={planSheetRef} onKeyDown={planTrap}>
+          <div
+            className="loc-plan-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Add to a day"
+            aria-busy={planPending || undefined}
+            tabIndex={-1}
+            ref={planSheetRef}
+            onKeyDown={planTrap}
+          >
             <div className="loc-sheet-head">
               <div className="loc-sheet-title">Add {e.name} to a day</div>
               <button className="loc-sheet-close" onClick={closePlanning} aria-label="Close">✕</button>
@@ -513,7 +585,9 @@ export default function PlaceDetail({ e, anchors, wx }) {
               {days.map((d) => (
                 <button
                   key={d.ts}
-                  className={'loc-plan-day' + (d.ts === planDay ? ' on' : '')}
+                  className={'loc-plan-day' + (d.ts === currentPlanDay ? ' on' : '')}
+                  disabled={planPending}
+                  aria-pressed={d.ts === currentPlanDay}
                   onClick={() => setPlanDay(d.ts)}
                 >
                   {d.label}
@@ -530,7 +604,7 @@ export default function PlaceDetail({ e, anchors, wx }) {
                     <button
                       key={part}
                       className={'loc-plan-slot' + (part === sel ? ' on' : '')}
-                      disabled={!!filled[part]}
+                      disabled={planPending || !!filled[part]}
                       onClick={() => setSelPart(part)}
                       aria-pressed={part === sel}
                     >
@@ -540,8 +614,13 @@ export default function PlaceDetail({ e, anchors, wx }) {
                     </button>
                   ))}
                 </div>
-                <button className="loc-plan-add" disabled={!sel} onClick={() => sel && addToPlan(sel)}>
-                  Add to {days.find((d) => d.ts === planDay)?.label || 'day'}
+                <button
+                  className="loc-plan-add"
+                  disabled={!sel || planPending || planClosing}
+                  aria-busy={planPending || undefined}
+                  onClick={() => sel && addToPlan(sel)}
+                >
+                  {planPending ? 'Adding…' : `Add to ${days.find((d) => d.ts === currentPlanDay)?.label || 'day'}`}
                 </button>
               </>
             )}
@@ -549,7 +628,7 @@ export default function PlaceDetail({ e, anchors, wx }) {
         </div>
       )}
 
-      {toast && <div className="detail-toast">{toast}</div>}
+      {toast && <div className="detail-toast" role="status" aria-live="polite">{toast}</div>}
     </div>
   )
 }

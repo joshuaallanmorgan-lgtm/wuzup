@@ -16,7 +16,8 @@ import { CITY } from './lib.js'
 import { useNav } from './nav.jsx'
 import { globalGet } from './storage.js'
 import { useSaves, useBeenThere } from './saves.js'
-import { loadDayPlans, loadDayHistory, didDays, dayEntryFor, PARTS } from './dayplan.js'
+import { didDays } from './dayplan.js'
+import { usePlanner } from './PlannerProvider.jsx'
 import './profile.css'
 
 const NAME_KEY = 'profile-name-v1'
@@ -35,7 +36,7 @@ const CogIc = () => (<svg {...S} aria-hidden><circle cx="12" cy="12" r="3.1" /><
 const HelpIc = () => (<svg {...S} aria-hidden><circle cx="12" cy="12" r="9.5" /><path d="M9.4 9.3a2.7 2.7 0 0 1 5.2 1c0 1.8-2.6 2-2.6 3.6" /><path d="M12 17.2h.01" /></svg>)
 const Chev = () => (<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M9 6l6 6-6 6" /></svg>)
 
-export default function ProfileView({ anchors }) {
+export default function ProfileView() {
   const { openSettings, openTaste, openInterests, openMyPlans, openMySaves, openEditProfile, openHelpFeedback, page } = useNav()
   // name is read on mount + re-read whenever a subpage closes back here (page flip)
   // — so an edit saved in Edit Profile reflects on return (same seam as planCount).
@@ -44,22 +45,10 @@ export default function ProfileView({ anchors }) {
     return globalGet(NAME_KEY) || ''
   }, [page])
 
-  // S1-P3: honest lifetime stats from the REAL stores — never hardcoded. Saves +
-  // days-out are reactive (hooks); plans reads the non-reactive day store, so it
-  // recomputes on mount and whenever a subpage closes back to Profile (page flip).
+  // S1-P3: honest lifetime stats from the real reactive stores — never hardcoded.
   const { list: savedList } = useSaves()
   const been = useBeenThere()
-  const planCount = useMemo(() => {
-    void page
-    const map = loadDayPlans(anchors)
-    const days = new Set()
-    for (const k of Object.keys(map)) {
-      const e = dayEntryFor(map[k])
-      if (e && PARTS.some((p) => e.slots[p])) days.add(k)
-    }
-    for (const h of loadDayHistory()) if (h?.slots && PARTS.some((p) => h.slots[p])) days.add(String(h.dayTs))
-    return days.size
-  }, [anchors, page])
+  const { filledDayCount: planCount } = usePlanner()
   const daysOut = didDays(been).size
   // labels stay plural (matches the ref): Plans · Saved · Days out
   const stats = [

@@ -140,18 +140,33 @@ test('quota failure after duplicate-ID repair keeps the session fallback collisi
   }
 })
 
-test('the add flow uses the canonical write result instead of a pre-ID React copy', async () => {
+test('the add flow uses the canonical write result without silently planning the event', async () => {
   const [app, form] = await Promise.all([
     readFile(new URL('../app/src/App.jsx', import.meta.url), 'utf8'),
     readFile(new URL('../app/src/AddEvent.jsx', import.meta.url), 'utf8'),
   ])
+  const formCode = form
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/^\s*\/\/.*$/gm, '')
 
   assert.doesNotMatch(app, /useEffect\(\(\) => \{\s*saveMyEvents\(myEvents\)/)
   assert.match(app, /const write = saveMyEvents\(\[\.\.\.fresh, candidate\]\)/)
   assert.match(app, /if \(duplicate\) \{\s*const write = saveMyEvents\(fresh\)/)
   assert.match(app, /setMyEvents\(write\.items\)/)
-  assert.match(app, /item: write\.items\.at\(-1\)/)
-  assert.match(form, /added\?\.code === 'added' && added\.persisted === true && added\.item/)
-  assert.match(form, /autoSlot\(added\.item\)/)
-  assert.match(form, /browser couldn't save it/)
+  assert.match(app, /return \{ code: 'added', item: write\.items\.at\(-1\), persisted: write\.persisted \}/)
+  assert.match(app, /return \{ code: 'duplicate', item, persisted: write\.persisted \}/)
+
+  assert.match(formCode, /const added = onAdd\(raw\)/)
+  assert.match(formCode, /setDone\(added \|\| \{ code: 'added', persisted: false \}\)/)
+  assert.match(formCode, /done\.code === 'duplicate' \? 'Already added' : 'Added!'/)
+  assert.match(formCode, /done\.persisted === false/)
+  assert.match(formCode, /browser couldn't save it/)
+  assert.match(formCode, /It's in My Events and your feed/)
+
+  assert.doesNotMatch(formCode, /\bautoSlot\b/)
+  assert.doesNotMatch(formCode, /from ['"]\.\/PlannerProvider\.jsx['"]/)
+  assert.doesNotMatch(
+    formCode,
+    /\b(?:usePlanner|loadDayPlans|saveDayPlans|planItem|withSlot|addPlannerItem)\s*\(/,
+  )
 })

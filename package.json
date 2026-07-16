@@ -32,12 +32,16 @@
     "test:h0-planner-migration": "node --test test/planner-migration.mjs",
     "test:h0-planner-selectors": "node --test test/planner-selectors.mjs",
     "test:h0-planner-store": "node --test test/planner-store.mjs",
-    "test:h0-planner-state": "node --test test/planner-core.mjs test/planner-migration.mjs test/planner-selectors.mjs test/planner-store.mjs",
+    "test:h0-planner-v1-source": "node --test test/planner-v1-source.mjs",
+    "test:h0-planner-runtime": "node --test test/planner-runtime.mjs",
+    "test:h0-planner-provider": "node --test test/planner-provider.mjs",
+    "test:h0-planner-ui": "node --test test/planner-ui-contract.mjs",
+    "test:h0-planner-state": "node --test test/planner-core.mjs test/planner-migration.mjs test/planner-selectors.mjs test/planner-store.mjs test/planner-v1-source.mjs test/planner-runtime.mjs test/planner-provider.mjs test/planner-ui-contract.mjs",
     "test:e0": "node --test test/relevance-eval.mjs",
     "test:i0": "node --test test/imagery-trust.mjs",
     "test:l0": "node --test test/location-resolver.mjs",
     "test:u0": "node --test test/u0-truth.mjs",
-    "test": "node --test --test-concurrency=1 test/artifact-trust.mjs test/runtime-artifacts.mjs test/city-storage.mjs test/city-time.mjs test/city-time-finder.mjs test/city-time-sources.mjs test/city-time-vspc.mjs test/city-time-timestamp-sources.mjs test/city-time-render.mjs test/city-time-stpete.mjs test/city-time-allevents.mjs test/city-time-sf-meetup.mjs test/city-time-ucberkeley.mjs test/city-time-wall-sources.mjs test/city-time-all-sources.mjs test/city-time-app.mjs test/share-city-time.mjs test/day-key-migration.mjs test/identity.mjs test/identity-seeds.mjs test/identity-migration.mjs test/custom-event-identity.mjs test/planner-core.mjs test/planner-migration.mjs test/planner-selectors.mjs test/planner-store.mjs test/relevance-eval.mjs test/u0-truth.mjs test/imagery-trust.mjs test/location-resolver.mjs test/smoke.mjs"
+    "test": "node --test --test-concurrency=1 test/artifact-trust.mjs test/runtime-artifacts.mjs test/city-storage.mjs test/city-time.mjs test/city-time-finder.mjs test/city-time-sources.mjs test/city-time-vspc.mjs test/city-time-timestamp-sources.mjs test/city-time-render.mjs test/city-time-stpete.mjs test/city-time-allevents.mjs test/city-time-sf-meetup.mjs test/city-time-ucberkeley.mjs test/city-time-wall-sources.mjs test/city-time-all-sources.mjs test/city-time-app.mjs test/share-city-time.mjs test/day-key-migration.mjs test/identity.mjs test/identity-seeds.mjs test/identity-migration.mjs test/custom-event-identity.mjs test/planner-core.mjs test/planner-migration.mjs test/planner-selectors.mjs test/planner-store.mjs test/planner-v1-source.mjs test/planner-runtime.mjs test/planner-provider.mjs test/planner-ui-contract.mjs test/relevance-eval.mjs test/u0-truth.mjs test/imagery-trust.mjs test/location-resolver.mjs test/smoke.mjs"
   },
   "keywords": [],
   "author": "",

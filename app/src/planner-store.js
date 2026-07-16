@@ -404,8 +404,8 @@ export function createPlannerStore({
   const writeScope = storageFactory({ cityId: selected.id })
   if (!writeScope
       || typeof writeScope.set !== 'function'
-      || typeof writeScope.readDurable !== 'function') {
-    throw new TypeError('storageFactory must return a storage scope with set/readDurable')
+      || typeof writeScope.peekDurable !== 'function') {
+    throw new TypeError('storageFactory must return a storage scope with set/peekDurable')
   }
 
   let snapshot = emptyPublicSnapshot(selected)
@@ -487,7 +487,14 @@ export function createPlannerStore({
 
   const durableRaw = () => {
     try {
-      return { status: 'ok', raw: writeScope.readDurable(PLANNER_STORAGE_KEY) }
+      const read = writeScope.peekDurable(PLANNER_STORAGE_KEY)
+      if (read?.status === 'missing') return { status: 'ok', raw: null }
+      if (read?.status === 'ok') return { status: 'ok', raw: read.value }
+      return {
+        status: 'io-error',
+        raw: null,
+        error: read?.error || new Error('Planner storage read failed'),
+      }
     } catch (error) {
       return { status: 'io-error', raw: null, error }
     }
@@ -896,9 +903,31 @@ export function createPlannerStore({
       return corruptResult(existing, 'none')
     }
 
+    let captured
+    if (options.source === undefined && options.sourceFactory !== undefined) {
+      if (typeof options.sourceFactory !== 'function') {
+        initialized = true
+        const publicFailure = publicError('planner-migration-source-invalid')
+        publish({ status: 'error', error: publicFailure, durability: 'unknown', concurrency: 'none' })
+        return result({ ok: false, code: publicFailure.code, error: publicFailure })
+      }
+      try {
+        captured = await options.sourceFactory()
+      } catch (error) {
+        initialized = true
+        const publicFailure = publicError(
+          'planner-migration-source-unavailable',
+          error?.code || error?.message || null,
+        )
+        publish({ status: 'error', error: publicFailure, durability: 'unknown', concurrency: 'none' })
+        return result({ ok: false, code: publicFailure.code, error: publicFailure })
+      }
+    }
+
     let source
     try {
-      source = options.source === undefined ? {} : jsonClone(options.source)
+      const input = options.source === undefined ? captured?.source : options.source
+      source = input === undefined ? {} : jsonClone(input)
     } catch (error) {
       initialized = true
       const publicFailure = publicError('planner-migration-source-invalid', error?.message || null)
@@ -910,7 +939,11 @@ export function createPlannerStore({
     try {
       migration = await migrate(source, {
         city,
-        sourceTimeZone: options.sourceTimeZone || options.source?.timeZone || selected.tz,
+        sourceTimeZone:
+          options.sourceTimeZone
+          || captured?.sourceTimeZone
+          || source?.timeZone
+          || selected.tz,
         todayTs: options.todayTs,
         weekendStartTs: options.weekendStartTs,
         catalog: options.catalog || [],

@@ -6,7 +6,7 @@
 // Top to bottom: date header → weather line (when the 16-day forecast covers
 // the day; an honest "too far out" caveat past coverage, ⚑U-HZN default) →
 // the three plan slots (☀️ Morning / ☀️ Afternoon / 🌙 Night, same pickerModel +
-// PickerSheet the Weekend Builder uses — ONE store, 'day-plans-v1', the ⚑PLAN-P0
+// PickerSheet the Weekend Builder uses, backed by the atomic V2 planner's
 // ternary dayparts) → the quiet rest control → the day's agenda.
 // (⚑PLAN-P0 note: this is the functional 3-slot data layer; the pixel-match
 // "Plan your day" layout — expanded weather, tappable day-selector → calendar
@@ -14,11 +14,10 @@
 //
 // REST RULE (U-a decision, documented for the report): rest and slots are
 // MUTUALLY EXCLUSIVE. The "Mark it a quiet day 🌙" toggle is only OFFERED
-// while both slots are empty; marking rest replaces the slot pickers with a
+// while all slots are empty; marking rest replaces the slot pickers with a
 // calm filled card ("Quiet day") whose single quiet affordance un-rests the
-// day and brings the pickers back. dayplan.js enforces the same rule at the
-// store level (withSlot clears rest; withRest(on) refuses while slots are
-// filled) so no caller can create the contradictory state. Rest renders as a
+// day and brings the pickers back. The planner reducer enforces the same rule,
+// so no caller can create the contradictory state. Rest renders as a
 // CALM FILLED state — never as absence, never as failure, and the app never
 // asks for it (ban list §7: user-initiated only, no prompts, no guilt copy).
 //
@@ -33,24 +32,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { eventLifecycle, formatDayTs, Icon, keyOf, timeOf } from './lib.js'
 import { useNav } from './nav.jsx'
+import { usePlanner } from './PlannerProvider.jsx'
+import { PLANNER_PARTS as PARTS } from './planner-core.js'
 import { CardImg, SponsoredTag, featuredChips } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
 import { tasteNudge, useTaste, railReady } from './taste.js'
-import { usePlaces, isPlaceKey } from './places.js'
-import { daypartOf, fitsDay, pickerModel, whyFits, wxMood, DAYPART } from './weekend.js'
+import { usePlaces } from './places.js'
+import { daypartOf, pickerModel, whyFits, wxMood, DAYPART } from './weekend.js'
 import { eventsIcs, shareDayText } from './share.js'
-import {
-  dayEntryFor,
-  emptyDay,
-  loadDayPlans,
-  plannedItemKeys,
-  planItem,
-  saveDayPlans,
-  withClearedSlot,
-  withRest,
-  withSlot,
-  PARTS,
-} from './dayplan.js'
 import { dateKey, CONDITION } from './weather.js'
 import PickerSheet from './PickerSheet.jsx'
 import './day.css'
@@ -61,29 +50,35 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
   // openCalendarPicker is the Plan Phase 2 date-picker opener; in Phase 1 the
   // tappable day-selector wires to it (guarded `?.` — a no-op until Phase 2 adds
   // it to nav). openDay still drives keyed remounts from the picker once it lands.
-  const { openDetail: onSelect, closePage: onClose, openAdd, openCalendarPicker, detail } = useNav()
+  const { openDetail: onSelect, closePage: onClose, openAdd, openCalendarPicker } = useNav()
   const taste = useTaste()
+  const {
+    status: plannerStatus,
+    durability,
+    getDay,
+    isPlanned,
+    add,
+    move,
+    remove,
+    setRest,
+  } = usePlanner()
 
-  // the day-plan map: loaded once on mount (loadDayPlans runs the one-shot
-  // WB migration + the past-day archive sweep), persisted on every change —
-  // the same write-through pattern as the Weekend Builder view.
-  const [plans, setPlans] = useState(() => loadDayPlans(anchors))
-  useEffect(() => {
-    saveDayPlans(plans)
-  }, [plans])
-  // 3.7P-34 review: an event detail can open OVER this (still-mounted) day screen
-  // (agenda card → detail → "Add to day"). Re-read the non-reactive localStorage
-  // store when the detail layer closes so a slot seeded from there shows without a
-  // remount (CalendarView re-derives on the same edge). Syncing an EXTERNAL store
-  // on a close edge is a legitimate effect; no loop (deps are [detail, anchors],
-  // not plans, and the read is idempotent).
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- external-store sync on layer-close edge
-    if (!detail) setPlans(loadDayPlans(anchors))
-  }, [detail, anchors])
-  const entry = dayEntryFor(plans[String(ts)]) ?? emptyDay()
-  const plannedKeys = useMemo(() => plannedItemKeys(plans), [plans])
-  const rest = entry.state === 'rest'
+  // PlannerProvider owns migration, rollover, persistence, and subscriptions.
+  // This screen is a pure reactive reader plus exact async action client.
+  const day = getDay(ts)
+  const slotsByPart = new Map(day.slots.map((slot) => [slot.part, slot]))
+  const rest = day.state === 'rest'
+  const historical = day.source === 'history'
+  const plannerReady = plannerStatus === 'durable' || plannerStatus === 'session-only'
+  const plannerPending = plannerStatus === 'idle' || plannerStatus === 'initializing'
+  const canEdit = plannerReady && !historical && ts >= anchors.todayTs
+  const emptySlotLabel = historical || ts < anchors.todayTs
+    ? 'Past day'
+    : plannerPending
+      ? 'Loading your plan'
+      : 'Planner unavailable'
+  const hasPlaceSlot = day.slots.some((slot) => slot.ref?.kind === 'place')
+  usePlaces(hasPlaceSlot)
   // 3.7P-4b: a satisfying gold pop on the slot you just filled (Recipe A, the
   // savePop curve in --accent — planning earns NO --reward violet per the ban
   // list, so this is brand-gold + scale only). justFilled holds the popped part
@@ -200,11 +195,11 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
         e._day != null &&
         (e._endDay ?? e._day) >= anchors.todayTs &&
         Math.max(e._day, anchors.todayTs) === ts &&
-        !plannedKeys.has(keyOf(e))
+        !isPlanned(e)
     )
     list.sort((a, b) => tasteNudge(b, taste) + wxBonus(b) - (tasteNudge(a, taste) + wxBonus(a)) || a._t - b._t)
     return list
-  }, [availableEvents, anchors, ts, taste, wxBonus, plannedKeys])
+  }, [availableEvents, anchors, ts, taste, wxBonus, isPlanned])
   // the honest basis line — only claims a signal that actually informed the order
   const hasTaste = railReady(taste)
   const suggSub = hasTaste && w ? 'Based on weather and your likes' : hasTaste ? 'Based on what you like' : w ? "Based on the day's weather" : 'Everything on for this day'
@@ -212,43 +207,17 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
   // ===== slots: the picker's resolution pool (same wiring as WB) =====
   const upcoming = useMemo(
     () => availableEvents.filter((e) =>
-      e._day != null && (e._endDay ?? e._day) >= anchors.todayTs && !plannedKeys.has(keyOf(e))
+      e._day != null && (e._endDay ?? e._day) >= anchors.todayTs && !isPlanned(e)
     ),
-    [availableEvents, anchors, plannedKeys]
+    [availableEvents, anchors, isPlanned]
   )
   const { list: savedList } = useSaves()
   const savedEvents = useMemo(
     () => shelfItems(savedList, events, anchors)
-      .filter((x) => !x.unavailable && (x.e.kind === 'place' || x.e._actionable === true) && !plannedKeys.has(keyOf(x.e)))
+      .filter((x) => !x.unavailable && (x.e.kind === 'place' || x.e._actionable === true) && !isPlanned(x.e))
       .map((x) => x.e),
-    [savedList, events, anchors, plannedKeys]
+    [savedList, events, anchors, isPlanned]
   )
-  // Sprint S: a slot can hold a PLACE (Make-this-my-plan writes a 'p|' key),
-  // not just an event. Fold the lazy-loaded places into the resolver map so a
-  // slotted place renders instead of silently vanishing. The places fetch
-  // (~1.2MB) is triggered ONLY when this day actually holds a place key — an
-  // event-only or empty day pays nothing (review HARDENING).
-  const hasPlaceSlot = PARTS.some((p) => isPlaceKey(entry.slots[p]))
-  const { places: placeList } = usePlaces(hasPlaceSlot)
-  const byKey = useMemo(() => {
-    const m = new Map()
-    for (const e of savedEvents) m.set(keyOf(e), e) // snapshots first…
-    for (const e of upcoming) m.set(keyOf(e), e) // …live events win
-    for (const e of events) m.set(keyOf(e), e)
-    if (Array.isArray(placeList)) for (const p of placeList) m.set(p.key, p) // …places too
-    return m
-  }, [events, upcoming, savedEvents, placeList])
-  const resolveSlot = useCallback(
-    (k) => {
-      const e = k ? byKey.get(k) : null
-      if (!e) return null
-      // a place is "always there" — it fits ANY day; only events are date-gated
-      if (e.kind === 'place') return e
-      return fitsDay(e, ts) ? e : null
-    },
-    [byKey, ts]
-  )
-
   // ===== picker sheet (the WB open/close machine) =====
   const [picker, setPicker] = useState(null) // 'morning' | 'afternoon' | 'night' | null
   const [sheetClosing, setSheetClosing] = useState(false)
@@ -268,13 +237,12 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
     }, 240)
   }, [])
 
-  const model = useMemo(() => {
+  const model = (() => {
     if (!picker) return null
-    // dedup pool: this day's filled slots (stale keys null out so a vanished
-    // event can't keep blocking its own re-offer — the WB rule)
-    const liveSlots = Object.fromEntries(
-      PARTS.map((p) => [p, entry.slots[p] && byKey.has(entry.slots[p]) ? entry.slots[p] : null])
-    )
+    const liveSlots = Object.fromEntries(PARTS.map((part) => [
+      part,
+      slotsByPart.get(part)?.ref?.primary || null,
+    ]))
     const m = pickerModel({
       ts,
       part: picker,
@@ -287,27 +255,35 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
     const dw = wx ? wx[dateKey(ts)] : null
     const tag = (e) => ({ ...e, _why: whyFits(e, { w: dw, nudge: tasteNudge }) })
     return { saved: m.saved.map(tag), suggestions: m.suggestions.map(tag) }
-    // deps ARE the three primitive slot values (PARTS is exactly these); the memo
-    // reads them via the computed entry.slots[p], which exhaustive-deps can't match
-    // to the static deps. NOT entry.slots itself — dayEntryFor returns a fresh
-    // object every render, so depending on it would defeat the memo. (was clean as
-    // entry.slots.day/.night pre-⚑PLAN-P0; the computed read is the only change.)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [picker, ts, upcoming, savedEvents, entry.slots.morning, entry.slots.afternoon, entry.slots.night, byKey, wx])
+  })()
 
-  const assign = (e) => {
-    if (!picker) return
+  const assign = async (e) => {
+    if (!picker || !canEdit) return
     const part = picker
-    const result = planItem(plans, ts, part, keyOf(e))
-    if (result.code !== 'added') {
-      flash(result.code === 'already-planned' ? 'Already in your plan' : 'That slot is taken')
-      closeSheet()
+    const result = await add(e, { dayTs: ts, part })
+    const code = result?.conflict?.reducerCode || result?.code
+    if (!result?.changed) {
+      flash(
+        code === 'duplicate'
+          ? 'Already in your plan'
+          : code === 'slot-occupied'
+            ? 'That slot is taken'
+            : code === 'rest-conflict'
+              ? "That's a quiet day — clear the rest mark first"
+              : code === 'planner-rebase-conflict'
+                ? 'Your plan changed — check this day and try again'
+                : "Couldn't add this to your plan"
+      )
       return
     }
-    setPlans(result.map)
-    setJustFilled(part) // 3.7P-4b: pop the slot that just got a plan
+    setJustFilled(part)
     clearTimeout(fillTRef.current)
     fillTRef.current = setTimeout(() => setJustFilled(null), 460)
+    flash(
+      result.durability === 'session-only' || (!result.durability && durability === 'session-only')
+        ? "Added for this visit, but your browser couldn't save it"
+        : `Added to ${DAYPART[part].label.toLowerCase()} ✓`
+    )
     closeSheet()
   }
 
@@ -319,16 +295,10 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
   // shown there. shareEntries resolves both slots to live events in ☀️→🌙
   // order (morning → afternoon → night), dropping any that no longer fit (a
   // refresh moved them). =====
-  const shareEntries = useMemo(
-    () => PARTS.map((part) => ({ part, e: resolveSlot(entry.slots[part]) })).filter((x) => x.e),
-    // deps = the three primitive slot values (computed entry.slots[part] read; see the model memo above)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [resolveSlot, entry.slots.morning, entry.slots.afternoon, entry.slots.night]
-  )
-  const shareableEntries = useMemo(
-    () => shareEntries.filter(({ e }) => e.kind === 'place' || eventLifecycle(e).actionable),
-    [shareEntries]
-  )
+  const shareableEntries = day.slots
+      .filter((slot) => slot.resolution === 'live')
+      .map((slot) => ({ part: slot.part, e: slot.item }))
+      .filter(({ e }) => e?.kind === 'place' || (e && eventLifecycle(e).actionable))
   const canShare = shareableEntries.length > 0
 
   const [toast, setToast] = useState(null)
@@ -339,40 +309,69 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
     clearTimeout(toastTRef.current)
     toastTRef.current = setTimeout(() => setToast(null), 1600)
   }
-  // S1-D7: a per-suggestion quick-add — slot the event into its natural daypart for
-  // THIS day (the shared withSlot seam, same as Home/HotView "Add to day"). A taken
-  // slot flashes instead of clobbering; an open slot pops + toasts.
-  const addToDay = (e) => {
-    const dp = daypartOf(e)
-    const part = dp === 'any' ? 'morning' : dp // 'any' (places/date-only) → the day's start
-    const label = DAYPART[part].label.toLowerCase()
-    const result = planItem(plans, ts, part, keyOf(e))
-    if (result.code !== 'added') {
-      flash(result.code === 'already-planned' ? 'Already in your plan' : `Your ${label} slot is taken — clear it first`)
-      return
-    }
-    setPlans(result.map)
-    setJustFilled(part)
-    clearTimeout(fillTRef.current)
-    fillTRef.current = setTimeout(() => setJustFilled(null), 460)
-    flash(`Added to ${label} ✓`)
-  }
   // Plan Phase 2 (flows-1 p4): move a planned item to another daypart (carry the
   // key over, clear the old slot) — never clobbers a filled target. Remove drops
-  // the slot. Both ride the param-based withSlot/withClearedSlot seams.
-  const moveSlot = (from, to) => {
-    const key = entry.slots[from]
-    if (!key || entry.slots[to]) return
-    setPlans(withClearedSlot(withSlot(plans, ts, to, key), ts, from))
+  // the slot. Both use the atomic planner's expected-primary conflict checks.
+  const moveSlot = async (from, to) => {
+    const slot = slotsByPart.get(from)
+    if (!canEdit || !slot || slotsByPart.has(to)) return
+    const result = await move({ ...slot, dayTs: ts }, { dayTs: ts, part: to })
+    const code = result?.conflict?.reducerCode || result?.code
+    if (!result?.changed) {
+      flash(code === 'planner-rebase-conflict' || code === 'item-conflict'
+        ? 'Your plan changed — check this day and try again'
+        : code === 'slot-occupied'
+          ? 'That time is already planned'
+          : "Couldn't move this plan")
+      return
+    }
     setJustFilled(to)
     clearTimeout(fillTRef.current)
     fillTRef.current = setTimeout(() => setJustFilled(null), 460)
     closeMenu()
-    flash(`Moved to ${DAYPART[to].label.toLowerCase()} ✓`)
+    flash(
+      result.durability === 'session-only' || (!result.durability && durability === 'session-only')
+        ? "Moved for this visit, but your browser couldn't save it"
+        : `Moved to ${DAYPART[to].label.toLowerCase()} ✓`
+    )
   }
-  const removeSlot = (part) => {
-    setPlans(withClearedSlot(plans, ts, part))
+  const removeSlot = async (part) => {
+    const slot = slotsByPart.get(part)
+    if (!canEdit || !slot) return
+    const result = await remove({ ...slot, dayTs: ts })
+    const code = result?.conflict?.reducerCode || result?.code
+    if (!result?.changed) {
+      flash(code === 'planner-rebase-conflict' || code === 'item-conflict'
+        ? 'Your plan changed — check this day and try again'
+        : "Couldn't remove this plan")
+      return
+    }
     closeMenu()
+    flash(
+      result.durability === 'session-only' || (!result.durability && durability === 'session-only')
+        ? "Removed for this visit, but your browser couldn't save it"
+        : 'Removed from your plan'
+    )
+  }
+  const changeRest = async (nextRest) => {
+    if (!canEdit) return
+    const result = await setRest(ts, nextRest)
+    const code = result?.conflict?.reducerCode || result?.code
+    if (!result?.changed) {
+      flash(code === 'slot-conflict'
+        ? 'Clear your plans before marking a quiet day'
+        : code === 'planner-rebase-conflict'
+          ? 'Your plan changed — check this day and try again'
+          : "Couldn't update this day")
+      return
+    }
+    flash(
+      result.durability === 'session-only' || (!result.durability && durability === 'session-only')
+        ? "Updated for this visit, but your browser couldn't save it"
+        : nextRest
+          ? 'Marked as a quiet day'
+          : 'Ready to plan this day'
+    )
   }
   const downloadIcs = (file) => {
     const url = URL.createObjectURL(file)
@@ -433,11 +432,21 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
   // FILLED slot is a card (thumb + time badge · title · 📍venue · time · chips · ⋯)
   // and an EMPTY slot is the dashed invitation ("Add a … plan" + a circled +).
   const renderSlot = (part) => {
-    const e = resolveSlot(entry.slots[part])
+    const slot = slotsByPart.get(part)
+    const e = slot?.item
+    const title = e?.title || e?.name || 'Saved plan'
+    const openable = slot?.resolution === 'live' && Boolean(e)
     const partLow = DAYPART[part].label.toLowerCase()
     const art = part === 'afternoon' ? 'an' : 'a' // "an afternoon" (vowel sound)
     const chips = e ? featuredChips(e) : []
-    const lifecycle = e ? eventLifecycle(e) : null
+    const lifecycle = e && slot?.resolution === 'live' ? eventLifecycle(e) : null
+    const resolutionLabel = slot?.resolution === 'missing'
+      ? 'No longer in the live listings · saved copy'
+      : slot?.resolution === 'ambiguous'
+        ? 'Needs review · saved copy'
+        : slot?.resolution === 'retained'
+          ? 'Saved copy'
+          : null
     const timeBadge = e && e.kind !== 'place' && daypartOf(e) !== 'any' ? timeOf(e.start) : null
     const whenLine = e
       ? e.kind === 'place'
@@ -449,16 +458,22 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
     return (
       <div className="dpg-slot" key={part}>
         <div className="dpg-part">{DAYPART[part].label}</div>
-        {e ? (
+        {slot ? (
           <div className={'dpg-filled' + (justFilled === part ? ' pop' : '')}>
-            <button className="dpg-card pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
+            <button
+              className="dpg-card pressable"
+              disabled={!openable}
+              onClick={(ev) => openable && onSelect(e, ev.currentTarget)}
+            >
               <CardImg e={e} className="dpg-thumb">
                 {timeBadge && <span className="dpg-thumb-time">{timeBadge}</span>}
               </CardImg>
               <span className="dpg-card-main">
-                <span className="dpg-card-title">{e.title}</span>
-                {e.venue && <span className="dpg-card-venue"><Icon.pin className="meta-ic" aria-hidden /> {e.venue}</span>}
-                {lifecycle && !lifecycle.actionable ? (
+                <span className="dpg-card-title">{title}</span>
+                {e?.venue && <span className="dpg-card-venue"><Icon.pin className="meta-ic" aria-hidden /> {e.venue}</span>}
+                {resolutionLabel ? (
+                  <span className="dpg-card-meta dpg-card-status">{resolutionLabel}</span>
+                ) : lifecycle && !lifecycle.actionable ? (
                   <span className="dpg-card-meta dpg-card-status">{lifecycle.label}</span>
                 ) : whenLine ? <span className="dpg-card-meta">{whenLine}</span> : null}
                 {chips.length > 0 && (
@@ -468,16 +483,18 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
                     ))}
                   </span>
                 )}
-                <SponsoredTag e={e} />
+                {e && <SponsoredTag e={e} />}
               </span>
             </button>
             {/* Plan Phase 2 (flows-1 p4): the ⋯ opens the move/remove menu */}
-            <button className="dpg-more" onClick={(ev) => openMenu(part, ev.currentTarget)} aria-haspopup="dialog" aria-expanded={menuPart === part} aria-label={`Options for ${e.title}`}>
-              {/* WS3 §9: engineered kebab, not the ⋯ text glyph */}
-              <Icon.dots aria-hidden />
-            </button>
+            {canEdit && (
+              <button className="dpg-more" onClick={(ev) => openMenu(part, ev.currentTarget)} aria-haspopup="dialog" aria-expanded={menuPart === part} aria-label={`Options for ${title}`}>
+                {/* WS3 §9: engineered kebab, not the ⋯ text glyph */}
+                <Icon.dots aria-hidden />
+              </button>
+            )}
           </div>
-        ) : (
+        ) : canEdit ? (
           <button className="dpg-empty pressable" onClick={() => openSheet(part)} aria-label={`Add ${art} ${partLow} plan`}>
             <span className="dpg-empty-main">
               <span className="dpg-empty-txt">Add {art} {partLow} plan</span>
@@ -485,12 +502,19 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
             </span>
             <span className="dpg-empty-plus" aria-hidden>+</span>
           </button>
+        ) : (
+          <div className="dpg-empty" aria-label={`${DAYPART[part].label}: open`}>
+            <span className="dpg-empty-main">
+              <span className="dpg-empty-txt">Open</span>
+              <span className="dpg-empty-sub">{emptySlotLabel}</span>
+            </span>
+          </div>
         )}
       </div>
     )
   }
 
-  const slotsEmpty = !PARTS.some((p) => entry.slots[p])
+  const slotsEmpty = day.slots.length === 0
 
   return (
     <div className="pg dpg">
@@ -539,11 +563,11 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
         {/* Plan Phase 1: small folded utility actions near the top. "Mark a quiet
             day" only while every slot is empty (the mutual-exclusivity rule); the
             row hides once resting. */}
-        {!rest && (
+        {!rest && (canEdit || canShare) && (
           <div className="dpg-top-actions">
-            <button className="dpg-fold-btn" onClick={() => openAdd(ts)}>+ Add your own</button>
-            {slotsEmpty && (
-              <button className="dpg-fold-btn" onClick={() => setPlans(withRest(plans, ts, true))}>
+            {canEdit && <button className="dpg-fold-btn" onClick={() => openAdd(ts)}>+ Add your own</button>}
+            {canEdit && slotsEmpty && (
+              <button className="dpg-fold-btn" onClick={() => changeRest(true)}>
                 Mark a quiet day
               </button>
             )}
@@ -562,9 +586,11 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
                 CSS crescent is the same mark) — was the 🌙 text emoji */}
             <div className="dpg-rest-title"><Icon.moon className="meta-ic" aria-hidden /> Quiet day</div>
             <div className="dpg-rest-sub">Resting is a plan too. Nothing to do here.</div>
-            <button className="dpg-rest-undo" onClick={() => setPlans(withRest(plans, ts, false))}>
-              Plan this day instead
-            </button>
+            {canEdit && (
+              <button className="dpg-rest-undo" onClick={() => changeRest(false)}>
+                Plan this day instead
+              </button>
+            )}
           </div>
         ) : (
           <div className="dpg-slots">{PARTS.map(renderSlot)}</div>
@@ -594,10 +620,6 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
                       {why && <span className="dpg-sugg-why">{why}</span>}
                     </span>
                   </button>
-                  {/* quick-add this suggestion to its natural daypart slot */}
-                  <button className="dpg-sugg-add pressable" onClick={() => addToDay(e)} aria-label={`Add ${e.title} to this day`}>
-                    +
-                  </button>
                 </div>
               )
             })
@@ -607,7 +629,7 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
         </div>
       </div>
 
-      {picker && model && (
+      {canEdit && picker && model && (
         <PickerSheet
           part={picker}
           dayLabel={dayLabel}
@@ -619,12 +641,12 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
         />
       )}
       {/* Plan Phase 2 (flows-1 p4): the planned-item action menu */}
-      {menuPart && (
+      {canEdit && menuPart && (
         <div className="dpg-menu-wrap" onClick={dismissMenu}>
           <div className="dpg-menu" role="dialog" aria-modal="true" aria-label="Plan item options" ref={menuRef} tabIndex={-1} onKeyDown={menuTrap} onClick={(ev) => ev.stopPropagation()}>
             {!moveMode ? (
               <>
-                <div className="dpg-menu-title">{resolveSlot(entry.slots[menuPart])?.title || DAYPART[menuPart].label}</div>
+                <div className="dpg-menu-title">{slotsByPart.get(menuPart)?.item?.title || slotsByPart.get(menuPart)?.item?.name || DAYPART[menuPart].label}</div>
                 <button className="dpg-menu-item" onClick={() => setMoveMode(true)}>
                   Move to a different time
                 </button>
@@ -636,9 +658,9 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
               <>
                 <div className="dpg-menu-title">Move to…</div>
                 {PARTS.filter((p) => p !== menuPart).map((p) => (
-                  <button key={p} className="dpg-menu-item" disabled={!!entry.slots[p]} onClick={() => moveSlot(menuPart, p)}>
+                  <button key={p} className="dpg-menu-item" disabled={slotsByPart.has(p)} onClick={() => moveSlot(menuPart, p)}>
                     {DAYPART[p].emoji} {DAYPART[p].label}
-                    {entry.slots[p] ? ' · taken' : ''}
+                    {slotsByPart.has(p) ? ' · taken' : ''}
                   </button>
                 ))}
               </>
@@ -649,7 +671,7 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
           </div>
         </div>
       )}
-      {toast && <div className="detail-toast wkb-toast">{toast}</div>}
+      {toast && <div className="detail-toast wkb-toast" role="status" aria-live="polite">{toast}</div>}
     </div>
   )
 }

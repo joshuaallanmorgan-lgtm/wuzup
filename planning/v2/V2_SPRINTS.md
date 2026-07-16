@@ -674,6 +674,40 @@ and migration tests pass; planner operations are idempotent and survive reload.
   together, remove silent quick-add behavior, and render current/future retained plans in My Plans. Sprint 3 remains
   yellow for that journey integration plus truthful geolocation/runtime city resolution.
 
+#### Sprint 3 atomic planner runtime cutover receipt - 2026-07-16 (yellow)
+
+- **One reactive planner now owns every runtime surface:** a city-keyed provider initializes the destination-first
+  atomic store only after an artifact reaches a terminal state, subscribes through stable external-store snapshots,
+  resolves event/place/custom catalogs without eagerly loading places, and destroys exactly one runtime per city.
+  Valid V2 bytes win before any V1 capture; strict raw capture distinguishes missing data from storage failure and
+  leaves every rollback byte untouched.
+- **All ten legacy consumers switched together:** cards, Add Event, Guides, event/place detail, Day, Plan,
+  Next Days, Profile, and My Plans no longer call a V1 planner reader or writer. Cards and guides are doorways rather
+  than silent writers; a custom event is created without auto-slotting; event/place detail requires visible exact
+  day and daypart confirmation; occupied, duplicate, rest, persistence, and concurrent-change outcomes remain
+  explicit; planned items route to their stored day.
+- **Current and retained value render honestly:** My Plans shows current/future active days before bounded history;
+  Plan, Day, Next Days, and Profile update reactively; missing, ambiguous, and retained references keep their saved
+  title and status instead of disappearing. Only live resolved Day items open detail, so incomplete retained
+  snapshots cannot crash or produce a blank destination.
+- **The city-day boundary is enforced, not merely displayed:** successful current-day rollover is now a prerequisite
+  for public planner readiness. Failure becomes an explicit retryable error, stale completions cannot publish, and a
+  failed same-day rollover remains retryable. Detail selections clamp when midnight changes the planning horizon,
+  the runtime rejects past-day add/move/rest targets, My Plans filters stale active past rows, Calendar cannot clear
+  a past or unavailable plan, and weekend guide doorways choose the first non-past day.
+- **Failure and accessibility behavior are part of the contract:** session-only writes remain usable but labelled
+  unsaved with retry; unavailable planners cannot expose an enabled success action; detail planning sheets are
+  modal, focus-trapped, covered-layer inert, pending-serialized, focus-returning, and live-announced.
+- **Verification and independent review are green:** the focused planner state gate passes 115/115; the complete
+  smoke harness passes 130/130; app lint and production build pass; and the complete serial repository gate passes
+  464/464, including finder, immutable artifacts, Tampa/SF and base-path builds, city time, identity, relevance,
+  imagery, location, product truth, and the new planner runtime/UI contracts. Independent adversarial re-review
+  records **SHIP** with no P0/P1 remaining.
+- **Sprint 3 remains yellow:** custom events, saves/Been, recents, and deck memories still need destination-first
+  stable-identity stores before the global key cutover. Truthful geolocation permission state and runtime city
+  resolution also remain. Sprint 4 still owns the checked-in two-city browser journey and the P2 refinements for a
+  planner status change during an open sheet, loading/error Profile counts, and more proximate recovery actions.
+
 ### Sprint 4 - P0 core journeys and the browser release harness
 
 **Outcome:** every known release blocker is fixed through the real browser journey, not only a source seam.

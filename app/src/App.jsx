@@ -7,6 +7,7 @@ import { Icon, currentEvents, keyOf, loadMyEvents, makeAnchors, normalize, rawOf
 import { dayStamp } from './coverage.js'
 import { useArtifact } from './artifacts.js'
 import { NavProvider, VIEWS, useNav } from './nav.jsx'
+import { PlannerProvider } from './PlannerProvider.jsx'
 import Primer, { loadPrimerState } from './Primer.jsx'
 import { WxContext, CardToastHost } from './cards.jsx'
 import { getForecast } from './weather.js'
@@ -404,8 +405,13 @@ function Shell() {
   const baseInert = baseCovered ? true : undefined
 
   return (
-    <WxContext.Provider value={wx}>
-      <div className="app" ref={appRef} onFocusCapture={rememberTrigger} onPointerDownCapture={rememberTrigger}>
+    <PlannerProvider
+      anchors={anchors}
+      events={normalized}
+      artifactStatus={eventArtifact.status}
+    >
+      <WxContext.Provider value={wx}>
+        <div className="app" ref={appRef} onFocusCapture={rememberTrigger} onPointerDownCapture={rememberTrigger}>
         {/* O1 lazy mounting: every section SHELL renders (scroll-snap needs all
             N page widths) but children mount on FIRST VISIT only — Home is
             the boot tab (eager); the rest mount when first reached (tap or
@@ -434,7 +440,7 @@ function Shell() {
             {visited.has('calendar') && <CalendarView events={normalized} anchors={anchors} wx={wx} />}
           </section>
           <section className="page" aria-label={VIEWS[4].label} aria-hidden={active !== 4} inert={active !== 4 ? true : undefined}>
-            {visited.has('profile') && <ProfileView events={normalized} anchors={anchors} primer={primer} />}
+            {visited.has('profile') && <ProfileView />}
           </section>
         </div>
         <TabBar active={active} onTab={goTo} inert={baseInert} hidden={baseCovered || undefined} />
@@ -607,7 +613,8 @@ function Shell() {
           />
         )}
         {loading && bootVis && <div className="boot">Loading Wuzup…</div>}
-      </div>
-    </WxContext.Provider>
+        </div>
+      </WxContext.Provider>
+    </PlannerProvider>
   )
 }

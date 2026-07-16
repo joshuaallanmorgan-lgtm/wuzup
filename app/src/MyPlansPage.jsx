@@ -4,36 +4,54 @@
 //   · Past days journal (day-history-v1) — each day TAPPABLE → openDay(ts)
 //   · the gentle ledger (days-out this month, rhythm/streak, variety firsts)
 //   · "Did you make it?" prompts for passed saves + the self-reported went-list
-// All from REAL local stores (dayplan.js / saves.js / gamify.js); every empty
-// state is honest. Opened via nav.openMyPlans ({type:'myplans'}); reads fresh on
-// mount so counts stay live; each openDay replaces this subpage (single-slot),
-// back → the Profile tab. DRAFT copy — ⚑ Charles.
+// All from the reactive atomic planner plus the existing saves/gamify stores;
+// every empty state is honest. Opened via nav.openMyPlans ({type:'myplans'});
+// each openDay replaces this subpage (single-slot), back → the Profile tab.
 import { useMemo } from 'react'
 import { eventLifecycle, Icon, dayLoose, formatDayTs, keyOf, monthStartTs as cityMonthStartTs, normalize, rawOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { GemRow, SponsoredTag } from './cards.jsx'
 import { DAYPART } from './weekend.js'
 import { markBeen, shelfItems, useBeenThere, useSaves } from './saves.js'
-import { restDayList, rhythmSummary } from './gamify.js'
+import { rhythmSummary } from './gamify.js'
 import {
-  PARTS,
-  dayEntryFor,
   daysOutInMonth,
   didDays,
-  loadDayHistory,
-  loadDayPlans,
   monthReality as computeMonthReality,
   varietyFirsts,
 } from './dayplan.js'
-import { usePlaces, isPlaceKey } from './places.js'
+import { usePlanner } from './PlannerProvider.jsx'
 import './profile.css'
 
 const fmtShort = (ts) => formatDayTs(ts, { weekday: 'short', month: 'short', day: 'numeric' })
+const slotTitle = (slot) => slot?.item?.title || slot?.item?.name || 'Saved plan'
+const slotStatus = (slot) => {
+  if (slot?.resolution === 'ambiguous') return 'needs review'
+  if (slot?.resolution === 'missing') return 'no longer listed'
+  if (slot?.resolution === 'retained') return 'saved copy'
+  return null
+}
+const dayPlanText = (day) => day.slots
+  .map((slot) => {
+    const status = slotStatus(slot)
+    return `${DAYPART[slot.part].emoji} ${slotTitle(slot)}${status ? ` (${status})` : ''}`
+  })
+  .join(' / ')
 
 export default function MyPlansPage({ events, anchors }) {
   const { closePage: onClose, openDetail: onSelect, openDay } = useNav()
   const { list: savedList } = useSaves()
   const been = useBeenThere()
+  const {
+    status: plannerStatus,
+    durability: plannerDurability,
+    error: plannerError,
+    activeDays,
+    history: plannerHistory,
+    filledDayCount: plansCount,
+    getDay,
+    retryPersistence,
+  } = usePlanner()
 
   const byKey = useMemo(() => {
     const m = new Map()
@@ -42,45 +60,27 @@ export default function MyPlansPage({ events, anchors }) {
   }, [events])
   const savedByKey = useMemo(() => new Map(savedList.map((s) => [s.key, s])), [savedList])
 
-  // current plans + past-days journal (read fresh on mount; localStorage isn't
-  // reactive but this subpage remounts each open, and openDay replaces it)
-  const dayPlans = useMemo(() => loadDayPlans(anchors), [anchors])
-  const dayHist = useMemo(() => loadDayHistory().reverse().slice(0, 10), [])
+  // The atomic planner owns both current plans and the past-days journal.
+  // Provider read models stay reactive across edits and other open tabs.
+  const upcomingDays = useMemo(
+    () => activeDays
+      .filter(({ dayTs }) => dayTs >= anchors.todayTs)
+      .map(({ dayTs }) => getDay(dayTs))
+      .filter((day) => day.state === 'rest' || day.slots.length > 0),
+    [activeDays, anchors.todayTs, getDay]
+  )
+  const dayHist = useMemo(
+    () => plannerHistory
+      .slice()
+      .sort((left, right) => right.dayTs - left.dayTs)
+      .slice(0, 10)
+      .map(({ dayTs }) => getDay(dayTs)),
+    [plannerHistory, getDay]
+  )
   const shelf = useMemo(() => shelfItems(savedList, events, anchors), [savedList, events, anchors])
 
-  // honest scoped count: distinct days with a filled slot (current + ALL history).
-  // Counts the FULL loadDayHistory() — NOT the 10-row `dayHist` slice (which is for
-  // rendering only) — so the badge never undercounts a power user's real total.
-  const plansCount = useMemo(() => {
-    let n = 0
-    for (const k of Object.keys(dayPlans)) {
-      const e = dayEntryFor(dayPlans[k])
-      if (e && PARTS.some((p) => e.slots[p])) n++
-    }
-    for (const h of loadDayHistory()) if (h?.slots && PARTS.some((p) => h.slots[p])) n++
-    return n
-  }, [dayPlans])
-
-  // a slot can hold a PLACE ('p|') key — fold the lazy places in so the journal
-  // resolves their titles (the ~1.2MB fetch fires ONLY when a place key exists)
-  const hasPlaceKey = useMemo(() => {
-    for (const k of Object.keys(dayPlans)) {
-      const e = dayEntryFor(dayPlans[k])
-      if (e && PARTS.some((p) => isPlaceKey(e.slots[p]))) return true
-    }
-    for (const h of dayHist) if (PARTS.some((p) => isPlaceKey(h.slots[p]))) return true
-    return false
-  }, [dayPlans, dayHist])
-  const { places: placeList } = usePlaces(hasPlaceKey)
-  const titleByKey = useMemo(() => {
-    const m = new Map()
-    for (const b of been) if (b.snapshot?.title) m.set(b.key, b.snapshot.title)
-    for (const s of savedList) if (s.snapshot?.title) m.set(s.key, s.snapshot.title)
-    for (const e of events) m.set(keyOf(e), e.title)
-    if (Array.isArray(placeList)) for (const p of placeList) m.set(p.key, p.title)
-    return m
-  }, [been, savedList, events, placeList])
-
+  // The provider's count covers every filled current or historical day, while
+  // this page intentionally renders only the ten most recent past days.
   // gentle ledger (all derived, never new stores)
   const dids = useMemo(() => didDays(been), [been])
   const monthStart = useMemo(() => cityMonthStartTs(anchors.todayTs), [anchors.todayTs])
@@ -89,12 +89,18 @@ export default function MyPlansPage({ events, anchors }) {
   const monthName = formatDayTs(anchors.todayTs, { month: 'long' })
   const firsts = useMemo(() => varietyFirsts(been), [been])
   const monthReality = useMemo(
-    () => computeMonthReality(loadDayHistory(), dids, monthStart, nextMonthStart),
-    [monthStart, nextMonthStart, dids]
+    () => computeMonthReality(plannerHistory, dids, monthStart, nextMonthStart),
+    [plannerHistory, monthStart, nextMonthStart, dids]
+  )
+  const restDays = useMemo(
+    () => [...activeDays, ...plannerHistory]
+      .filter((day) => day.state === 'rest')
+      .map((day) => day.dayTs),
+    [activeDays, plannerHistory]
   )
   const rhythm = useMemo(
-    () => rhythmSummary(dids, restDayList(loadDayPlans(anchors), loadDayHistory()), anchors),
-    [dids, anchors]
+    () => rhythmSummary(dids, restDays, anchors),
+    [dids, restDays, anchors]
   )
 
   // Been there: unanswered "did you make it?" prompts + the went-list
@@ -128,7 +134,9 @@ export default function MyPlansPage({ events, anchors }) {
     [been, byKey, anchors]
   )
 
-  const hasAnything = plansCount > 0 || dayHist.length > 0 || wentList.length > 0 || prompts.length > 0
+  const plannerPending = plannerStatus === 'idle' || plannerStatus === 'initializing'
+  const plannerUnavailable = plannerStatus === 'error' || plannerStatus === 'corrupt'
+  const hasAnything = upcomingDays.length > 0 || dayHist.length > 0 || wentList.length > 0 || prompts.length > 0
 
   return (
     <div className="pg">
@@ -141,8 +149,45 @@ export default function MyPlansPage({ events, anchors }) {
         </h1>
       </header>
       <div className="pg-body">
-        {!hasAnything && (
-          <div className="pf-empty">No plans yet — start one from the Calendar tab.</div>
+        {plannerPending && (
+          <div className="pf-empty" role="status">Loading your plans...</div>
+        )}
+        {plannerUnavailable && (
+          <div className="pf-empty" role="alert">
+            Your plans could not be opened safely.
+            {typeof plannerError?.detail === 'string' && <div>{plannerError.detail}</div>}
+            <button className="empty-cta" onClick={retryPersistence}>Try again</button>
+          </div>
+        )}
+        {plannerDurability === 'session-only' && !plannerUnavailable && (
+          <div className="pf-reality" role="status">
+            Changes are available for this visit, but could not be saved.
+            <button className="empty-cta" onClick={retryPersistence}>Try saving again</button>
+          </div>
+        )}
+        {upcomingDays.length > 0 && (
+          <>
+            <div className="pf-hist-label">Coming up</div>
+            {upcomingDays.map((day) => (
+              <button
+                className="pf-dayh pf-dayh-tap"
+                key={day.dayTs}
+                onClick={() => openDay(day.dayTs)}
+              >
+                <span className="pf-dayh-date">
+                  <Icon.calendar className="meta-ic" aria-hidden /> {fmtShort(day.dayTs)}
+                </span>
+                <span className="pf-dayh-what">
+                  {day.state === 'rest'
+                    ? <>Quiet day <Icon.moon className="meta-ic" aria-hidden /></>
+                    : dayPlanText(day)}
+                </span>
+              </button>
+            ))}
+          </>
+        )}
+        {!plannerPending && !plannerUnavailable && !hasAnything && (
+          <div className="pf-empty">No plans yet — start one from the Plan tab.</div>
         )}
 
         {/* Plans → Reality — this month's planned vs follow-through (zero-is-silence) */}
@@ -200,9 +245,7 @@ export default function MyPlansPage({ events, anchors }) {
                   <span className="pf-dayh-what">
                     {h.state === 'rest'
                       ? <>Rested <Icon.moon className="meta-ic" aria-hidden /></>
-                      : PARTS.filter((p) => h.slots[p])
-                          .map((p) => DAYPART[p].emoji + ' ' + (titleByKey.get(h.slots[p]) ?? 'no longer listed'))
-                          .join(' · ')}
+                      : dayPlanText(h)}
                   </span>
                   {went && h.state !== 'rest' && <span className="pf-dayh-went-tag">✓ Went</span>}
                 </button>

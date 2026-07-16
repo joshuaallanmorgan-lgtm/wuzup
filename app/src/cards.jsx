@@ -15,19 +15,19 @@ import { createPortal } from 'react-dom'
 import { CATEGORY_EMOJI, CATEGORY_HUES, PLACETYPE_EMOJI, PLACETYPE_HUE } from './categories.js'
 import { auroraVars, medallionHue } from './artseed.js'
 import { Icon, dayLabelLoose, dayLoose, eventLifecycle, formatDayTs, keyOf, makeAnchors, priceLabel, startLabel, timeOf } from './lib.js'
+import { useNav } from './nav.jsx'
+import { usePlanner } from './PlannerProvider.jsx'
 import { ACTIVITIES } from './places.js'
 import { imageMode, photoFirst } from './imageMode.js'
-import { daypartOf, DAYPART, fillOrder } from './weekend.js'
-import { dayEntryFor, findPlannedItem, loadDayPlans, planItem, saveDayPlans } from './dayplan.js'
+import { daypartOf } from './weekend.js'
 import { SaveHeart, useSaves } from './saves.js'
 import './cards.css'
 
 const PAGE_SIZE = 30
 
-// ===== self-contained card actions: a tiny module-level toast + a one-tap
-// "Add to plan" so the UNIVERSAL cards (GemRow / SpotCard) can write the real
-// day-plan and confirm WITHOUT a host threading onAdd. One toast at a time,
-// rendered into a portal by <CardToastHost/> (mounted once in App). =====
+// ===== self-contained card toast host. Planner actions no longer use it:
+// universal cards open detail for visible day/daypart confirmation, and only
+// the confirmation sheet is allowed to mutate the plan. =====
 let _cardToastSet = null
 export function cardToast(msg) {
   if (_cardToastSet) _cardToastSet(msg)
@@ -50,71 +50,22 @@ export function CardToastHost() {
   return createPortal(<div className="card-toast">{msg}</div>, document.body)
 }
 
-// slot an event/place into its day's natural daypart — TODAY for an undated/place
-// item — never clobbering a filled slot, and confirm via the module toast. The
-// SAME loadDayPlans → withSlot seam DayPage + FeaturedCard use (daypartOf → slot).
-function addToPlan(e) {
-  if (e.kind !== 'place' && e._actionable !== true) {
-    cardToast(eventLifecycle(e).label || 'This event is no longer available')
-    return false
-  }
-  const anchors = makeAnchors()
-  const dayTs = Math.max(e._day ?? anchors.todayTs, anchors.todayTs)
-  const map = loadDayPlans(anchors)
-  const eventKey = keyOf(e)
-  if (findPlannedItem(map, eventKey)) {
-    cardToast('Already in your plan')
-    return false
-  }
-  const cur = dayEntryFor(map[String(dayTs)])
-  const target = fillOrder(e).find((p) => !(cur && cur.slots[p])) // natural daypart first ('any' → morning)
-  if (!target) {
-    cardToast('That day is full — clear a slot first')
-    return false
-  }
-  const result = planItem(map, dayTs, target, eventKey)
-  if (result.code !== 'added') {
-    cardToast(result.code === 'already-planned' ? 'Already in your plan' : 'That slot is taken')
-    return false
-  }
-  saveDayPlans(result.map)
-  const when = dayTs === anchors.todayTs ? 'today' : formatDayTs(dayTs, { weekday: 'long' })
-  cardToast(`${DAYPART[target].emoji} Added to ${when} ${DAYPART[target].label.toLowerCase()}`)
-  return true // PREMIUM A4: lets the Add button morph to its "✓ Added" confirmation
-}
-
-// PREMIUM A4 (motion#7, Josh's gripe): the Add button is a real confirmation — on a
-// successful add it morphs to "✓ Added" with a gold slotPop overshoot for ~2s, then
-// settles back. The module toast (CardToastHost) still fires in parallel.
-function CheckIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden>
-      <path d="M5 12.5l4 4 10-10" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
 function AddButton({ e, className, label, ariaLabel }) {
-  const [added, setAdded] = useState(false)
-  const tRef = useRef(null)
-  useEffect(() => () => clearTimeout(tRef.current), [])
+  const { openDay, openDetail } = useNav()
+  const { isPlanned, placement } = usePlanner()
+  const planned = isPlanned(e)
+  const plannedPlacement = placement(e)
   const onClick = () => {
-    if (addToPlan(e)) {
-      setAdded(true)
-      clearTimeout(tRef.current)
-      tRef.current = setTimeout(() => setAdded(false), 1900)
-    }
+    if (planned && plannedPlacement) openDay(plannedPlacement.dayTs)
+    else openDetail(e)
   }
   return (
-    <button className={className + (added ? ' is-added' : '')} onClick={onClick} aria-label={ariaLabel}>
-      {added ? (
-        <>
-          <CheckIcon /> Added
-        </>
-      ) : (
-        <>
-          <CalIcon /> {label}
-        </>
-      )}
+    <button
+      className={className}
+      onClick={onClick}
+      aria-label={planned && plannedPlacement ? `View ${e.title || e.name} in your plan` : ariaLabel}
+    >
+      <CalIcon /> {planned && plannedPlacement ? 'View plan' : label}
     </button>
   )
 }
@@ -327,10 +278,9 @@ export function TonightCard({ e, onSelect, withDate = false }) {
 
 // 3.7P-23c — FeaturedCard: the §N "Tonight's best bets" featured DecisionCard.
 // Image on top, then meta · title · honest tag chips, and INLINE actions — the
-// card ACTS (Save toggle + Add-to-day), it doesn't just open detail. The image+
-// text are one tap target that opens the detail (the CardImg [data-vt] morph); the
-// action buttons are siblings (never nested in the open button). onAdd(e) is the
-// planner write, owned by the host (HotView) so the toast + day-plan live there.
+// card ACTS (Save toggle + a planner doorway), it doesn't just open detail. The
+// image+text are one tap target that opens the detail (the CardImg [data-vt]
+// morph); the action buttons are siblings (never nested in the open button).
 export function featuredChips(e) {
   const out = []
   if (e.category && e.category !== 'other') out.push(e.category.charAt(0).toUpperCase() + e.category.slice(1))
@@ -390,9 +340,14 @@ export function FeaturedCard({ e, onSelect, onAdd }) {
         <button className={'featc-act featc-save' + (saved ? ' on' : '')} onClick={() => toggle(e)} aria-pressed={saved}>
           {saved ? '♥ Saved' : '♡ Save'}
         </button>
-        {/* the inline planner Add (events one-tap; places need a day, so they open
-            the detail's "Make this my plan" sheet — the host passes no onAdd) */}
-        {onAdd && <button className="featc-act featc-add" onClick={() => onAdd(e)}>{addLabel}</button>}
+        {onAdd && (
+          <AddButton
+            e={e}
+            className="featc-act featc-add"
+            label={addLabel}
+            ariaLabel={`Plan ${e.title || e.name}`}
+          />
+        )}
       </div>
     </div>
   )

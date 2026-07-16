@@ -149,9 +149,16 @@ test('planner destination is city scoped and an existing valid destination wins'
       return migration()()
     },
   }).store
-  const existing = await second.initialize()
+  let sourceCalls = 0
+  const existing = await second.initialize({
+    sourceFactory: () => {
+      sourceCalls += 1
+      throw new Error('an existing destination must win')
+    },
+  })
   assert.equal(existing.code, 'existing-destination')
   assert.equal(called, 0)
+  assert.equal(sourceCalls, 0)
   assert.equal(second.getSnapshot().envelope.commit.id, first.getSnapshot().envelope.commit.id)
 
   const sf = makeStore({ backend, city: SF }).store
@@ -159,6 +166,69 @@ test('planner destination is city scoped and an existing valid destination wins'
   assert.notEqual(sf.physicalKey, first.physicalKey)
   assert.equal(first.physicalKey, physicalKey(PLANNER_STORAGE_KEY, { cityId: TAMPA.id }))
   assert.equal(sf.getSnapshot().cityId, SF.id)
+})
+
+test('strict destination read failures never masquerade as an absent planner', async () => {
+  let migrationCalls = 0
+  const backend = {
+    writes: 0,
+    getItem() {
+      throw new Error('storage denied')
+    },
+    setItem() {
+      this.writes += 1
+    },
+  }
+  const { store } = makeStore({
+    backend,
+    migrate: () => {
+      migrationCalls += 1
+      return migration()()
+    },
+  })
+
+  const initialized = await store.initialize({
+    sourceFactory: () => {
+      throw new Error('must not capture')
+    },
+  })
+
+  assert.equal(initialized.ok, false)
+  assert.equal(initialized.code, 'planner-storage-unavailable')
+  assert.equal(store.getSnapshot().status, 'error')
+  assert.equal(store.getSnapshot().recovery.overwriteAllowed, false)
+  assert.equal(migrationCalls, 0)
+  assert.equal(backend.writes, 0)
+})
+
+test('a missing destination invokes the lazy source factory exactly once', async () => {
+  let sourceCalls = 0
+  let receivedSource = null
+  let receivedOptions = null
+  const { store } = makeStore({
+    migrate: (source, options) => {
+      receivedSource = source
+      receivedOptions = options
+      return migration()()
+    },
+  })
+
+  const initialized = await store.initialize({
+    sourceFactory: async () => {
+      sourceCalls += 1
+      return {
+        source: { dayPlans: { legacy: true } },
+        sourceTimeZone: 'America/Chicago',
+      }
+    },
+    todayTs: DAY,
+    weekendStartTs: DAY,
+  })
+
+  assert.equal(initialized.persisted, true)
+  assert.equal(sourceCalls, 1)
+  assert.deepEqual(receivedSource, { dayPlans: { legacy: true } })
+  assert.equal(receivedOptions.sourceTimeZone, 'America/Chicago')
 })
 
 test('legacy planner bytes can never masquerade as a durable V2 destination', async () => {

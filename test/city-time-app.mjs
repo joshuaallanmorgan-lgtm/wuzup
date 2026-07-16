@@ -22,7 +22,8 @@ import {
 } from '../app/src/lib.js'
 import { daypartOf, fitsDay } from '../app/src/weekend.js'
 import { isOpenNow } from '../app/src/places.js'
-import { emptyDay, findPlannedItem, planItem } from '../app/src/dayplan.js'
+import { addPlannerItem, emptyPlannerDocument } from '../app/src/planner-core.js'
+import { createPlannerCatalog, findPlannedItem } from '../app/src/planner-selectors.js'
 import { dateKey } from '../app/src/weather.js'
 
 const NOW_MS = Date.parse('2026-07-15T16:00:00Z')
@@ -134,8 +135,8 @@ test('retained events expose honest lifecycle labels and cannot be re-planned', 
   assert.deepEqual(eventLifecycle(cancelled), { actionable: false, code: 'cancelled', label: 'Cancelled' })
 
   const cards = readFileSync(new URL('../app/src/cards.jsx', import.meta.url), 'utf8')
-  assert.ok(cards.includes("e.kind !== 'place' && e._actionable !== true"))
-  assert.ok(cards.includes('findPlannedItem'))
+  assert.ok(cards.includes('const planned = isPlanned(e)'))
+  assert.ok(cards.includes('else openDetail(e)'))
   assert.ok(cards.includes('<span className="gem-lifecycle">'))
   const saves = readFileSync(new URL('../app/src/saves.js', import.meta.url), 'utf8')
   assert.ok(saves.includes('eventLifecycle(e)'))
@@ -153,33 +154,67 @@ test('every planner entry point rejects duplicate items and occupied slots', () 
   const today = 1_752_549_600_000
   const tomorrow = 1_752_636_000_000
   const existing = {
-    ...emptyDay(),
-    slots: { morning: 'e|existing', afternoon: null, night: null },
+    id: 'aaaaaaaaaaaaaaaa',
+    title: 'Existing',
+    start: '2026-07-15T19:00:00-04:00',
   }
-  const map = { [String(today)]: existing }
+  const next = {
+    id: 'bbbbbbbbbbbbbbbb',
+    title: 'New',
+    start: '2026-07-15T21:00:00-04:00',
+  }
+  const seeded = addPlannerItem(emptyPlannerDocument(), {
+    dayTs: today,
+    part: 'morning',
+    item: existing,
+  })
+  assert.equal(seeded.code, 'added')
 
-  const occupied = planItem(map, today, 'morning', 'e|new')
-  assert.equal(occupied.code, 'slot-taken')
-  assert.equal(occupied.map, map)
+  const occupied = addPlannerItem(seeded.document, {
+    dayTs: today,
+    part: 'morning',
+    item: next,
+  })
+  assert.equal(occupied.code, 'slot-occupied')
+  assert.equal(occupied.changed, false)
+  assert.deepEqual(occupied.document, seeded.document)
 
-  const duplicate = planItem(map, tomorrow, 'night', 'e|existing')
-  assert.equal(duplicate.code, 'already-planned')
-  assert.equal(duplicate.map, map)
-  assert.deepEqual(duplicate.existing, { dayTs: today, part: 'morning' })
-  assert.deepEqual(findPlannedItem(map, 'e|existing'), { dayTs: today, part: 'morning' })
+  const duplicate = addPlannerItem(seeded.document, {
+    dayTs: tomorrow,
+    part: 'night',
+    item: existing,
+  })
+  assert.equal(duplicate.code, 'duplicate')
+  assert.equal(duplicate.changed, false)
+  assert.deepEqual(duplicate.document, seeded.document)
+  const catalog = createPlannerCatalog({ events: [existing, next] })
+  assert.deepEqual(findPlannedItem(seeded.document, existing, catalog), {
+    dayTs: today,
+    part: 'morning',
+    ref: seeded.document.active[String(today)].slots.morning,
+  })
 
-  const added = planItem(map, today, 'afternoon', 'e|new')
+  const added = addPlannerItem(seeded.document, {
+    dayTs: today,
+    part: 'afternoon',
+    item: next,
+  })
   assert.equal(added.code, 'added')
-  assert.equal(added.map[String(today)].slots.afternoon, 'e|new')
-  assert.equal(map[String(today)].slots.afternoon, null)
+  assert.equal(added.changed, true)
+  assert.equal(added.document.active[String(today)].slots.afternoon.primary, 'e|bbbbbbbbbbbbbbbb')
+  assert.equal(seeded.document.active[String(today)].slots.afternoon, null)
 
   for (const file of ['AddEvent.jsx', 'cards.jsx', 'DayPage.jsx', 'DetailPage.jsx', 'GuidePage.jsx', 'PlaceDetail.jsx']) {
     const source = readFileSync(new URL('../app/src/' + file, import.meta.url), 'utf8')
-    assert.match(source, /planItem\(/, `${file} must use the shared safe planner operation`)
-    assert.doesNotMatch(source, /saveDayPlans\(withSlot\(/, `${file} must not bypass planner safety`)
+    assert.doesNotMatch(
+      source,
+      /\bloadDayPlans\b|\bsaveDayPlans\b|\bplanItem\b|\bwithSlot\b/,
+      `${file} must not bypass the atomic planner provider`,
+    )
   }
   const dayPage = readFileSync(new URL('../app/src/DayPage.jsx', import.meta.url), 'utf8')
-  assert.match(dayPage, /plannedItemKeys/)
+  assert.match(dayPage, /isPlanned/)
+  assert.match(dayPage, /await add\(e, \{ dayTs: ts, part \}\)/)
 })
 test('retained cancellation state outranks an older saved snapshot', () => {
   const anchors = makeAnchors(NOW_MS)
@@ -264,13 +299,15 @@ test('App uses actionable discovery inventory while retained-value pages keep al
   assert.doesNotMatch(source, /setInterval\(refresh/)
   assert.match(source, /<CalendarView events=\{normalized\}/)
   assert.match(source, /page\.type === 'myplans'.*events=\{normalized\}/s)
+  assert.match(source, /<PlannerProvider[\s\S]*events=\{normalized\}[\s\S]*artifactStatus=\{eventArtifact\.status\}/)
   assert.match(source, /<HomeView events=\{norm\}/)
   assert.match(source, /<SearchPage events=\{norm\}/)
   assert.match(source, /<DayPage[^>]*events=\{normalized\}[^>]*availableEvents=\{norm\}/s)
   const dayPage = readFileSync(new URL('../app/src/DayPage.jsx', import.meta.url), 'utf8')
   assert.match(dayPage, /availableEvents\.filter/)
   assert.match(dayPage, /x\.e\.kind === 'place' \|\| x\.e\._actionable === true/)
-  assert.match(dayPage, /for \(const e of events\) m\.set/)
+  assert.match(dayPage, /const day = getDay\(ts\)/)
+  assert.match(dayPage, /slot\.item/)
   assert.doesNotMatch(dayPage, /const list = events\.filter/)
 })
 
