@@ -4,7 +4,8 @@
 // so parsing is a defensive recursive walk: collect anything event-shaped,
 // warn and return [] when nothing is found — never throw on shape surprises.
 
-import { decodeEntities, stripHtml, truncate, fetchWithTimeout } from '../_shared.mjs';
+import { decodeEntities, stripHtml, truncate, fetchWithTimeout, sourceStartDay, sourceWindow } from '../_shared.mjs';
+import { tz as CITY_TZ } from '../../cities/tampa-bay.mjs';
 
 export const name = 'Meetup';
 
@@ -30,14 +31,14 @@ const USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36';
 const WINDOW_DAYS = 45;
 
-function meetupFetch(url) {
+function meetupFetch(url, fetchImpl) {
   return fetchWithTimeout(url, {
     headers: {
       'User-Agent': USER_AGENT,
       Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.9',
     },
-  });
+  }, 20000, fetchImpl);
 }
 
 // Resolve Apollo-style { __ref: "Group:123" } references against the state map.
@@ -48,16 +49,15 @@ function deref(obj, refMap) {
   return obj;
 }
 
-function looksLikeFutureDate(v, todayStart, windowEnd) {
+function looksLikeFutureDate(v, today, lastDay) {
   if (typeof v !== 'string' || v.length < 8) return null;
-  const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return null;
-  if (d < todayStart || d > windowEnd) return null;
-  return d;
+  const day = sourceStartDay(CITY_TZ, v);
+  if (!day || day < today || day > lastDay) return null;
+  return day;
 }
 
 // Recursively walk the parsed JSON collecting event-shaped objects.
-function collectEventLike(root, todayStart, windowEnd) {
+function collectEventLike(root, today, lastDay) {
   const hits = [];
   const seen = new Set();
   const stack = [root];
@@ -74,7 +74,7 @@ function collectEventLike(root, todayStart, windowEnd) {
     const dt = node.dateTime || node.startTime;
     if (
       typeof title === 'string' && title.trim() &&
-      looksLikeFutureDate(dt, todayStart, windowEnd) &&
+      looksLikeFutureDate(dt, today, lastDay) &&
       // require an event-ish signal so Group/Member objects don't slip in
       (node.eventUrl || node.link || node.eventType || node.venue)
     ) {
@@ -172,8 +172,8 @@ function mapEvent(node, refMap) {
   };
 }
 
-async function fetchPageEvents(url, todayStart, windowEnd) {
-  const res = await meetupFetch(url);
+async function fetchPageEvents(url, today, lastDay, fetchImpl) {
+  const res = await meetupFetch(url, fetchImpl);
   if (!res.ok) {
     console.warn(`[${name}] HTTP ${res.status} for ${url}`);
     return [];
@@ -200,7 +200,7 @@ async function fetchPageEvents(url, todayStart, windowEnd) {
     refMap = null;
   }
 
-  const nodes = collectEventLike(data, todayStart, windowEnd);
+  const nodes = collectEventLike(data, today, lastDay);
   const events = [];
   for (const node of nodes) {
     try {
@@ -213,18 +213,20 @@ async function fetchPageEvents(url, todayStart, windowEnd) {
   return events;
 }
 
-export async function fetchEvents() {
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const windowEnd = new Date(todayStart.getTime() + WINDOW_DAYS * 86400000);
+export async function fetchEvents(options = {}) {
+  const config = options || {};
+  const nowMs = config.nowMs ?? Date.now();
+  const fetchImpl = config.fetchImpl ?? globalThis.fetch;
+  const waitImpl = config.waitImpl ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
+  const { today, lastDay } = sourceWindow(CITY_TZ, nowMs, WINDOW_DAYS);
 
   const all = [];
   let firstFetch = true;
   for (const url of LISTING_URLS) {
-    if (!firstFetch) await new Promise((r) => setTimeout(r, FETCH_GAP_MS));
+    if (!firstFetch) await waitImpl(FETCH_GAP_MS);
     firstFetch = false;
     try {
-      all.push(...await fetchPageEvents(url, todayStart, windowEnd));
+      all.push(...await fetchPageEvents(url, today, lastDay, fetchImpl));
     } catch (err) {
       // Network/abort failures on one page are soft — keep what we have.
       console.warn(`[${name}] fetch failed for ${url}: ${err.message}`);

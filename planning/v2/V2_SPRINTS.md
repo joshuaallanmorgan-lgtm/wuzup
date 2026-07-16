@@ -478,6 +478,28 @@ and migration tests pass; planner operations are idempotent and survive reload.
   DoTheBay run coherence, render-date isolation, St. Pete recurrence, final static ratchet, identity, planner, and
   geolocation work.
 
+#### Sprint 3 timestamp-source receipt - 2026-07-15 (yellow)
+
+- **Four more Tampa adapters now share the immutable run clock:** Meetup, City of Tampa RSS, University of Tampa
+  Trumba, and WMNF derive their inclusive city windows from the injected epoch and Tampa zone. Every list, category,
+  and WMNF detail request accepts the deterministic fetch seam; Meetup keeps its production pacing while tests inject
+  a no-op wait. CLI/no-argument behavior retains a single `Date.now()` compatibility fallback per public boundary.
+- **Eligibility uses city-projected instants without rewriting publisher data:** offset-bearing rows can cross their
+  literal date into or out of Tampa's window, zoneless DST gaps fail closed, and accepted start/end strings remain the
+  source literals for identity compatibility. WMNF selects its earliest occurrence by canonical epoch with a stable
+  raw tie-break, including mixed-offset inputs, while still emitting the chosen publisher timestamp unchanged.
+- **All-day duration is calendar-correct:** Trumba applies one strict exclusive-midnight rule to both its phantom-range
+  gate and emitted inclusive end. Exact 30-day coverage remains reachable; 31-day exclusive and non-midnight inclusive
+  ranges are rejected even across the spring DST transition.
+- **Verification is green after two review defects were fixed:** raw HTML, XML, and JSON fixtures cover Meetup's six-
+  page dedupe/pacing, RSS end validation, WMNF inline/detail paths and mixed offsets, Trumba 30/31-day semantics, both
+  window boundaries, malformed rows, virtual/cancelled rows, and LA/Honolulu/Tokyo byte equality. Focused tests pass
+  5/5; the complete serial gate passes 286/286. Independent review caught the initial WMNF lexical ordering and
+  Trumba inclusive-range undercount, then approved their test-first repairs with no remaining P0/P1.
+- **Pinned artifacts are unchanged:** Tampa remains SHA-256 `a8df0d0c...f875d090`, SF remains
+  `84981a8e...873b1d8`, and `app/public` still matches Tampa. Sprint 3 remains yellow for DoTheBay run coherence,
+  render-date isolation, St. Pete recurrence, the final source ratchet, identity, planner, and geolocation work.
+
 ### Sprint 4 - P0 core journeys and the browser release harness
 
 **Outcome:** every known release blocker is fixed through the real browser journey, not only a source seam.

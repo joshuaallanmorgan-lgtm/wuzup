@@ -1,6 +1,8 @@
 // Univ. of Tampa campus events via Trumba public JSON feed.
 // Source: https://www.trumba.com/calendars/ut-events.json
-import { decodeEntities, stripHtml, truncate, fetchWithTimeout } from '../_shared.mjs';
+import { calendarDayDiff } from '../../../shared/city-time.mjs';
+import { decodeEntities, stripHtml, truncate, fetchWithTimeout, addDaysStr, sourceStartDay, sourceWindow } from '../_shared.mjs';
+import { tz as CITY_TZ } from '../../cities/tampa-bay.mjs';
 
 export const name = 'Univ. of Tampa';
 
@@ -36,21 +38,25 @@ function parsePrice(customFields) {
 
 // 'YYYY-MM-DD' minus n days, pure string/UTC math (no local-TZ surprises).
 function minusDays(dayStr, n) {
-  const [y, m, d] = dayStr.split('-').map(Number);
-  return new Date(Date.UTC(y, m - 1, d - n)).toISOString().slice(0, 10);
+  return addDaysStr(dayStr, -n);
 }
 
-export async function fetchEvents() {
+function isExclusiveMidnight(value) {
+  return /T00:00(?::00(?:\.0{1,3})?)?(?:Z|[+-]\d{2}:\d{2})?$/.test(String(value || ''));
+}
+
+export async function fetchEvents(options = {}) {
+  const config = options || {};
+  const nowMs = config.nowMs ?? Date.now();
+  const fetchImpl = config.fetchImpl ?? globalThis.fetch;
+  const { today, lastDay } = sourceWindow(CITY_TZ, nowMs, WINDOW_DAYS);
   const res = await fetchWithTimeout(FEED_URL, {
     headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
-  });
+  }, undefined, fetchImpl);
   if (!res.ok) throw new Error(`Trumba UT feed HTTP ${res.status}`);
   const data = await res.json();
   if (!Array.isArray(data)) throw new Error('Trumba UT feed: expected a JSON array');
 
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const windowEnd = new Date(todayStart.getTime() + WINDOW_DAYS * 86400000);
   const events = [];
 
   for (const ev of data) {
@@ -66,17 +72,20 @@ export async function fetchEvents() {
       // payment") — university administrivia, not a thing anyone attends.
       if (/grades due|registration (and|&) payment|drop\/add|withdrawal deadline|tuition/i.test(title)) continue;
 
-      const start = new Date(ev.startDateTime);
-      if (Number.isNaN(start.getTime())) continue;
-      const end = ev.endDateTime ? new Date(ev.endDateTime) : null;
+      const startDay = sourceStartDay(CITY_TZ, ev.startDateTime);
+      if (!startDay) continue;
+      const endDay = ev.endDateTime ? sourceStartDay(CITY_TZ, ev.endDateTime) : null;
+      const inclusiveAllDayEnd = ev.allDay && endDay
+        ? (isExclusiveMidnight(ev.endDateTime) ? minusDays(endDay, 1) : endDay)
+        : null;
 
       // Skip long-running "Ongoing" exhibitions: allDay spanning > 30 days.
-      if (ev.allDay && end && !Number.isNaN(end.getTime())) {
-        const spanDays = (end.getTime() - start.getTime()) / 86400000;
-        if (spanDays > 30) continue;
+      if (inclusiveAllDayEnd) {
+        const coveredDays = calendarDayDiff(startDay, inclusiveAllDayEnd) + 1;
+        if (coveredDays > 30) continue;
       }
 
-      if (start < todayStart || start > windowEnd) continue;
+      if (startDay < today || startDay > lastDay) continue;
 
       let venue = stripHtml(ev.location) || null;
       // Trumba shows this placeholder when the location is restricted to signed-in users.
@@ -100,16 +109,12 @@ export async function fetchEvents() {
       // midnight end (e.g. start 07-02T00:00, end 07-03T00:00 = "July 2").
       // Emit date-only strings so the app shows a date, not "12:00 AM".
       let startOut = ev.startDateTime;
-      let endOut = ev.endDateTime || null;
+      let endOut = endDay ? ev.endDateTime : null;
       if (ev.allDay) {
-        const startDay = String(ev.startDateTime).slice(0, 10);
         startOut = startDay;
         endOut = null;
-        if (ev.endDateTime) {
-          let endDay = String(ev.endDateTime).slice(0, 10);
-          // Midnight end = exclusive bound; the event's last day is the day before.
-          if (/T00:00(:00)?/.test(String(ev.endDateTime))) endDay = minusDays(endDay, 1);
-          if (endDay > startDay) endOut = endDay;
+        if (inclusiveAllDayEnd && inclusiveAllDayEnd > startDay) {
+          endOut = inclusiveAllDayEnd;
         }
       }
 

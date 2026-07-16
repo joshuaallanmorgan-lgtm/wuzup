@@ -1,0 +1,33 @@
+{
+  "list": [
+    {
+      "EVT_name": "Today &amp; WMNF",
+      "status": { "raw": "publish" },
+      "datetimes": [
+        { "DTT_EVT_start": "2026-03-07T23:30:00" },
+        { "DTT_EVT_start": "2026-03-08T03:30:00", "DTT_EVT_end": "2026-03-08T04:30:00" }
+      ],
+      "venue": { "VNU_name": "Crowbar", "VNU_address": "1812 N. 17th Street", "VNU_city": "Tampa", "VNU_zip": "33605" },
+      "EVT_desc": { "rendered": "<p>Live &amp; local</p>" },
+      "link": "https://example.test/wmnf-today"
+    },
+    {
+      "EVT_name": "Last WMNF",
+      "datetimes": [{ "DTT_EVT_start": "2026-04-23T01:00:00+02:00", "DTT_EVT_end": "2026-03-08T02:30:00" }]
+    },
+    {
+      "EVT_name": "Mixed offset WMNF",
+      "datetimes": [
+        { "DTT_EVT_start": "2026-03-08T23:00:00-05:00" },
+        { "DTT_EVT_start": "2026-03-09T01:00:00+02:00" }
+      ]
+    },
+    { "EVT_name": "After WMNF", "datetimes": [{ "DTT_EVT_start": "2026-04-23T20:00:00-04:00" }] },
+    { "EVT_name": "Gap WMNF", "datetimes": [{ "DTT_EVT_start": "2026-03-08T02:30:00" }] },
+    { "EVT_name": "Malformed WMNF", "datetimes": [{ "DTT_EVT_start": "not-a-date" }] },
+    { "EVT_ID": 42, "EVT_name": "Detail WMNF", "link": "https://example.test/wmnf-detail" }
+  ],
+  "detailsByEventId": {
+    "42": [{ "DTT_EVT_start": "2026-03-08T19:00:00" }]
+  }
+}
