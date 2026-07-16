@@ -19,6 +19,8 @@ export const RETAINED_V1_SOURCE_DOMAINS = Object.freeze({
   saved: Object.freeze(['savedEvents', 'beenThere']),
   recents: Object.freeze(['recents']),
   decks: Object.freeze(['eventDeck', 'placeDeck']),
+  eventDeck: Object.freeze(['eventDeck']),
+  placeDeck: Object.freeze(['placeDeck']),
 })
 
 const SOURCE_SHAPES = Object.freeze({
@@ -167,7 +169,7 @@ export function captureRetainedV1Source({
   if (!fields) {
     fail(
       'RETAINED_V1_INVALID_DOMAIN',
-      'domain must be custom, saved, recents, or decks',
+      'domain must select a retained V1 source group',
       { domain },
     )
   }

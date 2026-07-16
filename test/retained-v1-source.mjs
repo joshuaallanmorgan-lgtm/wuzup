@@ -29,7 +29,7 @@ function captureDomain(domain, options) {
 }
 
 function captureAll(options) {
-  const captures = Object.keys(RETAINED_V1_SOURCE_DOMAINS)
+  const captures = ['custom', 'saved', 'recents', 'decks']
     .map((domain) => captureDomain(domain, options))
   return {
     source: Object.assign({}, ...captures.map((capture) => capture.source)),

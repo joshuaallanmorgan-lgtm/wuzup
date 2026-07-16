@@ -340,6 +340,177 @@ function boundedIdentityRefOf(item, forcedKind = null) {
   }
 }
 
+export function activityRefOf(item, { kind = null } = {}) {
+  if (!isObject(item) || ![null, 'event', 'place'].includes(kind)) return null
+  const explicitKind = KINDS.has(item.kind) ? item.kind : inferKind(item.key, null)
+  if (kind === 'place' && explicitKind !== 'place') return null
+  if (kind === 'event' && explicitKind === 'place') return null
+  const ref = boundedIdentityRefOf(item, kind === 'place' ? 'place' : null)
+  if (!ref) return null
+  if (kind === 'event' && !EVENT_KINDS.has(ref.kind)) return null
+  if (kind === 'place' && ref.kind !== 'place') return null
+  return attachedRef(ref.kind, ref.primary, [ref.aliases])
+}
+
+const ACTIVITY_COLLECTIONS = Object.freeze({
+  recents: Object.freeze({
+    cap: ACTIVITY_RECENTS_CAP,
+    position: 'head',
+    fallbackKind: null,
+  }),
+  eventDeck: Object.freeze({
+    cap: ACTIVITY_EVENT_DECK_CAP,
+    position: 'tail',
+    fallbackKind: 'event',
+  }),
+  placeDeck: Object.freeze({
+    cap: ACTIVITY_PLACE_DECK_CAP,
+    position: 'tail',
+    fallbackKind: 'place',
+  }),
+})
+
+function sameDocument(left, right) {
+  try {
+    return JSON.stringify(left) === JSON.stringify(right)
+  } catch {
+    return false
+  }
+}
+
+function compatibleKinds(left, right) {
+  return left === right
+    || left === 'unknown'
+    || right === 'unknown'
+    || EVENT_KINDS.has(left) && EVENT_KINDS.has(right)
+}
+
+function runtimeRefMatch(current, next) {
+  if (current.status === 'attached') {
+    return current.kind === next.kind
+      && (
+        current.primary === next.primary
+        || current.aliases.includes(next.primary)
+        || next.aliases.includes(current.primary)
+      )
+  }
+  if (!compatibleKinds(current.kind, next.kind)) return false
+  if (next.aliases.includes(current.legacyKey)) return true
+  return current.status === 'ambiguous' && current.candidates.includes(next.primary)
+}
+
+export function recordActivityRef(
+  value,
+  {
+    cityId,
+    collection,
+    ref,
+  } = {},
+) {
+  const document = normalizeActivityState(value, { cityId })
+  if (!document) return { document: value, changed: false, code: 'invalid-document' }
+  const contract = ACTIVITY_COLLECTIONS[collection]
+  if (!contract) return { document, changed: false, code: 'invalid-collection' }
+  const normalizedRef = normalizeRef(ref, contract.fallbackKind)
+  if (!normalizedRef || normalizedRef.status !== 'attached') {
+    return { document, changed: false, code: 'invalid-ref' }
+  }
+
+  const fingerprint = refFingerprint(normalizedRef)
+  let nextRef = normalizedRef
+  const kept = []
+  const matchingRows = document[collection].filter((current) => (
+    refFingerprint(current) === fingerprint || runtimeRefMatch(current, normalizedRef)
+  ))
+  const canConsolidate = matchingRows.length === 1
+  for (const current of document[collection]) {
+    const matches = refFingerprint(current) === fingerprint || runtimeRefMatch(current, normalizedRef)
+    if (!matches || !canConsolidate) {
+      kept.push(current)
+      continue
+    }
+    nextRef = current.status === 'attached'
+      ? current.primary === nextRef.primary
+        ? mergeAttached(current, nextRef)
+        : attachedRef(nextRef.kind, nextRef.primary, [
+            nextRef.aliases,
+            current.aliases,
+          ]) || nextRef
+      : attachedRef(nextRef.kind, nextRef.primary, [
+          nextRef.aliases,
+          [current.legacyKey],
+        ]) || nextRef
+  }
+  const rows = contract.position === 'head'
+    ? [nextRef, ...kept].slice(0, contract.cap)
+    : [...kept, nextRef].slice(-contract.cap)
+  const next = normalizeActivityState({
+    ...document,
+    [collection]: rows,
+  }, { cityId })
+  if (!next) return { document, changed: false, code: 'invalid-document' }
+  return {
+    document: next,
+    changed: !sameDocument(document, next),
+    code: sameDocument(document, next) ? 'already-current' : 'recorded',
+  }
+}
+
+export function clearActivityCollection(
+  value,
+  {
+    cityId,
+    collection,
+  } = {},
+) {
+  const document = normalizeActivityState(value, { cityId })
+  if (!document) return { document: value, changed: false, code: 'invalid-document' }
+  if (!ACTIVITY_COLLECTIONS[collection]) {
+    return { document, changed: false, code: 'invalid-collection' }
+  }
+  if (document[collection].length === 0) {
+    return { document, changed: false, code: 'already-empty' }
+  }
+  const next = normalizeActivityState({
+    ...document,
+    [collection]: [],
+  }, { cityId })
+  return next
+    ? { document: next, changed: true, code: 'cleared' }
+    : { document, changed: false, code: 'invalid-document' }
+}
+
+export function activityExclusionKeys(
+  value,
+  {
+    cityId,
+    collection,
+    includeCandidates = true,
+  } = {},
+) {
+  const document = normalizeActivityState(value, { cityId })
+  if (!document || !['eventDeck', 'placeDeck'].includes(collection)) return []
+  const keys = []
+  const seen = new Set()
+  const add = (key) => {
+    if (!usableString(key) || seen.has(key)) return
+    seen.add(key)
+    keys.push(key)
+  }
+  for (const ref of document[collection]) {
+    if (ref.status === 'attached') {
+      add(ref.primary)
+      for (const alias of ref.aliases) add(alias)
+      continue
+    }
+    add(ref.legacyKey)
+    if (includeCandidates && ref.status === 'ambiguous') {
+      for (const candidate of ref.candidates) add(candidate)
+    }
+  }
+  return keys
+}
+
 function catalogRefs(values, forcedKind = null) {
   const out = []
   const source = Array.isArray(values) ? values : []

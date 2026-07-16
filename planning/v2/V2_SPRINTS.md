@@ -771,6 +771,29 @@ and migration tests pass; planner operations are idempotent and survive reload.
   and one coherent replacement of the current recents and event/place deck readers and writers. V1 bytes remain
   untouched for rollback, and Sprint 3 remains yellow.
 
+#### Sprint 3 atomic activity-store foundation receipt - 2026-07-16 (yellow)
+
+- **Retained activity now has a destination-first atomic adapter:** `activity-v2` binds the shared activity
+  document to the selected city and the generic atomic engine. Commands persist bounded identity references only,
+  publish stable same-tab snapshots, replay through canonical record/clear operations, and retain the engine's
+  explicit durable, retryable session-only, corrupt, and unavailable states.
+- **The three V1 memories preserve their real ordering contracts:** recents remain most-recent-first at 12 rows;
+  event and place calibration histories remain oldest-to-newest FIFOs capped from the newest tail at 30 each.
+  Runtime actions can promote one directly evidenced old primary, missing ref, or ambiguous ref to the item the
+  user actually opened or rated, while weak-alias overlap and multiple possible matches never first-win.
+- **Source damage is isolated and visible:** recents, event-deck, and place-deck bytes are captured through
+  independent strict read domains, so one malformed low-value FIFO cannot erase a valid sibling. Oversized but
+  bounded V1 arrays salvage the correct head/tail and record an explicit truncated migration status and counts;
+  storage I/O failure still blocks initialization, exact V1 bytes remain untouched, and migration context stores
+  compact provenance rather than duplicating raw source values.
+- **Verification and review are green:** the registered activity/retained/atomic gate passes 62/62; the independent
+  activity, retained-capture, identity-migration, and atomic compatibility review passes 76/76; exact-file lint and
+  diff hygiene pass. Final adversarial re-review records **SHIP** with no P0/P1 remaining.
+- **The React cutover remains intentionally pending:** `ActivityProvider` must use the StrictMode-safe runtime-holder
+  pattern, wrap `NavProvider`, keep session recents tab-local, feed alias-aware exclusions to both decks, clear both
+  deck memories, and expose session-only durability honestly. Until that coherent consumer swap lands, Sprint 3
+  remains yellow and the V1 writers remain the active runtime.
+
 #### Sprint 3 truthful location-permission runtime receipt - 2026-07-16 (yellow)
 
 - **Permission intent and effective use are separate:** one city-scoped controller owns disabled, desired,
