@@ -2,6 +2,7 @@
 // NOTE: this file is plain .js, so NO JSX here — icons use createElement.
 import { createElement as h } from 'react'
 import { categoryById } from './categories.js'
+import { assignLocalEventIds } from './identity.js'
 import { lsGet, lsSet } from './storage.js'
 
 // Stage D4: the CITY config (identity, center, heroes + credits) moved wholesale
@@ -990,17 +991,44 @@ export function validMyEvent(value) {
     && typeof value.start === 'string'
     && /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2})?)?/.test(value.start)
 }
+function legacySafeMyEvents(valid) {
+  return assignLocalEventIds(valid, { createId: () => null }).items
+}
 export function loadMyEvents() {
   try {
     const v = JSON.parse(lsGet(MY_EVENTS_KEY))
-    return Array.isArray(v) ? v.filter(validMyEvent) : []
+    const valid = Array.isArray(v) ? v.filter(validMyEvent) : []
+    const migration = assignLocalEventIds(valid)
+    if (!migration.changed) return valid
+    if (lsSet(MY_EVENTS_KEY, JSON.stringify(migration.items))) return migration.items
+    if (!migration.complete) {
+      // Duplicate IDs are unsafe even for one session. Keep the collision-free
+      // legacy fallback in memory while the untouched durable source retries.
+      lsSet(MY_EVENTS_KEY, JSON.stringify(migration.items))
+      return migration.items
+    }
+    // Newly minted IDs would disappear on reload. Keep only durable prior IDs,
+    // strip later duplicate owners, and fall new rows back to legacy identity.
+    const fallback = legacySafeMyEvents(valid)
+    lsSet(MY_EVENTS_KEY, JSON.stringify(fallback))
+    return fallback
   } catch {
     return [] // missing key / corrupt JSON / private mode — never crash the boot
   }
 }
-export function saveMyEvents(list) {
+export function saveMyEvents(list, { createId } = {}) {
   const valid = Array.isArray(list) ? list.filter(validMyEvent) : []
-  lsSet(MY_EVENTS_KEY, JSON.stringify(valid)) // guarded in storage.js — session state still works
+  const migration = assignLocalEventIds(valid, { createId })
+  if (!migration.complete) {
+    const persisted = lsSet(MY_EVENTS_KEY, JSON.stringify(migration.items))
+    return { items: migration.items, persisted, complete: false }
+  }
+  const persisted = lsSet(MY_EVENTS_KEY, JSON.stringify(migration.items))
+  if (persisted) return { items: migration.items, persisted: true, complete: true }
+  // Keep failed writes collision-free on legacy identities in session too.
+  const fallback = legacySafeMyEvents(valid)
+  lsSet(MY_EVENTS_KEY, JSON.stringify(fallback))
+  return { items: fallback, persisted: false, complete: false }
 }
 // strip normalize()'s computed _fields → a clean schema-v2 object (an
 // undo-restored event persists as raw data, identical to a fresh submission)

@@ -598,6 +598,27 @@ and migration tests pass; planner operations are idempotent and survive reload.
   V1 rollback bytes untouched before any consumer switches to stable primaries. Sprint 3 therefore remains yellow
   for stable-ID dual-read integration, retained atomic planner state, and truthful geolocation/runtime city resolution.
 
+#### Sprint 3 identity migration and custom-event durability receipt - 2026-07-16 (yellow)
+
+- **The pre-V2 compatibility gap is explicit and bounded:** a checked-in, city-isolated seed contains exactly the
+  25 Tampa V1 legacy aliases whose current legacy key changed while a stable-ID chain still proves identity. Its
+  canonical 3,036-byte payload is pinned at SHA-256 `15a20535...d342c3`; SF intentionally has zero seeds because
+  its eight unmatched id-less V1 aliases have no safe bridge and must remain unresolved.
+- **Exact V1 state now has a pure lossless destination transform:** saved maps, Been-there rows, recents, event-deck
+  memory, active plans, and day history retain counts, order, snapshots, status, and slot topology. Unique evidence
+  attaches stable primary plus aliases; missing and ambiguous references remain explicit without a guessed primary.
+  Historical seeds are graph evidence only and can never invent a live catalog candidate.
+- **Local events receive identity only after durability is proven:** valid new and migrated custom rows use persistent
+  `c|` IDs; a blocked write keeps the usable legacy identity and untouched durable bytes retryable. Missing browser
+  ID support still persists the legacy row, duplicates retry before claiming success, and an unremintable duplicate
+  strips only the later owner back to a collision-free legacy identity. App state consumes the canonical write result
+  immediately, and Add Event tells the user when the browser could not save beyond the current visit.
+- **Focused verification is green:** the identity/storage group passes 36/36, app lint and production build pass,
+  and every seed resolves to one current committed Tampa primary while differing from its current legacy alias.
+- **This is not yet the consumer cutover:** the pure transform and seed are ready, but destination-first persistent
+  V2 save/Been/recents/deck stores and the atomic planner store still need to land before `keyOf` can switch. V1 bytes
+  remain untouched for rollback, and Sprint 3 remains yellow for that wiring plus geolocation/runtime city resolution.
+
 ### Sprint 4 - P0 core journeys and the browser release harness
 
 **Outcome:** every known release blocker is fixed through the real browser journey, not only a source seam.

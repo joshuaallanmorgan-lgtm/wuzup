@@ -110,6 +110,20 @@ test('duplicate persisted custom IDs are repaired without changing the first own
   assert.equal(result.items[1].localId, 'replacement-local-id')
 })
 
+test('an unremintable duplicate custom ID falls back to a distinct legacy identity', () => {
+  const rows = [
+    { source: 'Added by you', title: 'First', start: '2026-07-20', localId: 'duplicate-local-id' },
+    { source: 'Added by you', title: 'Second', start: '2026-07-21', localId: 'duplicate-local-id' },
+  ]
+  const result = assignLocalEventIds(rows, { createId: () => null })
+
+  assert.equal(result.complete, false)
+  assert.equal(result.changed, true)
+  assert.equal(primaryKeyOf(result.items[0]), 'c|duplicate-local-id')
+  assert.equal(result.items[1].localId, undefined)
+  assert.equal(primaryKeyOf(result.items[1]), 'Second|2026-07-21')
+})
+
 test('real Tampa drift resolves through stable or legacy evidence without conflating new or removed rows', () => {
   const cases = FIXTURE.cases
   const current = [

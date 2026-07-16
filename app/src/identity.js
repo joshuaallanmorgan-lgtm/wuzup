@@ -234,5 +234,26 @@ export function assignLocalEventIds(items, { createId } = {}) {
     return { ...item, localId }
   })
 
+  if (!complete) {
+    // Partial minting is not a durable identity contract. Discard every new
+    // ID from this attempt, but strip duplicate pre-existing owners after the
+    // first so the fallback list is collision-free on legacy identities.
+    const retained = new Set()
+    let fallbackChanged = false
+    const fallback = source.map((item) => {
+      if (!isCustomEvent(item) || !validLocalEventId(item.localId)) return item
+      if (!retained.has(item.localId)) {
+        retained.add(item.localId)
+        return item
+      }
+      const copy = { ...item }
+      delete copy.localId
+      if (!isCustomEvent(copy)) copy.kind = 'custom'
+      fallbackChanged = true
+      return copy
+    })
+    return { items: fallbackChanged ? fallback : source, changed: fallbackChanged, complete: false }
+  }
+
   return { items: changed ? next : source, changed, complete }
 }

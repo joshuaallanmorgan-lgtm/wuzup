@@ -303,22 +303,27 @@ function Shell() {
   // map pin). rawOf strips computed _fields when an undo restores a
   // normalized copy, keeping storage pure schema-v2.
   const [myEvents, setMyEvents] = useState(loadMyEvents)
-  useEffect(() => {
-    saveMyEvents(myEvents)
-  }, [myEvents])
   // Re-read storage inside the setters: a stale tab must never clobber another
   // tab's adds. Duplicate adds (same title+date, no URL → same key) are no-ops.
   const addMine = useCallback((raw) => {
-    setMyEvents(() => {
-      const fresh = loadMyEvents()
-      const r = rawOf(raw)
-      if (fresh.some((x) => keyOf(x) === keyOf(r))) return fresh
-      return [...fresh, r]
-    })
+    const fresh = loadMyEvents()
+    const candidate = rawOf(raw)
+    const duplicate = fresh.find((item) => keyOf(item) === keyOf(candidate))
+    if (duplicate) {
+      const write = saveMyEvents(fresh)
+      setMyEvents(write.items)
+      const item = write.items.find((current) => keyOf(current) === keyOf(duplicate)) || duplicate
+      return { code: 'duplicate', item, persisted: write.persisted }
+    }
+    const write = saveMyEvents([...fresh, candidate])
+    setMyEvents(write.items)
+    return { code: 'added', item: write.items.at(-1), persisted: write.persisted }
   }, [])
   const removeMine = useCallback((e) => {
     const k = keyOf(e)
-    setMyEvents(() => loadMyEvents().filter((x) => keyOf(x) !== k))
+    const write = saveMyEvents(loadMyEvents().filter((item) => keyOf(item) !== k))
+    setMyEvents(write.items)
+    return { code: 'removed', persisted: write.persisted }
   }, [])
   const normalized = useMemo(
     () => [...events, ...myEvents].map((event) => normalize(event, anchors)),

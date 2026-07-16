@@ -227,9 +227,12 @@ test('malformed custom-event rows cannot crash app normalization', () => {
       {},
       { title: 'Valid local plan', start: '2026-07-20', tags: ['added-by-you'] },
     ]))
-    assert.deepEqual(loadMyEvents(), [
-      { title: 'Valid local plan', start: '2026-07-20', tags: ['added-by-you'] },
-    ])
+    const loaded = loadMyEvents()
+    assert.equal(loaded.length, 1)
+    assert.match(loaded[0].localId, /^[a-z0-9][a-z0-9_-]{7,63}$/i)
+    const { localId, ...raw } = loaded[0]
+    assert.ok(localId)
+    assert.deepEqual(raw, { title: 'Valid local plan', start: '2026-07-20', tags: ['added-by-you'] })
   } finally {
     globalThis.localStorage = previous
   }

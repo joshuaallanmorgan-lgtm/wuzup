@@ -56,7 +56,7 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
     desc: '',
   })
   const [errors, setErrors] = useState({})
-  const [done, setDone] = useState(false)
+  const [done, setDone] = useState(null)
   const doneTRef = useRef(null)
   useEffect(() => () => clearTimeout(doneTRef.current), [])
 
@@ -130,9 +130,9 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
       category: f.cat || 'other',
       sponsored: false,
     }
-    onAdd(raw) // the ONE event seam — my-events; no second event store (U-c contract)
-    if (fromDay) autoSlot(raw)
-    setDone(true)
+    const added = onAdd(raw) // returns the canonical persisted/session item
+    if (fromDay && added?.code === 'added' && added.persisted === true && added.item) autoSlot(added.item)
+    setDone(added || { code: 'added', persisted: false })
     doneTRef.current = setTimeout(onClose, 1400) // success beat, then back to Hot
   }
 
@@ -161,8 +161,12 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
         {done ? (
           <div className="ae-done" role="status">
             <div className="ae-done-emoji">🎉</div>
-            <div className="ae-done-title">Added!</div>
-            <div className="ae-done-sub">It's in your feed.</div>
+            <div className="ae-done-title">{done.code === 'duplicate' ? 'Already added' : 'Added!'}</div>
+            <div className="ae-done-sub">
+              {done.persisted === false
+                ? "It's here for this visit, but your browser couldn't save it."
+                : "It's in your feed."}
+            </div>
           </div>
         ) : (
           <form className="ae-form" noValidate onSubmit={submit}>
