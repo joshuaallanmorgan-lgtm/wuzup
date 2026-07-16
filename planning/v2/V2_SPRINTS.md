@@ -619,6 +619,30 @@ and migration tests pass; planner operations are idempotent and survive reload.
   V2 save/Been/recents/deck stores and the atomic planner store still need to land before `keyOf` can switch. V1 bytes
   remain untouched for rollback, and Sprint 3 remains yellow for that wiring plus geolocation/runtime city resolution.
 
+#### Sprint 3 atomic planner reducer foundation receipt - 2026-07-16 (yellow)
+
+- **Planner mutations now have one deterministic contract:** the versioned document owns active days, retained
+  history, revision state, and per-cell mutation tokens. Add, exact-slot move, remove, rest, undo, and rollover are
+  pure count-preserving operations; occupied slots, duplicates, rest conflicts, and stale expectations fail without
+  silently selecting another day or daypart.
+- **Undo is compare-and-act rather than shape-based:** every affected slot or rest state receives a persisted
+  generation token. Receipts remain valid across unrelated edits, but same-primary re-adds, empty-after-intervening
+  writes, repeated rest states, and move-away/back ABA cycles conflict instead of deleting or resurrecting newer
+  state. Undo changes only its owned cell and preserves a newer day completion marker.
+- **Retained value is useful but storage-bounded:** each event/place/custom reference keeps stable and legacy
+  identity evidence plus an allowlisted snapshot. Snapshots are cycle-safe and capped at 4,096 exact serialized
+  UTF-8 bytes with bounded depth, nodes, arrays, objects, keys, and strings. Alias reads are capped before expansion,
+  persisted references are revalidated, and overbudget primary identities fail closed.
+- **Done-only and historical state survive honestly:** removing the final slot does not erase a completion marker,
+  rest transitions preserve it, past done-only days roll into history once, history remains capped, and rollover
+  removes expired mutation tombstones without disturbing future cells.
+- **Verification and review are green:** the focused reducer suite passes 36/36, app lint passes, and independent
+  review plus additional probes found no P0/P1 across malformed receipts/tokens, same-day moves, unrelated-slot undo,
+  rollover cleanup, snapshot attacks, or alias-prefix enforcement.
+- **This is still a foundation, not the UI cutover:** the reducer is not yet backed by the destination-first
+  city-scoped persistent store or wired into Add-to-day, Calendar, Profile, and My Plans. V1 planner bytes remain
+  untouched for rollback, and Sprint 3 stays yellow until that reactive persistence and journey integration land.
+
 ### Sprint 4 - P0 core journeys and the browser release harness
 
 **Outcome:** every known release blocker is fixed through the real browser journey, not only a source seam.
