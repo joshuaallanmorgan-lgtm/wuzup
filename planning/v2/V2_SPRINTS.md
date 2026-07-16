@@ -575,6 +575,29 @@ and migration tests pass; planner operations are idempotent and survive reload.
   `84981a8e...873b1d8`. Sprint 3 remains yellow only for stable-ID dual-read and retained planner snapshots, atomic
   planner reactivity, and truthful geolocation/runtime city resolution.
 
+#### Sprint 3 identity-contract foundation receipt - 2026-07-15 (yellow)
+
+- **Stable IDs are now a tested compatibility contract, not yet a runtime key flip:** the pure identity module
+  keeps the exact V1 `(URL or original title)|published start` key beside valid 16-hex finder IDs, preserves existing
+  `p|` place keys, introduces persistent `c|` identities for local events, and rejects malformed IDs instead of
+  minting unusable primary keys.
+- **Resolution fails closed on conflicting evidence:** historical aliases form an equivalence graph, but an alias
+  that reaches more than one live primary returns `ambiguous` rather than selecting the first row. An exact unique
+  current stable primary remains authoritative. Empty/corrupt `|` identities cannot enter the graph or compare equal,
+  and duplicate custom IDs are deterministically reminted without changing their first owner.
+- **The regression corpus uses observed refresh drift:** Gulfport's unchanged stable ID bridges a date-only-to-timed
+  legacy-key change; Train's unchanged URL/start bridges a stable-ID change; a removed Tampa event remains missing;
+  and a genuinely new SF row cannot inherit old state. Both committed artifacts also prove every current event yields
+  one unique valid stable primary.
+- **Verification and review are green for this bounded foundation:** focused identity tests pass 10/10, app lint
+  passes, the complete serial root gate passes 335/335, and independent review found no P0. Its corrupt-identity P1
+  was reproduced and fixed test-first.
+- **No migration is claimed yet:** the reviewer correctly noted that actual V1 saves omit stable IDs while plans and
+  recents retain only legacy strings. The next identity slice must migrate those exact bytes destination-first,
+  retain unresolved/ambiguous rows, prove quota/retry/idempotence behavior, preserve new snapshot aliases, and keep
+  V1 rollback bytes untouched before any consumer switches to stable primaries. Sprint 3 therefore remains yellow
+  for stable-ID dual-read integration, retained atomic planner state, and truthful geolocation/runtime city resolution.
+
 ### Sprint 4 - P0 core journeys and the browser release harness
 
 **Outcome:** every known release blocker is fixed through the real browser journey, not only a source seam.
