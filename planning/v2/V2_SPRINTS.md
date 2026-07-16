@@ -729,6 +729,28 @@ and migration tests pass; planner operations are idempotent and survive reload.
   store, pure activity/custom/saved schemas, and then runtime providers. V1 bytes remain the rollback source until
   each valid destination is durably committed, so Sprint 3 remains yellow.
 
+#### Sprint 3 reusable atomic city-store receipt - 2026-07-16 (yellow)
+
+- **One product-agnostic store now owns the durability contract:** the configurable city-document engine binds
+  every envelope to store name, schema version, and city; initializes destination-first; preserves physical-only
+  source evidence for migration; verifies exact durable bytes; and treats an existing tombstone as authoritative.
+  Corrupt or cross-city destinations fail closed without overwriting either destination or rollback evidence.
+- **Durability claims match the available primitive:** Web Locks serialize durable commits, rebase pending
+  operations over newly observed commits, and publish stable same-tab snapshots. When Web Locks are unavailable,
+  the store remains explicitly retryable and session-only rather than claiming an atomic localStorage write that
+  the platform cannot prove. Storage events reload external commits, while bounded operation IDs and recent-op
+  evidence prevent duplicate replay.
+- **The engine is bounded and independently reusable:** document validation rejects invalid ancestry and commit
+  metadata, pending operations and retained commit evidence are capped, migrations receive cloned source context,
+  and store-specific reducers, validators, empty documents, and source adapters remain outside the engine. No
+  planner-specific behavior or product copy is embedded in this layer.
+- **Verification and review are green:** the focused atomic suite passes 26/26; atomic, city-storage, and planner
+  compatibility pass 153/153; targeted lint and diff hygiene pass; and the complete registered repository gate
+  passes 532/532. Independent adversarial re-review records **SHIP** with no P0/P1 remaining.
+- **This is shared infrastructure, not retained-value completion:** custom events, saves/Been, recents, and decks
+  still need their bounded schemas, source adapters, stores, providers, and coherent consumer cutovers. Every
+  product surface must expose the engine's session-only or retry state honestly, so Sprint 3 remains yellow.
+
 #### Sprint 3 truthful location-permission runtime receipt - 2026-07-16 (yellow)
 
 - **Permission intent and effective use are separate:** one city-scoped controller owns disabled, desired,
