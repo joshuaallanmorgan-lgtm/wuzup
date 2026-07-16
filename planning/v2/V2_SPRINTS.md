@@ -708,6 +708,27 @@ and migration tests pass; planner operations are idempotent and survive reload.
   resolution also remain. Sprint 4 still owns the checked-in two-city browser journey and the P2 refinements for a
   planner status change during an open sheet, loading/error Profile counts, and more proximate recovery actions.
 
+#### Sprint 3 retained-value V1 capture receipt - 2026-07-16 (yellow)
+
+- **Every retained V1 source now has a strict read-only entrance:** custom events, saves, Been there, recents, and
+  the separate event/place deck memories are captured through physical-aware `peek` reads. Exact raw bytes and
+  per-key provenance remain available to migration; capture never invokes a side-effecting legacy loader, claims
+  ownership, copies bytes, writes a tombstone, removes a value, or touches the session fallback.
+- **Migration domains fail independently:** custom events, saves+Been, recents, and deck memories are explicit
+  capture domains. Corrupt low-value deck or recents data cannot block valid custom events or saved history, while
+  saves and Been remain paired for their future atomic transition. Malformed JSON and wrong top-level shapes remain
+  typed failures inside their own domain rather than being relabelled empty.
+- **Deletion and city ownership stay authoritative:** a durable V2 tombstone is captured as an intentional empty
+  value and never resurrects unscoped legacy bytes. Existing city-scoped V1 destinations outrank legacy input,
+  Tampa and SF cannot inherit one another's bytes, mismatched storage scopes fail closed, and malformed custom-event
+  child rows remain intact for downstream diagnostics rather than disappearing during capture.
+- **Verification and review are green:** focused capture plus city-storage tests pass 21/21; targeted lint and diff
+  hygiene pass; the complete serial repository gate passes 473/473. Independent adversarial review records
+  **SHIP** after the tombstone and all-or-nothing-domain defects were repaired.
+- **This is evidence capture, not the destination cutover:** the next slices add the shared atomic city-document
+  store, pure activity/custom/saved schemas, and then runtime providers. V1 bytes remain the rollback source until
+  each valid destination is durably committed, so Sprint 3 remains yellow.
+
 ### Sprint 4 - P0 core journeys and the browser release harness
 
 **Outcome:** every known release blocker is fixed through the real browser journey, not only a source seam.
