@@ -241,3 +241,38 @@ test('Tampa HTTP adapter output is byte-identical across device timezones', () =
   assert.equal(outputs[1], outputs[0])
   assert.equal(outputs[2], outputs[0])
 })
+
+test('DoTheBay consumes the injected SF day while preserving corridor and base contracts', async () => {
+  const { fetchEvents } = await import('../finder/sources/sf-east-bay/dothebay.mjs')
+  const urls = []
+  const events = await fetchEvents({
+    nowMs: Date.parse('2026-03-08T08:30:00Z'),
+    fetchImpl: async (url) => {
+      urls.push(String(url))
+      return jsonResponse(fixtureJson('dothebay.json'))
+    },
+    waitImpl: async () => {},
+  })
+
+  assert.deepEqual(urls, ['https://dothebay.com/events.json?page=1'])
+  assert.deepEqual(events.map(({ title, start }) => ({ title, start })), [
+    { title: 'Today SF boundary', start: '2026-03-08T03:30:00' },
+    { title: 'Last SF boundary', start: '2026-04-22T19:00:00' },
+  ])
+})
+
+test('DoTheBay fixture output is byte-identical across device timezones', () => {
+  const probe = fileURLToPath(new URL('./fixtures/city-time/dothebay-source-probe.mjs', import.meta.url))
+  const outputs = ['America/Los_Angeles', 'Pacific/Honolulu', 'Asia/Tokyo'].map((TZ) => {
+    const result = spawnSync(process.execPath, [probe], {
+      encoding: 'utf8',
+      env: { ...process.env, TZ },
+    })
+    assert.equal(result.status, 0, result.stderr)
+    return result.stdout.trim()
+  })
+  assert.ok(outputs[0])
+  assert.equal(JSON.parse(outputs[0]).length, 2)
+  assert.equal(outputs[1], outputs[0])
+  assert.equal(outputs[2], outputs[0])
+})

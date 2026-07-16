@@ -500,6 +500,19 @@ and migration tests pass; planner operations are idempotent and survive reload.
   `84981a8e...873b1d8`, and `app/public` still matches Tampa. Sprint 3 remains yellow for DoTheBay run coherence,
   render-date isolation, St. Pete recurrence, the final source ratchet, identity, planner, and geolocation work.
 
+#### Sprint 3 DoTheBay run-clock receipt - 2026-07-15 (yellow)
+
+- **SF's DoStuff adapter now consumes the finder epoch:** its inclusive 45-day window and start validation use the
+  configured SF/East Bay zone; list fetches and polite page waits are injectable; no-argument and explicit string-base
+  calls remain compatible. The existing corridor bbox policy is unchanged, and invalid spring-gap starts fail closed.
+- **The fixture cannot pass by going empty:** raw DoStuff rows cover both window boundaries, prior/after inventory,
+  a DST gap, and an out-of-corridor record. Direct and LA/Honolulu/Tokyo probes require two exact emitted rows rather
+  than accepting byte-identical empty output. Source-time tests pass 15/15; the serial gate passes 288/288; independent
+  review approved the scope with no P0/P1.
+- **Artifacts remain pinned:** Tampa is `a8df0d0c...f875d090`, SF is `84981a8e...873b1d8`, and `app/public` matches
+  Tampa. Sprint 3 remains yellow for render-date isolation, St. Pete recurrence, the final source ratchet, identity,
+  planner, and geolocation work.
+
 ### Sprint 4 - P0 core journeys and the browser release harness
 
 **Outcome:** every known release blocker is fixed through the real browser journey, not only a source seam.

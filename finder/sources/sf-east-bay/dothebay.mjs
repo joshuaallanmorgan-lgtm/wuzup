@@ -14,7 +14,7 @@
 //
 // UNLIKE do813 (dormant metro), DoTheBay is ACTIVE — the same curated
 // local-culture class, but publishing.
-import { fetchWithTimeout, cleanText, dayInTz, addDaysStr } from '../_shared.mjs';
+import { fetchWithTimeout, cleanText, sourceStartDay, sourceWindow } from '../_shared.mjs';
 // D2 seam: all day math runs in THIS city's zone, from the city config —
 // never the machine clock (the easternToday()/machine-local bug class).
 // bbox: DoTheBay is BAY-WIDE (Napa, Petaluma, San Jose...) while this city
@@ -108,23 +108,27 @@ function mapEvent(e, base) {
 }
 
 export async function fetchEvents(options = {}) {
-  const base = typeof options === 'string' ? options : options.base || BASE;
+  const config = typeof options === 'string' ? { base: options } : options || {};
+  const base = config.base || BASE;
+  const nowMs = config.nowMs ?? Date.now();
+  const fetchImpl = config.fetchImpl ?? globalThis.fetch;
+  const waitImpl = config.waitImpl ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
   // Window bounds as CITY-day strings — begin_date is a local calendar day,
-  // so plain string comparison is exact (no Date parsing, no machine tz).
-  const t0 = dayInTz(CITY_TZ);
-  const t1 = addDaysStr(t0, WINDOW_DAYS);
+  // mapped starts are canonicalized before exact string comparison.
+  const { today, lastDay } = sourceWindow(CITY_TZ, nowMs, WINDOW_DAYS);
   const seen = new Set();
   const events = [];
   let outOfBox = 0;
 
   for (let page = 1; page <= MAX_PAGES; page++) {
-    if (page > 1) await new Promise((r) => setTimeout(r, PAGE_GAP_MS));
+    if (page > 1) await waitImpl(PAGE_GAP_MS);
     let json;
     try {
       const res = await fetchWithTimeout(
         `${base}/events.json?page=${page}`,
         { headers: { 'user-agent': UA, accept: 'application/json' } },
         25000,
+        fetchImpl,
       );
       if (!res.ok) throw new Error('HTTP ' + res.status);
       json = await res.json();
@@ -137,8 +141,8 @@ export async function fetchEvents(options = {}) {
       if (raw?.past === true) continue;
       const ev = mapEvent(raw, base);
       if (!ev) continue;
-      const day = ev.start.slice(0, 10);
-      if (day < t0 || day > t1) continue; // skip already-running ("ongoing") and far-future
+      const day = sourceStartDay(CITY_TZ, ev.start);
+      if (!day || day < today || day > lastDay) continue; // skip already-running ("ongoing") and far-future
       // out-of-corridor drop (see the bbox import note): source-provided
       // venue coords outside the city box = a North/South Bay listing.
       if (ev.lat != null && ev.lng != null &&
