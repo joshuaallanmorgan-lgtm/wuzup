@@ -27,6 +27,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { cityId } from './cities/index.mjs';
+import { tz as tampaTimeZone } from './cities/tampa-bay.mjs';
+import { addDaysStr, sourceWindow } from './sources/_shared.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -90,24 +92,22 @@ function pad(n) {
   return String(n).padStart(2, '0');
 }
 
-function todayLocalStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
-
 function dateStr(y, m, d) {
   return `${y}-${pad(m + 1)}-${pad(d)}`;
 }
 
 // Resolve "June 6" to a concrete year: current year, unless that puts it more
 // than 14 days in the past, in which case roll to next year.
-function resolveYear(monthIdx, day) {
-  const now = new Date();
-  let y = now.getFullYear();
-  const candidate = new Date(y, monthIdx, day);
-  const cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 14);
-  if (candidate < cutoff) y += 1;
-  return y;
+function resolveYear(monthIdx, day, today) {
+  let year = Number(today.slice(0, 4));
+  const cutoff = addDaysStr(today, -14);
+  if (dateStr(year, monthIdx, day) < cutoff) year += 1;
+  try {
+    addDaysStr(dateStr(year, monthIdx, day), 0);
+    return year;
+  } catch {
+    return null;
+  }
 }
 
 // Parse a single time token like "10 a.m.", "7:30 p.m.", "noon".
@@ -164,7 +164,7 @@ function timesFromContext(ctx) {
 }
 
 // Find every "MonthName DD" in text; return [{y, m, d, time, endTime, index}].
-function collectDates(text) {
+function collectDates(text, today) {
   const rx = new RegExp(MONTH_RX_SRC + '\\.?\\s+(\\d{1,2})\\b', 'gi');
   const out = [];
   let m;
@@ -175,15 +175,15 @@ function collectDates(text) {
     if (monthIdx === undefined || day < 1 || day > 31) continue;
     const ctx = text.slice(rx.lastIndex, rx.lastIndex + 70);
     const { start: time, end: endTime } = timesFromContext(ctx);
-    out.push({ y: resolveYear(monthIdx, day), m: monthIdx, d: day, time, endTime, index: m.index });
+    const y = resolveYear(monthIdx, day, today);
+    if (y !== null) out.push({ y, m: monthIdx, d: day, time, endTime, index: m.index });
   }
   return out;
 }
 
 // Pick the start (first occurrence >= today; else first occurrence) and emit ISO strings.
-function chooseStart(dates) {
+function chooseStart(dates, today) {
   if (!dates.length) return { start: null, end: null };
-  const today = todayLocalStr();
   const chosen = dates.find((dd) => dateStr(dd.y, dd.m, dd.d) >= today) || dates[0];
   const ds = dateStr(chosen.y, chosen.m, chosen.d);
   const start = chosen.time ? `${ds}T${pad(chosen.time.h)}:${pad(chosen.time.m)}:00` : ds;
@@ -192,7 +192,7 @@ function chooseStart(dates) {
 }
 
 // Parse a card's (or search-result's) innerText into event fields.
-function parseEventText(text, title) {
+function parseEventText(text, title, today) {
   const empty = { start: null, end: null, venue: null, address: null, price: null, isFree: null, description: null };
   const lines = (text || '').replace(/\r/g, '').split('\n').map((l) => l.trim()).filter(Boolean);
   if (!lines.length) return empty;
@@ -231,9 +231,9 @@ function parseEventText(text, title) {
     if (l === title || l === venue) continue;
     if (DATE_LINE_RX.test(l)) dateText += l + ' \n ';
   }
-  let dates = collectDates(dateText);
-  if (!dates.length && lines.length <= 2) dates = collectDates(flat); // flat-text fallback
-  const { start, end } = chooseStart(dates);
+  let dates = collectDates(dateText, today);
+  if (!dates.length && lines.length <= 2) dates = collectDates(flat, today); // flat-text fallback
+  const { start, end } = chooseStart(dates, today);
 
   // Price: a standalone "Free" line, a "$26.99" line, or a bare number right
   // after the GET TICKETS line ("20").
@@ -285,6 +285,12 @@ function parseEventText(text, title) {
   return { start, end, venue, address, price, isFree, description };
 }
 
+export function createCreativeLoafingParser({ nowMs } = {}) {
+  if (!Number.isFinite(nowMs)) throw new TypeError('nowMs must be finite');
+  const { today } = sourceWindow(tampaTimeZone, nowMs, 0);
+  return (text, title) => parseEventText(text, title, today);
+}
+
 // ---------------------------------------------------------------------------
 // Cache
 // ---------------------------------------------------------------------------
@@ -299,10 +305,22 @@ function readCache() {
   return null;
 }
 
-function writeCache(events) {
+export function isRenderCacheFresh(cache, { nowMs, maxAgeMs } = {}) {
+  if (!Number.isFinite(nowMs)) throw new TypeError('nowMs must be finite');
+  if (!Number.isFinite(maxAgeMs) || maxAgeMs < 0) {
+    throw new TypeError('maxAgeMs must be a non-negative finite number');
+  }
+  if (!cache || !Array.isArray(cache.events)) return false;
+  const fetchedAt = Date.parse(cache.fetchedAt);
+  if (!Number.isFinite(fetchedAt)) return false;
+  const ageMs = nowMs - fetchedAt;
+  return ageMs >= 0 && ageMs < maxAgeMs;
+}
+
+function writeCache(events, nowMs) {
   try {
     fs.mkdirSync(path.dirname(CACHE_FILE), { recursive: true });
-    fs.writeFileSync(CACHE_FILE, JSON.stringify({ fetchedAt: new Date().toISOString(), events }, null, 2));
+    fs.writeFileSync(CACHE_FILE, JSON.stringify({ fetchedAt: new Date(nowMs).toISOString(), events }, null, 2));
   } catch (e) {
     console.error('[render] cache write failed:', e.message);
   }
@@ -502,7 +520,7 @@ function mergeParsed(ev, parsed) {
   ev.description = ev.description || parsed.description;
 }
 
-async function scrapeCreativeLoafing(opts) {
+async function scrapeCreativeLoafing(opts, parseCard) {
   // Detail-render budget: hard cap of 5 per run regardless of opts — the CF
   // WAF flags this IP when we dig harder than that.
   const budget = {
@@ -545,12 +563,12 @@ async function scrapeCreativeLoafing(opts) {
           existing.staffPick = existing.staffPick || c.staffPick;
           if (!existing.image && c.image) existing.image = c.image;
           if (c.cardText) {
-            mergeParsed(existing, parseEventText(c.cardText, c.title));
+            mergeParsed(existing, parseCard(c.cardText, c.title));
             existing._hadCard = true;
           }
           continue;
         }
-        const parsed = parseEventText(c.cardText, c.title);
+        const parsed = parseCard(c.cardText, c.title);
         seen.set(c.href, {
           title: c.title,
           start: parsed.start,
@@ -583,7 +601,7 @@ async function scrapeCreativeLoafing(opts) {
         if (budget.navsLeft <= 0 || budget.blocked) break;
         const match = await searchLookup(page, ev, budget);
         if (match) {
-          mergeParsed(ev, parseEventText(match.cardText, match.title));
+          mergeParsed(ev, parseCard(match.cardText, match.title));
           ev.image = ev.image || match.image;
           ev.staffPick = ev.staffPick || match.staffPick;
         }
@@ -603,19 +621,22 @@ async function scrapeCreativeLoafing(opts) {
 // ---------------------------------------------------------------------------
 
 export async function scrapeRenderSources(opts = {}) {
+  const nowMs = opts.nowMs ?? Date.now();
+  if (!Number.isFinite(nowMs)) throw new TypeError('nowMs must be finite');
   const maxAgeMs = (opts.maxAgeHours ?? 6) * 3600 * 1000;
+  const parseCard = createCreativeLoafingParser({ nowMs });
 
   if (!opts.force) {
     const cache = readCache();
-    if (cache && Date.now() - Date.parse(cache.fetchedAt) < maxAgeMs) {
+    if (isRenderCacheFresh(cache, { nowMs, maxAgeMs })) {
       return cache.events;
     }
   }
 
   try {
-    const events = await scrapeCreativeLoafing(opts);
+    const events = await scrapeCreativeLoafing(opts, parseCard);
     if (!events.length) throw new Error('zero events extracted');
-    writeCache(events);
+    writeCache(events, nowMs);
     return events;
   } catch (e) {
     console.error('[render] scrape failed:', e.message);

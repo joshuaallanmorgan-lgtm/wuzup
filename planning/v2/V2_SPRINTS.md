@@ -513,6 +513,25 @@ and migration tests pass; planner operations are idempotent and survive reload.
   Tampa. Sprint 3 remains yellow for render-date isolation, St. Pete recurrence, the final source ratchet, identity,
   planner, and geolocation work.
 
+#### Sprint 3 render-source city-time receipt - 2026-07-15 (yellow)
+
+- **Creative Loafing parsing is bound to one Tampa run day:** the finder epoch now creates one parser reused by
+  listing dedupe, ordinary-card parsing, and promoted-card enrichment. Yearless dates use Tampa calendar arithmetic,
+  preserve the exact 14-day rollover cutoff, choose the first future occurrence, and reject impossible civil dates
+  instead of allowing host `Date` normalization. Browser navigation delays remain live elapsed-time mechanics.
+- **Render cache time is explicit and fail-closed:** reads use the same injected epoch, require `0 <= age < TTL`, and
+  reject future or malformed receipts. Cache writes stamp the finder epoch, while standalone runs retain their
+  compatibility fallback by capturing `Date.now()` once at the public boundary.
+- **The regression exercises the real parser path:** a raw Creative Loafing card pins New Year selection and a time
+  range; cutoff, future-occurrence, impossible-date, strict-clock, cache-boundary, and static wiring tests prevent a
+  host-local path from returning. LA/Honolulu/Tokyo probes are byte-identical. An independent review caught the
+  Tampa-only parser initially borrowing the active city's timezone; an active-city regression failed first, the
+  parser now imports Tampa's own city zone, and the repair was approved. Focused tests pass 8/8 and the complete
+  serial gate passes 296/296.
+- **Artifacts remain pinned:** Tampa is `a8df0d0c...f875d090`, SF is `84981a8e...873b1d8`, and `app/public` matches
+  Tampa. Sprint 3 remains yellow for St. Pete recurrence, the final all-source ratchet, stable-ID dual-read migration,
+  atomic reactive planner snapshots, and truthful geolocation.
+
 ### Sprint 4 - P0 core journeys and the browser release harness
 
 **Outcome:** every known release blocker is fixed through the real browser journey, not only a source seam.
