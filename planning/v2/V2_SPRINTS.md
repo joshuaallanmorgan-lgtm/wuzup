@@ -457,6 +457,27 @@ and migration tests pass; planner operations are idempotent and survive reload.
   final all-target ratchet remain before adapter-level city-time is complete; identity, planner, and geolocation work
   also remain in Sprint 3.
 
+#### Sprint 3 VSPC source-time receipt - 2026-07-15 (yellow)
+
+- **The browser-heavy St. Pete/Clearwater source now separates product time from elapsed time:** its inclusive 45-day
+  occurrence window comes from the injected finder epoch and Tampa's configured zone. Browser deadlines, retry ages,
+  render pacing, and scrape-failure timing remain live elapsed-time mechanics rather than being frozen incorrectly.
+- **Detail-page clocks are DST-correct at the actual wall time:** same-day human-visible clocks resolve through the
+  shared zoned parser, spring-forward gaps stay date-only, and fall-fold starts/ends follow the canonical earlier/later
+  policy. The source no longer stamps every clock with a noon-derived daily offset or compares offset strings as time.
+- **The normalized cache is bound to the city day it represents:** new receipts persist `windowDay`; ordinary fresh
+  hits require that day plus a finite, nonfuture age. Legacy and mismatched-day receipts cannot hide the next recurring
+  occurrence after midnight. Explicit `SKIP_RENDER` and scrape-failure fallbacks remain available as degraded paths and
+  report both cached and requested windows.
+- **Verification is green after a caught review defect:** raw listing fixtures cover both window boundaries, recurrence,
+  short ranges, cancelled/outside rows, summer/winter offsets, DST gaps/folds, and cache rollover. Focused tests pass
+  6/6 across LA, Honolulu, and Tokyo; the complete serial gate passes 281/281. Independent review found the midnight
+  cache defect, verified its test-first repair, and approved the resulting scope with no remaining P0/P1.
+- **Pinned artifacts are unchanged:** Tampa remains SHA-256 `a8df0d0c...f875d090`, SF remains
+  `84981a8e...873b1d8`, and `app/public` still matches Tampa. Sprint 3 remains yellow for the timestamp-adapter batch,
+  DoTheBay run coherence, render-date isolation, St. Pete recurrence, final static ratchet, identity, planner, and
+  geolocation work.
+
 ### Sprint 4 - P0 core journeys and the browser release harness
 
 **Outcome:** every known release blocker is fixed through the real browser journey, not only a source seam.

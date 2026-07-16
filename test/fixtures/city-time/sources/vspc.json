@@ -1,0 +1,49 @@
+[
+  {
+    "id": "recurring-yoga",
+    "dates": ["2026-07-13", "2026-07-14", "2026-07-21"],
+    "json": {
+      "title": "Recurring waterfront yoga",
+      "url": "/event/recurring-yoga",
+      "dates": ["2026-07-28"],
+      "recurrence": "weekly",
+      "end_date": "8/31/2026",
+      "categories": ["Sports & Recreation"],
+      "address": { "line_1": "1 Pier Way", "city": "St. Petersburg", "state": "FL", "postcode": "33701" }
+    }
+  },
+  {
+    "id": "last-day",
+    "dates": ["2026-08-28"],
+    "json": {
+      "title": "Last-day boundary",
+      "url": "/event/last-day",
+      "categories": ["Civic"]
+    }
+  },
+  {
+    "id": "short-festival",
+    "dates": ["2026-07-16"],
+    "json": {
+      "title": "Weekend festival",
+      "url": "/event/weekend-festival",
+      "end_date": "7/18/2026",
+      "categories": ["Festivals"]
+    }
+  },
+  {
+    "id": "prior-only",
+    "dates": ["2026-07-13"],
+    "json": { "title": "Prior-only event", "url": "/event/prior" }
+  },
+  {
+    "id": "after-only",
+    "dates": ["2026-08-29"],
+    "json": { "title": "After-only event", "url": "/event/after" }
+  },
+  {
+    "id": "cancelled",
+    "dates": ["2026-07-15"],
+    "json": { "title": "Cancelled event", "url": "/event/cancelled", "event_cancelled": true }
+  }
+]
