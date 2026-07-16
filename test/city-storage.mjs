@@ -181,6 +181,7 @@ test('an unpersisted legacy claim fails closed and quota writes remain session-r
   backend.failKeys.add(key)
   assert.equal(tampa.set('my-events-v1', '[{"title":"Session plan"}]'), false)
   assert.equal(tampa.get('my-events-v1'), '[{"title":"Session plan"}]')
+  assert.equal(tampa.readDurable('my-events-v1'), null, 'physical reads bypass the session fallback')
   assert.equal(createStorageScope({ backend, cityId: 'tampa-bay' }).get('my-events-v1'), null)
 })
 

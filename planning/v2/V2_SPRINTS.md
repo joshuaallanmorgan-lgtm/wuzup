@@ -643,6 +643,37 @@ and migration tests pass; planner operations are idempotent and survive reload.
   city-scoped persistent store or wired into Add-to-day, Calendar, Profile, and My Plans. V1 planner bytes remain
   untouched for rollback, and Sprint 3 stays yellow until that reactive persistence and journey integration land.
 
+#### Sprint 3 destination-first planner persistence receipt - 2026-07-16 (yellow)
+
+- **V1 planner state now has one pure, lossless migration path:** exact-version active plans and history project
+  device-midnight keys into the selected city calendar, preserve canonical-key precedence, convert the old binary
+  day slot to afternoon, fold only the current weekend, and roll past plans into retained history. Snapshot recovery
+  may cross one unambiguous historical seed component, but unresolved rows keep their legacy primary and explicit
+  missing/ambiguous evidence; no seed can invent a stable attachment.
+- **The destination is city-scoped, reactive, and rollback-safe:** `planner-v2` uses a validated envelope with
+  immutable retained references, bounded migration metadata, a 3 MiB exact UTF-8 document cap, stable subscriptions,
+  storage-event reloads, and destination-first initialization. Valid existing V2 bytes win, corrupt destinations
+  require explicit recovery, and every V1 source byte remains untouched.
+- **Durability and concurrency fail honestly:** physical-only reads verify that a write actually landed instead of
+  accepting a legacy dual-read or session fallback. Quota failures remain explicit `session-only` state with retry;
+  Web Locks serialize cooperating tabs, the optimistic fallback detects conflicts, operation and commit IDs remain
+  distinct across tab contexts, and commits cannot self-parent. Pending work rebases only when every exact reducer
+  precondition still holds.
+- **Planner reads now share one bounded identity model:** event, place, and custom catalogs resolve separately;
+  current live fields may refresh a retained snapshot, missing rows remain usable, and ambiguous evidence never
+  first-wins. Exact stable primaries outrank weak aliases only when the current catalog proves them, planned identity
+  sets are kind-qualified, and hostile aliases, candidates, depth, cycles, strings, and collections are capped before
+  resolution or rendering.
+- **Verification and review are green:** focused city-storage plus planner suites pass 88/88; the complete serial
+  repository gate passes 425/425, including finder, artifact trust, Tampa/SF and base-path builds, product truth,
+  relevance, imagery, location, lint, and production build contracts. Independent migration, selector, and store
+  reviews approve the final implementation after adversarial regressions for wrong versions, oversized documents,
+  ambiguous aliases, false durable reads, cross-tab ID collisions, self-parenting commits, and duplicate emissions.
+- **The remaining planner gate is the atomic runtime cutover:** ten existing UI consumers still read or write the V1
+  planner. The next slice must add the city-keyed provider and raw V1 source adapter, switch every writer and reader
+  together, remove silent quick-add behavior, and render current/future retained plans in My Plans. Sprint 3 remains
+  yellow for that journey integration plus truthful geolocation/runtime city resolution.
+
 ### Sprint 4 - P0 core journeys and the browser release harness
 
 **Outcome:** every known release blocker is fixed through the real browser journey, not only a source seam.

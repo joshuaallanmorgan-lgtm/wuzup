@@ -59,6 +59,85 @@ test('plannedAt is retained only from a deterministic caller-injected timestamp'
   assert.equal('plannedAt' in omitted, false)
 })
 
+test('unresolved V1 identities stay explicit and bounded without a guessed stable primary', () => {
+  const legacyKey = 'https://fixture.test/removed|2026-07-22'
+  const missing = planner.slotRefOf({
+    primary: legacyKey,
+    aliases: [legacyKey],
+    title: 'Removed listing',
+  }, {
+    identity: { status: 'missing', legacyKey },
+  })
+  const ambiguous = planner.slotRefOf({
+    primary: legacyKey,
+    aliases: [legacyKey, 'e|aaaaaaaaaaaaaaaa'],
+    title: 'Shared listing',
+  }, {
+    identity: {
+      status: 'ambiguous',
+      legacyKey,
+      candidates: Array.from({ length: 100 }, (_, index) => `e|candidate-${index}`),
+    },
+  })
+
+  assert.equal(missing.primary, legacyKey)
+  assert.deepEqual(missing.aliases, [legacyKey])
+  assert.deepEqual(missing.identity, { status: 'missing', legacyKey })
+  assert.equal(ambiguous.primary, legacyKey)
+  assert.deepEqual(ambiguous.aliases, [legacyKey])
+  assert.equal(ambiguous.identity.status, 'ambiguous')
+  assert.equal(ambiguous.identity.legacyKey, legacyKey)
+  assert.ok(ambiguous.identity.candidates.length <= planner.PLANNER_ALIAS_MAX_COUNT)
+  assert.ok(jsonBytes(ambiguous.identity.candidates) <= planner.PLANNER_ALIASES_MAX_BYTES)
+  assert.ok(jsonBytes(ambiguous.identity) <= planner.PLANNER_ALIASES_MAX_BYTES)
+
+  const normalized = planner.normalizePlannerDocument({
+    v: 2,
+    rev: 0,
+    active: {
+      1000: {
+        state: null,
+        done: false,
+        slots: { morning: ambiguous, afternoon: null, night: null },
+      },
+    },
+    history: [],
+    cells: {},
+  })
+  assert.deepEqual(normalized.active['1000'].slots.morning.identity, ambiguous.identity)
+
+  assert.equal(planner.slotRefOf({
+    primary: 'e|aaaaaaaaaaaaaaaa',
+    aliases: ['e|aaaaaaaaaaaaaaaa', legacyKey],
+    title: 'Contradictory identity',
+  }, {
+    identity: { status: 'missing', legacyKey },
+  }), null)
+  assert.deepEqual(planner.normalizePlannerDocument({
+    v: 2,
+    rev: 0,
+    active: {
+      2000: {
+        state: null,
+        done: false,
+        slots: {
+          morning: {
+            kind: 'event',
+            primary: 'e|aaaaaaaaaaaaaaaa',
+            aliases: ['e|aaaaaaaaaaaaaaaa', legacyKey],
+            snapshot: { title: 'Contradictory identity' },
+            identity: { status: 'missing', legacyKey },
+          },
+          afternoon: null,
+          night: null,
+        },
+      },
+    },
+    history: [],
+    cells: {},
+  }).active, {})
+})
+
 test('retained snapshots are cycle-safe and capped by exact serialized UTF-8 bytes', () => {
   const hours = { monday: ['09:00', '17:00'] }
   hours.self = hours

@@ -147,6 +147,11 @@ export function createStorageScope({ backend = null, backendProvider = null, cit
     return migrated === null ? legacy : decodeValue(migrated)
   }
 
+  const readDurableFor = (key, scope) => {
+    const destination = physicalKey(key, { scope, cityId: selectedCity })
+    return decodeValue(rawGet(destination))
+  }
+
   const setFor = (key, value, scope) => {
     const destination = physicalKey(key, { scope, cityId: selectedCity })
     const encoded = encodeValue(value)
@@ -188,6 +193,10 @@ export function createStorageScope({ backend = null, backendProvider = null, cit
     cityId: selectedCity,
     prefix: `twh:v${STORAGE_VERSION}:c:${selectedCity}:`,
     get: (key) => getFor(key, 'city'),
+    // Physical V2 bytes only: no session-memory fallback, legacy read/copy, or
+    // ownership claim. Atomic stores use this to verify that a write actually
+    // landed durably rather than merely becoming session-readable.
+    readDurable: (key) => readDurableFor(key, 'city'),
     set: (key, value) => setFor(key, value, 'city'),
     remove: (key) => removeFor(key, 'city'),
     getGlobal: (key) => getFor(key, 'global'),

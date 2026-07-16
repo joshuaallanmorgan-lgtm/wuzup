@@ -14,6 +14,7 @@ export const PLANNER_ALIAS_MAX_COUNT = 8
 export const PLANNER_ALIAS_MAX_BYTES = 2048
 export const PLANNER_ALIASES_MAX_BYTES = 4096
 export const PLANNER_ALIAS_SCAN_MAX = 64
+export const PLANNER_DOCUMENT_MAX_BYTES = 3 * 1024 * 1024
 
 const PLANNER_SNAPSHOT_KEY_MAX_BYTES = 128
 const PLANNER_OBJECT_SCAN_MAX = 64
@@ -52,6 +53,10 @@ function jsonBytes(value) {
   }
 }
 
+export function plannerDocumentBytes(value) {
+  return jsonBytes(value)
+}
+
 function boundedAliases(primary, groups) {
   if (!usableIdentity(primary) || jsonBytes(primary) > PLANNER_ALIAS_MAX_BYTES) return null
   const aliases = [primary]
@@ -73,6 +78,41 @@ function boundedAliases(primary, groups) {
     if (scanned >= PLANNER_ALIAS_SCAN_MAX) break
   }
   return aliases
+}
+
+function boundedIdentityCandidates(values, legacyKey) {
+  const candidates = []
+  const seen = new Set()
+  const source = Array.isArray(values) ? values : []
+  const limit = Math.min(source.length, PLANNER_ALIAS_SCAN_MAX)
+  for (let index = 0; index < limit; index += 1) {
+    const value = source[index]
+    if (!usableIdentity(value) || seen.has(value) || jsonBytes(value) > PLANNER_ALIAS_MAX_BYTES) continue
+    const next = [...candidates, value]
+    if (jsonBytes({ status: 'ambiguous', legacyKey, candidates: next }) > PLANNER_ALIASES_MAX_BYTES) continue
+    seen.add(value)
+    candidates.push(value)
+    if (candidates.length >= PLANNER_ALIAS_MAX_COUNT) break
+  }
+  return candidates
+}
+
+function normalizeIdentityMetadata(value) {
+  if (!isObject(value)
+      || !usableIdentity(value.legacyKey)
+      || jsonBytes(value.legacyKey) > PLANNER_ALIAS_MAX_BYTES) {
+    return null
+  }
+  if (value.status === 'missing') {
+    return { status: 'missing', legacyKey: value.legacyKey }
+  }
+  if (value.status === 'ambiguous') {
+    const candidates = boundedIdentityCandidates(value.candidates, value.legacyKey)
+    return candidates.length > 0
+      ? { status: 'ambiguous', legacyKey: value.legacyKey, candidates }
+      : null
+  }
+  return null
 }
 
 function plannerIdentityOf(item) {
@@ -150,11 +190,15 @@ function snapshotOf(item) {
   return snapshot
 }
 
-export function slotRefOf(item, { plannedAt } = {}) {
+export function slotRefOf(item, { plannedAt, identity: identityMetadataInput } = {}) {
   if (!isObject(item)) return null
   const identity = plannerIdentityOf(item)
   if (!usableIdentity(identity.primary)) return null
-  const aliases = boundedAliases(identity.primary, identity.aliasGroups)
+  const identityMetadata = normalizeIdentityMetadata(identityMetadataInput)
+  if (identityMetadata && identity.primary !== identityMetadata.legacyKey) return null
+  const aliases = identityMetadata
+    ? [identity.primary]
+    : boundedAliases(identity.primary, identity.aliasGroups)
   if (!aliases) return null
   const ref = {
     kind: identity.kind,
@@ -162,6 +206,7 @@ export function slotRefOf(item, { plannedAt } = {}) {
     aliases,
     snapshot: snapshotOf(item),
   }
+  if (identityMetadata) ref.identity = identityMetadata
   if (validPlannedAt(plannedAt)) ref.plannedAt = plannedAt
   return ref
 }
@@ -169,7 +214,11 @@ export function slotRefOf(item, { plannedAt } = {}) {
 function normalizeSlotRef(value) {
   if (!isObject(value) || !usableIdentity(value.primary) || !isObject(value.snapshot)) return null
   const kind = value.kind === 'place' || value.kind === 'custom' ? value.kind : 'event'
-  const aliases = boundedAliases(value.primary, [value.aliases])
+  const identityMetadata = normalizeIdentityMetadata(value.identity)
+  if (identityMetadata && value.primary !== identityMetadata.legacyKey) return null
+  const aliases = identityMetadata
+    ? [value.primary]
+    : boundedAliases(value.primary, [value.aliases])
   if (!aliases) return null
   const ref = {
     kind,
@@ -177,6 +226,7 @@ function normalizeSlotRef(value) {
     aliases,
     snapshot: snapshotOf(value.snapshot),
   }
+  if (identityMetadata) ref.identity = identityMetadata
   if (validPlannedAt(value.plannedAt)) ref.plannedAt = value.plannedAt
   return ref
 }
