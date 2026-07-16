@@ -532,6 +532,27 @@ and migration tests pass; planner operations are idempotent and survive reload.
   Tampa. Sprint 3 remains yellow for St. Pete recurrence, the final all-source ratchet, stable-ID dual-read migration,
   atomic reactive planner snapshots, and truthful geolocation.
 
+#### Sprint 3 St. Pete recurrence receipt - 2026-07-15 (yellow)
+
+- **Revize recurrence is now city-calendar deterministic:** strict civil parsing replaces worker-local `Date` math;
+  the inclusive Tampa 45-day window, DAILY/WEEKLY/MONTHLY intervals, ordinal and last weekdays, COUNT, timed UNTIL,
+  RDATE, EXDATE, dedupe, year rollover, and leap days all use shared calendar primitives. Impossible days and clocks
+  fail closed; nonexistent spring-gap starts are omitted without ending the series; fold occurrences preserve the
+  publisher's advertised wall-clock end.
+- **The 5.9 MB source cache cannot conceal a new city day:** freshness requires the requested Tampa `windowDay`, a
+  valid event array, and `0 <= age < 6h`; future, malformed, legacy, wrong-day, and exact-TTL receipts miss. Fetch,
+  read-cache, and write-cache seams consume one injected finder epoch, while standalone compatibility captures
+  `Date.now()` only at the public boundary.
+- **Raw fixtures cover the failure modes:** the main corpus emits exactly 12 expected rows including 23:59 on the
+  last day, plus nonempty fold, New Year, leap, UTC recurrence, and elapsed-duration probes. LA/Honolulu/Tokyo
+  output is byte-identical. Independent review caught both missing UTC compatibility and loss of the publisher's
+  UTC recurrence basis across DST; both were repaired test-first and the follow-up review approved the result with
+  no remaining P0/P1. Focused tests pass 9/9 and the complete serial gate passes 305/305.
+- **The follow-up inventory widened before the final ratchet:** six live adapters still ignore the injected epoch:
+  Tampa AllEvents and Visit Tampa Bay, plus SF Meetup, SF Rec & Parks, UC Berkeley, and Visit Oakland. They are the
+  next bounded clock batch; Sprint 3 remains yellow for that batch, the all-source ratchet, stable-ID dual-read and
+  retained planner snapshots, atomic planner reactivity, and truthful geolocation.
+
 ### Sprint 4 - P0 core journeys and the browser release harness
 
 **Outcome:** every known release blocker is fixed through the real browser journey, not only a source seam.

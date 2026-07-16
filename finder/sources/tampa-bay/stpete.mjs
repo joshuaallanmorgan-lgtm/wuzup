@@ -23,8 +23,16 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { fetchWithTimeout, cleanText } from '../_shared.mjs';
+import {
+  calendarDayDiff,
+  daysInMonth,
+  parseZonedDateTime,
+  weekdayOf,
+  zonedDateTimeParts,
+} from '../../../shared/city-time.mjs';
+import { fetchWithTimeout, cleanText, addDaysStr, sourceWindow } from '../_shared.mjs';
 import { cityId } from '../../cities/index.mjs';
+import { tz as tampaTimeZone } from '../../cities/tampa-bay.mjs';
 
 export const name = 'City of St. Petersburg';
 
@@ -85,8 +93,129 @@ function inferCategory(title) {
 }
 
 const pad = (n) => String(n).padStart(2, '0');
-const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-const dayStart = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const civilStamp = (value) => `${value.day}T${pad(value.hour)}:${pad(value.minute)}:${pad(value.second)}`;
+
+function civil(day, hour = 0, minute = 0, second = 0, timed = false) {
+  try { addDaysStr(day, 0); } catch { return null; }
+  if (
+    !Number.isInteger(hour) || hour < 0 || hour > 23 ||
+    !Number.isInteger(minute) || minute < 0 || minute > 59 ||
+    !Number.isInteger(second) || second < 0 || second > 59
+  ) return null;
+  return { day, hour, minute, second, timed };
+}
+
+function civilAtInstant(epochMs) {
+  const parts = zonedDateTimeParts(epochMs, tampaTimeZone);
+  return {
+    ...civil(
+      `${parts.year}-${pad(parts.month)}-${pad(parts.day)}`,
+      parts.hour,
+      parts.minute,
+      parts.second,
+      true,
+    ),
+    instantMs: epochMs,
+  };
+}
+
+function civilFromInstant(value, recurrenceBasis = null) {
+  const parsed = parseZonedDateTime(value, tampaTimeZone);
+  if (!parsed.ok) return null;
+  const projected = civilAtInstant(parsed.epochMs);
+  return recurrenceBasis ? { ...projected, recurrenceBasis } : projected;
+}
+
+function normalizeOffset(value) {
+  return value.replace(/^([+-]\d{2})(\d{2})$/, '$1:$2');
+}
+
+function parseCivil(value) {
+  const raw = String(value || '').trim();
+  const compact = raw.match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})(Z|[+-]\d{2}:?\d{2})?)?$/i);
+  if (compact) {
+    const day = `${compact[1]}-${compact[2]}-${compact[3]}`;
+    if (compact[7]) {
+      const offset = normalizeOffset(compact[7]);
+      return civilFromInstant(
+        `${day}T${compact[4]}:${compact[5]}:${compact[6]}${offset}`,
+        {
+          day,
+          hour: Number(compact[4]),
+          minute: Number(compact[5]),
+          second: Number(compact[6]),
+          offset,
+        },
+      );
+    }
+    return civil(
+      day,
+      Number(compact[4] || 0),
+      Number(compact[5] || 0),
+      Number(compact[6] || 0),
+      compact[4] !== undefined,
+    );
+  }
+  const expanded = raw.match(/^(\d{4}-\d{2}-\d{2})(?:(?:T| )(\d{2}):(\d{2})(?::(\d{2}))?(Z|[+-]\d{2}:?\d{2})?)?$/i);
+  if (!expanded) return null;
+  if (expanded[5]) {
+    const offset = normalizeOffset(expanded[5]);
+    return civilFromInstant(
+      `${expanded[1]}T${expanded[2]}:${expanded[3]}:${expanded[4] || '00'}${offset}`,
+      {
+        day: expanded[1],
+        hour: Number(expanded[2]),
+        minute: Number(expanded[3]),
+        second: Number(expanded[4] || 0),
+        offset,
+      },
+    );
+  }
+  return civil(
+    expanded[1],
+    Number(expanded[2] || 0),
+    Number(expanded[3] || 0),
+    Number(expanded[4] || 0),
+    expanded[2] !== undefined,
+  );
+}
+
+function compareCivil(a, b) {
+  return civilStamp(a).localeCompare(civilStamp(b));
+}
+
+function civilDurationSeconds(start, end) {
+  if (!start || !end) return null;
+  if (Number.isFinite(start.instantMs) && Number.isFinite(end.instantMs)) {
+    const duration = (end.instantMs - start.instantMs) / 1000;
+    return duration > 0 ? duration : null;
+  }
+  const daySeconds = calendarDayDiff(start.day, end.day) * 86400;
+  const startSeconds = start.hour * 3600 + start.minute * 60 + start.second;
+  const endSeconds = end.hour * 3600 + end.minute * 60 + end.second;
+  const duration = daySeconds + endSeconds - startSeconds;
+  return duration > 0 ? duration : null;
+}
+
+function addCivilSeconds(start, seconds) {
+  if (Number.isFinite(start.instantMs)) {
+    return civilAtInstant(start.instantMs + seconds * 1000);
+  }
+  const epochMs = Date.parse(`${civilStamp(start)}Z`) + seconds * 1000;
+  if (!Number.isFinite(epochMs)) return null;
+  const iso = new Date(epochMs).toISOString();
+  return civil(
+    iso.slice(0, 10),
+    Number(iso.slice(11, 13)),
+    Number(iso.slice(14, 16)),
+    Number(iso.slice(17, 19)),
+    true,
+  );
+}
+
+function validWallTime(value, disambiguation) {
+  return parseZonedDateTime(civilStamp(value), tampaTimeZone, { disambiguation }).ok;
+}
 
 // ---------------------------------------------------------------- rrule ----
 // Minimal expander for the subset Revize actually emits (verified across all
@@ -96,9 +225,7 @@ const WEEKDAYS = { SU: 0, MO: 1, TU: 2, WE: 3, TH: 4, FR: 5, SA: 6 };
 
 function parseStamp(s) {
   // '20220118T180000' or '20220118'
-  const m = String(s).trim().match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2}))?/);
-  if (!m) return null;
-  return new Date(+m[1], +m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
+  return parseCivil(s);
 }
 
 function parseRRuleBlock(block) {
@@ -106,10 +233,11 @@ function parseRRuleBlock(block) {
   for (const line of String(block).split(/\n/)) {
     const [key, val] = line.split(/:(.+)/);
     if (!val) continue;
-    if (key === 'DTSTART') out.dtstart = parseStamp(val);
-    else if (key === 'RDATE') for (const v of val.split(',')) { const d = parseStamp(v); if (d) out.rdates.push(d); }
-    else if (key === 'EXDATE') for (const v of val.split(',')) { const d = parseStamp(v); if (d) out.exdates.add(ymd(d)); }
-    else if (key === 'RRULE') {
+    const bareKey = key.split(';')[0];
+    if (bareKey === 'DTSTART') out.dtstart = parseStamp(val);
+    else if (bareKey === 'RDATE') for (const v of val.split(',')) { const d = parseStamp(v); if (d) out.rdates.push(d); }
+    else if (bareKey === 'EXDATE') for (const v of val.split(',')) { const d = parseStamp(v); if (d) out.exdates.add(d.day); }
+    else if (bareKey === 'RRULE') {
       const r = {};
       for (const part of val.split(';')) {
         const [k, v] = part.split('=');
@@ -122,56 +250,88 @@ function parseRRuleBlock(block) {
 }
 
 // Is `date` the BYSETPOS-th BYDAY weekday of its month? (pos -1 = last)
-function matchesMonthlyByDay(date, byday, pos) {
-  if (WEEKDAYS[byday] !== date.getDay()) return false;
-  if (pos > 0) return Math.ceil(date.getDate() / 7) === pos;
-  if (pos === -1) return date.getDate() + 7 > new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+function matchesMonthlyByDay(day, byday, pos) {
+  if (WEEKDAYS[byday] !== weekdayOf(day)) return false;
+  const dayOfMonth = Number(day.slice(8, 10));
+  if (pos > 0) return Math.ceil(dayOfMonth / 7) === pos;
+  if (pos === -1) return dayOfMonth + 7 > daysInMonth(day);
   return false;
 }
 
+function monthDistance(fromDay, toDay) {
+  const [fromYear, fromMonth] = fromDay.split('-').map(Number);
+  const [toYear, toMonth] = toDay.split('-').map(Number);
+  return (toYear - fromYear) * 12 + toMonth - fromMonth;
+}
+
+function occurrenceOnDay(dtstart, day) {
+  const basis = dtstart.recurrenceBasis;
+  if (!basis) return { ...dtstart, day };
+  return civilFromInstant(
+    `${day}T${pad(basis.hour)}:${pad(basis.minute)}:${pad(basis.second)}${basis.offset}`,
+    { ...basis, day },
+  );
+}
+
 // Expand into occurrence Dates within [winStart, winEnd] (day granularity).
-function expandRRule(parsed, winStart, winEnd) {
+function expandRRule(parsed, firstDay, lastDay) {
   const { dtstart, rdates, exdates, rule } = parsed;
   if (!dtstart) return [];
   const hits = [];
-  const addIfInWindow = (d) => {
-    if (d >= winStart && d <= winEnd && !exdates.has(ymd(d))) hits.push(d);
+  const addIfInWindow = (occurrence) => {
+    if (
+      occurrence.day >= firstDay && occurrence.day <= lastDay &&
+      !exdates.has(occurrence.day)
+    ) hits.push(occurrence);
   };
 
   if (rule) {
+    const basis = dtstart.recurrenceBasis || dtstart;
     const freq = rule.FREQ;
-    const interval = Math.max(1, Number(rule.INTERVAL || 1));
-    const count = rule.COUNT ? Number(rule.COUNT) : Infinity;
+    const rawInterval = Number(rule.INTERVAL || 1);
+    const interval = Number.isInteger(rawInterval) && rawInterval > 0 ? rawInterval : null;
+    const rawCount = rule.COUNT === undefined ? Infinity : Number(rule.COUNT);
+    const count = rawCount === Infinity || (Number.isInteger(rawCount) && rawCount > 0) ? rawCount : 0;
     const until = rule.UNTIL ? parseStamp(rule.UNTIL) : null;
     const bydays = rule.BYDAY ? rule.BYDAY.split(',').map((s) => s.trim()) : null;
     const bysetpos = rule.BYSETPOS ? Number(rule.BYSETPOS) : null;
-    const hardEnd = until && until < winEnd ? until : winEnd;
-    const base = dayStart(dtstart);
+    const cityWindowInBasis = dtstart.recurrenceBasis ? addDaysStr(lastDay, 1) : lastDay;
+    const untilDay = until?.recurrenceBasis?.day || until?.day;
+    const hardEnd = untilDay && untilDay < cityWindowInBasis ? untilDay : cityWindowInBasis;
     let n = 0;
     // Walk day-by-day from DTSTART so COUNT is honored from the true start.
     // Span is a few years of city programming — tens of k iterations, trivial.
-    for (let d = new Date(base); d <= hardEnd && n < count; d.setDate(d.getDate() + 1)) {
+    const span = calendarDayDiff(basis.day, hardEnd);
+    for (let offset = 0; interval && offset <= span && n < count; offset++) {
+      const day = addDaysStr(basis.day, offset);
       let match = false;
-      const days = Math.round((d - base) / 86400000);
       if (freq === 'DAILY') {
-        match = days % interval === 0;
+        match = offset % interval === 0;
       } else if (freq === 'WEEKLY') {
-        const wd = Object.keys(WEEKDAYS).find((k) => WEEKDAYS[k] === d.getDay());
-        const inDays = bydays ? bydays.includes(wd) : d.getDay() === dtstart.getDay();
+        const weekday = weekdayOf(day);
+        const wd = Object.keys(WEEKDAYS).find((key) => WEEKDAYS[key] === weekday);
+        const inDays = bydays ? bydays.includes(wd) : weekday === weekdayOf(basis.day);
         // Week parity measured from DTSTART's week (Sunday-aligned).
-        const weeks = Math.floor((days + dtstart.getDay()) / 7);
+        const weeks = Math.floor((offset + weekdayOf(basis.day)) / 7);
         match = inDays && weeks % interval === 0;
       } else if (freq === 'MONTHLY') {
-        const months = (d.getFullYear() - base.getFullYear()) * 12 + (d.getMonth() - base.getMonth());
+        const months = monthDistance(basis.day, day);
         if (months % interval === 0) {
-          if (bydays && bysetpos != null) match = bydays.some((bd) => matchesMonthlyByDay(d, bd, bysetpos));
-          else match = d.getDate() === base.getDate();
+          if (bydays && bysetpos != null) match = bydays.some((bd) => matchesMonthlyByDay(day, bd, bysetpos));
+          else match = day.slice(8, 10) === basis.day.slice(8, 10);
         }
       }
       if (match) {
+        const occurrence = occurrenceOnDay(dtstart, day);
+        if (!occurrence) continue;
+        if (until) {
+          const afterUntil = Number.isFinite(occurrence.instantMs) && Number.isFinite(until.instantMs)
+            ? occurrence.instantMs > until.instantMs
+            : compareCivil(occurrence, until) > 0;
+          if (afterUntil) continue;
+        }
         n++;
-        const occ = new Date(d.getFullYear(), d.getMonth(), d.getDate(), dtstart.getHours(), dtstart.getMinutes(), dtstart.getSeconds());
-        addIfInWindow(occ);
+        addIfInWindow(occurrence);
       }
     }
   }
@@ -179,7 +339,14 @@ function expandRRule(parsed, winStart, winEnd) {
   for (const d of rdates) addIfInWindow(d);
 
   const seen = new Set();
-  return hits.filter((d) => { const k = +d; if (seen.has(k)) return false; seen.add(k); return true; });
+  return hits
+    .sort(compareCivil)
+    .filter((occurrence) => {
+      const key = civilStamp(occurrence);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 }
 
 // ----------------------------------------------------------------- map -----
@@ -203,11 +370,11 @@ function decodeDesc(desc) {
   return cleanText(raw, 300);
 }
 
-function toStartString(date, allDay) {
-  return allDay ? ymd(date) : `${ymd(date)}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+function toStartString(value, allDay) {
+  return allDay ? value.day : civilStamp(value);
 }
 
-function buildEvent(rec, startDate, endDate) {
+function buildEvent(rec, startValue, endValue) {
   const allDay = rec.allDay === true || rec.allDay === 'true';
   const vinfo = CALENDAR_VENUES[rec.primary_calendar_name] || null;
   const location = cleanText(rec.location, 200) || null;
@@ -216,8 +383,8 @@ function buildEvent(rec, startDate, endDate) {
   if (!title) return null;
   return {
     title,
-    start: toStartString(startDate, allDay),
-    end: endDate && !allDay ? toStartString(endDate, false) : null,
+    start: toStartString(startValue, allDay),
+    end: endValue && !allDay ? toStartString(endValue, false) : null,
     venue: vinfo ? vinfo.venue : (location ? location.split(',')[0].trim() : 'St. Petersburg'),
     address: location || (vinfo ? vinfo.address : 'St. Petersburg, FL'),
     price: null, // the city feed publishes no price field; not guessing from prose
@@ -232,7 +399,10 @@ function buildEvent(rec, startDate, endDate) {
   };
 }
 
-function parseRecords(records, winStart, winEnd) {
+export function mapStPeteRecords(records, { nowMs } = {}) {
+  if (!Number.isFinite(nowMs)) throw new TypeError('nowMs must be finite');
+  if (!Array.isArray(records)) return [];
+  const { today, lastDay } = sourceWindow(tampaTimeZone, nowMs, WINDOW_DAYS);
   const events = [];
   const seen = new Set();
   for (const rec of records) {
@@ -243,19 +413,20 @@ function parseRecords(records, winStart, winEnd) {
 
     let occurrences = [];
     let duration = null;
-    if (rec.start && rec.end) {
-      const s = new Date(rec.start), e = new Date(rec.end);
-      if (!isNaN(s) && !isNaN(e) && e > s) duration = e - s;
-    }
+    const baseStart = parseCivil(rec.start);
+    const baseEnd = parseCivil(rec.end);
+    if (baseStart && baseEnd) duration = civilDurationSeconds(baseStart, baseEnd);
     if (rec.rrule) {
-      occurrences = expandRRule(parseRRuleBlock(rec.rrule), winStart, winEnd);
-    } else if (rec.start) {
-      const d = new Date(rec.start);
-      if (!isNaN(d) && d >= winStart && d <= winEnd) occurrences = [d];
+      occurrences = expandRRule(parseRRuleBlock(rec.rrule), today, lastDay);
+    } else if (baseStart && baseStart.day >= today && baseStart.day <= lastDay) {
+      occurrences = [baseStart];
     }
     for (const occ of occurrences) {
-      const end = duration ? new Date(occ.getTime() + duration) : (rec.end && !rec.rrule ? new Date(rec.end) : null);
-      const ev = buildEvent(rec, occ, end && !isNaN(end) ? end : null);
+      const allDay = rec.allDay === true || rec.allDay === 'true';
+      if (!allDay && !validWallTime(occ, 'earlier')) continue;
+      const end = rec.rrule && duration ? addCivilSeconds(occ, duration) : (!rec.rrule ? baseEnd : null);
+      if (end && !allDay && !validWallTime(end, 'later')) continue;
+      const ev = buildEvent(rec, occ, end);
       if (!ev) continue;
       const key = `${ev.title}|${ev.start}`;
       if (seen.has(key)) continue;
@@ -271,36 +442,49 @@ async function readCache() {
   try { return JSON.parse(await readFile(CACHE_FILE, 'utf8')); } catch { return null; }
 }
 
-async function writeCache(events) {
+async function writeCache(events, { nowMs, windowDay }) {
   try {
     await mkdir(dirname(CACHE_FILE), { recursive: true });
-    await writeFile(CACHE_FILE, JSON.stringify({ fetchedAt: new Date().toISOString(), events }));
+    await writeFile(CACHE_FILE, JSON.stringify({ fetchedAt: new Date(nowMs).toISOString(), windowDay, events }));
   } catch (err) {
     console.warn(`[stpete] cache write failed: ${err.message}`);
   }
 }
 
-export async function fetchEvents() {
-  const cache = await readCache();
-  if (cache && Date.now() - new Date(cache.fetchedAt).getTime() < CACHE_TTL_MS) {
+export function isStPeteCacheFresh(cache, { nowMs } = {}) {
+  if (!Number.isFinite(nowMs)) throw new TypeError('nowMs must be finite');
+  const { today } = sourceWindow(tampaTimeZone, nowMs, 0);
+  if (!cache || !Array.isArray(cache.events) || cache.windowDay !== today) return false;
+  const fetchedAt = Date.parse(cache.fetchedAt);
+  if (!Number.isFinite(fetchedAt)) return false;
+  const ageMs = nowMs - fetchedAt;
+  return ageMs >= 0 && ageMs < CACHE_TTL_MS;
+}
+
+export async function fetchEvents(options = {}) {
+  const nowMs = options.nowMs ?? Date.now();
+  if (!Number.isFinite(nowMs)) throw new TypeError('nowMs must be finite');
+  const { today } = sourceWindow(tampaTimeZone, nowMs, WINDOW_DAYS);
+  const readCacheImpl = options.readCacheImpl ?? readCache;
+  const writeCacheImpl = options.writeCacheImpl ?? writeCache;
+  const fetchImpl = options.fetchImpl ?? globalThis.fetch;
+  const cache = await readCacheImpl();
+  if (!options.force && isStPeteCacheFresh(cache, { nowMs })) {
     return cache.events;
   }
 
-  const now = new Date();
-  const winStart = dayStart(now);
-  const winEnd = new Date(winStart.getTime() + WINDOW_DAYS * 86400000);
-
   try {
-    const res = await fetchWithTimeout(FEED, { headers: { 'user-agent': UA } }, 60000);
+    const res = await fetchWithTimeout(FEED, { headers: { 'user-agent': UA } }, 60000, fetchImpl);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const records = await res.json();
     if (!Array.isArray(records)) throw new Error('unexpected payload shape');
-    const events = parseRecords(records, winStart, winEnd);
-    await writeCache(events);
+    const events = mapStPeteRecords(records, { nowMs });
+    await writeCacheImpl(events, { nowMs, windowDay: today });
     return events;
   } catch (err) {
     console.warn(`[stpete] feed failed: ${err.message}${cache ? ' — returning stale cache' : ''}`);
-    return cache ? cache.events : [];
+    const staleEvents = Array.isArray(cache?.events) ? cache.events : [];
+    return staleEvents;
   }
 }
 
