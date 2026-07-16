@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:livewhale="https://www.livewhale.com/" xmlns:georss="http://www.georss.org/georss">
+  <channel>
+    <title>UC Berkeley city-time fixture</title>
+    <item>
+      <title>Before boundary</title>
+      <link>https://events.berkeley.edu/before</link>
+      <pubDate>Sun, 08 Mar 2026 07:59:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>First boundary</title>
+      <link>https://events.berkeley.edu/first</link>
+      <pubDate>Sun, 08 Mar 2026 08:00:00 +0000</pubDate>
+      <livewhale:ends>Sun, 08 Mar 2026 09:00:00 +0000</livewhale:ends>
+      <georss:featurename>Doe Library</georss:featurename>
+      <livewhale:categories>Lectures</livewhale:categories>
+      <livewhale:categories_audience>Public</livewhale:categories_audience>
+    </item>
+    <item>
+      <title>After spring jump</title>
+      <link>https://events.berkeley.edu/spring</link>
+      <pubDate>Sun, 08 Mar 2026 03:30:00 -0700</pubDate>
+      <livewhale:ends>Sun, 08 Mar 2026 05:30:00</livewhale:ends>
+      <georss:featurename>Zellerbach Hall</georss:featurename>
+    </item>
+    <item>
+      <title>Last boundary</title>
+      <link>https://events.berkeley.edu/last</link>
+      <pubDate>Thu, 23 Apr 2026 06:59:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>After boundary</title>
+      <link>https://events.berkeley.edu/after</link>
+      <pubDate>Thu, 23 Apr 2026 07:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Invalid start</title>
+      <link>https://events.berkeley.edu/invalid</link>
+      <pubDate>not-a-time</pubDate>
+    </item>
+    <item>
+      <title>Zoneless start</title>
+      <link>https://events.berkeley.edu/zoneless</link>
+      <pubDate>Sun, 08 Mar 2026 12:00:00</pubDate>
+    </item>
+  </channel>
+</rss>

@@ -16,7 +16,7 @@
 // Cross-calendar duplication is real (the same event syndicates to dept
 // calendars under different livewhale:ids — 246 title+day dupe keys in
 // today's feed): deduped here by normalized title + city-day.
-import { decodeEntities, stripHtml, truncate, fetchWithTimeout, dayInTz, isoInTz, addDaysStr } from '../_shared.mjs';
+import { decodeEntities, stripHtml, truncate, fetchWithTimeout, isoInTz, sourceStartDay, sourceWindow } from '../_shared.mjs';
 // D2 seam: the campus clock is the city config's zone.
 import { tz as CITY_TZ } from '../../cities/sf-east-bay.mjs';
 
@@ -74,8 +74,24 @@ function titleKey(title) {
   return String(title || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
-export async function fetchEvents() {
-  const res = await fetchWithTimeout(FEED_URL, { headers: { 'user-agent': UA } }, 30000);
+function parseExplicitInstant(value) {
+  const stamp = String(value || '').trim();
+  if (!/(?:Z|[+-]\d{2}:?\d{2}|GMT|UTC)$/i.test(stamp)) return null;
+  const epochMs = Date.parse(stamp);
+  return Number.isFinite(epochMs) ? epochMs : null;
+}
+
+export async function fetchEvents(options = {}) {
+  const config = options || {};
+  const nowMs = config.nowMs ?? Date.now();
+  const fetchImpl = config.fetchImpl ?? globalThis.fetch;
+  const { today, lastDay } = sourceWindow(CITY_TZ, nowMs, WINDOW_DAYS);
+  const res = await fetchWithTimeout(
+    FEED_URL,
+    { headers: { 'user-agent': UA } },
+    30000,
+    fetchImpl,
+  );
   if (!res.ok) throw new Error(`UC Berkeley: HTTP ${res.status}`);
   const xml = await res.text();
 
@@ -84,9 +100,6 @@ export async function fetchEvents() {
     console.warn('UC Berkeley: no <item> entries found in RSS feed');
     return [];
   }
-
-  const todayDay = dayInTz(CITY_TZ);
-  const lastDay = addDaysStr(todayDay, WINDOW_DAYS);
 
   const seen = new Set();
   const events = [];
@@ -113,11 +126,11 @@ export async function fetchEvents() {
     // pubDate is the start INSTANT in UTC ('Mon, 06 Jul 2026 22:00:00 +0000'
     // = 3 PM PT); all-day items encode midnight-PT. City wall clock below.
     const pubDate = tagText(item, 'pubDate');
-    const startMs = Date.parse(pubDate || '');
-    if (Number.isNaN(startMs)) continue;
+    const startMs = parseExplicitInstant(pubDate);
+    if (startMs == null) continue;
     const startInstant = new Date(startMs);
-    const day = dayInTz(CITY_TZ, startInstant);
-    if (day < todayDay || day > lastDay) continue;
+    const day = sourceStartDay(CITY_TZ, startInstant.toISOString());
+    if (!day || day < today || day > lastDay) continue;
 
     const allDay = /<livewhale:all_day>1</.test(item);
     const start = allDay ? day : isoInTz(CITY_TZ, startInstant);
@@ -126,8 +139,8 @@ export async function fetchEvents() {
     // midnight bookkeeping, not an event end — date-only stays date-only).
     let end = null;
     if (!allDay) {
-      const endsMs = Date.parse(tagText(item, 'livewhale:ends') || '');
-      if (!Number.isNaN(endsMs) && endsMs > startMs) end = isoInTz(CITY_TZ, new Date(endsMs));
+      const endsMs = parseExplicitInstant(tagText(item, 'livewhale:ends'));
+      if (endsMs != null && endsMs > startMs) end = isoInTz(CITY_TZ, new Date(endsMs));
     }
 
     // cross-calendar dedupe (same real event, different livewhale:id)

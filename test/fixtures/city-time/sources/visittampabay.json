@@ -1,0 +1,47 @@
+[
+  {
+    "recid": 1,
+    "title": "Tampa before the jump",
+    "date": "2026-03-09T03:59:59Z",
+    "endDate": "2026-03-09T03:59:59Z",
+    "startTime": "01:30:00",
+    "endTime": "03:30:00",
+    "recurType": 0,
+    "absoluteUrl": "https://example.com/tampa-before"
+  },
+  {
+    "recid": 2,
+    "title": "Tampa after the jump",
+    "date": "2026-03-09T03:59:59Z",
+    "startTime": "03:30:00",
+    "recurType": 1,
+    "absoluteUrl": "https://example.com/tampa-after"
+  },
+  {
+    "recid": 3,
+    "title": "Tampa nonexistent clock",
+    "date": "2026-03-09T03:59:59Z",
+    "startTime": "02:30:00",
+    "recurType": 1,
+    "absoluteUrl": "https://example.com/tampa-gap"
+  },
+  {
+    "recid": 4,
+    "title": "Tampa last day",
+    "date": "2026-04-23T03:59:59Z",
+    "recurType": 1,
+    "absoluteUrl": "https://example.com/tampa-last"
+  },
+  {
+    "recid": 5,
+    "title": "Tampa prior day",
+    "date": "2026-03-08T04:59:59Z",
+    "recurType": 1
+  },
+  {
+    "recid": 6,
+    "title": "Tampa after window",
+    "date": "2026-04-24T03:59:59Z",
+    "recurType": 1
+  }
+]

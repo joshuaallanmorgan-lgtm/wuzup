@@ -120,6 +120,6 @@ test('VSPC cache branches are wired to the window-day receipt', () => {
     'utf8',
   )
   assert.match(source, /if \(isVspcCacheFresh\(cache, \{ nowMs \}\)\)/)
-  assert.match(source, /writeCache\(events, today\)/)
+  assert.match(source, /writeCache\(events, today, nowMs\)/)
   assert.match(source, /SKIP_RENDER returning .*window/i)
 })

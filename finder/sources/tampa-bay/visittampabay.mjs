@@ -1,7 +1,16 @@
 // Visit Tampa Bay (Simpleview DMO) event source.
 // Two-step flow: fetch a per-session token, then query the events_by_date REST plugin.
 // Date range boundaries MUST be midnight Eastern Time (the API errors otherwise).
-import { decodeEntities, cleanText, fetchWithTimeout } from '../_shared.mjs';
+import {
+  cleanText,
+  decodeEntities,
+  fetchWithTimeout,
+  midnightInTz,
+  sourceStartDay,
+  sourceWallTime,
+  sourceWindow,
+} from '../_shared.mjs';
+import { tz as CITY_TZ } from '../../cities/tampa-bay.mjs';
 
 export const name = 'Visit Tampa Bay';
 
@@ -10,10 +19,8 @@ const UA = 'tampabay-events-finder/0.1';
 const DAYS_AHEAD = 45;
 const PAGE_LIMIT = 50; // keep responses under the API's ~200KB result-set cap (categories field adds bulk)
 const MAX_PAGES = 10;
-const TZ = 'America/New_York';
-
-function vtbFetch(url) {
-  return fetchWithTimeout(url, { headers: { 'user-agent': UA } });
+function vtbFetch(url, fetchImpl) {
+  return fetchWithTimeout(url, { headers: { 'user-agent': UA } }, undefined, fetchImpl);
 }
 
 // Native Simpleview catName -> our category vocabulary.
@@ -57,44 +64,6 @@ function mapCategory(categories, text = '') {
   return null;
 }
 
-// 'YYYY-MM-DD' for a Date instant, evaluated in Eastern time.
-function easternDay(date) {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit',
-  }).format(date);
-}
-
-// UTC offset string ('-04:00' / '-05:00') in effect in Eastern time at the given instant.
-function easternOffset(date) {
-  const part = new Intl.DateTimeFormat('en-US', { timeZone: TZ, timeZoneName: 'longOffset' })
-    .formatToParts(date)
-    .find((p) => p.type === 'timeZoneName');
-  const m = /GMT([+-]\d{2}:\d{2})/.exec(part?.value || '');
-  return m ? m[1] : '-04:00';
-}
-
-// Date instant for midnight Eastern on a 'YYYY-MM-DD' calendar day (DST-safe).
-function easternMidnight(dayStr) {
-  for (const offset of ['-04:00', '-05:00']) {
-    const candidate = new Date(`${dayStr}T00:00:00.000${offset}`);
-    if (easternOffset(candidate) === offset) return candidate;
-  }
-  return new Date(`${dayStr}T00:00:00.000-04:00`);
-}
-
-function addDays(dayStr, days) {
-  const [y, m, d] = dayStr.split('-').map(Number);
-  const dt = new Date(Date.UTC(y, m - 1, d + days));
-  return dt.toISOString().slice(0, 10);
-}
-
-// Combine an Eastern calendar day with an 'HH:MM:SS' local time into an ISO string.
-function combineDayTime(dayStr, timeStr) {
-  if (!timeStr || !/^\d{2}:\d{2}/.test(timeStr)) return dayStr;
-  const offset = easternOffset(easternMidnight(dayStr));
-  return `${dayStr}T${timeStr}${offset}`;
-}
-
 function parseAdmission(admission) {
   if (!admission || typeof admission !== 'string') return { price: null, isFree: null };
   const text = decodeEntities(admission).trim();
@@ -108,8 +77,8 @@ function parseAdmission(admission) {
   return { price: null, isFree: null };
 }
 
-async function getToken() {
-  const res = await vtbFetch(`${BASE}/plugins/core/get_simple_token/`);
+async function getToken(fetchImpl) {
+  const res = await vtbFetch(`${BASE}/plugins/core/get_simple_token/`, fetchImpl);
   if (!res.ok) throw new Error(`Visit Tampa Bay token request failed: HTTP ${res.status}`);
   const token = (await res.text()).trim();
   if (!token || token.length > 200 || /[<>\s]/.test(token)) {
@@ -118,7 +87,7 @@ async function getToken() {
   return token;
 }
 
-async function fetchPage(token, startISO, endISO, skip) {
+async function fetchPage(token, startISO, endISO, skip, fetchImpl) {
   const query = {
     filter: {
       active: true,
@@ -139,7 +108,7 @@ async function fetchPage(token, startISO, endISO, skip) {
   };
   const url = `${BASE}/includes/rest_v2/plugins_events_events_by_date/find/` +
     `?json=${encodeURIComponent(JSON.stringify(query))}&token=${encodeURIComponent(token)}`;
-  const res = await vtbFetch(url);
+  const res = await vtbFetch(url, fetchImpl);
   if (!res.ok) {
     throw new Error(`Visit Tampa Bay events request failed: HTTP ${res.status} ${(await res.text()).slice(0, 200)}`);
   }
@@ -159,23 +128,22 @@ function mapDoc(doc, todayDay, lastDay) {
   // Eastern of the event's local day (e.g. 2026-07-03T03:59:59Z => July 2 local).
   const occurrence = doc.date || doc.nextDate || doc.startDate;
   if (!occurrence) return null;
-  const occurrenceDate = new Date(occurrence);
-  if (Number.isNaN(occurrenceDate.getTime())) return null;
-  const day = easternDay(occurrenceDate);
+  const day = sourceStartDay(CITY_TZ, occurrence);
+  if (!day) return null;
   if (day < todayDay || day > lastDay) return null;
 
-  const start = combineDayTime(day, doc.startTime);
+  const start = doc.startTime ? sourceWallTime(CITY_TZ, day, doc.startTime) : day;
+  if (!start) return null;
 
   // endDate on recurring events is the series end, not the occurrence end.
   let end = null;
   if (doc.recurType === 0 && doc.endDate) {
-    const endDate = new Date(doc.endDate);
-    if (!Number.isNaN(endDate.getTime())) {
-      const endDay = easternDay(endDate);
-      if (endDay >= day) {
-        const candidate = combineDayTime(endDay, doc.endTime);
-        if (candidate !== start) end = candidate;
-      }
+    const endDay = sourceStartDay(CITY_TZ, doc.endDate);
+    if (endDay && endDay >= day) {
+      const candidate = doc.endTime
+        ? sourceWallTime(CITY_TZ, endDay, doc.endTime, { disambiguation: 'later' })
+        : endDay;
+      if (candidate && candidate !== start) end = candidate;
     }
   }
 
@@ -209,19 +177,19 @@ function mapDoc(doc, todayDay, lastDay) {
   return event;
 }
 
-export async function fetchEvents() {
-  const now = new Date();
-  const todayDay = easternDay(now);
-  const lastDay = addDays(todayDay, DAYS_AHEAD);
-  const startISO = easternMidnight(todayDay).toISOString();
-  const endISO = easternMidnight(lastDay).toISOString();
+export async function fetchEvents(options = {}) {
+  const nowMs = options.nowMs ?? Date.now();
+  const fetchImpl = options.fetchImpl ?? globalThis.fetch;
+  const { today: todayDay, lastDay } = sourceWindow(CITY_TZ, nowMs, DAYS_AHEAD);
+  const startISO = midnightInTz(CITY_TZ, todayDay).toISOString();
+  const endISO = midnightInTz(CITY_TZ, lastDay).toISOString();
 
-  const token = await getToken();
+  const token = await getToken(fetchImpl);
 
   const allDocs = [];
   let expected = Infinity;
   for (let page = 0; page < MAX_PAGES && allDocs.length < expected; page++) {
-    const { docs, count } = await fetchPage(token, startISO, endISO, page * PAGE_LIMIT);
+    const { docs, count } = await fetchPage(token, startISO, endISO, page * PAGE_LIMIT, fetchImpl);
     expected = count;
     allDocs.push(...docs);
     if (docs.length < PAGE_LIMIT) break;

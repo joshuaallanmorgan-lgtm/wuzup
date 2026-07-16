@@ -12,6 +12,7 @@ import {
   cityMidnightMs,
   dayIdAt,
   eventTime,
+  parseZonedDateTime,
 } from '../../shared/city-time.mjs';
 
 export const DEFAULT_TIMEOUT_MS = 20000;
@@ -114,7 +115,7 @@ function instantMs(instant) {
 }
 
 // 'YYYY-MM-DD' of an instant on the tz's wall clock.
-export function dayInTz(tz, instant = new Date()) {
+export function dayInTz(tz, instant) {
   return dayIdAt(instantMs(instant), tz);
 }
 
@@ -135,8 +136,25 @@ export function sourceStartDay(tz, value) {
   return canonical.ok ? canonical.startDay : null;
 }
 
+// Resolve a publisher's city-local wall clock at the offset in effect at that
+// exact instant. Nonexistent clocks, impossible days, and malformed times fail
+// closed instead of being fabricated with a noon or midnight offset.
+export function sourceWallTime(tz, dayStr, timeStr, { disambiguation = 'earlier' } = {}) {
+  if (typeof timeStr !== 'string') return null;
+  const match = /^(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(timeStr.trim());
+  if (!match) return null;
+  const local = `${dayStr}T${match[1]}:${match[2]}:${match[3] || '00'}`;
+  let parsed;
+  try {
+    parsed = parseZonedDateTime(local, tz, { disambiguation });
+  } catch {
+    return null;
+  }
+  return parsed.ok ? isoInTz(tz, parsed.epochMs) : null;
+}
+
 // UTC offset string ('-07:00' / '-08:00' / ...) in effect in tz at an instant.
-export function offsetInTz(tz, instant = new Date()) {
+export function offsetInTz(tz, instant) {
   const epochMs = instantMs(instant);
   const part = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'longOffset' })
     .formatToParts(new Date(epochMs))

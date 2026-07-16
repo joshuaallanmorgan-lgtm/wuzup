@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss><channel>
+  <item>
+    <title>SF before the jump</title>
+    <calendarEvent:EventDates>March 8, 2026</calendarEvent:EventDates>
+    <calendarEvent:EventTimes>01:30 AM - 03:30 AM</calendarEvent:EventTimes>
+    <description>&lt;strong&gt;Location:&lt;/strong&gt;&lt;br&gt;Golden Gate Park&lt;br&gt;San Francisco, CA&lt;br&gt;&lt;strong&gt;Description:&lt;/strong&gt;&lt;br&gt;Free fixture walk.</description>
+    <link>https://example.com/sf-before</link>
+  </item>
+  <item>
+    <title>SF nonexistent clock</title>
+    <calendarEvent:EventDates>March 8, 2026</calendarEvent:EventDates>
+    <calendarEvent:EventTimes>02:30 AM - 03:30 AM</calendarEvent:EventTimes>
+    <description>Gap fixture</description>
+    <link>https://example.com/sf-gap</link>
+  </item>
+  <item>
+    <title>SF last day</title>
+    <calendarEvent:EventDates>April 22, 2026</calendarEvent:EventDates>
+    <calendarEvent:EventTimes>All Day</calendarEvent:EventTimes>
+    <description>Boundary fixture</description>
+    <link>https://example.com/sf-last</link>
+  </item>
+  <item>
+    <title>SF prior day</title>
+    <calendarEvent:EventDates>March 7, 2026</calendarEvent:EventDates>
+    <calendarEvent:EventTimes>01:00 PM - 02:00 PM</calendarEvent:EventTimes>
+    <description>Prior fixture</description>
+  </item>
+  <item>
+    <title>SF after window</title>
+    <calendarEvent:EventDates>April 23, 2026</calendarEvent:EventDates>
+    <calendarEvent:EventTimes>01:00 PM - 02:00 PM</calendarEvent:EventTimes>
+    <description>After fixture</description>
+  </item>
+  <item>
+    <title>SF impossible day</title>
+    <calendarEvent:EventDates>February 30, 2026</calendarEvent:EventDates>
+    <calendarEvent:EventTimes>01:00 PM - 02:00 PM</calendarEvent:EventTimes>
+    <description>Impossible fixture</description>
+  </item>
+</channel></rss>

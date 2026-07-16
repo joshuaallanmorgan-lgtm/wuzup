@@ -3,7 +3,8 @@
 // in four Tampa Bay listing pages. Listing-level startDate is often date-only; we
 // deliberately do NOT fetch detail pages (politeness + speed).
 
-import { cleanText, fetchWithTimeout } from '../_shared.mjs';
+import { cleanText, fetchWithTimeout, sourceStartDay, sourceWindow } from '../_shared.mjs';
+import { tz as CITY_TZ } from '../../cities/tampa-bay.mjs';
 
 export const name = 'AllEvents';
 
@@ -15,34 +16,15 @@ const PAGES = [
 ];
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36';
 const DAYS_AHEAD = 45;
-const TZ = 'America/New_York';
 
-function aeFetch(url) {
+function aeFetch(url, fetchImpl) {
   return fetchWithTimeout(url, {
     headers: {
       'user-agent': UA,
       accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       'accept-language': 'en-US,en;q=0.9',
     },
-  });
-}
-
-// 'YYYY-MM-DD' for "today" in Tampa's timezone.
-function easternToday() {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit',
-  }).format(new Date());
-}
-
-function addDays(dayStr, days) {
-  const [y, m, d] = dayStr.split('-').map(Number);
-  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
-}
-
-// Calendar day of a schema.org startDate ('YYYY-MM-DD' or ISO datetime).
-function dayOf(dateStr) {
-  const m = /^(\d{4}-\d{2}-\d{2})/.exec(String(dateStr).trim());
-  return m ? m[1] : null;
+  }, undefined, fetchImpl);
 }
 
 // Recursively collect schema.org Event objects from a parsed ld+json value.
@@ -89,12 +71,12 @@ function mapEvent(item, fromFreePage, todayDay, lastDay) {
   const title = cleanText(item.name, 300);
   if (!title) return null;
 
-  const startDay = dayOf(item.startDate);
+  const startDay = sourceStartDay(CITY_TZ, item.startDate);
   if (!startDay || startDay < todayDay || startDay > lastDay) return null;
   const start = String(item.startDate).trim();
 
   let end = item.endDate ? String(item.endDate).trim() : null;
-  if (end && (dayOf(end) === null || end === start)) end = null;
+  if (end && (!sourceStartDay(CITY_TZ, end) || end === start)) end = null;
 
   const location = item.location && typeof item.location === 'object' ? item.location : {};
   const addr = location.address && typeof location.address === 'object' ? location.address : {};
@@ -127,9 +109,12 @@ function mapEvent(item, fromFreePage, todayDay, lastDay) {
   };
 }
 
-export async function fetchEvents() {
-  const todayDay = easternToday();
-  const lastDay = addDays(todayDay, DAYS_AHEAD);
+export async function fetchEvents(options = {}) {
+  const config = options || {};
+  const nowMs = config.nowMs ?? Date.now();
+  if (!Number.isFinite(nowMs)) throw new TypeError('nowMs must be finite');
+  const fetchImpl = config.fetchImpl ?? globalThis.fetch;
+  const { today: todayDay, lastDay } = sourceWindow(CITY_TZ, nowMs, DAYS_AHEAD);
 
   const byUrl = new Map();
   let anonCounter = 0;
@@ -139,7 +124,7 @@ export async function fetchEvents() {
   for (const page of PAGES) {
     let items;
     try {
-      const res = await aeFetch(page.url);
+      const res = await aeFetch(page.url, fetchImpl);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       items = extractLdEvents(await res.text());
     } catch (err) {

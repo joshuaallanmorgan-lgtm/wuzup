@@ -17,7 +17,15 @@
 // GeoJSON loc.coordinates in lng,lat order as fallback), absoluteUrl,
 // media_raw, description, admission (bare numbers like "100" AND "Free"),
 // categories[].catName.
-import { decodeEntities, cleanText, fetchWithTimeout, dayInTz, offsetInTz, midnightInTz, addDaysStr } from '../_shared.mjs';
+import {
+  cleanText,
+  decodeEntities,
+  fetchWithTimeout,
+  midnightInTz,
+  sourceStartDay,
+  sourceWallTime,
+  sourceWindow,
+} from '../_shared.mjs';
 // D2 seam: Pacific comes from the city config, never a module literal.
 import { tz as CITY_TZ } from '../../cities/sf-east-bay.mjs';
 
@@ -29,8 +37,8 @@ const DAYS_AHEAD = 45;
 const PAGE_LIMIT = 50; // keep responses under the API's result-set cap (categories field adds bulk)
 const MAX_PAGES = 10;
 
-function voFetch(url) {
-  return fetchWithTimeout(url, { headers: { 'user-agent': UA } });
+function voFetch(url, fetchImpl) {
+  return fetchWithTimeout(url, { headers: { 'user-agent': UA } }, undefined, fetchImpl);
 }
 
 // Native Simpleview catName -> our category vocabulary, RESAMPLED on Visit
@@ -81,21 +89,12 @@ function hasFreeCat(categories) {
 }
 
 // 'YYYY-MM-DD' for a Date instant, evaluated on the city's wall clock.
-function cityDay(date) {
-  return dayInTz(CITY_TZ, date);
-}
-
-function addDays(dayStr, days) {
-  return addDaysStr(dayStr, days);
-}
-
 // Combine a city calendar day with an 'HH:MM:SS' local time into an ISO
 // string. NO timeStr → the bare day (date-only stays date-only — the
 // midnight gotcha's honesty half).
 function combineDayTime(dayStr, timeStr) {
-  if (!timeStr || !/^\d{2}:\d{2}/.test(timeStr)) return dayStr;
-  const offset = offsetInTz(CITY_TZ, midnightInTz(CITY_TZ, dayStr));
-  return `${dayStr}T${timeStr}${offset}`;
+  if (!timeStr) return dayStr;
+  return sourceWallTime(CITY_TZ, dayStr, timeStr);
 }
 
 function parseAdmission(admission) {
@@ -117,8 +116,8 @@ function parseAdmission(admission) {
   return { price: null, isFree: null };
 }
 
-async function getToken() {
-  const res = await voFetch(`${BASE}/plugins/core/get_simple_token/`);
+async function getToken(fetchImpl) {
+  const res = await voFetch(`${BASE}/plugins/core/get_simple_token/`, fetchImpl);
   if (!res.ok) throw new Error(`Visit Oakland token request failed: HTTP ${res.status}`);
   const token = (await res.text()).trim();
   if (!token || token.length > 200 || /[<>\s]/.test(token)) {
@@ -127,7 +126,7 @@ async function getToken() {
   return token;
 }
 
-async function fetchPage(token, startISO, endISO, skip) {
+async function fetchPage(token, startISO, endISO, skip, fetchImpl) {
   const query = {
     filter: {
       active: true,
@@ -148,7 +147,7 @@ async function fetchPage(token, startISO, endISO, skip) {
   };
   const url = `${BASE}/includes/rest_v2/plugins_events_events_by_date/find/` +
     `?json=${encodeURIComponent(JSON.stringify(query))}&token=${encodeURIComponent(token)}`;
-  const res = await voFetch(url);
+  const res = await voFetch(url, fetchImpl);
   if (!res.ok) {
     throw new Error(`Visit Oakland events request failed: HTTP ${res.status} ${(await res.text()).slice(0, 200)}`);
   }
@@ -169,23 +168,22 @@ function mapDoc(doc, todayDay, lastDay) {
   // 2026-07-12T06:59:59Z => July 11 local) — same convention as VTB's ET.
   const occurrence = doc.date || doc.nextDate || doc.startDate;
   if (!occurrence) return null;
-  const occurrenceDate = new Date(occurrence);
-  if (Number.isNaN(occurrenceDate.getTime())) return null;
-  const day = cityDay(occurrenceDate);
+  const day = sourceStartDay(CITY_TZ, occurrence);
+  if (!day) return null;
   if (day < todayDay || day > lastDay) return null;
 
   const start = combineDayTime(day, doc.startTime);
+  if (!start) return null;
 
   // endDate on recurring events is the series end, not the occurrence end.
   let end = null;
   if (doc.recurType === 0 && doc.endDate) {
-    const endDate = new Date(doc.endDate);
-    if (!Number.isNaN(endDate.getTime())) {
-      const endDay = cityDay(endDate);
-      if (endDay >= day) {
-        const candidate = combineDayTime(endDay, doc.endTime);
-        if (candidate !== start) end = candidate;
-      }
+    const endDay = sourceStartDay(CITY_TZ, doc.endDate);
+    if (endDay && endDay >= day) {
+      const candidate = doc.endTime
+        ? sourceWallTime(CITY_TZ, endDay, doc.endTime, { disambiguation: 'later' })
+        : endDay;
+      if (candidate && candidate !== start) end = candidate;
     }
   }
 
@@ -225,20 +223,20 @@ function mapDoc(doc, todayDay, lastDay) {
   return event;
 }
 
-export async function fetchEvents() {
-  const now = new Date();
-  const todayDay = cityDay(now);
-  const lastDay = addDays(todayDay, DAYS_AHEAD);
+export async function fetchEvents(options = {}) {
+  const nowMs = options.nowMs ?? Date.now();
+  const fetchImpl = options.fetchImpl ?? globalThis.fetch;
+  const { today: todayDay, lastDay } = sourceWindow(CITY_TZ, nowMs, DAYS_AHEAD);
   // Midnight-PACIFIC boundaries (the gotcha): derived from the city tz.
   const startISO = midnightInTz(CITY_TZ, todayDay).toISOString();
   const endISO = midnightInTz(CITY_TZ, lastDay).toISOString();
 
-  const token = await getToken();
+  const token = await getToken(fetchImpl);
 
   const allDocs = [];
   let expected = Infinity;
   for (let page = 0; page < MAX_PAGES && allDocs.length < expected; page++) {
-    const { docs, count } = await fetchPage(token, startISO, endISO, page * PAGE_LIMIT);
+    const { docs, count } = await fetchPage(token, startISO, endISO, page * PAGE_LIMIT, fetchImpl);
     expected = count;
     allDocs.push(...docs);
     if (docs.length < PAGE_LIMIT) break;

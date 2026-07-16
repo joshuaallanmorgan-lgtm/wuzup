@@ -47,7 +47,7 @@ import { chromium } from 'playwright';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { parseZonedDateTime } from '../../../shared/city-time.mjs';
+import { calendarDayDiff, parseZonedDateTime } from '../../../shared/city-time.mjs';
 import { cleanText, isoInTz, sourceWindow } from '../_shared.mjs';
 import { cityId } from '../../cities/index.mjs';
 import { tz as CITY_TZ } from '../../cities/tampa-bay.mjs';
@@ -74,6 +74,7 @@ const NEG_RECHECK_MS = 7 * 24 * 3600 * 1000; // re-probe no-time pages weekly
 const MAX_END_SPAN_DAYS = 7;
 const UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36';
+const operationalNowMs = () => Date.now();
 
 // Site category -> our vocabulary. Iteration order IS priority: specific signals
 // (music/film/food) beat broad buckets (Festivals, Annual Festivals & Events).
@@ -114,9 +115,7 @@ function usDateToISO(str) {
 }
 
 function diffDays(a, b) {
-  const [ay, am, ad] = a.split('-').map(Number);
-  const [by, bm, bd] = b.split('-').map(Number);
-  return Math.round((Date.UTC(by, bm - 1, bd) - Date.UTC(ay, am - 1, ad)) / 86400000);
+  return calendarDayDiff(a, b);
 }
 
 // ---------------------------------------------------------------------------
@@ -231,12 +230,12 @@ function readCache() {
   return null;
 }
 
-function writeCache(events, windowDay) {
+function writeCache(events, windowDay, nowMs) {
   try {
     fs.mkdirSync(path.dirname(CACHE_FILE), { recursive: true });
     fs.writeFileSync(
       CACHE_FILE,
-      JSON.stringify({ fetchedAt: new Date().toISOString(), windowDay, events }, null, 2),
+      JSON.stringify({ fetchedAt: new Date(nowMs).toISOString(), windowDay, events }, null, 2),
     );
   } catch (e) {
     console.error('[vspc] cache write failed:', e.message);
@@ -267,9 +266,9 @@ async function scrapeListingsGrid(page) {
   // Poll for a parseable drupal-settings blob with grid results. The Cloudflare
   // interstitial ("Just a moment...") renders first on a challenged session and
   // is replaced after the JS challenge solves, so keep retrying for a while.
-  const deadline = Date.now() + 45000;
+  const deadline = operationalNowMs() + 45000;
   let results = null;
-  while (Date.now() < deadline) {
+  while (operationalNowMs() < deadline) {
     await page.waitForTimeout(3000);
     const rawSettings = await page
       .evaluate(() => {
@@ -374,7 +373,7 @@ export function pickTimesForDay(eventDates, day) {
 // navigation in the same context indefinitely (probed live 2026-06-10).
 async function enrichTimes(browser, events) {
   const cache = readTimesCache();
-  const now = Date.now();
+  const now = operationalNowMs();
   let fromCache = 0;
 
   const dateOnly = events
@@ -405,7 +404,7 @@ async function enrichTimes(browser, events) {
   if (batch.length) {
     const deadline = now + ENRICH_WALL_CLOCK_MS;
     for (const e of batch) {
-      if (Date.now() > deadline) {
+      if (operationalNowMs() > deadline) {
         console.error(`[vspc] enrichment wall clock hit — stopping early (${enriched} enriched)`);
         break;
       }
@@ -422,10 +421,10 @@ async function enrichTimes(browser, events) {
         await page.goto(e.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
         // Poll for the settled drupal-settings blob (first navigation of a
         // fresh context typically settles in ~2 s; challenges are rare here).
-        const pageDeadline = Date.now() + 15000;
+        const pageDeadline = operationalNowMs() + 15000;
         let eventDates = null;
         let settled = false;
-        while (Date.now() < pageDeadline) {
+        while (operationalNowMs() < pageDeadline) {
           await page.waitForTimeout(1500);
           const settings = await page
             .evaluate(() => {
@@ -451,12 +450,12 @@ async function enrichTimes(browser, events) {
         } else {
           const times = pickTimesForDay(eventDates, e.start);
           if (times) {
-            cache[key] = { ...times, at: Date.now() };
+            cache[key] = { ...times, at: operationalNowMs() };
             e.start = times.start;
             if (times.end && !e.end) e.end = times.end;
             enriched++;
           } else {
-            cache[key] = { none: true, at: Date.now() };
+            cache[key] = { none: true, at: operationalNowMs() };
             misses++;
           }
           writeTimesCache(cache); // crash-safe: persist after every page
@@ -525,7 +524,7 @@ export async function fetchEvents(options = {}) {
     } finally {
       await browser.close().catch(() => {});
     }
-    writeCache(events, today);
+    writeCache(events, today, nowMs);
     return events;
   } catch (e) {
     console.error('[vspc] scrape failed:', e.message);
@@ -545,7 +544,7 @@ export async function fetchEvents(options = {}) {
 // ---------------------------------------------------------------------------
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const nowMs = Date.now();
+  const nowMs = operationalNowMs();
   const events = await fetchEvents({ nowMs });
   const sevenDayBoundary = sourceWindow(CITY_TZ, nowMs, 7).lastDay;
   console.log(`count: ${events.length}`);
