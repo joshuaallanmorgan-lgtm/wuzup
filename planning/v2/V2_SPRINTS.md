@@ -862,6 +862,32 @@ and migration tests pass; planner operations are idempotent and survive reload.
   replace App/lib V1 state, feed planner initialization only after terminal usable custom state, await add/delete/
   undo outcomes, and show session-only retry truth. Until that coherent group lands, Sprint 3 remains yellow.
 
+#### Sprint 3 atomic custom-event store receipt - 2026-07-16 (yellow)
+
+- **Added-by-you events now have a destination-first atomic adapter:** `custom-events-v2` binds the exact custom
+  document to the selected city and trusted timezone, replays revision-bound add, update, delete, merge, and replace
+  commands, and preserves the pure layer's stable-identity, alias-history, temporal, capacity, and conflict rules.
+- **Migration provenance cannot be substituted or raced:** default capture and explicit source packets reserve their
+  own exact physical evidence, detach descriptor-safe plain data before any asynchronous boundary, leave V1 bytes
+  untouched, and skip capture entirely when a valid destination already exists. A queued caller mutation or injected
+  getter, accessor, proxy trap, or `toJSON` hook cannot change the migrated document or execute during validation.
+- **Every public input boundary is bounded and fail-closed:** an iterative depth-64/node-262,144 clone rejects deep
+  nesting, cycles, sparse or extended arrays, symbols, custom prototypes, hidden fields, non-finite values, and
+  malformed commands without recursion or stack overflow. Builders return `null`, dispatch rejects, and initialization
+  reports a controlled source error rather than throwing through the app.
+- **Durability and identity claims remain exact:** Web Locks preserve durable convergence; missing lock support keeps
+  all writes visibly session-only and retryable. Durable projections may expose their landed `c|` identity, while
+  session projections retain usable legacy evidence without leaking an uncommitted primary into planner, saves, or
+  activity state.
+- **Verification and review are green:** the registered adapter/core/atomic/storage gate passes 71/71; independent
+  hostile-depth, descriptor, mutation-race, dispatch-detachment, provenance, city/timezone, destination-first, and
+  no-lock compatibility passes 73/73; exact-file lint passes. Final adversarial re-review records **SHIP** with no
+  P0/P1 remaining.
+- **The adapter is not yet the active runtime:** the StrictMode-safe provider and one coherent App/Add Event/detail/
+  planner cutover must land before V1 readers or writers are removed. Actions must await applied outcomes, planner
+  initialization must wait for terminal usable custom state, and session-only recovery must be visible, so Sprint 3
+  remains yellow.
+
 #### Sprint 3 truthful location-permission runtime receipt - 2026-07-16 (yellow)
 
 - **Permission intent and effective use are separate:** one city-scoped controller owns disabled, desired,
