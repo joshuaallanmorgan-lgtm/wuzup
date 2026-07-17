@@ -720,6 +720,14 @@
 .load-note.is-layered {
   top: calc(64px + env(safe-area-inset-top));
 }
+/* Independent catalog and transport failures can coexist. Keep the custom
+   durability/recovery notice persistent in a second operable row. */
+.load-note.is-stacked {
+  top: calc(52px + env(safe-area-inset-top));
+}
+.load-note.is-layered.is-stacked {
+  top: calc(106px + env(safe-area-inset-top));
+}
 .load-retry {
   flex: none;
   border: none;

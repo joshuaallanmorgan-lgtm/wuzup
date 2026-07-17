@@ -56,6 +56,15 @@ export function plannerStatusAfterRollover(
   return baseStatus
 }
 
+export function plannerStatusAfterCatalog(baseStatus, {
+  ready = true,
+  error = null,
+} = {}) {
+  if (baseStatus === 'corrupt') return baseStatus
+  if (error) return 'error'
+  return ready ? baseStatus : 'initializing'
+}
+
 function rolloverFailure(result, error, dayTs) {
   const cause = result?.error?.code
     || result?.conflict?.code
@@ -123,6 +132,8 @@ function CityPlannerProvider({
   anchors,
   events,
   artifactStatus,
+  catalogReady,
+  catalogError,
   storeFactory,
   sourceCapture,
 }) {
@@ -225,14 +236,14 @@ function CityPlannerProvider({
   )
 
   useEffect(() => {
-    if (!runtime) return
+    if (!runtime || !catalogReady || catalogError) return
     runtime.initialize({
       artifactStatus,
       anchors,
       events: eventList,
       seeds,
     }).catch(() => {})
-  }, [anchors, artifactStatus, eventList, runtime, seeds])
+  }, [anchors, artifactStatus, catalogReady, catalogError, eventList, runtime, seeds])
 
   const publishRollover = useCallback((next) => {
     rolloverRef.current = next
@@ -325,28 +336,39 @@ function CityPlannerProvider({
     [catalog, document, runtime]
   )
 
+  const plannerAvailable = catalogReady === true && !catalogError
   const add = useCallback(
-    (item, options) => runtime?.actions.add(item, options) || unavailableResult(storeSnapshot),
-    [runtime, storeSnapshot]
+    (item, options) => plannerAvailable && runtime
+      ? runtime.actions.add(item, options)
+      : unavailableResult(storeSnapshot),
+    [plannerAvailable, runtime, storeSnapshot]
   )
   const move = useCallback(
-    (slot, options) => runtime?.actions.move(slot, options) || unavailableResult(storeSnapshot),
-    [runtime, storeSnapshot]
+    (slot, options) => plannerAvailable && runtime
+      ? runtime.actions.move(slot, options)
+      : unavailableResult(storeSnapshot),
+    [plannerAvailable, runtime, storeSnapshot]
   )
   const remove = useCallback(
-    (slot) => runtime?.actions.remove(slot) || unavailableResult(storeSnapshot),
-    [runtime, storeSnapshot]
+    (slot) => plannerAvailable && runtime
+      ? runtime.actions.remove(slot)
+      : unavailableResult(storeSnapshot),
+    [plannerAvailable, runtime, storeSnapshot]
   )
   const setRest = useCallback(
-    (dayTs, rest) => runtime?.actions.setRest(dayTs, rest) || unavailableResult(storeSnapshot),
-    [runtime, storeSnapshot]
+    (dayTs, rest) => plannerAvailable && runtime
+      ? runtime.actions.setRest(dayTs, rest)
+      : unavailableResult(storeSnapshot),
+    [plannerAvailable, runtime, storeSnapshot]
   )
   const undo = useCallback(
-    (receipt) => runtime?.actions.undo(receipt) || unavailableResult(storeSnapshot),
-    [runtime, storeSnapshot]
+    (receipt) => plannerAvailable && runtime
+      ? runtime.actions.undo(receipt)
+      : unavailableResult(storeSnapshot),
+    [plannerAvailable, runtime, storeSnapshot]
   )
   const retryPersistence = useCallback(async () => {
-    if (!runtime) return unavailableResult(storeSnapshot)
+    if (!plannerAvailable || !runtime) return unavailableResult(storeSnapshot)
     const failed = rolloverRef.current
     if (failed.runtime === runtime
         && failed.phase === 'error'
@@ -360,7 +382,7 @@ function CityPlannerProvider({
       return rolloverResult
     }
     return runtime.actions.retryPersistence()
-  }, [anchors?.todayTs, attemptRollover, runtime, storeSnapshot])
+  }, [anchors?.todayTs, attemptRollover, plannerAvailable, runtime, storeSnapshot])
 
   const rolloverError = rollover.runtime === runtime
     && rollover.dayTs === anchors?.todayTs
@@ -371,10 +393,11 @@ function CityPlannerProvider({
     artifactStatus,
     lifecycle,
     storeSnapshot,
-    runtimeError: holderSnapshot.error || rolloverError,
+    runtimeError: holderSnapshot.error || rolloverError || catalogError,
   })
+  const catalogStatus = plannerStatusAfterCatalog(baseStatus, { ready: catalogReady, error: catalogError })
   const status = plannerStatusAfterRollover(
-    baseStatus,
+    catalogStatus,
     rollover,
     anchors?.todayTs,
     runtime,
@@ -382,7 +405,11 @@ function CityPlannerProvider({
   const value = useMemo(() => ({
     status,
     durability: storeSnapshot.durability,
-    error: holderSnapshot.error || rolloverError || lifecycle.error || storeSnapshot.error,
+    error: holderSnapshot.error
+      || rolloverError
+      || catalogError
+      || lifecycle.error
+      || storeSnapshot.error,
     recovery: rolloverError
       ? {
           code: 'retry-rollover',
@@ -392,6 +419,7 @@ function CityPlannerProvider({
       : storeSnapshot.recovery,
     document,
     catalog,
+    catalogReady: plannerAvailable,
     getDay,
     resolve,
     placement,
@@ -409,6 +437,7 @@ function CityPlannerProvider({
     activeDays,
     add,
     catalog,
+    catalogError,
     document,
     filledDayCount,
     getDay,
@@ -417,6 +446,7 @@ function CityPlannerProvider({
     isPlanned,
     lifecycle.error,
     move,
+    plannerAvailable,
     placement,
     remove,
     resolve,
@@ -439,6 +469,8 @@ export function PlannerProvider({
   anchors,
   events = EMPTY_LIST,
   artifactStatus,
+  catalogReady = true,
+  catalogError = null,
   storeFactory = createPlannerStore,
   sourceCapture = capturePlannerV1Source,
 }) {
@@ -450,6 +482,8 @@ export function PlannerProvider({
       anchors={anchors}
       events={events}
       artifactStatus={artifactStatus}
+      catalogReady={catalogReady}
+      catalogError={catalogError}
       storeFactory={storeFactory}
       sourceCapture={sourceCapture}
     >

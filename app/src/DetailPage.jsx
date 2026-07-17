@@ -107,6 +107,13 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
     isPlanned,
     placement,
   } = usePlanner()
+  const mountedRef = useRef(true)
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
   const lifecycle = eventLifecycle(e)
   // ===== WHEN: end-date honesty (multi-day ranges, same-day time ranges, ongoing) =====
   // whenShort is the SAME honest WHEN in short form ("Fri, Jun 19 · 7:00 PM") for
@@ -251,9 +258,12 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
   const toastTRef = useRef(null)
   useEffect(() => () => clearTimeout(toastTRef.current), [])
   const flash = (msg) => {
+    if (!mountedRef.current) return
     setToast(msg)
     clearTimeout(toastTRef.current)
-    toastTRef.current = setTimeout(() => setToast(null), 1600)
+    toastTRef.current = setTimeout(() => {
+      if (mountedRef.current) setToast(null)
+    }, 1600)
   }
 
   // ===== 3.7P-34: Add to day — the event→day-plan bridge, the PLANNER-FIRST
@@ -439,24 +449,80 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
     }
   }
 
-  // ===== Remove (added events only): instant delete from my-events + 6s undo.
+  // ===== Remove (added events only): awaited atomic delete + 6s undo.
   // The open detail keeps showing the removed event so Undo can restore it;
   // closing during/after the window simply commits the removal. =====
   const [undoVis, setUndoVis] = useState(false)
+  const [undoReceipt, setUndoReceipt] = useState(null)
+  const [undoError, setUndoError] = useState(null)
+  const [removedMine, setRemovedMine] = useState(false)
+  const [removePending, setRemovePending] = useState(false)
+  const removePendingRef = useRef(false)
   const undoTRef = useRef(null)
   useEffect(() => () => clearTimeout(undoTRef.current), [])
-  const removeMine = () => {
-    if (!onRemoveMine) return
-    onRemoveMine(e)
-    setUndoVis(true)
+  const scheduleUndoExpiry = () => {
     clearTimeout(undoTRef.current)
-    undoTRef.current = setTimeout(() => setUndoVis(false), 6000)
+    undoTRef.current = setTimeout(() => {
+      if (!mountedRef.current) return
+      setUndoVis(false)
+      setUndoReceipt(null)
+      setUndoError(null)
+    }, 6000)
   }
-  const undoRemove = () => {
+  const keepUndoAfterFailure = () => {
+    if (!mountedRef.current) return
+    setUndoError("Couldn't restore that event. Try again.")
+    setUndoVis(true)
+    scheduleUndoExpiry()
+  }
+  const removeMine = async () => {
+    if (!onRemoveMine || removedMine || removePendingRef.current) return
+    removePendingRef.current = true
+    setRemovePending(true)
+    setUndoError(null)
+    try {
+      const removed = await onRemoveMine(e)
+      if (!mountedRef.current) return
+      if (removed?.changed !== true || !removed?.item) {
+        flash("Couldn't remove that event")
+        return
+      }
+      setRemovedMine(true)
+      setUndoReceipt(removed?.item)
+      setUndoVis(true)
+      scheduleUndoExpiry()
+    } catch {
+      if (mountedRef.current) flash("Couldn't remove that event")
+    } finally {
+      removePendingRef.current = false
+      if (mountedRef.current) setRemovePending(false)
+    }
+  }
+  const undoRemove = async () => {
+    if (!onRestoreMine || !undoReceipt || removePendingRef.current) return
     clearTimeout(undoTRef.current)
-    setUndoVis(false)
-    if (onRestoreMine) onRestoreMine(e)
-    flash('Restored ✓')
+    removePendingRef.current = true
+    setRemovePending(true)
+    setUndoError(null)
+    try {
+      const restored = await onRestoreMine(undoReceipt)
+      if (!mountedRef.current) return
+      if (restored?.changed !== true) {
+        keepUndoAfterFailure()
+        return
+      }
+      clearTimeout(undoTRef.current)
+      setRemovedMine(false)
+      setUndoVis(false)
+      setUndoReceipt(null)
+      setUndoError(null)
+      flash('Restored ✓')
+    } catch {
+      keepUndoAfterFailure()
+    } finally {
+      removePendingRef.current = false
+      if (mountedRef.current) setRemovePending(false)
+    }
   }
 
   return (
@@ -650,8 +716,8 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
           </div>
         )}
         {mine && onRemoveMine && (
-          <button className="d-remove" onClick={removeMine} disabled={undoVis}>
-            Remove from my feed
+          <button className="d-remove" onClick={removeMine} disabled={removedMine || removePending}>
+            {removedMine ? 'Removed from my feed' : removePending ? 'Removing…' : 'Remove from my feed'}
           </button>
         )}
         {similar.length > 0 && (
@@ -683,12 +749,15 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
       {undoVis && (
         <div
           className="detail-toast undo-toast"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
           inert={planning || planClosing ? true : undefined}
           aria-hidden={planning || planClosing || undefined}
         >
-          Removed from your feed
-          <button className="undo-btn" onClick={undoRemove}>
-            Undo
+          <span>{undoError || 'Removed from your feed'}</span>
+          <button className="undo-btn" onClick={undoRemove} disabled={removePending}>
+            {removePending ? 'Restoring…' : 'Undo'}
           </button>
         </div>
       )}

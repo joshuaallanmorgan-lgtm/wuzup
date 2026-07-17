@@ -19,6 +19,7 @@ try {
 }
 const {
   plannerRolloverSucceeded,
+  plannerStatusAfterCatalog,
   plannerStatusAfterRollover,
 } = providerModule
 
@@ -95,6 +96,34 @@ test('rollover success classification clears only successful or applied outcomes
     false,
   )
   assert.equal(plannerRolloverSucceeded(null), false)
+})
+
+test('custom-event catalog readiness gates planner initialization and public actions', () => {
+  assert.equal(plannerStatusAfterCatalog('idle', { ready: false }), 'initializing')
+  assert.equal(plannerStatusAfterCatalog('durable', { ready: true }), 'durable')
+  assert.equal(
+    plannerStatusAfterCatalog('durable', {
+      ready: false,
+      error: { code: 'custom-events-corrupt' },
+    }),
+    'error',
+  )
+  assert.equal(
+    plannerStatusAfterCatalog('corrupt', {
+      ready: false,
+      error: { code: 'custom-events-corrupt' },
+    }),
+    'corrupt',
+    'a known corrupt planner destination remains the strongest failure state',
+  )
+
+  assert.match(
+    source,
+    /if \(!runtime \|\| !catalogReady \|\| catalogError\) return[\s\S]*runtime\.initialize/,
+  )
+  assert.match(source, /const plannerAvailable = catalogReady === true && !catalogError/)
+  assert.match(source, /runtimeError: holderSnapshot\.error \|\| rolloverError \|\| catalogError/)
+  assert.match(source, /catalogReady=\{catalogReady\}[\s\S]*catalogError=\{catalogError\}/)
 })
 
 test('failed rollover is explicit, same-day retryable, and stale completions cannot publish', () => {

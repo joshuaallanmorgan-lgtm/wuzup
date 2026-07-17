@@ -1,8 +1,8 @@
 // AddEvent — "+ Add event" subpage (Sprint C MVP, sanctioned by Josh night 1:
 // "a very basic version" proving user-submitted events; the full social pipeline
 // stays parked). One Editorial-clean screen → a real schema-v2 event object →
-// App persists it (localStorage 'my-events-v1' via lib.saveMyEvents) and merges
-// it through the SAME normalize() path as fetched data, so it surfaces in the
+// the city-bound custom-event provider persists it and App merges its projection
+// through the SAME normalize() path as fetched data, so it surfaces in the
 // feed, bubbles, search and calendar (lat/lng are null → no map pin). Provenance
 // invariant: these events always wear the "Added by you" label — never
 // confusable with sourced data. Footer exports my-events as JSON — the seed of
@@ -34,7 +34,7 @@ function checkUrl(v) {
   }
 }
 
-export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) {
+export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null, status = 'durable' }) {
   const { closePage: onClose } = useNav() // slide back out (O6)
   // When opened from a day screen, presetTs only pre-fills the date. Saving a
   // custom event adds it to My Events; planning always requires the separate,
@@ -54,8 +54,26 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
   })
   const [errors, setErrors] = useState({})
   const [done, setDone] = useState(null)
+  const [submitError, setSubmitError] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
+  const submittingRef = useRef(false)
+  const mountedRef = useRef(true)
   const doneTRef = useRef(null)
-  useEffect(() => () => clearTimeout(doneTRef.current), [])
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+      clearTimeout(doneTRef.current)
+    }
+  }, [])
+  const catalogReady = status === 'durable' || status === 'session-only'
+  const scheduleClose = () => {
+    if (!mountedRef.current) return
+    clearTimeout(doneTRef.current)
+    doneTRef.current = setTimeout(() => {
+      if (mountedRef.current) onClose()
+    }, 1400)
+  }
 
   // field setter: accepts an input event OR a raw value; touching a field clears its error
   const set = (k) => (ev) => {
@@ -69,8 +87,9 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
     })
   }
 
-  const submit = (ev) => {
+  const submit = async (ev) => {
     ev.preventDefault()
+    if (submittingRef.current) return
     const errs = {}
     const title = f.title.trim()
     if (!title) errs.title = 'Give it a title.'
@@ -84,7 +103,6 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
     if (Object.keys(errs).length) return
     // taste seam: creating an event is a strong category signal (+2). Recorded
     // HERE, not in App.addMine — an undo-restore must not double-count.
-    recordSignal('add', { category: f.cat || 'other' })
     // full schema-v2 shape — identical fields to a fetched event, honest values
     const raw = {
       title,
@@ -108,9 +126,37 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
       category: f.cat || 'other',
       sponsored: false,
     }
-    const added = onAdd(raw) // returns the canonical persisted/session item
-    setDone(added || { code: 'added', persisted: false })
-    doneTRef.current = setTimeout(onClose, 1400) // success beat, then back to Hot
+    submittingRef.current = true
+    setSubmitting(true)
+    setSubmitError(null)
+    try {
+      const added = await onAdd(raw)
+      if (added?.changed !== true) {
+        if (!mountedRef.current) return
+        if (typeof added?.code === 'string' && added.code.startsWith('duplicate-')) {
+          setDone(added)
+          scheduleClose()
+          return
+        }
+        setSubmitError(
+          added?.code === 'event-cap-reached'
+            ? 'My Events is full. Remove one before adding another.'
+            : "Couldn't add that event. Your existing events are unchanged.",
+        )
+        return
+      }
+      recordSignal('add', { category: f.cat || 'other' })
+      if (!mountedRef.current) return
+      setDone(added)
+      scheduleClose()
+    } catch {
+      if (mountedRef.current) {
+        setSubmitError("Couldn't add that event. Your existing events are unchanged.")
+      }
+    } finally {
+      submittingRef.current = false
+      if (mountedRef.current) setSubmitting(false)
+    }
   }
 
   // the seed of the future submission pipeline: download my-events as raw JSON
@@ -135,18 +181,37 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
         <h1 className="pg-head-title">Add Your Own</h1>
       </header>
       <div className="pg-body">
-        {done ? (
+        {!catalogReady ? (
+          <div
+            className="empty"
+            role={status === 'initializing' ? 'status' : 'alert'}
+            aria-live={status === 'initializing' ? 'polite' : 'assertive'}
+          >
+            <div className="ae-done-title">
+              {status === 'initializing' ? 'Loading your events…' : 'Adding is unavailable'}
+            </div>
+            <div className="ae-done-sub">
+              {status === 'initializing'
+                ? 'The add form will be ready when your saved events finish loading.'
+                : status === 'corrupt'
+                  ? "Your saved events couldn't be read safely, so the add form is paused."
+                  : "Your saved events couldn't be loaded, so the add form is paused."}
+            </div>
+          </div>
+        ) : done ? (
           <div className="ae-done" role="status">
             <div className="ae-done-emoji">🎉</div>
-            <div className="ae-done-title">{done.code === 'duplicate' ? 'Already added' : 'Added!'}</div>
+            <div className="ae-done-title">{done?.changed === false ? 'Already added' : 'Added!'}</div>
             <div className="ae-done-sub">
-              {done.persisted === false
-                ? "It's here for this visit, but your browser couldn't save it."
-                : "It's in My Events and your feed."}
+              {done?.changed === false
+                ? "It's already in My Events and your feed."
+                : done.persisted === false
+                  ? "It's here for this visit, but your browser couldn't save it."
+                  : "It's saved in My Events and your feed."}
             </div>
           </div>
         ) : (
-          <form className="ae-form" noValidate onSubmit={submit}>
+          <form className="ae-form" noValidate onSubmit={submit} aria-busy={submitting}>
             {/* 3.76c: grouped What / When / Where / Details for a calmer form (DRAFT) */}
             <div className="ae-group">What’s the plan?</div>
             <div className="ae-field">
@@ -311,8 +376,9 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
               />
               <div className="ae-count">{f.desc.length}/250</div>
             </div>
-            <button className="ae-submit" type="submit">
-              Add event
+            {submitError && <div className="ae-err" role="alert">{submitError}</div>}
+            <button className="ae-submit" type="submit" disabled={submitting}>
+              {submitting ? 'Addingâ€¦' : 'Add event'}
             </button>
             <div className="ae-foot">
               {myEvents.length > 0 && (

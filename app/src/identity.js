@@ -9,9 +9,34 @@
 
 const EVENT_ID_RE = /^[0-9a-f]{16}$/
 const LOCAL_ID_RE = /^[a-z0-9][a-z0-9_-]{7,63}$/i
+const CUSTOM_BRIDGE_RE = /^wuzup:custom-bridge:v1:[0-9]+:[0-9a-f]{16}$/
 const MAX_ID_ATTEMPTS = 32
+const IDENTITY_ALIAS_SCAN_MAX = 64
 
 const cleanAlias = (value) => typeof value === 'string' && value.length > 0 && value !== '|' ? value : null
+
+// Session-only custom rows must not expose an uncommitted c| identity, but
+// retained-value stores still need a stable, non-reserved bridge to the exact
+// durable row after persistence succeeds. This bounded opaque alias is derived
+// from identity evidence, never treated as a public event key, and is carried
+// only by trusted custom-event projections.
+export function customIdentityBridgeOf(value) {
+  const alias = cleanAlias(value)
+  if (!alias) return null
+  let left = 2166136261
+  let right = 2246822519
+  for (let index = 0; index < alias.length; index += 1) {
+    const code = alias.charCodeAt(index)
+    left ^= code
+    left = Math.imul(left, 16777619)
+    right ^= code + index
+    right = Math.imul(right, 3266489917)
+  }
+  const hash = `${(left >>> 0).toString(16).padStart(8, '0')}${(right >>> 0).toString(16).padStart(8, '0')}`
+  return `wuzup:custom-bridge:v1:${alias.length}:${hash}`
+}
+
+const validCustomBridge = (value) => typeof value === 'string' && CUSTOM_BRIDGE_RE.test(value)
 
 export const validEventId = (value) => typeof value === 'string' && EVENT_ID_RE.test(value)
 export const validLocalEventId = (value) => typeof value === 'string' && LOCAL_ID_RE.test(value)
@@ -54,10 +79,31 @@ function orderedAliases(values) {
   return out
 }
 
+function boundedArrayValues(value) {
+  if (!Array.isArray(value)) return []
+  const out = []
+  try {
+    const limit = Math.min(value.length, IDENTITY_ALIAS_SCAN_MAX)
+    for (let index = 0; index < limit; index += 1) out.push(value[index])
+  } catch {
+    return out
+  }
+  return out
+}
+
 export function aliasesOf(item) {
   if (!item || typeof item !== 'object' || Array.isArray(item)) return []
-  const retained = Array.isArray(item.identityAliases) ? item.identityAliases : []
-  return orderedAliases([primaryKeyOf(item), legacyKeyOf(item), ...retained])
+  const retained = boundedArrayValues(item.identityAliases)
+  const base = orderedAliases([primaryKeyOf(item), legacyKeyOf(item), ...retained])
+  if (!isCustomEvent(item)) return base
+
+  // A durable custom item can derive the same bridges itself. A session-only
+  // item receives only precomputed opaque bridges because its real c| primary
+  // is deliberately absent from the public projection.
+  const bridges = validLocalEventId(item.localId)
+    ? base.map(customIdentityBridgeOf)
+    : boundedArrayValues(item._sessionIdentityAliases).filter(validCustomBridge)
+  return orderedAliases([...base, ...bridges])
 }
 
 export function identityRefOf(item) {

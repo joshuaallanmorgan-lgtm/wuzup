@@ -1,5 +1,5 @@
 // planner-core.js — pure V2 atomic planner document and reducer.
-import { isCustomEvent, legacyKeyOf, primaryKeyOf } from './identity.js'
+import { aliasesOf, isCustomEvent, primaryKeyOf } from './identity.js'
 
 export const PLANNER_VERSION = 2
 export const PLANNER_PARTS = ['morning', 'afternoon', 'night']
@@ -127,10 +127,7 @@ function plannerIdentityOf(item) {
   return {
     kind: item.kind === 'place' ? 'place' : isCustomEvent(item) ? 'custom' : 'event',
     primary: primaryKeyOf(item),
-    aliasGroups: [
-      [legacyKeyOf(item)],
-      Array.isArray(item.identityAliases) ? item.identityAliases : [],
-    ],
+    aliasGroups: [aliasesOf(item)],
   }
 }
 

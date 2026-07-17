@@ -888,6 +888,39 @@ and migration tests pass; planner operations are idempotent and survive reload.
   initialization must wait for terminal usable custom state, and session-only recovery must be visible, so Sprint 3
   remains yellow.
 
+#### Sprint 3 atomic custom-event runtime cutover receipt - 2026-07-16 (yellow)
+
+- **One city-keyed provider now owns every active Added-by-you row:** `CustomEventsProvider` creates and destroys the
+  destination-first store in an effect, subscribes through the external-store contract, and projects the same
+  normalized catalog into Home, Events, Search, Guides, Calendar, My Plans, detail, and export. App no longer keeps
+  a V1 custom-event mirror or performs a second best-effort write; the retained V1 bytes remain capture-only rollback
+  evidence.
+- **Planner availability now follows usable catalog truth:** initialization and mutations wait for terminal custom
+  state. Durable and session-only catalogs remain usable; corrupt, error, and initializing states cannot present an
+  actionable false-empty Add form or a false-success planner action. Session-only storage warnings no longer become
+  planner errors, and their recovery control remains visible beside independent offline, stale, or blocked-listing
+  states.
+- **Opaque bridges preserve retained identity without forging durability:** session projections carry bounded,
+  non-reserved custom bridge aliases while hiding their unlanded `c|` primary. The durable projection derives the
+  same bridges, so a plan remains live and duplicate-proof across persistence retry, updates, and delete/restore with
+  a replacement local ID. Reserved-looking legacy values remain isolated rather than entering downstream stores as
+  stable IDs.
+- **Every mutation is awaited and proven before the UI claims success:** add, update, remove, import, retry, and undo
+  fail closed on malformed results, contradictory durability, wrong operation codes, missing effects, or substituted
+  payloads. Add records taste only after an applied mutation; delete exposes Undo only with an exact canonical
+  receipt; failed restore remains retryable; expiry leaves the event terminally removed. Mounted/attempt guards stop
+  late promises or timers from changing or closing a later page.
+- **Failure and accessibility states are part of the runtime contract:** loading/unavailable Add states are announced
+  without exposing the form, volatile custom data has a persistent operable retry banner, delete/restore feedback is
+  live-announced, and overlapping fixed toasts no longer hide recovery.
+- **Verification and review are green:** the registered custom runtime/core/atomic/planner gate passes 113/113; the
+  focused identity/planner/UI compatibility set passes 102/102; app lint and production build pass. The complete
+  serial repository gate passes 641/641, including an isolated rerun of the live fast-finder after a one-off Windows
+  child-process exit. Three independent adversarial reviews record **SHIP** with no P0/P1 remaining.
+- **Sprint 3 remains yellow:** saves/Been and retained activity still need the same coherent provider-and-consumer
+  runtime cutovers. Full runtime city resolution and the checked-in two-city browser journey remain later Sprint 3/
+  Sprint 4 work; this receipt closes only the custom-event runtime domain.
+
 #### Sprint 3 truthful location-permission runtime receipt - 2026-07-16 (yellow)
 
 - **Permission intent and effective use are separate:** one city-scoped controller owns disabled, desired,

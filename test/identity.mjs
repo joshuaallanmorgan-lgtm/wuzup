@@ -76,6 +76,8 @@ test('custom events use a persisted local ID and otherwise stay on their usable 
   assert.deepEqual(aliasesOf(durable), [
     'c|018f9b9d-86f1-7c2f-a832-4b85b61917de',
     'Porch show|2026-07-21T20:00:00',
+    'wuzup:custom-bridge:v1:38:098d961675706479',
+    'wuzup:custom-bridge:v1:30:57ab4af294806901',
   ])
 })
 

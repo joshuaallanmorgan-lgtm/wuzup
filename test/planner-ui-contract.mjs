@@ -65,7 +65,8 @@ test('cards, custom-event creation, and guides are planner doorways instead of s
 
   const addEvent = withoutComments(source('AddEvent.jsx'))
   assert.doesNotMatch(addEvent, /PlannerProvider|usePlanner/)
-  assert.match(addEvent, /const added = onAdd\(raw\)/)
+  assert.match(addEvent, /const added = await onAdd\(raw\)/)
+  assert.match(addEvent, /if \(added\?\.changed !== true\)/)
   assert.doesNotMatch(addEvent, /\b(?:add|move|remove|setRest)\s*\(\s*raw/)
 
   const guide = withoutComments(source('GuidePage.jsx'))

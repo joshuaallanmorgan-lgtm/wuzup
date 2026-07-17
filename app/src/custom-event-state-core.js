@@ -6,6 +6,7 @@
 // removes, or tombstones V1 storage.
 
 import {
+  customIdentityBridgeOf,
   legacyKeyOf,
   validLocalEventId,
 } from './identity.js'
@@ -227,7 +228,7 @@ function validTimeZone(value) {
   if (TIME_ZONE_VALIDITY.has(value)) return TIME_ZONE_VALIDITY.get(value)
   let valid
   try {
-    new Intl.DateTimeFormat('en-US', { timeZone: value }).format(0)
+    new Intl.DateTimeFormat(undefined, { timeZone: value }).format(0)
     valid = true
   } catch {
     valid = false
@@ -488,6 +489,9 @@ function projectedItem(entry, durability) {
     ...entry.item,
     _keyTitle: sessionKeyTitle,
     _sessionLegacyIdentity: legacy,
+    _sessionIdentityAliases: entry.aliases
+      .map(customIdentityBridgeOf)
+      .filter(Boolean),
     // A pending c| ID is not durable evidence. Project only legacy aliases so
     // another durable store cannot make the unlanded identity permanent.
     identityAliases: entry.aliases.filter((alias) => (

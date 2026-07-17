@@ -158,7 +158,12 @@ test('builds kind-correct stable references for events, custom events, places, a
     status: 'attached',
     kind: 'custom',
     primary: 'c|custom-event-0001',
-    aliases: ['c|custom-event-0001', 'Porch show|2026-07-21T20:00:00-04:00'],
+    aliases: [
+      'c|custom-event-0001',
+      'Porch show|2026-07-21T20:00:00-04:00',
+      'wuzup:custom-bridge:v1:19:1c878630bb69a3bd',
+      'wuzup:custom-bridge:v1:36:342c59d1177e990f',
+    ],
   })
   assert.deepEqual(savedBeenRefOf(places[0]), {
     status: 'attached',

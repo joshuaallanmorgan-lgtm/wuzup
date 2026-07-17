@@ -3,12 +3,13 @@
 // NAVIGATION state (active tab, subpage union, detail open/close + VT morph,
 // map focus) lives in nav.js (Sprint O6) — components reach it via useNav().
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Icon, currentEvents, keyOf, loadMyEvents, makeAnchors, normalize, rawOf, saveMyEvents } from './lib.js'
+import { Icon, currentEvents, keyOf, makeAnchors, normalize } from './lib.js'
 import { dayStamp } from './coverage.js'
 import { useArtifact } from './artifacts.js'
 import { NavProvider, VIEWS, useNav } from './nav.jsx'
 import { LocationProvider, useLocationPermission } from './LocationProvider.jsx'
 import { PlannerProvider } from './PlannerProvider.jsx'
+import { CustomEventsProvider, useCustomEvents } from './CustomEventsProvider.jsx'
 import Primer, { loadPrimerState } from './Primer.jsx'
 import { WxContext, CardToastHost } from './cards.jsx'
 import { getForecast } from './weather.js'
@@ -119,15 +120,18 @@ function restoreLayerFocus(target, fallbackRoot) {
 
 export default function App() {
   return (
-    <NavProvider>
-      <LocationProvider>
-        <Shell />
-      </LocationProvider>
-    </NavProvider>
+    <CustomEventsProvider>
+      <NavProvider>
+        <LocationProvider>
+          <Shell />
+        </LocationProvider>
+      </NavProvider>
+    </CustomEventsProvider>
   )
 }
 
 function Shell() {
+  const customEvents = useCustomEvents()
   const location = useLocationPermission()
   const coords = location.usableCoords
   const eventArtifact = useArtifact('events')
@@ -297,38 +301,12 @@ function Shell() {
       clearTimeout(midnightTimer)
     }
   }, [])
-  // "Added by you" events (Sprint C MVP): raw schema-v2 objects from the
-  // AddEvent form, persisted via lib.js (storage.js-backed) and concat'd into
-  // norm below — same normalize() path as fetched events, so they surface
-  // everywhere list-wise (feed, bubbles, search, calendar; lat/lng null → no
-  // map pin). rawOf strips computed _fields when an undo restores a
-  // normalized copy, keeping storage pure schema-v2.
-  const [myEvents, setMyEvents] = useState(loadMyEvents)
-  // Re-read storage inside the setters: a stale tab must never clobber another
-  // tab's adds. Duplicate adds (same title+date, no URL → same key) are no-ops.
-  const addMine = useCallback((raw) => {
-    const fresh = loadMyEvents()
-    const candidate = rawOf(raw)
-    const duplicate = fresh.find((item) => keyOf(item) === keyOf(candidate))
-    if (duplicate) {
-      const write = saveMyEvents(fresh)
-      setMyEvents(write.items)
-      const item = write.items.find((current) => keyOf(current) === keyOf(duplicate)) || duplicate
-      return { code: 'duplicate', item, persisted: write.persisted }
-    }
-    const write = saveMyEvents([...fresh, candidate])
-    setMyEvents(write.items)
-    return { code: 'added', item: write.items.at(-1), persisted: write.persisted }
-  }, [])
-  const removeMine = useCallback((e) => {
-    const k = keyOf(e)
-    const write = saveMyEvents(loadMyEvents().filter((item) => keyOf(item) !== k))
-    setMyEvents(write.items)
-    return { code: 'removed', persisted: write.persisted }
-  }, [])
+  // The city-bound custom-event provider owns migration, concurrency, and
+  // durability. Its projected items join remote rows before the one shared
+  // normalization path, so every existing event surface sees the same catalog.
   const normalized = useMemo(
-    () => [...events, ...myEvents].map((event) => normalize(event, anchors)),
-    [events, myEvents, anchors]
+    () => [...events, ...customEvents.items].map((event) => normalize(event, anchors)),
+    [events, customEvents.items, anchors]
   )
   const norm = useMemo(() => currentEvents(normalized), [normalized])
   useEffect(() => {
@@ -371,6 +349,8 @@ function Shell() {
       anchors={anchors}
       events={normalized}
       artifactStatus={eventArtifact.status}
+      catalogReady={customEvents.ready}
+      catalogError={customEvents.error}
     >
       <WxContext.Provider value={wx}>
         <div className="app" ref={appRef} onFocusCapture={rememberTrigger} onPointerDownCapture={rememberTrigger}>
@@ -418,6 +398,26 @@ function Shell() {
             {recoverEvents && (<button className="load-retry" onClick={recoverEvents}>{recoverEventsLabel}</button>)}
           </div>
         )}
+        {primer
+          && ['session-only', 'corrupt', 'error'].includes(customEvents.status) && (
+          <div
+            className={'load-note'
+              + (page || detail ? ' is-layered' : '')
+              + (transportError || staleAt != null ? ' is-stacked' : '')}
+            role={customEvents.status === 'session-only' ? 'status' : 'alert'}
+          >
+            <span className="load-txt">
+              {customEvents.status === 'session-only'
+                ? "Your added events are here for this visit, but haven't been saved yet."
+                : 'Your added events could not be loaded, so planning is paused.'}
+            </span>
+            {customEvents.status === 'session-only' && (
+              <button className="load-retry" onClick={() => customEvents.retryPersistence()}>
+                Try saving again
+              </button>
+            )}
+          </div>
+        )}
         {/* Expired bytes are identified but never rendered as current inventory. */}
         {staleAt != null && primer && !remotePageBlocked && (
           <div className={'stale-note' + (page || detail ? ' is-layered' : '')} role="alert">
@@ -462,7 +462,13 @@ function Shell() {
             {/* D8: the Map sub-view is parked for v1 — removed. Events/Spots no longer
                 expose a Map pill; place detail uses the Directions (Google Maps) link. */}
             {page.type === 'add' && (
-              <AddEvent anchors={anchors} myEvents={myEvents} onAdd={addMine} presetTs={page.ts} />
+              <AddEvent
+                anchors={anchors}
+                myEvents={customEvents.items}
+                onAdd={customEvents.add}
+                presetTs={page.ts}
+                status={customEvents.status}
+              />
             )}
             {page.type === 'day' && (
               /* Sprint U-a day screen — keyed by day ts AND todayTs: opening
@@ -569,8 +575,8 @@ function Shell() {
             events={norm}
             anchors={anchors}
             wx={wx}
-            onRemoveMine={removeMine}
-            onRestoreMine={addMine}
+            onRemoveMine={customEvents.remove}
+            onRestoreMine={customEvents.add}
           />
         )}
         {loading && bootVis && <div className="boot">Loading Wuzup…</div>}
