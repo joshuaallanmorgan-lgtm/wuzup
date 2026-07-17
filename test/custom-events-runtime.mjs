@@ -274,16 +274,20 @@ test('Add Event gates unavailable catalog states and ignores late async completi
 test('custom persistence truth remains visible beside independent artifact failures', () => {
   const app = source('App.jsx')
   const css = source('App.css')
-  const customNoticeAt = app.indexOf("['session-only', 'corrupt', 'error']")
-  assert.ok(customNoticeAt >= 0)
-  const gate = app.slice(Math.max(0, customNoticeAt - 120), customNoticeAt)
+  const customStatusGate = "['session-only', 'corrupt', 'error'].includes(customEvents.status)"
+  const customNoticeAt = app.indexOf(customStatusGate)
+  assert.ok(customNoticeAt >= 0, 'the custom-event notice must gate its own provider status')
+  const customNotice = app.slice(Math.max(0, customNoticeAt - 120), customNoticeAt + 900)
+  const gate = customNotice.slice(0, customNotice.indexOf(customStatusGate))
   assert.match(gate, /primer\s*&&\s*$/)
-  assert.doesNotMatch(gate.slice(-48), /remotePageBlocked/)
-  assert.doesNotMatch(gate, /!transportError|staleAt\s*==\s*null/)
+  assert.doesNotMatch(gate, /remotePageBlocked|!transportError|staleAt\s*==\s*null/)
   assert.match(
-    app.slice(customNoticeAt, customNoticeAt + 500),
+    customNotice,
     /transportError\s*\|\|\s*staleAt\s*!=\s*null\s*\?\s*['"] is-stacked['"]/,
   )
+  assert.match(customNotice, /customEvents\.status === ['"]session-only['"]/)
+  assert.match(customNotice, /Your added events are here for this visit/)
+  assert.match(customNotice, /customEvents\.retryPersistence\(\)/)
   assert.match(css, /\.load-note\.is-stacked\s*\{[\s\S]*?top:/)
   assert.match(css, /\.load-note\.is-layered\.is-stacked\s*\{[\s\S]*?top:/)
 })

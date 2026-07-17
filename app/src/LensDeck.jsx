@@ -69,7 +69,7 @@ export function DeckThisButton({ lens }) {
 
 export default function LensDeck({ lens, events, anchors }) {
   const { openDetail, openBubble, closePage } = useNav()
-  const { has, toggle } = useSaves()
+  const { has, toggle, canToggle, identityPending, identityAmbiguous, identityWent, isPending } = useSaves()
   const reduced = useMemo(() => prefersReduced(), [])
   // ONE deal per mount (CalibrationDeck's rule, same reason: App rebuilds
   // `norm` identities on refreshes and a re-deal mid-swipe would reshuffle
@@ -95,9 +95,14 @@ export default function LensDeck({ lens, events, anchors }) {
 
   // ===== the Q3 verdicts (each exactly once per committed card) =====
   const idx = kept + passed // SwipeDeck's index, derived (peek never advances)
-  const keepIt = (e) => {
-    if (!has(e)) toggle(e) // the save seam records the +3; already-saved stays saved
+  const keepIt = async (e) => {
+    if (!has(e)) {
+      const result = await toggle(e)
+      const changed = result?.changed === true || result?.applied === true
+      if (!changed || result?.saved !== true) return false
+    }
     setKept((n) => n + 1)
+    return true
   }
   const passIt = (e) => {
     recordCalibration('no', e) // −1 category, floored at 0 — ordering only
@@ -107,6 +112,10 @@ export default function LensDeck({ lens, events, anchors }) {
 
   const top = deck[idx]
   const saved = top ? has(top) : false
+  const savePending = top ? isPending(top) : false
+  const saveIdentityPending = top ? identityPending(top) : false
+  const saveIdentityAmbiguous = top ? identityAmbiguous(top) : false
+  const saveIdentityWent = top ? identityWent(top) : false
 
   // WS2 #7: keyboard swipes — ←/→/↑ mirror the buttons through the SAME
   // commit paths (deckApi; ↑ = peek here, matching the kicker copy). Page-root
@@ -227,6 +236,7 @@ export default function LensDeck({ lens, events, anchors }) {
                 className="ldk-btn ldk-btn-pass pressable"
                 onClick={() => deckApi.current?.left()}
                 aria-label="Pass"
+                disabled={savePending}
               >
                 ✕
                 <span className="ldk-btn-label">Pass</span>
@@ -235,6 +245,7 @@ export default function LensDeck({ lens, events, anchors }) {
                 className="ldk-btn ldk-btn-open pressable"
                 onClick={() => deckApi.current?.up()}
                 aria-label="Open details"
+                disabled={savePending}
               >
                 ↗
                 <span className="ldk-btn-label">Open</span>
@@ -242,11 +253,21 @@ export default function LensDeck({ lens, events, anchors }) {
               <button
                 className={'ldk-btn ldk-btn-keep pressable' + (saved ? ' is-saved' : '')}
                 onClick={() => deckApi.current?.right()}
-                aria-label={saved ? 'Keep — already on your list' : 'Keep it — saves to your list'}
+                aria-label={saveIdentityWent
+                  ? 'Already in your Been history'
+                  : saveIdentityAmbiguous
+                  ? 'Saved item needs review before Keep can change it'
+                  : saveIdentityPending
+                    ? 'Keep unavailable until this added event can be saved'
+                  : saved
+                    ? 'Keep — already on your list'
+                    : 'Keep it — saves to your list'}
+                disabled={!top || !canToggle(top)}
+                aria-busy={savePending || undefined}
               >
                 {/* D6: engineered stroke heart (matches SaveHeart app-wide) */}
                 {saved ? <Icon.heartFill className="ldk-btn-ic" aria-hidden /> : <Icon.heart className="ldk-btn-ic" aria-hidden />}
-                <span className="ldk-btn-label">Keep</span>
+                <span className="ldk-btn-label">{saveIdentityWent ? 'Completed' : saveIdentityAmbiguous ? 'Needs review' : saveIdentityPending ? 'Unavailable' : 'Keep'}</span>
               </button>
             </div>
           </>

@@ -25,7 +25,7 @@ const relDay = (ts, todayTs) => {
 
 export default function NotificationsPage({ events = [], retainedEvents = events, anchors, wx }) {
   const { closePage, openDetail, openBubble, openForecast } = useNav()
-  const { list: savedList } = useSaves()
+  const { list: savedList } = useSaves({ events: retainedEvents, anchors })
 
   const items = useMemo(() => {
     const out = []

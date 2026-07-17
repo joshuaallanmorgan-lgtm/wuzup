@@ -290,8 +290,12 @@ export function featuredChips(e) {
   return out.slice(0, 3)
 }
 export function FeaturedCard({ e, onSelect, onAdd }) {
-  const { has, toggle } = useSaves()
+  const { has, toggle, canToggle, identityPending, identityAmbiguous, identityWent, isPending } = useSaves()
   const saved = has(e)
+  const savePending = isPending(e)
+  const saveIdentityPending = identityPending(e)
+  const saveIdentityAmbiguous = identityAmbiguous(e)
+  const saveIdentityWent = identityWent(e)
   const isPlace = e.kind === 'place'
   const free = e._free === true || e.isFree === true
   // kind-aware meta: a PLACE leads activity/utility-first (type · distance · free),
@@ -337,8 +341,21 @@ export function FeaturedCard({ e, onSelect, onAdd }) {
         </span>
       </button>
       <div className="featc-actions">
-        <button className={'featc-act featc-save' + (saved ? ' on' : '')} onClick={() => toggle(e)} aria-pressed={saved}>
-          {saved ? '♥ Saved' : '♡ Save'}
+        <button
+          className={'featc-act featc-save' + (saved ? ' on' : '')}
+          onClick={async () => { await toggle(e) }}
+          aria-pressed={saved}
+          aria-busy={savePending || undefined}
+          disabled={!canToggle(e)}
+          aria-label={saveIdentityWent
+            ? 'Already in your Been history'
+            : saveIdentityAmbiguous
+            ? 'Saved item needs review before it can be changed'
+            : saveIdentityPending
+              ? 'Save unavailable until this added event can be saved'
+              : undefined}
+        >
+          {saveIdentityWent ? '✓ Completed' : saveIdentityAmbiguous ? 'Needs review' : saveIdentityPending ? 'Save unavailable' : saved ? '♥ Saved' : '♡ Save'}
         </button>
         {onAdd && (
           <AddButton

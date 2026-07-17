@@ -91,8 +91,20 @@ export default function PlaceDetail({ e, anchors, wx }) {
     placement,
   } = usePlanner()
   const { places } = usePlaces()
-  const { has: hasSave, toggle: toggleSave } = useSaves()
+  const {
+    has: hasSave,
+    toggle: toggleSave,
+    canToggle: canToggleSave,
+    identityPending: isSaveIdentityPending,
+    identityAmbiguous: isSaveIdentityAmbiguous,
+    identityWent: isSaveIdentityWent,
+    isPending: isSavePending,
+  } = useSaves()
   const saved = hasSave(e)
+  const savePending = isSavePending(e)
+  const saveIdentityPending = isSaveIdentityPending(e)
+  const saveIdentityAmbiguous = isSaveIdentityAmbiguous(e)
+  const saveIdentityWent = isSaveIdentityWent(e)
 
   // W4: a place with a REAL Wikidata photo gets an image hero (preload + 300ms
   // fade over a dark placeholder, DetailPage's exact pattern); places without a
@@ -543,10 +555,19 @@ export default function PlaceDetail({ e, anchors, wx }) {
       >
         <button
           className={'detail-save-btn' + (saved ? ' on' : '')}
-          onClick={() => toggleSave(e)}
+          onClick={async () => { await toggleSave(e) }}
           aria-pressed={saved}
+          aria-busy={savePending || undefined}
+          disabled={!canToggleSave(e)}
+          aria-label={saveIdentityWent
+            ? 'Already in your Been history'
+            : saveIdentityAmbiguous
+            ? 'Saved item needs review before it can be changed'
+            : saveIdentityPending
+              ? 'Save unavailable until this added event can be saved'
+              : undefined}
         >
-          {saved ? '♥ Saved' : '♡ Save'}
+          {saveIdentityWent ? '✓ Completed' : saveIdentityAmbiguous ? 'Needs review' : saveIdentityPending ? 'Save unavailable' : saved ? '♥ Saved' : '♡ Save'}
         </button>
         {planned && plannedPlacement ? (
           <button className="loc-plan-cta detail-actionbar-cta" ref={planCtaRef} onClick={viewPlan}>View plan</button>

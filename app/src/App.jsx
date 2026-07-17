@@ -10,6 +10,11 @@ import { NavProvider, VIEWS, useNav } from './nav.jsx'
 import { LocationProvider, useLocationPermission } from './LocationProvider.jsx'
 import { PlannerProvider } from './PlannerProvider.jsx'
 import { CustomEventsProvider, useCustomEvents } from './CustomEventsProvider.jsx'
+import { SavedBeenProvider, useSavedBeen } from './SavedBeenProvider.jsx'
+import { CITY } from './city.js'
+import { identitySeedsForCity } from './identity-seeds.js'
+import { GUIDES } from './guides.js'
+import { normalizePlace } from './places.js'
 import Primer, { loadPrimerState } from './Primer.jsx'
 import { WxContext, CardToastHost } from './cards.jsx'
 import { getForecast } from './weather.js'
@@ -130,6 +135,34 @@ export default function App() {
   )
 }
 
+function SavedBeenNotice({ visible, layered, stackLevel = 0 }) {
+  const savedBeen = useSavedBeen()
+  if (!visible || !['session-only', 'corrupt', 'error'].includes(savedBeen.status)) return null
+
+  const stackClass = stackLevel > 1
+    ? ' is-double-stacked'
+    : stackLevel === 1
+      ? ' is-stacked'
+      : ''
+  return (
+    <div
+      className={'load-note' + (layered ? ' is-layered' : '') + stackClass}
+      role={savedBeen.status === 'session-only' ? 'status' : 'alert'}
+    >
+      <span className="load-txt">
+        {savedBeen.status === 'session-only'
+          ? "Your saves and Been history are here for this visit, but haven't been saved yet."
+          : 'Your saves and Been history could not be loaded.'}
+      </span>
+      {savedBeen.status === 'session-only' && (
+        <button className="load-retry" onClick={() => savedBeen.retryPersistence()}>
+          Try saving again
+        </button>
+      )}
+    </div>
+  )
+}
+
 function Shell() {
   const customEvents = useCustomEvents()
   const location = useLocationPermission()
@@ -143,7 +176,20 @@ function Shell() {
     () => (Array.isArray(eventArtifact.data) ? eventArtifact.data : []),
     [eventArtifact.data]
   )
+  const places = useMemo(
+    () => (Array.isArray(placeArtifact.data)
+      ? placeArtifact.data.map(normalizePlace).filter(Boolean)
+      : []),
+    [placeArtifact.data]
+  )
+  const identitySeeds = useMemo(() => identitySeedsForCity(CITY.id), [])
   const loading = eventArtifact.status === 'idle' || eventArtifact.status === 'loading'
+  const savedCatalogReady = ['ready', 'empty'].includes(eventArtifact.status) && customEvents.ready
+  const savedCatalogError = !loading && !['ready', 'empty'].includes(eventArtifact.status)
+    ? (eventArtifact.error || { code: `events-${eventArtifact.status}` })
+    : customEvents.status !== 'initializing' && !customEvents.ready
+      ? (customEvents.error || { code: `custom-events-${customEvents.status}` })
+      : null
   const unavailable = ['stale', 'offline', 'error'].includes(eventArtifact.status)
   const placesUnavailable = ['stale', 'offline', 'error'].includes(placeArtifact.status)
   const transportError = eventArtifact.status === 'offline' || eventArtifact.status === 'error'
@@ -345,13 +391,22 @@ function Shell() {
   const baseInert = baseCovered ? true : undefined
 
   return (
-    <PlannerProvider
-      anchors={anchors}
-      events={normalized}
-      artifactStatus={eventArtifact.status}
-      catalogReady={customEvents.ready}
-      catalogError={customEvents.error}
+    <SavedBeenProvider
+      events={events}
+      customEvents={customEvents.items}
+      places={places}
+      guides={GUIDES}
+      seeds={identitySeeds}
+      catalogReady={savedCatalogReady}
+      catalogError={savedCatalogError}
     >
+      <PlannerProvider
+        anchors={anchors}
+        events={normalized}
+        artifactStatus={eventArtifact.status}
+        catalogReady={customEvents.ready}
+        catalogError={customEvents.error}
+      >
       <WxContext.Provider value={wx}>
         <div className="app" ref={appRef} onFocusCapture={rememberTrigger} onPointerDownCapture={rememberTrigger}>
         {/* O1 lazy mounting: every section SHELL renders (scroll-snap needs all
@@ -418,6 +473,12 @@ function Shell() {
             )}
           </div>
         )}
+        <SavedBeenNotice
+          visible={Boolean(primer)}
+          layered={Boolean(page || detail)}
+          stackLevel={Number(transportError || staleAt != null)
+            + Number(['session-only', 'corrupt', 'error'].includes(customEvents.status))}
+        />
         {/* Expired bytes are identified but never rendered as current inventory. */}
         {staleAt != null && primer && !remotePageBlocked && (
           <div className={'stale-note' + (page || detail ? ' is-layered' : '')} role="alert">
@@ -582,6 +643,7 @@ function Shell() {
         {loading && bootVis && <div className="boot">Loading Wuzup…</div>}
         </div>
       </WxContext.Provider>
-    </PlannerProvider>
+      </PlannerProvider>
+    </SavedBeenProvider>
   )
 }

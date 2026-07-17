@@ -7,12 +7,14 @@
 // All from the reactive atomic planner plus the existing saves/gamify stores;
 // every empty state is honest. Opened via nav.openMyPlans ({type:'myplans'});
 // each openDay replaces this subpage (single-slot), back → the Profile tab.
-import { useMemo } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { eventLifecycle, Icon, dayLoose, formatDayTs, keyOf, monthStartTs as cityMonthStartTs, normalize, rawOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { GemRow, SponsoredTag } from './cards.jsx'
 import { DAYPART } from './weekend.js'
-import { markBeen, shelfItems, useBeenThere, useSaves } from './saves.js'
+import { shelfItems, useBeenThere, useSaves } from './saves.js'
+import { useSavedBeen } from './SavedBeenProvider.jsx'
+import { recordSignal } from './taste.js'
 import { rhythmSummary } from './gamify.js'
 import {
   daysOutInMonth,
@@ -40,8 +42,11 @@ const dayPlanText = (day) => day.slots
 
 export default function MyPlansPage({ events, anchors }) {
   const { closePage: onClose, openDetail: onSelect, openDay } = useNav()
-  const { list: savedList } = useSaves()
+  const { list: savedList } = useSaves({ events, anchors })
   const been = useBeenThere()
+  const { ready: savedBeenReady, markBeen: markBeenAction } = useSavedBeen()
+  const pendingBeenRef = useRef(new Set())
+  const [pendingBeenKeys, setPendingBeenKeys] = useState(() => new Set())
   const {
     status: plannerStatus,
     durability: plannerDurability,
@@ -58,7 +63,28 @@ export default function MyPlansPage({ events, anchors }) {
     for (const e of events) m.set(keyOf(e), e)
     return m
   }, [events])
-  const savedByKey = useMemo(() => new Map(savedList.map((s) => [s.key, s])), [savedList])
+  const answerBeen = async (target, key, snapshot, status, statusAt) => {
+    if (!savedBeenReady || pendingBeenRef.current.has(key)) return
+    pendingBeenRef.current.add(key)
+    setPendingBeenKeys(new Set(pendingBeenRef.current))
+    try {
+      const result = await markBeenAction(target, {
+        status,
+        statusAt,
+        archivedAt: statusAt,
+      })
+      if (result?.changed !== true) return result
+      if (status === 'went' && result.status === 'went' && snapshot) {
+        recordSignal('went', snapshot)
+      }
+      return result
+    } catch (error) {
+      return { changed: false, code: 'been-answer-failed', error }
+    } finally {
+      pendingBeenRef.current.delete(key)
+      setPendingBeenKeys(new Set(pendingBeenRef.current))
+    }
+  }
 
   // The atomic planner owns both current plans and the past-days journal.
   // Provider read models stay reactive across edits and other open tabs.
@@ -108,22 +134,22 @@ export default function MyPlansPage({ events, anchors }) {
   const prompts = useMemo(() => {
     const out = []
     const seen = new Set()
-    for (const { e, lifecycle } of shelf) {
+    for (const { e, lifecycle, record } of shelf) {
       if (lifecycle.code !== 'ended') continue
-      const k = keyOf(e)
+      const k = record?.key ?? keyOf(e)
       if (answered.has(k) || seen.has(k)) continue
       seen.add(k)
-      out.push({ key: k, e, snapshot: savedByKey.get(k)?.snapshot ?? rawOf(e) })
+      out.push({ key: k, e, snapshot: record?.snapshot ?? rawOf(e), target: record ?? e })
     }
     for (const b of been) {
       if (b.status || !b.snapshot || answered.has(b.key) || seen.has(b.key)) continue
       const e = normalize({ ...b.snapshot }, anchors)
       if (eventLifecycle(e).code !== 'ended') continue
       seen.add(b.key)
-      out.push({ key: b.key, e, snapshot: b.snapshot })
+      out.push({ key: b.key, e, snapshot: b.snapshot, target: b })
     }
     return out
-  }, [shelf, been, answered, savedByKey, anchors])
+  }, [shelf, been, answered, anchors])
   const wentList = useMemo(
     () =>
       been
@@ -257,7 +283,7 @@ export default function MyPlansPage({ events, anchors }) {
         {/* "Did you make it?" prompts for passed saves */}
         {prompts.length > 0 && (
           <div className="pf-asks">
-            {prompts.map(({ key, e, snapshot }) => (
+            {prompts.map(({ key, e, snapshot, target }) => (
               <div key={key} className="pf-ask">
                 <div className="pf-ask-main">
                   <div className="pf-ask-q">Did you make it?</div>
@@ -266,11 +292,21 @@ export default function MyPlansPage({ events, anchors }) {
                   <SponsoredTag e={e} />
                 </div>
                 <div className="pf-ask-btns">
-                  <button className="pf-ask-yes" onClick={() => markBeen(key, snapshot, 'went')}>
+                  <button
+                    className="pf-ask-yes"
+                    onClick={async () => { await answerBeen(target, key, snapshot, 'went', Date.now()) }}
+                    disabled={!savedBeenReady || pendingBeenKeys.has(key)}
+                    aria-busy={pendingBeenKeys.has(key) || undefined}
+                  >
                     {/* WS3 §9: engineered burst, not 🎉 (white on --cta, D.0-R safe) */}
                     <Icon.burst className="btn-ic" aria-hidden /> I went
                   </button>
-                  <button className="pf-ask-no" onClick={() => markBeen(key, snapshot, 'missed')}>
+                  <button
+                    className="pf-ask-no"
+                    onClick={async () => { await answerBeen(target, key, snapshot, 'missed', Date.now()) }}
+                    disabled={!savedBeenReady || pendingBeenKeys.has(key)}
+                    aria-busy={pendingBeenKeys.has(key) || undefined}
+                  >
                     Missed it
                   </button>
                 </div>

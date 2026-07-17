@@ -241,7 +241,7 @@ test('retained cancellation state outranks an older saved snapshot', () => {
   const saves = readFileSync(new URL('../app/src/saves.js', import.meta.url), 'utf8')
   assert.match(saves, /const past = lifecycle\.code === 'ended'/)
   assert.match(saves, /const unavailable = !lifecycle\.actionable/)
-  assert.match(saves, /out\.push\(\{ e, past, unavailable, lifecycle \}\)/)
+  assert.match(saves, /out\.push\(\{ e, record: s, past, unavailable, resolution: s\.resolution, lifecycle \}\)/)
 })
 test('retained event detail gates stale actions behind lifecycle state', () => {
   const source = readFileSync(new URL('../app/src/DetailPage.jsx', import.meta.url), 'utf8')

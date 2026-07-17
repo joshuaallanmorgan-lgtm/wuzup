@@ -921,6 +921,32 @@ and migration tests pass; planner operations are idempotent and survive reload.
   runtime cutovers. Full runtime city resolution and the checked-in two-city browser journey remain later Sprint 3/
   Sprint 4 work; this receipt closes only the custom-event runtime domain.
 
+#### Sprint 3 atomic saved-and-Been runtime cutover receipt - 2026-07-16 (yellow)
+
+- **One city-keyed atomic provider now owns active Saved and Been truth:** `SavedBeenProvider` is catalog-gated,
+  StrictMode-safe, and mounted once around every consumer. The active app has no V1 Saved/Been reader, writer,
+  listener, or singleton; retained V1 bytes remain untouched as capture-only rollback evidence.
+- **Retained value survives catalog churn without guessing:** stable IDs, bounded legacy aliases, historical seeds,
+  finder ID drift, and opaque custom-event bridges resolve by kind and only when unique. Ambiguous weak identity,
+  stale exact references, cross-collection disagreement, and already-went history fail closed instead of selecting a
+  first match. Places remain lazy, while event, custom-event, place, and guide saves keep kind-correct read models.
+- **Saved and Been now form one coherent contract:** a unique missed Been row may anchor a new save to its retained
+  identity; went, ambiguous, or contradictory history refuses the toggle. Exact retained tokens protect remove,
+  archive, mark, unmark, retry, and import from ABA changes or substituted effects.
+- **Every UI action awaits an exact outcome:** hearts, shelves, details, guides, decks, My Saves, and My Plans
+  serialize mutations, expose pending state, and record taste only after a proven changed result. Expiry archival is
+  effect-owned rather than a render mutation. Unavailable and ambiguous rows remain visible and removable, while
+  `Needs review` and `Completed` communicate distinct identity and Been states.
+- **Failure truth stays usable and recoverable:** loading, corruption, terminal failure, and session-only durability
+  cannot masquerade as an empty collection or a persisted success. Independent operable retry notices preserve the
+  in-session document without hiding custom-event or artifact recovery.
+- **Verification and review are green:** the focused provider/runtime/core/store/custom integration gate passes
+  71/71; app lint and production build pass; the complete serial repository gate passes 673/673, including Tampa and
+  SF artifact/build checks. Independent adversarial review records **SHIP** with no P0/P1 remaining.
+- **Sprint 3 remains yellow:** retained activity still needs its coherent provider-and-consumer runtime cutover.
+  Runtime city resolution and the checked-in two-city browser journey remain later Sprint 3/Sprint 4 work; this
+  receipt closes the Saved/Been runtime domain.
+
 #### Sprint 3 truthful location-permission runtime receipt - 2026-07-16 (yellow)
 
 - **Permission intent and effective use are separate:** one city-scoped controller owns disabled, desired,

@@ -283,6 +283,46 @@ test('migrates strict retained V1 evidence without mutating or overwriting it', 
   assert.equal(Object.isFrozen(document.saved[0].snapshot), true)
 })
 
+test('stable retained keys attach without eagerly loading their live catalogs', () => {
+  const stableEvent = 'e|dddddddddddddddd'
+  const stableCustom = 'c|custom-event-0002'
+  const stablePlace = 'p|lazy-place'
+  const stableGuide = 'g|retired-guide'
+  const source = {
+    savedEvents: {
+      [stableEvent]: { snapshot: { title: 'Retained event' } },
+      [stableCustom]: { snapshot: { kind: 'custom', title: 'Retained custom event' } },
+      [stablePlace]: { snapshot: { kind: 'place', key: stablePlace, title: 'Retained place' } },
+      [stableGuide]: { snapshot: { kind: 'guide', id: 'retired-guide', title: 'Retained guide' } },
+    },
+    beenThere: [],
+  }
+
+  const migration = migrateV1SavedBeenState(source, {
+    cityId: CITY_ID,
+    events: [],
+    places: [],
+    guides: [],
+    seeds: [],
+  })
+
+  assert.deepEqual(
+    migration.document.saved.map((record) => ({
+      kind: record.ref.kind,
+      status: record.ref.status,
+      primary: record.ref.primary,
+    })),
+    [
+      { kind: 'event', status: 'attached', primary: stableEvent },
+      { kind: 'custom', status: 'attached', primary: stableCustom },
+      { kind: 'place', status: 'attached', primary: stablePlace },
+      { kind: 'guide', status: 'attached', primary: stableGuide },
+    ],
+  )
+  assert.equal(migration.diagnostics.attached, 4)
+  assert.equal(migration.diagnostics.missing, 0)
+})
+
 test('historical alias seeds cannot invent a live attachment', () => {
   const migration = migrateV1SavedBeenState({
     savedEvents: {
@@ -417,6 +457,26 @@ test('event, custom, place, and guide saves remain kind-correct in one document'
   assert.equal(document.saved[1].snapshot.kind, 'custom')
   assert.equal(document.saved[2].snapshot.kind, 'place')
   assert.equal(document.saved[3].snapshot.kind, 'guide')
+})
+
+test('an unlanded session custom identity cannot become a saved primary', () => {
+  const sessionCustom = {
+    kind: 'custom',
+    title: 'Session-only porch show',
+    start: '2026-07-22T20:00:00-04:00',
+    _keyTitle: 'session-custom-fixture',
+    _sessionLegacyIdentity: 'Porch show|2026-07-22T20:00:00-04:00',
+    _sessionIdentityAliases: ['wuzup:custom-bridge:v1:36:342c59d1177e990f'],
+  }
+
+  assert.equal(savedBeenRefOf(sessionCustom), null)
+  const result = addSaved(emptySavedBeenState(CITY_ID), {
+    item: sessionCustom,
+    savedAt: 1,
+  })
+  assert.equal(result.changed, false)
+  assert.equal(result.code, 'invalid-item')
+  assert.deepEqual(result.document.saved, [])
 })
 
 test('marking Been preserves unfarmable status semantics and went removes only the matching save', () => {
@@ -777,11 +837,11 @@ test('migration enforces explicit caps and keeps the last duplicate position', (
   const { document } = migration
 
   assert.equal(document.saved.length, SAVED_BEEN_SAVE_CAP)
-  assert.equal(document.saved[0].ref.status, 'missing')
-  assert.equal(document.saved[0].ref.legacyKey, 'e|0000000000000000')
-  assert.equal(document.saved.at(-1).ref.legacyKey, `e|${(SAVED_BEEN_SAVE_CAP - 1).toString(16).padStart(16, '0')}`)
+  assert.equal(document.saved[0].ref.status, 'attached')
+  assert.equal(document.saved[0].ref.primary, 'e|0000000000000000')
+  assert.equal(document.saved.at(-1).ref.primary, `e|${(SAVED_BEEN_SAVE_CAP - 1).toString(16).padStart(16, '0')}`)
   assert.equal(document.been.length, SAVED_BEEN_BEEN_CAP - 1)
-  assert.equal(document.been.at(-1).ref.legacyKey, `e|${(1000).toString(16).padStart(16, '0')}`)
+  assert.equal(document.been.at(-1).ref.primary, `e|${(1000).toString(16).padStart(16, '0')}`)
   assert.equal(document.been.at(-1).snapshot.title, 'Newest duplicate')
   assert.equal(document.been.at(-1).status, 'went')
   assert.equal(migration.diagnostics.duplicates, 1)

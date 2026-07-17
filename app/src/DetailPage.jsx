@@ -276,8 +276,20 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
   // Stage R: the bottom bar pairs Save + the primary (benchmark). An honest
   // day-specific CTA label — the event's first plannable day (the sheet's
   // default) + its natural daypart ("tonight"/"today" when that day is today).
-  const { has: hasSave, toggle: toggleSave } = useSaves()
+  const {
+    has: hasSave,
+    toggle: toggleSave,
+    canToggle: canToggleSave,
+    identityPending: isSaveIdentityPending,
+    identityAmbiguous: isSaveIdentityAmbiguous,
+    identityWent: isSaveIdentityWent,
+    isPending: isSavePending,
+  } = useSaves()
   const saved = hasSave(e)
+  const savePending = isSavePending(e)
+  const saveIdentityPending = isSaveIdentityPending(e)
+  const saveIdentityAmbiguous = isSaveIdentityAmbiguous(e)
+  const saveIdentityWent = isSaveIdentityWent(e)
   const d0 = planDays[0]
   const addLabel = d0
     ? d0.ts === anchors.todayTs
@@ -853,10 +865,19 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
       >
         <button
           className={'detail-save-btn' + (saved ? ' on' : '')}
-          onClick={() => toggleSave(e)}
+          onClick={async () => { await toggleSave(e) }}
           aria-pressed={saved}
+          aria-busy={savePending || undefined}
+          disabled={!canToggleSave(e)}
+          aria-label={saveIdentityWent
+            ? 'Already in your Been history'
+            : saveIdentityAmbiguous
+            ? 'Saved item needs review before it can be changed'
+            : saveIdentityPending
+              ? 'Save unavailable until this added event can be saved'
+              : undefined}
         >
-          {saved ? '♥ Saved' : '♡ Save'}
+          {saveIdentityWent ? '✓ Completed' : saveIdentityAmbiguous ? 'Needs review' : saveIdentityPending ? 'Save unavailable' : saved ? '♥ Saved' : '♡ Save'}
         </button>
         {planned && plannedPlacement ? (
           <button className="loc-plan-cta detail-actionbar-cta" ref={planBtnRef} onClick={viewPlan}>

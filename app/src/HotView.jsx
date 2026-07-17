@@ -84,7 +84,7 @@ export default function HotView({ events, retainedEvents = events, anchors, load
   // (the tags illustrate the swipe control — they assert no verdict on these).
   const tuneSamples = useMemo(() => [...upcoming].sort(hotDesc).slice(0, 2), [upcoming])
 
-  const { list: savedList } = useSaves()
+  const { list: savedList } = useSaves({ events: retainedEvents, anchors })
   const shelf = useMemo(() => shelfItems(savedList, retainedEvents, anchors), [savedList, retainedEvents, anchors])
   const shelfOn = shelf.length > 0
 
@@ -339,10 +339,21 @@ export default function HotView({ events, retainedEvents = events, anchors, load
               sub="Your saves, ready when you are."
             />
             <div className="carousel carousel-stagger">
-              {shelf.map(({ e, unavailable, lifecycle }) => (
-                <div key={keyOf(e)} className={'shelf-item' + (unavailable ? ' shelf-past' : '')}>
+              {shelf.map(({ e, record, unavailable, lifecycle }) => (
+                <div key={record?.key ?? keyOf(e)} className={'shelf-item' + (unavailable ? ' shelf-past' : '')}>
                   {unavailable && <span className="shelf-happened">{lifecycle.label}</span>}
-                  <TonightCard e={e} onSelect={onSelect} withDate />
+                  {unavailable ? (
+                    <div className="pf-dayh">
+                      <span className="pf-dayh-date">Saved copy</span>
+                      <span className="pf-dayh-what">{e.title || e.name || 'Saved item'}</span>
+                    </div>
+                  ) : e.kind === 'guide' ? (
+                    <IntentTile emoji={e.emoji} label={e.title} pov={e.pov} hue={e.hue} onClick={() => openGuide(e)} />
+                  ) : e.kind === 'place' ? (
+                    <ResultCard e={e} onSelect={onSelect} />
+                  ) : (
+                    <TonightCard e={e} onSelect={onSelect} withDate />
+                  )}
                 </div>
               ))}
             </div>

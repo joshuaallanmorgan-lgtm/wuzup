@@ -1,139 +1,35 @@
-// saves.js — localStorage ♥ saves (Sprint C, sanctioned round-2 #4) + the
-// "Been there" store (Sprint O4).
-//
-// STORAGE: 'saved-events-v1' = { [keyOf(e)]: { savedAt, snapshot } }. The
-// snapshot keeps just enough of the event (title/start/venue/image/url/
-// category/isFree/price) to render a shelf card even after a dataset refresh
-// drops the event itself. Every localStorage access is guarded — in private
-// mode saves still work for the session, they just don't persist.
-//
-// BEEN THERE (O4, ⚑FLAG-O2 default mechanic): 'been-there-v1' = an ARRAY of
-// { key, snapshot, savedAt?, archivedAt?, status?: 'went'|'missed', statusAt? }.
-// Entries arrive two ways: shelf expiry auto-archives them status-less (the
-// pre-O archive-before-prune, unchanged shape — old entries stay valid), and
-// markBeen() answers the Profile's "Did you make it?" prompt. SELF-REPORTED,
-// zero tracking: 'went' feeds taste (+2 category, taste.js) and moves the
-// item off the saved list into Been-there; 'missed' just records the answer
-// so the prompt never re-asks — no taste signal, nothing else changes.
-//
-// SYNC: a module-level store + subscriber set exposed to React through
-// useSyncExternalStore. Any toggle() rebuilds the store object and notifies
-// every mounted consumer — heart tapped on the detail page → the HotView
-// shelf appears, no remount needed. A window 'storage' listener folds in
-// toggles made from other tabs (the event never fires in the writing tab).
-//
-// NOTE: plain .js file (same rule as lib.js) — NO JSX; SaveHeart uses
-// createElement.
-import { createElement as h, useState, useSyncExternalStore } from 'react'
+// saves.js — the compatibility/read-model seam over the atomic city-scoped
+// Saved/Been provider. Storage, migration, cross-tab reconciliation and writes
+// belong to SavedBeenProvider; this module keeps the small public API consumed
+// by existing cards and shelves while making every mutation asynchronous and
+// outcome-truthful. Plain .js (no JSX): SaveHeart uses createElement.
+import { createElement as h, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon, addDayTs, eventLifecycle, keyOf, normalize } from './lib.js'
-import { lsGet, lsSet, physicalKey } from './storage.js'
+import { useSavedBeen } from './SavedBeenProvider.jsx'
 import { recordSignal } from './taste.js'
 import './saves.css'
 
-const KEY = 'saved-events-v1' // stored as twh:saved-events-v1 via storage.js
-const BEEN_KEY = 'been-there-v1'
+const recordKey = (record) => record?.key ?? record?.primary ?? record?.ref?.primary ?? null
+const saveKey = (item) => item?.kind === 'guide' && item?.id
+  ? `g|${item.id}`
+  : keyOf(item || {})
 
-function loadMap() {
-  try {
-    const p = JSON.parse(lsGet(KEY))
-    if (p && typeof p === 'object' && !Array.isArray(p)) return p
-  } catch {
-    /* absent, corrupt, or private mode — start empty */
-  }
-  return {}
+const legacyRecord = (record) => {
+  const key = recordKey(record)
+  return key && record?.key !== key ? { ...record, key } : record
 }
 
-// store snapshot: rebuilt (new identity) on every change so React re-renders
-const mk = (map) => ({
-  map,
-  ids: new Set(Object.keys(map)),
-  list: Object.entries(map).map(([key, v]) => ({ key, ...v })),
-})
-
-let store = mk(loadMap())
-const listeners = new Set()
-const emit = () => listeners.forEach((l) => l())
-
-function commit(map) {
-  store = mk(map)
-  lsSet(KEY, JSON.stringify(map)) // guarded in storage.js — in-memory session keeps working
-  emit()
-}
-
-// ===== the Been-there store (same module-store pattern, own subscriber set
-// so save toggles don't re-render been-there consumers and vice versa) =====
-const BEEN_CAP = 200
-function loadBeen() {
-  try {
-    const v = JSON.parse(lsGet(BEEN_KEY))
-    if (Array.isArray(v)) return v.filter((x) => x && typeof x === 'object' && typeof x.key === 'string')
-  } catch {
-    /* absent, corrupt, or private mode — start empty */
-  }
-  return []
-}
-let been = loadBeen()
-const beenListeners = new Set()
-const emitBeen = () => beenListeners.forEach((l) => l())
-function commitBeen(list) {
-  been = list.slice(-BEEN_CAP)
-  lsSet(BEEN_KEY, JSON.stringify(been)) // guarded in storage.js
-  emitBeen()
-}
-
-// cross-tab: another tab toggled (prefixed-key match) or cleared storage (key null)
-if (typeof window !== 'undefined') {
-  window.addEventListener('storage', (ev) => {
-    if (ev.key === physicalKey(KEY) || ev.key === null) {
-      store = mk(loadMap())
-      emit()
-    }
-    if (ev.key === physicalKey(BEEN_KEY) || ev.key === null) {
-      been = loadBeen()
-      emitBeen()
-    }
-  })
-}
-
-const subscribe = (l) => {
-  listeners.add(l)
-  return () => listeners.delete(l)
-}
-const getSnapshot = () => store
-const subscribeBeen = (l) => {
-  beenListeners.add(l)
-  return () => beenListeners.delete(l)
-}
-const getBeen = () => been
-
-// live been-there list for React (ProfileView) — array identity changes on commit
+// Preserve the historical array API while sourcing it from the provider's
+// immutable projection. Mutations intentionally do not live here.
 export function useBeenThere() {
-  return useSyncExternalStore(subscribeBeen, getBeen)
-}
-
-// O4 — answer a "Did you make it?" prompt. Idempotent: an entry that already
-// carries a status never re-answers (so the +2 taste signal can't be farmed
-// by re-tapping). 'went' also removes the save (the item MOVES to Been-there);
-// 'missed' leaves the save alone — it greys out and expires off the shelf on
-// its own schedule, and the existing archive dedupe (by key) preserves the
-// recorded answer when that expiry lands.
-export function markBeen(key, snapshot, status) {
-  if (status !== 'went' && status !== 'missed') return
-  const idx = been.findIndex((x) => x.key === key)
-  if (idx >= 0 && been[idx].status) return
-  const snap = (idx >= 0 ? been[idx].snapshot : null) ?? snapshot ?? null
-  const now = Date.now()
-  const next =
-    idx >= 0
-      ? been.map((x, i) => (i === idx ? { ...x, snapshot: snap, status, statusAt: now } : x))
-      : been.concat({ key, snapshot: snap, archivedAt: now, status, statusAt: now })
-  if (status === 'went' && snap) recordSignal('went', snap) // +2 category (taste.js 'went')
-  commitBeen(next)
-  if (status === 'went' && store.map[key]) {
-    const map = { ...store.map }
-    delete map[key]
-    commit(map)
-  }
+  const { been = [], beenItems = [] } = useSavedBeen()
+  return useMemo(() => been.map((record, index) => {
+    const base = legacyRecord(record)
+    const hydrated = beenItems[index]
+    return hydrated?.available && hydrated.item
+      ? { ...base, snapshot: hydrated.item, resolution: hydrated.identityStatus, source: hydrated.source }
+      : { ...base, resolution: hydrated?.identityStatus, source: hydrated?.source }
+  }).filter(Boolean), [been, beenItems])
 }
 
 // the persisted snapshot — just enough to render a shelf card (and, for a
@@ -182,25 +78,182 @@ export function snapshotFor(e) {
     snap.srcCount = e.srcCount ?? null
     snap.hidden = e.hidden ?? null
   }
+  // Guides are retained product objects, not event-shaped rows. Their stable
+  // g| identity and point of view must survive a catalog refresh so My Saves
+  // can reopen the exact guide rather than dressing it up as an event.
+  if (e.kind === 'guide') {
+    snap.kind = 'guide'
+    snap.key = e.key ?? (e.id ? `g|${e.id}` : null)
+    snap.id = e.id ?? null
+    snap.emoji = e.emoji ?? null
+    snap.hue = e.hue ?? null
+    snap.pov = e.pov ?? null
+    snap.domain = e.domain ?? null
+    snap.plannable = e.plannable === true
+    snap.needsPlaces = e.needsPlaces === true
+  }
   return snap
 }
 
-export function toggleSave(e) {
-  const k = keyOf(e)
-  const map = { ...store.map }
-  if (map[k]) {
-    delete map[k]
-  } else {
-    recordSignal('save', e) // taste seam: toggle-ON only (un-saving says nothing)
-    map[k] = { savedAt: Date.now(), snapshot: snapshotFor(e) }
-  }
-  commit(map)
+function expiredSavedRecords(list, events, anchors) {
+  if (!anchors || !Array.isArray(events)) return []
+  const byKey = new Map(events.map((event) => [saveKey(event), event]))
+  return list.filter((record) => {
+    if (record?.snapshot?.kind === 'guide' || record?.snapshot?.kind === 'place') return false
+    const event = byKey.get(record.key) ?? normalize({ ...record.snapshot }, anchors)
+    const endDay = event._endDay ?? event._day
+    return eventLifecycle(event).code === 'ended'
+      && endDay != null
+      && endDay < addDayTs(anchors.todayTs, -7)
+  })
 }
 
-// → { ids:Set<key>, list:[{key,savedAt,snapshot}], has(e), toggle(e) }
-export function useSaves() {
-  const s = useSyncExternalStore(subscribe, getSnapshot)
-  return { ids: s.ids, list: s.list, has: (e) => s.ids.has(keyOf(e)), toggle: toggleSave }
+// → { ids, list, has(item), toggle(item), isPending(item), status, ready }.
+// Passing {events, anchors} activates effect-owned expiry archiving for shelf
+// consumers. More than one mounted shelf may request the same archive; the
+// provider command is idempotent and the record token resolves that race.
+export function useSaves({ events, anchors } = {}) {
+  const {
+    status,
+    ready,
+    error,
+    recovery,
+    saved = [],
+    savedItems = [],
+    hasSaved,
+    savedToggleResolutionFor,
+    toggleSaved,
+    removeSaved,
+    archiveSaved,
+    retryPersistence,
+  } = useSavedBeen()
+  const list = useMemo(() => saved.map((record, index) => {
+    const base = legacyRecord(record)
+    const hydrated = savedItems[index]
+    return hydrated?.available && hydrated.item
+      ? { ...base, snapshot: hydrated.item, resolution: hydrated.identityStatus, source: hydrated.source }
+      : { ...base, resolution: hydrated?.identityStatus, source: hydrated?.source }
+  }).filter(Boolean), [saved, savedItems])
+  const ids = useMemo(() => new Set(list.map((record) => record.key)), [list])
+  const pendingRef = useRef(new Set())
+  const [pendingKeys, setPendingKeys] = useState(() => new Set())
+
+  const has = useCallback((item) => hasSaved(item), [hasSaved])
+  const isPending = useCallback((item) => pendingKeys.has(saveKey(item)), [pendingKeys])
+  const isRecordPending = useCallback((record) => pendingKeys.has(recordKey(record)), [pendingKeys])
+  const toggleResolution = useCallback(
+    (item) => savedToggleResolutionFor(item),
+    [savedToggleResolutionFor]
+  )
+  const identityPending = useCallback((item) => !hasSaved(item)
+    && Array.isArray(item?._sessionIdentityAliases)
+    && item._sessionIdentityAliases.length > 0
+    && !toggleResolution(item)?.beenRecord, [hasSaved, toggleResolution])
+  const identityAmbiguous = useCallback(
+    (item) => toggleResolution(item)?.status === 'ambiguous',
+    [toggleResolution]
+  )
+  const identityWent = useCallback(
+    (item) => toggleResolution(item)?.status === 'went',
+    [toggleResolution]
+  )
+  const canToggle = useCallback((item) => ready
+    && toggleResolution(item)?.canToggle === true
+    && !isPending(item)
+    && !identityPending(item), [identityPending, isPending, ready, toggleResolution])
+  const toggle = useCallback(async (item) => {
+    const key = saveKey(item)
+    const resolution = toggleResolution(item)
+    const identitySafe = resolution?.canToggle === true
+    if (!ready || !key || !identitySafe || identityPending(item) || pendingRef.current.has(key)) {
+      return {
+        changed: false,
+        code: !ready
+          ? 'saved-been-unavailable'
+          : resolution?.status === 'went'
+            ? 'saved-been-went-conflict'
+            : resolution?.status === 'ambiguous'
+              ? 'saved-been-identity-ambiguous'
+              : identityPending(item)
+              ? 'saved-been-identity-pending'
+              : !identitySafe
+                ? 'saved-been-unavailable'
+                : 'save-pending',
+      }
+    }
+    const wasSaved = hasSaved(item)
+    pendingRef.current.add(key)
+    setPendingKeys(new Set(pendingRef.current))
+    try {
+      const result = await toggleSaved(item, { savedAt: Date.now() })
+      const changed = result?.changed === true || result?.applied === true
+      const savedOn = result?.saved === true || result?.code === 'saved'
+      if (!wasSaved && changed && savedOn) recordSignal('save', item)
+      return result
+    } catch (error) {
+      return { changed: false, code: 'save-failed', error }
+    } finally {
+      pendingRef.current.delete(key)
+      setPendingKeys(new Set(pendingRef.current))
+    }
+  }, [hasSaved, identityPending, ready, toggleResolution, toggleSaved])
+
+  const remove = useCallback(async (record) => {
+    const key = recordKey(record)
+    if (!ready || !key || pendingRef.current.has(key)) {
+      return { changed: false, code: !ready ? 'saved-been-unavailable' : 'save-pending' }
+    }
+    pendingRef.current.add(key)
+    setPendingKeys(new Set(pendingRef.current))
+    try {
+      return await removeSaved(record)
+    } catch (error) {
+      return { changed: false, code: 'remove-save-failed', error }
+    } finally {
+      pendingRef.current.delete(key)
+      setPendingKeys(new Set(pendingRef.current))
+    }
+  }, [ready, removeSaved])
+
+  const canRemove = useCallback((record) => ready
+    && Boolean(recordKey(record))
+    && !isRecordPending(record), [isRecordPending, ready])
+
+  useEffect(() => {
+    if (!ready || typeof archiveSaved !== 'function') return undefined
+    const expired = expiredSavedRecords(list, events, anchors)
+    if (expired.length === 0) return undefined
+    let cancelled = false
+    const archivedAt = Date.now()
+    void (async () => {
+      for (const record of expired) {
+        if (cancelled) return
+        await archiveSaved(record, { archivedAt })
+      }
+    })()
+    return () => { cancelled = true }
+  }, [anchors, archiveSaved, events, list, ready])
+
+  return {
+    status,
+    ready,
+    error,
+    recovery,
+    retryPersistence,
+    ids,
+    list,
+    has,
+    toggle,
+    remove,
+    canToggle,
+    canRemove,
+    identityPending,
+    identityAmbiguous,
+    identityWent,
+    isPending,
+    isRecordPending,
+    pendingKeys,
+  }
 }
 
 // PROFILE_PHASE2: time-group the saved-shelf for MySavesPage.
@@ -241,51 +294,56 @@ export function groupShelfByTime(shelf, anchors) {
 // soonest-first, then past most-recent-first.
 export function shelfItems(list, events, anchors) {
   const byKey = new Map()
-  for (const e of events) byKey.set(keyOf(e), e)
+  for (const e of events) byKey.set(saveKey(e), e)
   const out = []
-  const expired = []
   for (const s of list) {
-    const e = byKey.get(s.key) ?? normalize({ ...s.snapshot }, anchors)
+    const retainedGuide = s.snapshot?.kind === 'guide'
+    const retainedPlace = s.snapshot?.kind === 'place'
+    const retainedNonTemporal = retainedGuide || retainedPlace
+    const e = byKey.get(s.key) ?? (retainedNonTemporal ? { ...s.snapshot } : normalize({ ...s.snapshot }, anchors))
+    if (s.resolution === 'missing'
+        || s.resolution === 'ambiguous'
+        || s.source === 'snapshot' && !retainedPlace) {
+      out.push({
+        e,
+        record: s,
+        past: false,
+        unavailable: true,
+        resolution: s.resolution,
+        lifecycle: {
+          code: 'unavailable',
+          actionable: false,
+          label: s.resolution === 'ambiguous' ? 'Needs review' : 'No longer listed',
+        },
+      })
+      continue
+    }
+    if (retainedNonTemporal) {
+      out.push({
+        e,
+        record: s,
+        past: false,
+        unavailable: false,
+        resolution: s.resolution,
+        lifecycle: { code: 'available', actionable: true, label: null },
+      })
+      continue
+    }
     const endDay = e._endDay ?? e._day
     const lifecycle = eventLifecycle(e)
     const past = lifecycle.code === 'ended'
     const unavailable = !lifecycle.actionable
     if (lifecycle.code === 'ended' && endDay != null && endDay < addDayTs(anchors.todayTs, -7)) {
-      expired.push(s.key) // storage matches what's shown — no orphaned records
       continue
     }
-    out.push({ e, past, unavailable, lifecycle })
-  }
-  if (expired.length) {
-    // shelfItems runs during render — defer the prune so the store never
-    // mutates (and re-emits) mid-render. One-shot: next run finds nothing.
-    // ARCHIVE-BEFORE-PRUNE (pre-Sprint-O audit): expiring saves are the raw
-    // material of Profile's "Been there" — move them to 'been-there-v1'
-    // instead of erasing them. Archiving is reversible; deletion isn't.
-    setTimeout(() => {
-      const map = { ...store.map }
-      const archived = []
-      let changed = false
-      for (const k of expired) {
-        if (k in map) {
-          archived.push({ key: k, savedAt: map[k].savedAt, snapshot: map[k].snapshot, archivedAt: Date.now() })
-          delete map[k]
-          changed = true
-        }
-      }
-      if (changed) {
-        // archive THROUGH the been store (commitBeen) so an open Profile sees
-        // the new entries live. Dedupe by key keeps any already-recorded
-        // went/missed answer intact — expiry never overwrites an answer.
-        const have = new Set(been.map((x) => x.key))
-        const add = archived.filter((x) => !have.has(x.key))
-        if (add.length) commitBeen(been.concat(add))
-        commit(map)
-      }
-    }, 0)
+    out.push({ e, record: s, past, unavailable, resolution: s.resolution, lifecycle })
   }
   out.sort((a, b) =>
-    a.past !== b.past ? (a.past ? 1 : -1) : a.past ? b.e._t - a.e._t : a.e._t - b.e._t
+    a.past !== b.past
+      ? (a.past ? 1 : -1)
+      : a.past
+        ? (b.e._t ?? 0) - (a.e._t ?? 0)
+        : (a.e._t ?? Number.MAX_SAFE_INTEGER) - (b.e._t ?? Number.MAX_SAFE_INTEGER)
   )
   return out
 }
@@ -296,14 +354,22 @@ export function shelfItems(list, events, anchors) {
 // a real local toggle-on — never on mount — and saves.css kills it under
 // prefers-reduced-motion. Saving never reorders or hides anything.
 export function SaveHeart({ e, big, bare }) {
-  const { has } = useSaves()
+  const { ready, has, toggle, identityPending, identityAmbiguous, identityWent, isPending } = useSaves()
   const on = has(e)
+  const pending = isPending(e)
+  const identityIsPending = identityPending(e)
+  const identityNeedsReview = identityAmbiguous(e)
+  const identityCompleted = identityWent(e)
+  const identityUnavailable = identityIsPending || identityNeedsReview || identityCompleted
   const [pop, setPop] = useState(false)
-  const toggle = (ev) => {
+  const activate = async (ev) => {
     ev.stopPropagation()
     ev.preventDefault()
-    if (!on) setPop(true)
-    toggleSave(e)
+    if (!ready || pending || identityUnavailable) return
+    const result = await toggle(e)
+    const changed = result?.changed === true || result?.applied === true
+    const savedOn = result?.saved === true || result?.code === 'saved'
+    if (changed && savedOn) setPop(true)
   }
   // PREMIUM A2: the engineered stroke heart (outline → filled), retiring ♥ ♡.
   // `bare` = the top-right card-body heart (no disc); default = the image-overlay
@@ -313,13 +379,23 @@ export function SaveHeart({ e, big, bare }) {
     'span',
     {
       role: 'button',
-      tabIndex: 0,
+      tabIndex: ready && !pending && !identityUnavailable ? 0 : -1,
       className: 'save-btn' + (on ? ' on' : '') + (big ? ' save-big' : '') + (bare ? ' save-bare' : ''),
       'aria-pressed': on,
-      'aria-label': on ? 'Remove from your list' : 'Save to your list',
-      onClick: toggle,
+      'aria-disabled': !ready || pending || identityUnavailable,
+      'aria-busy': pending || undefined,
+      'aria-label': identityUnavailable
+        ? identityCompleted
+          ? 'Already in your Been history'
+          : identityNeedsReview
+            ? 'Saved item needs review before it can be changed'
+            : 'Save unavailable until this added event can be saved'
+        : on
+          ? 'Remove from your list'
+          : 'Save to your list',
+      onClick: activate,
       onKeyDown: (ev) => {
-        if (ev.key === 'Enter' || ev.key === ' ') toggle(ev)
+        if (ev.key === 'Enter' || ev.key === ' ') activate(ev)
       },
       onAnimationEnd: () => setPop(false), // bubbles up from .save-ic
     },

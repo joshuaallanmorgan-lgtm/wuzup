@@ -139,7 +139,7 @@ export function PlaceDeckFace({ e }) {
 // since a fresh user closes to the Events tab, not to Settings.
 export default function CalibrationDeck({ kind = 'events', events, places, anchors, onClose, closeLabel = 'Back to Settings' }) {
   const reduced = useMemo(() => prefersReduced(), [])
-  const { has, toggle } = useSaves()
+  const { has, toggle, canToggle, identityPending, identityAmbiguous, identityWent, isPending } = useSaves()
   // TINDER: the deck is parameterized by kind (events|places) — the pool sampler,
   // the card face, and the re-deal memory differ; the verdict→taste mapping is the
   // SAME category model (recordCalibration reads e.category — places carry one).
@@ -184,12 +184,16 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
     pushLastDeal(kind, keyOf(e))
     setInto((n) => n + 1)
   }
-  const verdictSave = (e) => {
+  const verdictSave = async (e) => {
     // 'yes' and 'save' are both "into it"; exactly ONE +3 signal either way
-    if (!has(e)) toggle(e) // save seam records the +3 (works for places too)
-    else recordCalibration('yes', e) // save on an already-saved card
+    if (!has(e)) {
+      const result = await toggle(e) // changed save-on records the +3 centrally
+      const changed = result?.changed === true || result?.applied === true
+      if (!changed || result?.saved !== true) return false
+    } else recordCalibration('yes', e) // save on an already-saved card
     pushLastDeal(kind, keyOf(e))
     setInto((n) => n + 1)
+    return true
   }
 
   // BATCH 5 (the never-hide door): re-deal the NEXT batch from the done screen so the deck
@@ -236,6 +240,10 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
 
   const top = deck[rated]
   const saved = top ? has(top) : false
+  const savePending = top ? isPending(top) : false
+  const saveIdentityPending = top ? identityPending(top) : false
+  const saveIdentityAmbiguous = top ? identityAmbiguous(top) : false
+  const saveIdentityWent = top ? identityWent(top) : false
 
   // ===== finish beat (the --reward sanctioned moment #6) =====
   if (phase === 'done') {
@@ -353,6 +361,7 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
                 className="deck-btn deck-btn-no pressable"
                 onClick={() => deckApi.current?.left()}
                 aria-label="Not for me"
+                disabled={savePending}
               >
                 ✕
                 <span className="deck-btn-label">Not for me</span>
@@ -360,16 +369,27 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
               <button
                 className={'deck-btn deck-btn-save pressable' + (saved ? ' is-saved' : '')}
                 onClick={() => deckApi.current?.up()}
-                aria-label={saved ? 'Already saved — counts as into it' : 'Save it'}
+                aria-label={saveIdentityWent
+                  ? 'Already in your Been history'
+                  : saveIdentityAmbiguous
+                  ? 'Saved item needs review before it can be changed'
+                  : saveIdentityPending
+                    ? 'Save unavailable until this added event can be saved'
+                  : saved
+                    ? 'Already saved — counts as into it'
+                    : 'Save it'}
+                disabled={!top || !canToggle(top)}
+                aria-busy={savePending || undefined}
               >
                 {/* D6: the engineered stroke heart (matches SaveHeart app-wide), not a raw ♥ */}
                 {saved ? <Icon.heartFill className="deck-btn-ic" aria-hidden /> : <Icon.heart className="deck-btn-ic" aria-hidden />}
-                <span className="deck-btn-label">Save</span>
+                <span className="deck-btn-label">{saveIdentityWent ? 'Completed' : saveIdentityAmbiguous ? 'Needs review' : saveIdentityPending ? 'Unavailable' : 'Save'}</span>
               </button>
               <button
                 className="deck-btn deck-btn-yes pressable"
                 onClick={() => deckApi.current?.right()}
                 aria-label="Into it"
+                disabled={savePending}
               >
                 ✓
                 <span className="deck-btn-label">Into it</span>

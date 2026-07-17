@@ -4,15 +4,25 @@
 import { useMemo, useRef, useState } from 'react'
 import { Icon, keyOf, tablistArrowKey } from './lib.js'
 import { useNav, viewIndex } from './nav.jsx'
-import { GemRow } from './cards.jsx'
-import { shelfItems, groupShelfByTime, useSaves } from './saves.js'
+import { ResultCard } from './cards.jsx'
+import { SaveHeart, shelfItems, groupShelfByTime, useSaves } from './saves.js'
 import './profile.css'
 
 const FILTERS = ['All', 'Upcoming', 'Past']
 
 export default function MySavesPage({ events, anchors }) {
-  const { closePage: onClose, openDetail: onSelect, goTo } = useNav()
-  const { list: savedList } = useSaves()
+  const { closePage: onClose, openDetail: onSelect, openGuide, goTo } = useNav()
+  const {
+    status,
+    ready,
+    error,
+    recovery,
+    retryPersistence,
+    remove,
+    canRemove,
+    isRecordPending,
+    list: savedList,
+  } = useSaves({ events, anchors })
   const shelf = useMemo(() => shelfItems(savedList, events, anchors), [savedList, events, anchors])
   const [filter, setFilter] = useState('All')
   const tabRefs = useRef([])
@@ -54,24 +64,66 @@ export default function MySavesPage({ events, anchors }) {
       </div>
 
       <div className="pg-body">
-        {groups.length ? (
+        {!ready && (status === 'initializing' || status === 'idle') && (
+          <div className="pf-empty" role="status">Loading your saves...</div>
+        )}
+        {!ready && status !== 'initializing' && status !== 'idle' && (
+          <div className="pf-empty" role="alert">
+            Couldn’t load your saves safely.
+            {typeof error?.detail === 'string' && <div>{error.detail}</div>}
+            {recovery?.canRetry === true && (
+              <button className="empty-cta" onClick={retryPersistence}>Try again</button>
+            )}
+          </div>
+        )}
+        {ready && groups.length ? (
           groups.map((g) => (
             <div key={g.key} className="ms-group">
               <div className="ms-group-label">{g.label}</div>
               <div className="pf-rows">
-                {g.items.map(({ e, unavailable, lifecycle }) => (
-                  <div key={keyOf(e)} className={'pf-item' + (unavailable ? ' pf-past' : '')}>
-                    {unavailable && <span className="pf-happened">{lifecycle?.label || 'Unavailable'}</span>}
-                    <GemRow e={e} onSelect={onSelect} />
-                  </div>
-                ))}
+                {g.items.map(({ e, record, unavailable, resolution, lifecycle }) => {
+                  const removing = isRecordPending(record)
+                  return (
+                    <div key={record?.key ?? (e.kind === 'guide' ? `g|${e.id}` : keyOf(e))} className={'pf-item' + (unavailable ? ' pf-past' : '')}>
+                      {unavailable && <span className="pf-happened">{lifecycle?.label || 'Unavailable'}</span>}
+                      {unavailable ? (
+                        <div className="pf-dayh">
+                          <span className="pf-dayh-date">{e.kind === 'place' ? 'Spot' : e.kind === 'guide' ? 'Guide' : 'Saved item'}</span>
+                          <span className="pf-dayh-what">{e.title || e.name || 'Saved item'}</span>
+                          <span className="pf-dayh-what">
+                            {resolution === 'ambiguous' ? 'Needs review' : lifecycle?.label || 'No longer listed'}
+                          </span>
+                          <button
+                            className="empty-cta"
+                            onClick={async () => { await remove(record) }}
+                            disabled={!canRemove(record)}
+                            aria-busy={removing || undefined}
+                          >
+                            {removing ? 'Removing...' : 'Remove from saves'}
+                          </button>
+                        </div>
+                      ) : e.kind === 'guide' ? (
+                        <>
+                          <button className="pf-dayh pf-dayh-tap" onClick={() => openGuide(e)}>
+                            <span className="pf-dayh-date">{e.emoji || '✦'} Guide</span>
+                            <span className="pf-dayh-what">{e.title}</span>
+                            {e.pov && <span className="pf-dayh-what">{e.pov}</span>}
+                          </button>
+                          <SaveHeart e={e} bare />
+                        </>
+                      ) : (
+                        <ResultCard e={e} onSelect={onSelect} />
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           ))
-        ) : (
+        ) : ready ? (
           <div className="pf-empty">
             {shelf.length === 0
-              ? 'No saves yet — tap ♥ on events.'
+              ? 'No saves yet — keep an event, spot, or guide for later.'
               : filter === 'Upcoming'
                 ? 'No upcoming saves.'
                 : 'No past saves.'}
@@ -82,7 +134,7 @@ export default function MySavesPage({ events, anchors }) {
               </button>
             )}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   )

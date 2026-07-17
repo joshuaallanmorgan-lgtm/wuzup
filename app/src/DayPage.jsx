@@ -211,7 +211,7 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
     ),
     [availableEvents, anchors, isPlanned]
   )
-  const { list: savedList } = useSaves()
+  const { list: savedList } = useSaves({ events, anchors })
   const savedEvents = useMemo(
     () => shelfItems(savedList, events, anchors)
       .filter((x) => !x.unavailable && (x.e.kind === 'place' || x.e._actionable === true) && !isPlanned(x.e))

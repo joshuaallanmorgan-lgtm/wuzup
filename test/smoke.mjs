@@ -2622,6 +2622,18 @@ test('places: a saved place round-trips (snapshot carries kind+key → PlaceDeta
   const savesSrc = readFileSync(path.join(ROOT, 'app', 'src', 'saves.js'), 'utf8')
   assert.ok(/snap\.kind = 'place'/.test(savesSrc), 'toggleSave snapshot must persist kind:place for a saved place')
   assert.ok(/snap\.key = e\.key/.test(savesSrc), 'toggleSave snapshot must persist the place key')
+  assert.ok(
+    /s\.resolution === 'missing'[\s\S]{0,100}?s\.resolution === 'ambiguous'[\s\S]{0,140}?s\.source === 'snapshot'\s*&&\s*!retainedPlace/.test(savesSrc),
+    'the shelf must fail closed for unresolved identity and snapshot-only non-place saves',
+  )
+  assert.ok(
+    /out\.push\(\{\s*e,\s*record:\s*s,[\s\S]{0,220}?unavailable:\s*true,[\s\S]{0,160}?resolution:\s*s\.resolution/.test(savesSrc),
+    'an unavailable shelf row must retain its exact save record and resolution for safe review/removal',
+  )
+  assert.ok(
+    /out\.push\(\{\s*e,\s*record:\s*s,\s*past,\s*unavailable,\s*resolution:\s*s\.resolution,\s*lifecycle\s*\}\)/.test(savesSrc),
+    'an actionable shelf row must carry retained record identity and provider resolution alongside lifecycle',
+  )
   // the contract shelfItems leans on: normalize keeps kind via {...raw}, so a
   // place snapshot reconstructs to a place whose keyOf is the 'p|' key again
   const snapshot = { kind: 'place', key: 'p|test-park', name: 'Test Park', title: 'Test Park', lat: 27.9, lng: -82.5, placeType: 'park', category: 'outdoors' }
@@ -2930,7 +2942,17 @@ test('S1-C2: the morning-after recap is off the Calendar; "went" still rides mar
   assert.ok(!/cal-recap/.test(calSrc), 'the recap markup is removed from the Calendar')
   // the idempotent +2 "went" seam relocated to My plans (still unfarmable)
   const mpSrc = readFileSync(path.join(ROOT, 'app', 'src', 'MyPlansPage.jsx'), 'utf8')
-  assert.ok(/markBeen\(key, snapshot, 'went'\)/.test(mpSrc), 'My plans "I went" rides the idempotent markBeen seam (+2 unfarmable)')
+  const markAt = mpSrc.search(/await\s+\w*markBeen\w*\s*\(/)
+  const changedAt = mpSrc.indexOf('result?.changed !== true', markAt)
+  const tasteAt = mpSrc.indexOf("recordSignal('went'", changedAt)
+  assert.ok(
+    markAt >= 0 && changedAt > markAt && tasteAt > changedAt,
+    'My plans "I went" awaits the atomic Been seam and rewards only a changed result',
+  )
+  assert.ok(
+    /answerBeen\s*\([^)]*,\s*['"]went['"]\s*(?:,\s*[^)]*)?\)/.test(mpSrc),
+    'My plans keeps an explicit "I went" action on the unfarmable Been seam',
+  )
   // no taste signal is recorded for slotting anywhere in the day surfaces
   const daySrc = readFileSync(path.join(ROOT, 'app', 'src', 'DayPage.jsx'), 'utf8')
   assert.ok(!/recordSignal\(/.test(daySrc), 'DayPage must record NO taste signal for slotting (only "went" feeds taste, v1)')

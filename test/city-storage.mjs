@@ -249,7 +249,12 @@ test('storage listeners, profile identity, and session fatigue use canonical sco
   const weather = readFileSync(join(ROOT, 'app', 'src', 'weather.js'), 'utf8')
   const settings = readFileSync(join(ROOT, 'app', 'src', 'SettingsPage.jsx'), 'utf8')
 
-  for (const source of [saves, recents, taste]) {
+  // Saves/Been now cross the city-bound atomic provider rather than owning a
+  // second storage listener. The remaining V1 taste and recents modules still
+  // have to use the canonical physical-key seam until their scheduled cutover.
+  assert.match(saves, /useSavedBeen\(\)/)
+  assert.doesNotMatch(saves, /physicalKey\(|localStorage|addEventListener\(['"]storage/)
+  for (const source of [recents, taste]) {
     assert.match(source, /physicalKey\(/)
     assert.doesNotMatch(source, /PREFIX \+ KEY/)
   }

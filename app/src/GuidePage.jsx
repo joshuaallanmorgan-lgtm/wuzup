@@ -11,6 +11,7 @@ import { useMemo, useRef } from 'react'
 import { Icon, LENS_BUBBLES, CAT_BUBBLES } from './lib.js'
 import { useNav } from './nav.jsx'
 import { RowFeed } from './cards.jsx'
+import { SaveHeart } from './saves.js'
 import LensNav from './LensNav.jsx'
 import { usePlaces, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES } from './places.js'
 import { resolveGuide, resolveWatchGuide } from './guides.js'
@@ -19,6 +20,10 @@ import './bubble.css'
 export default function GuidePage({ guide, events, anchors }) {
   const { openDetail: onSelect, closePage: onClose, openDay, openBubble, openPlaceBubble, openEvFilters } = useNav()
   const pgRef = useRef(null)
+  const savedGuide = useMemo(
+    () => guide ? { ...guide, kind: 'guide', key: `g|${guide.id}` } : null,
+    [guide]
+  )
   const isSpots = guide?.domain === 'spots' // a spots guide gets the place lenses
   // load places only for guides that need them (lazy ~1.2MB fetch, like Spots)
   const {
@@ -69,6 +74,7 @@ export default function GuidePage({ guide, events, anchors }) {
             <span className="bub-emoji">{guide.emoji}</span>
             {guide.title}
           </h1>
+          {savedGuide && <SaveHeart e={savedGuide} big />}
           <div className="pg-count">
             {placesPending
               ? 'Checking spot ideas…'

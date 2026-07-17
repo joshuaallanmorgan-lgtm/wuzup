@@ -984,6 +984,17 @@ function migrateLegacyRef(legacyKey, kind, indexes, diagnostics) {
     diagnostics.ambiguous += 1
     return ambiguousRef(kind, legacyKey, resolution.candidates)
   }
+  // A retained structured key is stable identity evidence even when its row
+  // is no longer in the current catalog. Resolve catalogs and historical
+  // seeds first because an old event primary can legitimately bridge to a
+  // newer one; only a genuinely unresolved structured key attaches to itself.
+  // This keeps lazy place loading from permanently downgrading p| saves while
+  // preserving current availability as a separate runtime concern.
+  if (SAVE_KINDS.has(kind) && validAttachedPrimary(kind, legacyKey)) {
+    const ref = attachedRef(kind, legacyKey, [[legacyKey]])
+    if (ref) diagnostics.attached += 1
+    return ref
+  }
   diagnostics.missing += 1
   return missingRef(kind, legacyKey)
 }
