@@ -815,6 +815,29 @@ and migration tests pass; planner operations are idempotent and survive reload.
   over together. Taste signals must run only after a genuinely changed action, and session-only durability must be
   visible and retryable; Sprint 3 remains yellow until that group lands.
 
+#### Sprint 3 atomic saved-and-Been store receipt - 2026-07-16 (yellow)
+
+- **One atomic destination now owns saved intent and follow-through:** `saved-been-v2` binds the exact city document
+  to the shared store engine and replays bounded add, remove, toggle, mark, archive, unmark, and import commands.
+  Marking an item went removes its save in the same durable transition; archive commands bind both save and Been
+  tokens so retries, stale effects, and ABA changes cannot overwrite a newer answer.
+- **Physical migration evidence is reserved and authoritative:** default and explicit source factories carry their
+  own strict captured provenance, and caller migration context cannot replace it. Explicit source initialization
+  may provide matching evidence intentionally; existing valid destinations skip source capture; Tampa/SF physical
+  keys remain isolated; and V1 bytes are never copied, removed, tombstoned, or rewritten by the adapter.
+- **Exact validation does not execute caller hooks:** plain JSON-domain descriptor checks reject `toJSON`, accessors,
+  custom prototypes, hidden or unknown fields, sparse or extended arrays, symbols, cycles, non-finite values, and
+  noncanonical city/schema data before structural comparison. Command builders retain kind-correct bounded refs,
+  snapshots, revision tokens, and command-size limits without embedding live catalogs.
+- **Durability truth is inherited without dilution:** Web Locks protect durable convergence and rebase; missing lock
+  support remains explicit session-only with zero durable writes; same-tab subscribers, retry, storage-event reload,
+  corrupt-destination refusal, and destination-first behavior stay on the common atomic contract.
+- **Verification and review are green:** adapter, state, atomic, and identity compatibility pass 69/69; exact-file
+  lint and diff hygiene pass. Independent adversarial re-review records **SHIP** with no P0/P1 remaining.
+- **The adapter is not mounted yet:** a StrictMode-safe provider and one coherent all-consumer cutover still need to
+  replace the V1 module singleton, move archival out of render, await action outcomes, and expose session-only retry
+  truth. Until that runtime group lands, V1 stays active and Sprint 3 remains yellow.
+
 #### Sprint 3 custom-event state foundation receipt - 2026-07-16 (yellow)
 
 - **Added-by-you events now have one exact city-and-time contract:** the bounded V2 document persists the selected
