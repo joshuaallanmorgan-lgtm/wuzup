@@ -815,6 +815,30 @@ and migration tests pass; planner operations are idempotent and survive reload.
   over together. Taste signals must run only after a genuinely changed action, and session-only durability must be
   visible and retryable; Sprint 3 remains yellow until that group lands.
 
+#### Sprint 3 custom-event state foundation receipt - 2026-07-16 (yellow)
+
+- **Added-by-you events now have one exact city-and-time contract:** the bounded V2 document persists the selected
+  city ID and trusted IANA timezone. Date-only/all-day and timed precision must agree; invalid offsets, backwards or
+  mixed ranges, contradictory item zones, DST gaps or ambiguous wall times, invalid city zones, and cross-city
+  documents all fail closed rather than becoming planner or calendar evidence.
+- **Identity becomes stable only after durability is real:** migrated and durably written rows retain their local
+  `c|` identity plus bounded legacy aliases. Session-only projection uses a non-reserved synthetic identity and
+  cannot leak an unlanded stable-looking `c|` into saved, activity, or planner stores; current legacy evidence stays
+  available for display and retry without forging landed identity.
+- **Migration evidence and persisted schemas are exact:** strict wrapped raw provenance must structurally match
+  plain JSON source rows. Accessors, `toJSON`, custom prototypes, missing or malformed aliases, unknown
+  identity-bearing fields, partial rows, source mismatch, oversized input, and duplicate IDs are rejected or
+  deterministically repaired only where the contract explicitly permits it. V1 bytes remain untouched.
+- **Pure mutations are bounded and conflict-aware:** add, update, delete, merge, and replace-import use revision
+  guards, preserve valid identity history without dropping the current legacy alias, support the full 256-row
+  document cap subject to the atomic command-size ceiling, and never freeze or mutate caller-owned invalid input.
+- **Verification and review are green:** the focused repaired suite passes 21/21; root custom/identity/activity/saved
+  compatibility passes 72/72; independent focused compatibility passes 35/35; exact-file lint and diff hygiene pass.
+  Final adversarial re-review records **SHIP** with no P0/P1 remaining.
+- **The atomic/runtime cutover remains pending:** a city-bound custom-event store and StrictMode-safe provider must
+  replace App/lib V1 state, feed planner initialization only after terminal usable custom state, await add/delete/
+  undo outcomes, and show session-only retry truth. Until that coherent group lands, Sprint 3 remains yellow.
+
 #### Sprint 3 truthful location-permission runtime receipt - 2026-07-16 (yellow)
 
 - **Permission intent and effective use are separate:** one city-scoped controller owns disabled, desired,
