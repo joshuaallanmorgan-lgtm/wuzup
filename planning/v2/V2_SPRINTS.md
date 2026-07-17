@@ -794,6 +794,27 @@ and migration tests pass; planner operations are idempotent and survive reload.
   deck memories, and expose session-only durability honestly. Until that coherent consumer swap lands, Sprint 3
   remains yellow and the V1 writers remain the active runtime.
 
+#### Sprint 3 saved-and-Been state foundation receipt - 2026-07-16 (yellow)
+
+- **Saves and follow-through now share one transactional city document:** event, custom-event, place, and guide
+  references stay kind-correct; attached, missing, and ambiguous identity evidence remains explicit; and malformed
+  prefixes, cross-kind claims, cross-city documents, or first-win ambiguity fail closed. Marking an item went or
+  missed can remove its save in the same pure transition instead of leaving contradictory retained value.
+- **Migration requires exact physical-source evidence:** both V1 save and Been fields need structured provenance
+  with their raw values, allowed source scope, and matching byte counts before any destination can be produced.
+  Missing, unverified, rawBytes-only, malformed, oversized, or partial capture cannot be relabelled as a successful
+  empty migration, while the original V1 bytes remain untouched for rollback.
+- **Replay and capacity behavior is explicit:** imports compare canonical semantic state rather than object key
+  order, so a save already superseded by `went` is a true no-op with no revision churn. Save and Been limits refuse
+  new rows instead of evicting history; archive and mark commands bind exact save/Been tokens to survive retries and
+  ABA changes; and canonical imports fail explicitly below the atomic engine's 64 KiB command boundary.
+- **Verification and review are green:** the focused saved/Been plus identity compatibility gate passes 35/35;
+  exact-file lint passes. Independent read-only review records **SHIP** with no P0/P1 remaining.
+- **Runtime remains deliberately on V1 until one coherent swap:** the atomic saved/Been adapter, StrictMode-safe
+  provider, kind-correct My Saves rendering, all heart/Been consumers, and out-of-render expiry archival must cut
+  over together. Taste signals must run only after a genuinely changed action, and session-only durability must be
+  visible and retryable; Sprint 3 remains yellow until that group lands.
+
 #### Sprint 3 truthful location-permission runtime receipt - 2026-07-16 (yellow)
 
 - **Permission intent and effective use are separate:** one city-scoped controller owns disabled, desired,
