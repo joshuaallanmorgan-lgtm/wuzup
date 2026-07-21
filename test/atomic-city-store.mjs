@@ -909,3 +909,22 @@ test('destroy unregisters synchronization, clears subscribers, and rejects queue
   await store.whenIdle()
   assert.equal(emissions, 1)
 })
+
+test('state replacement rejects a durable commit that changed after backup capture', async () => {
+  const backend = new MemoryStorage()
+  const first = makeStore({ backend, contextId: 'transfer-first' }).store
+  const second = makeStore({ backend, contextId: 'transfer-second' }).store
+  await first.initialize()
+  await second.initialize()
+  const expectedCommitId = first.getSnapshot().envelope.commit.id
+
+  const external = await second.dispatch({ type: 'increment', by: 1, opId: 'external-after-backup' })
+  assert.equal(external.persisted, true)
+  const replacement = await first.replaceDocument(
+    { v: 1, count: 99, items: [] },
+    { expectedCommitId },
+  )
+  assert.equal(replacement.ok, false)
+  assert.equal(replacement.code, 'replacement-conflict')
+  assert.equal(durableEnvelope(backend).document.count, 1)
+})

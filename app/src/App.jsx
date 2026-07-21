@@ -12,11 +12,15 @@ import { PlannerProvider } from './PlannerProvider.jsx'
 import { CustomEventsProvider, useCustomEvents } from './CustomEventsProvider.jsx'
 import { SavedBeenProvider, useSavedBeen } from './SavedBeenProvider.jsx'
 import { ActivityProvider, useActivity } from './ActivityProvider.jsx'
+import { StateTransferProvider } from './StateTransferProvider.jsx'
 import { bindRuntimeCityArtifact } from './runtime-city.js'
 import { useRuntimeCity } from './RuntimeCityProvider.jsx'
 import { identitySeedsForCity } from './identity-seeds.js'
 import { GUIDES } from './guides.js'
 import { normalizePlace } from './places.js'
+import { resolveRouteState } from './route-resolution.js'
+import { parsePlanCapsuleFragment } from './plan-capsule.js'
+import { cityMidnightMs } from '../../shared/city-time.mjs'
 import Primer, { loadPrimerState } from './Primer.jsx'
 import { WxContext, CardToastHost } from './cards.jsx'
 import {
@@ -49,6 +53,8 @@ import DayPage from './DayPage.jsx'
 import CalendarPickerPage from './CalendarPickerPage.jsx'
 import SettingsPage from './SettingsPage.jsx'
 import AttributionPage from './AttributionPage.jsx'
+import SharedPlanPage from './SharedPlanPage.jsx'
+import DataTransferPage from './DataTransferPage.jsx'
 import InterestEditor from './InterestEditor.jsx'
 import TastePanel from './TastePanel.jsx'
 import CalibrationDeck, { PlacesDeck } from './CalibrationDeck.jsx'
@@ -120,6 +126,29 @@ function EventUnavailablePage({ status, meta, onBack, recover, recoverLabel }) {
   )
 }
 
+function RouteUnavailablePage({ outcome, onBack }) {
+  const code = outcome?.code || 'ROUTE_TARGET_UNAVAILABLE'
+  const cityMismatch = code === 'ROUTE_CITY_UNAVAILABLE'
+  const ambiguous = code === 'ROUTE_ITEM_AMBIGUOUS'
+  return (
+    <div className="pg">
+      <header className="pg-head">
+        <button className="pg-back" onClick={onBack} aria-label="Back">
+          <Icon.chevron />
+        </button>
+        <h1 className="pg-head-title">Link unavailable</h1>
+      </header>
+      <div className="empty" role="alert">
+        {cityMismatch
+          ? 'This link belongs to a different Wuzup coverage area.'
+          : ambiguous
+            ? 'This link matches more than one current listing, so Wuzup did not guess.'
+            : 'This saved link no longer matches a current item in this coverage area.'}
+      </div>
+    </div>
+  )
+}
+
 function restoreLayerFocus(target, fallbackRoot) {
   const validTarget = target?.isConnected && !target.closest?.('[inert]') ? target : null
   const fallback =
@@ -132,11 +161,12 @@ function restoreLayerFocus(target, fallbackRoot) {
 // dayStamp — shared with the D-G1 Coverage Card's "updated {day}" line.
 
 export default function App() {
-  const { city } = useRuntimeCity()
+  const runtimeCity = useRuntimeCity()
+  const { city } = runtimeCity
   return (
     <CustomEventsProvider city={city}>
       <ActivityProvider city={city}>
-        <NavProvider>
+        <NavProvider city={city} baseUrl={runtimeCity.baseUrl}>
           <LocationProvider city={city}>
             <Shell />
           </LocationProvider>
@@ -208,6 +238,22 @@ function ActivityNotice({ visible, layered, stackLevel = 0 }) {
 function Shell() {
   const runtimeCity = useRuntimeCity()
   const city = runtimeCity.city
+  const {
+    active,
+    goTo,
+    attachPager,
+    onPagerScroll,
+    visited,
+    page,
+    pageClosing,
+    openSettings,
+    openDeck,
+    closePage,
+    closeDetail,
+    detail,
+    routeIntent,
+    settleRouteIntent,
+  } = useNav()
   const customEvents = useCustomEvents()
   const location = useLocationPermission()
   const coords = location.usableCoords
@@ -215,14 +261,15 @@ function Shell() {
   // Subscribe without activating the lazy place artifact. This lets the shell
   // close a retained remote place detail if its verified snapshot expires or
   // fails while open, without adding a places fetch to app boot.
-  const placeArtifact = useArtifact('places', false)
+  const directPlaceRequested = routeIntent?.route?.target?.kind === 'place'
+  const placeArtifact = useArtifact('places', directPlaceRequested)
   const events = useMemo(
     () => (Array.isArray(eventArtifact.data) ? eventArtifact.data : []),
     [eventArtifact.data]
   )
   const places = useMemo(
-    () => (Array.isArray(placeArtifact.data)
-      ? placeArtifact.data.map(normalizePlace).filter(Boolean)
+    () => (Array.isArray(placeArtifact.data?.places)
+      ? placeArtifact.data.places.map(normalizePlace).filter(Boolean)
       : []),
     [placeArtifact.data]
   )
@@ -260,22 +307,6 @@ function Shell() {
   const baseTriggerRef = useRef(null)
   const pageTriggerRef = useRef(null)
 
-  // navigation (nav.js): tab index + pager wiring, visited set (lazy tab
-  // mounting, O1), subpage union, detail, map focus
-  const {
-    active,
-    goTo,
-    attachPager,
-    onPagerScroll,
-    visited,
-    page,
-    pageClosing,
-    openSettings,
-    openDeck,
-    closePage,
-    closeDetail,
-    detail,
-  } = useNav()
   const remotePageBlocked = unavailable && Boolean(page) && (
     page.type === 'bubble'
     || page.type === 'notifications'
@@ -403,6 +434,84 @@ function Shell() {
     [events, customEvents.items, anchors]
   )
   const norm = useMemo(() => currentEvents(normalized), [normalized])
+
+  // A query route is only turned into UI after its exact, city-bound catalog
+  // has reached a terminal state. Item resolution is identity-only: aliases,
+  // titles, and nearby rows never substitute for the requested stable id.
+  useEffect(() => {
+    if (!routeIntent) return
+    const target = routeIntent.route.target
+    if (!target) return
+    if (target.kind === 'event') {
+      if (target.id.startsWith('c|')) {
+        if (!customEvents.ready && customEvents.status === 'initializing') return
+      } else if (['idle', 'loading'].includes(eventArtifact.status)) return
+    }
+    if (target.kind === 'place' && ['idle', 'loading'].includes(placeArtifact.status)) return
+
+    const parsedCapsule = target.kind === 'shared-plan'
+      ? parsePlanCapsuleFragment(routeIntent.fragment, {
+        cityId: city.id,
+        timeZone: city.tz,
+      })
+      : null
+    const remoteEvents = currentEvents(normalized.slice(0, events.length))
+    const routeCustomEvents = currentEvents(normalized.slice(events.length))
+    const result = resolveRouteState(routeIntent.route, {
+      activeCityId: city.id,
+      timeZone: city.tz,
+      catalogs: {
+        cityId: city.id,
+        timeZone: city.tz,
+        events: remoteEvents,
+        customEvents: routeCustomEvents,
+        places,
+        guides: GUIDES,
+      },
+      capsule: parsedCapsule?.ok ? parsedCapsule.capsule : null,
+    })
+
+    if (result.status !== 'resolved') {
+      settleRouteIntent(routeIntent.id, { status: result.status, outcome: result })
+      return
+    }
+    if (target.kind === 'event' || target.kind === 'place') {
+      settleRouteIntent(routeIntent.id, { status: 'resolved', detail: result.item })
+      return
+    }
+    if (target.kind === 'guide') {
+      settleRouteIntent(routeIntent.id, {
+        status: 'resolved',
+        page: { type: 'guide', guide: result.item },
+      })
+      return
+    }
+    if (target.kind === 'day') {
+      settleRouteIntent(routeIntent.id, {
+        status: 'resolved',
+        page: { type: 'day', ts: cityMidnightMs(target.day, city.tz) },
+      })
+      return
+    }
+    settleRouteIntent(routeIntent.id, {
+      status: 'resolved',
+      page: { type: 'sharedplan', capsule: result.value.capsule },
+    })
+  }, [
+    city.id,
+    city.tz,
+    customEvents.items,
+    customEvents.ready,
+    customEvents.status,
+    eventArtifact.status,
+    events.length,
+    normalized,
+    placeArtifact.status,
+    places,
+    routeIntent,
+    settleRouteIntent,
+  ])
+
   useEffect(() => {
     const nowMs = Date.now()
     const nextActionabilityMs = normalized.reduce((next, event) => {
@@ -517,6 +626,7 @@ function Shell() {
         catalogReady={customEvents.ready}
         catalogError={customEvents.error}
       >
+      <StateTransferProvider city={city}>
       <WxContext.Provider value={wx}>
         <div
           className="app"
@@ -658,7 +768,9 @@ function Shell() {
                 anchors={anchors}
                 myEvents={customEvents.items}
                 onAdd={customEvents.add}
+                onUpdate={customEvents.update}
                 presetTs={page.ts}
+                editEvent={page.editEvent ?? null}
                 status={customEvents.status}
               />
             )}
@@ -696,6 +808,11 @@ function Shell() {
                 derives from norm / places.json / the city config at render.
                 immutable artifact metadata feeds the Coverage Card. */}
             {page.type === 'attribution' && <AttributionPage events={norm} dataMeta={eventArtifact.meta} />}
+            {page.type === 'sharedplan' && <SharedPlanPage capsule={page.capsule} />}
+            {page.type === 'datatransfer' && <DataTransferPage />}
+            {page.type === 'route-unavailable' && (
+              <RouteUnavailablePage outcome={page.outcome} onBack={closePage} />
+            )}
             {page.type === 'interests' && <InterestEditor from={page.from} />}
             {/* Sprint V2/V3: the "why your feed looks like this" + mute/boost
                 panel — opened from Settings, back returns there (the `from`
@@ -774,6 +891,7 @@ function Shell() {
         {loading && bootVis && <div className="boot">Loading Wuzup…</div>}
         </div>
       </WxContext.Provider>
+      </StateTransferProvider>
       </PlannerProvider>
     </SavedBeenProvider>
   )

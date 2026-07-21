@@ -21,6 +21,7 @@ import { useTaste } from './taste.js'
 import { daypartOf, DAYPART } from './weekend.js'
 import { CONDITION, dateKey } from './weather.js'
 import { rankRuntimeItems } from './relevance.js'
+import CorrectionSheet from './CorrectionSheet.jsx'
 import './detail.css'
 import './locations.css' // 3.7P-34: the shared "Add to day" sheet (.loc-plan-*) lives here
 
@@ -71,7 +72,15 @@ const GENERIC_TAGS = new Set(['tonight', 'weekend', 'one-off', 'recurring', 'ong
 
 export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, onRestoreMine }) {
   // navigation via useNav (O6): close/swap/map-handoff + the open-state flags
-  const { closing, vtOpen: vt, closeDetail: onClose, openDetail: onSelect, openDay } = useNav()
+  const {
+    closing,
+    vtOpen: vt,
+    closeDetail: onClose,
+    openDetail: onSelect,
+    openDay,
+    openEditEvent,
+    durableHrefForItem,
+  } = useNav()
   const taste = useTaste()
   const {
     status: plannerStatus,
@@ -148,6 +157,12 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
 
   // ===== user-added event? (Add Event MVP) — provenance label + Remove =====
   const mine = Array.isArray(e.tags) && e.tags.includes('added-by-you')
+  const [correcting, setCorrecting] = useState(false)
+  const correctionButtonRef = useRef(null)
+  const closeCorrection = () => {
+    setCorrecting(false)
+    requestAnimationFrame(() => correctionButtonRef.current?.focus())
+  }
 
   // ===== event-day weather (only within the 16-day forecast window) =====
   const w = wx && e._day != null ? wx[dateKey(e._day)] : null
@@ -428,11 +443,11 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
   const share = async () => {
     // URL-less events (added-by-you etc.) share their facts as TEXT — never
     // window.location.href, which is just this device's app address.
-    const url = e.url || null
+    const url = durableHrefForItem(e)
     const text = [e.title, when, whereMain].filter(Boolean).join(' · ')
     if (navigator.share) {
       try {
-        await navigator.share(url ? { title: e.title, text: e.title, url } : { title: e.title, text })
+        await navigator.share({ title: e.title, text, ...(url ? { url } : {}) })
       } catch {
         /* user dismissed the share sheet — not an error */
       }
@@ -531,8 +546,8 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
           over content, which broke because .detail is transformed). */}
       <div
         className="detail-scroll"
-        inert={planning || planClosing ? true : undefined}
-        aria-hidden={planning || planClosing || undefined}
+        inert={planning || planClosing || correcting ? true : undefined}
+        aria-hidden={planning || planClosing || correcting || undefined}
       >
       {/* no-image hero shares the I3 .imgbox-art composition (same hue + watermark
           the card showed), so the VT morph lands on matching artwork */}
@@ -701,6 +716,11 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
             <p className="detail-desc">{e.description}</p>
           </div>
         )}
+        {mine && (
+          <button className="d-remove" onClick={() => openEditEvent(e)} disabled={removedMine || removePending}>
+            Edit this event
+          </button>
+        )}
         {mine && onRemoveMine && (
           <button className="d-remove" onClick={removeMine} disabled={removedMine || removePending}>
             {removedMine ? 'Removed from my feed' : removePending ? 'Removing…' : 'Remove from my feed'}
@@ -729,6 +749,9 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
             <div className="detail-via-list">Found via {via}</div>
           </details>
         )}
+        <button ref={correctionButtonRef} className="correction-link" type="button" onClick={() => setCorrecting(true)}>
+          Suggest a correction
+        </button>
       </div>
       </div>
       {toast && <div className="detail-toast" role="status" aria-live="polite">{toast}</div>}
@@ -738,8 +761,8 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
           role="status"
           aria-live="polite"
           aria-atomic="true"
-          inert={planning || planClosing ? true : undefined}
-          aria-hidden={planning || planClosing || undefined}
+          inert={planning || planClosing || correcting ? true : undefined}
+          aria-hidden={planning || planClosing || correcting || undefined}
         >
           <span>{undoError || 'Removed from your feed'}</span>
           <button className="undo-btn" onClick={undoRemove} disabled={removePending}>
@@ -747,6 +770,7 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
           </button>
         </div>
       )}
+      {correcting && <CorrectionSheet item={e} onClose={closeCorrection} />}
 
       {/* 3.7P-34: Add-to-day sheet — locked to the event's own day(s). Reuses the
           shared .loc-plan-* sheet (PlaceDetail's bridge); a single-day event shows
@@ -834,8 +858,8 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
           link is the fallback primary for a past/undated event (still saveable). */}
       <div
         className="detail-actionbar"
-        inert={planning || planClosing ? true : undefined}
-        aria-hidden={planning || planClosing || undefined}
+        inert={planning || planClosing || correcting ? true : undefined}
+        aria-hidden={planning || planClosing || correcting || undefined}
       >
         <button
           className={'detail-save-btn' + (saved ? ' on' : '')}

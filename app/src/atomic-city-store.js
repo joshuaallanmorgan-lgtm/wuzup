@@ -1123,6 +1123,116 @@ export function createAtomicCityStore({
     return consumePersistence(outcome, records)
   })
 
+  // State-transfer recovery is deliberately separate from ordinary reducer
+  // commands. It replaces one already-validated logical document under the
+  // same cross-tab lock, verifies the exact envelope bytes from durable
+  // storage, and never falls back to session-only state. `allowCorrupt` is for
+  // an explicit, backup-gated recovery flow only; normal callers remain unable
+  // to overwrite an unreadable destination.
+  const replaceDocument = (value, {
+    allowCorrupt = false,
+    expectedCommitId = null,
+  } = {}) => enqueue(async () => {
+    if (!initialized) return result({ ok: false, code: 'not-initialized' })
+    if (pendingOps.length > 0) {
+      return result({
+        ok: false,
+        code: 'pending-session-state',
+        conflict: { code: 'pending-session-state' },
+      })
+    }
+    const document = canonicalizeDocument(value, {
+      validateDocument,
+      documentBytes,
+      maxBytes,
+      requireCanonical: true,
+    })
+    if (!document) return result({ ok: false, code: 'invalid-replacement-document' })
+    if (expectedCommitId !== null && !validId(expectedCommitId)) {
+      return result({ ok: false, code: 'invalid-expected-commit' })
+    }
+
+    const outcome = await withCoordination(async ({ concurrency, writeAllowed }) => {
+      if (!writeAllowed) {
+        return {
+          kind: 'failed',
+          code: 'coordination-unavailable',
+          concurrency,
+        }
+      }
+      const before = durableRaw()
+      if (before.status !== 'ok' || typeof before.raw !== 'string') {
+        return { kind: 'failed', code: 'storage-unavailable', concurrency }
+      }
+      let parent
+      try {
+        parent = validateEnvelope(JSON.parse(before.raw))
+      } catch {
+        // Invalid destinations are handled by the explicit corrupt-state branch below.
+      }
+      if (!parent && !allowCorrupt) {
+        return { kind: 'failed', code: 'corrupt-destination', concurrency }
+      }
+      if (expectedCommitId !== null && parent?.commit.id !== expectedCommitId) {
+        return {
+          kind: 'conflict',
+          code: 'replacement-conflict',
+          concurrency,
+        }
+      }
+      if (parent && jsonEqual(parent.document, document)) {
+        return { kind: 'unchanged', envelope: parent, concurrency }
+      }
+      const envelope = createEnvelope({
+        document,
+        parent,
+        migration: parent?.migration || {
+          status: 'state-transfer-recovery',
+          at: Math.max(0, Number(now()) || 0),
+          diagnostics: { replacedCorruptDestination: !parent },
+        },
+      })
+      const raw = envelope && serialization(envelope)
+      if (!envelope || !raw) {
+        return { kind: 'failed', code: 'invalid-replacement-envelope', concurrency }
+      }
+      const preflight = durableRaw()
+      if (preflight.status !== 'ok' || preflight.raw !== before.raw) {
+        return { kind: 'conflict', code: 'replacement-conflict', concurrency }
+      }
+      const write = writeExact(raw)
+      return write.persisted
+        ? { kind: 'persisted', envelope, concurrency }
+        : { kind: 'failed', code: 'write-not-durable', concurrency }
+    })
+
+    if (outcome.kind === 'persisted' || outcome.kind === 'unchanged') {
+      durableEnvelope = outcome.envelope
+      pendingOps = []
+      publish({
+        envelope: outcome.envelope,
+        durability: 'durable',
+        concurrency: outcome.concurrency,
+      })
+      return result({
+        code: outcome.kind === 'unchanged' ? 'replacement-unchanged' : 'document-replaced',
+        changed: outcome.kind === 'persisted',
+        persisted: true,
+        durability: 'durable',
+        concurrency: outcome.concurrency,
+      })
+    }
+    return result({
+      ok: false,
+      code: outcome.code || outcome.error?.code || 'replacement-failed',
+      persisted: false,
+      concurrency: outcome.concurrency,
+      ...(outcome.kind === 'conflict'
+        ? { conflict: { code: outcome.code || 'replacement-conflict' } }
+        : { error: outcome.error || publicError(outcome.code || 'replacement-failed') }),
+    })
+  })
+
   const reloadFromDurable = ({ discardPending = false } = {}) => enqueue(async () => {
     if (!initialized) return result({ ok: false, code: 'not-initialized' })
     if (pendingOps.length > 0 && !discardPending) {
@@ -1179,6 +1289,7 @@ export function createAtomicCityStore({
     physicalKey: destinationKey,
     initialize,
     dispatch,
+    replaceDocument,
     retryPersistence,
     reloadFromDurable,
     getSnapshot: () => snapshot,

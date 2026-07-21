@@ -729,3 +729,25 @@ test('destroy unregisters storage synchronization and rejects later work', async
   assert.equal(eventTarget.listeners.size, 0)
   assert.equal((await store.dispatch({ type: 'rest', dayTs: DAY, rest: true })).code, 'destroyed')
 })
+
+test('planner replacement rejects a durable commit that changed after backup capture', async () => {
+  const backend = new MemoryStorage()
+  const locks = new SerialLocks()
+  const first = makeStore({ backend, locks, contextId: 'transfer-first' }).store
+  const second = makeStore({ backend, locks, contextId: 'transfer-second' }).store
+  await first.initialize()
+  await second.initialize()
+  const expectedCommitId = first.getSnapshot().envelope.commit.id
+
+  const external = await second.dispatch({
+    type: 'add',
+    dayTs: DAY,
+    part: 'night',
+    item: event('e', 'Newer external plan'),
+  })
+  assert.equal(external.persisted, true)
+  const replacement = await first.replaceDocument(emptyPlannerDocument(), { expectedCommitId })
+  assert.equal(replacement.ok, false)
+  assert.equal(replacement.code, 'planner-replacement-conflict')
+  assert.equal(durableEnvelope(backend).document.active[DAY].slots.night.snapshot.title, 'Newer external plan')
+})

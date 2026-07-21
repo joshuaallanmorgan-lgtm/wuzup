@@ -34,24 +34,25 @@ function checkUrl(v) {
   }
 }
 
-export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null, status = 'durable' }) {
+export default function AddEvent({ anchors, myEvents, onAdd, editEvent = null, onUpdate = null, presetTs = null, status = 'durable' }) {
   const { closePage: onClose } = useNav() // slide back out (O6)
   // When opened from a day screen, presetTs only pre-fills the date. Saving a
   // custom event adds it to My Events; planning always requires the separate,
   // visible day/daypart confirmation flow.
   const fromDay = typeof presetTs === 'number' && presetTs >= anchors.todayTs
-  const [f, setF] = useState({
-    title: '',
-    date: fromDay ? isoDay(presetTs) : '',
-    time: '',
-    venue: '',
-    address: '',
-    cat: null,
-    free: false,
-    price: '',
-    link: '',
-    desc: '',
-  })
+  const editing = Boolean(editEvent && typeof onUpdate === 'function')
+  const [f, setF] = useState(() => ({
+    title: editing ? editEvent.title || '' : '',
+    date: editing ? String(editEvent.start || '').slice(0, 10) : fromDay ? isoDay(presetTs) : '',
+    time: editing && /T\d{2}:\d{2}/.test(editEvent.start || '') ? String(editEvent.start).slice(11, 16) : '',
+    venue: editing ? editEvent.venue || '' : '',
+    address: editing ? editEvent.address || '' : '',
+    cat: editing ? editEvent.category || 'other' : null,
+    free: editing ? editEvent.isFree === true : false,
+    price: editing && Number.isFinite(editEvent.price) ? String(editEvent.price) : '',
+    link: editing ? editEvent.url || '' : '',
+    desc: editing ? editEvent.description || '' : '',
+  }))
   const [errors, setErrors] = useState({})
   const [done, setDone] = useState(null)
   const [submitError, setSubmitError] = useState(null)
@@ -94,7 +95,7 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null, st
     const title = f.title.trim()
     if (!title) errs.title = 'Give it a title.'
     if (!f.date) errs.date = 'Pick a date.'
-    else if ((dayTs(f.date) ?? 0) < anchors.todayTs) errs.date = "That date's already passed."
+    else if (!editing && (dayTs(f.date) ?? 0) < anchors.todayTs) errs.date = "That date's already passed."
     const u = checkUrl(f.link)
     if (!u.ok) errs.link = "That doesn't look like a link."
     const priceNum = f.price === '' ? null : Number(f.price)
@@ -107,32 +108,39 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null, st
     const raw = {
       title,
       start: f.time ? f.date + 'T' + f.time + ':00' : f.date, // local floating, like the finder's output
-      end: null,
+      end: editing ? editEvent.end ?? null : null,
+      timeZone: editing ? editEvent.timeZone ?? CITY.tz : CITY.tz,
       venue: f.venue.trim() || null,
       address: f.address.trim() || null,
       price: f.free ? 0 : priceNum,
       currency: 'USD',
       isFree: f.free === true,
-      lat: null,
-      lng: null,
+      lat: editing ? editEvent.lat ?? null : null,
+      lng: editing ? editEvent.lng ?? null : null,
       url: u.url,
-      image: null,
+      image: editing ? editEvent.image ?? null : null,
+      imageAlt: editing ? editEvent.imageAlt ?? null : null,
       description: f.desc.trim() || null,
       source: MY_SOURCE,
       sources: [MY_SOURCE],
-      buzz: 1,
+      buzz: editing ? editEvent.buzz ?? 1 : 1,
       hotScore: null, // never competes with sourced hot-ness
       tags: f.free ? ['added-by-you', 'free'] : ['added-by-you'],
       category: f.cat || 'other',
-      sponsored: false,
+      sponsored: editing ? editEvent.sponsored === true : false,
     }
     submittingRef.current = true
     setSubmitting(true)
     setSubmitError(null)
     try {
-      const added = await onAdd(raw)
+      const added = editing ? await onUpdate(editEvent, raw) : await onAdd(raw)
       if (added?.changed !== true) {
         if (!mountedRef.current) return
+        if (editing && added?.code === 'unchanged') {
+          setDone(added)
+          scheduleClose()
+          return
+        }
         if (typeof added?.code === 'string' && added.code.startsWith('duplicate-')) {
           setDone(added)
           scheduleClose()
@@ -145,7 +153,7 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null, st
         )
         return
       }
-      recordSignal('add', { category: f.cat || 'other' })
+      if (!editing) recordSignal('add', { category: f.cat || 'other' })
       if (!mountedRef.current) return
       setDone(added)
       scheduleClose()
@@ -178,7 +186,7 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null, st
         <button className="pg-back" onClick={onClose} aria-label="Back">
           <Icon.chevron />
         </button>
-        <h1 className="pg-head-title">Add Your Own</h1>
+        <h1 className="pg-head-title">{editing ? 'Edit Your Event' : 'Add Your Own'}</h1>
       </header>
       <div className="pg-body">
         {!catalogReady ? (
@@ -201,13 +209,13 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null, st
         ) : done ? (
           <div className="ae-done" role="status">
             <div className="ae-done-emoji">🎉</div>
-            <div className="ae-done-title">{done?.changed === false ? 'Already added' : 'Added!'}</div>
+            <div className="ae-done-title">{editing ? (done?.changed === false ? 'No changes' : 'Updated!') : (done?.changed === false ? 'Already added' : 'Added!')}</div>
             <div className="ae-done-sub">
               {done?.changed === false
-                ? "It's already in My Events and your feed."
+                ? (editing ? 'The event already has those details.' : "It's already in My Events and your feed.")
                 : done.persisted === false
-                  ? "It's here for this visit, but your browser couldn't save it."
-                  : "It's saved in My Events and your feed."}
+                  ? (editing ? "It's updated for this visit, but your browser couldn't save it." : "It's here for this visit, but your browser couldn't save it.")
+                  : (editing ? "It's updated in My Events and your feed." : "It's saved in My Events and your feed.")}
             </div>
           </div>
         ) : (
@@ -241,7 +249,7 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null, st
                   id="ae-date"
                   className="ae-input"
                   type="date"
-                  min={isoDay(anchors.todayTs)}
+                  min={editing ? undefined : isoDay(anchors.todayTs)}
                   value={f.date}
                   onChange={set('date')}
                   aria-invalid={!!errors.date}
@@ -378,10 +386,10 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null, st
             </div>
             {submitError && <div className="ae-err" role="alert">{submitError}</div>}
             <button className="ae-submit" type="submit" disabled={submitting}>
-              {submitting ? 'Addingâ€¦' : 'Add event'}
+              {submitting ? (editing ? 'Updating...' : 'Adding...') : (editing ? 'Save changes' : 'Add event')}
             </button>
             <div className="ae-foot">
-              {myEvents.length > 0 && (
+              {!editing && myEvents.length > 0 && (
                 <button type="button" className="ae-export" onClick={exportJson}>
                   Export my events (JSON){myEvents.length > 1 ? ` · ${myEvents.length}` : ''}
                 </button>

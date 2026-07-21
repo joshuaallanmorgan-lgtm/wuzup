@@ -279,10 +279,13 @@ export function createStorageScope({ backend = null, backendProvider = null, cit
     // backend that denied or failed the read.
     peek: (key) => peekFor(key, 'city'),
     peekDurable: (key) => peekDurableFor(key, 'city'),
+    peekGlobal: (key) => peekFor(key, 'global'),
+    peekDurableGlobal: (key) => peekDurableFor(key, 'global'),
     // Physical V2 bytes only: no session-memory fallback, legacy read/copy, or
     // ownership claim. Atomic stores use this to verify that a write actually
     // landed durably rather than merely becoming session-readable.
     readDurable: (key) => readDurableFor(key, 'city'),
+    readDurableGlobal: (key) => readDurableFor(key, 'global'),
     set: (key, value) => setFor(key, value, 'city'),
     remove: (key) => removeFor(key, 'city'),
     getGlobal: (key) => getFor(key, 'global'),
@@ -306,3 +309,7 @@ export const globalGet = (key) => activeStorage.getGlobal(key)
 export const globalSet = (key, value) => activeStorage.setGlobal(key, value)
 export const globalRemove = (key) => activeStorage.removeGlobal(key)
 export const lsReadJson = (key, options) => activeStorage.readJson(key, options)
+export const lsPeekDurable = (key) => activeStorage.peekDurable(key)
+export const globalPeekDurable = (key) => activeStorage.peekDurableGlobal(key)
+export const lsReadDurable = (key) => activeStorage.readDurable(key)
+export const globalReadDurable = (key) => activeStorage.readDurableGlobal(key)

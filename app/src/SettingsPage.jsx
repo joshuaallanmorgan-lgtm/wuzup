@@ -53,7 +53,7 @@ function locationStatusCopy(location) {
 export default function SettingsPage({ events, dataMeta, primer, onPrimerDone }) {
   // openAttribution (Stage E ⚑X3): the About row → Data & photo credits page
   // (single-slot REPLACE; its back affordance reopens Settings)
-  const { closePage: onClose, openAttribution } = useNav()
+  const { closePage: onClose, openAttribution, openDataTransfer } = useNav()
   const { clearDeckMemories } = useActivity()
   const location = useLocationPermission()
   const [retaking, setRetaking] = useState(false)
@@ -196,6 +196,13 @@ export default function SettingsPage({ events, dataMeta, primer, onPrimerDone })
               <span className={'st-switch' + (location.enabled ? ' on' : '')} aria-hidden>
                 <span className="st-switch-knob" />
               </span>
+            </button>
+            <button className="st-row" onClick={openDataTransfer}>
+              <span className="st-row-main">
+                <span className="st-row-title">Export or restore your data</span>
+                <span className="st-row-sub">Portable JSON backup for plans, saves, taste, and your added items</span>
+              </span>
+              <span className="st-row-go" aria-hidden>→</span>
             </button>
           </div>
           <div className="st-card">

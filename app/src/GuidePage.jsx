@@ -16,15 +16,31 @@ import LensNav from './LensNav.jsx'
 import { usePlaces, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES } from './places.js'
 import { resolveGuide, resolveWatchGuide } from './guides.js'
 import { useTaste } from './taste.js'
+import { useArtifact } from './artifacts.js'
+import { canonicalGuide, guideFreshness, guideReason, guideSnapshot } from './guide-model.js'
 import './bubble.css'
+
+function listingSourceFamilies(items) {
+  const values = []
+  for (const item of items) {
+    const rows = Array.isArray(item?.sources) ? item.sources : [item?.source]
+    for (const source of rows) {
+      const family = typeof source === 'string' ? source : source?.family || source?.name
+      if (family && !values.includes(family)) values.push(family)
+      if (values.length >= 5) return values
+    }
+  }
+  return values
+}
 
 export default function GuidePage({ guide, events, anchors }) {
   const { openDetail: onSelect, closePage: onClose, openDay, openBubble, openPlaceBubble, openEvFilters } = useNav()
   const taste = useTaste()
   const pgRef = useRef(null)
+  const model = useMemo(() => canonicalGuide(guide), [guide])
   const savedGuide = useMemo(
-    () => guide ? { ...guide, kind: 'guide', key: `g|${guide.id}` } : null,
-    [guide]
+    () => guideSnapshot(model),
+    [model]
   )
   const isSpots = guide?.domain === 'spots' // a spots guide gets the place lenses
   // load places only for guides that need them (lazy ~1.2MB fetch, like Spots)
@@ -33,7 +49,9 @@ export default function GuidePage({ guide, events, anchors }) {
     status: placeStatus,
     recover: recoverPlaces,
     recoverLabel: recoverPlacesLabel,
+    meta: placeMeta,
   } = usePlaces(!!guide?.needsPlaces)
+  const eventArtifact = useArtifact('events')
   const placesRequired = Boolean(guide?.needsPlaces)
   const placesPending = placesRequired && (placeStatus === 'idle' || placeStatus === 'loading')
   const placesUnavailable = placesRequired && ['stale', 'offline', 'error'].includes(placeStatus)
@@ -63,6 +81,9 @@ export default function GuidePage({ guide, events, anchors }) {
     }
     return [{ label: null, items }]
   }, [items, guide])
+  const freshness = guideFreshness(isSpots ? placeMeta : eventArtifact.meta, anchors.nowMs)
+  const methodReason = guideReason(model)
+  const sourceFamilies = listingSourceFamilies(items)
 
   const planDay = () => openDay(Math.max(anchors.todayTs, anchors.wkStartTs))
 
@@ -88,6 +109,11 @@ export default function GuidePage({ guide, events, anchors }) {
             <button className="guide-plan-cta" onClick={planDay}>
               Plan this day
             </button>
+          )}
+          {methodReason && <div className="guide-sources">Why these appear: {methodReason}</div>}
+          <div className="guide-sources">{freshness.label}</div>
+          {sourceFamilies.length > 0 && (
+            <div className="guide-sources">Listing sources in this collection: {sourceFamilies.join(' / ')}</div>
           )}
           {/* 3.75b: show the provenance — for a Watch Guide this discloses that the
               list is keyword-matched against live listings, not hand-curated. */}

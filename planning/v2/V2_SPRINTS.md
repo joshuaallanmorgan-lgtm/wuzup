@@ -1,6 +1,6 @@
 # Wuzup V2 - active sprint map
 
-> **Status:** owner-ratified execution map; Sprint 9 active - 2026-07-21
+> **Status:** owner-ratified execution map; Sprint 10 active - 2026-07-21
 >
 > **Authority:** subordinate to [V2_PLAN.md](V2_PLAN.md). This file translates the current scope and
 > dependency queue into delivery cycles; it does not admit features that the plan parks in V3.
@@ -1271,6 +1271,44 @@ Committed scope:
 
 **Exit gate:** detail and plan state survive refresh and can be shared; export/import round-trips supported
 state; planner suggestions are complementary and duplicate-free; no guide makes an unearned ranking claim.
+
+#### Sprint 9 existing-flow-depth receipt - 2026-07-21 (green)
+
+- **Plan now gives a bounded, inspectable next step:** every empty slot receives deterministic pages of 3-6
+  complementary suggestions where supply permits. Planned items, prior offers, aliases, canonical/series siblings,
+  and in-catalog duplicates are excluded from the lead; rerolls never repeat. Each visible reason is bound to the
+  exact city-time, weather, location, or taste signal that influenced that deal, while full fitting inventory stays
+  reachable through the browse-all disclosure.
+- **Existing retained-value surfaces are kind-correct:** Search covers the real evergreen plus active-watch guide
+  catalog, Saves reopens events, custom events, places, and guides through retained identity evidence, Profile uses
+  one bounded transferable name/note contract, and user-added events can be edited without changing their durable
+  local identity. Guides disclose their selection method, source families, and artifact-derived freshness; covers
+  remain decorative until licensed identity evidence exists.
+- **Refreshable links are real product routes:** tabs plus event, custom-event, place, guide, day, and read-only
+  shared-plan targets use one canonical city-bound query contract. Direct place links activate the otherwise-lazy
+  place artifact only when needed. Shared plan capsules are bounded to three sanitized slots, live in the URL
+  fragment, reject city/timezone/tampering drift, and never mutate the recipient's planner. Session-only custom
+  events fall back to honest text sharing instead of copying a dead URL.
+- **Local value can move without pretending independent stores are transactional:** the versioned export separates
+  global profile data from the active city and excludes weather, coordinates, permission state, caches, and other
+  transient fields. Replacement import requires an exact same-city/timezone preflight, a durably verified backup,
+  immutable per-store commit preconditions, ordered custom-before-dependent writes, and exact readback after every
+  step. Cross-tab changes refuse the import, corrupt or session-only stores disable transfer, and partial outcomes
+  distinguish failed work from unattempted steps. Frozen stale browser fixtures therefore show an honest disabled
+  transfer state; deterministic runtime/store tests prove the supported durable round-trip.
+- **Support now produces bounded correction evidence:** event, place, and guide surfaces can record the item
+  identity, source family/URL, problem code, and optional note locally. Corrupt state blocks writes, merge conflicts
+  never overwrite existing evidence, and Help & Feedback says plainly that local receipts are not automatically
+  sent or monitored.
+- **The browser and CI contracts now cover the new value:** direct place refresh, plan persistence, a read-only
+  shared capsule with no planner mutation, guarded transfer, and zero serious/critical Axe findings pass in the
+  Sprint 9 production journey. The PR browser workflow runs this journey alongside the existing composed two-city
+  journey so remote verification can proceed while the next sprint develops locally.
+- **Verification is green:** focused Sprint 9 contracts pass 53/53; the complete serial gate passes 914/914,
+  including the 65.2-second finder contract, immutable artifacts, deploy seams, app lint/build, SF build, and
+  base-path build. The Tampa/SF production browser journey passes 1/1 and the Sprint 9 browser journey passes 1/1.
+  `git diff --check` is clean, no city artifact or freshness receipt changed, and the remaining large application
+  chunk is explicitly carried into Sprint 10's route/data-splitting budget rather than treated as finished.
 
 ### Sprint 10 - Premium completion, accessibility, performance, and flagship imagery
 

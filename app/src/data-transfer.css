@@ -1,0 +1,110 @@
+.data-transfer-body {
+  display: grid;
+  gap: 16px;
+  padding: 16px 18px 48px;
+}
+
+.data-transfer-card {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--card);
+  box-shadow: var(--shadow-card);
+}
+
+.data-transfer-over {
+  color: var(--accent-ink);
+  font-size: var(--eyebrow-size);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.data-transfer-card h2 {
+  margin: 7px 0;
+  color: var(--ink);
+  font-size: 1.28rem;
+}
+
+.data-transfer-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.data-transfer-primary,
+.data-transfer-secondary,
+.data-transfer-danger,
+.data-transfer-cancel,
+.data-transfer-result button {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 16px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  font: 800 0.88rem/1.2 inherit;
+  cursor: pointer;
+}
+
+.data-transfer-primary,
+.data-transfer-result button {
+  border: 0;
+  color: #fff;
+  background: var(--ink);
+}
+
+.data-transfer-secondary,
+.data-transfer-cancel {
+  border: 1px solid var(--line);
+  color: var(--ink);
+  background: transparent;
+}
+
+.data-transfer-danger {
+  border: 0;
+  color: #fff;
+  background: var(--danger);
+}
+
+.data-transfer-note {
+  margin-top: 12px !important;
+  font-size: 0.76rem !important;
+}
+
+.data-transfer-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.data-transfer-ready {
+  margin-top: 12px;
+  color: var(--free);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.data-transfer-result {
+  padding: 15px 16px;
+  border-radius: 16px;
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 10%, var(--card));
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.data-transfer-result.success {
+  color: var(--free);
+  background: color-mix(in srgb, var(--free) 10%, var(--card));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .data-transfer-primary,
+  .data-transfer-secondary,
+  .data-transfer-danger,
+  .data-transfer-cancel { transition: none; }
+}

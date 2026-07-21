@@ -5,29 +5,22 @@
 import { useState } from 'react'
 import { CITY, Icon } from './lib.js'
 import { useNav } from './nav.jsx'
-import { globalGet, globalSet } from './storage.js'
 import CityCoverageSelector from './CityCoverageSelector.jsx'
+import { readProfileState, writeProfileState } from './profile-state.js'
 import './profile.css'
 
-const NAME_KEY = 'profile-name-v1'
-const BIO_KEY = 'profile-bio-v1'
 const BIO_MAX = 120
-const PersonIc = () => (
-  <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <circle cx="12" cy="9" r="3.4" />
-    <path d="M5.5 19.5c1-3.3 3.6-5 6.5-5s5.5 1.7 6.5 5" />
-  </svg>
-)
 
 export default function EditProfilePage() {
   const { closePage: onClose, openInterests } = useNav()
-  const [name, setName] = useState(() => globalGet(NAME_KEY) || '')
-  const [bio, setBio] = useState(() => globalGet(BIO_KEY) || '')
-  const initial = name ? name.trim()[0].toUpperCase() : ''
+  const [initialState] = useState(readProfileState)
+  const [name, setName] = useState(initialState.name)
+  const [bio, setBio] = useState(initialState.bio)
+  const [saveError, setSaveError] = useState(null)
   const save = () => {
-    globalSet(NAME_KEY, (name || '').trim().slice(0, 40))
-    globalSet(BIO_KEY, (bio || '').trim().slice(0, BIO_MAX))
-    onClose()
+    const result = writeProfileState({ version: 1, name, bio })
+    if (result.ok) onClose()
+    else setSaveError("Couldn't save profile details on this device.")
   }
 
   return (
@@ -40,13 +33,6 @@ export default function EditProfilePage() {
       </header>
       <div className="pg-body ep-body">
         {/* photo — neutral monogram; upload is a stubbed future feature (no fake person) */}
-        <div className="ep-photo-row">
-          <div className="ep-photo">{initial || <PersonIc />}</div>
-          <button className="ep-photo-edit" type="button" disabled aria-disabled="true">
-            Add photo <span className="ep-soon">Soon</span>
-          </button>
-        </div>
-
         <label className="ep-field">
           <span className="ep-label">Name</span>
           <input
@@ -66,7 +52,7 @@ export default function EditProfilePage() {
 
         <label className="ep-field">
           <span className="ep-label ep-label-row">
-            <span>Bio <span className="ep-optional">(optional)</span></span>
+            <span>Private note <span className="ep-optional">(optional)</span></span>
             <span className="ep-count">{bio.length}/{BIO_MAX}</span>
           </span>
           <textarea
@@ -75,9 +61,10 @@ export default function EditProfilePage() {
             onChange={(e) => setBio(e.target.value)}
             maxLength={BIO_MAX}
             rows={3}
-            placeholder="Tell people what you're into (optional)"
-            aria-label="Your bio"
+            placeholder="A note about what you like"
+            aria-label="Private profile note"
           />
+          <span className="ep-optional">Your name and note stay on this device unless you export your data.</span>
         </label>
 
         {/* Coverage is a real hard-navigation choice; retained state is city-scoped. */}
@@ -91,6 +78,7 @@ export default function EditProfilePage() {
         </button>
       </div>
 
+      {saveError && <div className="ae-err" role="alert">{saveError}</div>}
       <button className="ep-save" type="button" onClick={save}>
         Save changes
       </button>

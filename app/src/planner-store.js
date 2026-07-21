@@ -1039,6 +1039,101 @@ export function createPlannerStore({
     return consumePersistence(outcome, records)
   })
 
+  const replaceDocument = (value, {
+    allowCorrupt = false,
+    expectedCommitId = null,
+  } = {}) => enqueue(async () => {
+    if (!initialized) return result({ ok: false, code: 'not-initialized' })
+    if (pendingOps.length > 0) {
+      return result({
+        ok: false,
+        code: 'pending-session-state',
+        conflict: { code: 'pending-session-state' },
+      })
+    }
+    const document = normalizePlannerDocument(value)
+    if (!jsonEqual(document, value)
+        || plannerDocumentBytes(document) > PLANNER_DOCUMENT_MAX_BYTES) {
+      return result({ ok: false, code: 'invalid-replacement-document' })
+    }
+    if (expectedCommitId !== null && !validId(expectedCommitId)) {
+      return result({ ok: false, code: 'invalid-expected-commit' })
+    }
+
+    const outcome = await withCoordination(async ({ concurrency, attempts, optimistic }) => {
+      for (let attempt = 0; attempt < attempts; attempt += 1) {
+        const before = durableRaw()
+        if (before.status !== 'ok' || typeof before.raw !== 'string') {
+          return { kind: 'failed', code: 'planner-storage-unavailable', concurrency }
+        }
+        let parent
+        try {
+          parent = validatePlannerEnvelope(JSON.parse(before.raw), selected)
+        } catch {
+          // Invalid destinations are handled by the explicit corrupt-state branch below.
+        }
+        if (!parent && !allowCorrupt) {
+          return { kind: 'failed', code: 'corrupt-planner-destination', concurrency }
+        }
+        if (expectedCommitId !== null && parent?.commit.id !== expectedCommitId) {
+          return { kind: 'conflict', code: 'planner-replacement-conflict', concurrency }
+        }
+        if (parent && jsonEqual(parent.document, document)) {
+          return { kind: 'unchanged', envelope: parent, concurrency }
+        }
+        const envelope = createEnvelope({
+          document,
+          parent,
+          migration: parent?.migration || {
+            status: 'state-transfer-recovery',
+            at: Math.max(0, Number(now()) || 0),
+            diagnostics: { replacedCorruptDestination: !parent },
+          },
+        })
+        const raw = envelope && serialization(envelope)
+        if (!envelope || !raw) {
+          return { kind: 'failed', code: 'invalid-replacement-envelope', concurrency }
+        }
+        if (optimistic) {
+          const preflight = durableRaw()
+          if (preflight.status !== 'ok' || preflight.raw !== before.raw) continue
+        }
+        const write = writeExact(raw)
+        if (write.persisted) return { kind: 'persisted', envelope, concurrency }
+        const landed = write.landed.status === 'ok' ? write.landed.raw : null
+        if (optimistic && landed !== before.raw && landed !== null) continue
+        return { kind: 'failed', code: 'write-not-durable', concurrency }
+      }
+      return { kind: 'conflict', code: 'planner-replacement-conflict', concurrency: 'optimistic-best-effort' }
+    })
+
+    if (outcome.kind === 'persisted' || outcome.kind === 'unchanged') {
+      durableEnvelope = outcome.envelope
+      pendingOps = []
+      publish({
+        envelope: outcome.envelope,
+        durability: 'durable',
+        concurrency: outcome.concurrency,
+      })
+      return result({
+        code: outcome.kind === 'unchanged' ? 'replacement-unchanged' : 'document-replaced',
+        changed: outcome.kind === 'persisted',
+        persisted: true,
+        durability: 'durable',
+        concurrency: outcome.concurrency,
+      })
+    }
+    return result({
+      ok: false,
+      code: outcome.code || outcome.error?.code || 'planner-replacement-failed',
+      persisted: false,
+      concurrency: outcome.concurrency,
+      ...(outcome.kind === 'conflict'
+        ? { conflict: { code: outcome.code || 'planner-replacement-conflict' } }
+        : { error: outcome.error || publicError(outcome.code || 'planner-replacement-failed') }),
+    })
+  })
+
   const reloadFromDurable = ({ discardPending = false } = {}) => enqueue(async () => {
     if (!initialized) return result({ ok: false, code: 'not-initialized' })
     if (pendingOps.length > 0 && !discardPending) {
@@ -1095,6 +1190,7 @@ export function createPlannerStore({
     physicalKey: destinationKey,
     initialize,
     dispatch,
+    replaceDocument,
     retryPersistence,
     reloadFromDurable,
     getSnapshot: () => snapshot,

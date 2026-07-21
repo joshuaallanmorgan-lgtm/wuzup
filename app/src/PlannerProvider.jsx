@@ -17,6 +17,7 @@ import { isCustomEvent } from './identity.js'
 import { usePlaces } from './places.js'
 import { capturePlannerV1Source } from './planner-v1-source.js'
 import { createPlannerStore } from './planner-store.js'
+import { replaceTransferStoreDocument } from './state-transfer-store.js'
 import {
   EMPTY_PLANNER_STORE_SNAPSHOT,
   createPlannerRuntime,
@@ -383,6 +384,10 @@ function CityPlannerProvider({
     }
     return runtime.actions.retryPersistence()
   }, [anchors?.todayTs, attemptRollover, plannerAvailable, runtime, storeSnapshot])
+  const replaceDocument = useCallback(
+    (nextDocument, options) => replaceTransferStoreDocument(store, nextDocument, options),
+    [store],
+  )
 
   const rolloverError = rollover.runtime === runtime
     && rollover.dayTs === anchors?.todayTs
@@ -418,6 +423,9 @@ function CityPlannerProvider({
         }
       : storeSnapshot.recovery,
     document,
+    transferCommitId: storeSnapshot.durability === 'durable'
+      ? storeSnapshot.envelope?.commit?.id || null
+      : null,
     catalog,
     catalogReady: plannerAvailable,
     getDay,
@@ -433,6 +441,7 @@ function CityPlannerProvider({
     setRest,
     undo,
     retryPersistence,
+    replaceDocument,
   }), [
     activeDays,
     add,
@@ -451,10 +460,12 @@ function CityPlannerProvider({
     remove,
     resolve,
     retryPersistence,
+    replaceDocument,
     rolloverError,
     setRest,
     status,
     storeSnapshot.durability,
+    storeSnapshot.envelope,
     storeSnapshot.error,
     storeSnapshot.recovery,
     undo,

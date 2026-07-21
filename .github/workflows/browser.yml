@@ -38,3 +38,6 @@ jobs:
 
       - name: Run composed production journey
         run: npm run test:browser
+
+      - name: Run Sprint 9 durable-route journey
+        run: npm run test:browser-s9

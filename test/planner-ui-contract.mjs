@@ -65,7 +65,7 @@ test('cards, custom-event creation, and guides are planner doorways instead of s
 
   const addEvent = withoutComments(source('AddEvent.jsx'))
   assert.doesNotMatch(addEvent, /PlannerProvider|usePlanner/)
-  assert.match(addEvent, /const added = await onAdd\(raw\)/)
+  assert.match(addEvent, /const added = editing \? await onUpdate\(editEvent, raw\) : await onAdd\(raw\)/)
   assert.match(addEvent, /if \(added\?\.changed !== true\)/)
   assert.doesNotMatch(addEvent, /\b(?:add|move|remove|setRest)\s*\(\s*raw/)
 
@@ -106,8 +106,9 @@ test('planner detail dialogs block the covered UI, serialize writes, and announc
     assert.match(value, /disabled=\{!sel \|\| planPending \|\| planClosing\}/)
     assert.match(value, /planPendingRef\.current = true/)
     assert.match(value, /planPendingRef\.current = false/)
-    assert.match(value, /inert=\{planning \|\| planClosing \? true : undefined\}/)
-    assert.match(value, /aria-hidden=\{planning \|\| planClosing \|\| undefined\}/)
+    assert.match(value, /inert=\{planning \|\| planClosing \|\| correcting \? true : undefined\}/)
+    assert.match(value, /aria-hidden=\{planning \|\| planClosing \|\| correcting \|\| undefined\}/)
+    assert.match(value, /<CorrectionSheet item=\{e\} onClose=\{closeCorrection\} \/>/)
     assert.match(value, /role="status"\s+aria-live="polite"/)
     assert.match(value, /querySelectorAll\('button:not\(:disabled\)'\)/)
   }

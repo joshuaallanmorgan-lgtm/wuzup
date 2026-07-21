@@ -18,6 +18,7 @@ import {
   createCustomEventStore,
 } from './custom-event-store.js'
 import { reduceCustomEventState } from './custom-event-state-core.js'
+import { replaceTransferStoreDocument } from './state-transfer-store.js'
 
 const CustomEventsContext = createContext(null)
 const EMPTY_ITEMS = Object.freeze([])
@@ -866,6 +867,10 @@ function CityCustomEventsProvider({
   }), [createLocalIdForCity, holder, selectedCity, store])
   const importEvents = actions.importEvents
   const retry = actions.retry
+  const replaceDocument = useCallback(
+    (document, options) => replaceTransferStoreDocument(store, document, options),
+    [store],
+  )
 
   const value = useMemo(() => ({
     phase,
@@ -875,6 +880,10 @@ function CityCustomEventsProvider({
     error,
     recovery: storeSnapshot.recovery,
     items: projection.items,
+    document: storeSnapshot.document,
+    transferCommitId: storeSnapshot.durability === 'durable'
+      ? storeSnapshot.envelope?.commit?.id || null
+      : null,
     add: actions.add,
     update: actions.update,
     remove: actions.remove,
@@ -882,6 +891,7 @@ function CityCustomEventsProvider({
     importEvents,
     retry,
     retryPersistence: retry,
+    replaceDocument,
   }), [
     actions.add,
     actions.remove,
@@ -891,8 +901,11 @@ function CityCustomEventsProvider({
     phase,
     projection.items,
     retry,
+    replaceDocument,
     status,
+    storeSnapshot.document,
     storeSnapshot.durability,
+    storeSnapshot.envelope,
     storeSnapshot.recovery,
   ])
 

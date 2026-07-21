@@ -179,6 +179,31 @@
   align-items: center;
   justify-content: center;
 }
+.wkb-more-row { display: flex; justify-content: center; padding: var(--sp-sm) var(--sp-xs) 2px; }
+.wkb-more {
+  min-height: 44px;
+  padding: 8px 15px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--card);
+  color: var(--accent-ink);
+  font-family: inherit;
+  font-size: var(--t-meta);
+  font-weight: 700;
+  cursor: pointer;
+}
+.wkb-more-done { align-self: center; color: var(--muted); font-size: var(--t-meta-sm); }
+.wkb-browse { margin: var(--sp-sm) var(--sp-xs) 0; border-top: 1px solid var(--line); }
+.wkb-browse > summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+  font-size: var(--t-meta);
+  font-weight: 700;
+  cursor: pointer;
+}
+.wkb-browse-list { padding-bottom: var(--sp-sm); }
 .wkb-note {
   margin: var(--sp-sm) 4px 0;
   padding: var(--sp-sm);

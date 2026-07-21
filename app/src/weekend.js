@@ -16,6 +16,12 @@
 import { CITY, keyOf } from './lib.js'
 import { rankRuntimeItems } from './relevance.js'
 import {
+  buildPlanBrowseInventory,
+  buildPlanSuggestionPages,
+  filterPlanSavedCandidates,
+  PLAN_SUGGESTION_MAX,
+} from './plan-suggestions.js'
+import {
   addCalendarDays,
   cityMidnightMs,
   coversDay,
@@ -27,7 +33,7 @@ import {
 export const PLAN_KEY = 'weekend-plan-v1' // stored as twh:weekend-plan-v1 via storage.js
 export const DAY_IDS = ['fri', 'sat', 'sun']
 export const SLOT_IDS = ['fri_day', 'fri_night', 'sat_day', 'sat_night', 'sun_day', 'sun_night']
-export const SUGGEST_MAX = 8
+export const SUGGEST_MAX = PLAN_SUGGESTION_MAX
 
 // --- the weekend window ---
 // makeAnchors (lib.js) already picks the Fri–Sun window containing-or-after
@@ -138,18 +144,18 @@ export function planFor(stored, weekendStartTs) {
 // --- picker model for one slot ---
 // (a) your SAVED events that fit this day+part first ("From your list ❤️"),
 // (b) then suggestions: upcoming events fitting day+part, routed through the
-//     shared objective/context/taste/diversity rank contract, max 8.
+//     shared objective/context/taste/diversity rank contract, dealt in honest
+//     complementary pages of 3-6.
 // Dedup: anything already slotted (any slot) never re-offers, and the
 // suggestion list never repeats an event already shown in the saved group.
-export function pickerModel({ ts, part, upcoming, saved, plan, ranking }) {
+export function pickerModel({ ts, part, upcoming, saved, plan, ranking, planned = [] }) {
   const slotted = new Set(Object.values(plan.slots).filter(Boolean))
-  const seenSaved = new Set()
-  const savedFit = saved.filter((e) => {
-    const key = keyOf(e)
-    if (!fitsSlot(e, ts, part) || slotted.has(key) || seenSaved.has(key)) return false
-    seenSaved.add(key)
-    return true
+  const plannedEvidence = planned.length > 0 ? planned : [...slotted]
+  const savedInventory = filterPlanSavedCandidates({
+    candidates: saved.filter((e) => fitsSlot(e, ts, part)),
+    planned: plannedEvidence,
   })
+  const savedFit = savedInventory.items
   const savedKeys = new Set(savedFit.map((e) => keyOf(e)))
   const seenSuggestions = new Set()
   const candidates = upcoming.filter((e) => {
@@ -159,8 +165,9 @@ export function pickerModel({ ts, part, upcoming, saved, plan, ranking }) {
     return true
   })
   let ordered = candidates
+  let rankingResult = null
   if (ranking && Number.isFinite(ranking.nowMs) && ranking.city) {
-    ordered = rankRuntimeItems(candidates, {
+    rankingResult = rankRuntimeItems(candidates, {
       kind: 'events',
       nowMs: ranking.nowMs,
       city: ranking.city,
@@ -174,10 +181,42 @@ export function pickerModel({ ts, part, upcoming, saved, plan, ranking }) {
         canonicalMax: 1,
         seriesMax: 1,
       },
-    }).ordered
+    })
+    ordered = rankingResult.ordered
   }
-  const suggestions = ordered.slice(0, SUGGEST_MAX)
-  return { saved: savedFit, suggestions }
+  const preferenceScores = Object.fromEntries((rankingResult?.scored || []).map(row => [
+    row.id,
+    row.preferenceScore,
+  ]))
+  const suggestionContext = ranking?.suggestionContext
+    ? { ...ranking.suggestionContext, preferenceScores }
+    : { preferenceScores }
+  const credible = rankingResult
+    ? rankingResult.scored
+        .filter(row => row.leadEligible && row.item?._actionable === true)
+        .map(row => row.item)
+    : []
+  const suggestionDeal = buildPlanSuggestionPages({
+    candidates: credible,
+    planned: plannedEvidence,
+    offered: savedFit,
+    context: suggestionContext,
+  })
+  const browseInventory = buildPlanBrowseInventory({
+    candidates: ordered,
+    planned: plannedEvidence,
+    offered: savedFit,
+  })
+  const suggestionPages = suggestionDeal.pages
+  const suggestions = (suggestionPages[0] || []).map(record => record.item)
+  return {
+    saved: savedFit,
+    suggestions,
+    suggestionPages,
+    suggestionDeal,
+    browseSuggestions: browseInventory.items,
+    suggestionResetKey: ranking?.suggestionResetKey || null,
+  }
 }
 
 // 3.74 — an honest "why it fits" reason for a plan-builder pick, composed ONLY

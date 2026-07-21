@@ -1988,8 +1988,8 @@ test('O1 lazy mounting: non-boot tabs gate on visited, boot seeds one tab', () =
   }
   const navSrc = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
   assert.ok(
-    navSrc.includes('new Set([VIEWS[0].id])'),
-    'nav.jsx must seed the visited set with the boot tab only — eager mounting crept back in'
+    navSrc.includes('new Set([VIEWS[initialActive].id])'),
+    'nav.jsx must seed visited with only the route-selected boot tab — eager mounting crept back in'
   )
 })
 
@@ -2426,7 +2426,13 @@ test('3.7P-41 §N Search: NL example prompts + result-type tabs', () => {
   assert.ok(/t\.id === 'all' \|\| t\.n > 0/.test(sp), 'a result tab is only offered when it has matches (no dead empty tab)')
   assert.ok(/activeTab === 'all' \|\| activeTab === 'events' \? eventSection/.test(sp), 'the validated active tab scopes which groups render')
   assert.ok(/label: 'Event matches'/.test(sp) && /label: 'More events'/.test(sp) && /Spots that fit/.test(sp), 'sections use neutral Event matches / More events / Spots that fit labels')
-  assert.ok(/searchGuides\(GUIDES/.test(sp) && /openGuide\(g\)/.test(sp), 'the Guides scope searches real GUIDES and opens their GuidePage')
+  assert.ok(
+    /const guideCatalog = useMemo/.test(sp)
+      && /\.\.\.GUIDES/.test(sp)
+      && /searchGuides\(guideCatalog/.test(sp)
+      && /openGuide\(g\)/.test(sp),
+    'the Guides scope searches the real evergreen + active-watch catalog and opens its GuidePage',
+  )
   const srch = readFileSync(path.join(ROOT, 'app', 'src', 'search.js'), 'utf8')
   assert.ok(/export function searchGuides/.test(srch) && /!q\.text\.length\) return \[\]/.test(srch), 'searchGuides is text-only (a guide has no date/price) — honest, no fabricated matches')
 })
@@ -2450,6 +2456,7 @@ test('S1-P3: the Profile header stats-trio is computed from real stores (re-adde
 test('PROFILE_GRIND (final): title + white identity card + pencil + 6 menu cards (no Recently saved)', () => {
   const pv = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
   const css = readFileSync(path.join(ROOT, 'app', 'src', 'profile.css'), 'utf8')
+  const profileState = readFileSync(path.join(ROOT, 'app', 'src', 'profile-state.js'), 'utf8')
   // P1: the page title
   assert.ok(/loc-head-title/.test(pv) && />Profile</.test(pv), 'P1: a "Profile" page title (V1 H1: on the shared .loc-head-title primitive)')
   // P2/P3: WHITE identity card (the old --cta fill is reverted) + monogram avatar
@@ -2458,7 +2465,12 @@ test('PROFILE_GRIND (final): title + white identity card + pencil + 6 menu cards
   assert.ok(/\.pf-id-card\s*\{[^}]*background:\s*var\(--card\)/.test(css), 'P2: the identity card is WHITE (var(--card), not --cta)')
   assert.ok(!/\.pf-name-block\s*\{[^}]*background:\s*var\(--cta\)/.test(css), 'P2: the colored --cta identity block is gone')
   // honest name + on-device store; no fabricated person / mock numbers
-  assert.ok(/profile-name-v1/.test(pv) && /globalGet\(NAME_KEY\)/.test(pv), 'the display name is read from the intentional cross-city profile scope; the write moved to Edit Profile')
+  assert.ok(
+    /readProfileState\(\)\.name/.test(pv)
+      && /PROFILE_NAME_KEY = 'profile-name-v1'/.test(profileState)
+      && /globalGet\(PROFILE_NAME_KEY\)/.test(profileState),
+    'the display name is read through the transferable profile-state contract from the intentional cross-city scope',
+  )
   assert.ok(/Add your name/.test(pv) && !/'Alex'/.test(pv), 'name defaults to "Add your name" — never a fabricated name')
   assert.ok(/\{CITY\.name\}/.test(pv), 'city = the app active-city label (CITY.name)')
   assert.ok(!/\b47\b|>128<|>23</.test(pv), 'no hardcoded mock stat numbers (real counts only)')
@@ -2498,6 +2510,7 @@ test('PROFILE_PHASE2: net-new drill-ins (Edit Profile · Help & Feedback) wired 
   const nav = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
   const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
   const pv = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
+  const profileState = readFileSync(path.join(ROOT, 'app', 'src', 'profile-state.js'), 'utf8')
   // nav openers follow the single-slot pattern + App renders each subpage
   for (const [opener, type] of [['openEditProfile', 'editprofile'], ['openHelpFeedback', 'helpfeedback']]) {
     assert.ok(new RegExp('const ' + opener + ' = useCallback').test(nav), `nav exposes ${opener}`)
@@ -2513,11 +2526,23 @@ test('PROFILE_PHASE2: net-new drill-ins (Edit Profile · Help & Feedback) wired 
   assert.ok(!/onClick: \(\) => \{\}/.test(pv), 'no dead no-op onClick remains on the Profile menu')
   // Edit Profile: writes the on-device name; honest stubs (never a fabricated person)
   const ep = readFileSync(path.join(ROOT, 'app', 'src', 'EditProfilePage.jsx'), 'utf8')
-  assert.ok(/globalSet\(NAME_KEY/.test(ep) && /profile-name-v1/.test(ep), 'Edit Profile writes the on-device cross-city profile name (profile-name-v1)')
-  assert.ok(!/'Alex'/.test(ep) && /(Coming soon|Soon)/.test(ep), 'Edit Profile uses honest placeholders, never a fabricated person')
-  // Help & Feedback: real mailto actions, not fake UI
+  assert.ok(
+    /writeProfileState/.test(ep)
+      && /globalSet\(PROFILE_NAME_KEY/.test(profileState)
+      && /globalReadDurable\(PROFILE_NAME_KEY\)/.test(profileState),
+    'Edit Profile writes and verifies the on-device cross-city profile name through the profile-state contract',
+  )
+  assert.ok(!/'Alex'/.test(ep) && /Private note/.test(ep) && /CityCoverageSelector/.test(ep), 'Edit Profile uses private, real controls and never a fabricated person or placeholder feature')
+  // Help & Feedback: a real correction-receipt workflow, with an explicit
+  // export boundary instead of a fake support-send promise.
   const hf = readFileSync(path.join(ROOT, 'app', 'src', 'HelpFeedbackPage.jsx'), 'utf8')
-  assert.ok(/mailto:/.test(hf) && /Contact support/.test(hf) && /Report a problem/.test(hf), 'Help & Feedback rows are real mailto actions')
+  assert.ok(
+    /useCorrections/.test(hf)
+      && /Export correction receipts/.test(hf)
+      && /not automatically sent or monitored/.test(hf)
+      && !/mailto:/.test(hf),
+    'Help & Feedback exposes real local correction receipts and an honest user-controlled export boundary',
+  )
 })
 
 test('3.7P-40 §N Calendar: Upcoming day-stack (NextDays) + date-state legend', () => {
@@ -2579,7 +2604,13 @@ test('Stage R nav: roster is home/hot/locations/calendar/profile, Map is PARKED'
   // Cohesion WS2: hardware/browser back closes layers instead of exiting the app.
   // Both halves pinned: layers PUSH marker entries, and popstate runs the REAL
   // closers (all closes flow through history so depth can never desync).
-  assert.ok(/history\.pushState\(\{ wzDepth/.test(nav) && /addEventListener\('popstate'/.test(nav), 'WS2: open layers push history markers + a popstate handler closes them')
+  assert.ok(
+    /writeRoute\(routeForPage[\s\S]{0,180}?mode: 'push'/.test(nav)
+      && /writeRoute\(routeForDetail[\s\S]{0,180}?mode: 'push'/.test(nav)
+      && /window\.history\.pushState\(/.test(nav)
+      && /addEventListener\('popstate'/.test(nav),
+    'WS2: page/detail layers push durable history routes and a popstate handler closes them',
+  )
   assert.ok(/closeDetailNow\(\)\s*[\s\S]{0,40}open--/.test(nav) && /if \(open > target && pageOpenRef\.current\) closePageNow\(\)/.test(nav), 'WS2: popstate closes detail-first then page (the Escape ladder order)')
   assert.ok(/id: 'calendar', label: 'Plan'/.test(nav), "the 4th tab is labelled 'Plan' (ruling 2026-07-01 #4, reversing S1-C1; id stays 'calendar')")
   // D8: map parked — no opener, no sub-view render, no MapView file.
@@ -2699,9 +2730,10 @@ test('places: a saved place round-trips (snapshot carries kind+key → PlaceDeta
   const savesSrc = readFileSync(path.join(ROOT, 'app', 'src', 'saves.js'), 'utf8')
   assert.ok(/snap\.kind = 'place'/.test(savesSrc), 'toggleSave snapshot must persist kind:place for a saved place')
   assert.ok(/snap\.key = e\.key/.test(savesSrc), 'toggleSave snapshot must persist the place key')
+  assert.ok(/const retainedNonTemporal = retainedGuide \|\| retainedPlace/.test(savesSrc), 'only retained guide/place snapshots bypass temporal event lifecycle checks')
   assert.ok(
-    /s\.resolution === 'missing'[\s\S]{0,100}?s\.resolution === 'ambiguous'[\s\S]{0,140}?s\.source === 'snapshot'\s*&&\s*!retainedPlace/.test(savesSrc),
-    'the shelf must fail closed for unresolved identity and snapshot-only non-place saves',
+    /s\.resolution === 'missing'[\s\S]{0,100}?s\.resolution === 'ambiguous'[\s\S]{0,140}?s\.source === 'snapshot'\s*&&\s*!retainedNonTemporal/.test(savesSrc),
+    'the shelf must fail closed for unresolved identity and snapshot-only temporal event saves',
   )
   assert.ok(
     /out\.push\(\{\s*e,\s*record:\s*s,[\s\S]{0,220}?unavailable:\s*true,[\s\S]{0,160}?resolution:\s*s\.resolution/.test(savesSrc),

@@ -23,6 +23,7 @@ import { usePlaces, ACTIVITIES } from './places.js'
 import { rankSpots } from './spot-context.js'
 import { useTaste } from './taste.js'
 import { DAYPART } from './weekend.js'
+import CorrectionSheet from './CorrectionSheet.jsx'
 import './locations.css'
 
 // normalized amenity vocabulary → human label + emoji (DRAFT for Charles).
@@ -85,7 +86,14 @@ function planDays(anchors) {
 }
 
 export default function PlaceDetail({ e, anchors, wx }) {
-  const { closing, vtOpen: vt, closeDetail: onClose, openDetail: onSelect, openDay } = useNav()
+  const {
+    closing,
+    vtOpen: vt,
+    closeDetail: onClose,
+    openDetail: onSelect,
+    openDay,
+    durableHrefForItem,
+  } = useNav()
   const {
     status: plannerStatus,
     add,
@@ -212,6 +220,12 @@ export default function PlaceDetail({ e, anchors, wx }) {
 
   // ===== utility row: directions / share-or-copy + toast =====
   const [toast, setToast] = useState(null)
+  const [correcting, setCorrecting] = useState(false)
+  const correctionButtonRef = useRef(null)
+  const closeCorrection = () => {
+    setCorrecting(false)
+    requestAnimationFrame(() => correctionButtonRef.current?.focus())
+  }
   const toastTRef = useRef(null)
   useEffect(() => () => clearTimeout(toastTRef.current), [])
   const flash = (msg) => {
@@ -221,15 +235,16 @@ export default function PlaceDetail({ e, anchors, wx }) {
   }
   const share = async () => {
     const text = [e.name, e.venue, e.hours].filter(Boolean).join(' · ')
+    const url = durableHrefForItem(e)
     if (navigator.share) {
       try {
-        await navigator.share(e.url ? { title: e.name, text: e.name, url: e.url } : { title: e.name, text })
+        await navigator.share({ title: e.name, text, ...(url ? { url } : {}) })
       } catch {
         /* dismissed — not an error */
       }
     } else if (navigator.clipboard?.writeText) {
       try {
-        await navigator.clipboard.writeText(e.url || text)
+        await navigator.clipboard.writeText(url || text)
         flash('Details copied ✓')
       } catch {
         flash("Couldn't copy")
@@ -381,8 +396,8 @@ export default function PlaceDetail({ e, anchors, wx }) {
           a flex column with the scroll on the inner element). */}
       <div
         className="detail-scroll"
-        inert={planning || planClosing ? true : undefined}
-        aria-hidden={planning || planClosing || undefined}
+        inert={planning || planClosing || correcting ? true : undefined}
+        aria-hidden={planning || planClosing || correcting || undefined}
       >
       <div
         className={'detail-hero' + (heroArt ? ' imgbox-art' : '')}
@@ -557,6 +572,9 @@ export default function PlaceDetail({ e, anchors, wx }) {
             <div className="detail-via-list">Sourced from {e.sources.join(' · ')}</div>
           </details>
         )}
+        <button ref={correctionButtonRef} className="correction-link" type="button" onClick={() => setCorrecting(true)}>
+          Suggest a correction
+        </button>
       </div>
       </div>
 
@@ -566,8 +584,8 @@ export default function PlaceDetail({ e, anchors, wx }) {
           scrolling content. planCtaRef stays on the trigger (focus return). */}
       <div
         className="detail-actionbar"
-        inert={planning || planClosing ? true : undefined}
-        aria-hidden={planning || planClosing || undefined}
+        inert={planning || planClosing || correcting ? true : undefined}
+        aria-hidden={planning || planClosing || correcting || undefined}
       >
         <button
           className={'detail-save-btn' + (saved ? ' on' : '')}
@@ -665,6 +683,7 @@ export default function PlaceDetail({ e, anchors, wx }) {
         </div>
       )}
 
+      {correcting && <CorrectionSheet item={e} onClose={closeCorrection} />}
       {toast && <div className="detail-toast" role="status" aria-live="polite">{toast}</div>}
     </div>
   )

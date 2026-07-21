@@ -9,7 +9,7 @@
 // Props:
 //   part     — the daypart id ('morning'|'afternoon'|'night') being filled
 //   dayLabel — the day label ("Today" / "Saturday") for the subline
-//   model    — pickerModel() output: { saved, suggestions }
+//   model    — pickerModel() output: { saved, suggestions, suggestionPages }
 //   noSaves  — true when the user has NO saves at all (the ♥ hint)
 //   closing  — plays the slide-down exit animation
 //   onPick(e) / onClose()
@@ -20,8 +20,27 @@ import { daypartOf, DAYPART } from './weekend.js'
 import './weekend.css'
 
 export default function PickerSheet({ part, dayLabel, model, noSaves, closing, onPick, onClose }) {
+  const suggestionPages = model.suggestionPages?.length
+    ? model.suggestionPages
+    : model.suggestions.length
+      ? [model.suggestions.map(item => ({ item, reasons: [], primaryReason: null }))]
+      : []
+  const suggestionKey = model.suggestionResetKey || suggestionPages
+    .flat()
+    .map(record => keyOf(record.item))
+    .join('\u001f')
+  const [suggestionRun, setSuggestionRun] = useState(() => ({ key: suggestionKey, page: 0 }))
+  const suggestionPage = suggestionRun.key === suggestionKey
+    ? Math.min(suggestionRun.page, Math.max(0, suggestionPages.length - 1))
+    : 0
+  const suggestionRecords = suggestionPages[suggestionPage] || []
+  const suggestionRemaining = suggestionPages
+    .slice(suggestionPage + 1)
+    .reduce((count, nextPage) => count + nextPage.length, 0)
+  const suggestionTotal = suggestionPages.reduce((count, nextPage) => count + nextPage.length, 0)
+  const browseSuggestions = model.browseSuggestions || model.suggestions
   // default to whichever group has something; prefer Suggested (the ref default)
-  const [tab, setTab] = useState(model.suggestions.length === 0 && model.saved.length > 0 ? 'saved' : 'suggested')
+  const [tab, setTab] = useState(suggestionPages.length === 0 && model.saved.length > 0 ? 'saved' : 'suggested')
   const tabRefs = useRef([])
 
   // Escape closes the sheet BEFORE App's window listener can close the whole
@@ -40,33 +59,37 @@ export default function PickerSheet({ part, dayLabel, model, noSaves, closing, o
   const art = part === 'afternoon' ? 'an' : 'a'
   const heading = part ? `Add ${art} ${partLow} plan` : 'Add a plan'
 
-  const pickRow = (e, top = false) => (
-    <button key={keyOf(e)} className={'wkb-pick pressable' + (top ? ' wkb-pick-top' : '')} onClick={() => onPick(e)}>
-      <CardImg e={e} className="wkb-pick-img" />
-      <span className="wkb-pick-main">
-        <span className="wkb-pick-title">{e.title}</span>
-        <span className="wkb-pick-meta">
-          {[daypartOf(e) === 'any' ? 'Anytime' : timeOf(e.start) || null, e.venue].filter(Boolean).join(' · ')}
-        </span>
-        {(e._why || top) && (
-          <span className="wkb-pick-why">
-            {top && <span className="wkb-pick-star">Suggested first</span>}
-            {e._why && <span className="wkb-pick-fit">{e._why}</span>}
+  const pickRow = (entry) => {
+    const record = entry?.item ? entry : null
+    const e = record?.item || entry
+    const why = record?.primaryReason?.label || null
+    return (
+      <button key={keyOf(e)} className="wkb-pick pressable" onClick={() => onPick(e)}>
+        <CardImg e={e} className="wkb-pick-img" />
+        <span className="wkb-pick-main">
+          <span className="wkb-pick-title">{e.title}</span>
+          <span className="wkb-pick-meta">
+            {[daypartOf(e) === 'any' ? 'Anytime' : timeOf(e.start) || null, e.venue].filter(Boolean).join(' · ')}
           </span>
-        )}
-        <SponsoredTag e={e} />
-      </span>
-      <span className="wkb-pick-add" aria-hidden>
-        +
-      </span>
-    </button>
-  )
+          {why && (
+            <span className="wkb-pick-why">
+              <span className="wkb-pick-fit">{why}</span>
+            </span>
+          )}
+          <SponsoredTag e={e} />
+        </span>
+        <span className="wkb-pick-add" aria-hidden>
+          +
+        </span>
+      </button>
+    )
+  }
 
-  const list = tab === 'saved' ? model.saved : model.suggestions
+  const list = tab === 'saved' ? model.saved : suggestionRecords
   const sub =
     tab === 'saved'
       ? 'From your saved list'
-      : `Suggested for the ${partLow}${dayLabel ? ' · ' + dayLabel : ''}`
+      : `Suggested for the ${partLow}${dayLabel ? ' · ' + dayLabel : ''}${suggestionTotal ? ` · ${suggestionTotal} options` : ''}`
 
   return (
     <div className={'wkb-sheet-wrap' + (closing ? ' closing' : '')}>
@@ -106,13 +129,33 @@ export default function PickerSheet({ part, dayLabel, model, noSaves, closing, o
         <div className="wkb-sheet-sub">{sub}</div>
         <div className="wkb-sheet-body">
           {list.length > 0 ? (
-            list.map((e, i) => pickRow(e, tab === 'suggested' && i === 0))
+            list.map(pickRow)
           ) : tab === 'saved' ? (
             <div className="wkb-note">
               {noSaves ? "♥ save things and they'll show up here first" : 'None of your saved picks fit this slot.'}
             </div>
           ) : (
             <div className="wkb-note">Nothing fits this slot yet.</div>
+          )}
+          {tab === 'suggested' && suggestionPages.length > 1 && (
+            <div className="wkb-more-row">
+              {suggestionRemaining > 0 ? (
+                <button
+                  className="wkb-more pressable"
+                  onClick={() => setSuggestionRun({ key: suggestionKey, page: suggestionPage + 1 })}
+                >
+                  More options · {suggestionRemaining} left
+                </button>
+              ) : (
+                <span className="wkb-more-done" role="status">All suggestions shown</span>
+              )}
+            </div>
+          )}
+          {tab === 'suggested' && browseSuggestions.length > 0 && (
+            <details className="wkb-browse">
+              <summary>Browse every fitting listing · {browseSuggestions.length}</summary>
+              <div className="wkb-browse-list">{browseSuggestions.map(pickRow)}</div>
+            </details>
           )}
         </div>
       </div>

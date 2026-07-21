@@ -153,7 +153,10 @@ test('the add flow uses the canonical write result without silently planning the
   assert.match(app, /\.\.\.customEvents\.items/)
   assert.doesNotMatch(app, /\b(?:loadMyEvents|saveMyEvents|setMyEvents)\b/)
 
-  assert.match(formCode, /const added = await onAdd\(raw\)/)
+  assert.match(
+    formCode,
+    /const added = editing \? await onUpdate\(editEvent, raw\) : await onAdd\(raw\)/,
+  )
   assert.match(formCode, /if \(added\?\.changed !== true\)/)
   assert.match(formCode, /setDone\(added\)/)
   assert.match(formCode, /done\?\.changed === false \? 'Already added' : 'Added!'/)

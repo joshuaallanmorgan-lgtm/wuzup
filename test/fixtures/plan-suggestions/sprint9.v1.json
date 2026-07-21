@@ -1,0 +1,222 @@
+{
+  "planned": [
+    {
+      "id": "aaaaaaaaaaaaaaaa",
+      "title": "Planned concert",
+      "start": "2026-07-25T19:00:00-04:00",
+      "category": "music",
+      "venue": "River Hall",
+      "canonicalId": "planned-concert",
+      "seriesId": "planned-series"
+    }
+  ],
+  "offered": [
+    {
+      "id": "bbbbbbbbbbbbbbbb",
+      "title": "Already offered market",
+      "start": "2026-07-25T10:00:00-04:00",
+      "category": "food",
+      "venue": "Market Square"
+    }
+  ],
+  "candidates": [
+    {
+      "id": "0000000000000001",
+      "title": "Alias of planned concert",
+      "start": "2026-07-25T20:00:00-04:00",
+      "category": "music",
+      "identityAliases": ["e|aaaaaaaaaaaaaaaa"]
+    },
+    {
+      "id": "0000000000000002",
+      "title": "Canonical of planned concert",
+      "start": "2026-07-25T20:30:00-04:00",
+      "category": "music",
+      "canonicalId": "planned-concert"
+    },
+    {
+      "id": "0000000000000003",
+      "title": "Series of planned concert",
+      "start": "2026-07-25T21:00:00-04:00",
+      "category": "music",
+      "seriesId": "planned-series"
+    },
+    {
+      "id": "0000000000000004",
+      "title": "Alias of offered market",
+      "start": "2026-07-25T11:00:00-04:00",
+      "category": "food",
+      "identityAliases": ["e|bbbbbbbbbbbbbbbb"]
+    },
+    {
+      "id": "1000000000000001",
+      "title": "Waterfront nature walk",
+      "start": "2026-07-25T09:00:00-04:00",
+      "category": "outdoors",
+      "venue": "Riverwalk",
+      "source": "City Parks",
+      "lat": 27.951,
+      "lng": -82.458,
+      "isFree": true
+    },
+    {
+      "id": "1000000000000002",
+      "title": "Gallery workshop",
+      "start": "2026-07-25T14:00:00-04:00",
+      "category": "art",
+      "venue": "City Gallery",
+      "source": "Arts Council",
+      "lat": 27.96,
+      "lng": -82.46
+    },
+    {
+      "id": "1000000000000003",
+      "title": "Comedy show",
+      "start": "2026-07-25T20:00:00-04:00",
+      "category": "comedy",
+      "venue": "Laugh House",
+      "source": "Venue Calendar",
+      "lat": 27.97,
+      "lng": -82.47
+    },
+    {
+      "id": "1000000000000004",
+      "title": "Cooking class",
+      "start": "2026-07-25T13:30:00-04:00",
+      "category": "food",
+      "venue": "Test Kitchen",
+      "source": "Test Kitchen",
+      "lat": 27.98,
+      "lng": -82.48
+    },
+    {
+      "id": "1000000000000005",
+      "title": "Sunset paddle",
+      "start": "2026-07-25T18:30:00-04:00",
+      "category": "outdoors",
+      "venue": "Harbor Dock",
+      "source": "County Outdoors",
+      "lat": 28.01,
+      "lng": -82.51,
+      "canonicalId": "sunset-paddle"
+    },
+    {
+      "id": "1000000000000006",
+      "title": "Sunset paddle duplicate",
+      "start": "2026-07-25T18:30:00-04:00",
+      "category": "outdoors",
+      "venue": "Harbor Dock",
+      "source": "Aggregator",
+      "lat": 28.01,
+      "lng": -82.51,
+      "canonicalId": "sunset-paddle"
+    },
+    {
+      "id": "1000000000000007",
+      "title": "Family science lab",
+      "start": "2026-07-25T10:30:00-04:00",
+      "category": "family",
+      "venue": "Science Center",
+      "source": "Science Center",
+      "lat": 27.94,
+      "lng": -82.44,
+      "isFree": true
+    },
+    {
+      "id": "1000000000000008",
+      "title": "Evening theater",
+      "start": "2026-07-25T19:30:00-04:00",
+      "category": "theater",
+      "venue": "Main Stage",
+      "source": "Main Stage",
+      "lat": 27.93,
+      "lng": -82.43
+    },
+    {
+      "id": "1000000000000009",
+      "title": "Morning yoga",
+      "start": "2026-07-25T08:00:00-04:00",
+      "category": "wellness",
+      "venue": "Community Studio",
+      "source": "Community Center",
+      "lat": 27.92,
+      "lng": -82.42
+    },
+    {
+      "id": "100000000000000a",
+      "title": "History talk",
+      "start": "2026-07-25T15:00:00-04:00",
+      "category": "learning",
+      "venue": "History Center",
+      "source": "History Center",
+      "lat": 27.99,
+      "lng": -82.46
+    },
+    {
+      "id": "100000000000000b",
+      "title": "Night market",
+      "start": "2026-07-25T18:00:00-04:00",
+      "category": "shopping",
+      "venue": "Warehouse Row",
+      "source": "Neighborhood Association",
+      "lat": 28.02,
+      "lng": -82.49,
+      "isFree": true
+    },
+    {
+      "id": "100000000000000c",
+      "title": "Jazz matinee",
+      "start": "2026-07-25T16:00:00-04:00",
+      "category": "music",
+      "venue": "Blue Room",
+      "source": "Blue Room",
+      "lat": 27.91,
+      "lng": -82.41
+    },
+    {
+      "id": "100000000000000d",
+      "title": "Community breakfast",
+      "start": "2026-07-25T09:30:00-04:00",
+      "category": "community",
+      "venue": "Union Hall",
+      "source": "Union Hall",
+      "lat": 27.90,
+      "lng": -82.40,
+      "isFree": true
+    },
+    {
+      "id": "100000000000000e",
+      "title": "Late improv",
+      "start": "2026-07-25T22:00:00-04:00",
+      "category": "comedy",
+      "venue": "Side Stage",
+      "source": "Side Stage",
+      "lat": 28.03,
+      "lng": -82.52
+    }
+  ],
+  "context": {
+    "weather": {
+      "state": "available",
+      "mood": "clear",
+      "fresh": true,
+      "receipt": "fresh-app-weather"
+    },
+    "location": {
+      "state": "available",
+      "permission": "granted",
+      "enabled": true,
+      "inMarket": true,
+      "receipt": "provider-granted-in-market",
+      "lat": 27.95,
+      "lng": -82.46,
+      "radiusMiles": 12
+    },
+    "preferenceScores": {
+      "1000000000000002": 8,
+      "1000000000000003": -8,
+      "1000000000000005": 6,
+      "1000000000000008": 4
+    }
+  }
+}

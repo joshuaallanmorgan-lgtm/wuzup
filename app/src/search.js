@@ -40,7 +40,8 @@
 import { categoryById } from './categories.js'
 import { addDayTs, weekdayIndex } from './lib.js'
 import { rankRuntimeItems, runtimeRankingId } from './relevance.js'
-import { lsGet, lsRemove, lsSet } from './storage.js'
+import { lsGet, lsReadDurable, lsRemove, lsSet } from './storage.js'
+import { searchableGuideText } from './guide-model.js'
 
 // case + diacritic folding ("José" matches "jose") — the class is the literal
 // combining-diacritics range U+0300–U+036F, same fold SearchPage always used
@@ -344,7 +345,7 @@ export function searchPlaces(places, anchors, query, options) {
 // A date-only or free-only query returns [] (a guide isn't "on Friday" and "free"
 // is an event/place filter). Honest: results are real guides whose name/pov the
 // query actually hits; tapping one opens its real GuidePage. =====
-const guideWords = (g) => [...words(g.title), ...words(g.pov || ''), ...words(g.id || '')]
+const guideWords = (g) => words(searchableGuideText(g))
 export function searchGuides(guides, query, anchors) {
   const q = parseQuery(query, anchors)
   if (q.empty || !q.text.length) return [] // guides match on name/pov text only
@@ -384,6 +385,7 @@ export function resolveSearchScope(scope, counts = {}) {
 
 // ---- recent searches ('search-recents-v1' → twh:search-recents-v1) ----
 export const SEARCH_RECENTS_KEY = 'search-recents-v1'
+export const SEARCH_STATE_VERSION = 1
 const RECENTS_CAP = 8
 
 export function loadSearchRecents() {
@@ -431,3 +433,38 @@ export function removeSearchRecent(query) {
   lsSet(SEARCH_RECENTS_KEY, JSON.stringify(next)) // guarded in storage.js
   return next
 }
+
+export function normalizeSearchState(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)
+      || value.v !== SEARCH_STATE_VERSION
+      || Object.keys(value).some((key) => !['v', 'items'].includes(key))
+      || !Array.isArray(value.items) || value.items.length > RECENTS_CAP) return null
+  const recents = []
+  const seen = new Set()
+  for (const raw of value.items) {
+    if (typeof raw !== 'string' || raw.length > 80 || raw !== raw.trim() || !raw) return null
+    const item = raw
+    const key = fold(item)
+    if (seen.has(key)) return null
+    seen.add(key)
+    recents.push(item)
+  }
+  return { v: SEARCH_STATE_VERSION, items: recents }
+}
+
+export function exportSearchRecents() {
+  return { v: SEARCH_STATE_VERSION, items: loadSearchRecents() }
+}
+
+export function replaceSearchRecents(value) {
+  const normalized = normalizeSearchState(value)
+  if (!normalized) return { ok: false, code: 'invalid-search-state' }
+  const raw = JSON.stringify(normalized.items)
+  const persisted = lsSet(SEARCH_RECENTS_KEY, raw) === true
+    && lsReadDurable(SEARCH_RECENTS_KEY) === raw
+  return { ok: persisted === true, code: persisted === true ? 'search-state-imported' : 'search-state-save-failed', state: normalized }
+}
+
+export const importSearchRecents = replaceSearchRecents
+export const exportSearchState = exportSearchRecents
+export const importSearchState = replaceSearchRecents

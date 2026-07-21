@@ -33,6 +33,7 @@ import {
   SAVED_BEEN_SEED_SCAN_MAX,
   savedBeenRefOf,
 } from './saved-been-state-core.js'
+import { replaceTransferStoreDocument } from './state-transfer-store.js'
 
 const SavedBeenContext = createContext(null)
 const EMPTY_RECORDS = Object.freeze([])
@@ -1334,6 +1335,10 @@ function CitySavedBeenProvider({
   )
   const importSavedBeen = actions.importSavedBeen
   const retry = actions.retry
+  const replaceDocument = useCallback(
+    (document, options) => replaceTransferStoreDocument(store, document, options),
+    [store],
+  )
 
   const value = useMemo(() => ({
     phase: isUsableSavedBeenStatus(status) ? 'ready' : status,
@@ -1342,6 +1347,10 @@ function CitySavedBeenProvider({
     durability: storeSnapshot.durability,
     error,
     recovery: storeSnapshot.recovery,
+    document: storeSnapshot.document,
+    transferCommitId: storeSnapshot.durability === 'durable'
+      ? storeSnapshot.envelope?.commit?.id || null
+      : null,
     saved: projection.saved,
     been: projection.been,
     savedRecords: projection.saved,
@@ -1364,6 +1373,7 @@ function CitySavedBeenProvider({
     importSavedBeen,
     retry,
     retryPersistence: retry,
+    replaceDocument,
   }), [
     actions.archiveSaved,
     actions.markBeen,
@@ -1380,11 +1390,14 @@ function CitySavedBeenProvider({
     projection.been,
     projection.saved,
     retry,
+    replaceDocument,
     savedItems,
     savedRecordFor,
     savedResolutionFor,
     status,
+    storeSnapshot.document,
     storeSnapshot.durability,
+    storeSnapshot.envelope,
     storeSnapshot.recovery,
     toggleResolutionFor,
   ])

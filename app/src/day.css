@@ -301,6 +301,41 @@
   cursor: pointer;
 }
 .dpg-sugg-add:active { transform: scale(0.9); }
+.dpg-more-options {
+  display: block;
+  min-height: 44px;
+  margin: var(--sp-sm) auto 0;
+  padding: 9px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--card);
+  color: var(--accent-ink);
+  font-family: inherit;
+  font-size: var(--t-meta);
+  font-weight: 700;
+  cursor: pointer;
+}
+.dpg-options-done {
+  margin: var(--sp-sm) var(--gutter) 0;
+  color: var(--muted);
+  font-size: var(--t-meta-sm);
+  text-align: center;
+}
+.dpg-browse-all {
+  margin: var(--sp-md) var(--sp-md) 0;
+  border-top: 1px solid var(--line);
+  padding-top: var(--sp-sm);
+}
+.dpg-browse-all > summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+  font-size: var(--t-meta);
+  font-weight: 700;
+  cursor: pointer;
+}
+.dpg-suggs-browse { padding: var(--sp-xs) 0 0; }
 
 /* ===== Plan Phase 2: the planned-item action menu (move / remove) ===== */
 .dpg-menu-wrap {

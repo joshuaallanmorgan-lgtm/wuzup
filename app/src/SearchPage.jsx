@@ -30,7 +30,7 @@ import { CITY, fmtLocale, Icon, milesBetween } from './lib.js'
 import { useNav } from './nav.jsx'
 import { IntentTile, RowFeed, SecHead } from './cards.jsx'
 import { CATEGORIES } from './categories.js'
-import { GUIDES } from './guides.js'
+import { GUIDES, useGuides, watchGuideActive } from './guides.js'
 import { usePlaces } from './places.js'
 import { useTaste } from './taste.js'
 import {
@@ -67,6 +67,7 @@ export default function SearchPage({ events, anchors, coords }) {
   const [dq, setDq] = useState('') // debounced ~120ms — drives the matcher
   const [recents, setRecents] = useState(loadSearchRecents)
   const [tab, setTab] = useState('all') // 3.7P-41: result-type scope (all/events/spots)
+  const searchSupplyNeeded = q.trim().length > 0
   const updateQuery = useCallback((value) => {
     setQ(value)
   }, [])
@@ -90,9 +91,9 @@ export default function SearchPage({ events, anchors, coords }) {
     status: placeStatus,
     recover: recoverPlaces,
     recoverLabel: recoverPlacesLabel,
-  } = usePlaces()
-  const placesPending = placeStatus === 'idle' || placeStatus === 'loading'
-  const placesUnavailable = ['stale', 'offline', 'error'].includes(placeStatus)
+  } = usePlaces(searchSupplyNeeded)
+  const placesPending = searchSupplyNeeded && (placeStatus === 'idle' || placeStatus === 'loading')
+  const placesUnavailable = searchSupplyNeeded && ['stale', 'offline', 'error'].includes(placeStatus)
   const placePool = useMemo(() => {
     if (!Array.isArray(places)) return []
     return places.map((p) => ({
@@ -100,6 +101,13 @@ export default function SearchPage({ events, anchors, coords }) {
       _dist: coords && p.lat != null && p.lng != null ? milesBetween(coords, p) : null,
     }))
   }, [places, coords])
+  const { watchGuides } = useGuides(searchSupplyNeeded)
+  const guideCatalog = useMemo(() => [
+    ...GUIDES,
+    ...(Array.isArray(watchGuides)
+      ? watchGuides.filter((guide) => watchGuideActive(guide, anchors.nowMs))
+      : []),
+  ], [watchGuides, anchors.nowMs])
 
   // Debounce the matcher and reconcile the selected scope against the same
   // next-query counts in one timer. A still-valid scope stays selected; only a
@@ -112,13 +120,13 @@ export default function SearchPage({ events, anchors, coords }) {
         : {
             events: searchEvents(pool, anchors, q).length,
             spots: searchPlaces(placePool, anchors, q).length,
-            guides: searchGuides(GUIDES, q, anchors).length,
+            guides: searchGuides(guideCatalog, q, anchors).length,
           }
       setDq(q)
       setTab((current) => resolveSearchScope(current, counts))
     }, 120)
     return () => clearTimeout(t)
-  }, [q, pool, placePool, anchors])
+  }, [q, pool, placePool, guideCatalog, anchors])
 
   const parsed = useMemo(() => parseQuery(dq, anchors), [dq, anchors])
   const results = useMemo(
@@ -140,8 +148,8 @@ export default function SearchPage({ events, anchors, coords }) {
   // Stage R: GUIDES are the 4th scope (searchGuides matches name/pov text → real
   // GuidePages). A date/free-only query yields none (a guide has no date/price).
   const guideResults = useMemo(
-    () => (parsed.empty ? [] : searchGuides(GUIDES, dq, anchors)),
-    [parsed, dq, anchors]
+    () => (parsed.empty ? [] : searchGuides(guideCatalog, dq, anchors)),
+    [parsed, dq, anchors, guideCatalog]
   )
   const hasQ = !parsed.empty
   const total = results.length + placeResults.length + guideResults.length
@@ -195,7 +203,9 @@ export default function SearchPage({ events, anchors, coords }) {
     setDq(q)
     if (
       !parseQuery(q, anchors).empty &&
-      (searchEvents(pool, anchors, q).length > 0 || searchPlaces(placePool, anchors, q).length > 0)
+      (searchEvents(pool, anchors, q).length > 0
+        || searchPlaces(placePool, anchors, q).length > 0
+        || searchGuides(guideCatalog, q, anchors).length > 0)
     ) {
       setRecents(recordSearchRecent(q))
     }
@@ -386,7 +396,7 @@ export default function SearchPage({ events, anchors, coords }) {
               </div>
             )}
             <div className={'empty' + (recents.length ? ' empty-sm' : '')}>
-              {events.length.toLocaleString(fmtLocale)} events. One search bar. 🔎
+              Search current events, spots, and transparent collections. 🔎
               <br />
               Try one of these:
               <div className="srch-sug">

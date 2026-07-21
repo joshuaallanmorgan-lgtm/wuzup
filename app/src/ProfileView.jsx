@@ -14,13 +14,11 @@
 import { useMemo } from 'react'
 import { CITY } from './lib.js'
 import { useNav } from './nav.jsx'
-import { globalGet } from './storage.js'
 import { useSaves, useBeenThere } from './saves.js'
 import { didDays } from './dayplan.js'
 import { usePlanner } from './PlannerProvider.jsx'
+import { readProfileState } from './profile-state.js'
 import './profile.css'
-
-const NAME_KEY = 'profile-name-v1'
 
 // calm mono stroke glyphs (currentColor) for the avatar + the menu rows — clean
 // feather-style paths (the prior set read wrong: the "gear" was a sun, the heart
@@ -42,19 +40,20 @@ export default function ProfileView() {
   // — so an edit saved in Edit Profile reflects on return (same seam as planCount).
   const name = useMemo(() => {
     void page
-    return globalGet(NAME_KEY) || ''
+    return readProfileState().name
   }, [page])
 
   // S1-P3: honest lifetime stats from the real reactive stores — never hardcoded.
-  const { list: savedList } = useSaves()
+  const { list: savedList, ready: savesReady } = useSaves()
   const been = useBeenThere()
-  const { filledDayCount: planCount } = usePlanner()
+  const { filledDayCount: planCount, status: plannerStatus } = usePlanner()
+  const plannerReady = plannerStatus === 'durable' || plannerStatus === 'session-only'
   const daysOut = didDays(been).size
   // labels stay plural (matches the ref): Plans · Saved · Days out
   const stats = [
-    { k: 'plans', n: planCount, lab: 'Plans' },
-    { k: 'saves', n: savedList.length, lab: 'Saved' },
-    { k: 'days', n: daysOut, lab: 'Days out' },
+    { k: 'plans', n: plannerReady ? planCount : null, lab: 'Plans' },
+    { k: 'saves', n: savesReady ? savedList.length : null, lab: 'Saved' },
+    { k: 'days', n: savesReady ? daysOut : null, lab: 'Days out' },
   ]
 
   const initial = name ? name.trim()[0].toUpperCase() : ''
@@ -103,7 +102,7 @@ export default function ProfileView() {
           <div className="pf-stats">
             {stats.map((s) => (
               <div className="pf-stat" key={s.k}>
-                <span className="pf-stat-num">{s.n}</span>
+                <span className="pf-stat-num" aria-label={s.n == null ? `${s.lab} loading` : undefined}>{s.n ?? '—'}</span>
                 <span className="pf-stat-lab">{s.lab}</span>
               </div>
             ))}

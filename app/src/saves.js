@@ -7,6 +7,7 @@ import { createElement as h, useCallback, useEffect, useMemo, useRef, useState }
 import { Icon, addDayTs, eventLifecycle, keyOf, normalize } from './lib.js'
 import { capturePersonalSignal } from './personal-signals.js'
 import { useSavedBeen } from './SavedBeenProvider.jsx'
+import { guideSnapshot } from './guide-model.js'
 import './saves.css'
 
 const recordKey = (record) => record?.key ?? record?.primary ?? record?.ref?.primary ?? null
@@ -82,15 +83,8 @@ export function snapshotFor(e) {
   // g| identity and point of view must survive a catalog refresh so My Saves
   // can reopen the exact guide rather than dressing it up as an event.
   if (e.kind === 'guide') {
-    snap.kind = 'guide'
-    snap.key = e.key ?? (e.id ? `g|${e.id}` : null)
-    snap.id = e.id ?? null
-    snap.emoji = e.emoji ?? null
-    snap.hue = e.hue ?? null
-    snap.pov = e.pov ?? null
-    snap.domain = e.domain ?? null
-    snap.plannable = e.plannable === true
-    snap.needsPlaces = e.needsPlaces === true
+    const retained = guideSnapshot(e)
+    if (retained) Object.assign(snap, retained)
   }
   return snap
 }
@@ -305,7 +299,7 @@ export function shelfItems(list, events, anchors) {
     const e = byKey.get(s.key) ?? (retainedNonTemporal ? { ...s.snapshot } : normalize({ ...s.snapshot }, anchors))
     if (s.resolution === 'missing'
         || s.resolution === 'ambiguous'
-        || s.source === 'snapshot' && !retainedPlace) {
+        || s.source === 'snapshot' && !retainedNonTemporal) {
       out.push({
         e,
         record: s,

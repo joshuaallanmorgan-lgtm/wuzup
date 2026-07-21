@@ -968,7 +968,7 @@ test('a transient retry read error preserves the session document and remains re
   assert.equal(store.getSnapshot().document.saved.length, 1)
 })
 
-test('terminal stores fail closed and source exposes no raw store snapshot', async () => {
+test('terminal stores fail closed and transfer exposes no raw store snapshot or envelope', async () => {
   const store = createActionStore()
   const actions = createSavedBeenActions(store)
   store.setStatus('corrupt')
@@ -978,6 +978,12 @@ test('terminal stores fail closed and source exposes no raw store snapshot', asy
   assert.equal(store.commands.length, 0)
 
   assert.doesNotMatch(source, /\bstoreSnapshot:\s*storeSnapshot\b/)
-  assert.doesNotMatch(source, /\bdocument:\s*storeSnapshot\.document\b/)
+  assert.doesNotMatch(source, /\bstore:\s*store\b/)
   assert.doesNotMatch(source, /\benvelope:\s*storeSnapshot\.envelope\b/)
+  assert.match(source, /\bdocument:\s*storeSnapshot\.document\b/)
+  assert.match(
+    source,
+    /transferCommitId:\s*storeSnapshot\.durability === ['"]durable['"][\s\S]{0,120}?storeSnapshot\.envelope\?\.commit\?\.id \|\| null/,
+  )
+  assert.match(source, /replaceTransferStoreDocument\(store,\s*document,\s*options\)/)
 })

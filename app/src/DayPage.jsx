@@ -39,11 +39,15 @@ import { capturePersonalSignal } from './personal-signals.js'
 import { shelfItems, useSaves } from './saves.js'
 import { useTaste } from './taste.js'
 import { usePlaces } from './places.js'
+import { useLocationPermission } from './LocationProvider.jsx'
 import { daypartOf, pickerModel, wxMood, DAYPART } from './weekend.js'
 import { eventsIcs, shareDayText } from './share.js'
 import { dateKey, CONDITION } from './weather.js'
 import PickerSheet from './PickerSheet.jsx'
 import { rankRuntimeItems, runtimeRankingId } from './relevance.js'
+import { buildPlanSuggestionPages } from './plan-suggestions.js'
+import { createPlanCapsule, planCapsuleFragment } from './plan-capsule.js'
+import { dayIdAt } from '../../shared/city-time.mjs'
 import './day.css'
 
 const wdLong = (ts) => formatDayTs(ts, { weekday: 'long' })
@@ -52,13 +56,23 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
   // openCalendarPicker is the Plan Phase 2 date-picker opener; in Phase 1 the
   // tappable day-selector wires to it (guarded `?.` — a no-op until Phase 2 adds
   // it to nav). openDay still drives keyed remounts from the picker once it lands.
-  const { openDetail: onSelect, closePage: onClose, openAdd, openCalendarPicker } = useNav()
+  const {
+    openDetail: onSelect,
+    closePage: onClose,
+    openAdd,
+    openCalendarPicker,
+    durableHrefForSharedPlan,
+  } = useNav()
   const taste = useTaste()
+  const location = useLocationPermission()
   const {
     status: plannerStatus,
     durability,
     getDay,
+    resolve,
     isPlanned,
+    activeDays,
+    document: plannerDocument,
     add,
     move,
     remove,
@@ -179,10 +193,9 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
   const selLabel = `${dayLabel}, ${monthDay}`
 
   // ===== agenda: dayMap's ONE-DAY semantics (see header comment) =====
-  // Plan Phase 1: "Suggestions for you" REORDERS by taste AND the day's real
-  // weather (count-preserving; never hides) — so the subline "Based on weather and
-  // your likes" is honest. The weather bonus is small + real: on a clear day an
-  // outdoor pick lifts; on a rainy day an indoor pick lifts. Time breaks ties.
+  // The shared rank remains the lossless browse order. Sprint 9 deals only its
+  // credible/actionable rows into complementary pages of 3-6; every row remains
+  // reachable under the neutral "Browse every listing" disclosure below.
   const wxBonus = useCallback(
     (e) => {
       if (wxMoodToday === 'clear' && e.category === 'outdoors') return 6
@@ -218,27 +231,96 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
       },
     })
   }, [availableEvents, anchors, ts, taste, wxBonus, isPlanned])
-  // the honest basis line — only claims a signal that actually informed the order
   const agenda = agendaRanking.ordered
-  const agendaScoreByItem = useMemo(
-    () => new Map(agendaRanking.scored.map((row) => [row.item, row])),
+  const credibleAgenda = useMemo(
+    () => agendaRanking.scored.filter(row => row.leadEligible).map(row => row.item),
     [agendaRanking]
   )
-  const hasTasteRanking = agendaRanking.scored.some((row) => row.preferenceScore !== 0)
-  const hasWeatherRanking = agendaRanking.scored.some((row) => row.contextScore > 0)
-  const suggSub = hasTasteRanking && hasWeatherRanking
-    ? 'Based on weather and your likes'
-      : hasTasteRanking
-      ? 'Based on what you like'
-      : hasWeatherRanking ? "Based on the day's weather" : 'Everything on for this day'
-  const selectionReason = useCallback((event, scored) => {
-    if (scored?.contextScore > 0 && wxBonus(event) > 0) {
-      return wxMoodToday === 'clear' ? 'Clear-day fit' : wxMoodToday === 'rainy' ? 'Rainy-day fit' : null
-    }
-    if (scored?.preferenceScore > 0) return 'Matches your interests'
-    if (event.isFree === true) return 'Free'
-    return null
-  }, [wxBonus, wxMoodToday])
+  const preferenceScores = useMemo(
+    () => Object.fromEntries(agendaRanking.scored.map(row => [row.id, row.preferenceScore])),
+    [agendaRanking]
+  )
+  const plannedEvidence = activeDays.flatMap(activeDay => PARTS.map(part => {
+    const ref = activeDay.slots?.[part]
+    if (!ref) return null
+    return resolve(ref)?.item || ref
+  })).filter(Boolean)
+  const trustedWeather = w && (wxMoodToday === 'clear' || wxMoodToday === 'rainy')
+    ? {
+        state: 'available',
+        mood: wxMoodToday,
+        fresh: true,
+        receipt: 'fresh-app-weather',
+      }
+    : null
+  const trustedLocation = location.status === 'granted'
+    && location.permission === 'granted'
+    && location.enabled === true
+    && location.inMarket === true
+    && location.usableCoords
+    ? {
+        state: 'available',
+        permission: 'granted',
+        enabled: true,
+        inMarket: true,
+        receipt: 'provider-granted-in-market',
+        lat: location.usableCoords.lat,
+        lng: location.usableCoords.lng,
+        radiusMiles: 12,
+      }
+    : null
+  const suggestionContext = {
+    ...(trustedWeather ? { weather: trustedWeather } : {}),
+    ...(trustedLocation ? { location: trustedLocation } : {}),
+    preferenceScores,
+  }
+  // A value key resets the effective run synchronously (without a state-setting
+  // effect) when corpus/rank/taste, any active plan, fresh weather, or verified
+  // location evidence changes.
+  const suggestionKey = [
+    ts,
+    plannerDocument.rev,
+    [w?.emoji, w?.hi, w?.lo, w?.rain].join(':'),
+    [
+      location.status,
+      location.permission,
+      location.enabled,
+      location.inMarket,
+      location.usableCoords?.lat,
+      location.usableCoords?.lng,
+    ].join(':'),
+    agendaRanking.scored.map(row => [
+      row.id,
+      row.totalScore,
+      row.leadEligible,
+      row.item?.start,
+      row.item?.category,
+      row.item?.canonicalId || row.item?.canonicalKey,
+      row.item?.seriesId || row.item?.seriesKey,
+    ].join(':')).join('\u001f'),
+  ].join('\u001e')
+  const [suggestionRun, setSuggestionRun] = useState(() => ({ key: suggestionKey, offered: [] }))
+  const offeredSuggestions = suggestionRun.key === suggestionKey ? suggestionRun.offered : []
+  const suggestionDeal = buildPlanSuggestionPages({
+    candidates: credibleAgenda,
+    planned: plannedEvidence,
+    offered: offeredSuggestions,
+    context: suggestionContext,
+  })
+  const suggestionRecords = suggestionDeal.suggestions
+  const suggestionRemaining = suggestionDeal.remainder.length
+  const suggestionTotal = offeredSuggestions.length + suggestionRecords.length + suggestionRemaining
+  const suggestionShownThrough = offeredSuggestions.length + suggestionRecords.length
+  const suggSub = suggestionTotal > 0
+    ? `${suggestionShownThrough} of ${suggestionTotal} complementary options`
+    : 'No high-confidence options for this day yet'
+  const showMoreSuggestions = () => {
+    if (suggestionRemaining === 0 || suggestionRecords.length === 0) return
+    setSuggestionRun({
+      key: suggestionKey,
+      offered: [...offeredSuggestions, ...suggestionRecords.map(record => record.item)],
+    })
+  }
 
   // ===== slots: the picker's resolution pool (same wiring as WB) =====
   const upcoming = useMemo(
@@ -285,6 +367,7 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
       upcoming,
       saved: savedEvents,
       plan: { slots: liveSlots },
+      planned: plannedEvidence,
       ranking: {
         nowMs: anchors.nowMs,
         city: CITY,
@@ -292,6 +375,8 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
         context: {
           itemScores: Object.fromEntries(upcoming.map((event) => [runtimeRankingId(event), wxBonus(event)])),
         },
+        suggestionContext,
+        suggestionResetKey: suggestionKey,
       },
     })
     return m
@@ -342,9 +427,30 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
   // refresh moved them). =====
   const shareableEntries = day.slots
       .filter((slot) => slot.resolution === 'live')
-      .map((slot) => ({ part: slot.part, e: slot.item }))
+      .map((slot) => ({ part: slot.part, e: slot.item, ref: slot.ref }))
       .filter(({ e }) => e?.kind === 'place' || (e && eventLifecycle(e).actionable))
   const canShare = shareableEntries.length > 0
+  let sharedPlanUrl = null
+  if (canShare) {
+    try {
+      const capsule = createPlanCapsule({
+        cityId: CITY.id,
+        timeZone: CITY.tz,
+        day: dayIdAt(ts, CITY.tz),
+        slots: shareableEntries.map(({ part, e, ref }) => ({
+          part,
+          kind: ref.kind,
+          primary: ref.primary,
+          title: e.title || e.name,
+          time: e.kind === 'place' ? null : timeOf(e.start) || null,
+          venue: e.venue || null,
+        })),
+      })
+      sharedPlanUrl = durableHrefForSharedPlan(planCapsuleFragment(capsule))
+    } catch {
+      sharedPlanUrl = null
+    }
+  }
 
   const [toast, setToast] = useState(null)
   const toastTRef = useRef(null)
@@ -432,6 +538,7 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
     if (!canShare) return
     const text = shareDayText(ts, shareableEntries)
     if (!text) return
+    const portableText = sharedPlanUrl ? `${text}\n${sharedPlanUrl}` : text
     // the .ics: one VEVENT per slotted entry. A PLACE has no date, so it
     // produces no VEVENT (share.js vevent guards it) — a place-only day would
     // otherwise build an EVENTLESS calendar and still flash "calendar saved",
@@ -448,7 +555,7 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
       }
     }
     if (navigator.share) {
-      const payload = { title: 'My plan', text }
+      const payload = { title: 'My plan', text: portableText, ...(sharedPlanUrl ? { url: sharedPlanUrl } : {}) }
       // only attach the file when this device's share sheet accepts files
       if (file && navigator.canShare?.({ files: [file] })) payload.files = [file]
       try {
@@ -463,7 +570,7 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
     if (file) downloadIcs(file)
     if (navigator.clipboard?.writeText) {
       try {
-        await navigator.clipboard.writeText(text)
+        await navigator.clipboard.writeText(portableText)
         flash(file ? 'Plan copied + calendar saved ✓' : 'Plan copied ✓')
       } catch {
         flash(file ? 'Calendar saved ✓' : "Couldn't copy the plan")
@@ -560,6 +667,24 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
   }
 
   const slotsEmpty = day.slots.length === 0
+  const suggestionCard = (e, why, keyPrefix, index) => {
+    const timeBadge = e.kind !== 'place' && daypartOf(e) !== 'any' ? timeOf(e.start) : null
+    const meta = [e.venue, timeBadge].filter(Boolean).join(' · ')
+    return (
+      <div className="dpg-sugg" key={`${keyPrefix}:${keyOf(e)}:${index}`}>
+        <button className="dpg-sugg-card pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
+          <CardImg e={e} className="dpg-sugg-thumb">
+            {timeBadge && <span className="dpg-thumb-time">{timeBadge}</span>}
+          </CardImg>
+          <span className="dpg-sugg-main">
+            <span className="dpg-sugg-title">{e.title}</span>
+            {meta && <span className="dpg-sugg-meta">{e.venue && <Icon.pin className="meta-ic" aria-hidden />}{meta}</span>}
+            {why && <span className="dpg-sugg-why">{why}</span>}
+          </span>
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="pg dpg">
@@ -641,36 +766,44 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
           <div className="dpg-slots">{PARTS.map(renderSlot)}</div>
         )}
 
-        {/* ===== Plan Phase 1: "Suggestions for you" — the day's events, reordered
-            by shared taste and weather context (count-preserving; never hides).
-            Visible reasons read the exact scored result that ordered each row. ===== */}
+        {/* Sprint 9: a bounded, complementary lead. Every visible reason comes
+            from the same evidence receipt that influenced the deal. */}
         <h3 className="day-header dpg-sec">Suggestions for you</h3>
         <div className="dpg-sec-sub">{suggSub}</div>
         <div className="dpg-suggs">
-          {agenda.length ? (
-            agenda.map((e, i) => {
-              const why = selectionReason(e, agendaScoreByItem.get(e))
-              const timeBadge = e.kind !== 'place' && daypartOf(e) !== 'any' ? timeOf(e.start) : null
-              const meta = [e.venue, timeBadge].filter(Boolean).join(' · ') // WS3 §9: pin renders as Icon.pin below, not 📍 in the string
-              return (
-                <div className="dpg-sugg" key={keyOf(e) + i}>
-                  <button className="dpg-sugg-card pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
-                    <CardImg e={e} className="dpg-sugg-thumb">
-                      {timeBadge && <span className="dpg-thumb-time">{timeBadge}</span>}
-                    </CardImg>
-                    <span className="dpg-sugg-main">
-                      <span className="dpg-sugg-title">{e.title}</span>
-                      {meta && <span className="dpg-sugg-meta">{e.venue && <Icon.pin className="meta-ic" aria-hidden />}{meta}</span>}
-                      {why && <span className="dpg-sugg-why">{why}</span>}
-                    </span>
-                  </button>
-                </div>
-              )
-            })
+          {suggestionRecords.length ? (
+            suggestionRecords.map((record, index) => suggestionCard(
+              record.item,
+              record.primaryReason?.label || null,
+              'suggestion',
+              index,
+            ))
           ) : (
-            <div className="empty empty-sm">Nothing listed for this day yet.</div>
+            <div className="empty empty-sm">
+              {suggestionDeal.state === 'neutral'
+                ? 'Suggestions are unavailable right now. Browse every listing below.'
+                : agenda.length
+                  ? 'No high-confidence suggestions yet. Browse every listing below.'
+                  : 'Nothing listed for this day yet.'}
+            </div>
           )}
         </div>
+        {suggestionRemaining > 0 && (
+          <button className="dpg-more-options pressable" onClick={showMoreSuggestions}>
+            More options · {suggestionRemaining} left
+          </button>
+        )}
+        {offeredSuggestions.length > 0 && suggestionRemaining === 0 && (
+          <div className="dpg-options-done" role="status">All suggestions shown</div>
+        )}
+        {agenda.length > 0 && (
+          <details className="dpg-browse-all">
+            <summary>Browse every listing · {agenda.length}</summary>
+            <div className="dpg-suggs dpg-suggs-browse">
+              {agenda.map((event, index) => suggestionCard(event, null, 'browse', index))}
+            </div>
+          </details>
+        )}
       </div>
 
       {canEdit && picker && model && (

@@ -89,7 +89,7 @@
 // NOTE: plain .js file (same rule as lib.js) — no JSX. Deliberately imports
 // nothing from lib.js so saves.js / lib.js can depend on this file cycle-free.
 import { useSyncExternalStore } from 'react'
-import { lsGet, lsRemove, lsSet, physicalKey } from './storage.js'
+import { lsGet, lsReadDurable, lsRemove, lsSet, physicalKey } from './storage.js'
 import { categoryById } from './categories.js' // registry id set (plain .js, no cycle) — V3 pref validation
 import { normalizePersonalProfile } from './personal-relevance.js'
 
@@ -161,6 +161,8 @@ const empty = () => ({
   prefs: emptyPrefs(),
   v: 1,
 })
+
+export const emptyTasteState = () => empty()
 
 const cleanNum = (v, cap) => (typeof v === 'number' && isFinite(v) && v > 0 ? Math.min(v, cap) : 0)
 
@@ -350,6 +352,37 @@ if (typeof window !== 'undefined') {
 
 export function getProfile() {
   return profile
+}
+
+export function exportTasteState() {
+  return clone(profile)
+}
+
+export function replaceTasteState(value) {
+  if (normalizePersonalProfile(value).state !== 'valid') {
+    return { ok: false, code: 'invalid-taste-state', persisted: false }
+  }
+  let raw
+  try {
+    raw = JSON.stringify(value)
+  } catch {
+    return { ok: false, code: 'invalid-taste-state', persisted: false }
+  }
+  const previous = clone(profile)
+  const previousRaw = JSON.stringify(previous)
+  if (lsSet(KEY, raw) !== true || lsReadDurable(KEY) !== raw) {
+    lsSet(KEY, previousRaw)
+    return { ok: false, code: 'taste-state-save-failed', persisted: false }
+  }
+  const next = load()
+  if (JSON.stringify(next) !== raw) {
+    lsSet(KEY, previousRaw)
+    profile = previous
+    return { ok: false, code: 'taste-state-not-canonical', persisted: false }
+  }
+  profile = next
+  emit()
+  return { ok: true, code: 'taste-state-replaced', persisted: true, state: clone(profile) }
 }
 
 // how much the profile is trusted: 0 → 1 over the first 15 interactions.

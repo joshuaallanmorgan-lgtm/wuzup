@@ -28,6 +28,7 @@ import {
   captureActivityV1Source,
   createActivityStore,
 } from './activity-store.js'
+import { replaceTransferStoreDocument } from './state-transfer-store.js'
 
 const ActivityContext = createContext(null)
 const EMPTY_ROWS = Object.freeze([])
@@ -744,6 +745,10 @@ function CityActivityProvider({
     [eventCatalog, projection.recents, seeds],
   )
   const retry = actions.retry
+  const replaceDocument = useCallback(
+    (document, options) => replaceTransferStoreDocument(store, document, options),
+    [store],
+  )
   const eventDeckExclusions = eventExclusionModel.keys
   const placeDeckExclusions = placeExclusionModel.keys
   const value = useMemo(() => ({
@@ -753,6 +758,10 @@ function CityActivityProvider({
     durability: storeSnapshot.durability,
     error,
     recovery: storeSnapshot.recovery,
+    document: storeSnapshot.document,
+    transferCommitId: storeSnapshot.durability === 'durable'
+      ? storeSnapshot.envelope?.commit?.id || null
+      : null,
     retainedRecentRefs: projection.recents,
     recentRefs: projection.recents,
     sessionRecentRefs,
@@ -767,6 +776,7 @@ function CityActivityProvider({
     clearDeckMemories: actions.clearDeckMemories,
     retry,
     retryPersistence: retry,
+    replaceDocument,
   }), [
     actions.clearDeckMemories,
     actions.recordEventDeck,
@@ -780,9 +790,12 @@ function CityActivityProvider({
     projection.recents,
     resolveCurrentRecentRefs,
     retry,
+    replaceDocument,
     sessionRecentRefs,
     status,
+    storeSnapshot.document,
     storeSnapshot.durability,
+    storeSnapshot.envelope,
     storeSnapshot.recovery,
   ])
 

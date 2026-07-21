@@ -289,9 +289,13 @@ test('event, custom, place, and guide saves remain kind-correct and reopenable',
   assert.match(provider, /\b(?:guides|guideCatalog|GUIDES)\b/)
 
   const guide = source('GuidePage.jsx')
+  const guideModel = source('guide-model.js')
   assert.match(importNames(guide, './saves.js'), /\bSaveHeart\b/)
-  assert.match(guide, /kind:\s*['"]guide['"]/)
-  assert.match(guide, /key:\s*[`'"]g\|/)
+  assert.match(importNames(guide, './guide-model.js'), /\bguideSnapshot\b/)
+  assert.match(guide, /guideSnapshot\(model\)/)
+  assert.match(guideModel, /export\s+function\s+guideSnapshot\s*\(/)
+  assert.match(guideModel, /kind:\s*['"]guide['"]/)
+  assert.match(guideModel, /key:\s*guide\.key/)
   assert.match(guide, /<SaveHeart\b/)
 
   const savesPage = source('MySavesPage.jsx')

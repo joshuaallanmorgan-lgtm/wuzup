@@ -1,0 +1,16 @@
+.correction-wrap { position: fixed; inset: 0; z-index: 2600; display: grid; align-items: end; }
+.correction-scrim { position: absolute; inset: 0; border: 0; background: rgb(20 15 10 / .55); }
+.correction-sheet { position: relative; width: min(100%, 520px); max-height: min(86vh, 720px); margin: 0 auto; padding: 22px; overflow: auto; border-radius: 24px 24px 0 0; background: var(--surface, #fffaf3); color: var(--ink, #211a14); box-shadow: 0 -16px 48px rgb(20 15 10 / .2); }
+.correction-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.correction-head h2 { margin: 0; font-size: 1.35rem; }
+.correction-head p { margin: 5px 0 18px; color: var(--muted, #6f6258); }
+.correction-head button { width: 40px; height: 40px; border: 0; border-radius: 50%; background: var(--surface-2, #f1e8dc); font-size: 1.5rem; }
+.correction-sheet label { display: grid; gap: 7px; margin: 0 0 16px; font-weight: 700; }
+.correction-sheet select, .correction-sheet textarea { width: 100%; box-sizing: border-box; border: 1px solid var(--line, #d8cbbc); border-radius: 13px; padding: 12px; color: inherit; background: var(--surface, #fffaf3); font: inherit; }
+.correction-sheet small, .correction-disclosure, .correction-evidence, .correction-done p { color: var(--muted, #6f6258); font-weight: 400; }
+.correction-evidence { padding: 12px; border-radius: 13px; background: var(--surface-2, #f1e8dc); font-size: .88rem; line-height: 1.45; }
+.correction-primary { width: 100%; min-height: 48px; margin-top: 16px; border: 0; border-radius: 14px; background: var(--cta, #e97832); color: #21140b; font-weight: 800; }
+.correction-error { margin-top: 12px; color: #9a261f; }
+.correction-disclosure { margin: 10px 0 0; text-align: center; font-size: .78rem; }
+.correction-link { border: 0; padding: 7px 0; background: none; color: var(--accent, #b64d17); text-decoration: underline; font: inherit; font-weight: 700; }
+@media (min-width: 700px) { .correction-wrap { align-items: center; } .correction-sheet { border-radius: 24px; } }

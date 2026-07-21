@@ -201,7 +201,9 @@ test('Add Event serializes and awaits submit, then records taste only for an app
   assert.match(submitButton, new RegExp(`disabled=\\{[^}]*\\b${escapeRegExp(pendingName)}\\b[^}]*\\}`))
   assert.match(addEvent, new RegExp(`aria-busy=\\{[^}]*\\b${escapeRegExp(pendingName)}\\b[^}]*\\}`))
 
-  const awaited = addEvent.match(/const\s+([A-Za-z_$][\w$]*)\s*=\s*await\s+onAdd\s*\(\s*raw\s*\)/)
+  const awaited = addEvent.match(
+    /const\s+([A-Za-z_$][\w$]*)\s*=\s*editing\s*\?\s*await\s+onUpdate\s*\(\s*editEvent\s*,\s*raw\s*\)\s*:\s*await\s+onAdd\s*\(\s*raw\s*\)/,
+  )
   assert.ok(awaited, 'submit must await the provider add outcome')
   const outcome = awaited[1]
   const awaitAt = addEvent.indexOf(awaited[0])

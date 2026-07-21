@@ -10,6 +10,7 @@ const files = Object.fromEntries(await Promise.all([
   'BubblePage.jsx',
   'PlaceBubblePage.jsx',
   'PickerSheet.jsx',
+  'plan-suggestions.js',
   'cards.jsx',
   'places.js',
   'taste.js',
@@ -20,8 +21,14 @@ test('recommendation surfaces use evidence-bounded labels', () => {
   assert.doesNotMatch(files['HomeView.jsx'], /<SecHead title="Tonight's top picks"/)
   assert.match(files['HotView.jsx'], /title="Tonight's events"/)
   assert.match(files['HotView.jsx'], /<SecHead title="Plan ahead" sub="Upcoming events to consider\."/)
-  assert.doesNotMatch(files['PickerSheet.jsx'], />★ Top pick</)
-  assert.match(files['PickerSheet.jsx'], />Suggested first</)
+  assert.doesNotMatch(files['PickerSheet.jsx'], /Top pick|Suggested first/)
+  assert.match(files['PickerSheet.jsx'], /record\?\.primaryReason\?\.label \|\| null/)
+  assert.match(files['PickerSheet.jsx'], /<span className="wkb-pick-fit">\{why\}<\/span>/)
+  assert.match(
+    files['plan-suggestions.js'],
+    /return Object\.freeze\(\{ code, label, evidence: Object\.freeze\(evidence\), contribution \}\)/,
+  )
+  assert.match(files['plan-suggestions.js'], /primaryReason:\s*reasons\[0\] \|\| null/)
 })
 
 test('place UI does not publish unsupported open, gem, or best claims', () => {
