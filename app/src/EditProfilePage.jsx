@@ -1,12 +1,12 @@
 // EditProfilePage — the Profile pencil's destination (PROFILE_PHASE2 #4; absorbs
 // the old inline name-edit). Edits the on-device display name (profile-name-v1) +
-// shows the read-only active city. Photo upload, preferred-city and profile
-// visibility are HONEST placeholders (stubbed future features — no fake person, no
-// fake data). Save/back via closePage → the Profile tab.
+// shows the read-only active city and links to the other verified coverage
+// deployment. Save/back via closePage → the Profile tab.
 import { useState } from 'react'
 import { CITY, Icon } from './lib.js'
 import { useNav } from './nav.jsx'
 import { globalGet, globalSet } from './storage.js'
+import CityCoverageSelector from './CityCoverageSelector.jsx'
 import './profile.css'
 
 const NAME_KEY = 'profile-name-v1'
@@ -60,8 +60,8 @@ export default function EditProfilePage() {
         </label>
 
         <label className="ep-field">
-          <span className="ep-label">Location</span>
-          <input className="ep-input ep-input-ro" value={CITY.name} readOnly aria-label="Your city" />
+          <span className="ep-label">Current coverage</span>
+          <input className="ep-input ep-input-ro" value={CITY.name} readOnly aria-label="Current coverage area" />
         </label>
 
         <label className="ep-field">
@@ -80,17 +80,10 @@ export default function EditProfilePage() {
           />
         </label>
 
-        {/* Profile preferences — honest stubs (future keys); shown so the screen
-            matches the ref, never faking a saved value. */}
+        {/* Coverage is a real hard-navigation choice; retained state is city-scoped. */}
+        <div className="ep-sec-label">Coverage area</div>
+        <CityCoverageSelector compact />
         <div className="ep-sec-label">Profile preferences</div>
-        <div className="ep-pref">
-          <span>Preferred city</span>
-          <span className="ep-pref-v">{CITY.name}</span>
-        </div>
-        <div className="ep-pref">
-          <span>Profile visibility</span>
-          <span className="ep-soon">Coming soon</span>
-        </div>
         {/* a real destination — the interest editor (matches the ref's Interests row) */}
         <button className="ep-pref ep-pref-link pressable" type="button" onClick={() => openInterests()}>
           <span>Interests</span>

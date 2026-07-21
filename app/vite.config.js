@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { verifyArtifactSet } from '../finder/artifact-manifest.mjs'
+import { runtimeDeploymentPlan } from './runtime-deployment.mjs'
 // the build-time city config (D4). In this Node context city.js selects via
 // process.env.VITE_CITY — the same env var that selects inside the bundle —
 // so the tab title always names the city the build ships. (A VITE_CITY set
@@ -30,17 +31,25 @@ if (suppliedManifestId && suppliedManifestId !== APPROVED_MANIFEST_ID) {
   )
 }
 
-// Stage E deploy-infra: BASE_PATH is the ONE subpath-hosting knob. GitHub
-// Pages serves a project site under /<repo>/ — Tampa builds with
-// BASE_PATH=/wuzup/ and SF with BASE_PATH=/wuzup/sf/ (two self-contained builds,
-// one deployment per city, D-DEP). Default '/' is a true no-op: the default
-// build's JS/CSS/HTML output stays byte-identical (verified against the
-// pre-change dist). Normalized to leading+trailing '/' exactly like vite's
-// own base normalization, so the manifest below and vite agree on the prefix.
+// BASE_PATH names this city's deployed bytes. WUZUP_PRODUCT_ROOT is supplied
+// only by a composed multi-city deployment and verifies that BASE_PATH is the
+// canonical route for CITY before Vite emits anything. Without a product root,
+// the build is intentionally standalone and cross-city navigation stays off.
 // (globalThis.process — the lint config is browser-globals-only; same pattern
 // as city.js. This file always runs in Node, where process is real.)
 const RAW_BASE = globalThis.process?.env?.BASE_PATH || '/'
-const BASE = (RAW_BASE.startsWith('/') ? '' : '/') + RAW_BASE + (RAW_BASE.endsWith('/') ? '' : '/')
+const DEPLOYMENT = runtimeDeploymentPlan({
+  basePath: RAW_BASE,
+  productRoot: globalThis.process?.env?.WUZUP_PRODUCT_ROOT || null,
+  city: CITY,
+})
+if (!DEPLOYMENT.ok) {
+  throw new Error(
+    `Vite refused ${CITY.id} at BASE_PATH='${DEPLOYMENT.baseUrl}'; WUZUP_PRODUCT_ROOT requires '${DEPLOYMENT.expectedBaseUrl}'`
+  )
+}
+const BASE = DEPLOYMENT.baseUrl
+const PRODUCT_ROOT = DEPLOYMENT.productRoot
 
 // Stage E (ship-shell): the installable-PWA manifest, generated from the SAME
 // city registry as the %CITY_NAME% title token — public/ can't carry it because
@@ -87,6 +96,7 @@ export default defineConfig({
   publicDir: PUBLIC_DIR,
   define: {
     'import.meta.env.VITE_ARTIFACT_MANIFEST_ID': JSON.stringify(APPROVED_MANIFEST_ID),
+    'globalThis.__WUZUP_PRODUCT_ROOT__': JSON.stringify(PRODUCT_ROOT),
   },
   plugins: [
     react(),

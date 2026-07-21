@@ -1373,7 +1373,13 @@ test('Stage D sf-app: staged SF bytes build with their exact approved manifest',
       spawn(`npm --prefix app run build -- --outDir "${outDir}" --emptyOutDir`, {
         cwd: ROOT,
         shell: true,
-        env: { ...process.env, VITE_CITY: 'sf-east-bay', WUZUP_PUBLIC_DIR: publicDir },
+        env: {
+          ...process.env,
+          VITE_CITY: 'sf-east-bay',
+          WUZUP_PUBLIC_DIR: publicDir,
+          BASE_PATH: '/wuzup/sf/',
+          WUZUP_PRODUCT_ROOT: '/wuzup/',
+        },
       })
     )
     t.diagnostic(`sf build took ${r.secs}s`)
@@ -1382,6 +1388,8 @@ test('Stage D sf-app: staged SF bytes build with their exact approved manifest',
     assert.ok(html.includes('<title>Wuzup · SF & East Bay</title>'), 'the emitted index.html title must carry the SF name')
     const manifest = JSON.parse(readFileSync(path.join(outDir, 'manifest.webmanifest'), 'utf8'))
     assert.equal(manifest.name, 'Wuzup · SF & East Bay', 'the emitted manifest name must carry the SF name')
+    assert.equal(manifest.start_url, '/wuzup/sf/', 'the SF manifest must start on its canonical runtime route')
+    assert.equal(manifest.scope, '/wuzup/sf/', 'the SF manifest scope must stay inside its canonical runtime route')
     const approved = JSON.parse(readFileSync(path.join(publicDir, 'artifact-manifest.json'), 'utf8')).manifestId
     const bundle = readdirSync(path.join(outDir, 'assets'))
       .filter((file) => file.endsWith('.js'))
@@ -1444,7 +1452,11 @@ test(`Stage E base-path: BASE_PATH=${DEPLOY_BASE} build rebases every runtime su
       spawn(`npm --prefix app run build -- --outDir "${outDir}" --emptyOutDir`, {
         cwd: ROOT,
         shell: true,
-        env: { ...process.env, BASE_PATH: DEPLOY_BASE },
+        env: {
+          ...process.env,
+          BASE_PATH: DEPLOY_BASE,
+          WUZUP_PRODUCT_ROOT: DEPLOY_BASE,
+        },
       })
     )
     t.diagnostic(`BASE_PATH build took ${r.secs}s`)
@@ -1465,11 +1477,12 @@ test(`Stage E base-path: BASE_PATH=${DEPLOY_BASE} build rebases every runtime su
     }
     // the @font-face public URL in the emitted CSS
     const assets = readdirSync(path.join(outDir, 'assets'))
-    const css = readFileSync(path.join(outDir, 'assets', assets.find((f) => f.endsWith('.css'))), 'utf8')
+    const css = assets.filter((file) => file.endsWith('.css'))
+      .map((file) => readFileSync(path.join(outDir, 'assets', file), 'utf8')).join('\n')
     assert.ok(css.includes(`url(${DEPLOY_PREFIX}/fonts/inter-var-latin.woff2)`), 'the CSS @font-face URL must be base-prefixed')
     assert.ok(!css.includes('url(/fonts/'), 'the CSS still carries a root-absolute /fonts/ URL')
     // the repository folds the base once, then joins manifest-declared files.
-    const bundle = assets.filter((f) => f.startsWith('index-') && f.endsWith('.js'))
+    const bundle = assets.filter((f) => f.endsWith('.js'))
       .map((f) => readFileSync(path.join(outDir, 'assets', f), 'utf8')).join('\n')
     assert.ok(bundle.includes(DEPLOY_BASE), `bundle must carry the folded ${DEPLOY_BASE} repository base`)
     for (const a of ['artifact-manifest.json', 'events.json', 'places.json', 'guides.json']) {

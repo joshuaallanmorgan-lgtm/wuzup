@@ -1,6 +1,6 @@
 # Wuzup V2 - active sprint map
 
-> **Status:** owner-ratified execution map; Sprint 3 active - 2026-07-15
+> **Status:** owner-ratified execution map; Sprint 4 active - 2026-07-20
 >
 > **Authority:** subordinate to [V2_PLAN.md](V2_PLAN.md). This file translates the current scope and
 > dependency queue into delivery cycles; it does not admit features that the plan parks in V3.
@@ -1005,6 +1005,16 @@ and migration tests pass; planner operations are idempotent and survive reload.
 - **Sprint 3 remains yellow only at the city/runtime boundary:** the atomic retained-value domains, time, identity,
   planner, and truthful geolocation seams are now active. Runtime city resolution and a checked-in Tampa/SF browser
   journey remain the bounded handoff into the L0 follow-up and Sprint 4 release harness.
+
+#### Sprint 3 verified runtime-city boundary receipt - 2026-07-20 (green)
+
+- Tampa and SF now have explicit, canonical build routes. Vite refuses mismatched city/base/product-root tuples,
+  and runtime query, path, city, timezone, manifest, and build identities fail closed before App mounts.
+- Settings exposes literal coverage selection only when the composed deployment exists; standalone builds do not
+  invent cross-city links. Every retained provider receives the resolved city, and places remain lazy.
+- Focused runtime-city verification passes 16/16; exact Tampa/SF builds, lint, traversal probes, and the complete
+  serial repository gate pass 716/716. Independent review records **SHIP** with no P0/P1 findings.
+- Sprint 3 is complete. The composed Tampa/SF browser journey is the first Sprint 4 evidence deliverable.
 
 ### Sprint 4 - P0 core journeys and the browser release harness
 

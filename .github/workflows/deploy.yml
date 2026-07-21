@@ -52,7 +52,7 @@ jobs:
           REPO_NAME: ${{ github.event.repository.name }}
         run: |
           CITY=tampa-bay node finder/deploy.mjs
-          VITE_CITY=tampa-bay BASE_PATH="/${REPO_NAME}/" npm --prefix app run build
+          VITE_CITY=tampa-bay BASE_PATH="/${REPO_NAME}/" WUZUP_PRODUCT_ROOT="/${REPO_NAME}/" npm --prefix app run build
           CITY=tampa-bay node finder/verify-app-build.mjs app/dist
           mkdir -p _site
           cp -r app/dist/. _site/
@@ -65,7 +65,7 @@ jobs:
           REPO_NAME: ${{ github.event.repository.name }}
         run: |
           CITY=sf-east-bay node finder/deploy.mjs
-          VITE_CITY=sf-east-bay BASE_PATH="/${REPO_NAME}/sf/" npm --prefix app run build
+          VITE_CITY=sf-east-bay BASE_PATH="/${REPO_NAME}/sf/" WUZUP_PRODUCT_ROOT="/${REPO_NAME}/" npm --prefix app run build
           CITY=sf-east-bay node finder/verify-app-build.mjs app/dist
           mkdir -p _site/sf
           cp -r app/dist/. _site/sf/

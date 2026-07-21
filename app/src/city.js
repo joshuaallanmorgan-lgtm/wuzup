@@ -1,8 +1,9 @@
-// city.js — the BUILD-TIME city config module (Stage D4).
+// city.js — the runtime-validated standalone city config module.
 //
 // D-DEP ruling (Josh, 2026-07-02): ONE DEPLOYMENT PER CITY — each deployment
-// ships exactly one city's data at the same URLs. So the city is selected at
-// BUILD time (VITE_CITY), never at runtime: no switcher, no fetch-path changes.
+// ships exactly one city's data at the same URLs. VITE_CITY selects those
+// bytes; the runtime address may confirm that identity but can never relabel
+// it. Switching areas is a hard navigation to the other verified deployment.
 // This module mirrors the identity fields of the finder-side config
 // (finder/cities/tampa-bay.mjs `meta`) but deliberately does NOT import it —
 // the app stays free of finder imports; the D4 smoke guard pins the two in sync.
@@ -25,6 +26,8 @@
 // lib.js → city.js into Node, and vite.config.js imports it for the HTML
 // title) — hence the guarded env access below.
 
+import { resolveRuntimeCity } from './runtime-city.js'
+
 // Exported for the D4 smoke pin ONLY (test/smoke.mjs imports the full registry
 // to mirror-check EVERY entry against its finder config, not just the active
 // city). App code must keep consuming the selected CITY below — never the map.
@@ -40,6 +43,10 @@ export const CITIES = {
     // view (consolidated from weather.js + MapView.jsx in W4).
     center: { lat: 27.95, lng: -82.46 },
     bbox: { south: 27.3, north: 28.6, west: -83.3, east: -81.9 },
+    runtimePath: '',
+    runtimeAliases: ['tampa'],
+    coverageLabel: 'Tampa Bay area',
+    coverageDetail: 'Tampa, St. Petersburg, and the current Tampa Bay coverage area.',
     heroes: [
       {
         url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Tampa_Skyline_-_Eric_Statzer.jpg/960px-Tampa_Skyline_-_Eric_Statzer.jpg',
@@ -82,6 +89,10 @@ export const CITIES = {
     tz: 'America/Los_Angeles', // mirrors the finder tz (weather.js forecast query)
     center: { lat: 37.84, lng: -122.25 }, // mirrors finder meta.center
     bbox: { south: 37.68, north: 38.00, west: -122.53, east: -121.88 },
+    runtimePath: 'sf',
+    runtimeAliases: [],
+    coverageLabel: 'SF to the East Bay',
+    coverageDetail: 'San Francisco through Oakland, Berkeley, Walnut Creek, and Concord — not San Jose or the North Bay.',
     heroes: [
       {
         url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/GoldenGateBridge-001.jpg/960px-GoldenGateBridge-001.jpg',
@@ -121,6 +132,23 @@ const selected = CITIES[CITY_ID]
 if (!selected) {
   throw new Error(`Unknown VITE_CITY '${CITY_ID}' — known cities: ${Object.keys(CITIES).join(', ')}`)
 }
+
+const rawBase = import.meta.env?.BASE_URL ?? globalThis.process?.env?.BASE_PATH ?? '/'
+const baseUrl = `${rawBase.startsWith('/') ? '' : '/'}${rawBase}${rawBase.endsWith('/') ? '' : '/'}`
+const productRoot = globalThis.__WUZUP_PRODUCT_ROOT__
+  ?? globalThis.process?.env?.WUZUP_PRODUCT_ROOT
+  ?? null
+
+// The configured build owns the bytes. Browser query/path signals can confirm
+// that identity or stop boot, but can never relabel one city's pack as another.
+export const RUNTIME_CITY = resolveRuntimeCity({
+  cities: CITIES,
+  configuredCityId: CITY_ID,
+  baseUrl,
+  productRoot,
+  pathname: globalThis.location?.pathname ?? null,
+  query: globalThis.location?.search ?? '',
+})
 
 export const CITY = selected
 

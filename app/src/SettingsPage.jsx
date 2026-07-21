@@ -22,6 +22,7 @@ import { useLocationPermission } from './LocationProvider.jsx'
 import { useNav } from './nav.jsx'
 import { resetTaste } from './taste.js'
 import Primer from './Primer.jsx'
+import CityCoverageSelector from './CityCoverageSelector.jsx'
 import './settings.css'
 
 // "Events updated {when}": the shared dayStamp idiom (weekday inside the last
@@ -98,6 +99,11 @@ export default function SettingsPage({ events, dataMeta, primer, onPrimerDone })
       </header>
 
       <div className="st-body">
+        <section className="st-sec">
+          <div className="st-over">Coverage area</div>
+          <CityCoverageSelector />
+        </section>
+
         {/* Phase 3.6 N4: Settings regrouped by INTENT (was a "bunch of weird
             sections", Josh). Five clean groups: identity → tune → reset → data
             → about. Taste transparency + the deck are CANONICAL on Profile now

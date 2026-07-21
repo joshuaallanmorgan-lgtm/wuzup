@@ -9,7 +9,7 @@ const [app, settings, bubble] = await Promise.all([
 ])
 
 test('App uses one shared location provider and only exposes granted coordinates', () => {
-  assert.match(app, /<LocationProvider>[\s\S]*<Shell \/>[\s\S]*<\/LocationProvider>/)
+  assert.match(app, /<LocationProvider city=\{city\}>[\s\S]*<Shell \/>[\s\S]*<\/LocationProvider>/)
   assert.match(app, /const location = useLocationPermission\(\)/)
   assert.match(app, /const coords = location\.usableCoords/)
   assert.doesNotMatch(app, /navigator\.geolocation/)

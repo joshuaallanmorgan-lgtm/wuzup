@@ -12,7 +12,8 @@ import { PlannerProvider } from './PlannerProvider.jsx'
 import { CustomEventsProvider, useCustomEvents } from './CustomEventsProvider.jsx'
 import { SavedBeenProvider, useSavedBeen } from './SavedBeenProvider.jsx'
 import { ActivityProvider, useActivity } from './ActivityProvider.jsx'
-import { CITY } from './city.js'
+import { bindRuntimeCityArtifact } from './runtime-city.js'
+import { useRuntimeCity } from './RuntimeCityProvider.jsx'
 import { identitySeedsForCity } from './identity-seeds.js'
 import { GUIDES } from './guides.js'
 import { normalizePlace } from './places.js'
@@ -125,11 +126,12 @@ function restoreLayerFocus(target, fallbackRoot) {
 // dayStamp — shared with the D-G1 Coverage Card's "updated {day}" line.
 
 export default function App() {
+  const { city } = useRuntimeCity()
   return (
-    <CustomEventsProvider>
-      <ActivityProvider>
+    <CustomEventsProvider city={city}>
+      <ActivityProvider city={city}>
         <NavProvider>
-          <LocationProvider>
+          <LocationProvider city={city}>
             <Shell />
           </LocationProvider>
         </NavProvider>
@@ -198,6 +200,8 @@ function ActivityNotice({ visible, layered, stackLevel = 0 }) {
 }
 
 function Shell() {
+  const runtimeCity = useRuntimeCity()
+  const city = runtimeCity.city
   const customEvents = useCustomEvents()
   const location = useLocationPermission()
   const coords = location.usableCoords
@@ -216,7 +220,11 @@ function Shell() {
       : []),
     [placeArtifact.data]
   )
-  const identitySeeds = useMemo(() => identitySeedsForCity(CITY.id), [])
+  const identitySeeds = useMemo(() => identitySeedsForCity(city.id), [city.id])
+  const artifactBinding = useMemo(
+    () => bindRuntimeCityArtifact(runtimeCity, eventArtifact.meta),
+    [eventArtifact.meta, runtimeCity]
+  )
   const loading = eventArtifact.status === 'idle' || eventArtifact.status === 'loading'
   const savedCatalogReady = ['ready', 'empty'].includes(eventArtifact.status) && customEvents.ready
   const savedCatalogError = !loading && !['ready', 'empty'].includes(eventArtifact.status)
@@ -426,6 +434,7 @@ function Shell() {
 
   return (
     <SavedBeenProvider
+      city={city}
       events={events}
       customEvents={customEvents.items}
       places={places}
@@ -435,6 +444,7 @@ function Shell() {
       catalogError={savedCatalogError}
     >
       <PlannerProvider
+        city={city}
         anchors={anchors}
         events={normalized}
         artifactStatus={eventArtifact.status}
@@ -442,7 +452,18 @@ function Shell() {
         catalogError={customEvents.error}
       >
       <WxContext.Provider value={wx}>
-        <div className="app" ref={appRef} onFocusCapture={rememberTrigger} onPointerDownCapture={rememberTrigger}>
+        <div
+          className="app"
+          ref={appRef}
+          onFocusCapture={rememberTrigger}
+          onPointerDownCapture={rememberTrigger}
+          data-city-id={city.id}
+          data-city-time-zone={city.tz}
+          data-city-runtime-status="ready"
+          data-artifact-status={eventArtifact.status}
+          data-manifest-id={artifactBinding.ok ? artifactBinding.manifestId : undefined}
+          data-build-id={artifactBinding.ok ? artifactBinding.buildId : undefined}
+        >
         {/* O1 lazy mounting: every section SHELL renders (scroll-snap needs all
             N page widths) but children mount on FIRST VISIT only — Home is
             the boot tab (eager); the rest mount when first reached (tap or
