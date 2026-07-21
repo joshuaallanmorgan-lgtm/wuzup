@@ -38,11 +38,16 @@ function family(value) {
   return source ? source.replace(/\s*\([^)]*\)\s*$/, '').trim() : null
 }
 
+function sourceValue(value) {
+  if (plainObject(value)) return family(value.family || value.name || value.source)
+  return family(value)
+}
+
 function eventSources(event) {
   const sources = Array.isArray(event.sourceFamilies)
     ? event.sourceFamilies
     : Array.isArray(event.sources) ? event.sources : [event.sourceFamily || event.source]
-  return [...new Set(sources.map(family).filter(Boolean))]
+  return [...new Set(sources.map(sourceValue).filter(Boolean))]
 }
 
 function regionCodes(city) {
@@ -157,6 +162,41 @@ function projectedEvent(wrapper, { nowMs, city }) {
   }
 }
 
+function projectedPlace(place, { city }) {
+  const id = text(place.id) || text(place.key)
+  invariant(id, 'place.id or place.key is required')
+  const sources = eventSources(place)
+  const hasCoordinates = Number.isFinite(place.lat) && Number.isFinite(place.lng)
+  const hasVerifiedMarket = hasCoordinates
+    || place.marketId === city.id
+    || place.addressMarketId === city.id
+  return {
+    id,
+    key: place.key,
+    title: place.title || place.name,
+    sourceFamily: sourceValue(place.sourceFamily || sources[0]),
+    sourceFamilies: sources,
+    category: place.category,
+    venueId: place.venueId || place.operatorId || null,
+    venueOrOperator: place.venueOrOperator || place.operator || place.brand || place.title || place.name,
+    address: place.address,
+    lat: place.lat,
+    lng: place.lng,
+    description: place.description,
+    descriptionLength: Number.isFinite(place.descriptionLength)
+      ? place.descriptionLength
+      : typeof place.description === 'string' ? place.description.length : null,
+    canonicalId: place.canonicalId || place.canonicalKey || place.key || id,
+    actionability: hasVerifiedMarket,
+    lowInformation: place.lowInformation === true || !hasVerifiedMarket,
+    isBusiness: place.isBusiness === true,
+    isGeneric: place.isGeneric === true,
+    isChain: place.isChain === true,
+    marketId: place.marketId,
+    addressMarketId: place.addressMarketId,
+  }
+}
+
 /** Convert the existing taste profile into a bounded signed preference layer. */
 export function signedRuntimeTaste(taste = {}) {
   if (!plainObject(taste)) return { categoryScores: {}, freeAffinity: 0 }
@@ -177,6 +217,51 @@ export function signedRuntimeTaste(taste = {}) {
   }
   const freeAffinity = Number(taste.n) > 0 ? clamp((Number(taste.freeAffinity) / 25) * 3, 0, 3) : 0
   return { categoryScores, freeAffinity }
+}
+
+/**
+ * Rank a complete runtime event/place result set without changing membership.
+ * Surface-specific matching stays in the caller as bounded context; objective
+ * quality, city truth, signed taste, and diversity stay centralized here.
+ */
+export function rankRuntimeItems(items, {
+  kind,
+  nowMs,
+  city,
+  taste = {},
+  context = {},
+  diversityPolicy = null,
+  knownJunkIds = [],
+  knownFalseMergeIds = [],
+} = {}) {
+  invariant(Array.isArray(items), 'items must be an array')
+  invariant(kind === 'events' || kind === 'places', 'kind must be events or places')
+  invariant(plainObject(context), 'context must be an object')
+  const projected = items.map((item, index) => {
+    invariant(plainObject(item), `items[${index}] must be an object`)
+    return kind === 'events'
+      ? projectedEvent({ e: item, withDate: false }, { nowMs, city })
+      : projectedPlace(item, { city })
+  })
+  const originalById = new Map(projected.map((item, index) => [item.id, items[index]]))
+  const ranking = rankItems(projected, {
+    kind,
+    context,
+    preferences: signedRuntimeTaste(taste),
+    qualityPolicy: runtimeQualityPolicy({
+      kind,
+      nowMs,
+      city,
+      knownJunkIds,
+      knownFalseMergeIds,
+    }),
+    diversityPolicy,
+  })
+  return {
+    ...ranking,
+    ordered: ranking.ordered.map(item => originalById.get(item.id)),
+    scored: ranking.scored.map(scored => ({ ...scored, item: originalById.get(scored.id) })),
+  }
 }
 
 function whyCopy(scored, wrapper) {

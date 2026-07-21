@@ -2,7 +2,12 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
-import { rankTonightCandidates, runtimeQualityPolicy, signedRuntimeTaste } from '../app/src/relevance.js'
+import {
+  rankRuntimeItems,
+  rankTonightCandidates,
+  runtimeQualityPolicy,
+  signedRuntimeTaste,
+} from '../app/src/relevance.js'
 
 const TAMPA = {
   id: 'tampa-bay',
@@ -60,6 +65,53 @@ test('runtime quality policy converts current CITY bbox and region without share
     knownJunkIds: ['junk-1'],
     knownFalseMergeIds: ['merge-1'],
   })
+})
+
+test('generic runtime ranking preserves exact event membership and original object identity', () => {
+  const rows = [event('b'), event('a', { description: 'Short detail.' })]
+  const result = rankRuntimeItems(rows, {
+    kind: 'events',
+    nowMs: Date.parse('2026-07-21T18:00:00-04:00'),
+    city: TAMPA,
+    taste: {},
+    context: { itemScores: { b: -4, a: 4 } },
+  })
+
+  assert.equal(result.ordered.length, rows.length)
+  assert.equal(result.reachability.exactPermutation, true)
+  assert.equal(result.ordered[0], rows[1])
+  assert.equal(result.scored.find(row => row.id === 'b').item, rows[0])
+})
+
+test('generic place ranking reads bounded source arrays and ignores presentation imagery', () => {
+  const places = [
+    {
+      key: 'p|park', name: 'Park', category: 'outdoors', sources: ['OSM'],
+      lat: 27.96, lng: -82.47, address: 'Tampa, FL', description: 'A public park with trails and picnic tables.',
+      image: null,
+    },
+    {
+      key: 'p|museum', name: 'Museum', category: 'art', sources: ['Wikidata', 'OSM'],
+      lat: 27.95, lng: -82.46, address: 'Tampa, FL', description: 'A local museum with rotating exhibitions and visitor information.',
+      image: 'https://images.example.test/museum.jpg',
+    },
+  ]
+  const options = {
+    kind: 'places',
+    nowMs: Date.parse('2026-07-21T18:00:00-04:00'),
+    city: TAMPA,
+    taste: {},
+  }
+  const withImages = rankRuntimeItems(places, options)
+  const withoutImages = rankRuntimeItems(places.map(place => ({ ...place, image: null, imageCredit: null })), options)
+
+  assert.deepEqual(withImages.ordered.map(place => place.key), withoutImages.ordered.map(place => place.key))
+  assert.equal(withImages.reachability.exactPermutation, true)
+  assert.ok(withImages.scored.find(row => row.id === 'p|park').reasons.includes('SOURCE_IDENTIFIED'))
+  assert.ok(withImages.scored.find(row => row.id === 'p|museum').reasons.includes('SOURCE_CORROBORATED'))
+  assert.equal(withImages.scored.find(row => row.id === 'p|museum').leadEligible, true)
+  assert.equal(withImages.scored.find(row => row.id === 'p|park').leadEligible, false)
+  assert.equal(withImages.ordered.some(place => place.key === 'p|park'), true)
 })
 
 test('runtime adapter is an exact permutation and selects three credible diverse Tampa candidates', () => {
