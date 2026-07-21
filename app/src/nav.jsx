@@ -29,8 +29,8 @@
 // to a function during render"); the semantically identical JSX form passes.
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
+import { useActivity } from './ActivityProvider.jsx'
 import { recordSignal } from './taste.js'
-import { recordView } from './recents.js'
 
 // the tab roster — ids are the stable identity, INDICES ARE DERIVED (audit
 // prep #1: nothing may hardcode a position). Sprint O1: four populated tabs.
@@ -77,6 +77,7 @@ export function useNav() {
 }
 
 export function NavProvider({ children }) {
+  const { recordView } = useActivity()
   // ===== active tab + pager =====
   const [active, setActive] = useState(0)
   // ===== lazy tab mounting (O1): the pager's section SHELLS always render
@@ -350,7 +351,9 @@ export function NavProvider({ children }) {
   const morphElRef = useRef(null)
   const openDetail = useCallback((e, cardEl) => {
     recordSignal('open', e) // taste seam: opening a detail = +1 category interest
-    recordView(e) // recents seam (H3): FIFO recents + the in-session list (H4)
+    // The current recap is event-only. Place views stay out of its bounded FIFO
+    // until Wuzup ships a kind-correct place-history surface.
+    if (e?.kind !== 'place') void recordView(e) // navigation never waits on storage
     setClosing(false)
     const el = cardEl ? cardEl.querySelector('[data-vt]') : null
     if (supportsVT() && el) {
@@ -373,7 +376,7 @@ export function NavProvider({ children }) {
       setVtOpen(false)
       setDetail(e)
     }
-  }, [])
+  }, [recordView])
   // the REAL detail close (animation owner) — see closePageNow's ref note.
   const closeDetailNow = useCallback(() => {
     detailOpenRef.current = false

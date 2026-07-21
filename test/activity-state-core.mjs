@@ -12,11 +12,15 @@ import {
   ACTIVITY_REF_MAX_BYTES,
   ACTIVITY_STATE_VERSION,
   ACTIVITY_STRING_MAX_BYTES,
+  activityRefOf,
   activityStateBytes,
+  clearActivityDecks,
   emptyActivityState,
   migrateV1ActivityState,
   normalizeActivityState,
+  resolveActivityRefs,
 } from '../app/src/activity-state-core.js'
+import { customIdentityBridgeOf } from '../app/src/identity.js'
 
 const CITY_ID = 'tampa-bay'
 const OTHER_CITY_ID = 'sf-east-bay'
@@ -25,6 +29,80 @@ const EVENT_OLD = 'https://fixture.test/night-market|2026-07-20'
 const PLACE_KEY = 'p|riverwalk'
 const REMOVED = 'https://fixture.test/removed|2026-07-01'
 const SHARED = 'https://fixture.test/shared|2026-07-20'
+
+test('session custom refs retain only bounded opaque bridges and resolve after landing', () => {
+  const localId = 'custom-event-0001'
+  const bridge = customIdentityBridgeOf(`c|${localId}`)
+  const pending = {
+    kind: 'custom',
+    title: 'Porch show',
+    start: '2026-07-21T20:00:00-04:00',
+    _keyTitle: 'session-custom-abcdef0123456789',
+    _sessionIdentityAliases: [bridge, 'c|must-not-land', 'not-a-bridge'],
+  }
+  const ref = activityRefOf(pending, { kind: 'event' })
+  assert.equal(ref.kind, 'custom')
+  assert.equal(ref.primary.startsWith('c|'), false)
+  assert.deepEqual(ref.aliases.filter((alias) => alias.startsWith('c|')), [])
+  assert.equal(ref.aliases.includes(bridge), true)
+
+  const durable = {
+    kind: 'custom',
+    localId,
+    title: pending.title,
+    start: pending.start,
+  }
+  assert.deepEqual(resolveActivityRefs([ref], [durable], { kind: 'event' }), [durable])
+})
+
+test('activity ref resolution preserves order, kind scope, and explicit ambiguity', () => {
+  const old = {
+    status: 'attached',
+    kind: 'event',
+    primary: 'e|dddddddddddddddd',
+    aliases: ['e|dddddddddddddddd', SHARED],
+  }
+  const unique = {
+    kind: 'event',
+    id: 'eeeeeeeeeeeeeeee',
+    title: 'Current event',
+    url: 'https://fixture.test/shared',
+    start: '2026-07-20',
+  }
+  assert.deepEqual(resolveActivityRefs([old], [unique], { kind: 'event' }), [unique])
+
+  const collision = { ...unique, id: 'ffffffffffffffff', title: 'Collision' }
+  assert.deepEqual(resolveActivityRefs([old], [unique, collision], { kind: 'event' }), [])
+  assert.deepEqual(resolveActivityRefs([old], [{ kind: 'place', key: SHARED }], {
+    kind: 'event',
+  }), [])
+})
+
+test('clearing both deck memories is one pure all-or-nothing transition', () => {
+  const document = {
+    ...emptyActivityState(CITY_ID),
+    eventDeck: [{
+      status: 'attached',
+      kind: 'event',
+      primary: 'e|aaaaaaaaaaaaaaaa',
+      aliases: ['e|aaaaaaaaaaaaaaaa'],
+    }],
+    placeDeck: [{
+      status: 'attached',
+      kind: 'place',
+      primary: PLACE_KEY,
+      aliases: [PLACE_KEY],
+    }],
+  }
+  const before = clone(document)
+  const cleared = clearActivityDecks(document, { cityId: CITY_ID })
+  assert.equal(cleared.changed, true)
+  assert.equal(cleared.code, 'cleared-decks')
+  assert.deepEqual(cleared.document.eventDeck, [])
+  assert.deepEqual(cleared.document.placeDeck, [])
+  assert.deepEqual(document, before)
+  assert.equal(clearActivityDecks(cleared.document, { cityId: CITY_ID }).code, 'already-empty')
+})
 
 const events = [
   {

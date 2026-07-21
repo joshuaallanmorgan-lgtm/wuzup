@@ -16,23 +16,23 @@
 // stamps, buttons, dots and the finish beat render here unchanged. The card
 // index is DERIVED (idx ≡ into + nope — every commit increments exactly one
 // tally and SwipeDeck's idx in lockstep), so progress/counthead/top-card
-// reads are unchanged. (C5: the fmn-seen write-mirror was deleted — FindMyNight
-// is long gone and nothing ever read the key; rejections leave no seen-residue.)
+// reads are unchanged. Retained verdict memory now crosses the atomic activity
+// provider before taste or progress advances.
 //
 // THE SAMPLER + the CUMULATIVE re-deal WALK live in deckdeal.js now (pure +
 // Node-importable so the never-hide COVERAGE proof is testable). dealDeck is
 // stratified — one hottest event per registry category, remainder filled
 // (≤2/category), shuffled; SPONSORED IS EXCLUDED (a paid placement must not harvest
-// taste calibration). The INITIAL deal excludes the persisted FIFO ('deck-last-v1',
-// cap 30) for cross-session freshness; each "Deal again" excludes (FIFO ∪ an
+// taste calibration). The INITIAL deal excludes the provider's kind-scoped,
+// alias-aware retained FIFO for cross-session freshness; each "Deal again" excludes (FIFO ∪ an
 // in-memory cumulative SEEN set) via nextEventsBatch, so it WALKS FORWARD through
 // the whole catalog (not a top-N carousel) and wraps when exhausted — never dead-ends.
 //
 // VERDICTS (each = exactly ONE taste signal, never two):
 //   right / ✓  "into it"    → recordCalibration('yes') (+3 category)
 //   left  / ✕  "not for me" → recordCalibration('no')  (−1, floor 0 — P4).
-//              Ordering only — nothing is ever hidden. (C5: the old fmn-seen
-//              push died with FindMyNight; only the last-deal FIFO persists.)
+//              Ordering only — nothing is ever hidden. The event/place activity
+//              FIFOs remain independent and atomically persisted.
 //   up    / ♥  save         → toggleSave (the existing save seam records the
 //              +3, so a save is never double-counted); counts as "into it"
 //              in the tally. Already-saved card? recordCalibration('yes')
@@ -45,34 +45,16 @@
 //
 // ALL COPY IS DRAFT for Charles (inventory in the sprint report).
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useActivity } from './ActivityProvider.jsx'
 import { categoryById } from './categories.js'
 import { Icon, dayLoose, keyOf, timeOf } from './lib.js'
-import { lsGet, lsSet } from './storage.js'
 import { CardImg, PriceChip, SponsoredTag, placeTypeLabel, spotChips, hueFor, artEmoji } from './cards.jsx'
 import { useSaves } from './saves.js'
 import { usePlaces } from './places.js'
 import { getProfile, recordCalibration, topCategories } from './taste.js'
 import SwipeDeck from './SwipeDeck.jsx'
-import { DECK_SIZE, dealDeck, dealPlaceDeck, nextEventsBatch, nextPlacesBatch } from './deckdeal.js'
+import { DECK_SIZE, dealDeck, dealPlaceDeck, deckKeyOf, nextEventsBatch, nextPlacesBatch } from './deckdeal.js'
 import './deck.css'
-
-// ===== re-deal memory: keys rated in recent deals (FIFO, cap 30 ≈ two full
-// decks). Kind-scoped so the Events + Spots Tinder decks keep INDEPENDENT
-// re-deal memories ('deck-last-v1' events · 'deck-last-places-v1' spots). =====
-const LAST_CAP = 30
-const lastKeyFor = (kind) => (kind === 'places' ? 'deck-last-places-v1' : 'deck-last-v1')
-function loadLastDeal(kind) {
-  try {
-    const v = JSON.parse(lsGet(lastKeyFor(kind)))
-    return Array.isArray(v) ? v.filter((k) => typeof k === 'string') : []
-  } catch {
-    return [] // missing / corrupt / private mode — memory just starts empty
-  }
-}
-function pushLastDeal(kind, key) {
-  const kept = loadLastDeal(kind).filter((k) => k !== key)
-  lsSet(lastKeyFor(kind), JSON.stringify(kept.concat(key).slice(-LAST_CAP))) // guarded in storage.js
-}
 
 const prefersReduced = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -137,21 +119,32 @@ export function PlaceDeckFace({ e }) {
 // closeLabel: the done/empty button's text — defaults to the settings-origin
 // phrasing; the primer-origin mount (Q2d onboarding offer) passes its own,
 // since a fresh user closes to the Events tab, not to Settings.
-export default function CalibrationDeck({ kind = 'events', events, places, anchors, onClose, closeLabel = 'Back to Settings' }) {
+function ReadyCalibrationDeck({ activity, kind = 'events', events, places, anchors, onClose, closeLabel = 'Back to Settings' }) {
   const reduced = useMemo(() => prefersReduced(), [])
   const { has, toggle, canToggle, identityPending, identityAmbiguous, identityWent, isPending } = useSaves()
+  const {
+    eventDeckExclusions,
+    placeDeckExclusions,
+    isEventDeckExcluded,
+    isPlaceDeckExcluded,
+    recordEventDeck,
+    recordPlaceDeck,
+  } = activity
   // TINDER: the deck is parameterized by kind (events|places) — the pool sampler,
   // the card face, and the re-deal memory differ; the verdict→taste mapping is the
   // SAME category model (recordCalibration reads e.category — places carry one).
   const isPlaces = kind === 'places'
   const noun = isPlaces ? 'spots' : 'events'
+  const retainedExclusions = isPlaces ? placeDeckExclusions : eventDeckExclusions
+  const isRetained = isPlaces ? isPlaceDeckExcluded : isEventDeckExcluded
+  const recordDeck = isPlaces ? recordPlaceDeck : recordEventDeck
   // ONE deal per mount (deliberately not a useMemo on [events]: App rebuilds
   // `norm` identities on anchor refreshes / my-event edits, and a re-deal
   // mid-rating would reshuffle the stack under the user's thumb)
   const [deck, setDeck] = useState(() =>
     isPlaces
-      ? dealPlaceDeck(places, { exclude: new Set(loadLastDeal('places')) })
-      : dealDeck(events, anchors, { exclude: new Set(loadLastDeal('events')) })
+      ? dealPlaceDeck(places, { exclude: new Set(retainedExclusions), excludeItem: isRetained })
+      : dealDeck(events, anchors, { exclude: new Set(retainedExclusions), excludeItem: isRetained })
   )
   // BATCH 5 COVERAGE FIX: the in-memory cumulative seen set. The persisted FIFO above only
   // freshens the INITIAL deal cross-session; `seen` accumulates EVERY served key, so each
@@ -159,7 +152,7 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
   // (~ceil(pool/15) deals), wrapping when exhausted — never a shallow top-N carousel.
   // Seeded from the initial deck via a guarded lazy ref (StrictMode-safe: no render mutation).
   const seenRef = useRef(null)
-  if (seenRef.current === null) seenRef.current = new Set(deck.map((x) => keyOf(x)))
+  if (seenRef.current === null) seenRef.current = new Set(deck.map((x) => deckKeyOf(x)))
   // BATCH 5: re-deal counter — keys SwipeDeck so a "Deal again" remounts it with the
   // next batch (its derived index resets in lockstep with into/nope below).
   const [dealNum, setDealNum] = useState(0)
@@ -174,24 +167,29 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
   // tracks SwipeDeck's internal index in lockstep — counthead, dots and the
   // top-card read below are unchanged from the pre-refactor component.
   const rated = into + nope
-  const verdictNo = (e) => {
+  const verdictNo = async (e) => {
+    const result = await recordDeck(e)
+    if (result?.applied !== true) return false
     recordCalibration('no', e) // −1 category, floored at 0 (P4)
-    pushLastDeal(kind, keyOf(e))
     setNope((n) => n + 1)
+    return true
   }
-  const verdictYes = (e) => {
+  const verdictYes = async (e) => {
+    const result = await recordDeck(e)
+    if (result?.applied !== true) return false
     recordCalibration('yes', e)
-    pushLastDeal(kind, keyOf(e))
     setInto((n) => n + 1)
+    return true
   }
   const verdictSave = async (e) => {
+    const retained = await recordDeck(e)
+    if (retained?.applied !== true) return false
     // 'yes' and 'save' are both "into it"; exactly ONE +3 signal either way
     if (!has(e)) {
       const result = await toggle(e) // changed save-on records the +3 centrally
       const changed = result?.changed === true || result?.applied === true
       if (!changed || result?.saved !== true) return false
     } else recordCalibration('yes', e) // save on an already-saved card
-    pushLastDeal(kind, keyOf(e))
     setInto((n) => n + 1)
     return true
   }
@@ -203,8 +201,14 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
   // kept in-feed "See all N" fallback + curate.js's count-preserving proof.)
   const dealAgain = () => {
     const next = isPlaces
-      ? nextPlacesBatch(places, seenRef.current, { persisted: loadLastDeal('places') })
-      : nextEventsBatch(events, anchors, seenRef.current, { persisted: loadLastDeal('events') })
+      ? nextPlacesBatch(places, seenRef.current, {
+          persisted: placeDeckExclusions,
+          excludeItem: isPlaceDeckExcluded,
+        })
+      : nextEventsBatch(events, anchors, seenRef.current, {
+          persisted: eventDeckExclusions,
+          excludeItem: isEventDeckExcluded,
+        })
     setDeck(next)
     setInto(0)
     setNope(0)
@@ -329,7 +333,7 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
             <SwipeDeck
               key={dealNum}
               cards={deck}
-              keyFor={keyOf}
+              keyFor={deckKeyOf}
               classPrefix="deck"
               apiRef={deckApi}
               renderCard={isPlaces ? (e) => <PlaceDeckFace e={e} /> : (e) => <DeckFace e={e} />}
@@ -412,6 +416,36 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
       </div>
     </div>
   )
+}
+
+export default function CalibrationDeck(props) {
+  const activity = useActivity()
+  if (!activity.ready) {
+    const failed = ['corrupt', 'error'].includes(activity.status)
+    return (
+      <div className="pg deck">
+        <header className="pg-head deck-head">
+          <button className="pg-back" onClick={props.onClose} aria-label="Close">
+            <Icon.chevron />
+          </button>
+          <h1 className="pg-head-title">Dial It In</h1>
+        </header>
+        <div className="pg-body deck-body">
+          <div className="deck-empty">
+            <p role={failed ? 'alert' : 'status'}>
+              {failed
+                ? 'Your deck history could not be loaded. Try again before rating cards.'
+                : 'Getting your deck history ready…'}
+            </p>
+            <button className="deck-done-btn pressable" onClick={props.onClose}>
+              {props.closeLabel || 'Back to Settings'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+  return <ReadyCalibrationDeck {...props} activity={activity} />
 }
 
 // TINDER Spots deck: lazy-loads the places store (the deck deals ONCE on mount, so

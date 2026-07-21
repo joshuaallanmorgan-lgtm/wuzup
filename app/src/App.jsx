@@ -11,6 +11,7 @@ import { LocationProvider, useLocationPermission } from './LocationProvider.jsx'
 import { PlannerProvider } from './PlannerProvider.jsx'
 import { CustomEventsProvider, useCustomEvents } from './CustomEventsProvider.jsx'
 import { SavedBeenProvider, useSavedBeen } from './SavedBeenProvider.jsx'
+import { ActivityProvider, useActivity } from './ActivityProvider.jsx'
 import { CITY } from './city.js'
 import { identitySeedsForCity } from './identity-seeds.js'
 import { GUIDES } from './guides.js'
@@ -126,27 +127,31 @@ function restoreLayerFocus(target, fallbackRoot) {
 export default function App() {
   return (
     <CustomEventsProvider>
-      <NavProvider>
-        <LocationProvider>
-          <Shell />
-        </LocationProvider>
-      </NavProvider>
+      <ActivityProvider>
+        <NavProvider>
+          <LocationProvider>
+            <Shell />
+          </LocationProvider>
+        </NavProvider>
+      </ActivityProvider>
     </CustomEventsProvider>
   )
+}
+
+function noticeStackClass(stackLevel) {
+  if (stackLevel > 2) return ' is-triple-stacked'
+  if (stackLevel > 1) return ' is-double-stacked'
+  if (stackLevel === 1) return ' is-stacked'
+  return ''
 }
 
 function SavedBeenNotice({ visible, layered, stackLevel = 0 }) {
   const savedBeen = useSavedBeen()
   if (!visible || !['session-only', 'corrupt', 'error'].includes(savedBeen.status)) return null
 
-  const stackClass = stackLevel > 1
-    ? ' is-double-stacked'
-    : stackLevel === 1
-      ? ' is-stacked'
-      : ''
   return (
     <div
-      className={'load-note' + (layered ? ' is-layered' : '') + stackClass}
+      className={'load-note' + (layered ? ' is-layered' : '') + noticeStackClass(stackLevel)}
       role={savedBeen.status === 'session-only' ? 'status' : 'alert'}
     >
       <span className="load-txt">
@@ -156,6 +161,35 @@ function SavedBeenNotice({ visible, layered, stackLevel = 0 }) {
       </span>
       {savedBeen.status === 'session-only' && (
         <button className="load-retry" onClick={() => savedBeen.retryPersistence()}>
+          Try saving again
+        </button>
+      )}
+    </div>
+  )
+}
+
+function ActivityNotice({ visible, layered, stackLevel = 0 }) {
+  const activity = useActivity()
+  const savedBeen = useSavedBeen()
+  if (!visible || !['session-only', 'corrupt', 'error'].includes(activity.status)) return null
+
+  const savedVisible = ['session-only', 'corrupt', 'error'].includes(savedBeen.status)
+  const retry = activity.retryPersistence || activity.retry
+  const canRetry = typeof retry === 'function' && activity.recovery?.canRetry === true
+  return (
+    <div
+      className={'load-note'
+        + (layered ? ' is-layered' : '')
+        + noticeStackClass(stackLevel + Number(savedVisible))}
+      role={activity.status === 'session-only' ? 'status' : 'alert'}
+    >
+      <span className="load-txt">
+        {activity.status === 'session-only'
+          ? "Recent views and deck history are here for this visit, but haven't been saved yet."
+          : 'Recent views and deck history could not be loaded.'}
+      </span>
+      {canRetry && (
+        <button className="load-retry" onClick={() => retry()}>
           Try saving again
         </button>
       )}
@@ -474,6 +508,12 @@ function Shell() {
           </div>
         )}
         <SavedBeenNotice
+          visible={Boolean(primer)}
+          layered={Boolean(page || detail)}
+          stackLevel={Number(transportError || staleAt != null)
+            + Number(['session-only', 'corrupt', 'error'].includes(customEvents.status))}
+        />
+        <ActivityNotice
           visible={Boolean(primer)}
           layered={Boolean(page || detail)}
           stackLevel={Number(transportError || staleAt != null)

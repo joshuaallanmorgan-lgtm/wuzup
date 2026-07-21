@@ -17,9 +17,9 @@
 import { useMemo, useState } from 'react'
 import { CITY, formatCityInstant, Icon } from './lib.js'
 import { coverageStats, dayStamp } from './coverage.js'
+import { useActivity } from './ActivityProvider.jsx'
 import { useLocationPermission } from './LocationProvider.jsx'
 import { useNav } from './nav.jsx'
-import { lsRemove } from './storage.js'
 import { resetTaste } from './taste.js'
 import Primer from './Primer.jsx'
 import './settings.css'
@@ -53,10 +53,12 @@ export default function SettingsPage({ events, dataMeta, primer, onPrimerDone })
   // openAttribution (Stage E ⚑X3): the About row → Data & photo credits page
   // (single-slot REPLACE; its back affordance reopens Settings)
   const { closePage: onClose, openAttribution } = useNav()
+  const { clearDeckMemories } = useActivity()
   const location = useLocationPermission()
   const [retaking, setRetaking] = useState(false)
   const [arming, setArming] = useState(false) // reset's two-step confirm
   const [resetStatus, setResetStatus] = useState(null)
+  const [resetPending, setResetPending] = useState(false)
 
   // events + distinct source FAMILIES in the fetched dataset — the shared
   // coverage.js derivation (one tally, spoken here, on Home's Coverage Card,
@@ -65,15 +67,25 @@ export default function SettingsPage({ events, dataMeta, primer, onPrimerDone })
   const dataAt = dataMeta?.generatedAt ? Date.parse(dataMeta.generatedAt) : null
   const sourceHealth = dataMeta?.sourceHealth?.status
 
-  const doReset = () => {
-    const outcomes = [
-      resetTaste(), // wipes taste-v1 + the in-memory profile (taste.js owns both)
-      lsRemove('fmn-seen-v1'), // Find My Night's no-repeat memory starts over too
-      lsRemove('deck-last-v1'), // includes the deck's rated-card memory
-    ]
-    const persisted = outcomes.every(Boolean)
+  const doReset = async () => {
+    if (resetPending) return
+    setResetPending(true)
+    setResetStatus(null)
+    const result = await clearDeckMemories()
+    if (result?.applied !== true) {
+      setResetPending(false)
+      setArming(false)
+      setResetStatus('failed')
+      return
+    }
+    const tastePersisted = resetTaste()
+    setResetPending(false)
     setArming(false)
-    setResetStatus(persisted ? 'persisted' : 'session-only')
+    setResetStatus(
+      tastePersisted && result.persisted === true && result.durability !== 'session-only'
+        ? 'persisted'
+        : 'session-only'
+    )
   }
 
   return (
@@ -126,10 +138,15 @@ export default function SettingsPage({ events, dataMeta, primer, onPrimerDone })
                   Wipe everything this phone has learned about your taste? Saves and plans stay. No undo.
                 </div>
                 <div className="st-confirm-btns">
-                  <button className="st-confirm-yes" onClick={doReset}>
-                    Yes — wipe it
+                  <button
+                    className="st-confirm-yes"
+                    onClick={doReset}
+                    disabled={resetPending}
+                    aria-busy={resetPending || undefined}
+                  >
+                    {resetPending ? 'Wiping…' : 'Yes — wipe it'}
                   </button>
-                  <button className="st-confirm-no" onClick={() => setArming(false)}>
+                  <button className="st-confirm-no" onClick={() => setArming(false)} disabled={resetPending}>
                     Keep it
                   </button>
                 </div>
@@ -141,6 +158,11 @@ export default function SettingsPage({ events, dataMeta, primer, onPrimerDone })
               <div className="st-reset-error" role="alert">
                 Cleared for this visit, but your browser could not save the reset.
                 Some preferences may return after you close Wuzup.
+              </div>
+            )}
+            {resetStatus === 'failed' && (
+              <div className="st-reset-error" role="alert">
+                Wuzup could not clear what it learned. Nothing was reported as wiped; try again.
               </div>
             )}
           </div>

@@ -26,6 +26,7 @@ export const ACTIVITY_DOCUMENT_MAX_BYTES = 2 * 1024 * 1024
 export const ACTIVITY_DOCUMENT_MAX_DEPTH = 4
 
 const CITY_ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const CUSTOM_BRIDGE_RE = /^wuzup:custom-bridge:v1:[0-9]+:[0-9a-f]{16}$/
 const ENCODER = new TextEncoder()
 const KINDS = new Set(['event', 'custom', 'place', 'unknown'])
 const EVENT_KINDS = new Set(['event', 'custom'])
@@ -327,6 +328,10 @@ function boundedIdentityRefOf(item, forcedKind = null) {
     if (Array.isArray(item.identityAliases)) {
       projected.identityAliases = orderedStrings([item.identityAliases])
     }
+    if (customKind && Array.isArray(item._sessionIdentityAliases)) {
+      projected._sessionIdentityAliases = orderedStrings([item._sessionIdentityAliases])
+        .filter((alias) => CUSTOM_BRIDGE_RE.test(alias))
+    }
 
     const ref = identityRefOf(projected)
     if (!usableString(ref.primary)) return null
@@ -480,6 +485,22 @@ export function clearActivityCollection(
     : { document, changed: false, code: 'invalid-document' }
 }
 
+export function clearActivityDecks(value, { cityId } = {}) {
+  const document = normalizeActivityState(value, { cityId })
+  if (!document) return { document: value, changed: false, code: 'invalid-document' }
+  if (document.eventDeck.length === 0 && document.placeDeck.length === 0) {
+    return { document, changed: false, code: 'already-empty' }
+  }
+  const next = normalizeActivityState({
+    ...document,
+    eventDeck: [],
+    placeDeck: [],
+  }, { cityId })
+  return next
+    ? { document: next, changed: true, code: 'cleared-decks' }
+    : { document, changed: false, code: 'invalid-document' }
+}
+
 export function activityExclusionKeys(
   value,
   {
@@ -525,6 +546,25 @@ function catalogRefs(values, forcedKind = null) {
   return out
 }
 
+function catalogEntries(values, forcedKind = null) {
+  const out = []
+  const source = Array.isArray(values) ? values : []
+  const limit = Math.min(source.length, ACTIVITY_COLLECTION_SCAN_MAX * 32)
+  for (let index = 0; index < limit; index += 1) {
+    const item = source[index]
+    if (!isObject(item)) continue
+    const ref = boundedIdentityRefOf(item, forcedKind)
+    if (!ref || (!forcedKind && !EVENT_KINDS.has(ref.kind))) continue
+    out.push({
+      kind: ref.kind,
+      primary: ref.primary,
+      aliases: ref.aliases,
+      catalogItem: item,
+    })
+  }
+  return out
+}
+
 function seedRecords(values, domain) {
   const out = []
   const source = Array.isArray(values) ? values : []
@@ -536,6 +576,67 @@ function seedRecords(values, domain) {
     if (!ref) continue
     if (domain === 'place' ? ref.kind !== 'place' : !EVENT_KINDS.has(ref.kind)) continue
     out.push({ aliases: ref.aliases })
+  }
+  return out
+}
+
+function resolutionProbe(ref) {
+  if (ref.status === 'attached') return ref
+  if (ref.status === 'ambiguous') {
+    return {
+      kind: ref.kind,
+      primary: ref.legacyKey,
+      aliases: [ref.legacyKey, ...ref.candidates],
+    }
+  }
+  return ref.legacyKey
+}
+
+export function resolveActivityRefs(
+  refs,
+  items,
+  {
+    kind = 'event',
+    seeds = [],
+  } = {},
+) {
+  if (!['event', 'place'].includes(kind)) return []
+  const entries = catalogEntries(items, kind === 'place' ? 'place' : null)
+  const index = createIdentityIndex({
+    items: entries,
+    records: seedRecords(seeds, kind),
+  })
+  const source = Array.isArray(refs) ? refs : []
+  const out = []
+  const seen = new Set()
+  const limit = Math.min(source.length, ACTIVITY_COLLECTION_SCAN_MAX)
+  for (let row = 0; row < limit; row += 1) {
+    const ref = normalizeRef(source[row], null)
+    if (!ref) continue
+    if (kind === 'place' && !['place', 'unknown'].includes(ref.kind)) continue
+    if (kind === 'event' && ref.kind === 'place') continue
+    let resolution
+    try {
+      const exact = ref.status === 'attached'
+        ? index.byPrimary.get(ref.primary) || []
+        : []
+      if (exact.length > 1) continue
+      resolution = exact.length === 1
+        ? {
+            status: 'resolved',
+            primary: exact[0].primary,
+            item: exact[0].item,
+            matchedBy: 'primary',
+          }
+        : resolveIdentity(resolutionProbe(ref), index)
+    } catch {
+      continue
+    }
+    if (resolution.status !== 'resolved' || seen.has(resolution.primary)) continue
+    const item = resolution.item?.catalogItem
+    if (!isObject(item)) continue
+    seen.add(resolution.primary)
+    out.push(item)
   }
   return out
 }

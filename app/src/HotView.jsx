@@ -4,6 +4,7 @@
 // EVENTS_GRIND: Tonight carousel → vertical GemRow "Tonight's best bets" +
 // new "This weekend" section (day-grouped GemRow); both gain honest _why lines.
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { useActivity } from './ActivityProvider.jsx'
 import { addDayTs, BUBBLES, CAT_BUBBLES, cityHour, CITY, Icon, LENS_BUBBLES, dayLabel, fmtLocale, hotDesc, keyOf, orderDay, tonightModel, weekdayIndex } from './lib.js'
 import LensNav from './LensNav.jsx'
 import TasteTuner from './TasteTuner.jsx'
@@ -13,7 +14,6 @@ import { GemRow, IntentTile, NbhdCard, ResultCard, RowFeed, SecHead, SkeletonRow
 import { GUIDES, useGuides, watchGuideActive, resolveWatchGuide } from './guides.js'
 import { shelfItems, useSaves } from './saves.js'
 import { railReady, tasteNudge, topCategories, useTaste } from './taste.js'
-import { useRecents } from './recents.js'
 import { DeckThisButton } from './LensDeck.jsx'
 import SearchBarButton from './SearchBarButton.jsx'
 import { whyFits } from './weekend.js'
@@ -38,6 +38,7 @@ const cityOf = (addr) => {
 
 export default function HotView({ events, retainedEvents = events, anchors, loading, loadError = false }) {
   const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, openGuide, openEvFilters, openDeck, goTo } = useNav()
+  const { recentRefs, sessionRecentRefs, resolveRecentRefs } = useActivity()
   const wx = useContext(WxContext) // access weather without prop threading
   const scrollRef = useRef(null)
   const evRef = useRef(null)
@@ -103,16 +104,10 @@ export default function HotView({ events, retainedEvents = events, anchors, load
     return picks.length >= 3 ? picks : null
   }, [upcoming, taste])
 
-  const { keys: recentKeys, session } = useRecents()
-  const byKey = useMemo(() => {
-    const m = new Map()
-    for (const e of upcoming) m.set(keyOf(e), e)
-    return m
-  }, [upcoming])
   const recents = useMemo(() => {
-    const out = recentKeys.map((k) => byKey.get(k)).filter(Boolean).slice(0, 6)
+    const out = resolveRecentRefs(recentRefs, upcoming).slice(0, 6)
     return out.length >= 2 ? out : []
-  }, [recentKeys, byKey])
+  }, [recentRefs, resolveRecentRefs, upcoming])
 
   const feed = useMemo(
     () =>
@@ -127,17 +122,17 @@ export default function HotView({ events, retainedEvents = events, anchors, load
   const evSections = seeAllEv ? feed.full : feed.curated
 
   const recapRows = useMemo(
-    () => session.slice(0, 3).map((k) => byKey.get(k)).filter(Boolean),
-    [session, byKey]
+    () => resolveRecentRefs(sessionRecentRefs, upcoming).slice(0, 3),
+    [sessionRecentRefs, resolveRecentRefs, upcoming]
   )
   const nowHour = cityHour(nowMs)
   const daypart = nowHour >= 17 || nowHour < 5 ? 'tonight' : 'today'
   const recap =
-    session.length >= 3 ? (
+    recapRows.length >= 3 ? (
       <div className="recap">
         <div className="recap-over">Before you go</div>
         <div className="recap-title">
-          You eyed {session.length} ideas {daypart}
+          You eyed {recapRows.length} ideas {daypart}
         </div>
         {recapRows.length > 0 && (
           <div className="recap-rows">

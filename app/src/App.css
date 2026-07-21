@@ -734,6 +734,12 @@
 .load-note.is-layered.is-double-stacked {
   top: calc(148px + env(safe-area-inset-top));
 }
+.load-note.is-triple-stacked {
+  top: calc(136px + env(safe-area-inset-top));
+}
+.load-note.is-layered.is-triple-stacked {
+  top: calc(190px + env(safe-area-inset-top));
+}
 .load-retry {
   flex: none;
   border: none;

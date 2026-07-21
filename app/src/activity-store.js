@@ -12,6 +12,7 @@ import {
   activityRefOf,
   activityStateBytes,
   clearActivityCollection,
+  clearActivityDecks,
   emptyActivityState,
   migrateV1ActivityState,
   normalizeActivityState,
@@ -48,7 +49,7 @@ function exactActivityDocument(value, cityId) {
 
 function collectionKind(collection) {
   if (collection === 'placeDeck') return 'place'
-  if (collection === 'eventDeck') return 'event'
+  if (collection === 'eventDeck' || collection === 'recents') return 'event'
   return null
 }
 
@@ -66,8 +67,22 @@ export function activityClearCommand(collection) {
   return COLLECTIONS.has(collection) ? { type: 'clear', collection } : null
 }
 
+export function activityClearDecksCommand() {
+  return { type: 'clear-decks' }
+}
+
 function reduceActivityDocument(cityId, document, command) {
-  if (!isObject(command) || !COLLECTIONS.has(command.collection)) {
+  if (!isObject(command)) {
+    return { document, changed: false, code: 'invalid-command' }
+  }
+  if (command.type === 'clear-decks') {
+    const reduced = clearActivityDecks(document, { cityId })
+    return {
+      ...reduced,
+      canonicalCommand: { type: 'clear-decks' },
+    }
+  }
+  if (!COLLECTIONS.has(command.collection)) {
     return { document, changed: false, code: 'invalid-command' }
   }
   if (command.type === 'record') {

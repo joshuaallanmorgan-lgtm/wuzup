@@ -249,22 +249,22 @@ test('storage listeners, profile identity, and session fatigue use canonical sco
   const weather = readFileSync(join(ROOT, 'app', 'src', 'weather.js'), 'utf8')
   const settings = readFileSync(join(ROOT, 'app', 'src', 'SettingsPage.jsx'), 'utf8')
 
-  // Saves/Been now cross the city-bound atomic provider rather than owning a
-  // second storage listener. The remaining V1 taste and recents modules still
-  // have to use the canonical physical-key seam until their scheduled cutover.
+  // Saves/Been and retained activity now cross their city-bound atomic
+  // providers rather than owning parallel storage listeners. Taste remains on
+  // the canonical physical-key seam until its scheduled destination cutover.
   assert.match(saves, /useSavedBeen\(\)/)
   assert.doesNotMatch(saves, /physicalKey\(|localStorage|addEventListener\(['"]storage/)
-  for (const source of [recents, taste]) {
-    assert.match(source, /physicalKey\(/)
-    assert.doesNotMatch(source, /PREFIX \+ KEY/)
-  }
+  assert.match(recents, /useActivity\(\)/)
+  assert.doesNotMatch(recents, /physicalKey\(|localStorage|addEventListener\(['"]storage/)
+  assert.match(taste, /physicalKey\(/)
+  assert.doesNotMatch(taste, /PREFIX \+ KEY/)
   assert.match(edit, /globalGet/)
   assert.match(edit, /globalSet/)
   assert.match(profile, /globalGet/)
   assert.match(tuner, /CITY\.id/)
   assert.match(weather, /CITY\.id === 'tampa-bay' && CACHE_KEY !== LEGACY_WX_KEY/)
-  assert.match(settings, /const outcomes = \[/)
-  assert.match(settings, /outcomes\.every\(Boolean\)/)
-  assert.match(settings, /setResetStatus\(persisted \? 'persisted' : 'session-only'\)/)
+  assert.match(settings, /await clearDeckMemories\(\)/)
+  assert.match(settings, /result\?\.applied !== true/)
+  assert.match(settings, /result\.persisted === true/)
   assert.match(settings, /browser could not save the reset/i)
 })

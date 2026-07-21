@@ -971,6 +971,41 @@ and migration tests pass; planner operations are idempotent and survive reload.
   deliberately gates only the current two shipped market packs. A behavioral StrictMode rejection test, bounded
   Permissions-query wait, denial recovery without change events, and resume-age refresh remain bounded P2 work.
 
+#### Sprint 3 atomic retained-activity runtime cutover receipt - 2026-07-20 (yellow)
+
+- **One destination-first provider now owns active recents and deck memory:** `ActivityProvider` is city-keyed,
+  StrictMode-safe, catalog-gated, and mounted outside navigation. It observes the lazy place artifact without
+  activating it, owns one `activity-v2` document, and leaves every V1 recent/deck byte untouched as capture-only
+  rollback evidence. The active runtime has no parallel V1 reader, writer, listener, or singleton.
+- **Recent activity is kind-correct and honest:** only event/custom detail views enter the bounded retained and
+  tab-local recent lists. Place views cannot consume the event recap cap, and the recap threshold and count derive
+  from successfully resolved live event rows rather than raw references, so ambiguity or catalog drift cannot
+  produce a blank claim.
+- **Deck freshness keeps exact identity without starving neighbors:** event and place memories remain independent;
+  stable primaries, bounded aliases, historical seeds, and opaque custom bridges resolve only when unique.
+  `deckKeyOf` carries primary identity through initial sampling, cumulative seen state, re-deals, and SwipeDeck
+  keys. A retained exact item stays excluded while a distinct same-URL/time neighbor remains reachable.
+- **Mutation and recovery truth are atomic:** record, clear-both-decks, and retry actions serialize and validate the
+  exact reducer code, durability, concurrency, terminal document state, and atomic operation receipts. Session-only
+  `recorded`, `already-current`, `cleared-decks`, and `already-empty` outcomes remain usable without claiming durable
+  storage. Retry may rebase over another tab only when every remembered command is receipted and collateral state
+  survives; forged or substituted outcomes fail closed.
+- **Consumers distinguish applied state from persistence:** calibration taste/progress and Settings reset advance
+  only after an exact applied outcome, while persistent copy and the recovery banner use `persisted`, `durability`,
+  and an explicit `canRetry: true`. One clear-decks command wipes both memories; corrupt/unknown states expose no
+  dead retry control, and stacked recovery notices remain operable.
+- **The full gate caught and closed an independent time-path defect:** non-nightlife junk-hour normalization ran
+  after the first finder actionability filter and could create mixed-precision output. Explicit end evidence is now
+  preserved, uncertain rows fail closed at a final post-normalization actionability choke point, no-end rows remain
+  useful, and nightlife time is unchanged.
+- **Verification and review are green:** the registered retained-activity gate passes 104/104; custom-event and
+  Saved/Been compatibility gates pass 113/113 and 101/101; app lint and production build pass; the deterministic
+  finder time suite passes 13/13 and the live fast-finder benchmark is green. The complete serial repository gate
+  passes 700/700. Two independent adversarial re-reviews record **SHIP** with no P0/P1 remaining.
+- **Sprint 3 remains yellow only at the city/runtime boundary:** the atomic retained-value domains, time, identity,
+  planner, and truthful geolocation seams are now active. Runtime city resolution and a checked-in Tampa/SF browser
+  journey remain the bounded handoff into the L0 follow-up and Sprint 4 release harness.
+
 ### Sprint 4 - P0 core journeys and the browser release harness
 
 **Outcome:** every known release blocker is fixed through the real browser journey, not only a source seam.

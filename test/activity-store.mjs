@@ -7,11 +7,13 @@ import {
   activityExclusionKeys,
   activityRefOf,
   clearActivityCollection,
+  clearActivityDecks,
   emptyActivityState,
   recordActivityRef,
 } from '../app/src/activity-state-core.js'
 import {
   activityClearCommand,
+  activityClearDecksCommand,
   activityRecordCommand,
   captureActivityV1Source,
   createActivityStore,
@@ -461,6 +463,38 @@ test('atomic activity store migrates once, publishes same-tab snapshots, and rep
   const cleared = await store.dispatch(activityClearCommand('eventDeck'))
   assert.equal(cleared.changed, true)
   assert.deepEqual(store.getSnapshot().document.eventDeck, [])
+  store.destroy()
+})
+
+test('one canonical clear-decks command atomically clears both calibration memories', async () => {
+  assert.deepEqual(activityClearDecksCommand(), { type: 'clear-decks' })
+  const seeded = {
+    ...emptyActivityState(CITY.id),
+    eventDeck: [activityRefOf(event(1), { kind: 'event' })],
+    placeDeck: [activityRefOf(place(1), { kind: 'place' })],
+  }
+  const reduced = clearActivityDecks(seeded, { cityId: CITY.id })
+  assert.equal(reduced.code, 'cleared-decks')
+  assert.deepEqual(reduced.document.eventDeck, [])
+  assert.deepEqual(reduced.document.placeDeck, [])
+
+  const storage = createMemoryStorage()
+  const store = createActivityStore({
+    city: CITY,
+    storageFactory: storage.factory,
+    lockManager: createLockManager(),
+    eventTarget: null,
+    createId: createIds(),
+    contextId: 'activity-clear-decks',
+  })
+  await store.initialize({ source: { recents: [], eventDeck: [], placeDeck: [] } })
+  await store.dispatch(activityRecordCommand('eventDeck', event(1)))
+  await store.dispatch(activityRecordCommand('placeDeck', place(1)))
+  const result = await store.dispatch(activityClearDecksCommand())
+  assert.equal(result.changed, true)
+  assert.equal(result.code, 'cleared-decks')
+  assert.deepEqual(store.getSnapshot().document.eventDeck, [])
+  assert.deepEqual(store.getSnapshot().document.placeDeck, [])
   store.destroy()
 })
 

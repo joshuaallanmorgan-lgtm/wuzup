@@ -3,22 +3,37 @@
 // never-hide coverage proof is testable in Node: this module imports ONLY pure
 // lib/categories helpers — no React, no CSS, no storage. The component keeps the
 // persisted-FIFO (deck-last-v1, localStorage) and passes it in as `persisted`.
+import { primaryKeyOf } from './identity.js'
 import { hotDesc, keyOf } from './lib.js'
 import { CATEGORIES } from './categories.js'
 
 export const DECK_SIZE = 15
 const FILL_CAT_CAP = 2 // remainder fill: at most 2 of any category in a deal
 
+export function deckKeyOf(item) {
+  const primary = primaryKeyOf(item)
+  return primary && primary !== '|' ? primary : keyOf(item)
+}
+
 // ===== THE SAMPLER — pure, rng-injectable (Node sims pass a seeded rng).
 // Stratify first (one hottest per registry category — taste-SPANNING), then fill
 // with high-hotScore diverse picks (<=2/category), then shuffle so the deal order
 // doesn't telegraph the category walk. Always real events; SPONSORED IS EXCLUDED —
 // a paid placement must not harvest taste calibration. =====
-export function dealDeck(events, anchors, { exclude = new Set(), size = DECK_SIZE, rng = Math.random } = {}) {
+export function dealDeck(events, anchors, {
+  exclude = new Set(),
+  excludeItem = null,
+  size = DECK_SIZE,
+  rng = Math.random,
+} = {}) {
+  const isRetained = typeof excludeItem === 'function' ? excludeItem : () => false
   const upcoming = events.filter(
-    (e) => e._day != null && (e._endDay ?? e._day) >= anchors.todayTs && e.sponsored !== true
+    (e) => e._day != null
+      && (e._endDay ?? e._day) >= anchors.todayTs
+      && e.sponsored !== true
+      && !isRetained(e)
   )
-  let pool = upcoming.filter((e) => !exclude.has(keyOf(e)))
+  let pool = upcoming.filter((e) => !exclude.has(deckKeyOf(e)))
   if (!pool.length) pool = upcoming // tiny-dataset fallback: re-rating beats a dead deck
   const byCat = new Map()
   for (const e of pool) {
@@ -36,26 +51,26 @@ export function dealDeck(events, anchors, { exclude = new Set(), size = DECK_SIZ
     const list = byCat.get(id)
     if (list && list.length && picked.length < size) {
       picked.push(list[0])
-      taken.add(keyOf(list[0]))
+      taken.add(deckKeyOf(list[0]))
     }
   }
-  const rest = pool.filter((e) => !taken.has(keyOf(e))).sort(hotDesc)
+  const rest = pool.filter((e) => !taken.has(deckKeyOf(e))).sort(hotDesc)
   const catCount = {}
   for (const e of picked) catCount[e.category] = (catCount[e.category] || 0) + 1
   for (const e of rest) {
     if (picked.length >= size) break
     if ((catCount[e.category] || 0) >= FILL_CAT_CAP) continue
     picked.push(e)
-    taken.add(keyOf(e))
+    taken.add(deckKeyOf(e))
     catCount[e.category] = (catCount[e.category] || 0) + 1
   }
   if (picked.length < size) {
     // diversity cap left slots open (lopsided pool) — relax it rather than under-deal
     for (const e of rest) {
       if (picked.length >= size) break
-      if (!taken.has(keyOf(e))) {
+      if (!taken.has(deckKeyOf(e))) {
         picked.push(e)
-        taken.add(keyOf(e))
+        taken.add(deckKeyOf(e))
       }
     }
   }
@@ -69,9 +84,16 @@ export function dealDeck(events, anchors, { exclude = new Set(), size = DECK_SIZ
 // THE PLACES SAMPLER (Tinder Spots deck): same stratify->fill->shuffle shape, but
 // PLACES have no date/sponsored — the pool is every place, the stratum is PLACETYPE,
 // and corroboration (srcCount) is the place "hotness".
-export function dealPlaceDeck(places, { exclude = new Set(), size = DECK_SIZE, rng = Math.random } = {}) {
-  let pool = (places || []).filter((p) => !exclude.has(keyOf(p)))
-  if (!pool.length) pool = places || [] // tiny-pool fallback: re-rating beats a dead deck
+export function dealPlaceDeck(places, {
+  exclude = new Set(),
+  excludeItem = null,
+  size = DECK_SIZE,
+  rng = Math.random,
+} = {}) {
+  const isRetained = typeof excludeItem === 'function' ? excludeItem : () => false
+  const eligible = (places || []).filter((p) => !isRetained(p))
+  let pool = eligible.filter((p) => !exclude.has(deckKeyOf(p)))
+  if (!pool.length) pool = eligible // tiny-pool fallback: re-rating beats a dead deck
   const byType = new Map()
   for (const p of pool) {
     const t = p.placeType || 'spot'
@@ -86,23 +108,23 @@ export function dealPlaceDeck(places, { exclude = new Set(), size = DECK_SIZE, r
   for (const list of byType.values()) {
     if (picked.length >= size) break
     picked.push(list[0])
-    taken.add(keyOf(list[0]))
+    taken.add(deckKeyOf(list[0]))
   }
-  const rest = pool.filter((p) => !taken.has(keyOf(p))).sort(srcDesc)
+  const rest = pool.filter((p) => !taken.has(deckKeyOf(p))).sort(srcDesc)
   const typeCount = {}
   for (const p of picked) typeCount[p.placeType] = (typeCount[p.placeType] || 0) + 1
   for (const p of rest) {
     if (picked.length >= size) break
     if ((typeCount[p.placeType] || 0) >= FILL_CAT_CAP) continue
     picked.push(p)
-    taken.add(keyOf(p))
+    taken.add(deckKeyOf(p))
     typeCount[p.placeType] = (typeCount[p.placeType] || 0) + 1
   }
   for (const p of rest) {
     if (picked.length >= size) break
-    if (!taken.has(keyOf(p))) {
+    if (!taken.has(deckKeyOf(p))) {
       picked.push(p)
-      taken.add(keyOf(p))
+      taken.add(deckKeyOf(p))
     }
   }
   for (let i = picked.length - 1; i > 0; i--) {
@@ -125,21 +147,47 @@ export function dealPlaceDeck(places, { exclude = new Set(), size = DECK_SIZE, r
 // "See all N" fallback is the complete-set guarantee for anything it shadows.
 function nextBatch(all, seen, sample, persisted) {
   const persistedSet = persisted instanceof Set ? persisted : new Set(persisted || [])
-  const dealable = all.filter((e) => !persistedSet.has(keyOf(e)))
+  const dealable = all.filter((e) => !persistedSet.has(deckKeyOf(e)))
   // wrap: once every dealable event has been served this session, start the walk over
-  if (dealable.length && dealable.every((e) => seen.has(keyOf(e)))) seen.clear()
+  if (dealable.length && dealable.every((e) => seen.has(deckKeyOf(e)))) seen.clear()
   const exclude = new Set(persistedSet)
   for (const k of seen) exclude.add(k)
   const deck = sample(exclude)
-  for (const e of deck) seen.add(keyOf(e)) // mark SERVED so the next call moves forward
+  for (const e of deck) seen.add(deckKeyOf(e)) // mark SERVED so the next call moves forward
   return deck
 }
 
-export function nextEventsBatch(events, anchors, seen, { persisted = [], size = DECK_SIZE, rng = Math.random } = {}) {
-  const all = events.filter((e) => e._day != null && (e._endDay ?? e._day) >= anchors.todayTs && e.sponsored !== true)
-  return nextBatch(all, seen, (exclude) => dealDeck(events, anchors, { exclude, size, rng }), persisted)
+export function nextEventsBatch(events, anchors, seen, {
+  persisted = [],
+  excludeItem = null,
+  size = DECK_SIZE,
+  rng = Math.random,
+} = {}) {
+  const isRetained = typeof excludeItem === 'function' ? excludeItem : () => false
+  const all = events.filter((e) => e._day != null
+    && (e._endDay ?? e._day) >= anchors.todayTs
+    && e.sponsored !== true
+    && !isRetained(e))
+  return nextBatch(
+    all,
+    seen,
+    (exclude) => dealDeck(events, anchors, { exclude, excludeItem: isRetained, size, rng }),
+    persisted,
+  )
 }
 
-export function nextPlacesBatch(places, seen, { persisted = [], size = DECK_SIZE, rng = Math.random } = {}) {
-  return nextBatch(places || [], seen, (exclude) => dealPlaceDeck(places, { exclude, size, rng }), persisted)
+export function nextPlacesBatch(places, seen, {
+  persisted = [],
+  excludeItem = null,
+  size = DECK_SIZE,
+  rng = Math.random,
+} = {}) {
+  const isRetained = typeof excludeItem === 'function' ? excludeItem : () => false
+  const all = (places || []).filter((place) => !isRetained(place))
+  return nextBatch(
+    all,
+    seen,
+    (exclude) => dealPlaceDeck(places, { exclude, excludeItem: isRetained, size, rng }),
+    persisted,
+  )
 }
