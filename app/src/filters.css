@@ -34,7 +34,7 @@
 .flt-sheet {
   position: relative;
   width: 100%;
-  max-width: 460px;
+  max-width: var(--sheet-max);
   margin: 0 auto;
   background: var(--card);
   border-radius: var(--r-xl) var(--r-xl) 0 0;
@@ -58,8 +58,8 @@
 }
 
 .flt-close {
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--r-circle);
   background: var(--chip-fill);
   border: none;
@@ -94,6 +94,7 @@
 .flt-chip {
   display: inline-flex;
   align-items: center;
+  min-height: 44px;
   gap: 5px;
   padding: 7px 14px;
   border-radius: var(--r-lg);
@@ -123,6 +124,7 @@
 }
 
 .flt-reset {
+  min-height: 44px;
   font-size: 14px;
   font-weight: 700;
   color: var(--muted);
@@ -139,6 +141,7 @@
 }
 
 .flt-submit {
+  min-height: 44px;
   background: var(--cta);
   color: #fff;
   font-size: 14px;

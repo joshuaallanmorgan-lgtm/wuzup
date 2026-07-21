@@ -4,7 +4,7 @@
    overlay over the hero-photo ambiance, z 1900: above tabbar (1100) / FAB
    (1090) / subpages (1500), below detail (2000) and boot (2100). When mounted
    INSIDE a .subpage (re-entry), the subpage's persisted transform contains
-   this fixed overlay, so it fills the 460px frame identically while layering
+   this fixed overlay, so it fills the bounded reading canvas while layering
    at the subpage's own z. Teal is the selection color — the primer is app
    identity, not hot-ness. Scoped under .primer; nothing here leaks into the
    shared chrome. */
@@ -15,7 +15,7 @@
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 460px;
+  max-width: var(--reading-max);
   height: 100svh;
   z-index: 1900;
   overflow: hidden;
@@ -170,6 +170,7 @@
 
 .primer-back {
   margin-top: 18px;
+  min-height: 44px;
   padding: var(--sp-xs) 0;
   background: none;
   border: none;

@@ -7,7 +7,12 @@
    Q2a.) */
 
 .st { background: var(--bg); }
-.st-body { padding: 4px 0 120px; }
+.st-body {
+  width: 100%;
+  max-width: var(--reading-max);
+  margin-inline: auto;
+  padding: 4px 0 120px;
+}
 
 .st-sec { margin-top: var(--sp-lg); padding: 0 var(--gutter); }
 .st-sec:first-child { margin-top: var(--sp-xs); }

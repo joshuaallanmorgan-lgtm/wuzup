@@ -265,6 +265,9 @@ test('the composed Tampa and SF production builds keep the canonical plan journe
     server = await serveComposedSite(fixture.siteRoot)
     browser = await chromium.launch({ headless: true })
     const context = await browser.newContext({
+      // Axe is injected by Playwright, not shipped by Wuzup. Keep the product's
+      // strict script-src policy intact while allowing this test-only probe.
+      bypassCSP: true,
       locale: 'en-US',
       reducedMotion: 'reduce',
       timezoneId: 'UTC',

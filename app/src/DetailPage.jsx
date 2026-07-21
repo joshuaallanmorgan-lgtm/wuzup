@@ -21,6 +21,7 @@ import { useTaste } from './taste.js'
 import { daypartOf, DAYPART } from './weekend.js'
 import { CONDITION, dateKey } from './weather.js'
 import { rankRuntimeItems } from './relevance.js'
+import { presentRuntimeImage, RUNTIME_EVENT_IMAGE_POLICY } from './leadImage.js'
 import CorrectionSheet from './CorrectionSheet.jsx'
 import './detail.css'
 import './locations.css' // 3.7P-34: the shared "Add to day" sheet (.loc-plan-*) lives here
@@ -175,28 +176,22 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         .filter(Boolean)
         .join(' · ')
     : null
-  // ===== detail hero image: preload + 300ms fade over the dark placeholder =====
+  // ===== detail hero image: receipt gate + Aurora-underlaid async decode =====
+  const presentedImage = useMemo(
+    () => presentRuntimeImage(e, { policy: RUNTIME_EVENT_IMAGE_POLICY }),
+    [e],
+  )
+  const heroImage = presentedImage.image
   const [loadedSrc, setLoadedSrc] = useState(null)
   const [failedSrc, setFailedSrc] = useState(null)
-  useEffect(() => {
-    if (!e.image) return
-    const src = e.image
-    const img = new Image()
-    img.onload = () => setLoadedSrc(src)
-    img.onerror = () => setFailedSrc(src) // dead URL → fall back to category-art
-    img.src = src
-    return () => {
-      img.onload = null
-      img.onerror = null
-    }
-  }, [e.image])
-  const imgOk = loadedSrc === e.image
+  const imgOk = loadedSrc === heroImage
   // a real photo that loads → image hero; no image OR a broken URL → art hero.
   // failedSrc is compared against the CURRENT image (same derivation as imgOk):
   // a boolean here latched across More-like-this hops — a dead poster on event
   // A forced the art hero onto every event opened after it in this mounted
   // detail (Stage E ship gate — surfaced chasing the VSPC hotlink-block finds).
-  const heroArt = !e.image || failedSrc === e.image
+  const heroArt = !heroImage || failedSrc === heroImage
+  const heroLoading = Boolean(heroImage) && !heroArt && !imgOk
   // WS2 detail-rebuild: the hero time badge — GemRow's exact honesty gate (never
   // on an ongoing run, only a real start time; '' renders nothing).
   const heroTime = !e._ongoing ? timeOf(e.start) : ''
@@ -552,15 +547,29 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
       {/* no-image hero shares the I3 .imgbox-art composition (same hue + watermark
           the card showed), so the VT morph lands on matching artwork */}
       <div
-        className={'detail-hero' + (heroArt ? ' imgbox-art' : '')}
+        className={'detail-hero' + (heroArt || heroLoading ? ' imgbox-art' : '')}
         style={
-          heroArt
-            ? { viewTransitionName: 'evt-hero', ...auroraStyle(e) }
+          heroArt || heroLoading
+            ? {
+                viewTransitionName: 'evt-hero',
+                ...auroraStyle(e),
+                ...(heroLoading ? { height: '42svh', minHeight: '250px' } : {}),
+              }
             : { viewTransitionName: 'evt-hero', background: '#241c15' }
         }
       >
         {!heroArt ? (
-          <div className={'detail-hero-img' + (imgOk ? ' on' : '')} style={{ backgroundImage: `url(${e.image})` }} />
+          <img
+            className={'detail-hero-img' + (imgOk ? ' on' : '')}
+            src={heroImage}
+            alt=""
+            decoding="async"
+            referrerPolicy="no-referrer"
+            draggable={false}
+            onLoad={() => setLoadedSrc(heroImage)}
+            onError={() => setFailedSrc(heroImage)}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
         ) : (
           <span className="imgbox-mark" aria-hidden>
             {CATEGORY_EMOJI[e.category] ?? CATEGORY_EMOJI.other}
@@ -586,6 +595,19 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         {/* WS2 detail-rebuild: chrome-only scrim — the title moved below the hero
             (light surface), so the heavy bottom title-wash retired with it */}
         <div className="detail-hero-grad detail-hero-grad-ev" />
+        {!heroArt && presentedImage.imageCredit && (
+          <div className="hero-credit">
+            <a href={presentedImage.imageCredit.url} target="_blank" rel="noreferrer">
+              {presentedImage.imageCredit.attribution || `Photo: ${presentedImage.imageCredit.author}`}
+            </a>
+            {' · '}
+            {presentedImage.imageCredit.licenseUrl ? (
+              <a href={presentedImage.imageCredit.licenseUrl} target="_blank" rel="noreferrer">
+                {presentedImage.imageCredit.license}
+              </a>
+            ) : presentedImage.imageCredit.license}
+          </div>
+        )}
       </div>
       <div className="detail-body">
         {e.sponsored === true && <div className="sp-label detail-sp">Sponsored</div>}

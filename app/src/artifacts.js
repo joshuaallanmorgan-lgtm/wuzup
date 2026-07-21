@@ -19,6 +19,8 @@ import { CITY } from './city.js'
 
 const BASE = import.meta.env?.BASE_URL ?? '/'
 const EXPECTED_MANIFEST_ID = import.meta.env?.VITE_ARTIFACT_MANIFEST_ID ?? null
+const DEVELOPMENT_EXPIRED_PREVIEW = import.meta.env?.DEV === true
+  && import.meta.env?.VITE_ALLOW_EXPIRED_ARTIFACT_PREVIEW === '1'
 const textDecoder = new TextDecoder('utf-8', { fatal: true })
 const textEncoder = new TextEncoder()
 
@@ -139,7 +141,7 @@ async function parseManifest(bytes, options) {
   return manifest
 }
 
-function artifactMeta(manifest, kind) {
+function artifactMeta(manifest, kind, developmentExpired = false) {
   const entry = manifest.artifacts[kind]
   return {
     cityId: manifest.cityId,
@@ -156,6 +158,7 @@ function artifactMeta(manifest, kind) {
     bytes: entry.bytes,
     count: entry.count,
     warnings: artifactWarnings(entry),
+    developmentExpired,
   }
 }
 
@@ -177,6 +180,7 @@ export function createArtifactRepository({
     return timer
   },
   clearTimeoutImpl = (timer) => globalThis.clearTimeout(timer),
+  allowDevelopmentExpiredPreview = false,
 } = {}) {
   if (typeof fetchImpl !== 'function') throw new TypeError('createArtifactRepository requires fetchImpl')
   if (!expectedCityId || !expectedTimeZone) throw new TypeError('city id and timezone are required')
@@ -190,6 +194,7 @@ export function createArtifactRepository({
     now,
     isOnline,
     timeoutMs,
+    allowDevelopmentExpiredPreview: allowDevelopmentExpiredPreview === true,
   }
   const active = new Set()
   const listeners = new Set()
@@ -217,7 +222,9 @@ export function createArtifactRepository({
         && state.meta?.expiresAt
         && Date.parse(state.meta.expiresAt) <= now()
       ) {
-        states.set(kind, { ...state, status: 'stale', data: null, error: null })
+        states.set(kind, options.allowDevelopmentExpiredPreview
+          ? { ...state, meta: { ...state.meta, developmentExpired: true } }
+          : { ...state, status: 'stale', data: null, error: null })
         changed = true
       }
     }
@@ -229,7 +236,11 @@ export function createArtifactRepository({
     if (expiryTimer != null) clearTimeoutImpl(expiryTimer)
     expiryTimer = null
     const expiries = [...states.values()]
-      .filter((state) => ['ready', 'empty'].includes(state.status) && state.meta?.expiresAt)
+      .filter((state) => (
+        ['ready', 'empty'].includes(state.status)
+        && state.meta?.expiresAt
+        && !(options.allowDevelopmentExpiredPreview && state.meta.developmentExpired)
+      ))
       .map((state) => Date.parse(state.meta.expiresAt))
       .filter(Number.isFinite)
     if (!expiries.length) return
@@ -249,6 +260,12 @@ export function createArtifactRepository({
       && candidate.meta?.expiresAt
       && Date.parse(candidate.meta.expiresAt) <= now()
     ) {
+      if (options.allowDevelopmentExpiredPreview) {
+        return {
+          ...candidate,
+          meta: { ...candidate.meta, developmentExpired: true },
+        }
+      }
       return { ...candidate, status: 'stale', data: null, error: null }
     }
     return candidate
@@ -297,11 +314,16 @@ export function createArtifactRepository({
 
   async function candidateFor(kind, trustedManifest) {
     const entry = trustedManifest.artifacts[kind]
-    const meta = artifactMeta(trustedManifest, kind)
+    const expired = Boolean(entry.expiresAt && Date.parse(entry.expiresAt) <= now())
+    const meta = artifactMeta(
+      trustedManifest,
+      kind,
+      expired && options.allowDevelopmentExpiredPreview
+    )
     if (entry.sourceHealth?.status === 'failed') {
       throw new ArtifactError('SOURCE_HEALTH_FAILED', `${kind} sources failed their last verified run.`, false)
     }
-    if (entry.expiresAt && Date.parse(entry.expiresAt) <= now()) {
+    if (expired && !options.allowDevelopmentExpiredPreview) {
       return { kind, status: 'stale', data: null, meta, error: null }
     }
     const bytes = await requestBytes({
@@ -427,6 +449,7 @@ export const runtimeArtifacts = createArtifactRepository({
   expectedCityId: CITY.id,
   expectedTimeZone: CITY.tz,
   expectedManifestId: EXPECTED_MANIFEST_ID,
+  allowDevelopmentExpiredPreview: DEVELOPMENT_EXPIRED_PREVIEW,
 })
 
 const subscribeRuntime = (listener) => runtimeArtifacts.subscribe(listener)

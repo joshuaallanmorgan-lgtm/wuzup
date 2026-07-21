@@ -101,6 +101,21 @@ export default defineConfig({
   plugins: [
     react(),
     {
+      // Production keeps a strict meta CSP. Vite's development-only React
+      // refresh preamble is inline and HMR connects to a local WebSocket, so
+      // widen only the in-memory dev HTML instead of weakening shipped bytes.
+      name: 'development-csp',
+      apply: 'serve',
+      transformIndexHtml(html) {
+        return html
+          .replace("script-src 'self';", "script-src 'self' 'unsafe-inline';")
+          .replace(
+            "connect-src 'self' https://api.open-meteo.com;",
+            "connect-src 'self' https://api.open-meteo.com ws://localhost:* ws://127.0.0.1:*;",
+          )
+      },
+    },
+    {
       // D4: index.html's <title> carries the city name; the %CITY_NAME% token
       // is replaced here (dev + build) from the ONE city registry instead of a
       // second hardcoded copy of the name.
@@ -139,6 +154,10 @@ export default defineConfig({
     },
   ],
   build: {
+    // Sprint 10: emit Vite's module graph so CI can prove that route-only
+    // surfaces stay outside the eager boot payload. The manifest is build
+    // evidence only (under dist/.vite/) and is never fetched by the app.
+    manifest: true,
     rollupOptions: {
       output: {
         // C5: split the framework out of the app bundle. Dependencies change only

@@ -2,7 +2,7 @@
 // shared location state, and the primer gate. All
 // NAVIGATION state (active tab, subpage union, detail open/close + VT morph,
 // map focus) lives in nav.js (Sprint O6) — components reach it via useNav().
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon, currentEvents, keyOf, makeAnchors, normalize } from './lib.js'
 import { dayStamp } from './coverage.js'
 import { useArtifact } from './artifacts.js'
@@ -12,7 +12,6 @@ import { PlannerProvider } from './PlannerProvider.jsx'
 import { CustomEventsProvider, useCustomEvents } from './CustomEventsProvider.jsx'
 import { SavedBeenProvider, useSavedBeen } from './SavedBeenProvider.jsx'
 import { ActivityProvider, useActivity } from './ActivityProvider.jsx'
-import { StateTransferProvider } from './StateTransferProvider.jsx'
 import { bindRuntimeCityArtifact } from './runtime-city.js'
 import { useRuntimeCity } from './RuntimeCityProvider.jsx'
 import { identitySeedsForCity } from './identity-seeds.js'
@@ -31,35 +30,55 @@ import {
   WEATHER_STATUS,
 } from './weather.js'
 import HomeView from './HomeView.jsx'
-import HotView from './HotView.jsx'
-import LocationsView from './LocationsView.jsx'
-import CalendarView from './CalendarView.jsx'
-import ProfileView from './ProfileView.jsx'
-import MyPlansPage from './MyPlansPage.jsx'
-import MySavesPage from './MySavesPage.jsx'
-import EditProfilePage from './EditProfilePage.jsx'
-import HelpFeedbackPage from './HelpFeedbackPage.jsx'
-import ForecastPage from './ForecastPage.jsx'
-import NotificationsPage from './NotificationsPage.jsx'
-import FiltersSheet from './FiltersSheet.jsx'
-import DetailPage from './DetailPage.jsx'
-import PlaceDetail from './PlaceDetail.jsx'
-import BubblePage from './BubblePage.jsx'
-import PlaceBubblePage from './PlaceBubblePage.jsx'
-import GuidePage from './GuidePage.jsx'
-import SearchPage from './SearchPage.jsx'
-import AddEvent from './AddEvent.jsx'
-import DayPage from './DayPage.jsx'
-import CalendarPickerPage from './CalendarPickerPage.jsx'
-import SettingsPage from './SettingsPage.jsx'
-import AttributionPage from './AttributionPage.jsx'
-import SharedPlanPage from './SharedPlanPage.jsx'
-import DataTransferPage from './DataTransferPage.jsx'
-import InterestEditor from './InterestEditor.jsx'
-import TastePanel from './TastePanel.jsx'
-import CalibrationDeck, { PlacesDeck } from './CalibrationDeck.jsx'
-import LensDeck from './LensDeck.jsx'
 import './App.css'
+
+// Sprint 10: Home stays eager for first value. The other tabs, drill-ins,
+// details, and decks load only when opened, while their pager shells remain
+// mounted so navigation geometry and retained tab state stay stable.
+const HotView = lazy(() => import('./HotView.jsx'))
+const LocationsView = lazy(() => import('./LocationsView.jsx'))
+const CalendarView = lazy(() => import('./CalendarView.jsx'))
+const ProfileView = lazy(() => import('./ProfileView.jsx'))
+const MyPlansPage = lazy(() => import('./MyPlansPage.jsx'))
+const MySavesPage = lazy(() => import('./MySavesPage.jsx'))
+const EditProfilePage = lazy(() => import('./EditProfilePage.jsx'))
+const HelpFeedbackPage = lazy(() => import('./HelpFeedbackPage.jsx'))
+const ForecastPage = lazy(() => import('./ForecastPage.jsx'))
+const NotificationsPage = lazy(() => import('./NotificationsPage.jsx'))
+const FiltersSheet = lazy(() => import('./FiltersSheet.jsx'))
+const DetailPage = lazy(() => import('./DetailPage.jsx'))
+const PlaceDetail = lazy(() => import('./PlaceDetail.jsx'))
+const BubblePage = lazy(() => import('./BubblePage.jsx'))
+const PlaceBubblePage = lazy(() => import('./PlaceBubblePage.jsx'))
+const GuidePage = lazy(() => import('./GuidePage.jsx'))
+const SearchPage = lazy(() => import('./SearchPage.jsx'))
+const AddEvent = lazy(() => import('./AddEvent.jsx'))
+const DayPage = lazy(() => import('./DayPage.jsx'))
+const CalendarPickerPage = lazy(() => import('./CalendarPickerPage.jsx'))
+const SettingsPage = lazy(() => import('./SettingsPage.jsx'))
+const AttributionPage = lazy(() => import('./AttributionPage.jsx'))
+const SharedPlanPage = lazy(() => import('./SharedPlanPage.jsx'))
+const DataTransferRoute = lazy(() => import('./DataTransferRoute.jsx'))
+const InterestEditor = lazy(() => import('./InterestEditor.jsx'))
+const TastePanel = lazy(() => import('./TastePanel.jsx'))
+const CalibrationDeck = lazy(() => import('./CalibrationDeck.jsx'))
+const PlacesDeck = lazy(() => import('./CalibrationDeck.jsx').then(module => ({ default: module.PlacesDeck })))
+const LensDeck = lazy(() => import('./LensDeck.jsx'))
+
+function SurfaceLoading({ detail = false }) {
+  return (
+    <div
+      className={detail ? 'detail detail-loading-layer' : 'surface-loading'}
+      role="status"
+      aria-live="polite"
+      aria-label="Loading this view"
+      tabIndex={detail ? -1 : undefined}
+    >
+      <span className="surface-loading-mark" aria-hidden="true" />
+      <span>Loading…</span>
+    </div>
+  )
+}
 
 function TabBar({ active, onTab, inert, hidden }) {
   return (
@@ -94,7 +113,11 @@ const FOCUSABLE = [
 ].join(',')
 
 function focusLayer(root, preferred) {
-  if (!root || root.contains(document.activeElement)) return
+  if (!root) return
+  const active = document.activeElement
+  // A Suspense fallback may leave focus on the stable layer wrapper itself.
+  // That is a staging state, not proof that focus reached resolved content.
+  if (active !== root && root.contains(active)) return
   const target =
     (preferred ? root.querySelector(preferred) : null) ||
     root.querySelector('[data-initial-focus]') ||
@@ -350,16 +373,37 @@ function Shell() {
     pageFocusOpenRef.current = isOpen
 
     let frame
+    let observer
     if (isOpen) {
+      const focusReadyPage = () => {
+        const layer = pageLayerRef.current
+        if (!layer || document.querySelector('.detail') || !layer.querySelector(FOCUSABLE)) return false
+        focusLayer(layer)
+        return true
+      }
       frame = requestAnimationFrame(() => {
-        if (!document.querySelector('.detail')) focusLayer(pageLayerRef.current)
+        if (focusReadyPage()) {
+          observer?.disconnect()
+        } else if (!document.querySelector('.detail')) {
+          focusLayer(pageLayerRef.current)
+        }
       })
+      // Suspended route chunks first expose a stable page shell. When their
+      // actual header/action mounts, complete the same first-focus contract an
+      // eager route had without leaving focus stranded on the loading wrapper.
+      observer = new MutationObserver(() => {
+        if (focusReadyPage()) observer.disconnect()
+      })
+      observer.observe(document.body, { childList: true, subtree: true })
     } else if (wasOpen) {
       const target = pageReturnFocusRef.current
       pageReturnFocusRef.current = null
       frame = requestAnimationFrame(() => restoreLayerFocus(target, appRef.current))
     }
-    return () => cancelAnimationFrame(frame)
+    return () => {
+      cancelAnimationFrame(frame)
+      observer?.disconnect()
+    }
   }, [page])
 
   // Details stack above either the active tab or a subpage. Every new detail
@@ -380,14 +424,36 @@ function Shell() {
     detailFocusOpenRef.current = isOpen
 
     let frame
+    let observer
     if (isOpen) {
-      frame = requestAnimationFrame(() => focusLayer(document.querySelector('.detail'), '.detail-back'))
+      const focusReadyDetail = () => {
+        const layer = document.querySelector('.detail:not(.detail-loading-layer)')
+        if (!layer) return false
+        focusLayer(layer, '.detail-back')
+        return true
+      }
+      frame = requestAnimationFrame(() => {
+        if (focusReadyDetail()) {
+          observer?.disconnect()
+        } else {
+          document.querySelector('.detail-loading-layer')?.focus({ preventScroll: true })
+        }
+      })
+      // A lazy detail may resolve after the first animation frame. Keep focus on
+      // the honest loading layer, then move it into the real surface exactly once.
+      observer = new MutationObserver(() => {
+        if (focusReadyDetail()) observer.disconnect()
+      })
+      observer.observe(document.body, { childList: true, subtree: true })
     } else if (wasOpen) {
       const target = detailReturnFocusRef.current
       detailReturnFocusRef.current = null
       frame = requestAnimationFrame(() => restoreLayerFocus(target, pageLayerRef.current || appRef.current))
     }
-    return () => cancelAnimationFrame(frame)
+    return () => {
+      cancelAnimationFrame(frame)
+      observer?.disconnect()
+    }
   }, [detail, page])
 
   const recoverEvents = eventArtifact.recover
@@ -626,7 +692,6 @@ function Shell() {
         catalogReady={customEvents.ready}
         catalogError={customEvents.error}
       >
-      <StateTransferProvider city={city}>
       <WxContext.Provider value={wx}>
         <div
           className="app"
@@ -660,19 +725,35 @@ function Shell() {
           <section className="page page-hot" aria-label={VIEWS[1].label} aria-hidden={active !== 1} inert={active !== 1 ? true : undefined}>
             {/* Events — the browse (search + filter + event sections). Now lazy
                 (Home is the boot tab), mounts on first visit to the Events tab. */}
-            {visited.has('hot') && <HotView events={norm} retainedEvents={normalized} anchors={anchors} loading={loading} loadError={unavailable} />}
+            {visited.has('hot') && (
+              <Suspense fallback={<SurfaceLoading />}>
+                <HotView events={norm} retainedEvents={normalized} anchors={anchors} loading={loading} loadError={unavailable} />
+              </Suspense>
+            )}
           </section>
           <section className="page" aria-label={VIEWS[2].label} aria-hidden={active !== 2} inert={active !== 2 ? true : undefined}>
             {/* Sprint S: the Spots tab — lazy-mounted; its own /places.json fetch
                 (places.js) fires on first visit, never at boot. */}
-            {visited.has('locations') && <LocationsView coords={coords} />}
+            {visited.has('locations') && (
+              <Suspense fallback={<SurfaceLoading />}>
+                <LocationsView coords={coords} />
+              </Suspense>
+            )}
           </section>
           <section className="page" aria-label={VIEWS[3].label} aria-hidden={active !== 3} inert={active !== 3 ? true : undefined}>
             {/* Plan (id 'calendar') */}
-            {visited.has('calendar') && <CalendarView events={normalized} anchors={anchors} wx={wx} />}
+            {visited.has('calendar') && (
+              <Suspense fallback={<SurfaceLoading />}>
+                <CalendarView events={normalized} anchors={anchors} wx={wx} />
+              </Suspense>
+            )}
           </section>
           <section className="page" aria-label={VIEWS[4].label} aria-hidden={active !== 4} inert={active !== 4 ? true : undefined}>
-            {visited.has('profile') && <ProfileView />}
+            {visited.has('profile') && (
+              <Suspense fallback={<SurfaceLoading />}>
+                <ProfileView />
+              </Suspense>
+            )}
           </section>
         </div>
         <TabBar active={active} onTab={goTo} inert={baseInert} hidden={baseCovered || undefined} />
@@ -738,6 +819,7 @@ function Shell() {
             inert={detail ? true : undefined}
             aria-hidden={detail ? true : undefined}
           >
+            <Suspense fallback={<SurfaceLoading />}>
             {remotePageBlocked ? (
               <EventUnavailablePage
                 status={eventArtifact.status}
@@ -809,7 +891,7 @@ function Shell() {
                 immutable artifact metadata feeds the Coverage Card. */}
             {page.type === 'attribution' && <AttributionPage events={norm} dataMeta={eventArtifact.meta} />}
             {page.type === 'sharedplan' && <SharedPlanPage capsule={page.capsule} />}
-            {page.type === 'datatransfer' && <DataTransferPage />}
+            {page.type === 'datatransfer' && <DataTransferRoute city={city} />}
             {page.type === 'route-unavailable' && (
               <RouteUnavailablePage outcome={page.outcome} onBack={closePage} />
             )}
@@ -849,6 +931,7 @@ function Shell() {
             )}
               </>
             )}
+            </Suspense>
           </div>
         )}
         {/* H1: first open only — Primer persists its own state + seeds taste;
@@ -874,24 +957,25 @@ function Shell() {
             the shared detail layer serves BOTH kinds — a place (kind:'place')
             opens PlaceDetail, an event opens DetailPage; openDetail's taste +
             recents seams are generic (keyOf/category) so both record correctly. */}
-        {detail && detail.kind === 'place' && !placesUnavailable && (
-          <PlaceDetail key={keyOf(detail)} e={detail} anchors={anchors} wx={wx} />
-        )}
-        {detail && detail.kind !== 'place' && (
-          <DetailPage
-            key={keyOf(detail)}
-            e={detail}
-            events={norm}
-            anchors={anchors}
-            wx={wx}
-            onRemoveMine={customEvents.remove}
-            onRestoreMine={customEvents.add}
-          />
-        )}
+        <Suspense fallback={detail ? <SurfaceLoading detail /> : null}>
+          {detail && detail.kind === 'place' && !placesUnavailable && (
+            <PlaceDetail key={keyOf(detail)} e={detail} anchors={anchors} wx={wx} />
+          )}
+          {detail && detail.kind !== 'place' && (
+            <DetailPage
+              key={keyOf(detail)}
+              e={detail}
+              events={norm}
+              anchors={anchors}
+              wx={wx}
+              onRemoveMine={customEvents.remove}
+              onRestoreMine={customEvents.add}
+            />
+          )}
+        </Suspense>
         {loading && bootVis && <div className="boot">Loading Wuzup…</div>}
         </div>
       </WxContext.Provider>
-      </StateTransferProvider>
       </PlannerProvider>
     </SavedBeenProvider>
   )

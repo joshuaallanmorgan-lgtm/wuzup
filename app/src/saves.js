@@ -344,9 +344,10 @@ export function shelfItems(list, events, anchors) {
   return out
 }
 
-// ♥ toggle. Rendered INSIDE card <button>s, so it's a span[role=button]
-// (a nested <button> is invalid HTML); stopPropagation keeps the card from
-// opening. big = detail-hero variant (38px). The pop animation plays only on
+// ♥ toggle. This is always a native button; card compositions keep it as a
+// sibling of their open-detail button so there are no nested controls. Native
+// Enter/Space behavior is intentionally left to the browser. big = detail-hero
+// variant (38px). The pop animation plays only on
 // a real local toggle-on — never on mount — and saves.css kills it under
 // prefers-reduced-motion. Saving never reorders or hides anything.
 export function SaveHeart({ e, big, bare }) {
@@ -360,7 +361,6 @@ export function SaveHeart({ e, big, bare }) {
   const [pop, setPop] = useState(false)
   const activate = async (ev) => {
     ev.stopPropagation()
-    ev.preventDefault()
     if (!ready || pending || identityUnavailable) return
     const result = await toggle(e)
     const changed = result?.changed === true || result?.applied === true
@@ -372,14 +372,13 @@ export function SaveHeart({ e, big, bare }) {
   // disc (tiles/hero). Resting outline / saved fill both ride currentColor.
   const Glyph = on ? Icon.heartFill : Icon.heart
   return h(
-    'span',
+    'button',
     {
-      role: 'button',
-      tabIndex: ready && !pending && !identityUnavailable ? 0 : -1,
+      type: 'button',
       className: 'save-btn' + (on ? ' on' : '') + (big ? ' save-big' : '') + (bare ? ' save-bare' : ''),
       'aria-pressed': on,
-      'aria-disabled': !ready || pending || identityUnavailable,
       'aria-busy': pending || undefined,
+      disabled: !ready || pending || identityUnavailable,
       'aria-label': identityUnavailable
         ? identityCompleted
           ? 'Already in your Been history'
@@ -390,9 +389,6 @@ export function SaveHeart({ e, big, bare }) {
           ? 'Remove from your list'
           : 'Save to your list',
       onClick: activate,
-      onKeyDown: (ev) => {
-        if (ev.key === 'Enter' || ev.key === ' ') activate(ev)
-      },
       onAnimationEnd: () => setPop(false), // bubbles up from .save-ic
     },
     h('span', { className: 'save-ic' + (on && pop ? ' pop' : ''), 'aria-hidden': true }, Glyph({ className: 'save-svg' }))

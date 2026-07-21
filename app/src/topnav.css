@@ -86,7 +86,7 @@
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 460px;
+  max-width: var(--canvas-max);
   z-index: 1600;
   display: flex;
   flex-direction: column;
@@ -103,6 +103,9 @@
 }
 .tn-sheet {
   position: relative;
+  width: 100%;
+  max-width: var(--sheet-max);
+  align-self: center;
   display: flex;
   flex-direction: column;
   max-height: 72svh;
@@ -123,8 +126,8 @@
 }
 .tn-sheet-title { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
 .tn-sheet-close {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: none;
   border-radius: var(--r-circle);
   background: rgba(var(--accent-rgb), 0.08);
@@ -142,6 +145,7 @@
 .tn-item {
   display: flex;
   align-items: center;
+  min-height: 44px;
   gap: 10px;
   padding: 13px var(--sp-sm);
   border: 1px solid var(--line);

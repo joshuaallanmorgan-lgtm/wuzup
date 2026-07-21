@@ -198,7 +198,7 @@ test('save actions await exact outcomes and taste runs only after a changed save
 
   assert.match(bridge, /const\s*\[\s*pending[\w$]*\s*,\s*setPending[\w$]*\s*\]\s*=\s*useState\s*\(/i)
   assert.match(bridge, /(?:aria-busy=\{|['"]aria-busy['"]\s*:)\s*[^,}\n]*pending/i)
-  assert.match(bridge, /(?:(?:aria-disabled|disabled)=\{|['"]aria-disabled['"]\s*:)\s*[^,}\n]*pending/i)
+  assert.match(bridge, /(?:(?:aria-disabled|disabled)=\{|['"]aria-disabled['"]\s*:|\bdisabled\s*:)\s*[^,}\n]*pending/i)
 
   for (const file of ['cards.jsx', 'DetailPage.jsx', 'PlaceDetail.jsx', 'CalibrationDeck.jsx', 'LensDeck.jsx']) {
     const value = source(file)

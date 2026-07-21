@@ -231,8 +231,14 @@ test('the app and day action modal keep covered layers out of navigation order',
   assert.match(app, /inert=\{detail \? true : undefined\}/)
 
   const day = withoutComments(source('DayPage.jsx'))
-  assert.match(day, /role="dialog"\s+aria-modal="true"\s+aria-label="Plan item options"/)
-  assert.match(day, /querySelectorAll\('button:not\(:disabled\)'\)/)
-  assert.match(day, /window\.addEventListener\('keydown', onKey, true\)/)
+  const modal = withoutComments(source('ModalSheet.jsx'))
+  assert.match(day, /<ModalSheet[\s\S]*?label="Plan item options"[\s\S]*?returnFocusRef=\{menuBtnRef\}/)
+  assert.match(day, /inert=\{dayModalOpen \? true : undefined\}[\s\S]*?aria-hidden=\{dayModalOpen \|\| undefined\}/)
+  assert.match(modal, /role="dialog"[\s\S]*?aria-modal="true"/)
+  assert.match(modal, /window\.addEventListener\('keydown', onEscape, true\)/)
+  assert.match(
+    modal,
+    /queueMicrotask\([\s\S]*?if \(layer\?\.isConnected\) return[\s\S]*?const target = trigger\?\.isConnected \? trigger : resolveFallbackFocus\?\.\(\)[\s\S]*?if \(target\?\.isConnected\) focusWithoutScroll\(target\)/,
+  )
   assert.match(day, /role="status"/)
 })

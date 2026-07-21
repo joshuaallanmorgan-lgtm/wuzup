@@ -41,8 +41,8 @@
   position: absolute;
   top: calc(18px + env(safe-area-inset-top));
   right: 16px;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -56,7 +56,9 @@
 .home-search:active { transform: scale(0.92); }
 /* H-L2: "View full forecast →" text link below NextDays */
 .home-forecast-link {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   margin: 4px var(--gutter) 0;
   padding: 0;
   border: none;
@@ -143,8 +145,8 @@
   position: absolute;
   top: 9px;
   right: 9px;
-  width: 26px;
-  height: 26px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   border: none;
@@ -213,6 +215,7 @@
    the recipe's --accent-rgb glow above; gives bare empty states a premium exit. */
 .empty-cta {
   display: block;
+  min-height: 44px;
   width: fit-content;
   margin: var(--sp-md) auto 0; /* own line, centered in the empty state */
   padding: 11px var(--gutter);
@@ -323,6 +326,7 @@
 .sec-sub { font-size: var(--t-meta); color: var(--muted); margin-top: 3px; font-weight: 500; }
 .sec-seeall {
   flex: 0 0 auto;
+  min-height: 44px;
   font-family: inherit;
   font-size: 14px;
   font-weight: 600;
@@ -342,6 +346,7 @@
    unmissable and one tap from every event. */
 .ev-seeall {
   display: block;
+  min-height: 44px;
   width: calc(100% - 40px);
   margin: 0 var(--gutter) 14px;
   font-family: inherit;
@@ -358,6 +363,7 @@
 /* T1 (Batch 5): the quieter in-feed "full list" fallback under the deck pill. */
 .ev-seeall-list {
   display: block;
+  min-height: 44px;
   width: calc(100% - 40px);
   margin: -6px var(--gutter) 14px;
   padding: 4px 0;
@@ -399,7 +405,7 @@
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 460px;
+  max-width: var(--canvas-max);
   display: flex;
   /* PREMIUM A1 (color#3 + depth#2): warm cream glass + an UPWARD float shadow so
      the bar lifts off the canvas instead of sitting as a cold white slab. */
@@ -410,7 +416,7 @@
   padding: 9px 0 calc(11px + env(safe-area-inset-bottom));
   z-index: 1100;
 }
-.tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; cursor: pointer; font: inherit; color: #a89e92; padding: 2px 0; transition: color var(--dur-fast); } /* PREMIUM A1: inactive icon → warm gray (was cold #aab0ba slate) */
+.tab { flex: 1; min-height: 44px; display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; cursor: pointer; font: inherit; color: #a89e92; padding: 2px 0; transition: color var(--dur-fast); } /* PREMIUM A1: inactive icon → warm gray (was cold #aab0ba slate) */
 .tab-ic { transition: transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.5); }
 .tab-label { font-size: var(--t-micro); font-weight: 700; letter-spacing: 0.2px; }
 .tab.active { color: var(--accent-ink); }
@@ -450,7 +456,7 @@
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 460px;
+  max-width: var(--canvas-max);
   height: 100svh;
   background: var(--bg);
   z-index: 1500;
@@ -469,12 +475,15 @@
   align-items: center;
   gap: 10px;
   padding: calc(12px + env(safe-area-inset-top)) var(--gutter) var(--sp-sm); /* A5: 14→20, header chrome on the body gutter */
+  width: 100%;
+  max-width: var(--reading-max);
+  margin-inline: auto;
 }
 .pg-head-title { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.3px; } /* PROFILE_GRIND §0: 21px → 26px subpage-title step */
 .pg-back {
-  flex: 0 0 40px;
-  width: 40px;
-  height: 40px;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--r-circle);
   border: 1px solid var(--line);
   background: var(--card);
@@ -486,7 +495,7 @@
   transition: transform 0.1s;
 }
 .pg-back:active { transform: scale(0.9); }
-.pg-band { padding: calc(12px + env(safe-area-inset-top)) var(--gutter) 20px; } /* A5: 14→20, header chrome on the body gutter */
+.pg-band { width: 100%; max-width: var(--reading-max); margin-inline: auto; padding: calc(12px + env(safe-area-inset-top)) var(--gutter) 20px; } /* A5: 14→20, header chrome on the body gutter */
 .pg-band .pg-back { background: rgba(var(--card-rgb), 0.75); } /* Stage E dark seam: was 255-white@0.75 — the 1/255-step to card-rgb is sub-quantization in light; dark keeps the cream --ink glyph legible on a dark disc */
 .pg-count { margin-top: 4px; font-size: var(--t-meta); font-weight: 600; color: var(--muted); }
 .pg-body { padding: 4px 0 120px; }
@@ -504,7 +513,7 @@
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 460px;
+  max-width: var(--detail-max);
   height: 100svh;
   background: var(--bg);
   z-index: 2000;
@@ -569,8 +578,8 @@
   position: absolute;
   top: calc(14px + env(safe-area-inset-top));
   left: 14px;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--r-circle);
   border: none;
   background: rgba(0, 0, 0, 0.42);
@@ -683,6 +692,32 @@
 /* ===== boot (gated 300ms in JS; topmost chrome) ===== */
 .boot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--bg); color: var(--muted); font-weight: 700; z-index: 2100; }
 
+/* Route chunks keep a readable, focus-safe shell while they arrive. The mark is
+   intentionally CSS-only so loading a visual never creates another request. */
+.surface-loading,
+.detail-loading-layer {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--muted);
+  background: var(--bg);
+  font-size: var(--t-meta);
+  font-weight: 700;
+}
+.surface-loading-mark {
+  width: 17px;
+  height: 17px;
+  border: 2px solid rgba(var(--ink-rgb), 0.14);
+  border-top-color: var(--accent);
+  border-radius: var(--r-circle);
+  animation: route-loading-spin 0.72s linear infinite;
+}
+@keyframes route-loading-spin { to { transform: rotate(1turn); } }
+
 /* ===== Verified-data alert: stays operable above subpages/detail so an
    unavailable corpus cannot masquerade as a successful empty result. The
    primer gates rendering until onboarding has closed. ===== */
@@ -696,7 +731,8 @@
   display: flex;
   align-items: center;
   gap: 2px;
-  max-width: min(436px, calc(100vw - 24px));
+  width: max-content;
+  max-width: min(var(--reading-max), calc(100vw - (2 * var(--gutter))));
   padding: 7px 4px 7px 14px;
   border-radius: var(--r-pill);
   background: rgba(var(--ink-rgb), 0.82);
@@ -710,6 +746,8 @@
 .load-txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .stale-x {
   flex: none;
+  min-width: 44px;
+  min-height: 44px;
   border: none;
   background: none;
   color: #a89e92; /* C4: warm gray, matches the A1 tab fix (was cold #aab0ba slate) */
@@ -748,6 +786,7 @@
 }
 .load-retry {
   flex: none;
+  min-height: 44px;
   border: none;
   background: none;
   color: #fff;
@@ -757,6 +796,34 @@
   text-decoration: underline;
   text-underline-offset: 2px;
   cursor: pointer;
+}
+
+/* Sprint 10 responsive composition. Discovery uses the available canvas;
+   ritual and reading modules remain bounded. */
+@media (max-width: 359px) {
+  .tune-preview { display: none; }
+  .pg-head-title { font-size: 24px; }
+  .detail-title { font-size: 26px; }
+}
+
+@media (min-width: 768px) {
+  .tabbar { justify-content: center; }
+
+  .tab {
+    flex: 0 1 144px;
+    max-width: 160px;
+  }
+
+  .tune {
+    width: calc(100% - (2 * var(--gutter)));
+    max-width: var(--reading-max);
+    margin-inline: auto;
+  }
+
+  .detail {
+    border-inline: 1px solid var(--line);
+    box-shadow: 0 0 60px rgba(var(--ink-rgb), 0.18);
+  }
 }
 
 /* ===== Stage E dark mode (shell chrome) — light values untouched above; the
@@ -784,6 +851,7 @@
   .tune,
   .page.tab-settle,
   .detail { animation: none !important; }
+  .surface-loading-mark { animation: none; }
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) { animation: none !important; }

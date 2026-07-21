@@ -5,6 +5,7 @@
    is a quiet filled state, never an alarm. Page scaffolding (.pg, .pg-head,
    .pg-body) comes from App.css; the picker sheet rides weekend.css. */
 
+.dpg-content { min-height: 100%; }
 .dpg-body { padding-top: 2px; }
 
 /* ===== the tappable day selector (label → calendar picker · calendar icon) ===== */
@@ -345,11 +346,18 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
+}
+.dpg-menu-scrim {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
   background: rgba(26, 20, 16, 0.32);
 }
 .dpg-menu {
+  position: relative;
   width: 100%;
-  max-width: 460px;
+  max-width: var(--sheet-max);
   margin: 0 var(--sp-xs) var(--sp-xs);
   padding: var(--sp-xs);
   border-radius: var(--r-lg);

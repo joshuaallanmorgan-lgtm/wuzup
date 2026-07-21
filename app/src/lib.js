@@ -225,6 +225,41 @@ export function formatDayTs(ts, options = {}) {
   return formatDay(day, { timeZone: CITY.tz, locale: fmtLocale, ...options })
 }
 
+export function calendarDayAriaLabel(ts, {
+  todayTs = null,
+  selected = false,
+  planned = false,
+  quiet = false,
+  went = false,
+  disabled = false,
+} = {}) {
+  const date = formatDayTs(ts, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  })
+  const states = [
+    ts === todayTs ? 'today' : null,
+    selected ? 'selected' : null,
+    planned ? 'planned' : null,
+    quiet ? 'quiet day' : null,
+    went ? 'went' : null,
+    disabled ? 'disabled' : null,
+  ].filter(Boolean)
+  return states.length ? `${date}. ${states.join(', ')}.` : date
+}
+
+export function listboxIndexForKey(index, key, length) {
+  if (!Number.isInteger(length) || length <= 0) return null
+  const current = Math.max(0, Math.min(length - 1, Number.isInteger(index) ? index : 0))
+  if (key === 'ArrowDown') return Math.min(length - 1, current + 1)
+  if (key === 'ArrowUp') return Math.max(0, current - 1)
+  if (key === 'Home') return 0
+  if (key === 'End') return length - 1
+  return null
+}
+
 export function formatCityInstant(ts, options = {}) {
   return formatInstant(ts, { timeZone: CITY.tz, locale: fmtLocale, ...options })
 }

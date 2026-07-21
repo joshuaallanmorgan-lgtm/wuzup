@@ -24,6 +24,7 @@ import { rankSpots } from './spot-context.js'
 import { useTaste } from './taste.js'
 import { DAYPART } from './weekend.js'
 import CorrectionSheet from './CorrectionSheet.jsx'
+import { presentRuntimeImage } from './leadImage.js'
 import './locations.css'
 
 // normalized amenity vocabulary → human label + emoji (DRAFT for Charles).
@@ -123,23 +124,14 @@ export default function PlaceDetail({ e, anchors, wx }) {
   // fade over a dark placeholder, DetailPage's exact pattern); places without a
   // photo keep the category-art hero. e.image is only ever a verified photo OF
   // THIS place (Wikidata P18 → Commons), never a representative stand-in.
+  const presentedImage = useMemo(() => presentRuntimeImage(e), [e])
+  const heroImage = presentedImage.image
   const [loadedSrc, setLoadedSrc] = useState(null)
-  const [heroFailed, setHeroFailed] = useState(false)
-  useEffect(() => {
-    if (!e.image) return
-    const src = e.image
-    const img = new Image()
-    img.onload = () => setLoadedSrc(src)
-    img.onerror = () => setHeroFailed(true) // dead URL → fall back to category-art
-    img.src = src
-    return () => {
-      img.onload = null
-      img.onerror = null
-    }
-  }, [e.image])
-  const imgOk = loadedSrc === e.image
+  const [failedSrc, setFailedSrc] = useState(null)
+  const imgOk = loadedSrc === heroImage
   // a real photo that loads → image hero; no photo OR a broken URL → art hero
-  const heroArt = !e.image || heroFailed
+  const heroArt = !heroImage || failedSrc === heroImage
+  const heroLoading = Boolean(heroImage) && !heroArt && !imgOk
 
   const hasCoords = e.lat != null && e.lng != null
   const mapsUrl = hasCoords
@@ -400,15 +392,29 @@ export default function PlaceDetail({ e, anchors, wx }) {
         aria-hidden={planning || planClosing || correcting || undefined}
       >
       <div
-        className={'detail-hero' + (heroArt ? ' imgbox-art' : '')}
+        className={'detail-hero' + (heroArt || heroLoading ? ' imgbox-art' : '')}
         style={
-          heroArt
-            ? { viewTransitionName: 'evt-hero', ...auroraStyle(e) }
+          heroArt || heroLoading
+            ? {
+                viewTransitionName: 'evt-hero',
+                ...auroraStyle(e),
+                ...(heroLoading ? { height: '42svh', minHeight: '250px' } : {}),
+              }
             : { viewTransitionName: 'evt-hero', background: '#241c15' }
         }
       >
         {!heroArt ? (
-          <div className={'detail-hero-img' + (imgOk ? ' on' : '')} style={{ backgroundImage: `url(${e.image})` }} />
+          <img
+            className={'detail-hero-img' + (imgOk ? ' on' : '')}
+            src={heroImage}
+            alt=""
+            decoding="async"
+            referrerPolicy="no-referrer"
+            draggable={false}
+            onLoad={() => setLoadedSrc(heroImage)}
+            onError={() => setFailedSrc(heroImage)}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
         ) : (
           <span className="imgbox-mark" aria-hidden>
             {artEmoji(e)}
@@ -428,20 +434,20 @@ export default function PlaceDetail({ e, anchors, wx }) {
             carries its captured credit (author · license), linked to the Commons
             file + the license deed. Shown only for real photos (art floor needs
             no credit). The honest twin of "no image without a captured credit". */}
-        {!heroArt && e.imageCredit && (
+        {!heroArt && presentedImage.imageCredit && (
           <div className="hero-credit">
-            <a href={e.imageCredit.url} target="_blank" rel="noreferrer">
+            <a href={presentedImage.imageCredit.url} target="_blank" rel="noreferrer">
               {/* author byline; when a license needs no byline (author null) fall
                   back to the HOST keyed off the credit source — never hardcode
                   "Wikimedia Commons" (a Mapillary photo would be mis-credited). */}
-              Photo: {e.imageCredit.author
-                || (e.imageCredit.sourceFamily === 'mapillary-sign' ? 'Mapillary' : 'Wikimedia Commons')}
+              Photo: {presentedImage.imageCredit.author
+                || (presentedImage.imageCredit.sourceFamily === 'mapillary-sign' ? 'Mapillary' : 'Wikimedia Commons')}
             </a>
             {' · '}
-            {e.imageCredit.licenseUrl ? (
-              <a href={e.imageCredit.licenseUrl} target="_blank" rel="noreferrer">{e.imageCredit.license}</a>
+            {presentedImage.imageCredit.licenseUrl ? (
+              <a href={presentedImage.imageCredit.licenseUrl} target="_blank" rel="noreferrer">{presentedImage.imageCredit.license}</a>
             ) : (
-              e.imageCredit.license
+              presentedImage.imageCredit.license
             )}
           </div>
         )}

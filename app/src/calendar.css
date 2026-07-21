@@ -5,7 +5,7 @@
    morning-after recap card, the month grid's quiet personal marks (planned /
    rest / did-day), and the selected-day logbook caption. */
 
-.cal-wrap { min-height: 100svh; background: var(--bg); padding-bottom: 100px; }
+.cal-wrap { width: 100%; max-width: var(--reading-max); min-height: 100svh; margin-inline: auto; background: var(--bg); padding-bottom: 100px; }
 /* 1-A (Stage 1 render-vs-ref): a CLEAN LIGHT header like every other tab + the
    reference — no orange gradient band. The screen bg carries through; the title is
    bold ink, the rhythm stats are ink/muted on light. */
@@ -61,6 +61,7 @@
 .mon-pick {
   display: inline-flex;
   align-items: center;
+  min-height: 44px;
   gap: 5px;
   padding: 3px 5px;
   margin: -3px -5px;
@@ -91,6 +92,7 @@
 }
 .mon-opt {
   display: block;
+  min-height: 44px;
   width: 100%;
   text-align: left;
   padding: 9px var(--sp-sm);
@@ -105,13 +107,19 @@
 }
 .mon-opt:hover { background: var(--bg); }
 .mon-opt.on { background: var(--accent); color: var(--ink); } /* dark ink on Sunset Gold — never white (D.0) */
+.mon-opt.active {
+  background: var(--bg);
+  outline: 2px solid var(--cta-ink);
+  outline-offset: -2px;
+}
+.mon-opt.on.active { background: var(--accent); }
 /* S1-C4: .mon-navs / .mon-nav (the prev/next arrows) are removed — month
    navigation is the picker dropdown now. */
 /* the "Today" quick-jump pill — pinned far-right in the month head (S1-C4) */
 .cal-today {
   align-self: center;
   margin-left: auto;
-  height: 32px;
+  height: 44px;
   padding: 0 13px;
   border-radius: var(--r-pill);
   border: 1px solid var(--line);
@@ -255,8 +263,8 @@
 .cal-sel-open { flex: 1; font-size: var(--t-meta); font-weight: 600; color: var(--muted); }
 .cal-sel-x {
   flex: 0 0 auto;
-  width: 26px;
-  height: 26px;
+  width: 44px;
+  height: 44px;
   border: none;
   border-radius: var(--r-circle);
   background: none;
@@ -269,6 +277,7 @@
 .cal-sel-full {
   margin-top: var(--sp-sm);
   width: 100%;
+  min-height: 44px;
   padding: var(--sp-sm);
   border: 1px solid rgba(var(--accent-rgb), 0.4);
   border-radius: var(--r-md);

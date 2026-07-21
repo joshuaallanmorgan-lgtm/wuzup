@@ -150,8 +150,8 @@
   position: absolute;
   top: calc(14px + env(safe-area-inset-top));
   right: 62px;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--r-circle);
   border: none;
   background: rgba(0, 0, 0, 0.42);
@@ -295,6 +295,9 @@
 }
 .loc-plan-sheet {
   position: relative;
+  width: 100%;
+  max-width: var(--sheet-max);
+  margin-inline: auto;
   background: var(--card);
   border-radius: var(--r-lg) var(--r-lg) 0 0;
   padding: var(--sp-md) var(--sp-md) calc(16px + env(safe-area-inset-bottom));
@@ -330,6 +333,8 @@
   color: var(--ink);
 }
 .loc-sheet-close {
+  width: 44px;
+  height: 44px;
   font-size: 18px;
   line-height: 1;
   color: var(--muted);
@@ -353,6 +358,7 @@
 }
 .loc-plan-day {
   flex: 0 0 auto;
+  min-height: 44px;
   font-size: var(--t-meta);
   font-weight: 600;
   color: var(--ink);

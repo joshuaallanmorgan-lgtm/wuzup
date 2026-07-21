@@ -8,6 +8,7 @@ import { cityId } from './cities/index.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const appRoot = join(ROOT, 'app');
+const EXPIRED_PREVIEW_FLAG = 'VITE_ALLOW_EXPIRED_ARTIFACT_PREVIEW';
 if (process.env.VITE_CITY && process.env.VITE_CITY !== cityId) {
   console.error(`dev-city: REFUSING conflicting CITY='${cityId}' and VITE_CITY='${process.env.VITE_CITY}'`);
   process.exit(1);
@@ -19,6 +20,10 @@ const env = {
   VITE_CITY: cityId,
   WUZUP_PUBLIC_DIR: process.env.DEPLOY_DEST || join(appRoot, 'public'),
 };
+// Callers cannot smuggle the development-only preview seam into staging,
+// probes, builds, or preview/production commands. It is added back only for
+// the explicit Vite serve command below.
+delete env[EXPIRED_PREVIEW_FLAG];
 const stage = spawnSync(process.execPath, ['finder/deploy.mjs'], { cwd: ROOT, env, stdio: 'inherit' });
 if (stage.status !== 0) process.exit(stage.status ?? 1);
 console.log(`dev-city: staged '${cityId}' and locked VITE_CITY='${cityId}'`);
@@ -34,9 +39,18 @@ if (!existsSync(viteCli)) {
 const viteArgs = process.env.DEV_LAUNCH_PROBE === '1'
   ? ['build', '--outDir', process.env.DEV_PROBE_OUT || join(appRoot, 'dist-probe')]
   : process.argv.slice(2);
+const viteCommand = viteArgs[0]?.startsWith('-') ? 'serve' : viteArgs[0] || 'serve';
+const viteServe = process.env.DEV_LAUNCH_PROBE !== '1' && ['serve', 'dev'].includes(viteCommand);
+const viteEnv = { ...env };
+if (viteServe) {
+  viteEnv[EXPIRED_PREVIEW_FLAG] = '1';
+  console.warn(
+    'dev-city: DEVELOPMENT-ONLY EXPIRED ARTIFACT PREVIEW ENABLED — hashes, schema, city, and manifest identity remain mandatory; builds and production still refuse expired data.'
+  );
+}
 const child = spawn(process.execPath, [viteCli, ...viteArgs], {
   cwd: appRoot,
-  env,
+  env: viteEnv,
   stdio: 'inherit',
 });
 child.on('error', (error) => {

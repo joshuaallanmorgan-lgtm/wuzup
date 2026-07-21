@@ -8,6 +8,7 @@
 import { useMemo, useState } from 'react'
 import {
   addDayTs,
+  calendarDayAriaLabel,
   dayNumber,
   daysInCityMonth,
   formatDayTs,
@@ -88,15 +89,15 @@ export default function CalendarPickerPage({ ts, anchors }) {
                 ›
               </button>
             </div>
-            <div className="calpick-dow">
+            <div className="calpick-dow" aria-hidden="true">
               {DOW.map((d, i) => (
                 <span key={i}>{d}</span>
               ))}
             </div>
-            <div className="calpick-grid">
+            <div className="calpick-grid" role="group" aria-label={`${monthLabel} date picker`}>
               {cells.map((t, i) =>
                 t == null ? (
-                  <span className="calpick-cell is-empty" key={'e' + i} />
+                  <span className="calpick-cell is-empty" key={'e' + i} aria-hidden="true" />
                 ) : (
                   <button
                     key={t}
@@ -108,7 +109,13 @@ export default function CalendarPickerPage({ ts, anchors }) {
                     }
                     disabled={t < anchors.todayTs}
                     onClick={() => pick(t)}
-                    aria-current={t === cur ? 'date' : undefined}
+                    aria-label={calendarDayAriaLabel(t, {
+                      todayTs: anchors.todayTs,
+                      selected: t === cur,
+                      disabled: t < anchors.todayTs,
+                    })}
+                    aria-current={t === anchors.todayTs ? 'date' : undefined}
+                    aria-pressed={t === cur}
                   >
                     {dayNumber(t)}
                   </button>
@@ -125,7 +132,12 @@ export default function CalendarPickerPage({ ts, anchors }) {
               key={d.ts}
               className={'calpick-row pressable' + (d.ts === cur ? ' is-cur' : '')}
               onClick={() => pick(d.ts)}
-              aria-current={d.ts === cur ? 'date' : undefined}
+              aria-label={calendarDayAriaLabel(d.ts, {
+                todayTs: anchors.todayTs,
+                selected: d.ts === cur,
+              })}
+              aria-current={d.ts === anchors.todayTs ? 'date' : undefined}
+              aria-pressed={d.ts === cur}
             >
               <span className="calpick-row-ic" aria-hidden>
                 <CalGlyph />

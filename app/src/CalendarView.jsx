@@ -28,10 +28,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   addDayTs,
+  calendarDayAriaLabel,
   dayNumber,
   daysInCityMonth,
   eventLifecycle,
   formatDayTs,
+  listboxIndexForKey,
   monthStartTs as cityMonthStartTs,
   weekdayIndex,
 } from './lib.js'
@@ -49,6 +51,8 @@ import { usePlaces } from './places.js'
 import NextDays from './NextDays.jsx'
 import './calendar.css'
 
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
 export default function CalendarView({ anchors, wx }) {
   const { openDay } = useNav()
   const { status: plannerStatus, activeDays, history, getDay, remove, durability } = usePlanner()
@@ -57,6 +61,7 @@ export default function CalendarView({ anchors, wx }) {
   const [monthOff, setMonthOff] = useState(0)
   // R-C2: month-picker popover state + refs (dropdown focus + focus-return)
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [pickerActiveIndex, setPickerActiveIndex] = useState(0)
   const monthBtnRef = useRef(null)
   const pickerRef = useRef(null)
   const pickerWasOpen = useRef(false) // R-C2: drives post-commit focus-return
@@ -161,6 +166,40 @@ export default function CalendarView({ anchors, wx }) {
     }
     return out
   }, [anchors.todayTs])
+  const openMonthPicker = () => {
+    if (pickerOpen) {
+      setPickerOpen(false)
+      return
+    }
+    const selectedIndex = monthOptions.findIndex((option) => option.off === monthOff)
+    setPickerActiveIndex(Math.max(0, selectedIndex))
+    setPickerOpen(true)
+  }
+  const chooseMonth = (option) => {
+    if (!option) return
+    setMonthOff(option.off)
+    setPickerOpen(false)
+  }
+  const onMonthPickerKeyDown = (ev) => {
+    const nextIndex = listboxIndexForKey(pickerActiveIndex, ev.key, monthOptions.length)
+    if (nextIndex != null) {
+      ev.preventDefault()
+      setPickerActiveIndex(nextIndex)
+      return
+    }
+    if (ev.key === 'Enter' || ev.key === ' ') {
+      ev.preventDefault()
+      chooseMonth(monthOptions[pickerActiveIndex])
+      return
+    }
+    if (ev.key === 'Escape' || ev.key === 'Tab') {
+      if (ev.key === 'Escape') {
+        ev.preventDefault()
+        ev.stopPropagation()
+      }
+      setPickerOpen(false)
+    }
+  }
   // R-C2: capture-Escape closes the picker before App's global listener (the
   // PickerSheet pattern); focus moves into the list on open. Only setMonthOff is
   // ever called — todayTs/dayPlans untouched.
@@ -169,12 +208,19 @@ export default function CalendarView({ anchors, wx }) {
     pickerRef.current?.focus()
     const onKey = (ev) => {
       if (ev.key !== 'Escape') return
+      ev.preventDefault()
       ev.stopPropagation()
       setPickerOpen(false)
     }
     window.addEventListener('keydown', onKey, true)
     return () => window.removeEventListener('keydown', onKey, true)
   }, [pickerOpen])
+  useEffect(() => {
+    if (!pickerOpen) return
+    pickerRef.current
+      ?.querySelector(`[data-month-index="${pickerActiveIndex}"]`)
+      ?.scrollIntoView?.({ block: 'nearest' })
+  }, [pickerActiveIndex, pickerOpen])
   // R-C2 (review P2): focus-return runs in a POST-COMMIT effect, not synchronously
   // in the option onClick — selecting a different month bumps the cal-fade key, so
   // the trigger button REMOUNTS; a sync focus() would hit the old (about-to-unmount)
@@ -287,27 +333,43 @@ export default function CalendarView({ anchors, wx }) {
             <button
               ref={monthBtnRef}
               className="mon-pick pressable"
-              onClick={() => setPickerOpen((v) => !v)}
+              onClick={openMonthPicker}
               aria-haspopup="listbox"
               aria-expanded={pickerOpen}
+              aria-controls={pickerOpen ? 'plan-month-listbox' : undefined}
+              aria-label={`Choose month, ${monthTitle}`}
             >
               <h3 className="mon-title">{monthTitle}</h3>
               <span className={'mon-caret' + (pickerOpen ? ' open' : '')} aria-hidden>▾</span>
             </button>
             {pickerOpen && (
               <>
-                <button className="mon-picker-scrim" aria-label="Close month picker" onClick={() => setPickerOpen(false)} />
-                <div className="mon-picker" role="listbox" aria-label="Choose a month" ref={pickerRef} tabIndex={-1}>
-                  {monthOptions.map((m) => (
+                <button className="mon-picker-scrim" tabIndex={-1} aria-hidden="true" onClick={() => setPickerOpen(false)} />
+                <div
+                  id="plan-month-listbox"
+                  className="mon-picker"
+                  role="listbox"
+                  aria-label="Choose a month"
+                  aria-activedescendant={`plan-month-option-${pickerActiveIndex}`}
+                  ref={pickerRef}
+                  tabIndex={0}
+                  onKeyDown={onMonthPickerKeyDown}
+                >
+                  {monthOptions.map((m, index) => (
                     <button
                       key={m.off}
+                      id={`plan-month-option-${index}`}
+                      data-month-index={index}
                       role="option"
                       aria-selected={m.off === monthOff}
-                      className={'mon-opt' + (m.off === monthOff ? ' on' : '')}
-                      onClick={() => {
-                        setMonthOff(m.off)
-                        setPickerOpen(false)
-                      }}
+                      tabIndex={-1}
+                      className={
+                        'mon-opt' +
+                        (m.off === monthOff ? ' on' : '') +
+                        (index === pickerActiveIndex ? ' active' : '')
+                      }
+                      onPointerEnter={() => setPickerActiveIndex(index)}
+                      onClick={() => chooseMonth(m)}
                     >
                       {m.label}
                     </button>
@@ -330,17 +392,18 @@ export default function CalendarView({ anchors, wx }) {
             Today
           </button>
         </div>
-        <div className="mgrid">
-          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-            <div className="mdow" key={d + i}>
-              {d}
+        <div className="mgrid" role="group" aria-label={`${monthTitle} plan calendar`}>
+          {WEEKDAYS.map((day) => (
+            <div className="mdow" key={day} aria-label={day}>
+              <span aria-hidden>{day[0]}</span>
             </div>
           ))}
           {cells.map((ts, i) => {
-            if (ts == null) return <div className="mcell-blank" key={'b' + i} />
+            if (ts == null) return <div className="mcell-blank" key={'b' + i} aria-hidden="true" />
             const went = dids.has(ts)
             const planned = !went && plannedDays.has(ts) // a did-day's check outranks its plan underline
             const restful = !went && restDays.has(ts) // …and outranks a stale rest mark (no ✓ + crescent on one cell)
+            const selected = ts === selKey
             return (
               <button
                 key={ts}
@@ -356,6 +419,15 @@ export default function CalendarView({ anchors, wx }) {
                   setSelKey(ts)
                   setPlanNotice(null)
                 }}
+                aria-label={calendarDayAriaLabel(ts, {
+                  todayTs: anchors.todayTs,
+                  selected,
+                  planned,
+                  quiet: restful,
+                  went,
+                })}
+                aria-current={ts === anchors.todayTs ? 'date' : undefined}
+                aria-pressed={selected}
               >
                 <span className="mnum">{dayNumber(ts)}</span>
                 {/* the ONE quiet personal mark, mutually exclusive by rule:

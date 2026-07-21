@@ -6,11 +6,15 @@ const read = (name) => readFileSync(new URL(`../app/src/${name}`, import.meta.ur
 
 test('the app exposes one city-bound, backup-gated full-state replacement surface', () => {
   const app = read('App.jsx')
+  const route = read('DataTransferRoute.jsx')
   const provider = read('StateTransferProvider.jsx')
   const page = read('DataTransferPage.jsx')
   const settings = read('SettingsPage.jsx')
 
-  assert.match(app, /<StateTransferProvider city=\{city\}>/)
+  assert.match(app, /lazy\(\(\) => import\('\.\/DataTransferRoute\.jsx'\)\)/)
+  assert.match(app, /<DataTransferRoute city=\{city\}/)
+  assert.match(route, /<StateTransferProvider city=\{city\}>/)
+  assert.match(route, /<DataTransferPage/)
   assert.match(app, /page\.type === 'datatransfer'/)
   assert.match(settings, /openDataTransfer/)
   for (const section of [

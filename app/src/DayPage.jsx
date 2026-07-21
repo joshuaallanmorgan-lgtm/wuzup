@@ -44,6 +44,7 @@ import { daypartOf, pickerModel, wxMood, DAYPART } from './weekend.js'
 import { eventsIcs, shareDayText } from './share.js'
 import { dateKey, CONDITION } from './weather.js'
 import PickerSheet from './PickerSheet.jsx'
+import ModalSheet from './ModalSheet.jsx'
 import { rankRuntimeItems, runtimeRankingId } from './relevance.js'
 import { buildPlanSuggestionPages } from './plan-suggestions.js'
 import { createPlanCapsule, planCapsuleFragment } from './plan-capsule.js'
@@ -108,9 +109,13 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
   const [menuPart, setMenuPart] = useState(null)
   const [moveMode, setMoveMode] = useState(false)
   const menuBtnRef = useRef(null) // the ⋯ trigger that opened the menu — focus returns here
-  const menuRef = useRef(null) // the dialog container (focus-in + Tab-trap)
+  const menuFallbackFocusRef = useRef(null)
+  const pendingMenuFocusPartRef = useRef(null)
+  const resolveMenuFallbackFocus = useCallback(() => menuFallbackFocusRef.current, [])
   const openMenu = (part, btn) => {
     menuBtnRef.current = btn || null
+    menuFallbackFocusRef.current = null
+    pendingMenuFocusPartRef.current = null
     setMenuPart(part)
     setMoveMode(false)
   }
@@ -118,50 +123,6 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
     setMenuPart(null)
     setMoveMode(false)
   }
-  // user-dismiss (scrim / Cancel): close AND return focus to the ⋯ trigger (WCAG
-  // 2.4.3). Remove/Move keep closeMenu — they destroy/move the slot, so the trigger
-  // unmounts and there is nothing to return focus to.
-  const dismissMenu = () => {
-    const btn = menuBtnRef.current
-    closeMenu()
-    btn?.focus()
-  }
-  // focus-in: drop focus onto the first action when the menu opens or swaps modes
-  useEffect(() => {
-    if (!menuPart) return
-    const first = menuRef.current?.querySelector('.dpg-menu-item:not(:disabled)')
-    ;(first || menuRef.current)?.focus()
-  }, [menuPart, moveMode])
-  // Tab-trap inside the open menu (mirrors the LensNav / DetailPage dialogs)
-  const menuTrap = (ev) => {
-    if (ev.key !== 'Tab') return
-    const items = menuRef.current?.querySelectorAll('button:not(:disabled)')
-    if (!items || !items.length) return
-    const first = items[0]
-    const last = items[items.length - 1]
-    if (ev.shiftKey && document.activeElement === first) {
-      ev.preventDefault()
-      last.focus()
-    } else if (!ev.shiftKey && document.activeElement === last) {
-      ev.preventDefault()
-      first.focus()
-    }
-  }
-  // capture-phase Escape closes the menu BEFORE nav's window listener closes the
-  // whole DayPage (the PickerSheet pattern); returns focus to the ⋯ trigger
-  useEffect(() => {
-    if (!menuPart) return
-    const onKey = (ev) => {
-      if (ev.key !== 'Escape') return
-      ev.stopPropagation()
-      const btn = menuBtnRef.current
-      setMenuPart(null)
-      setMoveMode(false)
-      btn?.focus()
-    }
-    window.addEventListener('keydown', onKey, true)
-    return () => window.removeEventListener('keydown', onKey, true)
-  }, [menuPart])
 
   // ===== header bits =====
   // The header title is the constant "Plan your day"; this dayLabel (Today /
@@ -340,19 +301,32 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
   const [picker, setPicker] = useState(null) // 'morning' | 'afternoon' | 'night' | null
   const [sheetClosing, setSheetClosing] = useState(false)
   const sheetTRef = useRef(null)
+  const pickerBtnRef = useRef(null)
+  const pickerFallbackFocusRef = useRef(null)
+  const pendingPickerFocusPartRef = useRef(null)
+  const resolvePickerFallbackFocus = useCallback(() => pickerFallbackFocusRef.current, [])
   useEffect(() => () => clearTimeout(sheetTRef.current), [])
-  const openSheet = (part) => {
+  const openSheet = (part, btn) => {
     clearTimeout(sheetTRef.current)
+    pickerBtnRef.current = btn || null
+    pickerFallbackFocusRef.current = null
+    pendingPickerFocusPartRef.current = null
     setSheetClosing(false)
     setPicker(part)
   }
   const closeSheet = useCallback(() => {
-    setSheetClosing(true)
     clearTimeout(sheetTRef.current)
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
+    if (reducedMotion) {
+      setPicker(null)
+      setSheetClosing(false)
+      return
+    }
+    setSheetClosing(true)
     sheetTRef.current = setTimeout(() => {
       setPicker(null)
       setSheetClosing(false)
-    }, 240)
+    }, 200)
   }, [])
 
   const model = (() => {
@@ -406,6 +380,7 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
       result,
       context: { daypart: part },
     })
+    pendingPickerFocusPartRef.current = part
     setJustFilled(part)
     clearTimeout(fillTRef.current)
     fillTRef.current = setTimeout(() => setJustFilled(null), 460)
@@ -476,6 +451,7 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
           : "Couldn't move this plan")
       return
     }
+    pendingMenuFocusPartRef.current = to
     setJustFilled(to)
     clearTimeout(fillTRef.current)
     fillTRef.current = setTimeout(() => setJustFilled(null), 460)
@@ -497,6 +473,7 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
         : "Couldn't remove this plan")
       return
     }
+    pendingMenuFocusPartRef.current = part
     closeMenu()
     flash(
       result.durability === 'session-only' || (!result.durability && durability === 'session-only')
@@ -607,6 +584,11 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
           ? 'Anytime'
           : [timeOf(e.start), e.end ? timeOf(e.end) : null].filter(Boolean).join(' – ')
       : null
+    const registerResultFocus = (node) => {
+      if (!node) return
+      if (pendingPickerFocusPartRef.current === part) pickerFallbackFocusRef.current = node
+      if (pendingMenuFocusPartRef.current === part) menuFallbackFocusRef.current = node
+    }
     return (
       <div className="dpg-slot" key={part}>
         <div className="dpg-part">{DAYPART[part].label}</div>
@@ -640,14 +622,14 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
             </button>
             {/* Plan Phase 2 (flows-1 p4): the ⋯ opens the move/remove menu */}
             {canEdit && (
-              <button className="dpg-more" onClick={(ev) => openMenu(part, ev.currentTarget)} aria-haspopup="dialog" aria-expanded={menuPart === part} aria-label={`Options for ${title}`}>
+              <button ref={registerResultFocus} className="dpg-more" onClick={(ev) => openMenu(part, ev.currentTarget)} aria-haspopup="dialog" aria-expanded={menuPart === part} aria-label={`Options for ${title}`}>
                 {/* WS3 §9: engineered kebab, not the ⋯ text glyph */}
                 <Icon.dots aria-hidden />
               </button>
             )}
           </div>
         ) : canEdit ? (
-          <button className="dpg-empty pressable" onClick={() => openSheet(part)} aria-label={`Add ${art} ${partLow} plan`}>
+          <button ref={registerResultFocus} className="dpg-empty pressable" onClick={(ev) => openSheet(part, ev.currentTarget)} aria-label={`Add ${art} ${partLow} plan`}>
             <span className="dpg-empty-main">
               <span className="dpg-empty-txt">Add {art} {partLow} plan</span>
               <span className="dpg-empty-sub">Tap to get started</span>
@@ -685,9 +667,15 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
       </div>
     )
   }
+  const dayModalOpen = canEdit && Boolean((picker && model) || menuPart)
 
   return (
     <div className="pg dpg">
+      <div
+        className="dpg-content"
+        inert={dayModalOpen ? true : undefined}
+        aria-hidden={dayModalOpen || undefined}
+      >
       <header className="pg-head">
         <button className="pg-back" onClick={onClose} aria-label="Back">
           <Icon.chevron />
@@ -805,6 +793,7 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
           </details>
         )}
       </div>
+      </div>
 
       {canEdit && picker && model && (
         <PickerSheet
@@ -815,16 +804,27 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
           closing={sheetClosing}
           onPick={assign}
           onClose={closeSheet}
+          returnFocusRef={pickerBtnRef}
+          resolveFallbackFocus={resolvePickerFallbackFocus}
         />
       )}
       {/* Plan Phase 2 (flows-1 p4): the planned-item action menu */}
       {canEdit && menuPart && (
-        <div className="dpg-menu-wrap" onClick={dismissMenu}>
-          <div className="dpg-menu" role="dialog" aria-modal="true" aria-label="Plan item options" ref={menuRef} tabIndex={-1} onKeyDown={menuTrap} onClick={(ev) => ev.stopPropagation()}>
+        <ModalSheet
+          className="dpg-menu-wrap"
+          scrimClassName="dpg-menu-scrim"
+          dialogClassName="dpg-menu"
+          label="Plan item options"
+          focusKey={moveMode ? 'move' : 'actions'}
+          onDismiss={closeMenu}
+          returnFocusRef={menuBtnRef}
+          resolveFallbackFocus={resolveMenuFallbackFocus}
+        >
+          <>
             {!moveMode ? (
               <>
                 <div className="dpg-menu-title">{slotsByPart.get(menuPart)?.item?.title || slotsByPart.get(menuPart)?.item?.name || DAYPART[menuPart].label}</div>
-                <button className="dpg-menu-item" onClick={() => setMoveMode(true)}>
+                <button className="dpg-menu-item" onClick={() => setMoveMode(true)} data-modal-initial-focus>
                   Move to a different time
                 </button>
                 <button className="dpg-menu-item dpg-menu-danger" onClick={() => removeSlot(menuPart)}>
@@ -835,18 +835,18 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
               <>
                 <div className="dpg-menu-title">Move to…</div>
                 {PARTS.filter((p) => p !== menuPart).map((p) => (
-                  <button key={p} className="dpg-menu-item" disabled={slotsByPart.has(p)} onClick={() => moveSlot(menuPart, p)}>
+                  <button key={p} className="dpg-menu-item" disabled={slotsByPart.has(p)} onClick={() => moveSlot(menuPart, p)} data-modal-initial-focus={!slotsByPart.has(p) || undefined}>
                     {DAYPART[p].emoji} {DAYPART[p].label}
                     {slotsByPart.has(p) ? ' · taken' : ''}
                   </button>
                 ))}
               </>
             )}
-            <button className="dpg-menu-cancel" onClick={dismissMenu}>
+            <button className="dpg-menu-cancel" onClick={closeMenu}>
               Cancel
             </button>
-          </div>
-        </div>
+          </>
+        </ModalSheet>
       )}
       {toast && <div className="detail-toast wkb-toast" role="status" aria-live="polite">{toast}</div>}
     </div>

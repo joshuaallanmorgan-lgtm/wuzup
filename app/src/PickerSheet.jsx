@@ -13,13 +13,23 @@
 //   noSaves  — true when the user has NO saves at all (the ♥ hint)
 //   closing  — plays the slide-down exit animation
 //   onPick(e) / onClose()
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { keyOf, timeOf, tablistArrowKey } from './lib.js'
 import { CardImg, SponsoredTag } from './cards.jsx'
 import { daypartOf, DAYPART } from './weekend.js'
+import ModalSheet from './ModalSheet.jsx'
 import './weekend.css'
 
-export default function PickerSheet({ part, dayLabel, model, noSaves, closing, onPick, onClose }) {
+const PICKER_TAB_IDS = {
+  suggested: 'picker-tab-suggested',
+  saved: 'picker-tab-saved',
+}
+const PICKER_PANEL_IDS = {
+  suggested: 'picker-panel-suggested',
+  saved: 'picker-panel-saved',
+}
+
+export default function PickerSheet({ part, dayLabel, model, noSaves, closing, onPick, onClose, returnFocusRef, resolveFallbackFocus }) {
   const suggestionPages = model.suggestionPages?.length
     ? model.suggestionPages
     : model.suggestions.length
@@ -42,18 +52,6 @@ export default function PickerSheet({ part, dayLabel, model, noSaves, closing, o
   // default to whichever group has something; prefer Suggested (the ref default)
   const [tab, setTab] = useState(suggestionPages.length === 0 && model.saved.length > 0 ? 'saved' : 'suggested')
   const tabRefs = useRef([])
-
-  // Escape closes the sheet BEFORE App's window listener can close the whole
-  // page (capture phase runs first; stopPropagation keeps the page up)
-  useEffect(() => {
-    const onKey = (ev) => {
-      if (ev.key !== 'Escape') return
-      ev.stopPropagation()
-      onClose()
-    }
-    window.addEventListener('keydown', onKey, true)
-    return () => window.removeEventListener('keydown', onKey, true)
-  }, [onClose])
 
   const partLow = part ? DAYPART[part].label.toLowerCase() : 'plan'
   const art = part === 'afternoon' ? 'an' : 'a'
@@ -85,19 +83,26 @@ export default function PickerSheet({ part, dayLabel, model, noSaves, closing, o
     )
   }
 
-  const list = tab === 'saved' ? model.saved : suggestionRecords
   const sub =
     tab === 'saved'
       ? 'From your saved list'
       : `Suggested for the ${partLow}${dayLabel ? ' · ' + dayLabel : ''}${suggestionTotal ? ` · ${suggestionTotal} options` : ''}`
 
   return (
-    <div className={'wkb-sheet-wrap' + (closing ? ' closing' : '')}>
-      <button className="wkb-scrim" onClick={onClose} aria-label="Close picker" />
-      <div className="wkb-sheet" role="dialog" aria-label={heading}>
+    <ModalSheet
+      className={'wkb-sheet-wrap' + (closing ? ' closing' : '')}
+      scrimClassName="wkb-scrim"
+      dialogClassName="wkb-sheet"
+      label={heading}
+      closing={closing}
+      onDismiss={onClose}
+      returnFocusRef={returnFocusRef}
+      resolveFallbackFocus={resolveFallbackFocus}
+    >
+      <>
         <div className="wkb-sheet-head">
           <div className="wkb-sheet-title">{heading}</div>
-          <button className="wkb-sheet-close" onClick={onClose} aria-label="Close">
+          <button className="wkb-sheet-close" onClick={onClose} aria-label="Close" data-modal-initial-focus>
             ✕
           </button>
         </div>
@@ -105,9 +110,11 @@ export default function PickerSheet({ part, dayLabel, model, noSaves, closing, o
         <div className="wkb-tabs" role="tablist" aria-label="Picker source">
           <button
             ref={(el) => (tabRefs.current[0] = el)}
+            id={PICKER_TAB_IDS.suggested}
             className={'wkb-tab' + (tab === 'suggested' ? ' on' : '')}
             role="tab"
             aria-selected={tab === 'suggested'}
+            aria-controls={PICKER_PANEL_IDS.suggested}
             tabIndex={tab === 'suggested' ? 0 : -1}
             onClick={() => setTab('suggested')}
             onKeyDown={(ev) => tablistArrowKey(ev, ['suggested', 'saved'], tab === 'suggested' ? 0 : 1, setTab, tabRefs)}
@@ -116,9 +123,11 @@ export default function PickerSheet({ part, dayLabel, model, noSaves, closing, o
           </button>
           <button
             ref={(el) => (tabRefs.current[1] = el)}
+            id={PICKER_TAB_IDS.saved}
             className={'wkb-tab' + (tab === 'saved' ? ' on' : '')}
             role="tab"
             aria-selected={tab === 'saved'}
+            aria-controls={PICKER_PANEL_IDS.saved}
             tabIndex={tab === 'saved' ? 0 : -1}
             onClick={() => setTab('saved')}
             onKeyDown={(ev) => tablistArrowKey(ev, ['suggested', 'saved'], tab === 'suggested' ? 0 : 1, setTab, tabRefs)}
@@ -128,37 +137,54 @@ export default function PickerSheet({ part, dayLabel, model, noSaves, closing, o
         </div>
         <div className="wkb-sheet-sub">{sub}</div>
         <div className="wkb-sheet-body">
-          {list.length > 0 ? (
-            list.map(pickRow)
-          ) : tab === 'saved' ? (
-            <div className="wkb-note">
-              {noSaves ? "♥ save things and they'll show up here first" : 'None of your saved picks fit this slot.'}
-            </div>
-          ) : (
-            <div className="wkb-note">Nothing fits this slot yet.</div>
-          )}
-          {tab === 'suggested' && suggestionPages.length > 1 && (
-            <div className="wkb-more-row">
-              {suggestionRemaining > 0 ? (
-                <button
-                  className="wkb-more pressable"
-                  onClick={() => setSuggestionRun({ key: suggestionKey, page: suggestionPage + 1 })}
-                >
-                  More options · {suggestionRemaining} left
-                </button>
-              ) : (
-                <span className="wkb-more-done" role="status">All suggestions shown</span>
-              )}
-            </div>
-          )}
-          {tab === 'suggested' && browseSuggestions.length > 0 && (
-            <details className="wkb-browse">
-              <summary>Browse every fitting listing · {browseSuggestions.length}</summary>
-              <div className="wkb-browse-list">{browseSuggestions.map(pickRow)}</div>
-            </details>
-          )}
+          <div
+            id={PICKER_PANEL_IDS.suggested}
+            role="tabpanel"
+            aria-labelledby={PICKER_TAB_IDS.suggested}
+            hidden={tab !== 'suggested'}
+            tabIndex={0}
+          >
+            {suggestionRecords.length > 0
+              ? suggestionRecords.map(pickRow)
+              : <div className="wkb-note">Nothing fits this slot yet.</div>}
+            {suggestionPages.length > 1 && (
+              <div className="wkb-more-row">
+                {suggestionRemaining > 0 ? (
+                  <button
+                    className="wkb-more pressable"
+                    onClick={() => setSuggestionRun({ key: suggestionKey, page: suggestionPage + 1 })}
+                  >
+                    More options · {suggestionRemaining} left
+                  </button>
+                ) : (
+                  <span className="wkb-more-done" role="status">All suggestions shown</span>
+                )}
+              </div>
+            )}
+            {browseSuggestions.length > 0 && (
+              <details className="wkb-browse">
+                <summary>Browse every fitting listing · {browseSuggestions.length}</summary>
+                <div className="wkb-browse-list">{browseSuggestions.map(pickRow)}</div>
+              </details>
+            )}
+          </div>
+          <div
+            id={PICKER_PANEL_IDS.saved}
+            role="tabpanel"
+            aria-labelledby={PICKER_TAB_IDS.saved}
+            hidden={tab !== 'saved'}
+            tabIndex={0}
+          >
+            {model.saved.length > 0 ? (
+              model.saved.map(pickRow)
+            ) : (
+              <div className="wkb-note">
+                {noSaves ? "♥ save things and they'll show up here first" : 'None of your saved picks fit this slot.'}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </div>
+      </>
+    </ModalSheet>
   )
 }

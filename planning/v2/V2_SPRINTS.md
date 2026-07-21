@@ -1329,6 +1329,47 @@ Committed scope:
 checks pass; no console error or measurable performance regression; imagery has zero wrong-place or uncredited
 items in the audit; the owner approves the premium existing-product pass.
 
+#### Sprint 10 engineering checkpoint receipt - 2026-07-21 (yellow)
+
+- **The product is intentionally mobile:** the root is again a single centered phone product, full-width at 320px
+  and 390px and capped at 460px on wider displays. The 768px and 1440px checks now prove centering, containment,
+  and absence of horizontal overflow rather than inventing a desktop information architecture. Small-phone rules
+  reclaim space from media and ornament while preserving readable type and 44px actions.
+- **Route work is now measurable:** Home remains eager while the other tabs, details, decks, and retained-value
+  subpages load on demand. Suspense surfaces keep a readable loading state and move focus first to that state and
+  then to the resolved route, with exact-trigger return. The build manifest proves that transfer and deck leaves
+  stay outside the eager graph; the main App chunk is about 30.3 kB raw / 9.6 kB gzip and every asynchronous
+  route remains within the frozen payload budgets.
+- **Shared interaction primitives replaced page-local approximations:** picker and plan-option sheets use one
+  modal contract for modal semantics, inert covered content, initial focus, Tab/Shift+Tab wrapping, Escape,
+  scrim dismissal, reduced motion, live outcomes, and meaningful focus after add/move/remove. Calendar, tab,
+  switch, nullable toggle, card/save, and focus-ring semantics now have dedicated deterministic contracts.
+- **Cards tell each fact once:** the card opener and Save action are sibling native buttons rather than nested
+  controls. Aurora and photo cards share the same metadata treatment; a GemRow exposes one readable
+  `day - start-end` line, neighborhood cards retain one text time, and Day uses its richer body range instead of
+  repeating time over the image.
+- **Image and network behavior fail closed:** raw event image fields cannot reach cards or details. Only an
+  identity-matching receipt with an allowed role, license, host, and delivery mode may display; otherwise the
+  existing Aurora composition remains readable. Credited place photos keep their disclosure, broken images fail
+  per URL, requests use `no-referrer`, and missing-ID custom/legacy events fall back instead of crashing. The
+  shipped CSP limits images and network access to the disclosed hosts; offline behavior is described as absent.
+- **Local development no longer looks falsely empty when the committed fixture ages out:** Vite serve may expose
+  an expired artifact only behind an explicit development-only flag and only after the normal bytes, hash, schema,
+  city, timezone, manifest, and source-health checks pass. Settings labels that state prominently. Builds,
+  previews, launch probes, and production continue to refuse the same expired bytes.
+- **Remote gates now carry the work:** CI enforces payload budgets after the Tampa production build, and the
+  browser workflow adds the Sprint 10 mobile-width, lazy-loading, modal/focus, CSP/image, and Axe journey beside
+  the existing composed-city and Sprint 9 journeys.
+- **Verification is green:** focused Sprint 10 contracts pass 36/36 and the complete serial gate passes 918/918,
+  including the 64.3-second finder contract, immutable artifacts, Tampa/SF and base-path builds, and app lint. The
+  payload manifest gate passes 2/2. The composed Tampa/SF browser journey, Sprint 9 durable-route journey, and
+  Sprint 10 responsive/accessibility/lazy-image journey each pass 1/1 with no serious/critical Axe finding,
+  console error, or disallowed image request. Live acquisition was unavailable during the finder gate, so its
+  existing cache-backed source-count floor remained an explicit diagnostic rather than being relabeled healthy.
+- **Sprint 10 remains yellow:** deterministic image delivery is safer, but the ratified positive flagship-image
+  targets, independent 100-image identity/credit audit, and owner premium visual approval are still open. This
+  checkpoint does not claim those exit-gate decisions or advance the roadmap to beta.
+
 ## Validation and United States coverage
 
 ### Sprint 11 - Controlled Tampa/SF beta, cycle one

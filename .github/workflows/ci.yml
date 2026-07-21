@@ -51,6 +51,9 @@ jobs:
           VITE_CITY=tampa-bay npm --prefix app run build
           CITY=tampa-bay node finder/verify-app-build.mjs app/dist
 
+      - name: Enforce Sprint 10 payload budgets
+        run: npm run test:s10-performance
+
       # smoke runs BEFORE the SF stage: the suite reads the tree as committed
       # (Tampa's app/public; the deploy-monopoly guard compares against it) —
       # deploy.mjs re-staging SF first would fail honest pins for a fake reason.

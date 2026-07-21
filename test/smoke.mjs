@@ -1291,8 +1291,13 @@ test('Stage C C3 a11y: contrast fixes, reduced-motion gates, dialog focus, rovin
   }
   // (3) dialog focus management (focus-in + Tab-trap [+ return]) mirrors LensNav/DetailPage
   const dp = read('DayPage.jsx')
-  assert.ok(/aria-modal="true"/.test(dp) && /ref=\{menuRef\}/.test(dp) && /onKeyDown=\{menuTrap\}/.test(dp), 'the DayPage ⋯ menu must be a focus-trapped modal dialog')
-  assert.ok(/menuBtnRef\.current/.test(dp) && /btn\?\.focus\(\)/.test(dp), 'the DayPage menu must return focus to the ⋯ trigger on dismiss (WCAG 2.4.3)')
+  const modal = read('ModalSheet.jsx')
+  assert.ok(/<ModalSheet/.test(dp) && /label="Plan item options"/.test(dp) && /returnFocusRef=\{menuBtnRef\}/.test(dp), 'the DayPage ⋯ menu must use the shared focus-managed modal')
+  assert.ok(/role="dialog"/.test(modal) && /aria-modal="true"/.test(modal) && /onKeyDown=\{trapTab\}/.test(modal), 'the shared modal must expose modal semantics and trap Tab')
+  assert.ok(
+    /queueMicrotask\([\s\S]*?if \(layer\?\.isConnected\) return[\s\S]*?const target = trigger\?\.isConnected \? trigger : resolveFallbackFocus\?\.\(\)[\s\S]*?if \(target\?\.isConnected\) focusWithoutScroll\(target\)/.test(modal),
+    'the shared modal must restore a connected exact trigger, or its resolved connected fallback, only after a real unmount (WCAG 2.4.3)',
+  )
   const pr = read('Primer.jsx')
   assert.ok(/ref=\{dialogRef\}/.test(pr) && /onKeyDown=\{trap\}/.test(pr) && /\}, \[step\]\)/.test(pr), 'the Primer modal must trap Tab and move focus in on each step')
   // (4) roving tabindex + arrow-key nav on the two tablists (shared helper, no dup)
@@ -2037,8 +2042,35 @@ test('3.7P-35 normalizeTitle: SHOUTING → Title Case, parens/venue cleanup, mix
 // renders, a photo-less PLACE gets an icon card, a photo-less EVENT goes text-led.
 test('3.7P-36 imageMode: photo / icon / text gate (no green placeholder as primary UI)', async () => {
   const { imageMode: im } = await import('../app/src/imageMode.js')
-  assert.equal(im({ image: 'https://x/p.jpg' }), 'photo', 'a usable image URL → photo')
-  assert.equal(im({ kind: 'place', image: 'https://x/p.jpg' }), 'photo', 'a place WITH a photo still → photo')
+  const approvedEvent = {
+    id: 'event:approved',
+    image: 'https://raw.example.test/untrusted.jpg',
+    imageCandidates: [{
+      itemId: 'event:approved',
+      role: 'exact-item',
+      image: 'https://upload.wikimedia.org/wikipedia/commons/a/a1/approved.jpg',
+      sourcePage: 'https://commons.wikimedia.org/wiki/File:Approved.jpg',
+      attribution: 'Photo: Example Author',
+      author: 'Example Author',
+      license: 'CC BY 4.0',
+      licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
+      retrievedAt: '2026-07-21T12:00:00.000Z',
+    }],
+  }
+  const creditedPlace = {
+    kind: 'place',
+    key: 'p|credited',
+    image: 'https://upload.wikimedia.org/wikipedia/commons/c/c1/credited.jpg',
+    imageCredit: {
+      author: 'Example Author',
+      license: 'CC BY-SA 4.0',
+      url: 'https://commons.wikimedia.org/wiki/File:Credited.jpg',
+    },
+  }
+  assert.equal(im(approvedEvent), 'photo', 'a receipt-approved event image → photo')
+  assert.equal(im({ id: 'event:raw', image: 'https://x/p.jpg' }), 'text', 'a raw event URL cannot change presentation')
+  assert.equal(im(creditedPlace), 'photo', 'a credited place photo still → photo')
+  assert.equal(im({ kind: 'place', key: 'p|raw', image: 'https://x/p.jpg' }), 'icon', 'an uncredited place URL fails closed')
   assert.equal(im({ kind: 'place' }), 'icon', 'a place with no photo → icon card (never a big hue block)')
   assert.equal(im({ kind: 'place', image: '' }), 'icon', 'an empty image string is not a photo')
   assert.equal(im({}), 'text', 'an event with no photo → text-led')
@@ -2055,13 +2087,14 @@ test('3.7P-36 imageMode: photo / icon / text gate (no green placeholder as prima
 test('WS4 photoFirst remains a stable presentation helper but Spots ranking is image-neutral', async () => {
   const { imageMode: im, photoFirst } = await import('../app/src/imageMode.js')
   // the root cause, pinned: 'none' is not a value imageMode can return
-  for (const e of [{ image: 'https://x/p.jpg' }, { kind: 'place' }, {}, undefined]) {
+  for (const e of [{ id: 'raw', image: 'https://x/p.jpg' }, { kind: 'place' }, {}, undefined]) {
     assert.notEqual(im(e), 'none', 'imageMode never returns "none" — consumers must compare against real modes')
   }
   const a = { key: 'a', kind: 'place' }
-  const b = { key: 'b', kind: 'place', image: 'https://x/b.jpg' }
+  const credit = (name) => ({ author: 'Example', license: 'CC BY-SA 4.0', url: `https://commons.wikimedia.org/wiki/File:${name}.jpg` })
+  const b = { key: 'b', kind: 'place', image: 'https://upload.wikimedia.org/b.jpg', imageCredit: credit('B') }
   const c = { key: 'c', kind: 'place' }
-  const d = { key: 'd', kind: 'place', image: 'https://x/d.jpg' }
+  const d = { key: 'd', kind: 'place', image: 'https://upload.wikimedia.org/d.jpg', imageCredit: credit('D') }
   const out = photoFirst([a, b, c, d])
   assert.deepEqual(out.map((x) => x.key), ['b', 'd', 'a', 'c'], 'photo-bearing lead; both partitions keep incoming order (stable)')
   assert.equal(out.length, 4, 'count-preserving: reorder only, never hide')
@@ -2117,11 +2150,14 @@ test('WS4 detail hero: art-floor hero is a ~26svh band, photo hero keeps 42svh, 
   const appCss = readFileSync(path.join(ROOT, 'app', 'src', 'App.css'), 'utf8')
   assert.ok(/\.detail-hero\s*\{[^}]*height:\s*42svh/s.test(appCss), 'the photo hero keeps its full 42svh')
   assert.ok(/\.detail-hero\.imgbox-art\s*\{[^}]*height:\s*26svh/s.test(appCss), 'the photo-less (art-floor) hero drops to the 26svh band')
-  // both detail paths reach the rule through the same shared class + keep the
-  // same viewTransitionName, so the thumb→hero morph contract is untouched
+  // both detail paths derive the hero from the shared presentation gate, reach
+  // the same art/loading class, and keep the same View Transition identity.
   for (const f of ['DetailPage.jsx', 'PlaceDetail.jsx']) {
     const src = readFileSync(path.join(ROOT, 'app', 'src', f), 'utf8')
-    assert.ok(/'detail-hero' \+ \(heroArt \? ' imgbox-art' : ''\)/.test(src), `${f} art hero wears the shared .imgbox-art class`)
+    assert.ok(/presentRuntimeImage\(e(?:, \{ policy: RUNTIME_EVENT_IMAGE_POLICY \})?\)/.test(src), `${f} hero must use the shared runtime presentation gate`)
+    assert.ok(/const heroImage = presentedImage\.image/.test(src), `${f} hero must render only the presented image`)
+    assert.ok(/const heroArt = !heroImage \|\| failedSrc === heroImage/.test(src), `${f} art fallback must derive from the presented image`)
+    assert.ok(/'detail-hero' \+ \(heroArt \|\| heroLoading \? ' imgbox-art' : ''\)/.test(src), `${f} art/loading hero wears the shared .imgbox-art class`)
     assert.ok(/viewTransitionName: 'evt-hero'/.test(src), `${f} hero keeps the evt-hero morph name`)
   }
 })
@@ -2517,7 +2553,11 @@ test('PROFILE_PHASE2: net-new drill-ins (Edit Profile · Help & Feedback) wired 
     assert.ok(new RegExp("setPage\\(\\{ type: '" + type + "' \\}\\)").test(nav), `${opener} sets {type:'${type}'}`)
     assert.ok(app.includes("page.type === '" + type + "'"), `App renders the ${type} subpage`)
   }
-  assert.ok(/import EditProfilePage/.test(app) && /import HelpFeedbackPage/.test(app), 'App imports the 2 net-new pages')
+  assert.ok(
+    /const EditProfilePage = lazy\(\(\) => import\('\.\/EditProfilePage\.jsx'\)\)/.test(app)
+      && /const HelpFeedbackPage = lazy\(\(\) => import\('\.\/HelpFeedbackPage\.jsx'\)\)/.test(app),
+    'App lazy-loads the 2 net-new pages',
+  )
   // the removed Recently Saved destination is fully gone (final MVP wipe)
   assert.ok(!/recentlysaved/.test(nav) && !/recentlysaved/.test(app), 'the Recently Saved opener/route is removed everywhere')
   // ProfileView rewiring: pencil/name → Edit Profile, Help → Help & Feedback
@@ -2633,7 +2673,8 @@ test('Addendum O seam-lock: App.jsx detail-after-subpage order + DayPage key + s
 
 test('Addendum O seam-lock: PickerSheet Escape is capture-phase (closes the sheet, not the page)', () => {
   const ps = readFileSync(path.join(ROOT, 'app', 'src', 'PickerSheet.jsx'), 'utf8')
-  assert.ok(/window\.addEventListener\('keydown', onKey, true\)/.test(ps) && /ev\.stopPropagation\(\)/.test(ps), 'PickerSheet Escape is capture-phase + stopPropagation')
+  const modal = readFileSync(path.join(ROOT, 'app', 'src', 'ModalSheet.jsx'), 'utf8')
+  assert.ok(/<ModalSheet/.test(ps) && /window\.addEventListener\('keydown', onEscape, true\)/.test(modal) && /event\.stopPropagation\(\)/.test(modal), 'PickerSheet Escape is capture-phase + stopPropagation through the shared modal')
 })
 
 test('CARD_LOCK seam-lock: one kind-aware ResultCard feeds every result list', () => {
@@ -3721,7 +3762,7 @@ test('Stage E attribution: page wired from Settings (nav union + App slot + Abou
   assert.ok(/setPage\(\{ type: 'attribution' \}\)/.test(nav), "openAttribution sets {type:'attribution'} (single-slot union)")
   assert.ok((nav.match(/openAttribution,/g) || []).length >= 2, 'openAttribution is in the context value AND the memo deps')
   // App: imports the page + renders it in the .subpage slot with the live events
-  assert.ok(/import AttributionPage/.test(app), 'App imports AttributionPage')
+  assert.ok(/const AttributionPage = lazy\(\(\) => import\('\.\/AttributionPage\.jsx'\)\)/.test(app), 'App lazy-loads AttributionPage')
   assert.ok(/page\.type === 'attribution' && <AttributionPage events=\{norm\}/.test(app), 'App renders the attribution subpage with the LOADED events (derivation input)')
   // Settings: the About row opens it; the old "coming soon" stub is retired
   assert.ok(/openAttribution/.test(st) && /Data &amp; photo credits/.test(st), 'Settings has a real "Data & photo credits" row wired to openAttribution')

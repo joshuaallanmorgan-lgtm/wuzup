@@ -14,7 +14,7 @@
 // over this page, and never touches the first-open gate).
 //
 // ALL COPY IS DRAFT for Charles (inventory in the sprint report).
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { CITY, formatCityInstant, Icon } from './lib.js'
 import { coverageStats, dayStamp } from './coverage.js'
 import { useActivity } from './ActivityProvider.jsx'
@@ -60,6 +60,16 @@ export default function SettingsPage({ events, dataMeta, primer, onPrimerDone })
   const [arming, setArming] = useState(false) // reset's two-step confirm
   const [resetStatus, setResetStatus] = useState(null)
   const [resetPending, setResetPending] = useState(false)
+  const [online, setOnline] = useState(() => typeof navigator === 'undefined' || navigator.onLine)
+  useEffect(() => {
+    const sync = () => setOnline(navigator.onLine)
+    window.addEventListener('online', sync)
+    window.addEventListener('offline', sync)
+    return () => {
+      window.removeEventListener('online', sync)
+      window.removeEventListener('offline', sync)
+    }
+  }, [])
 
   // events + distinct source FAMILIES in the fetched dataset — the shared
   // coverage.js derivation (one tally, spoken here, on Home's Coverage Card,
@@ -184,8 +194,9 @@ export default function SettingsPage({ events, dataMeta, primer, onPrimerDone })
             <button
               className="st-row st-row-toggle"
               onClick={() => location.enabled ? location.disable() : location.request()}
-              aria-pressed={location.enabled}
-              aria-label={location.enabled ? 'Turn off location' : 'Use current location'}
+              role="switch"
+              aria-checked={Boolean(location.enabled)}
+              aria-label="Use current location"
             >
               <span className="st-row-main">
                 <span className="st-row-title">Use current location</span>
@@ -206,6 +217,12 @@ export default function SettingsPage({ events, dataMeta, primer, onPrimerDone })
             </button>
           </div>
           <div className="st-card">
+            {dataMeta?.developmentExpired && (
+              <div className="st-line" role="alert">
+                Development preview only: these listings are expired. Their artifact hashes were verified,
+                but production Wuzup still refuses these bytes until a fresh data run is staged.
+              </div>
+            )}
             <div className="st-line">
               {evCount} events from {srcCount} local source{srcCount === 1 ? '' : 's'}
             </div>
@@ -214,7 +231,13 @@ export default function SettingsPage({ events, dataMeta, primer, onPrimerDone })
             {sourceHealth === 'degraded' && <div className="st-line st-dim">Some sources were unavailable</div>}
             {sourceHealth === 'unknown' && <div className="st-line st-dim">Source check unavailable for this snapshot</div>}
             <div className="st-line st-dim">
-              Plans, saves, and taste stay on this device. Listings, weather, and images load from credited sources.
+              Plans, saves, taste, and added items stay in this browser. Wuzup downloads listings from this site,
+              forecasts from Open-Meteo, and credited photos from their hosts. Sites you open receive their own requests.
+            </div>
+            <div className="st-line st-dim" role="status">
+              {online
+                ? 'Offline mode is not available yet. Refreshing listings, forecasts, or photos needs a connection.'
+                : 'Your browser reports that it is offline. Already-open information may remain visible, but refreshing listings, forecasts, or photos needs a connection.'}
             </div>
           </div>
         </section>

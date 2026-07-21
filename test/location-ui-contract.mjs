@@ -19,7 +19,10 @@ test('App uses one shared location provider and only exposes granted coordinates
 
 test('Settings shows effective permission truth rather than stored intent', () => {
   assert.match(settings, /const location = useLocationPermission\(\)/)
-  assert.match(settings, /aria-pressed=\{location\.enabled\}/)
+  assert.match(settings, /role="switch"/)
+  assert.match(settings, /aria-checked=\{Boolean\(location\.enabled\)\}/)
+  assert.match(settings, /aria-label="Use current location"/)
+  assert.doesNotMatch(settings, /aria-pressed=\{location\.enabled\}/)
   assert.match(settings, /location\.enabled \? location\.disable\(\) : location\.request\(\)/)
   assert.match(settings, /location\.status === 'denied'/)
   assert.match(settings, /Blocked in browser settings/)

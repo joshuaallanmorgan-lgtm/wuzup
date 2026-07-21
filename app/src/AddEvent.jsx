@@ -295,14 +295,13 @@ export default function AddEvent({ anchors, myEvents, onAdd, editEvent = null, o
             </div>
             <div className="ae-group">Details</div>
             <div className="ae-field">
-              <div className="ae-label">Category</div>
-              <div className="ae-cats" role="radiogroup" aria-label="Category">
+              <div className="ae-label" id="ae-category-label">Category</div>
+              <div className="ae-cats" role="group" aria-labelledby="ae-category-label">
                 {CATS.map((c) => (
                   <button
                     key={c.value}
                     type="button"
-                    role="radio"
-                    aria-checked={f.cat === c.value}
+                    aria-pressed={f.cat === c.value}
                     className={'ae-cat' + (f.cat === c.value ? ' on' : '')}
                     style={{ '--bh': c.hue }}
                     onClick={() => set('cat')(f.cat === c.value ? null : c.value)}

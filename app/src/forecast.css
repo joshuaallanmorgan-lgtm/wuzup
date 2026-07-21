@@ -1,6 +1,9 @@
 /* forecast.css — ForecastPage (HOME_PHASE2 + TOUCHUP P2). Today hero, best-day
    callout, 7-day wx rows (hi/lo + rain). */
 .fc-pg .pg-body {
+  width: 100%;
+  max-width: var(--reading-max);
+  margin-inline: auto;
   padding: var(--sp-xs) 0 80px;
 }
 /* location subhead above the hero (real active city, never geolocated "current") */

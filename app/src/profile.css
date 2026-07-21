@@ -18,6 +18,9 @@
 /* ===== vibe header ===== */
 .pf-head {
   position: relative;
+  width: 100%;
+  max-width: var(--reading-max);
+  margin-inline: auto;
   padding: calc(16px + env(safe-area-inset-top)) var(--gutter) 4px;
 }
 /* H1: scoped title→card gap. The retired .pf-title gave margin-bottom:var(--sp-sm); the
@@ -50,8 +53,8 @@
   position: absolute;
   top: 14px;
   right: 14px;
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -79,6 +82,7 @@
 .pf-id-main { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .pf-name {
   align-self: flex-start;
+  min-height: 44px;
   max-width: 100%;
   border: none;
   background: none;
@@ -103,7 +107,7 @@
    grouped settings-list look). */
 /* FINAL ref: the menu is 6 SEPARATE rounded white cards (gaps between), each with
    a tinted circular icon DISC + title + description + chevron. */
-.pf-menu { margin: var(--sp-md) var(--gutter) 0; display: flex; flex-direction: column; gap: var(--sp-sm); } /* Cohesion spacing: card-stack rhythm (was 10) */
+.pf-menu { width: calc(100% - (2 * var(--gutter))); max-width: calc(var(--reading-max) - (2 * var(--gutter))); margin: var(--sp-md) auto 0; display: flex; flex-direction: column; gap: var(--sp-sm); } /* Cohesion spacing: card-stack rhythm (was 10) */
 .pf-row {
   display: flex;
   align-items: center;
@@ -145,7 +149,7 @@
    rework's header is the colored .pf-name-block (name + city) + the stats trio. */
 
 /* ===== body / sections (Stage 2 sweep: dead .pf-body / .pf-sec removed) ===== */
-.pf-rows { display: flex; flex-direction: column; gap: var(--sp-sm); padding: 0 var(--gutter); } /* card-stack rhythm (was 10) */
+.pf-rows { width: 100%; max-width: var(--reading-max); margin-inline: auto; display: flex; flex-direction: column; gap: var(--sp-sm); padding: 0 var(--gutter); } /* card-stack rhythm (was 10) */
 
 /* Stage 2 sweep: the W6 "Your taste" hub rows (.pf-taste*) and the N5b save→plan
    pull card (.pf-pull*) were removed — neither is rendered anymore (taste lives in
@@ -171,7 +175,9 @@
 
 /* ===== empty states: charming, inviting, never barren ===== */
 .pf-empty {
-  margin: 0 var(--gutter);
+  width: calc(100% - (2 * var(--gutter)));
+  max-width: calc(var(--reading-max) - (2 * var(--gutter)));
+  margin: 0 auto;
   padding: 22px 18px;
   border: 1.5px dashed var(--line);
   border-radius: var(--r-lg);
@@ -202,7 +208,9 @@
   display: flex;
   align-items: baseline;
   gap: 10px;
-  margin: 0 var(--gutter) var(--sp-xs);
+  width: calc(100% - (2 * var(--gutter)));
+  max-width: calc(var(--reading-max) - (2 * var(--gutter)));
+  margin: 0 auto var(--sp-xs);
   padding: 11px 14px;
   border: 1px solid var(--line);
   border-radius: var(--r-md);
@@ -258,7 +266,7 @@
 .pf-reality-n { color: var(--ink); font-weight: 800; }
 .pf-reality-went { color: var(--ink); } /* WS3 accent restraint: the went count is a VALUE — ink like .pf-reality-n, not orange. ⚑ Charles eyeball */
 /* variety firsts: a small fixed set of breadth stamps, never a volume tracker */
-.pf-firsts { display: flex; flex-wrap: wrap; gap: var(--sp-xs); padding: 0 var(--gutter); margin-bottom: 14px; }
+.pf-firsts { width: 100%; max-width: var(--reading-max); margin-inline: auto; display: flex; flex-wrap: wrap; gap: var(--sp-xs); padding: 0 var(--gutter); margin-bottom: 14px; }
 .pf-first {
   display: inline-flex;
   align-items: center;
@@ -273,7 +281,7 @@
 }
 
 /* ===== Been there: the "Did you make it?" prompt rows ===== */
-.pf-asks { display: flex; flex-direction: column; gap: var(--sp-sm); padding: 0 var(--gutter); margin-bottom: 14px; } /* card-stack rhythm (was 10) */
+.pf-asks { width: 100%; max-width: var(--reading-max); margin-inline: auto; display: flex; flex-direction: column; gap: var(--sp-sm); padding: 0 var(--gutter); margin-bottom: 14px; } /* card-stack rhythm (was 10) */
 .pf-ask {
   padding: 13px 14px;
   border: 1px solid var(--line);
@@ -292,6 +300,7 @@
 .pf-ask-yes,
 .pf-ask-no {
   flex: 1;
+  min-height: 44px;
   padding: 9px 10px;
   border-radius: var(--r-sm);
   font-family: inherit;
@@ -338,7 +347,7 @@
 /* Edit Profile (.ep-*) — the pencil's destination; a pinned Save bar at the bottom */
 .ep-pg { display: flex; flex-direction: column; overflow: hidden; }
 .ep-pg .pg-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
-.ep-body { display: flex; flex-direction: column; gap: 14px; padding: var(--sp-xs) var(--gutter) var(--sp-md); }
+.ep-body { width: 100%; max-width: var(--reading-max); margin-inline: auto; display: flex; flex-direction: column; gap: 14px; padding: var(--sp-xs) var(--gutter) var(--sp-md); }
 .ep-photo-row { display: flex; align-items: center; gap: 14px; }
 .ep-photo {
   flex: 0 0 64px; width: 64px; height: 64px; border-radius: var(--r-circle);
@@ -348,6 +357,7 @@
 }
 .ep-photo-edit {
   display: inline-flex; align-items: center; gap: var(--sp-xs);
+  min-height: 44px;
   border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--card);
   color: var(--muted); font: inherit; font-size: var(--t-meta); font-weight: 700;
   padding: var(--sp-xs) 13px; cursor: not-allowed;
@@ -372,6 +382,7 @@
 .ep-sec-label { margin-top: 6px; font-size: var(--t-meta-sm); font-weight: 800; letter-spacing: 0.02em; color: var(--muted); }
 .ep-pref {
   display: flex; align-items: center; justify-content: space-between;
+  min-height: 44px;
   padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--r-md);
   background: var(--card); font-size: 14px; font-weight: 600; color: var(--ink);
 }
@@ -382,7 +393,9 @@
 .ep-pref-go svg { width: 18px; height: 18px; display: block; }
 .ep-save {
   flex: 0 0 auto;
-  margin: var(--sp-sm) var(--gutter) calc(16px + env(safe-area-inset-bottom));
+  width: calc(100% - (2 * var(--gutter)));
+  max-width: calc(var(--reading-max) - (2 * var(--gutter)));
+  margin: var(--sp-sm) auto calc(16px + env(safe-area-inset-bottom));
   padding: 15px; border: none; border-radius: var(--r-md);
   background: var(--cta); color: #fff; font: inherit; font-size: 16px; font-weight: 800; cursor: pointer;
   transition: transform var(--dur-micro);
@@ -391,10 +404,11 @@
 
 /* My Saves: filter tabs + time-group labels (PROFILE_PHASE2 polish) */
 .ms-tabs {
+  width: 100%; max-width: var(--reading-max); margin-inline: auto;
   display: flex; gap: var(--sp-xs); padding: 10px var(--gutter) 0;
 }
 .ms-tab {
-  flex: 1; padding: 9px 10px;
+  flex: 1; min-height: 44px; padding: 9px 10px;
   border: 1.5px solid var(--line); border-radius: var(--r-pill);
   background: var(--card); color: var(--muted);
   font: inherit; font-size: var(--t-meta); font-weight: 700; cursor: pointer;
@@ -416,7 +430,8 @@
 
 /* Help & feedback (.hf-*) — warm intro hero (CSS, no image asset) + mailto rows */
 .hf-hero {
-  margin: var(--sp-xs) var(--gutter) var(--sp-md); padding: 26px 18px; border-radius: var(--r-lg); text-align: center;
+  width: calc(100% - (2 * var(--gutter))); max-width: calc(var(--reading-max) - (2 * var(--gutter)));
+  margin: var(--sp-xs) auto var(--sp-md); padding: 26px 18px; border-radius: var(--r-lg); text-align: center;
   background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.18), rgba(var(--accent-rgb), 0.06));
 }
 .hf-hero-title { font-size: 18px; font-weight: 800; color: var(--ink); }

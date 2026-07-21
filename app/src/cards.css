@@ -59,30 +59,16 @@
     filter var(--dur-emphasis) var(--ease-out);
 }
 .imgbox-img.on { opacity: 1; transform: none; filter: none; }
-.imgbox-fall {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-weight: 800;
-  font-size: var(--t-meta);
-  text-shadow: 0 1px 4px rgba(26, 20, 16, 0.25); /* WS3: warm shadow per §3 */
-}
-
 /* ===== I3 no-image composition: a designed tile, not a dark block.
    Layered gradients in the category hue (--ch set inline by CardImg), an
-   oversized rotated emoji watermark clipped at the corner, the time/emoji
-   foreground on top. container-type:size lets the watermark + foreground use
-   cqmin units so ONE composition holds 58px → 420px. Every .imgbox is sized
+   oversized rotated emoji watermark clipped at the corner. container-type:size
+   lets the watermark use cqmin units so ONE composition holds 58px → 420px. Every .imgbox is sized
    by its parent class, so size containment changes no layout. ===== */
 /* W4 polish (DRAFT — ⚑ Charles, W5 owns the deep taste pass): the same I3
    composition, with more depth. Five layers now — a soft top sheen ("lit from
    above"), the warm corner glow, a centered bottom vignette (premium feel AND
    better foreground legibility), the deep anchor corner, and the base diagonal.
-   All BACKGROUND layers so they sit behind the watermark + foreground text —
-   nothing dims the time/emoji on top. */
+   All BACKGROUND layers so they sit behind the watermark and optional badges. */
 /* AURORA MESH (3.8): a per-PLACE generative field, not the old per-type flat fill.
    artseed.js sets, inline, a muted base hue (--ch) + 3 soft radial "blobs" whose
    position (--axN/--ayN), radius (--arN) and hue (--ahN, jittered within the band)
@@ -100,7 +86,7 @@
   background:
     /* faint paper grain — craft up close, behind the marker + foreground */
     radial-gradient(circle, rgba(255, 255, 255, 0.035) 0.5px, transparent 0.6px) 0 0 / 3px 3px,
-    /* bottom-anchored vignette — depth + keeps the foreground time/marker AA-legible */
+    /* bottom-anchored vignette — depth + keeps the marker/badges AA-legible */
     radial-gradient(150% 125% at 50% 132%, rgba(0, 0, 0, 0.32), transparent 60%),
     /* === the three seed-placed aurora blobs (band hue, soft, layered) === */
     radial-gradient(var(--ar1, 60%) var(--ar1, 60%) at var(--ax1, 28%) var(--ay1, 22%), hsl(var(--ah1, 220) 42% 64% / 0.62), transparent 62%),
@@ -135,9 +121,10 @@
 @container (max-width: 70px) {
   .imgbox-mark { display: none; }
 }
-/* foreground scales with the tile, clamped so the time stays legible on the
-   58px agenda thumb and never goes billboard on the full-width feature card */
-.imgbox-art .imgbox-fall { font-size: clamp(11px, 14cqmin, 26px); }
+/* Day cards historically supplied a second start-time badge inside CardImg.
+   Their adjacent metadata already owns the richer start–end treatment, so keep
+   that single readable source of truth for both photos and Aurora fallbacks. */
+.imgbox > .dpg-thumb-time { display: none; }
 
 /* ===== 🔥 heat badge (hot palette: buzz-driven, hot-ness only) ===== */
 .heat-badge {
@@ -182,9 +169,14 @@
 }
 .carousel::-webkit-scrollbar { display: none; }
 .tcard {
+  position: relative;
   flex: 0 0 280px;
   width: 280px;
   scroll-snap-align: start;
+}
+.tcard-open {
+  display: block;
+  width: 100%;
   background: none;
   border: none;
   padding: 0;
@@ -193,6 +185,7 @@
   text-align: left;
   cursor: pointer;
 }
+.tcard .heat-badge { right: 40px; }
 .tcard-img { width: 280px; aspect-ratio: var(--ar-card); border-radius: var(--r-md); } /* 3.7P-1: framing token (was 280×157, identical 16:9) */
 .tcard-title {
   margin-top: var(--sp-xs);
@@ -206,7 +199,8 @@
 
 /* ===== SpotCard (3.73b): the premium place tile — a discovery, not a row.
    placeType-aware art (3.73a) + a type label + one differentiator + 💎 badge. ===== */
-.spotcard { flex: 0 0 200px; scroll-snap-align: start; border: none; background: none; text-align: left; cursor: pointer; padding: 0; font: inherit; color: inherit; }
+.spotcard { position: relative; flex: 0 0 200px; scroll-snap-align: start; }
+.spotcard-tile-open { display: block; width: 100%; border: none; background: none; text-align: left; cursor: pointer; padding: 0; font: inherit; color: inherit; }
 .spotcard-img { display: block; width: 200px; height: 130px; border-radius: var(--r-md); }
 .spotcard-type { margin-top: var(--sp-xs); font-size: var(--eyebrow-size); font-weight: var(--eyebrow-weight); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--muted); } /* PREMIUM A1: off orange · Cohesion ruling #7: metadata eyebrow, full A6 contract (UPPERCASE) */
 .spotcard-title { margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } /* A6: type from the shared --t-card override below */
@@ -363,7 +357,7 @@
 /* A2: .featc-chip styling now comes from the shared chip primitive (below). */
 .featc-actions { display: flex; gap: 10px; padding: var(--sp-sm) 15px 15px; }
 .featc-act {
-  height: 42px;
+  height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -462,7 +456,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  height: 30px;
+  min-height: 44px;
   padding: 0 var(--sp-sm);
   border: 1px solid rgba(var(--cta-rgb), 0.5);
   border-radius: var(--r-pill);
@@ -488,20 +482,21 @@
   font-weight: 700;
   line-height: 1;
 }
-/* cross-day on-image badge: stacked DAY over TIME (Sat / 7:00 PM) */
-.gem-time-stack { display: flex; flex-direction: column; align-items: center; line-height: 1.05; padding-top: 4px; padding-bottom: 4px; }
-.gem-time-day { font-size: 8px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; }
-
 /* EVENTS_GRIND: "Neighborhood Picks" — a 2-up grid of compact image-top tiles
    (area overline + title + meta), distinct from the full-width GemRow row. */
 .nbhd-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-md) var(--sp-sm); padding: 0 var(--gutter); }
-.nbhd-card { min-width: 0; display: flex; flex-direction: column; background: none; border: none; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.nbhd-card { position: relative; min-width: 0; }
+.nbhd-open { min-width: 0; width: 100%; display: flex; flex-direction: column; background: none; border: none; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
 .nbhd-img { position: relative; display: block; width: 100%; aspect-ratio: 3 / 2; border-radius: var(--r-md); }
 .nbhd-area { margin-top: var(--sp-xs); font-size: var(--eyebrow-size); font-weight: var(--eyebrow-weight); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* PREMIUM A1: off orange · Cohesion ruling #7: metadata eyebrow, full A6 contract (UPPERCASE) */
 .nbhd-area .meta-ic { vertical-align: -2px; } /* WS3 §9: engineered pin (was 📍) */
 .nbhd-title { margin-top: 1px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } /* A6: type from the shared --t-card override below */
 .nbhd-meta { margin-top: 2px; font-size: var(--t-meta-sm); font-weight: 500; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nbhd-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+/* SaveHeart is a native sibling button on actionable cards. Reset only its
+   browser chrome; native focus, Enter/Space, disabled and pressed semantics stay. */
+.save-btn { border: 0; padding: 0; font: inherit; }
+.save-btn:disabled { cursor: default; }
 /* E-L2: "Why this fits" — honest derived reason, never fabricated */
 .gem-why { margin-top: 4px; font-size: var(--t-micro); font-weight: 700; color: var(--muted); letter-spacing: -0.1px; } /* PREMIUM A1 (accent restraint): "Why this fits" off orange */
 /* TOUCHUP P2: shared on-image badge (event time · spot distance) — dark pill, bottom-left */
@@ -826,7 +821,8 @@
   bottom: calc(80px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
   z-index: 3000;
-  max-width: 360px;
+  width: min(var(--toast-max), calc(100vw - (2 * var(--gutter))));
+  max-width: calc(100vw - (2 * var(--gutter)));
   padding: 11px 18px;
   border-radius: var(--r-pill);
   background: rgba(var(--ink-rgb), 0.92); /* Stage E dark seam (byte-inert in light; dark inverts the toast — see the dark block below) */
@@ -836,7 +832,9 @@
   letter-spacing: -0.1px;
   box-shadow: var(--shadow-2);
   pointer-events: none;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
   /* PREMIUM A4 (motion#7): a real entrance (rises + fades in), mirroring the detail
      toast — no more hard pop. (--ease-emphasis = the confident Apple curve.) */
   animation: cardToastIn var(--dur-fast) var(--ease-emphasis) both;
@@ -876,6 +874,40 @@
 .skel-w45 { width: 45%; }
 .skel-chips { display: flex; gap: 6px; margin-top: 4px; }
 .skel-chip { width: 52px; height: 20px; border-radius: var(--r-pill); }
+
+/* Sprint 10 small-phone density: keep the universal row readable at 320px by
+   reclaiming width from media and ornament, not from type or actions. */
+@media (max-width: 359px) {
+  .gem,
+  .spotcard--row { padding: var(--sp-sm); }
+
+  .gem-open,
+  .spotcard-open { gap: var(--sp-sm); }
+
+  .gem-img,
+  .spotcard--row .spotcard-img,
+  .gem-skel .skel-img {
+    flex-basis: 88px;
+    width: 88px;
+  }
+
+  .spotcard--row .spotcard-medallion {
+    flex-basis: 48px;
+    width: 48px;
+    height: 48px;
+    font-size: 22px;
+  }
+
+  .gem-main,
+  .spotcard--row .spotcard-body { padding-right: 38px; }
+
+  .gem-add,
+  .spotcard-add {
+    right: var(--sp-xs);
+    bottom: var(--sp-xs);
+    padding-inline: 10px;
+  }
+}
 
 /* ===== Stage E dark mode (card-scope) — the pale identity tints assumed the
    cream canvas; on dark they'd glare like stickers. Same hue variables, the

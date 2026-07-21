@@ -41,3 +41,6 @@ jobs:
 
       - name: Run Sprint 9 durable-route journey
         run: npm run test:browser-s9
+
+      - name: Run Sprint 10 responsive-accessibility journey
+        run: npm run test:browser-s10

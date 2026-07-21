@@ -14,11 +14,12 @@ import { createContext, memo, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { CATEGORY_EMOJI, CATEGORY_HUES, PLACETYPE_EMOJI, PLACETYPE_HUE } from './categories.js'
 import { auroraVars, medallionHue } from './artseed.js'
-import { Icon, dayLabelLoose, dayLoose, eventLifecycle, formatDayTs, keyOf, makeAnchors, priceLabel, startLabel, timeOf } from './lib.js'
+import { Icon, dayLabelLoose, dayLoose, eventLifecycle, keyOf, priceLabel, startLabel, timeOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { usePlanner } from './PlannerProvider.jsx'
 import { ACTIVITIES } from './places.js'
 import { imageMode, photoFirst } from './imageMode.js'
+import { presentRuntimeImage, RUNTIME_EVENT_IMAGE_POLICY } from './leadImage.js'
 import { daypartOf } from './weekend.js'
 import { SaveHeart, useSaves } from './saves.js'
 import './cards.css'
@@ -179,19 +180,19 @@ export function SponsoredTag({ e }) {
 // I3 designed composition instead of an empty block: .imgbox-art layers a
 // category-hue gradient (via --ch / CATEGORY_HUES) under an oversized rotated
 // CATEGORY_EMOJI watermark (.imgbox-mark, cqmin-sized so the SAME composition
-// holds from the 58px agenda thumb to the full-width feature card), with the existing
-// time/emoji foreground on top. Pure CSS + emoji — no assets, no canvas.
+// holds from the 58px agenda thumb to the full-width feature card). Time stays in
+// the card's readable metadata so photo and Aurora cards expose the same facts.
+// Pure CSS + emoji — no assets, no canvas.
 // data-vt marks the element that morphs into the detail hero via View Transitions.
 // children render on top (heat badges, FREE badge, …).
 export function CardImg({ e, className = '', children }) {
-  const [ok, setOk] = useState(false)
-  const [failed, setFailed] = useState(false)
+  const [loadedSrc, setLoadedSrc] = useState(null)
+  const [failedSrc, setFailedSrc] = useState(null)
+  const presented = presentRuntimeImage(e, { policy: RUNTIME_EVENT_IMAGE_POLICY })
+  const imageSrc = presented.image
+  const ok = loadedSrc === imageSrc
+  const failed = failedSrc === imageSrc
   const emoji = artEmoji(e)
-  // the art-floor foreground is the real event TIME only — strip startLabel's "Started "
-  // prefix. Aurora (3.8): the old '★' fallback is GONE — on a place / timeless item it
-  // was the loudest thing on every tile (every park read as "star"), competing with the
-  // generative field. With no time, the aurora field + corner type-chip carry identity.
-  const fall = startLabel(e).replace(/^Started /, '')
   // W4 trust contract: a dead/broken image URL degrades to the category-art
   // FLOOR (the designed hue + emoji), never the browser's broken-image glyph and
   // never a flat dark box. onError flips to art; a real photo never regresses.
@@ -200,35 +201,36 @@ export function CardImg({ e, className = '', children }) {
   // "poster → small thumb / no green placeholder" win is delivered by the cards
   // that CONSUME imageMode() at layout time, P42's CompactRow, not a CardImg
   // runtime crop that mismatched the cover detail-hero it View-Transitions into.)
-  const showArt = !e.image || failed
+  const showArt = !imageSrc || failed
+  const auroraUnderlay = showArt || !ok
   return (
     <span
-      className={'imgbox ' + className + (showArt ? ' imgbox-art' : '')}
+      className={'imgbox ' + className + (auroraUnderlay ? ' imgbox-art' : '')}
       data-vt
-      style={showArt ? auroraStyle(e) : undefined}
+      style={auroraUnderlay ? auroraStyle(e) : undefined}
     >
-      {!showArt ? (
+      {imageSrc && !failed ? (
         <img
           className={'imgbox-img' + (ok ? ' on' : '')}
-          src={e.image}
+          src={imageSrc}
           alt=""
           loading="lazy"
+          decoding="async"
+          referrerPolicy="no-referrer"
           draggable={false}
-          onLoad={() => setOk(true)}
-          onError={() => setFailed(true)}
+          onLoad={() => setLoadedSrc(imageSrc)}
+          onError={() => setFailedSrc(imageSrc)}
         />
-      ) : (
-        <>
-          <span className="imgbox-mark" aria-hidden>
-            {emoji}
-          </span>
-          {fall && <span className="imgbox-fall">{fall}</span>}
-        </>
-      )}
+      ) : null}
+      {showArt || !ok ? (
+        <span className="imgbox-mark" aria-hidden>
+          {emoji}
+        </span>
+      ) : null}
       {/* PREMIUM A2: bottom scrim on REAL photos so on-image time/heat/dist badges
           stay legible (the art floor already carries its own dark gradients). CSS
           shows it only on the badge-bearing card thumbs. */}
-      {!showArt && <span className="img-scrim" aria-hidden />}
+      {imageSrc && !failed && <span className="img-scrim" aria-hidden />}
       {children}
     </span>
   )
@@ -264,15 +266,17 @@ export function TonightCard({ e, onSelect, withDate = false }) {
     .filter((v, i, arr) => arr.indexOf(v) === i)
     .join(' · ')
   return (
-    <button className="tcard pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
-      <CardImg e={e} className="tcard-img">
-        <SaveHeart e={e} />
-        {lifecycle.actionable && <HeatBadge e={e} />}
-      </CardImg>
-      <div className="tcard-title">{e.title}</div>
-      <div className={'tcard-meta' + startedCls(meta)}>{meta || 'Details inside'}</div>
-      <SponsoredTag e={e} />
-    </button>
+    <div className="tcard">
+      <button className="tcard-open pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
+        <CardImg e={e} className="tcard-img">
+          {lifecycle.actionable && <HeatBadge e={e} />}
+        </CardImg>
+        <div className="tcard-title">{e.title}</div>
+        <div className={'tcard-meta' + startedCls(meta)}>{meta || 'Details inside'}</div>
+        <SponsoredTag e={e} />
+      </button>
+      <SaveHeart e={e} />
+    </div>
   )
 }
 
@@ -368,19 +372,15 @@ export function FeaturedCard({ e, onSelect, onAdd }) {
   )
 }
 
-const startOfTodayMs = () => makeAnchors().todayTs
 // GemRow — the canonical EVENT card (CARD polish, ref-events-full). A light card
-// surface holds: [image (on-image badge) · two-line meta · neutral chips] then a
+// surface holds: [image · two-line meta · neutral chips] then a
 // right RAIL with the outline SaveHeart over a self-contained "Add to plan" pill
-// (writes the real day-plan). The on-image badge stacks DAY-over-TIME for a future
-// day (Sat / 7:00 PM); today's events show time only. Real fields only.
+// (writes the real day-plan). Date and the complete start–end range live in one
+// readable metadata line rather than being repeated over the image. Real fields only.
 export function GemRow({ e, onSelect }) {
   const lifecycle = eventLifecycle(e)
-  const time = e.kind !== 'place' && !e._ongoing ? timeOf(e.start) : null
   const timeRange =
     e.kind !== 'place' && !e._ongoing ? [timeOf(e.start), e.end ? timeOf(e.end) : null].filter(Boolean).join(' – ') : null
-  const dayShort =
-    time && e._day != null && e._day !== startOfTodayMs() ? formatDayTs(e._day, { weekday: 'short' }) : null
   const chips = featuredChips(e)
   const when = [dayLoose(e), timeRange].filter(Boolean).join(' · ')
   // CARD_LOCK: a COLLAPSED recurring series wears its honest "+ N more …" stamp
@@ -397,12 +397,6 @@ export function GemRow({ e, onSelect }) {
       <button className="gem-open pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
         <CardImg e={e} className="gem-img">
           <HeatBadge e={e} />
-          {time && (
-            <span className={'imgbadge gem-time' + (dayShort ? ' gem-time-stack' : '')}>
-              {dayShort && <span className="gem-time-day">{dayShort}</span>}
-              {time}
-            </span>
-          )}
         </CardImg>
         <div className="gem-main">
           <div className="gem-title">{e.title}</div>
@@ -447,22 +441,27 @@ export function GemRow({ e, onSelect }) {
 // the areas were confidently readable — the honesty guard lives at the call site).
 export function NbhdCard({ e, onSelect }) {
   const chips = featuredChips(e)
+  const meta = [dayLoose(e), startLabel(e), e.venue]
+    .filter(Boolean)
+    .filter((v, i, arr) => arr.indexOf(v) === i)
+    .join(' · ')
   return (
-    <button className="nbhd-card pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
-      <CardImg e={e} className="nbhd-img">
-        <SaveHeart e={e} />
-      </CardImg>
-      <div className="nbhd-area"><PinIcon /> {e._area}</div>
-      <div className="nbhd-title">{e.title}</div>
-      <div className="nbhd-meta">{[dayLoose(e), e.venue].filter(Boolean).join(' · ')}</div>
-      {chips.length > 0 && (
-        <div className="nbhd-chips">
-          {chips.map((c, i) => (
-            <span className="gem-chip" key={i}>{c}</span>
-          ))}
-        </div>
-      )}
-    </button>
+    <div className="nbhd-card">
+      <button className="nbhd-open pressable" onClick={(ev) => onSelect(e, ev.currentTarget)}>
+        <CardImg e={e} className="nbhd-img" />
+        <div className="nbhd-area"><PinIcon /> {e._area}</div>
+        <div className="nbhd-title">{e.title}</div>
+        <div className="nbhd-meta">{meta}</div>
+        {chips.length > 0 && (
+          <div className="nbhd-chips">
+            {chips.map((c, i) => (
+              <span className="gem-chip" key={i}>{c}</span>
+            ))}
+          </div>
+        )}
+      </button>
+      <SaveHeart e={e} />
+    </div>
   )
 }
 
@@ -591,26 +590,28 @@ export function SpotCard({ p, onSelect, row = false }) {
   }
   // carousel TILE (unchanged) — top-image, on-image heart + distance badge
   return (
-    <button className="spotcard pressable" onClick={(ev) => onSelect(p, ev.currentTarget)}>
-      <CardImg e={p} className="spotcard-img">
-        <SaveHeart e={p} />
-        {dist && <span className="imgbadge spotcard-dist">{dist}</span>}
-      </CardImg>
-      <div className="spotcard-body">
-        <div className="spotcard-type">{placeTypeLabel(p)}</div>
-        <div className="spotcard-title">{p.title}</div>
-        {chips.length > 0 ? (
-          <div className="spotcard-amen">{spotAmenChips(chips)}</div>
-        ) : (
-          <div className="spotcard-meta">{p.venue || 'Tap for details'}</div>
-        )}
-        {bestFor && (
-          <div className="spotcard-bestfor">
-            <SparkleIcon /> Good for: {bestFor}
-          </div>
-        )}
-      </div>
-    </button>
+    <div className="spotcard">
+      <button className="spotcard-tile-open pressable" onClick={(ev) => onSelect(p, ev.currentTarget)}>
+        <CardImg e={p} className="spotcard-img">
+          {dist && <span className="imgbadge spotcard-dist">{dist}</span>}
+        </CardImg>
+        <div className="spotcard-body">
+          <div className="spotcard-type">{placeTypeLabel(p)}</div>
+          <div className="spotcard-title">{p.title}</div>
+          {chips.length > 0 ? (
+            <div className="spotcard-amen">{spotAmenChips(chips)}</div>
+          ) : (
+            <div className="spotcard-meta">{p.venue || 'Tap for details'}</div>
+          )}
+          {bestFor && (
+            <div className="spotcard-bestfor">
+              <SparkleIcon /> Good for: {bestFor}
+            </div>
+          )}
+        </div>
+      </button>
+      <SaveHeart e={p} />
+    </div>
   )
 }
 

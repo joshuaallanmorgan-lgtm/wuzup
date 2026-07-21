@@ -8,6 +8,8 @@ import {
   LEAD_IMAGE_CODES,
   LEAD_IMAGE_ROLES,
   presentLeadImage,
+  presentRuntimeImage,
+  RUNTIME_EVENT_IMAGE_POLICY,
 } from '../app/src/leadImage.js'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
@@ -147,6 +149,98 @@ test('candidate receipts must target the event receiving the image', () => {
 test('invalid lead items are rejected before image assessment', () => {
   assert.throws(() => presentLeadImage(null, { policy }), new RegExp(LEAD_IMAGE_CODES.ITEM_INVALID))
   assert.throws(() => presentLeadImage({ title: 'Missing id' }, { policy }), new RegExp(LEAD_IMAGE_CODES.ITEM_INVALID))
+})
+
+test('runtime event policy rejects raw images and permits only allowlisted receipts', () => {
+  const raw = presentRuntimeImage(event(), { policy: RUNTIME_EVENT_IMAGE_POLICY })
+  const foreignHost = presentRuntimeImage(event({
+    imageCandidates: [candidate()],
+  }), { policy: RUNTIME_EVENT_IMAGE_POLICY })
+  const approved = presentRuntimeImage(event({
+    imageCandidates: [candidate({
+      image: 'https://upload.wikimedia.org/wikipedia/commons/a/a1/example.jpg',
+    })],
+  }), { policy: RUNTIME_EVENT_IMAGE_POLICY })
+
+  assert.equal(raw.image, null)
+  assert.equal(foreignHost.image, null)
+  assert.ok(foreignHost._imageSelection.reasons.includes('REMOTE_HOST_NOT_ALLOWED'))
+  assert.equal(approved.image, 'https://upload.wikimedia.org/wikipedia/commons/a/a1/example.jpg')
+})
+
+test('runtime cards and detail fail missing-id custom and legacy events to Aurora', () => {
+  const sessionCustom = presentRuntimeImage({
+    kind: 'custom',
+    title: 'Session-only custom event',
+    image: 'https://untrusted.example.test/custom.jpg',
+  }, { policy: RUNTIME_EVENT_IMAGE_POLICY })
+  const legacy = presentRuntimeImage({
+    title: 'Legacy saved event',
+    image: 'https://untrusted.example.test/legacy.jpg',
+    imageEvidence: { verified: true },
+  }, { policy: RUNTIME_EVENT_IMAGE_POLICY })
+
+  for (const presented of [sessionCustom, legacy]) {
+    assert.equal(presented.image, null)
+    assert.equal(presented.imageCredit, null)
+    assert.equal(presented._imageRole, LEAD_IMAGE_ROLES.AURORA)
+    assert.ok(presented._imageSelection.reasons.includes(LEAD_IMAGE_CODES.ITEM_INVALID))
+  }
+})
+
+test('durable custom identity still requires a matching allowlisted receipt', () => {
+  const localId = 'custom-event-123'
+  const rawOnly = presentRuntimeImage({
+    kind: 'custom',
+    localId,
+    title: 'Durable custom event',
+    image: 'https://untrusted.example.test/custom.jpg',
+  }, { policy: RUNTIME_EVENT_IMAGE_POLICY })
+  const approved = presentRuntimeImage({
+    kind: 'custom',
+    localId,
+    title: 'Durable custom event',
+    imageCandidates: [candidate({
+      itemId: `c|${localId}`,
+      image: 'https://upload.wikimedia.org/wikipedia/commons/c/c1/custom.jpg',
+    })],
+  }, { policy: RUNTIME_EVENT_IMAGE_POLICY })
+  const mismatched = presentRuntimeImage({
+    kind: 'custom',
+    localId,
+    title: 'Durable custom event',
+    imageCandidates: [candidate({
+      itemId: 'c|another-custom-event',
+      image: 'https://upload.wikimedia.org/wikipedia/commons/c/c1/custom.jpg',
+    })],
+  }, { policy: RUNTIME_EVENT_IMAGE_POLICY })
+
+  assert.equal(rawOnly.image, null)
+  assert.ok(rawOnly._imageSelection.reasons.includes('NO_READY_CANDIDATE'))
+  assert.equal(approved.image, 'https://upload.wikimedia.org/wikipedia/commons/c/c1/custom.jpg')
+  assert.equal(approved.id, `c|${localId}`)
+  assert.equal(mismatched.image, null)
+  assert.ok(mismatched._imageSelection.reasons.includes(LEAD_IMAGE_CODES.ITEM_ID_MISMATCH))
+})
+
+test('runtime place gate preserves credited photos and rejects uncredited ones', () => {
+  const credited = {
+    kind: 'place',
+    key: 'p|one',
+    image: 'https://upload.wikimedia.org/example.jpg',
+    imageCredit: {
+      author: 'Example',
+      license: 'CC BY-SA 4.0',
+      url: 'https://commons.wikimedia.org/wiki/File:Example.jpg',
+    },
+  }
+  const kept = presentRuntimeImage(credited)
+  const rejected = presentRuntimeImage({ ...credited, imageCredit: null })
+
+  assert.equal(kept.image, credited.image)
+  assert.equal(kept.imageCredit, credited.imageCredit)
+  assert.equal(rejected.image, null)
+  assert.ok(rejected._imageSelection.reasons.includes(LEAD_IMAGE_CODES.PLACE_CREDIT_REQUIRED))
 })
 
 test('current flagship event artifacts have no compatible receipts and fail to Aurora', () => {

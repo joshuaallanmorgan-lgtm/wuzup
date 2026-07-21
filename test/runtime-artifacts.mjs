@@ -146,6 +146,7 @@ test('runtime repository exposes only manifest-verified event and place bytes', 
   assert.equal(events.meta.sourceHealth.status, 'healthy')
   assert.equal(events.meta.manifestId, manifest.manifestId)
   assert.equal(events.meta.buildId, manifest.buildId)
+  assert.equal(events.meta.developmentExpired, false)
 
   await repo.load('places')
   const places = repo.getSnapshot('places')
@@ -233,6 +234,26 @@ test('verified expired data is explicitly stale and verified zero rows are empty
   assert.equal(stale.getSnapshot('events').data, null)
   assert.equal(stale.getSnapshot('events').meta.generatedAt, '2026-07-10T12:00:00.000Z')
   assert.deepEqual(staleCalls, ['artifact-manifest.json'])
+
+  const previewCalls = []
+  const preview = repository((url) => {
+    previewCalls.push(new URL(url).pathname.split('/').pop())
+    return responseFor(staleRoot, url)
+  }, { allowDevelopmentExpiredPreview: true })
+  await preview.load('events')
+  assert.equal(preview.getSnapshot('events').status, 'ready')
+  assert.equal(preview.getSnapshot('events').data[0].title, 'Fixture event')
+  assert.equal(preview.getSnapshot('events').meta.developmentExpired, true)
+  assert.deepEqual(previewCalls, ['artifact-manifest.json', 'events.json'])
+
+  const corruptPreview = repository(
+    (url) => responseFor(staleRoot, url, { corrupt: 'events.json' }),
+    { allowDevelopmentExpiredPreview: true }
+  )
+  await corruptPreview.load('events')
+  assert.equal(corruptPreview.getSnapshot('events').status, 'error')
+  assert.equal(corruptPreview.getSnapshot('events').error.code, 'PAYLOAD_HASH_MISMATCH')
+  assert.equal(corruptPreview.getSnapshot('events').data, null)
 
   const emptyRoot = join(scratch, 'empty')
   fixture(emptyRoot, { emptyEvents: true })

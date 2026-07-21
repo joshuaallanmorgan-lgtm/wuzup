@@ -51,8 +51,10 @@ test('Search count follows its active scope and names every searchable kind', ()
 })
 
 test('local-state copy distinguishes retained value from remote resources', () => {
-  assert.match(files['SettingsPage.jsx'], /Plans, saves, and taste stay on this device/)
-  assert.match(files['SettingsPage.jsx'], /Listings, weather, and images load from credited sources/)
+  assert.match(files['SettingsPage.jsx'], /Plans, saves, taste, and added items stay in this browser/)
+  assert.match(files['SettingsPage.jsx'], /forecasts from Open-Meteo, and credited photos from their hosts/)
+  assert.match(files['SettingsPage.jsx'], /Offline mode is not available yet/)
+  assert.match(files['SettingsPage.jsx'], /Your browser reports that it is offline/)
   assert.doesNotMatch(files['SettingsPage.jsx'], /nothing leaves it/)
 })
 

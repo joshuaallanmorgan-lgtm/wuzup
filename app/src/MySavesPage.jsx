@@ -11,6 +11,8 @@ import { rehydrateSavedGuide } from './guide-model.js'
 import './profile.css'
 
 const FILTERS = ['All', 'Events', 'Spots', 'Guides']
+const savesTabId = (filter) => `saves-tab-${filter.toLowerCase()}`
+const savesPanelId = (filter) => `saves-panel-${filter.toLowerCase()}`
 
 export default function MySavesPage({ events, anchors }) {
   const { closePage: onClose, openDetail: onSelect, openGuide, goTo } = useNav()
@@ -71,8 +73,10 @@ export default function MySavesPage({ events, anchors }) {
           <button
             key={f}
             ref={(el) => (tabRefs.current[i] = el)}
+            id={savesTabId(f)}
             role="tab"
             aria-selected={filter === f}
+            aria-controls={savesPanelId(f)}
             tabIndex={filter === f ? 0 : -1}
             className={'ms-tab' + (filter === f ? ' ms-tab-sel' : '')}
             onClick={() => setFilter(f)}
@@ -83,7 +87,18 @@ export default function MySavesPage({ events, anchors }) {
         ))}
       </div>
 
-      <div className="pg-body">
+      {FILTERS.map((panelFilter) => (
+      <div
+        key={panelFilter}
+        id={savesPanelId(panelFilter)}
+        className="pg-body"
+        role="tabpanel"
+        aria-labelledby={savesTabId(panelFilter)}
+        hidden={filter !== panelFilter}
+        tabIndex={0}
+      >
+        {filter === panelFilter && (
+          <>
         {!ready && (status === 'initializing' || status === 'idle') && (
           <div className="pf-empty" role="status">Loading your saves...</div>
         )}
@@ -153,7 +168,10 @@ export default function MySavesPage({ events, anchors }) {
             )}
           </div>
         ) : null}
+          </>
+        )}
       </div>
+      ))}
     </div>
   )
 }

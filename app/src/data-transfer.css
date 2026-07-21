@@ -1,4 +1,7 @@
 .data-transfer-body {
+  width: 100%;
+  max-width: var(--reading-max);
+  margin-inline: auto;
   display: grid;
   gap: 16px;
   padding: 16px 18px 48px;
