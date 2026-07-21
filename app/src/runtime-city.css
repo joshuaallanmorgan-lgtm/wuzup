@@ -112,3 +112,68 @@
 .runtime-city-selector.is-compact .runtime-city-option {
   min-height: 64px;
 }
+
+.app-error-boundary {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--bg, #faf6f1);
+  color: var(--ink, #241f1b);
+}
+
+.app-error-boundary-card {
+  width: min(100%, 440px);
+  padding: 28px;
+  border-radius: 24px;
+  background: var(--card, #fff);
+  box-shadow: 0 18px 60px rgb(64 45 31 / 14%);
+}
+
+.app-error-boundary-kicker {
+  color: var(--muted, #746a62);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.app-error-boundary h1 {
+  margin: 10px 0 12px;
+  font-size: clamp(1.7rem, 7vw, 2.25rem);
+  line-height: 1.05;
+}
+
+.app-error-boundary p {
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.app-error-boundary button {
+  display: inline-flex;
+  margin-top: 8px;
+  padding: 11px 15px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink, #241f1b);
+  color: var(--bg, #faf6f1);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.app-error-boundary button:focus-visible {
+  outline: 3px solid var(--accent, #e66d3d);
+  outline-offset: 3px;
+}
+
+.app-error-boundary .app-error-boundary-diagnostic {
+  margin: 16px 0 0;
+  color: var(--muted, #746a62);
+  font-size: 0.78rem;
+}
+
+.app-error-boundary-diagnostic code {
+  font: inherit;
+  font-weight: 700;
+}

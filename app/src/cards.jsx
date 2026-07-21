@@ -318,13 +318,11 @@ export function FeaturedCard({ e, onSelect, onAdd }) {
         {placeNoPhoto ? (
           <span className="featc-medallion" aria-hidden style={{ '--mh': medallionVar(e) }}>
             {artEmoji(e)}
-            {e.hidden && <span className="featc-med-gem" aria-label="Hidden gem">💎</span>}
           </span>
         ) : (
           <CardImg e={e} className="featc-img">
             <HeatBadge e={e} />
             {free && <span className="free-badge">FREE</span>}
-            {isPlace && e.hidden && <span className="spot-badge" aria-label="Hidden gem">💎</span>}
           </CardImg>
         )}
         <span className="featc-body">
@@ -564,11 +562,9 @@ export function SpotCard({ p, onSelect, row = false }) {
           {iconRow ? (
             <span className="spotcard-medallion" style={{ '--mh': medallionVar(p) }}>
               <span aria-hidden>{artEmoji(p)}</span>
-              {p.hidden && <span className="spotcard-med-gem" aria-label="Hidden gem">💎</span>}
             </span>
           ) : (
             <CardImg e={p} className="spotcard-img">
-              {p.hidden && <span className="spot-badge" aria-label="Hidden gem">💎</span>}
             </CardImg>
           )}
           <div className="spotcard-body">
@@ -582,7 +578,7 @@ export function SpotCard({ p, onSelect, row = false }) {
             {amen.length > 0 && <div className="spotcard-amen">{spotAmenChips(amen)}</div>}
             {bestFor && (
               <div className="spotcard-bestfor">
-                <SparkleIcon /> Best for: {bestFor}
+                <SparkleIcon /> Good for: {bestFor}
               </div>
             )}
           </div>
@@ -598,7 +594,6 @@ export function SpotCard({ p, onSelect, row = false }) {
     <button className="spotcard pressable" onClick={(ev) => onSelect(p, ev.currentTarget)}>
       <CardImg e={p} className="spotcard-img">
         <SaveHeart e={p} />
-        {p.hidden && <span className="spot-badge" aria-label="Hidden gem">💎</span>}
         {dist && <span className="imgbadge spotcard-dist">{dist}</span>}
       </CardImg>
       <div className="spotcard-body">
@@ -611,7 +606,7 @@ export function SpotCard({ p, onSelect, row = false }) {
         )}
         {bestFor && (
           <div className="spotcard-bestfor">
-            <SparkleIcon /> Best for: {bestFor}
+            <SparkleIcon /> Good for: {bestFor}
           </div>
         )}
       </div>

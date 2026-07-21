@@ -11,7 +11,7 @@ import CoverageCard from './CoverageCard.jsx'
 import NextDays from './NextDays.jsx'
 import { useNav } from './nav.jsx'
 import { GemRow, IntentTile, SecHead } from './cards.jsx'
-import { CONDITION, dateKey } from './weather.js'
+import { CONDITION, dateKey, WEATHER_STATUS } from './weather.js'
 import { ACTIVITIES } from './places.js'
 import { GUIDES } from './guides.js'
 
@@ -21,7 +21,7 @@ const NATURE_ACT = ACTIVITIES.find((a) => a.id === 'act-trails')
 const MARKETS_GUIDE = GUIDES.find((g) => g.id === 'markets')
 const SPORTS_BARS_GUIDE = GUIDES.find((g) => g.id === 'sports-bars')
 
-export default function HomeView({ events, anchors, wx, dataMeta }) {
+export default function HomeView({ events, anchors, wx, dataMeta, weatherState, onRefreshWeather }) {
   const { openDetail: onSelect, openNotifications, openForecast, openBubble, openPlaceBubble, openGuide } = useNav()
 
   // re-seed on tab return + every 10 min (tonight-window awareness)
@@ -52,11 +52,29 @@ export default function HomeView({ events, anchors, wx, dataMeta }) {
   const tonight = useMemo(() => tonightModel(upcoming, anchors, nowMs), [upcoming, anchors, nowMs])
   const topPicks = useMemo(() => tonight.items.slice(0, 3).map((x) => x.e), [tonight])
 
-  // weather line: city + temp + condition (city always visible; forecast appended on load)
-  const todayWx = wx ? wx[dateKey(anchors.todayTs)] : null
-  const wxLine = todayWx
+  // Fresh data may flow through the app's normal decision surfaces. Home alone
+  // may display today's bounded stale cache, paired in the same line with an
+  // explicit age/out-of-date disclosure. It never reaches NextDays below.
+  const staleWx = weatherState?.status === WEATHER_STATUS.STALE ? weatherState.data : null
+  const todayWx = (wx || staleWx)?.[dateKey(anchors.todayTs)] || null
+  const currentLine = todayWx
     ? `${CITY.name} · ${todayWx.hi != null ? todayWx.hi + '° · ' : ''}${CONDITION[todayWx.emoji] || 'Forecast'}`
     : CITY.name
+  const staleHours = Number.isFinite(weatherState?.fetchedAt)
+    ? Math.max(1, Math.floor((nowMs - weatherState.fetchedAt) / (60 * 60 * 1000)))
+    : null
+  const staleAge = staleHours == null
+    ? 'an earlier update'
+    : `${staleHours} ${staleHours === 1 ? 'hour' : 'hours'} ago`
+  const wxLine = weatherState?.status === WEATHER_STATUS.STALE
+    ? `${currentLine} · Saved forecast from ${staleAge}; may be out of date${weatherState.error?.code === 'WEATHER_OFFLINE' ? ' (offline)' : ''}`
+    : weatherState?.status === WEATHER_STATUS.OFFLINE
+      ? `${CITY.name} · Offline — forecast unavailable`
+      : weatherState?.status === WEATHER_STATUS.ERROR
+        ? `${CITY.name} · Forecast unavailable right now`
+        : currentLine
+  const weatherNeedsRetry = [WEATHER_STATUS.STALE, WEATHER_STATUS.OFFLINE, WEATHER_STATUS.ERROR]
+    .includes(weatherState?.status)
 
   // Cohesion ruling 2026-07-01 #10 (Josh): the refs' warm greeting returns,
   // NAME-FREE (H3's honesty objection was the fabricated "Alex", not warmth
@@ -78,7 +96,7 @@ export default function HomeView({ events, anchors, wx, dataMeta }) {
         {/* H1: the title stays on the shared .loc-head primitive (32/800), the
             weather line its muted sub. */}
         <h1 className="loc-head-title">{greeting}</h1>
-        <div className="loc-head-sub">{wxLine}</div>
+        <div className="loc-head-sub" role={weatherNeedsRetry ? 'status' : undefined}>{wxLine}</div>
         {/* H-L1: bell → notifications (replaces the search disc) */}
         <button className="home-search pressable" onClick={openNotifications} aria-label="Notifications">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -100,15 +118,18 @@ export default function HomeView({ events, anchors, wx, dataMeta }) {
           <SecHead title="Your next days" />
           <NextDays anchors={anchors} wx={wx} rev={0} />
           {/* H-L2: text link → full forecast page */}
-          <button className="home-forecast-link" onClick={openForecast}>
-            View full forecast →
+          <button
+            className="home-forecast-link"
+            onClick={weatherNeedsRetry ? onRefreshWeather : openForecast}
+          >
+            {weatherNeedsRetry ? 'Check forecast again →' : 'View full forecast →'}
           </button>
         </section>
 
         {/* H-L4: Tonight's top picks — real tonight events as left-image GemRow cards */}
         {topPicks.length > 0 && (
           <section className="sec">
-            <SecHead title="Tonight's top picks" />
+            <SecHead title="Tonight's events" />
             <div className="home-picks">
               {topPicks.map((e) => (
                 <GemRow key={keyOf(e)} e={e} onSelect={onSelect} />

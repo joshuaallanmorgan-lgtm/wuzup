@@ -23,10 +23,10 @@ const TAGLINES = {
   parks: 'Green space, found.',
   courts: 'Game on, anytime.',
   nature: 'Boots optional, wonder required.',
-  views: 'Worth the look.',
+  views: 'Places with water views.',
   dog: 'Bring the good boy.',
-  hidden: 'Off the tourist track.',
-  free: 'Always open, never a cover.',
+  hidden: 'Browse more places.',
+  free: 'No entry fee listed.',
   // 3.7P-12 activity intents (places.js ACTIVITIES) — DRAFT ⚑ Charles
   'act-beach': 'Sand, surf, and sunset.',
   'act-trails': 'Boots optional, wonder required.',
@@ -34,8 +34,8 @@ const TAGLINES = {
   'act-sports': 'Game on, anytime.',
   'act-family': 'Room to run and play.',
   'act-dog': 'Bring the good boy.',
-  'act-views': 'Worth the look.',
-  'act-hidden': 'Off the tourist track.',
+  'act-views': 'Places with scenic views.',
+  'act-hidden': 'Browse more places.',
 }
 
 export default function PlaceBubblePage({ bubble }) {
@@ -75,7 +75,7 @@ export default function PlaceBubblePage({ bubble }) {
           <div className="pg-count">
             {count.toLocaleString(fmtLocale)} place{count === 1 ? '' : 's'} in {CITY.name}
           </div>
-          <div className="bub-tag">{TAGLINES[bubble.id] || 'Picked fresh for you.'}</div>
+          <div className="bub-tag">{TAGLINES[bubble.id] || 'Browse this collection.'}</div>
         </div>
       </header>
       {/* CARD_LOCK: the shared filter-chip bar on results too (place lenses). */}

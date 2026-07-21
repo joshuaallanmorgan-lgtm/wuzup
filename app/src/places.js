@@ -121,8 +121,8 @@ export const PLACE_BUBBLES = [
   { id: 'views', emoji: '🌅', label: 'Water Views', hue: 25, match: (p) => p.placeType === 'viewpoint' || p.placeType === 'pier' || hasClass(p, 'pier') },
   { id: 'easywalk', emoji: '🚶', label: 'Easy Walk', hue: 120, match: (p) => ['garden', 'trail', 'preserve'].includes(p.placeType) || ['boardwalk', 'trails', 'nature-trails', 'ada', 'paved', 'hiking'].some((a) => hasAmenity(p, a)) },
   { id: 'dog', emoji: '🐕', label: 'Dog Friendly', hue: 50, match: (p) => p.placeType === 'dog_park' || hasClass(p, 'dog_park') || ['dog-park', 'dog-beach', 'dogs-allowed'].some((a) => hasAmenity(p, a)) },
-  { id: 'open', emoji: '🕑', label: 'Open Now', hue: 160, match: isOpenNow },
-  { id: 'hidden', emoji: '💎', label: 'Hidden spots', hue: 285, match: (p) => p.hidden === true },
+  { id: 'open', emoji: '🕒', label: 'Hours listed', hue: 160, match: (p) => Boolean((p.hours || '').trim()) },
+  { id: 'hidden', emoji: '🧭', label: 'More to explore', hue: 285, match: (p) => p.hidden === true },
   { id: 'free', emoji: '🆓', label: 'Free', hue: 145, match: (p) => p.isFree === true },
 ]
 // Phase 3.6 N1 / Spots-full — the quiet top-nav split for Spots (never-hide preserved:
@@ -151,7 +151,7 @@ export const ACTIVITIES = [
   // S1-SP1: the catch-all "Parks & green space" tile was removed (8 tiles, not 9).
   // Plain parks/gardens with no routing amenity still reach the user via Everything,
   // search, and the map (never-hide holds) — they just no longer get a dedicated tile.
-  { id: 'act-hidden', emoji: '💎', label: 'Hidden gems', hue: 285, match: (p) => p.hidden === true },
+  { id: 'act-hidden', emoji: '🧭', label: 'More to explore', hue: 285, match: (p) => p.hidden === true },
 ]
 
 const normalizePlacesDocument = (data, status) => {

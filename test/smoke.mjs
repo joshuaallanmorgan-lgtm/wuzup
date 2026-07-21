@@ -2368,7 +2368,7 @@ test('3.7P-41 §N Search: NL example prompts + result-type tabs', () => {
   assert.ok(/srch-tabs/.test(sp) && /id: 'events'/.test(sp) && /id: 'spots'/.test(sp) && /id: 'guides'/.test(sp), 'Search has All/Events/Spots/Guides result tabs')
   assert.ok(/t\.id === 'all' \|\| t\.n > 0/.test(sp), 'a result tab is only offered when it has matches (no dead empty tab)')
   assert.ok(/activeTab === 'all' \|\| activeTab === 'events' \? eventSection/.test(sp), 'the validated active tab scopes which groups render')
-  assert.ok(/label: 'Best matches'/.test(sp) && /label: 'Other events'/.test(sp) && /Spots that fit/.test(sp), 'sections are labelled Best matches / Other events / Spots that fit')
+  assert.ok(/label: 'Closest matches'/.test(sp) && /label: 'Other events'/.test(sp) && /Spots that fit/.test(sp), 'sections use evidence-bounded Closest matches / Other events / Spots that fit labels')
   assert.ok(/searchGuides\(GUIDES/.test(sp) && /openGuide\(g\)/.test(sp), 'the Guides scope searches real GUIDES and opens their GuidePage')
   const srch = readFileSync(path.join(ROOT, 'app', 'src', 'search.js'), 'utf8')
   assert.ok(/export function searchGuides/.test(srch) && /!q\.text\.length\) return \[\]/.test(srch), 'searchGuides is text-only (a guide has no date/price) — honest, no fabricated matches')
@@ -2481,9 +2481,9 @@ test('3.7P-24 §N spot detail: Best-for (from activity predicates) + honest Watc
 // D8 (Stage A5): the Map feature is PARKED for v1 — MapView (and its in-view decision
 // deck) is retired; the file is gone, so its §N test is removed with it.
 
-test('3.7P-39 review: every hidden-gem reader honors NON_GEM_RE (no off-shelf "gem" claim)', () => {
+test('Sprint 4 truth: hidden tags never become a user-facing gem reason', () => {
   const taste = readFileSync(path.join(ROOT, 'app', 'src', 'taste.js'), 'utf8')
-  assert.ok(/hidden-gem'\) && !NON_GEM_RE\.test/.test(taste), 'whyReasons gates the "Hidden gem" reason chip with NON_GEM_RE')
+  assert.ok(!/Hidden gem/.test(taste), 'whyReasons must not expose a confidence-free gem claim')
   const curate = readFileSync(path.join(ROOT, 'app', 'src', 'curate.js'), 'utf8')
   assert.ok(/hidden-gem'\) && !NON_GEM_RE\.test/.test(curate), 'frontPagePredicate gates the gem-by-fiat promotion with NON_GEM_RE')
 })
@@ -2588,7 +2588,7 @@ test('places.js: normalizePlace aliases name→title, defaults category, rejects
 
 test('places.js: the bubbles partition sensibly + the reconciled filter chips + classics', () => {
   const ids = placesMod.PLACE_BUBBLES.map((b) => b.id)
-  assert.equal(ids.length, 10, 'the Locations bubbles incl. the reconciled Easy Walk + Open Now chips')
+  assert.equal(ids.length, 10, 'the Locations bubbles include the reconciled Easy Walk + Hours listed chips')
   const mk = (over) => placesMod.normalizePlace({ key: 'p|t', name: 'T', lat: 28, lng: -82, placeType: 'park', classes: [], amenities: [], srcCount: 1, ...over })
   const find = (id) => placesMod.PLACE_BUBBLES.find((b) => b.id === id)
   assert.ok(find('beaches').match(mk({ placeType: 'beach' })), 'a beach matches Beaches')
@@ -2600,8 +2600,10 @@ test('places.js: the bubbles partition sensibly + the reconciled filter chips + 
   // Spots-full: the reconciled filter chips (ref-spots-full) map to REAL predicates
   assert.equal(find('views').label, 'Water Views', 'the views chip is relabeled "Water Views"')
   assert.ok(find('easywalk').match(mk({ placeType: 'garden' })) && find('easywalk').match(mk({ amenities: ['boardwalk'] })), 'Easy Walk matches gardens / boardwalks')
-  assert.equal(typeof placesMod.isOpenNow, 'function', 'isOpenNow is exported (the Open Now predicate)')
-  assert.equal(find('open').match, placesMod.isOpenNow, 'the Open Now chip uses isOpenNow')
+  assert.equal(typeof placesMod.isOpenNow, 'function', 'isOpenNow remains a pure time helper for structured-hours work')
+  assert.equal(find('open').label, 'Hours listed', 'the public filter does not claim a place is open')
+  assert.equal(find('open').match(mk({ hours: 'Monday 10-4' })), true, 'the Hours listed chip requires source hours')
+  assert.equal(find('open').match(mk({ hours: '' })), false, 'the Hours listed chip excludes unknown hours')
   assert.equal(placesMod.isOpenNow({ hours: '24/7' }), true, '24/7 reads as open')
   assert.equal(placesMod.isOpenNow({ hours: '' }), false, 'unknown hours are NEVER claimed open (honesty)')
   // classics = corroborated across 3+ sources

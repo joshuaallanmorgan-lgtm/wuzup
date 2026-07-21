@@ -48,7 +48,7 @@ const SPOT_THEMES = [
   { id: 'nature-water', emoji: '🌿', label: 'Nature & Water', hue: 150, sub: 'Trails, springs, and the water’s edge.', match: (p) => actMatch('act-trails')(p) || actMatch('act-water')(p) },
   { id: 'coffee-hang', emoji: '☕', label: 'Coffee & Hang', hue: 24, sub: 'Cafes and cozy spots to linger.', match: (p) => p.placeType === 'cafe' },
   { id: 'sunset-views', emoji: '🌅', label: 'Sunset Views', hue: 25, sub: 'Where the bay puts on a show.', match: (p) => actMatch('act-views')(p) || actMatch('act-beach')(p) },
-  { id: 'quiet-corners', emoji: '🤫', label: 'Quiet Corners', hue: 280, sub: 'Hidden gems and calm preserves.', match: (p) => p.hidden === true || p.placeType === 'preserve' },
+  { id: 'quiet-corners', emoji: '🧭', label: 'Preserves & more', hue: 280, sub: 'Nature preserves and additional places.', match: (p) => p.hidden === true || p.placeType === 'preserve' },
 ]
 
 export default function LocationsView({ coords }) {

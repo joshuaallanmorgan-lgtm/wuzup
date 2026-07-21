@@ -206,7 +206,9 @@ export default function SettingsPage({ events, dataMeta, primer, onPrimerDone })
             {sourceHealth === 'healthy' && <div className="st-line st-dim">Source check complete</div>}
             {sourceHealth === 'degraded' && <div className="st-line st-dim">Some sources were unavailable</div>}
             {sourceHealth === 'unknown' && <div className="st-line st-dim">Source check unavailable for this snapshot</div>}
-            <div className="st-line st-dim">Everything lives on this phone — no account, nothing leaves it.</div>
+            <div className="st-line st-dim">
+              Plans, saves, and taste stay on this device. Listings, weather, and images load from credited sources.
+            </div>
           </div>
         </section>
 

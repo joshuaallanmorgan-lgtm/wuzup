@@ -50,7 +50,7 @@ export default function PickerSheet({ part, dayLabel, model, noSaves, closing, o
         </span>
         {(e._why || top) && (
           <span className="wkb-pick-why">
-            {top && <span className="wkb-pick-star">★ Top pick</span>}
+            {top && <span className="wkb-pick-star">Suggested first</span>}
             {e._why && <span className="wkb-pick-fit">{e._why}</span>}
           </span>
         )}

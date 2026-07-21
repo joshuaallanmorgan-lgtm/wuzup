@@ -1,6 +1,6 @@
 # Wuzup V2 - active sprint map
 
-> **Status:** owner-ratified execution map; Sprint 4 active - 2026-07-20
+> **Status:** owner-ratified execution map; Sprint 5 active - 2026-07-20
 >
 > **Authority:** subordinate to [V2_PLAN.md](V2_PLAN.md). This file translates the current scope and
 > dependency queue into delivery cycles; it does not admit features that the plan parks in V3.
@@ -1032,6 +1032,26 @@ Committed scope:
 
 **Exit gate:** every audit P0 has an automated regression; the complete first-visit -> find -> add -> Day/
 Calendar/Profile/My Plans -> remove journey passes in Tampa and SF with no console error.
+
+#### Sprint 4 P0 browser-release receipt - 2026-07-20 (green)
+
+- **The release journey now runs against composed production bytes:** one Playwright context serves exact verified
+  Tampa and SF builds on one origin, proves hard navigation and immutable city/build/manifest identity, and keeps
+  planner/local state physically isolated across Tampa -> SF -> Tampa.
+- **The full pointer path is green in both cities:** first visit, Spots discovery, confirmed add, Plan, Day, Profile,
+  My Plans, removal, and retained return state pass without console/page errors. The harness also proves an unknown
+  city fails before App mounts and runs unexcluded serious/critical axe checks on each ready city.
+- **Runtime failure truth is complete:** a root ErrorBoundary provides bounded recovery; weather has explicit fresh,
+  stale, offline, and error states, a 6-hour decision limit, a 24-hour display limit, and resume revalidation so
+  suspended tabs cannot leak stale weather back into recommendations.
+- **Unsupported claims and operational drift are quarantined:** public Open Now/gem/top/best language is neutralized,
+  Search counts follow the active scope, local-state copy names remote listing/weather/image requests, and the finder
+  refresh runs daily from current `main` with stale-parent and concurrency guards.
+- **Verification and review are green:** `test:s4` passes 20/20, the composed browser gate passes 1/1, the complete
+  serial repository gate passes 736/736, app lint passes, and independent recovery/weather/workflow reviews record
+  **SHIP**. The first real scheduled refresh/deploy remains an operational observation receipt, not a code claim.
+- **Sprint 4 is complete:** Sprint 5 now owns corpus quality, source health, retained signals, image ingest, and the
+  owner-ratified relevance rubric; completed planner/time/storage work will not be rebuilt.
 
 ## Relevance and the existing product
 

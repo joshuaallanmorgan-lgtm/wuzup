@@ -85,7 +85,6 @@ function whyProse(e, w) {
     else if (r === 'Free') frags.push("it's free")
     else if (r === 'Tonight') frags.push("it's on tonight")
     else if (r === 'This weekend') frags.push("it's on this weekend")
-    else if (r === '💎 Hidden gem') frags.push("it's a hidden gem")
     else if (r === '⭐ Staff pick') frags.push("it's a staff pick")
     else if (r.startsWith('Your taps lean')) frags.push(r.charAt(0).toLowerCase() + r.slice(1))
     // anything else (incl. 'Sponsored placement') is not a fit reason — skipped

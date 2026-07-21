@@ -262,7 +262,7 @@ export default function HotView({ events, retainedEvents = events, anchors, load
         {tonightTagged.length > 0 && (
           <section className={'sec' + ent(0).className} style={ent(0).style}>
             <SecHead
-              title="Tonight's best bets"
+              title="Tonight's events"
               sub={
                 tonight.late
                   ? `${tonight.futureN} still going · ${tonight.tomorrowN} tomorrow`
@@ -281,7 +281,7 @@ export default function HotView({ events, retainedEvents = events, anchors, load
         {/* EVENTS_GRIND: "Worth planning around" — the hottest future events. */}
         {worthPlanning.length >= 2 && (
           <section className="sec">
-            <SecHead title="Worth planning around" sub="Big nights worth a spot on the calendar." onSeeAll={() => scrollToList(evRef.current)} />
+            <SecHead title="Plan ahead" sub="Upcoming events to consider." onSeeAll={() => scrollToList(evRef.current)} />
             <div className="home-picks">
               {worthPlanning.map((e) => (
                 <GemRow key={keyOf(e)} e={e} onSelect={onSelect} />

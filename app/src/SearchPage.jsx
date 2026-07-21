@@ -144,6 +144,11 @@ export default function SearchPage({ events, anchors, coords }) {
     spots: placeResults.length,
     guides: guideResults.length,
   })
+  const visibleTotal = activeTab === 'events'
+    ? results.length
+    : activeTab === 'spots'
+      ? placeResults.length
+      : activeTab === 'guides' ? guideResults.length : total
   // Stage R section labels (benchmark): events split into "Best matches" (the
   // top relevance-ranked hits — TRUE because searchEvents sorts by match score on
   // a TEXT query) + "Other events" (the rest). A DATE-ONLY browse isn't relevance-
@@ -157,7 +162,7 @@ export default function SearchPage({ events, anchors, coords }) {
     // label parallels "Spots that fit"; a date-only browse stays a neutral "Events".
     if (parsed.text.length && results.length > 3) {
       return [
-        { label: 'Best matches', items: results.slice(0, 3) },
+        { label: 'Closest matches', items: results.slice(0, 3) },
         { label: 'Other events', items: results.slice(3) },
       ]
     }
@@ -216,8 +221,8 @@ export default function SearchPage({ events, anchors, coords }) {
             className="srch-input"
             type="text"
             enterKeyHint="search"
-            placeholder="Search events, venues, vibes…"
-            aria-label="Search events"
+            placeholder="Search events, spots, and guides…"
+            aria-label="Search events, spots, and guides"
             autoFocus
             value={q}
             onChange={(ev) => updateQuery(ev.target.value)}
@@ -256,7 +261,7 @@ export default function SearchPage({ events, anchors, coords }) {
         {hasQ && total > 0 && (
           <>
             <div className="srch-count">
-              {total.toLocaleString(fmtLocale)} verified result{total === 1 ? '' : 's'} for “{dq.trim()}”
+              {visibleTotal.toLocaleString(fmtLocale)} verified result{visibleTotal === 1 ? '' : 's'} for “{dq.trim()}”
             </div>
             {/* 3.7P-41 → Stage R (§N screen 9): result-type tabs scope the union —
                 All · Events · Spots · Guides. Only tabs that have results are

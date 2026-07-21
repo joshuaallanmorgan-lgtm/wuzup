@@ -481,7 +481,7 @@ export default function PlaceDetail({ e, anchors, wx }) {
             satisfies (the same pure ACTIVITIES predicates the Spots tab browses by). */}
         {bestFor.length > 0 && (
           <div className="loc-bestfor">
-            <div className="d-k">Best for</div>
+            <div className="d-k">Good for</div>
             <div className="loc-bestfor-row">
               {bestFor.map((a) => (
                 <span className="loc-bestfor-item" key={a.id}>

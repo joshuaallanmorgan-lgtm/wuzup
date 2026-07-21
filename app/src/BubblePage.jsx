@@ -29,7 +29,7 @@ import './bubble.css'
 // FiltersSheet + lens-row destinations) — "Tonight" → "Tonight's top picks" etc.
 // Categories keep their plain label.
 const HEADERS = {
-  tonight: "Tonight's top picks",
+  tonight: "Tonight's events",
   tomorrow: "Tomorrow's events",
   weekend: 'The weekend',
   free: 'Free events',

@@ -19,7 +19,13 @@ import { GUIDES } from './guides.js'
 import { normalizePlace } from './places.js'
 import Primer, { loadPrimerState } from './Primer.jsx'
 import { WxContext, CardToastHost } from './cards.jsx'
-import { getForecast } from './weather.js'
+import {
+  ageForecastState,
+  getForecast,
+  WEATHER_CACHE_MAX_AGE_MS,
+  WEATHER_FRESH_MAX_AGE_MS,
+  WEATHER_STATUS,
+} from './weather.js'
 import HomeView from './HomeView.jsx'
 import HotView from './HotView.jsx'
 import LocationsView from './LocationsView.jsx'
@@ -410,20 +416,80 @@ function Shell() {
     return () => clearTimeout(timer)
   }, [normalized])
 
-  // 16-day Tampa forecast, fetched ONCE at App level: DayPage (prop), PlaceDetail
-  // (beach-day fit), DetailPage (event-day weather) and outdoor feed rows
-  // (WxContext) read the same map. null = no weather, every consumer degrades
-  // silently. (FB-11/3.7P-3: the Calendar grid no longer reads it.)
-  const [wx, setWx] = useState(null)
-  useEffect(() => {
-    let on = true
-    getForecast().then((m) => {
-      if (on && m) setWx(m)
-    })
-    return () => {
-      on = false
+  // Weather has two deliberately separate paths. `wx` below is fresh-only and
+  // is the sole value allowed into ranking, recommendation, and weather-fit
+  // consumers. weatherState may retain a bounded stale map for Home's visibly
+  // labelled display fallback, but that map never enters WxContext or a wx prop.
+  const [weatherState, setWeatherState] = useState(() => ({
+    status: 'loading',
+    data: null,
+    fetchedAt: null,
+    source: null,
+    error: null,
+  }))
+  const weatherRequestRef = useRef(0)
+  const refreshWeather = useCallback(async () => {
+    const requestId = ++weatherRequestRef.current
+    let next
+    try {
+      next = await getForecast()
+    } catch {
+      next = {
+        status: WEATHER_STATUS.ERROR,
+        data: null,
+        fetchedAt: null,
+        source: null,
+        error: { code: 'WEATHER_UNEXPECTED', message: 'Weather request failed', retryable: true },
+      }
     }
+    if (weatherRequestRef.current === requestId) setWeatherState(next)
   }, [])
+  useEffect(() => {
+    refreshWeather()
+    return () => {
+      weatherRequestRef.current += 1
+    }
+  }, [refreshWeather])
+
+  // A forecast cannot remain decision-eligible merely because the tab stayed
+  // open. At six hours it is demoted before revalidation; at 24 hours even the
+  // labelled display fallback is removed.
+  useEffect(() => {
+    if (!Number.isFinite(weatherState.fetchedAt)) return undefined
+
+    if (weatherState.status === WEATHER_STATUS.FRESH) {
+      const delay = Math.max(0, weatherState.fetchedAt + WEATHER_FRESH_MAX_AGE_MS - Date.now())
+      const timer = setTimeout(() => {
+        setWeatherState((current) => ageForecastState(current, Date.now()))
+        refreshWeather()
+      }, delay)
+      return () => clearTimeout(timer)
+    }
+
+    if (weatherState.status === WEATHER_STATUS.STALE) {
+      const delay = Math.max(0, weatherState.fetchedAt + WEATHER_CACHE_MAX_AGE_MS - Date.now())
+      const timer = setTimeout(() => {
+        setWeatherState((current) => ageForecastState(current, Date.now()))
+      }, delay)
+      return () => clearTimeout(timer)
+    }
+
+    return undefined
+  }, [refreshWeather, weatherState.fetchedAt, weatherState.status])
+  useEffect(() => {
+    const revalidateWeather = () => {
+      if (document.visibilityState !== 'visible') return
+      setWeatherState((current) => ageForecastState(current, Date.now()))
+      refreshWeather()
+    }
+    document.addEventListener('visibilitychange', revalidateWeather)
+    window.addEventListener('pageshow', revalidateWeather)
+    return () => {
+      document.removeEventListener('visibilitychange', revalidateWeather)
+      window.removeEventListener('pageshow', revalidateWeather)
+    }
+  }, [refreshWeather])
+  const wx = weatherState.status === WEATHER_STATUS.FRESH ? weatherState.data : null
 
   // inert while the primer overlay is up: Tab must not reach (and Enter must
   // not activate) the obscured app behind it — the pager AND the floating
@@ -461,6 +527,7 @@ function Shell() {
           data-city-time-zone={city.tz}
           data-city-runtime-status="ready"
           data-artifact-status={eventArtifact.status}
+          data-weather-status={weatherState.status}
           data-manifest-id={artifactBinding.ok ? artifactBinding.manifestId : undefined}
           data-build-id={artifactBinding.ok ? artifactBinding.buildId : undefined}
         >
@@ -475,7 +542,10 @@ function Shell() {
               Home is the boot tab (index 0, eager); the rest mount on first visit.
               The map is parked for v1 (D8) — no Map tab and no {type:'map'} sub-view. */}
           <section className="page page-hot" aria-label={VIEWS[0].label} aria-hidden={active !== 0} inert={active !== 0 ? true : undefined}>
-            <HomeView events={norm} anchors={anchors} wx={wx} dataMeta={eventArtifact.meta} />
+            <HomeView events={norm} anchors={anchors} wx={wx} dataMeta={eventArtifact.meta}
+              weatherState={weatherState}
+              onRefreshWeather={refreshWeather}
+            />
           </section>
           <section className="page page-hot" aria-label={VIEWS[1].label} aria-hidden={active !== 1} inert={active !== 1 ? true : undefined}>
             {/* Events — the browse (search + filter + event sections). Now lazy

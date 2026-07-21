@@ -462,7 +462,7 @@
 @keyframes pageOut { from { transform: translateX(-50%); opacity: 1; } to { transform: translateX(50%); opacity: 0.4; } }
 
 /* shared page chrome for subpages */
-.pg { height: 100svh; overflow-y: auto; scrollbar-width: none; }
+.pg { box-sizing: border-box; height: 100svh; overflow-y: auto; scroll-padding-top: calc(240px + env(safe-area-inset-top)); scrollbar-width: none; }
 .pg::-webkit-scrollbar { display: none; }
 .pg-head {
   display: flex;
@@ -490,6 +490,12 @@
 .pg-band .pg-back { background: rgba(var(--card-rgb), 0.75); } /* Stage E dark seam: was 255-white@0.75 — the 1/255-step to card-rgb is sub-quantization in light; dark keeps the cream --ink glyph legible on a dark disc */
 .pg-count { margin-top: 4px; font-size: var(--t-meta); font-weight: 600; color: var(--muted); }
 .pg-body { padding: 4px 0 120px; }
+/* Fixed recovery notices remain visible above subpages, so reserve one row of
+   real layout clearance for each stacked notice. This prevents the first
+   actionable row from sitting visibly underneath an operable alert. */
+.app:has(> .load-note.is-layered.is-stacked) > .subpage .pg { padding-top: 144px; }
+.app:has(> .load-note.is-layered.is-double-stacked) > .subpage .pg { padding-top: 186px; }
+.app:has(> .load-note.is-layered.is-triple-stacked) > .subpage .pg { padding-top: 228px; }
 
 /* ===== full-page event detail (z 2000: above tabbar + subpages) ===== */
 .detail {
