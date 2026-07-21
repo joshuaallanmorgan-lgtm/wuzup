@@ -19,10 +19,15 @@ const NOISE = /mobile medical|vaccin|tax |permit|hearing|board|commission|commit
 // Native tribe categories[].name -> our category vocabulary. The live feed's
 // categories are mostly government-body names (filtered as noise anyway);
 // only the recreational ones carry a usable signal.
-function mapCategory(categories) {
-  const names = (Array.isArray(categories) ? categories : [])
+function categoryNames(categories) {
+  return (Array.isArray(categories) ? categories : [])
     .map((c) => (c && typeof c.name === 'string' ? decodeEntities(c.name) : ''))
+    .map((value) => value.trim().slice(0, 80))
     .filter(Boolean);
+}
+
+function mapCategory(categories) {
+  const names = categoryNames(categories);
   for (const n of names) {
     if (/\bparks?\b|conservation|nature|preserve|trail/i.test(n)) return 'outdoors';
     if (/heritage|history|museum/i.test(n)) return 'community';
@@ -126,6 +131,8 @@ export async function fetchEvents(options = {}) {
     };
     const category = mapCategory(item.categories);
     if (category) event.category = category;
+    const rawCategories = [...new Set(categoryNames(item.categories))].slice(0, 12);
+    if (rawCategories.length) event.rawCategories = rawCategories;
     events.push(event);
   }
   return events;

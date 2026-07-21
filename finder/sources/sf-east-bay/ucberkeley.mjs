@@ -53,6 +53,16 @@ function mapCategory(cats) {
   return undefined;
 }
 
+function rawCategoryNames(cats) {
+  const names = [];
+  for (const value of String(cats || '').split(/[;,|]/)) {
+    const categoryName = decodeEntities(value).trim().slice(0, 80);
+    if (categoryName && !names.includes(categoryName)) names.push(categoryName);
+    if (names.length === 12) break;
+  }
+  return names;
+}
+
 function tagText(xml, tag) {
   const m = xml.match(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`));
   return m ? m[1].trim() : null;
@@ -148,7 +158,7 @@ export async function fetchEvents(options = {}) {
     if (seen.has(key)) continue;
     seen.add(key);
 
-    events.push({
+    const event = {
       title,
       start,
       end,
@@ -163,7 +173,10 @@ export async function fetchEvents(options = {}) {
       description: descriptionText(item),
       category: mapCategory(cats),
       source: name,
-    });
+    };
+    const rawCategories = rawCategoryNames(cats);
+    if (rawCategories.length) event.rawCategories = rawCategories;
+    events.push(event);
   }
 
   if (events.length === 0) {

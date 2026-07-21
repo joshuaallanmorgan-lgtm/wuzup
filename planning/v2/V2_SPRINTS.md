@@ -1,6 +1,6 @@
 # Wuzup V2 - active sprint map
 
-> **Status:** owner-ratified execution map; Sprint 5 active - 2026-07-20
+> **Status:** owner-ratified execution map; Sprint 6 active - 2026-07-21
 >
 > **Authority:** subordinate to [V2_PLAN.md](V2_PLAN.md). This file translates the current scope and
 > dependency queue into delivery cycles; it does not admit features that the plan parks in V3.
@@ -1074,6 +1074,39 @@ Committed scope:
 **Exit gate:** zero cancelled, ended, wrong-market, known-junk, or known false-merge rows appear in a sampled
 top 50 per flagship city, or the city is explicitly labelled limited; baseline category/dedupe/source reports
 and frozen human judgments are reproducible.
+
+#### Sprint 5 corpus-evidence foundation receipt - 2026-07-21 (green)
+
+- **The finder now retains decision evidence instead of flattening it away:** fresh event output carries bounded
+  organizer, canonical status, native raw categories, pre-truncation description length, image rank, primary and
+  corroborating source families, canonical occurrence identity, recurrence/series identity, normalized range, and
+  generation-time actionability. Key Tampa and SF adapters retain their native organizer/category facts without
+  fabricating a scheduled status. Places retain bounded phone/brand evidence plus OSM, Wikidata, wiki, and government
+  provenance at one fail-closed output boundary.
+- **Quality measurement is reproducible and does not become hidden ranking policy:** frozen Tampa (1,642 events) and
+  SF/East Bay (743 events) reports pin retained-field coverage, category/source concentration, identity, recurrence,
+  range, and count preservation. The frozen event and place prefixes for both cities have zero objective blocker or
+  known-bad leakage in their sampled top 50. Limited coverage is a separate state and cannot waive leakage. Explicit
+  free evidence counts as known price without inventing a numeric amount.
+- **Source, history, and expansion seams fail closed:** real manifest `name` receipts remain honestly `unknown` when
+  legacy evidence cannot prove health; primary-placement and corroborating-source concentration are separate. Signal
+  snapshots validate date-only, offset, and zoneless values through the city IANA zone, including DST gaps/folds. Git
+  history is a delta-friendly rolling `latest.json` plus `index.json`, limited to the two flagships, 1,500,000 + 4,096
+  bytes per city, and two files per city; corrupt, stale-order, oversized, foreign-city, and unexpected-file states
+  refuse publication. Platform contracts require HTTPS, explicit public configuration keys, exact top-level schemas,
+  bounded machine-code errors, and cache ages no older than the city policy.
+- **Image truth has one canonical validation boundary:** remote candidates require HTTPS; local candidates require a
+  safe root-relative path and an exact SHA-256 byte binding. Encoded traversal, Windows separators, controls, malformed
+  escapes, credentialed URLs, missing credit/license facts, and mixed item receipts fail closed. Hostnames never imply
+  permission or licensing.
+- **Verification and review are green:** `test:s5` passes 77/77. The complete serial gate passes 813/813, including the
+  64.5-second fresh finder contract, artifact trust, both city builds, app build, and lint; syntax and `git diff
+  --check` also pass. Two adversarial rounds found and closed the zoneless-time, status inversion, unbounded archive,
+  image traversal/hash, platform secret/cache, real-receipt, top-sample, and place payload defects.
+- **The boundary stays honest:** no committed city artifact was regenerated or relabelled fresh. The fast validation
+  run used cached acquisition after all 14 live static sources failed and is schema evidence, not a content-refresh
+  claim. The frozen relevance/gem labels remain an architect default open to owner adjustment; Sprint 6 may use them
+  only for reversible evaluation and may not infer superlatives, popularity, or non-objective hard drops.
 
 ### Sprint 6 - E0 common rank contract and Credible First Screen
 

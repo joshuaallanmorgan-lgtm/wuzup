@@ -16,6 +16,8 @@ dependencies — `node:test` + `node:assert` only (Node 20+; repo runs 24).
 
 ## Notes & gotchas
 
+- **Sprint 5 signal suite:** `npm run test:s5` runs corpus, source, event, place, platform, quality-floor, image, snapshot, archive, and relevance contracts. The full serial `npm test` runs the same suite immediately before the smoke harness. The fresh finder check also requires source provenance, canonical status/category/image/identity/recurrence/range signals and zero objective Tampa/FL quality-floor blockers without changing emitted count or order.
+
 - **Your data files are safe.** Block 1 backs up `app/public/events.json`,
   `finder/output/<cityId>/events.json` and `events.md` (D1: outputs are
   per-city) plus every committed cache in memory and restores them in a

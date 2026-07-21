@@ -168,6 +168,7 @@ function mapEvent(node, refMap) {
     url: node.eventUrl || node.link || null,
     image,
     description,
+    organizer: groupName ? truncate(groupName, 160) : null,
     source: name,
   };
 }

@@ -38,6 +38,8 @@ import { bbox as CITY_BBOX, rosterBenchmark as CITY_ROSTER, cityId as CITY_ID } 
 import { verifyArtifactSet } from '../finder/artifact-manifest.mjs'
 import { fallbackReasonForStage, fuzzyMerge } from '../finder/finder.mjs'
 import { eventTime } from '../shared/city-time.mjs'
+import { annotateQualityFloor } from '../shared/quality-floor.mjs'
+import { bbox as TAMPA_BBOX } from '../finder/cities/tampa-bay.mjs'
 import { PLACETYPE_HUE, CATEGORY_HUES } from '../app/src/categories.js'
 import * as deckdeal from '../app/src/deckdeal.js'
 import * as gesture from '../app/src/deckgesture.js'
@@ -343,6 +345,60 @@ test('finder fast-mode: exit 0, benchmarks green, output schema-valid', { timeou
     assert.ok(Number.isFinite(fastGenerationMs), `fast manifest has invalid generatedAt '${fastReceipt.generatedAt}'`)
     assert.equal(runManifest.generatedAt, fastReceipt.generatedAt, 'manifest generation aliases must agree')
     assert.equal(fastReceipt.count, fast.length, 'fast manifest count must bind the emitted events array')
+
+    // Sprint 5's emitted-event contract belongs only to a fresh finder run:
+    // pinned artifacts retain their own historical compatibility gates below.
+    const canonicalStatuses = new Set(['scheduled', 'cancelled', 'postponed', 'sold_out', 'unknown'])
+    const rangeSemantics = new Set(['all-day', 'continuous', 'occurrence', 'single'])
+    const signalProblems = fast.flatMap((event, index) => {
+      const label = `event[${index}] ${JSON.stringify(event.id)}`
+      const errors = []
+      const sourceFamilies = event.sourceFamilies
+      if (typeof event.sourceFamily !== 'string' || !event.sourceFamily.trim()) errors.push(`${label}: sourceFamily must be a non-empty string`)
+      if (!Array.isArray(sourceFamilies) || !sourceFamilies.length || sourceFamilies.some((family) => typeof family !== 'string' || !family.trim())) {
+        errors.push(`${label}: sourceFamilies must be a non-empty string array`)
+      } else {
+        if (new Set(sourceFamilies).size !== sourceFamilies.length) errors.push(`${label}: sourceFamilies must be deduped`)
+        if (!sourceFamilies.includes(event.sourceFamily)) errors.push(`${label}: sourceFamily must be represented in sourceFamilies`)
+      }
+      if (!canonicalStatuses.has(event.status)) errors.push(`${label}: status ${JSON.stringify(event.status)} is not canonical`)
+      if (!Array.isArray(event.rawCategories)) errors.push(`${label}: rawCategories must be an array`)
+      if (!(event.descriptionLength === null || (Number.isInteger(event.descriptionLength) && event.descriptionLength >= 0))) {
+        errors.push(`${label}: descriptionLength must be null or a non-negative integer`)
+      }
+      if (!Number.isInteger(event.imageRank) || event.imageRank < -1 || event.imageRank > 2) errors.push(`${label}: imageRank must be an integer in [-1, 2]`)
+      if (event.canonicalId !== event.id) errors.push(`${label}: canonicalId must equal id`)
+      if (event.actionability !== true) errors.push(`${label}: actionability must be true after final filtering`)
+      if (!event.recurrence || typeof event.recurrence !== 'object' || Array.isArray(event.recurrence) || !['one-off', 'recurring'].includes(event.recurrence.kind)) {
+        errors.push(`${label}: recurrence.kind must be one-off or recurring`)
+      } else if (event.recurrence.kind === 'one-off' && event.seriesId !== null) {
+        errors.push(`${label}: one-off events must have seriesId null`)
+      } else if (event.recurrence.kind === 'recurring' && (typeof event.seriesId !== 'string' || !event.seriesId.trim())) {
+        errors.push(`${label}: recurring events must have a non-empty seriesId`)
+      }
+      if (!event.range || typeof event.range !== 'object' || Array.isArray(event.range) || !rangeSemantics.has(event.range.semantics) || event.range.start !== event.start || event.range.end !== event.end) {
+        errors.push(`${label}: range must use a canonical semantic and match event start/end`)
+      }
+      return errors
+    })
+    assert.equal(signalProblems.length, 0, `fresh finder output signal-contract problems:\n  ${signalProblems.join('\n  ')}`)
+
+    const qualityAnnotated = annotateQualityFloor(fast, {
+      kind: 'events',
+      nowMs: fastGenerationMs,
+      timeZone: runManifest.timeZone,
+      market: { id: 'tampa-bay', bbox: TAMPA_BBOX, regionCodes: ['FL'] },
+      knownJunkIds: [],
+      knownFalseMergeIds: [],
+    })
+    assert.equal(qualityAnnotated.length, fast.length, 'quality-floor annotation must preserve fresh Tampa event count')
+    assert.deepEqual(qualityAnnotated.map((event) => event.id), fast.map((event) => event.id), 'quality-floor annotation must preserve fresh Tampa event order and IDs')
+    const qualityBlockers = qualityAnnotated.filter((event) => event.qualityFloor.blockerCodes.length > 0)
+    assert.equal(
+      qualityBlockers.length,
+      0,
+      `fresh finder output has objective quality-floor blockers: ${qualityBlockers.slice(0, 5).map((event) => `${event.id}(${event.qualityFloor.blockerCodes.join(',')})`).join('; ')}`,
+    )
 
     const fastCanonical = fast.map((event) => ({
       event,

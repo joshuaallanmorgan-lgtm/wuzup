@@ -26,6 +26,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { enrichPlacesWithImages } from './places-images.mjs';
 import { enrichPlacesWithDescriptions } from './places-descriptions.mjs';
+import { retainedPlaceSignals } from './place-signals.mjs';
 import { bbox as TB_BOX, govOrder as GOV_ORDER, touristCentroids as TOURIST_CENTROIDS, cityId, meta as CITY_META, tz as CITY_TZ } from './cities/index.mjs';
 import {
   atomicWriteFileSync,
@@ -441,6 +442,8 @@ function mergeCluster(members) {
     hours: pickBy(byRank, 'hours'),
     url: pickBy(byRank, 'url'),
     phone: pickBy(byRank, 'phone'),
+    brand: pickBy(byRank, 'brand'),
+    brandWikidata: pickBy(byRank, 'brandWikidata'),
     isFree: pickBy(byRank, 'isFree'),       // explicit fee sources outrank inference
     fee: pickBy(byRank, 'fee'),
     designation: pickBy(byRank, 'designation'),
@@ -611,6 +614,7 @@ async function main() {
     if (p.operator) out.operator = p.operator;
     out.sources = p.sources;
     out.srcCount = p.srcCount;
+    Object.assign(out, retainedPlaceSignals(p));
     // variant spellings survive for refresh-time re-matching and Sprint S
     // save-keys ("Weeden" stays findable after the official spelling won)
     if (p._aliases && p._aliases.length > 1) out.aliases = p._aliases;

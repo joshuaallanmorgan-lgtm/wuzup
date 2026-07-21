@@ -37,6 +37,15 @@ import {
   publishedDayOf,
   selectMergedInterval,
 } from './time.mjs';
+import {
+  imageHostRank,
+  mergeEventStatus,
+  normalizeEventStatus,
+  normalizeOrganizer,
+  normalizeRawCategories,
+  recurringSeriesId,
+  visibleDescriptionLength,
+} from './event-signals.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 // D1 multi-tenant artifacts: every output AND every cache is namespaced per
@@ -231,18 +240,23 @@ function cleanText(s) {
 // Exported for the smoke harness — the chrome-strip below is an INGEST-time
 // fix, invisible to cache-fallback warm runs (module caches hold already-
 // normalized events), so the mechanism is pinned as a unit fixture instead.
-export function cleanDescription(desc) {
+function cleanDescriptionInfo(desc) {
   let t = cleanText(desc);
-  if (!t) return null;
+  if (!t) return { description: null, descriptionLength: null };
   // Eventbrite page chrome: a scraped description can open with the page's
   // own section HEADING glued to the real text — "About this event There's
   // no such place as away!..." (Stage D data-tail e). Chrome, not
   // description: strip the prefix at ingest, BEFORE the length cap, so the
   // trimmed blurb recovers those characters of real text.
   t = t.replace(/^about this event\s*[:\-–—]?\s*/i, '');
-  if (!t) return null;
+  if (!t) return { description: null, descriptionLength: null };
+  const descriptionLength = visibleDescriptionLength(t);
   if (t.length > 200) t = t.slice(0, 197) + '...';
-  return t;
+  return { description: t, descriptionLength };
+}
+
+export function cleanDescription(desc) {
+  return cleanDescriptionInfo(desc).description;
 }
 
 // ===================== title hygiene (fixer pass, 2026-06-10) =====================
@@ -389,6 +403,7 @@ function normalize(node, sourceName) {
   let image = node.image;
   if (Array.isArray(image)) image = image[0];
   if (image && typeof image === 'object') image = image.url || null;
+  const description = cleanDescriptionInfo(node.description);
   return {
     title: cleanText(node.name),
     start: node.startDate || null,
@@ -402,8 +417,12 @@ function normalize(node, sourceName) {
     lng,
     url: url || null,
     image: image || null,
-    description: cleanDescription(node.description),
+    description: description.description,
+    descriptionLength: description.descriptionLength,
     source: sourceName,
+    organizer: normalizeOrganizer(node.organizer),
+    status: normalizeEventStatus(node.eventStatus ?? node.status),
+    rawCategories: normalizeRawCategories(node.keywords, node.category),
     staffPick: false,
     promoted: false,
     // schema.org eventAttendanceMode — Online-only events get filtered out
@@ -454,6 +473,23 @@ const eventStartAt = (event) => {
   return canonical.ok ? canonical.startAt : Infinity;
 };
 
+function eventRangeMetadata(event) {
+  const canonical = finderEventTime(event, { timeZone: CITY_TZ });
+  if (!canonical.ok) return null;
+  const semantics = canonical.kind === 'all-day'
+    ? 'all-day'
+    : canonical.startDay !== canonical.endDay
+      ? 'continuous'
+      : event.recurring === true
+        ? 'occurrence'
+        : 'single';
+  return {
+    semantics,
+    start: event.start,
+    end: event.end ?? null,
+  };
+}
+
 // --- map a render.mjs event ({title,start,end,venue,address,price,isFree,url,
 //     image,description,staffPick,promoted,source}) into our normalized shape ---
 function normalizeRenderEvent(r) {
@@ -461,6 +497,7 @@ function normalizeRenderEvent(r) {
   let price = r.price;
   if (typeof price === 'string') price = parseFloat(price.replace(/[^0-9.]/g, ''));
   if (typeof price !== 'number' || isNaN(price)) price = null;
+  const description = cleanDescriptionInfo(r.description);
   return {
     title: cleanText(r.title),
     start: withCityOffset(r.start),
@@ -474,8 +511,12 @@ function normalizeRenderEvent(r) {
     lng: null,
     url: r.url || null,
     image: r.image || null,
-    description: cleanDescription(r.description),
+    description: description.description,
+    descriptionLength: description.descriptionLength,
     source: r.source || 'Creative Loafing',
+    organizer: normalizeOrganizer(r.organizer),
+    status: normalizeEventStatus(r.eventStatus ?? r.status),
+    rawCategories: normalizeRawCategories(r.rawCategories, r.categories),
     staffPick: r.staffPick === true,
     promoted: r.promoted === true,
   };
@@ -495,6 +536,7 @@ function normalizeModuleEvent(r, fallbackSource) {
     lat = null;
     lng = null;
   }
+  const description = cleanDescriptionInfo(r.description);
   return {
     title: cleanText(r.title),
     start: r.start || null,
@@ -508,8 +550,12 @@ function normalizeModuleEvent(r, fallbackSource) {
     lng,
     url: r.url || null,
     image: r.image || null,
-    description: cleanDescription(r.description),
+    description: description.description,
+    descriptionLength: description.descriptionLength,
     source: r.source || fallbackSource,
+    organizer: normalizeOrganizer(r.organizer),
+    status: normalizeEventStatus(r.eventStatus ?? r.status),
+    rawCategories: normalizeRawCategories(r.rawCategories, r.categories),
     staffPick: r.staffPick === true,
     promoted: r.promoted === true,
     // Native category hint: modules MAY set category to one of our values
@@ -704,28 +750,6 @@ function pickFirst(members, key) {
 // simpleview asset CDN, Eventbrite organizer uploads, library/gov hosts) >
 // anything else > *.allevents.in banners. A cluster with ANY non-allevents
 // image never ships the allevents one (rank 0 loses every comparison).
-const IMG_AGGREGATOR_HOST_RE = /(?:^|\.)allevents\.in$/i;
-// Stage E ship gate: visitstpeteclearwater.com hard-blocks hotlinking now
-// (403 + Cross-Origin-Resource-Policy: same-origin — dead in ANY browser, not
-// a headless artifact; the final path-trace caught 153 events shipping it).
-// A poster there is a broken promise: rank it BELOW no-image-at-all so a
-// cluster whose only artwork is VSPC ships imageless (the Aurora floor is the
-// honest floor). VSPC stays a first-class EVENT source — only its image CDN
-// is banned. (hcplc.libnet.info is NOT banned: 4 of its 93 posters 301→415,
-// the other 89 are healthy — the app-side hero/card fallbacks absorb those.)
-const IMG_DEAD_HOST_RE = /(?:^|\.)visitstpeteclearwater\.com$/i;
-const IMG_OFFICIAL_HOST_RE = /(?:^|\.)(?:simpleviewinc\.com|visittampabay\.com|evbuc\.com|eventbrite\.com|libnet\.info|ilovetheburg\.com|wmnf\.org|cltampa\.com)$|\.gov$/i;
-
-function imageRank(url) {
-  if (!url) return -1;
-  let host = '';
-  try { host = new URL(url).hostname.toLowerCase(); } catch { return 0; }
-  if (IMG_DEAD_HOST_RE.test(host)) return -1; // loses to null: never ships
-  if (IMG_AGGREGATOR_HOST_RE.test(host)) return 0;
-  if (IMG_OFFICIAL_HOST_RE.test(host)) return 2;
-  return 1;
-}
-
 // Highest-ranked image in the cluster; insertion order breaks ties (so the
 // pre-ranking behavior is preserved whenever no aggregator banner competes).
 function pickImage(members) {
@@ -733,7 +757,7 @@ function pickImage(members) {
   let bestRank = -1;
   for (const m of members) {
     if (m.image == null) continue;
-    const r = imageRank(m.image);
+    const r = imageHostRank(m.image);
     if (r > bestRank) { best = m.image; bestRank = r; }
   }
   return best;
@@ -792,6 +816,7 @@ function mergeCluster(members) {
   const sources = [...new Set(members.map((m) => m.source).filter(Boolean))];
   const families = [...new Set(sources.map(familyOf).filter(Boolean))];
 
+  const image = pickImage(members);
   return {
     title: pickFirst(members, 'title'),
     start,
@@ -804,10 +829,17 @@ function mergeCluster(members) {
     lat,
     lng,
     url: pickFirst(members, 'url'),
-    image: pickImage(members),
+    image,
     description,
+    descriptionLength: description == null ? null : pickFirst(members.filter((m) => m.description === description), 'descriptionLength'),
     source: sources[0] || null,   // primary source (v1 back-compat)
     sources,                      // every source that listed it (detailed names)
+    sourceFamily: familyOf(sources[0]) || null,
+    sourceFamilies: families,
+    organizer: pickFirst(members, 'organizer'),
+    status: mergeEventStatus(members),
+    rawCategories: normalizeRawCategories(...members.map((m) => m.rawCategories)),
+    imageRank: imageHostRank(image),
     buzz: families.length,        // cross-FAMILY consensus signal
     staffPick: members.some((m) => m.staffPick === true),
     promoted: members.some((m) => m.promoted === true),
@@ -2308,12 +2340,20 @@ async function main() {
       url: e.url,
       image: e.image,
       description: e.description,
+      descriptionLength: e.descriptionLength ?? null,
       source: e.source,
       sources: e.sources,
+      ...(e.sourceFamily ? { sourceFamily: e.sourceFamily } : {}),
+      sourceFamilies: e.sourceFamilies,
+      ...(e.organizer ? { organizer: e.organizer } : {}),
+      status: e.status,
+      rawCategories: Array.isArray(e.rawCategories) ? e.rawCategories : [],
+      imageRank: e.imageRank,
       buzz: e.buzz,
       hotScore: hotScore(e, tags, runEpoch, megaFams),
       tags,
       category,
+      recurring: e._recurring === true,
       // Paid promotion (e.g. Creative Loafing promoted strip). The UI renders
       // a "Sponsored" label off this; sponsored events get no staff-pick
       // bonus and no hidden-gem tag.
@@ -2396,6 +2436,20 @@ async function main() {
     `${idReport.baseGroups} title+day collision group(s) → ${idReport.venueQualified} venue-qualified, ${idReport.counterQualified} counter-qualified`
   );
   for (const d of idReport.counterDetails) console.log(`      ↳ counter tiebreak: ${d}`);
+
+  // Emit the post-merge evidence only after stable occurrence IDs are minted.
+  // Canonical identity intentionally equals the existing occurrence id; the
+  // series hash remains separate and has no occurrence-time component.
+  for (const e of events) {
+    const state = finderEventState(e, { timeZone: CITY_TZ, nowMs: runEpoch });
+    e.actionability = state.actionable;
+    e.canonicalId = e.id;
+    e.recurrence = { kind: e.recurring === true ? 'recurring' : 'one-off' };
+    e.seriesId = e.recurring === true
+      ? recurringSeriesId({ cityId, title: e.title, organizer: e.organizer, sourceFamily: e.sourceFamily })
+      : null;
+    e.range = eventRangeMetadata(e);
+  }
 
   // Counts used by the summary, the markdown block, and the benchmarks.
   const count = (fn) => events.filter(fn).length;

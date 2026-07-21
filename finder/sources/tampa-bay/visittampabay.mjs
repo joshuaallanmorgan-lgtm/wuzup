@@ -64,6 +64,18 @@ function mapCategory(categories, text = '') {
   return null;
 }
 
+function rawCategoryNames(categories) {
+  const names = [];
+  for (const category of Array.isArray(categories) ? categories : []) {
+    const categoryName = category && typeof category.catName === 'string'
+      ? decodeEntities(category.catName).trim().slice(0, 80)
+      : '';
+    if (categoryName && !names.includes(categoryName)) names.push(categoryName);
+    if (names.length === 12) break;
+  }
+  return names;
+}
+
 function parseAdmission(admission) {
   if (!admission || typeof admission !== 'string') return { price: null, isFree: null };
   const text = decodeEntities(admission).trim();
@@ -174,6 +186,8 @@ function mapDoc(doc, todayDay, lastDay) {
   };
   const category = mapCategory(doc.categories, `${event.title || ''} ${event.description || ''}`);
   if (category) event.category = category;
+  const rawCategories = rawCategoryNames(doc.categories);
+  if (rawCategories.length) event.rawCategories = rawCategories;
   return event;
 }
 

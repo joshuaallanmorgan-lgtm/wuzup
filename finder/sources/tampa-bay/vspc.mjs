@@ -131,6 +131,16 @@ function mapCategory(categories) {
   return null;
 }
 
+function rawCategoryNames(categories) {
+  const names = [];
+  for (const value of Array.isArray(categories) ? categories : []) {
+    const categoryName = cleanText(value, 80);
+    if (categoryName && !names.includes(categoryName)) names.push(categoryName);
+    if (names.length === 12) break;
+  }
+  return names;
+}
+
 function mapResult(result, todayDay, lastDay) {
   const j = result?.json || {};
   if (j.event_cancelled || j.event_postponed) return null;
@@ -194,6 +204,8 @@ function mapResult(result, todayDay, lastDay) {
   };
   const category = mapCategory(j.categories);
   if (category) event.category = category;
+  const rawCategories = rawCategoryNames(j.categories);
+  if (rawCategories.length) event.rawCategories = rawCategories;
   // Recurring hint for the pipeline: the blob's recurrence field, or 3+
   // occurrence days. We ship ONE instance, so the pipeline's own 3-distinct-
   // dates detection can never fire — without this, a month-long attraction

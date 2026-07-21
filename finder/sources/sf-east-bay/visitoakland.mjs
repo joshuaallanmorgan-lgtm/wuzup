@@ -82,6 +82,18 @@ function mapCategory(categories, text = '') {
   return null;
 }
 
+function rawCategoryNames(categories) {
+  const names = [];
+  for (const category of Array.isArray(categories) ? categories : []) {
+    const categoryName = category && typeof category.catName === 'string'
+      ? decodeEntities(category.catName).trim().slice(0, 80)
+      : '';
+    if (categoryName && !names.includes(categoryName)) names.push(categoryName);
+    if (names.length === 12) break;
+  }
+  return names;
+}
+
 // 'FREE' catName = the DMO's own free-admission flag.
 function hasFreeCat(categories) {
   return Array.isArray(categories) &&
@@ -220,6 +232,8 @@ function mapDoc(doc, todayDay, lastDay) {
   if (event.isFree === true && event.price === null) event.price = 0;
   const category = mapCategory(doc.categories, `${event.title || ''} ${event.description || ''}`);
   if (category) event.category = category;
+  const rawCategories = rawCategoryNames(doc.categories);
+  if (rawCategories.length) event.rawCategories = rawCategories;
   return event;
 }
 

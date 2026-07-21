@@ -294,6 +294,8 @@ function addPlace(byId, el, tags, pt, nm, cls) {
     if (url) rec.url = url;
     const phone = tags.phone || tags['contact:phone'];
     if (phone) rec.phone = phone;
+    if (tags.brand) rec.brand = tags.brand;
+    if (tags['brand:wikidata']) rec.brandWikidata = tags['brand:wikidata'];
     if (tags.operator) rec.operator = tags.operator;
     const addr = buildAddress(tags);
     if (addr) rec.address = addr;

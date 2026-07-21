@@ -73,7 +73,8 @@ function mapEvent(e, base) {
   const startDT = localDateTime(e.tz_adjusted_begin_date || e.begin_time);
   const v = e.venue || {};
   const priceM = String(e.ticket_info || '').match(/\$\s*(\d{1,4}(?:\.\d{2})?)/);
-  return {
+  const rawCategory = cleanText(e.category, 80);
+  const event = {
     title: cleanText(e.title, 200),
     start: startDT || begin,
     end: localDateTime(e.end_time),
@@ -89,6 +90,8 @@ function mapEvent(e, base) {
     category: mapCategory(e.category),
     source: name,
   };
+  if (rawCategory) event.rawCategories = [rawCategory];
+  return event;
 }
 
 export async function fetchEvents(options = {}) {

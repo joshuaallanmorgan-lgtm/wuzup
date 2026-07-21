@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "rubricId": "wuzup-relevance-rubric-v1",
+  "status": "architect-default-awaiting-owner-ratification",
+  "provisionalUse": "May guide frozen Sprint 6 evaluation only; it does not authorize production rank weights, drops, or owner-approved labels.",
+  "fixturePins": [
+    {
+      "cityId": "tampa-bay",
+      "fixtureFile": "tampa-bay.v1.json",
+      "fixtureId": "tampa-bay-relevance-v1",
+      "fixtureSha256": "ba857c5bcf07ebbf456f20e9c477c3b9e4bb21f58fe72823a14d1f95e525bfa4",
+      "fixtureJudgmentStatus": "draft-owner-review",
+      "manifestId": "sha256:035cb1eed7e67d143c4b0739d8dd3c2373bd3af2e85562aad0fc4895651615b1",
+      "buildId": "sha256:65a75e81823893d24051e99387364d1b1ab450be748f6dc58cc58c14d61d5381",
+      "eventsSha256": "a8df0d0cefb461c6e417092b42de20067cf4f1bfb68314e5e91c4f70f875d090",
+      "placesSha256": "749eed658f2df7c8f9d175391ba06518c7b88168f4e27afab0a63ff647e3a57b"
+    },
+    {
+      "cityId": "sf-east-bay",
+      "fixtureFile": "sf-east-bay.v1.json",
+      "fixtureId": "sf-east-bay-relevance-v1",
+      "fixtureSha256": "901f9a4970d79d67cbb7d9b9f7b9d6269a75a74a2195c9db6093606b79b13125",
+      "fixtureJudgmentStatus": "draft-owner-review",
+      "manifestId": "sha256:1690a379633d3a7117ee167a8600d27a151d650bfad66ae9efa010af47c2740a",
+      "buildId": "sha256:df88fafec557c009b195a845332273f006a074fc12dbe0d97292777e0a1bd4cb",
+      "eventsSha256": "84981a8ec48f0245e23e168fb63bc2071cceb5e1eda4e115828264a92873b1d8",
+      "placesSha256": "1f42b49ee860b3ad2a5a887192eaa0b77689ab457f4671b28bdda85c4a39ad78"
+    }
+  ],
+  "definitions": {
+    "relevance": {
+      "0": "Not a credible broad-discovery choice in this frozen context; it may still be a real listing.",
+      "1": "Legitimate but niche, low-information, weakly timed, or otherwise a poor lead choice for this context.",
+      "2": "Credible, context-appropriate choice with meaningful user value, but not the strongest available lead.",
+      "3": "Strong, specific, context-appropriate choice that is defensible as a lead when objective safety gates pass."
+    },
+    "actionable": {
+      "yes": "Usable for the frozen surface and time with enough date, time, location, or access information to act.",
+      "no": "Not usable for the frozen surface and time; this does not say the underlying listing is illegitimate."
+    },
+    "gem": {
+      "yes": "Evidence supports an exceptional, under-discovered choice under the ratified gem rule.",
+      "no": "Evidence does not support a gem claim.",
+      "insufficient": "Evidence is incomplete; it must not support a gem claim."
+    },
+    "hardDropReasons": [
+      "objective-non-product",
+      "wrong-market",
+      "cancelled",
+      "ended",
+      "known-false-merge"
+    ],
+    "demoteReasons": [
+      "legitimate-low-information",
+      "business-promotion",
+      "chain",
+      "generic-facility",
+      "tribute-bill",
+      "recurrence-overexposure"
+    ],
+    "evidenceTiers": {
+      "candidate": "Browse/listing language only; do not say recommended, best, most popular, or locals love.",
+      "recommended": "May say recommended when the retained evidence supports that wording; do not say best, #1, most popular, or locals love.",
+      "top-placement": "May use top-placement language with inspectable receipts; superlatives still require the specific supported claim."
+    }
+  },
+  "proposedGates": {
+    "evaluationPrefix": 3,
+    "firstScreen": {
+      "precisionAtLeast": 1,
+      "ndcgAtLeast": 0.9,
+      "knownBadRateAtMost": 0,
+      "actionabilityLeakageAtMost": 0,
+      "duplicateExposureRateAtMost": 0,
+      "sourceMaxShareAtMost": 0.35,
+      "countPreservingReachability": true
+    },
+    "sparseCityLimited": {
+      "activation": "Explicit limited coverage state plus fewer than evaluationPrefix eligible, actionable, non-duplicate candidates.",
+      "effect": "Render an honest limited state; source share, precision, and nDCG are not passed or waived when the required sample does not exist.",
+      "nonWaivable": [
+        "knownBadRateAtMost",
+        "actionabilityLeakageAtMost",
+        "duplicateExposureRateAtMost",
+        "countPreservingReachability"
+      ]
+    }
+  }
+}

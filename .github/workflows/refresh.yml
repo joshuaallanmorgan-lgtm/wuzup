@@ -75,9 +75,15 @@ jobs:
           fi
           CITY=tampa-bay node finder/finder.mjs | tee "$RUNNER_TEMP/tampa.log"
 
+      - name: Archive Tampa signal snapshot
+        run: CITY=tampa-bay node finder/archive-signals.mjs
+
       - name: Finder — SF & East Bay (standard)
         shell: bash
         run: CITY=sf-east-bay node finder/finder.mjs | tee "$RUNNER_TEMP/sf.log"
+
+      - name: Archive SF & East Bay signal snapshot
+        run: CITY=sf-east-bay node finder/archive-signals.mjs
 
       # sync the committed deployment copy to the fresh Tampa artifacts through
       # the ONE sanctioned writer of app/public (D-DEP/D1 — never a direct cp).
@@ -110,7 +116,7 @@ jobs:
           git switch -c "$BRANCH"
           # scoped add — data artifacts and source caches ONLY (never -A):
           # anything else changing here would mean the refresh overstepped.
-          git add finder/output finder/cache app/public
+          git add finder/output finder/cache finder/history app/public
           git commit -m "Data refresh: finder run for tampa-bay + sf-east-bay ($(date -u +%Y-%m-%d))"
           git push -u origin "$BRANCH" --force
           # PR body carries the finder's OWN benchmark summaries (the block
