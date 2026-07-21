@@ -15,9 +15,8 @@
 //              no recordSignal here, ever). An ALREADY-saved card stays saved
 //              (no toggle → no un-save, no second signal) and still counts
 //              as kept in the tally.
-//   left  / ✕  pass  → recordCalibration('no') (−1 category, floored at 0).
-//              A pass affects ORDERING ONLY — nothing is ever hidden. (C5:
-//              the fmn-seen write-mirror was deleted with FindMyNight.)
+//   left  / ✕  less  → Activity receipt, then capturePersonalSignal('deck-no').
+//              This is an explicit ordering choice; nothing is hidden.
 //   up    / ↗  open  → openDetail (nav.jsx's seam records the 'open' +1 and
 //              the recents view). PEEK semantics: the card stays in the deck
 //              (SwipeDeck upMode="peek") — looking closer must not cost the
@@ -36,10 +35,14 @@
 //
 // ALL COPY IS DRAFT for Charles (inventory in the sprint report).
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useActivity } from './ActivityProvider.jsx'
+import { CITY } from './city.js'
 import { Icon, dayLabel, keyOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { useSaves } from './saves.js'
-import { recordCalibration, useTaste } from './taste.js'
+import { useTaste } from './taste.js'
+import { capturePersonalSignal, projectPersonalEvidence } from './personal-signals.js'
+import { commitCalibrationVerdict, commitLensChoice, deckFeedback } from './feedback-transparency.js'
 import { dealLens, lensIdOf } from './lensdeal.js'
 import SwipeDeck from './SwipeDeck.jsx'
 import { DeckFace } from './CalibrationDeck.jsx'
@@ -70,6 +73,7 @@ export function DeckThisButton({ lens }) {
 export default function LensDeck({ lens, events, anchors }) {
   const { openDetail, openBubble, closePage } = useNav()
   const { has, toggle, canToggle, identityPending, identityAmbiguous, identityWent, isPending } = useSaves()
+  const activity = useActivity()
   const taste = useTaste()
   const reduced = useMemo(() => prefersReduced(), [])
   // ONE deal per mount (CalibrationDeck's rule, same reason: App rebuilds
@@ -78,6 +82,8 @@ export default function LensDeck({ lens, events, anchors }) {
   const [deck] = useState(() => dealLens(events, anchors, lens, taste))
   const [kept, setKept] = useState(0)
   const [passed, setPassed] = useState(0)
+  const [choicePending, setChoicePending] = useState(null)
+  const [feedback, setFeedback] = useState(null)
   const [phase, setPhase] = useState(deck.length ? 'rate' : 'empty') // 'rate' | 'done' | 'empty'
   const deckApi = useRef(null) // SwipeDeck's { left, right, up } — the button fallbacks' commit path
 
@@ -97,17 +103,40 @@ export default function LensDeck({ lens, events, anchors }) {
   // ===== the Q3 verdicts (each exactly once per committed card) =====
   const idx = kept + passed // SwipeDeck's index, derived (peek never advances)
   const keepIt = async (e) => {
-    if (!has(e)) {
-      const result = await toggle(e)
-      const changed = result?.changed === true || result?.applied === true
-      if (!changed || result?.saved !== true) return false
-    }
+    setChoicePending('keep')
+    const result = await commitLensChoice({
+      action: 'keep',
+      alreadySaved: has(e),
+      save: async () => await toggle(e),
+    })
+    setChoicePending(null)
+    setFeedback(deckFeedback(result, { surface: 'lens' }))
+    if (result?.applied !== true) return false
     setKept((n) => n + 1)
     return true
   }
-  const passIt = (e) => {
-    recordCalibration('no', e) // −1 category, floored at 0 — ordering only
+  const passIt = async (e) => {
+    setChoicePending('no')
+    const expectedEvidence = projectPersonalEvidence('deck-no', e, { cityId: CITY.id })
+    const result = await commitCalibrationVerdict({
+      action: 'no',
+      retain: async () => {
+        const retained = await activity.recordEventDeck(e)
+        if (retained?.applied !== true) return retained
+        return retained
+      },
+      signal: (retained) => capturePersonalSignal('deck-no', e, {
+        cityId: CITY.id,
+        source: 'activity',
+        result: retained,
+      }),
+      expectedEvidence,
+    })
+    setChoicePending(null)
+    setFeedback(deckFeedback(result, { surface: 'lens' }))
+    if (result?.applied !== true) return false
     setPassed((n) => n + 1)
+    return true
   }
   const openIt = (e) => openDetail(e) // nav's seam records the open + recents
 
@@ -152,7 +181,7 @@ export default function LensDeck({ lens, events, anchors }) {
             </div>
             <h2 className="ldk-done-title">That’s the whole deck.</h2>
             <div className="ldk-done-sub">
-              {deck.length} called — kept {kept} ♥ · passed {passed}
+              {deck.length} called — kept {kept} ♥ · moved down {passed}
             </div>
             <button className="ldk-done-btn pressable" onClick={back}>
               {backLabel}
@@ -196,9 +225,18 @@ export default function LensDeck({ lens, events, anchors }) {
               </div>
               <div className="ldk-kicker-sub">
                 {reduced
-                  ? '♥ keeps it, ✕ passes, ↗ opens the details.'
-                  : 'Swipe or tap: ♥ keeps it, ✕ passes, ↗ peeks at the details.'}
+                  ? 'Keep saves it. Less like this lowers similar picks. Open only looks closer.'
+                  : 'Swipe or tap. Keep saves; Less like this changes order; Open does not rate it.'}
               </div>
+            </div>
+
+            <div
+              className={'ldk-feedback' + (feedback?.tone === 'error' ? ' is-error' : '')}
+              role={feedback?.tone === 'error' ? 'alert' : 'status'}
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              {feedback?.text || (choicePending ? 'Applying your choice…' : '')}
             </div>
 
             <SwipeDeck
@@ -214,7 +252,7 @@ export default function LensDeck({ lens, events, anchors }) {
                     Keeping ♥
                   </span>
                   <span className="ldk-stamp ldk-stamp-pass" aria-hidden>
-                    Pass
+                    Less like this
                   </span>
                   <span className="ldk-stamp ldk-stamp-open" aria-hidden>
                     Opening
@@ -236,17 +274,17 @@ export default function LensDeck({ lens, events, anchors }) {
               <button
                 className="ldk-btn ldk-btn-pass pressable"
                 onClick={() => deckApi.current?.left()}
-                aria-label="Pass"
-                disabled={savePending}
+                aria-label="Less like this — move similar options down"
+                disabled={!activity.ready || savePending || choicePending !== null}
               >
                 ✕
-                <span className="ldk-btn-label">Pass</span>
+                <span className="ldk-btn-label">Less like this</span>
               </button>
               <button
                 className="ldk-btn ldk-btn-open pressable"
                 onClick={() => deckApi.current?.up()}
                 aria-label="Open details"
-                disabled={savePending}
+                disabled={savePending || choicePending !== null}
               >
                 ↗
                 <span className="ldk-btn-label">Open</span>
@@ -263,8 +301,8 @@ export default function LensDeck({ lens, events, anchors }) {
                   : saved
                     ? 'Keep — already on your list'
                     : 'Keep it — saves to your list'}
-                disabled={!top || !canToggle(top)}
-                aria-busy={savePending || undefined}
+                disabled={!top || !canToggle(top) || choicePending !== null}
+                aria-busy={savePending || choicePending === 'keep' || undefined}
               >
                 {/* D6: engineered stroke heart (matches SaveHeart app-wide) */}
                 {saved ? <Icon.heartFill className="ldk-btn-ic" aria-hidden /> : <Icon.heart className="ldk-btn-ic" aria-hidden />}

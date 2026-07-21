@@ -16,6 +16,7 @@ import { usePlanner } from './PlannerProvider.jsx'
 import { PLANNER_PARTS as PARTS } from './planner-core.js'
 import { addDayTs, CITY, formatDayTs, Icon, keyOf } from './lib.js'
 import { SecHead, TonightCard, artEmoji, auroraStyle, spotChips } from './cards.jsx'
+import { capturePersonalSignal } from './personal-signals.js'
 import { SaveHeart, useSaves } from './saves.js'
 import { dateKey } from './weather.js'
 import { usePlaces, ACTIVITIES } from './places.js'
@@ -313,6 +314,11 @@ export default function PlaceDetail({ e, anchors, wx }) {
         flash("That's a quiet day — clear the rest mark first")
         return
       }
+      capturePersonalSignal('plan', e, {
+        source: 'planner',
+        result,
+        context: { daypart: part },
+      })
       if (result?.changed && result.durability === 'session-only') {
         flash("Added for this visit, but your browser couldn't save it")
         closePlanning()

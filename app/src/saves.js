@@ -5,8 +5,8 @@
 // outcome-truthful. Plain .js (no JSX): SaveHeart uses createElement.
 import { createElement as h, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon, addDayTs, eventLifecycle, keyOf, normalize } from './lib.js'
+import { capturePersonalSignal } from './personal-signals.js'
 import { useSavedBeen } from './SavedBeenProvider.jsx'
-import { recordSignal } from './taste.js'
 import './saves.css'
 
 const recordKey = (record) => record?.key ?? record?.primary ?? record?.ref?.primary ?? null
@@ -188,7 +188,9 @@ export function useSaves({ events, anchors } = {}) {
       const result = await toggleSaved(item, { savedAt: Date.now() })
       const changed = result?.changed === true || result?.applied === true
       const savedOn = result?.saved === true || result?.code === 'saved'
-      if (!wasSaved && changed && savedOn) recordSignal('save', item)
+      if (!wasSaved && changed && savedOn) {
+        capturePersonalSignal('save', item, { source: 'saved-been', result })
+      }
       return result
     } catch (error) {
       return { changed: false, code: 'save-failed', error }

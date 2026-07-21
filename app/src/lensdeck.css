@@ -49,6 +49,8 @@
 .ldk-kicker { padding: 4px 4px 14px; }
 .ldk-kicker-title { font-size: 22px; font-weight: 900; letter-spacing: -0.4px; }
 .ldk-kicker-sub { margin-top: 4px; font-size: var(--t-meta); font-weight: 600; color: rgba(255, 255, 255, 0.55); }
+.ldk-feedback { min-height: 20px; margin: -6px 4px 6px; font-size: var(--t-micro); font-weight: 700; color: rgba(255, 255, 255, 0.7); }
+.ldk-feedback.is-error { color: #ffd1c7; }
 
 /* ===== stack sizing + the dark card look (mechanics in swipedeck.css) ===== */
 .ldk-stack {
@@ -133,6 +135,9 @@
 /* the heart button is the save affordance — the sanctioned --hot heart */
 .ldk-btn-keep { color: var(--hot); border-color: rgba(var(--hot-rgb), 0.45); }
 .ldk-btn-keep.is-saved { background: rgba(var(--hot-rgb), 0.18); }
+.ldk-btn:focus-visible,
+.ldk-done-btn:focus-visible { outline: 3px solid var(--accent-on-dark); outline-offset: 3px; }
+.ldk-btn:disabled { cursor: wait; opacity: 0.5; }
 
 /* ===== end card — honest stopping cue, deliberately NOT a reward beat ===== */
 .ldk-done { text-align: center; padding: 64px var(--sp-md) var(--sp-lg); animation: ldkDoneIn 400ms var(--ease-out) both; }

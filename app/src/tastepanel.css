@@ -30,10 +30,11 @@
 
 /* ===== V3: explicit control ===== */
 .tp-ctl-note { font-size: var(--t-meta); font-weight: 500; color: var(--muted); line-height: 1.5; margin: 0 0 var(--sp-sm); }
-.tp-ctl-grid { display: flex; flex-direction: column; gap: var(--sp-xs); }
+.tp-ctl-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-xs); }
 .tp-ctl {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  flex-direction: column;
   justify-content: space-between;
   gap: 10px;
   width: 100%;
@@ -50,6 +51,7 @@
   transition: transform var(--dur-micro), box-shadow var(--dur-micro);
 }
 .tp-ctl:active { transform: scale(0.985); box-shadow: var(--shadow-press); }
+.tp-ctl:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent); outline-offset: 2px; }
 .tp-ctl-cat { font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 7px; }
 
 /* the state pill on the right — the only place color signals more/less */
@@ -79,3 +81,8 @@
 
 /* WS3 §9: engineered fact-row glyph alignment (was 🆓🌙🎉🤷 emoji) */
 .tp-fact .meta-ic { vertical-align: -2.5px; }
+
+@media (max-width: 350px) {
+  .tp-ctl-grid { grid-template-columns: 1fr; }
+  .tp-ctl { flex-direction: row; align-items: center; }
+}

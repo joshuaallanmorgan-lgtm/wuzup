@@ -29,14 +29,12 @@
 // the whole catalog (not a top-N carousel) and wraps when exhausted — never dead-ends.
 //
 // VERDICTS (each = exactly ONE taste signal, never two):
-//   right / ✓  "into it"    → recordCalibration('yes') (+3 category)
-//   left  / ✕  "not for me" → recordCalibration('no')  (−1, floor 0 — P4).
-//              Ordering only — nothing is ever hidden. The event/place activity
-//              FIFOs remain independent and atomically persisted.
-//   up    / ♥  save         → toggleSave (the existing save seam records the
-//              +3, so a save is never double-counted); counts as "into it"
-//              in the tally. Already-saved card? recordCalibration('yes')
-//              instead — the verdict still means something, un-saving doesn't.
+//   right / ✓  "into it"    → Activity, then capturePersonalSignal('deck-yes')
+//   left  / ✕  "not for me" → Activity, then capturePersonalSignal('deck-no').
+//              The validated gate is the only route to recordCalibration;
+//              ordering changes, but nothing is hidden.
+//   up    / ♥  save          → toggleSave first, then Activity. The save seam
+//              records its own positive signal, so this path never adds one.
 // GESTURES are raw pointer events (SwipeDeck, no deps) with always-visible
 // button fallbacks; reduced-motion users get buttons only and cards crossfade
 // instead of flying (swipedeck.css). Skippable anytime — verdicts are
@@ -47,13 +45,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useActivity } from './ActivityProvider.jsx'
 import { categoryById } from './categories.js'
+import { CITY } from './city.js'
 import { Icon, dayLoose, keyOf, timeOf } from './lib.js'
 import { CardImg, PriceChip, SponsoredTag, placeTypeLabel, spotChips, hueFor, artEmoji } from './cards.jsx'
 import { useSaves } from './saves.js'
 import { usePlaces } from './places.js'
-import { getProfile, recordCalibration, topCategories } from './taste.js'
+import { getProfile, topCategories } from './taste.js'
+import { capturePersonalSignal, projectPersonalEvidence } from './personal-signals.js'
 import SwipeDeck from './SwipeDeck.jsx'
 import { DECK_SIZE, dealDeck, dealPlaceDeck, deckKeyOf, nextEventsBatch, nextPlacesBatch } from './deckdeal.js'
+import {
+  commitCalibrationVerdict,
+  deckFeedback,
+  selectCalibrationCandidates,
+} from './feedback-transparency.js'
 import './deck.css'
 
 const prefersReduced = () =>
@@ -119,7 +124,7 @@ export function PlaceDeckFace({ e }) {
 // closeLabel: the done/empty button's text — defaults to the settings-origin
 // phrasing; the primer-origin mount (Q2d onboarding offer) passes its own,
 // since a fresh user closes to the Events tab, not to Settings.
-function ReadyCalibrationDeck({ activity, kind = 'events', events, places, anchors, onClose, closeLabel = 'Back to Settings' }) {
+function ReadyCalibrationDeck({ activity, kind = 'events', events: inputEvents = [], places: inputPlaces = [], anchors, onClose, closeLabel = 'Back to Settings' }) {
   const reduced = useMemo(() => prefersReduced(), [])
   const { has, toggle, canToggle, identityPending, identityAmbiguous, identityWent, isPending } = useSaves()
   const {
@@ -138,6 +143,27 @@ function ReadyCalibrationDeck({ activity, kind = 'events', events, places, ancho
   const retainedExclusions = isPlaces ? placeDeckExclusions : eventDeckExclusions
   const isRetained = isPlaces ? isPlaceDeckExcluded : isEventDeckExcluded
   const recordDeck = isPlaces ? recordPlaceDeck : recordEventDeck
+  // Calibration asks for judgments on credible/actionable inventory first.
+  // The complete Events and Spots browse paths keep the original arrays.
+  const [candidateModel] = useState(() => {
+    const eligible = isPlaces
+      ? inputPlaces.filter((item) => !isRetained(item))
+      : inputEvents.filter((item) => item._day != null
+        && (item._endDay ?? item._day) >= anchors.todayTs
+        && item.sponsored !== true
+        && !isRetained(item))
+    return selectCalibrationCandidates(eligible, {
+      kind: isPlaces ? 'places' : 'events',
+      nowMs: anchors?.nowMs ?? anchors?.todayTs ?? 0,
+      city: CITY,
+      taste: getProfile(),
+      minimum: DECK_SIZE,
+    })
+  })
+  // These local names deliberately keep the cumulative walk on the bounded
+  // calibration pool while preserving the established re-deal seam.
+  const events = isPlaces ? [] : candidateModel.candidates
+  const places = isPlaces ? candidateModel.candidates : []
   // ONE deal per mount (deliberately not a useMemo on [events]: App rebuilds
   // `norm` identities on anchor refreshes / my-event edits, and a re-deal
   // mid-rating would reshuffle the stack under the user's thumb)
@@ -159,6 +185,9 @@ function ReadyCalibrationDeck({ activity, kind = 'events', events, places, ancho
   const [beforeTop] = useState(() => topCategories(getProfile(), 3)) // the honest "before"
   const [into, setInto] = useState(0) // 'yes' + 'save' verdicts
   const [nope, setNope] = useState(0)
+  const saveAppliedRef = useRef(new Set())
+  const [verdictPending, setVerdictPending] = useState(null)
+  const [feedback, setFeedback] = useState(null)
   const [phase, setPhase] = useState(deck.length ? 'rate' : 'empty') // 'rate' | 'done' | 'empty'
   const deckApi = useRef(null) // SwipeDeck's { left, right, up } — the button fallbacks' commit path
 
@@ -168,28 +197,68 @@ function ReadyCalibrationDeck({ activity, kind = 'events', events, places, ancho
   // top-card read below are unchanged from the pre-refactor component.
   const rated = into + nope
   const verdictNo = async (e) => {
-    const result = await recordDeck(e)
+    setVerdictPending('no')
+    const expectedEvidence = projectPersonalEvidence('deck-no', e, { cityId: CITY.id })
+    const result = await commitCalibrationVerdict({
+      action: 'no',
+      retain: async () => {
+        const retained = await recordDeck(e)
+        if (retained?.applied !== true) return retained
+        return retained
+      },
+      signal: (retained) => capturePersonalSignal('deck-no', e, {
+        cityId: CITY.id,
+        source: 'activity',
+        result: retained,
+      }),
+      expectedEvidence,
+    })
+    setVerdictPending(null)
+    setFeedback(deckFeedback(result))
     if (result?.applied !== true) return false
-    recordCalibration('no', e) // −1 category, floored at 0 (P4)
     setNope((n) => n + 1)
     return true
   }
   const verdictYes = async (e) => {
-    const result = await recordDeck(e)
+    setVerdictPending('yes')
+    const expectedEvidence = projectPersonalEvidence('deck-yes', e, { cityId: CITY.id })
+    const result = await commitCalibrationVerdict({
+      action: 'yes',
+      retain: async () => {
+        const retained = await recordDeck(e)
+        if (retained?.applied !== true) return retained
+        return retained
+      },
+      signal: (retained) => capturePersonalSignal('deck-yes', e, {
+        cityId: CITY.id,
+        source: 'activity',
+        result: retained,
+      }),
+      expectedEvidence,
+    })
+    setVerdictPending(null)
+    setFeedback(deckFeedback(result))
     if (result?.applied !== true) return false
-    recordCalibration('yes', e)
     setInto((n) => n + 1)
     return true
   }
   const verdictSave = async (e) => {
-    const retained = await recordDeck(e)
-    if (retained?.applied !== true) return false
-    // 'yes' and 'save' are both "into it"; exactly ONE +3 signal either way
-    if (!has(e)) {
-      const result = await toggle(e) // changed save-on records the +3 centrally
-      const changed = result?.changed === true || result?.applied === true
-      if (!changed || result?.saved !== true) return false
-    } else recordCalibration('yes', e) // save on an already-saved card
+    setVerdictPending('save')
+    const itemKey = deckKeyOf(e)
+    const result = await commitCalibrationVerdict({
+      action: 'save',
+      alreadySaved: has(e) || saveAppliedRef.current.has(itemKey),
+      save: async () => await toggle(e),
+      retain: async () => {
+        const retained = await recordDeck(e)
+        if (retained?.applied !== true) return retained
+        return retained
+      },
+    })
+    if (result?.saveApplied === true) saveAppliedRef.current.add(itemKey)
+    setVerdictPending(null)
+    setFeedback(deckFeedback(result))
+    if (result?.applied !== true) return false
     setInto((n) => n + 1)
     return true
   }
@@ -214,6 +283,7 @@ function ReadyCalibrationDeck({ activity, kind = 'events', events, places, ancho
     setNope(0)
     setDealNum((n) => n + 1) // remounts SwipeDeck → its derived index resets to 0 (== rated)
     setPhase(next.length ? 'rate' : 'empty')
+    setFeedback(null)
   }
 
   // "Done early" keeps what it learned — verdicts were recorded as they
@@ -267,19 +337,16 @@ function ReadyCalibrationDeck({ activity, kind = 'events', events, places, ancho
             <div className="deck-done-spark" aria-hidden>
               ✨
             </div>
-            <h2 className="deck-done-title">Got it — your feed just got smarter</h2>
+            <h2 className="deck-done-title">Your choices are recorded</h2>
             <div className="deck-done-sub">
-              {rated} rated · {into} into it · {nope} not for you
+              {rated} choices · {into} kept or moved up · {nope} moved down
             </div>
-            {afterTop.length > 0 && (
+            {changed && afterTop.length > 0 && (
               <div className="deck-vibes">
                 Your top vibes: <span className="deck-vibes-now">{vibes(afterTop)}</span>
-                {/* before/after shows ONLY when the deck actually moved it — honest, never theatrical */}
-                {changed && (
-                  <span className="deck-vibes-was">
-                    {beforeTop.length ? `was ${vibes(beforeTop)}` : 'that’s brand new'}
-                  </span>
-                )}
+                <span className="deck-vibes-was">
+                  {beforeTop.length ? `was ${vibes(beforeTop)}` : 'that’s brand new'}
+                </span>
               </div>
             )}
             {/* BATCH 5: "Deal again" keeps the catalog reachable — the done screen no
@@ -324,10 +391,26 @@ function ReadyCalibrationDeck({ activity, kind = 'events', events, places, ancho
         ) : (
           <>
             <div className="deck-kicker">
-              <div className="deck-kicker-title">Rate {deck.length} — we’ll dial you in.</div>
+              <div className="deck-kicker-title">Choose what should move up</div>
               <div className="deck-kicker-sub">
-                {reduced ? 'Tap a button to call each one.' : 'Swipe, or use the buttons — every call tunes your feed.'}
+                {reduced
+                  ? 'Into it lifts similar picks; Not for me lowers them. Save keeps this item.'
+                  : 'Swipe or tap. Ratings change order only; every item stays browseable.'}
               </div>
+              {candidateModel.fallbackCount > 0 && (
+                <div className="deck-candidate-note">
+                  Limited high-confidence supply: {candidateModel.fallbackCount} broader {noun} included.
+                </div>
+              )}
+            </div>
+
+            <div
+              className={'deck-feedback' + (feedback?.tone === 'error' ? ' is-error' : '')}
+              role={feedback?.tone === 'error' ? 'alert' : 'status'}
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              {feedback?.text || (verdictPending ? 'Applying your choice…' : '')}
             </div>
 
             <SwipeDeck
@@ -364,11 +447,11 @@ function ReadyCalibrationDeck({ activity, kind = 'events', events, places, ancho
               <button
                 className="deck-btn deck-btn-no pressable"
                 onClick={() => deckApi.current?.left()}
-                aria-label="Not for me"
-                disabled={savePending}
+                aria-label="Not for me — move similar options down"
+                disabled={savePending || verdictPending !== null}
               >
                 ✕
-                <span className="deck-btn-label">Not for me</span>
+                <span className="deck-btn-label">Less like this</span>
               </button>
               <button
                 className={'deck-btn deck-btn-save pressable' + (saved ? ' is-saved' : '')}
@@ -380,10 +463,10 @@ function ReadyCalibrationDeck({ activity, kind = 'events', events, places, ancho
                   : saveIdentityPending
                     ? 'Save unavailable until this added event can be saved'
                   : saved
-                    ? 'Already saved — counts as into it'
+                    ? 'Already saved — mark this card complete'
                     : 'Save it'}
-                disabled={!top || !canToggle(top)}
-                aria-busy={savePending || undefined}
+                disabled={!top || !canToggle(top) || verdictPending !== null}
+                aria-busy={savePending || verdictPending === 'save' || undefined}
               >
                 {/* D6: the engineered stroke heart (matches SaveHeart app-wide), not a raw ♥ */}
                 {saved ? <Icon.heartFill className="deck-btn-ic" aria-hidden /> : <Icon.heart className="deck-btn-ic" aria-hidden />}
@@ -392,11 +475,11 @@ function ReadyCalibrationDeck({ activity, kind = 'events', events, places, ancho
               <button
                 className="deck-btn deck-btn-yes pressable"
                 onClick={() => deckApi.current?.right()}
-                aria-label="Into it"
-                disabled={savePending}
+                aria-label="Into it — move similar options up"
+                disabled={savePending || verdictPending !== null}
               >
                 ✓
-                <span className="deck-btn-label">Into it</span>
+                <span className="deck-btn-label">More like this</span>
               </button>
             </div>
 
@@ -408,7 +491,7 @@ function ReadyCalibrationDeck({ activity, kind = 'events', events, places, ancho
 
             {rated > 0 && (
               <button className="deck-early" onClick={finishEarly}>
-                Done early — keep what it learned
+                Done early — keep these choices
               </button>
             )}
           </>

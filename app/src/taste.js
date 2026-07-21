@@ -24,7 +24,7 @@
 //      mute/boost extremes + the V4 quality benchmark.
 // ─────────────────────────────────────────────────────────────────────────
 //
-// STORAGE: 'taste-v1' = { catScores: {category: number}, freeAffinity: number,
+// STORAGE: 'taste-v1' = { catScores: {evidence: number}, avoidScores: {evidence: number}, freeAffinity: number,
 // n: interactions, organicN: interactions from REAL taps only (V1b),
 // explore: number, _interview: object|null, _primer: object|null (V1a),
 // prefs: {boost:[], mute:[], when: 'weeknights'|'weekends'|'whenever'|null}
@@ -36,7 +36,7 @@
 //                calibration deck's sampler spread + FMN's surprise weighting
 //                read it later (documented forward contract, MASTER_PLAN2 P2).
 //   organicN   — interactions from REAL signals only (saves/opens/fmn/bubble/
-//                add/went + calibration verdicts), NOT seed writes. The "Your
+//                add/plan/went + calibration verdicts), NOT seed writes. The "Your
 //                kind of night" rail gates on THIS (V1b): seeds give ordering a
 //                head start, but the rail — a surface that claims to know your
 //                taste — waits for taps you actually made. confidence() still
@@ -65,12 +65,13 @@
 //            who/vibe affinity sets)     — FindMyNight, on brief completion
 //   'bubble' +0.5 to e.category          — App.jsx openBubble, 'cat' bubbles only
 //   'add'    +2 to e.category            — AddEvent submit
+//   'plan'   +2 across item evidence     — confirmed planner addition only
 //   'went'   +2 to e.category            — saves.js markBeen, "I went 🎉" only
 //            (O4 ⚑FLAG-O2 mechanic: self-reported attendance is the strongest
 //            honest signal we have without accounts; "missed it" records nothing)
 // Plus ONE deliberate-rating seam (Sprint P3/P4): recordCalibration(verdict, e)
-//   'yes' +3 / 'no' −1 floored at 0 — the calibration deck's swipe verdicts.
-//   The engine's only subtraction; bounds documented at the function.
+//   'yes' +3 positive / 'no' +3 avoid evidence — the calibration deck's verdicts.
+//   Both maps are bounded; signed ordering math lives in personal-relevance.js.
 // Plus ONE batch seed seam (Sprint P2, generalized in Q2c): recordInterview
 //   (answers, opts) — the STATED-INTERESTS write, replace-not-stack; math
 //   documented there. Caller today: InterestEditor (the manual editor +
@@ -90,6 +91,7 @@
 import { useSyncExternalStore } from 'react'
 import { lsGet, lsRemove, lsSet, physicalKey } from './storage.js'
 import { categoryById } from './categories.js' // registry id set (plain .js, no cycle) — V3 pref validation
+import { normalizePersonalProfile } from './personal-relevance.js'
 
 const KEY = 'taste-v1' // stored as twh:taste-v1 via storage.js
 const CAT_CAP = 25
@@ -104,7 +106,7 @@ export const railTarget = Math.round(RAIL_CONF * CONF_FULL)
 // fmn is 1 (not 2): one brief touches up to 7-8 categories at once — at 2 a
 // single brief outweighed ~5 real saves and could open the rail gate with
 // categories the user never actually touched (adversarial review, Sprint G)
-const INC = { save: 3, open: 1, fmn: 1, bubble: 0.5, add: 2, went: 2 }
+const INC = { save: 3, open: 1, fmn: 1, bubble: 0.5, add: 2, plan: 2, went: 2 }
 
 // H1 primer seed weights (recordPrimer)
 const PRIMER_CAT = 4 // per chosen category (≈ 1.3 saves / 4 opens of head start)
@@ -149,6 +151,7 @@ const IV_N = 5 // interactions credited for the whole interview (when it moved a
 const emptyPrefs = () => ({ boost: [], mute: [], when: null })
 const empty = () => ({
   catScores: {},
+  avoidScores: {},
   freeAffinity: 0,
   n: 0,
   organicN: 0,
@@ -255,6 +258,7 @@ function cleanPrefs(pf) {
 function load() {
   try {
     const p = JSON.parse(lsGet(KEY))
+    if (normalizePersonalProfile(p).state !== 'valid') return empty()
     if (p && typeof p === 'object' && !Array.isArray(p) && p.v === 1) {
       const catScores = {}
       if (p.catScores && typeof p.catScores === 'object' && !Array.isArray(p.catScores)) {
@@ -263,9 +267,17 @@ function load() {
           if (v > 0) catScores[k] = v
         }
       }
+      const avoidScores = {}
+      if (p.avoidScores && typeof p.avoidScores === 'object' && !Array.isArray(p.avoidScores)) {
+        for (const k in p.avoidScores) {
+          const v = cleanNum(p.avoidScores[k], CAT_CAP)
+          if (v > 0) avoidScores[k] = v
+        }
+      }
       const n = typeof p.n === 'number' && isFinite(p.n) && p.n > 0 ? Math.floor(p.n) : 0
       return {
         catScores,
+        avoidScores,
         freeAffinity: cleanNum(p.freeAffinity, CAT_CAP),
         n,
         // V1b: organicN — real-tap interactions only. Pre-V profiles have no
@@ -294,6 +306,7 @@ function load() {
 // forgets them would silently erase the interview's replace bookkeeping
 const clone = (p) => ({
   catScores: { ...p.catScores },
+  avoidScores: { ...(p.avoidScores || {}) },
   freeAffinity: p.freeAffinity,
   n: p.n,
   organicN: p.organicN, // V1b
@@ -313,7 +326,17 @@ const subscribe = (l) => {
 }
 
 function persist() {
-  lsSet(KEY, JSON.stringify(profile)) // guarded in storage.js — the session profile still works
+  return lsSet(KEY, JSON.stringify(profile))
+}
+
+function mutationReceipt({ applied, persisted = false, code }) {
+  return Object.freeze({
+    applied,
+    changed: applied,
+    persisted: applied && persisted,
+    durability: applied ? (persisted ? 'durable' : 'session-only') : 'unchanged',
+    code,
+  })
 }
 
 // cross-tab: a signal recorded in another tab folds in (never fires in the writing tab)
@@ -378,29 +401,37 @@ export function whenPreference(p = profile, primerWhen = null) {
 
 export function recordSignal(type, e) {
   const inc = INC[type]
-  if (!inc || !e) return
+  if (!inc || !e) return mutationReceipt({ applied: false, code: 'invalid-signal' })
+  const cats = type === 'fmn'
+    ? Array.isArray(e.categories) ? [...e.categories] : []
+    : typeof e.category === 'string' && e.category ? [e.category] : []
+  if (typeof e.placeType === 'string' && e.placeType) cats.push(`place:${e.placeType}`)
+  const activity = typeof e.activity === 'string' && e.activity
+    ? e.activity
+    : Array.isArray(e.activityIds) ? e.activityIds.find(value => typeof value === 'string' && value) : null
+  if (activity) cats.push(`activity:${activity}`)
+  const evidence = [...new Set(cats.filter(c => typeof c === 'string' && c))]
+  const freeSave = type === 'save' && (e._free === true || e.isFree === true)
+  if (evidence.length === 0 && !freeSave) {
+    return mutationReceipt({ applied: false, code: 'no-ranking-evidence' })
+  }
   const next = clone(profile)
   if (next.n >= DECAY_AFTER) {
     for (const k in next.catScores) next.catScores[k] *= DECAY
+    for (const k in next.avoidScores) next.avoidScores[k] *= DECAY
     next.freeAffinity *= DECAY
   }
-  const cats =
-    type === 'fmn'
-      ? Array.isArray(e.categories)
-        ? e.categories
-        : []
-      : typeof e.category === 'string' && e.category
-        ? [e.category]
-        : []
-  for (const c of cats) next.catScores[c] = Math.min((next.catScores[c] || 0) + inc, CAT_CAP)
-  if (type === 'save' && (e._free === true || e.isFree === true)) {
+  const share = evidence.length > 0 ? inc / evidence.length : 0
+  for (const c of evidence) next.catScores[c] = Math.min((next.catScores[c] || 0) + share, CAT_CAP)
+  if (freeSave) {
     next.freeAffinity = Math.min(next.freeAffinity + 1, CAT_CAP)
   }
   next.n += 1
   next.organicN += 1 // V1b: every recordSignal is a REAL tap (save/open/fmn/…)
   profile = next
-  persist()
+  const persisted = persist()
   emit()
+  return mutationReceipt({ applied: true, persisted, code: 'recorded' })
 }
 
 // H1 — PRIMER SEED (the one taste.js seam for Sprint H). One-shot per finish,
@@ -469,46 +500,59 @@ export function recordPrimer({ cats = [], freeLeaning = false } = {}) {
   emit()
 }
 
-// P3/P4 — THE CALIBRATION-DECK SEAM (the one taste.js entry for Sprint P3;
-// the P4 negative-signal support lives here). recordCalibration(verdict, e):
-//   'yes' ("into it")   +3 to e.category — a deliberate rating is worth a save.
-//   'no'  ("not for me") −1 to e.category, FLOORED AT 0 — the engine's first
-//        and only subtraction. THE ADVERSARIAL BOUND, documented: scores live
-//        in [0, 25] before AND after every call (the floor guarantees ≥0, the
-//        cap guarantees ≤25), so tasteNudge stays in [0, 18] and a hostile
-//        swiper (e.g. 15 'no's on one category) can only ZERO that category's
-//        contribution — never invert it, never affect any other category, and
-//        never filter anything (taste only nudges ordering; orderDay is
-//        count-preserving by construction). Sim-verified in the Sprint-P run.
-//   Deck SAVES never come here — they ride the existing save seam (saves.js
-//   toggleSave → recordSignal('save')) so a save is +3 exactly once.
-// Each verdict = one interaction (n += 1); the n≥50 ×0.98 decay applies
-// unchanged. freeAffinity moves in NEITHER direction (only real saves of free
-// events earn it; a rejection says nothing about money). A zeroed score is
-// deleted rather than stored — load() drops ≤0 entries anyway (cleanNum), so
-// the in-memory shape always matches what a reload would produce.
+// P3/P4 + Sprint 8 — the calibration-deck seam. A deliberate yes adds +3
+// positive evidence; a no adds +3 to the separate bounded avoidScores map.
+// Category, place type, and one activity share that weight, so one card still
+// counts as one verdict. Yes also counters equal stored avoidance and no
+// counters equal positive evidence. Both maps stay in [0,25], while the live
+// personal ranker combines them into a signed [-12,12] ordering adjustment.
+// Legacy tasteNudge reads only the positive map and therefore keeps its old
+// [0,18] contract. Neither path filters or removes inventory.
 const CAL_YES = 3 // matches the save weight — both are deliberate "into it"s
-const CAL_NO = 1 // subtracted per "not for me", floored at 0
+const CAL_NO = 3 // deliberate "not for me" evidence, symmetric with yes
 export function recordCalibration(verdict, e) {
-  if ((verdict !== 'yes' && verdict !== 'no') || !e) return
-  if (typeof e.category !== 'string' || !e.category) return
+  if ((verdict !== 'yes' && verdict !== 'no') || !e) {
+    return mutationReceipt({ applied: false, code: 'invalid-calibration' })
+  }
+  const keys = []
+  if (typeof e.category === 'string' && e.category) keys.push(e.category)
+  if (typeof e.placeType === 'string' && e.placeType) keys.push(`place:${e.placeType}`)
+  const activity = typeof e.activity === 'string' && e.activity
+    ? e.activity
+    : Array.isArray(e.activityIds) ? e.activityIds.find(value => typeof value === 'string' && value) : null
+  if (activity) keys.push(`activity:${activity}`)
+  const evidence = [...new Set(keys)]
+  if (evidence.length === 0) {
+    return mutationReceipt({ applied: false, code: 'invalid-calibration' })
+  }
   const next = clone(profile)
   if (next.n >= DECAY_AFTER) {
     for (const k in next.catScores) next.catScores[k] *= DECAY
+    for (const k in next.avoidScores) next.avoidScores[k] *= DECAY
     next.freeAffinity *= DECAY
   }
+  const delta = (verdict === 'yes' ? CAL_YES : CAL_NO) / evidence.length
   if (verdict === 'yes') {
-    next.catScores[e.category] = Math.min((next.catScores[e.category] || 0) + CAL_YES, CAT_CAP)
+    for (const key of evidence) {
+      next.catScores[key] = Math.min((next.catScores[key] || 0) + delta, CAT_CAP)
+      const avoided = Math.max((next.avoidScores[key] || 0) - delta, 0)
+      if (avoided > 0) next.avoidScores[key] = avoided
+      else delete next.avoidScores[key]
+    }
   } else {
-    const v = Math.max((next.catScores[e.category] || 0) - CAL_NO, 0)
-    if (v > 0) next.catScores[e.category] = v
-    else delete next.catScores[e.category]
+    for (const key of evidence) {
+      next.avoidScores[key] = Math.min((next.avoidScores[key] || 0) + delta, CAT_CAP)
+      const liked = Math.max((next.catScores[key] || 0) - delta, 0)
+      if (liked > 0) next.catScores[key] = liked
+      else delete next.catScores[key]
+    }
   }
   next.n += 1
   next.organicN += 1 // V1b: a deck verdict is a real deliberate rating, not a seed
   profile = next
-  persist()
+  const persisted = persist()
   emit()
+  return mutationReceipt({ applied: true, persisted, code: 'recorded' })
 }
 
 // P2 — STATED INTERESTS (recordInterview), generalized in Q2c: born as the
@@ -843,13 +887,34 @@ export function tasteNudge(e, p = profile) {
   return Math.max(0, Math.min(nudge, NUDGE_CEIL)) // the [0,18] contract, symmetric + final
 }
 
-// top-k real categories by affinity ('other' is a fallback bucket, not a taste)
+// The signed category evidence used by the V2 ranker is positive evidence minus
+// avoidance evidence. Keep transparency on that same axis: a large historical
+// positive must not be presented as a current lean after deliberate "less"
+// signals have moved its net value to zero or below. Explicit mute remains a
+// separate, stronger user control and is never presented as a positive lean.
+function signedCategoryEvidence(p = profile) {
+  if (!p || !Number.isFinite(p.n) || p.n <= 0) return []
+  const positive = p.catScores && typeof p.catScores === 'object' ? p.catScores : {}
+  const negative = p.avoidScores && typeof p.avoidScores === 'object' ? p.avoidScores : {}
+  const muted = new Set(Array.isArray(p.prefs?.mute) ? p.prefs.mute : [])
+  const ids = new Set([...Object.keys(positive), ...Object.keys(negative)])
+  return [...ids]
+    .filter(id => id !== 'other' && isRealCat(id))
+    .map((id) => {
+      const liked = Math.max(0, Math.min(Number.isFinite(positive[id]) ? positive[id] : 0, CAT_CAP))
+      const avoided = Math.max(0, Math.min(Number.isFinite(negative[id]) ? negative[id] : 0, CAT_CAP))
+      return { id, score: liked - avoided, muted: muted.has(id) }
+    })
+}
+
+// top-k real categories by net learned affinity ('other' is a fallback bucket,
+// not a taste). Explicitly muted categories are controlled separately.
 export function topCategories(p = profile, k = 2) {
-  return Object.entries(p.catScores)
-    .filter(([c, v]) => v > 0 && c !== 'other')
-    .sort((a, b) => b[1] - a[1])
+  return signedCategoryEvidence(p)
+    .filter(row => row.score > 0 && !row.muted)
+    .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
     .slice(0, k)
-    .map(([c]) => c)
+    .map(row => row.id)
 }
 
 // "Why this is here" (G3) — composes ONLY true reasons for a normalized event.
@@ -869,23 +934,28 @@ export function whyReasons(e, p = profile) {
   // data actually supports ("you open a lot of X" was demonstrably false for
   // FMN-only profiles — adversarial review, Sprint G).
   if (e.category && e.category !== 'other' && p && p.n > 0) {
-    const catNudge =
-      15 * (Math.min(p.catScores[e.category] || 0, CAT_CAP) / CAT_CAP) * confidence(p)
+    const evidence = signedCategoryEvidence(p).find(row => row.id === e.category)
+    const catNudge = evidence && !evidence.muted
+      ? 15 * (Math.max(evidence.score, 0) / CAT_CAP) * confidence(p)
+      : 0
     if (catNudge > 5) r.push(`Your taps lean ${e.category}`)
   }
   return r
 }
 
 // V2 — "WHY YOUR FEED LOOKS LIKE THIS": the read-only data the transparency
-// panel renders, in plain numbers. Pure given p. Returns the leaning categories
-// with their RELATIVE weight (each catScore as a fraction of the strongest, so
+// panel renders, in plain numbers. Pure given p. Returns the signed learned
+// categories with RELATIVE weight (net positive minus avoidance evidence, so
 // the panel can draw honest proportional bars without exposing raw 0–25), the
 // free lean, the unified when-pref, confidence ("tuned by N taps"), and the
 // explicit boost/mute lists. NO score math here that the engine doesn't already
 // do — this is a view over the same stored numbers, never a second opinion.
-//   · `leans` — up to `k` real categories (never 'other'), score-desc, each
+//   · `leans` — up to `k` net-positive real categories (never 'other' or an
+//     explicit mute), score-desc, each
 //     with { id, score, weight∈(0,1] } where weight = score / topScore. The
 //     why-panel shows the bar; the honest claim is "relative to your strongest".
+//   · `lowers` — up to `k` net-negative learned categories, most negative
+//     first, with a positive relative weight for inspectable UI consumers.
 //   · `freeLeaning` — the same ≥5 gate tasteNudge's free bonus uses.
 //   · `when` — whenPreference (caller passes primerWhen so the one resolver
 //     decides; the panel never re-implements precedence).
@@ -895,14 +965,24 @@ export function whyReasons(e, p = profile) {
 // nudges order, never hides) — that line is a UI constant, not derived.
 export function tasteSummary(p = profile, { k = 4, primerWhen = null } = {}) {
   const prefs = p.prefs || emptyPrefs() // prefs-less profile guard (parity with tasteNudge)
-  const ranked = Object.entries(p.catScores)
-    .filter(([c, v]) => v > 0 && c !== 'other')
-    .sort((a, b) => b[1] - a[1])
-  const topScore = ranked.length ? ranked[0][1] : 0
-  const leans = ranked.slice(0, k).map(([id, score]) => ({
+  const signed = signedCategoryEvidence(p)
+  const ranked = signed
+    .filter(row => row.score > 0 && !row.muted)
+    .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
+  const lowered = signed
+    .filter(row => row.score < 0)
+    .sort((a, b) => a.score - b.score || a.id.localeCompare(b.id))
+  const topScore = ranked.length ? ranked[0].score : 0
+  const lowestScore = lowered.length ? Math.abs(lowered[0].score) : 0
+  const leans = ranked.slice(0, k).map(({ id, score }) => ({
     id,
     score,
     weight: topScore > 0 ? score / topScore : 0,
+  }))
+  const lowers = lowered.slice(0, k).map(({ id, score }) => ({
+    id,
+    score,
+    weight: lowestScore > 0 ? Math.abs(score) / lowestScore : 0,
   }))
   return {
     n: p.n,
@@ -910,6 +990,7 @@ export function tasteSummary(p = profile, { k = 4, primerWhen = null } = {}) {
     confidence: confidence(p),
     railReady: railReady(p),
     leans,
+    lowers,
     freeLeaning: p.freeAffinity >= 5,
     when: whenPreference(p, primerWhen),
     boost: [...prefs.boost],
@@ -923,6 +1004,7 @@ export function inspectTaste() {
   return {
     ...profile,
     catScores: { ...profile.catScores },
+    avoidScores: { ...(profile.avoidScores || {}) },
     _interview: profile._interview
       ? { ...profile._interview, deltas: { ...profile._interview.deltas } }
       : null,

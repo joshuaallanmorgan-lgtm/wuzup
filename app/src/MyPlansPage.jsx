@@ -14,7 +14,7 @@ import { GemRow, SponsoredTag } from './cards.jsx'
 import { DAYPART } from './weekend.js'
 import { shelfItems, useBeenThere, useSaves } from './saves.js'
 import { useSavedBeen } from './SavedBeenProvider.jsx'
-import { recordSignal } from './taste.js'
+import { capturePersonalSignal } from './personal-signals.js'
 import { rhythmSummary } from './gamify.js'
 import {
   daysOutInMonth,
@@ -75,7 +75,7 @@ export default function MyPlansPage({ events, anchors }) {
       })
       if (result?.changed !== true) return result
       if (status === 'went' && result.status === 'went' && snapshot) {
-        recordSignal('went', snapshot)
+        capturePersonalSignal('went', snapshot, { source: 'saved-been', result })
       }
       return result
     } catch (error) {

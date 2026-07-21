@@ -183,7 +183,7 @@ test('save actions await exact outcomes and taste runs only after a changed save
   assert.match(bridge, /await\s+toggleSaved\s*\(/)
   assert.match(bridge, /result\?*\.changed\s*===\s*true|result\?*\.changed/)
   const awaitedAt = bridge.search(/await\s+toggleSaved\s*\(/)
-  const tasteAt = bridge.indexOf("recordSignal('save'", awaitedAt)
+  const tasteAt = bridge.indexOf("capturePersonalSignal('save'", awaitedAt)
   assert.ok(awaitedAt >= 0 && tasteAt > awaitedAt, 'save taste must follow the provider outcome')
   assert.match(
     bridge.slice(awaitedAt, tasteAt),
@@ -241,7 +241,7 @@ test('Been answers are awaited, unfarmable, and preserve planner follow-through 
   const awaited = plans.match(/const\s+([A-Za-z_$][\w$]*)\s*=\s*await\s+\w*markBeen\w*\s*\(/i)
   assert.ok(awaited, 'I went: the provider mutation must be awaited')
   const awaitedAt = plans.indexOf(awaited[0])
-  const tasteAt = plans.indexOf("recordSignal('went'", awaitedAt)
+  const tasteAt = plans.indexOf("capturePersonalSignal('went'", awaitedAt)
   assert.ok(tasteAt > awaitedAt, 'I went: taste must follow the provider outcome')
   assert.match(
     plans.slice(awaitedAt, tasteAt),
@@ -254,7 +254,7 @@ test('Been answers are awaited, unfarmable, and preserve planner follow-through 
   assert.match(plans, /\b(?:answerPending|beenPending|pendingAnswer|pendingBeen(?:Ref|Keys)?)\b/i)
   assert.match(plans, /disabled=\{[^}]*pending/i)
   assert.match(plans, /aria-busy=\{[^}]*pending/i)
-  assert.doesNotMatch(plans, /recordSignal\s*\(\s*['"]went['"][\s\S]{0,160}?await\s+markBeen/)
+  assert.doesNotMatch(plans, /(?:recordSignal|capturePersonalSignal)\s*\(\s*['"]went['"][\s\S]{0,160}?await\s+markBeen/)
 
   const provider = source('SavedBeenProvider.jsx')
   assert.match(provider, /async\s+markBeen\s*\(/)

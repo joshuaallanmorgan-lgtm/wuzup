@@ -73,8 +73,11 @@ test('navigation records detail views through the provider without delaying navi
   const nav = source('nav.jsx')
   assert.match(nav, /from\s+['"]\.\/ActivityProvider\.jsx['"]/)
   assert.match(nav, /useActivity\s*\(\s*\)/)
-  assert.match(nav, /const\s+openDetail\s*=\s*useCallback\s*\(\s*\(e,\s*cardEl\)\s*=>\s*\{[\s\S]{0,240}?recordView\s*\(\s*e\s*\)/)
-  assert.match(nav, /e\?\.kind\s*!==\s*['"]place['"][^\n]*recordView\s*\(\s*e\s*\)/)
+  assert.match(nav, /const\s+openDetail\s*=\s*useCallback\s*\(\s*\(e,\s*cardEl\)\s*=>\s*\{[\s\S]{0,420}?void\s+recordView\s*\(\s*e\s*\)/)
+  assert.match(nav, /e\?\.kind\s*!==\s*['"]place['"][\s\S]{0,180}?void\s+recordView\s*\(\s*e\s*\)/)
+  const retainedAt = nav.indexOf('void recordView(e)')
+  const personalAt = nav.indexOf("capturePersonalSignal('open'", retainedAt)
+  assert.ok(retainedAt >= 0 && personalAt > retainedAt, 'open taste must follow the retained Activity outcome')
   assert.doesNotMatch(nav, /from\s+['"]\.\/recents\.js['"]/)
 })
 

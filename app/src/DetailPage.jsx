@@ -15,6 +15,7 @@ import { PLANNER_PARTS as PARTS } from './planner-core.js'
 import { addDayTs, calendarDayDistance, cityHour, CITY, dayKey, eventLifecycle, formatDayTs, Icon, keyOf, priceLabel, timeOf } from './lib.js'
 import { eventIcs } from './share.js'
 import { CATEGORY_EMOJI, HeatBadge, SecHead, TonightCard, auroraStyle, hueFor } from './cards.jsx'
+import { capturePersonalSignal } from './personal-signals.js'
 import { SaveHeart, useSaves } from './saves.js'
 import { useTaste } from './taste.js'
 import { daypartOf, DAYPART } from './weekend.js'
@@ -353,6 +354,11 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         flash("That's a quiet day — clear the rest mark first")
         return
       }
+      capturePersonalSignal('plan', e, {
+        source: 'planner',
+        result,
+        context: { daypart: part },
+      })
       if (result?.changed && result.durability === 'session-only') {
         flash("Added for this visit, but your browser couldn't save it")
         closePlan()

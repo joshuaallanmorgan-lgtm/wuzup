@@ -35,6 +35,7 @@ import { useNav } from './nav.jsx'
 import { usePlanner } from './PlannerProvider.jsx'
 import { PLANNER_PARTS as PARTS } from './planner-core.js'
 import { CardImg, SponsoredTag, featuredChips } from './cards.jsx'
+import { capturePersonalSignal } from './personal-signals.js'
 import { shelfItems, useSaves } from './saves.js'
 import { useTaste } from './taste.js'
 import { usePlaces } from './places.js'
@@ -315,6 +316,11 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
       )
       return
     }
+    capturePersonalSignal('plan', e, {
+      source: 'planner',
+      result,
+      context: { daypart: part },
+    })
     setJustFilled(part)
     clearTimeout(fillTRef.current)
     fillTRef.current = setTimeout(() => setJustFilled(null), 460)

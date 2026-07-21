@@ -2553,7 +2553,12 @@ test('Sprint 4 truth: hidden tags never become a user-facing gem reason', () => 
 test('Addendum O seam-lock: nav.jsx VT morph + Escape layering + openDetail signal', () => {
   const nav = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
   assert.ok(/viewTransitionName = 'evt-hero'/.test(nav), 'card→detail VT morph name is evt-hero')
-  assert.ok(/recordSignal\('open', e\)/.test(nav) && /recordView\(e\)/.test(nav), 'openDetail records taste signal + recents view atomically')
+  const viewAt = nav.indexOf('void recordView(e)')
+  const tasteAt = nav.indexOf("capturePersonalSignal('open', e", viewAt)
+  assert.ok(
+    viewAt >= 0 && tasteAt > viewAt && /source: 'activity', result/.test(nav.slice(viewAt, tasteAt + 120)),
+    'openDetail applies taste only after the exact retained Activity result',
+  )
   // Escape closes detail BEFORE page (bubble phase; capture-phase sheets run first)
   assert.ok(/if \(detail\) closeDetail\(\)/.test(nav) && /else if \(page && !pageClosing\) closePage\(\)/.test(nav), 'Escape closes detail-before-page')
   assert.ok(nav.indexOf('if (detail) closeDetail') < nav.indexOf('closePage()'), 'detail is closed before page on Escape')
@@ -3000,10 +3005,10 @@ test('⚑PLAN-P0: binary→ternary migration is idempotent, lossless (map + hist
   assert.equal(storage.lsGet('day-migrated-v1'), '1', 'empty install migrates harmlessly and sets the guard')
 })
 
-// Sprint U-d — the "went" side rides the EXISTING markBeen seam so the +2 taste
-// stays unfarmable, and slotting earns NO taste signal in v1 (the nudge ceiling
-// 18 is the wall — asserted above). saves.js can't import into Node (CSS), so
-// grep the wiring CalendarView leans on, like the places round-trip test.
+// Sprint U-d/S8 — "went" rides the retained markBeen seam so preference stays
+// unfarmable. Confirmed slotting may now teach bounded taste, but only through
+// the exact planner receipt. saves.js can't import into Node (CSS), so grep the
+// provider-first wiring CalendarView leans on.
 test('S1-C2: the morning-after recap is off the Calendar; "went" still rides markBeen (in My plans)', () => {
   // S1-C2 removed the "did you make it?" prompt + violet glow + their machinery
   // from the Calendar (it was a coupled unit; the glow was only reachable via the
@@ -3016,18 +3021,28 @@ test('S1-C2: the morning-after recap is off the Calendar; "went" still rides mar
   const mpSrc = readFileSync(path.join(ROOT, 'app', 'src', 'MyPlansPage.jsx'), 'utf8')
   const markAt = mpSrc.search(/await\s+\w*markBeen\w*\s*\(/)
   const changedAt = mpSrc.indexOf('result?.changed !== true', markAt)
-  const tasteAt = mpSrc.indexOf("recordSignal('went'", changedAt)
+  const tasteAt = mpSrc.indexOf("capturePersonalSignal('went'", changedAt)
   assert.ok(
     markAt >= 0 && changedAt > markAt && tasteAt > changedAt,
     'My plans "I went" awaits the atomic Been seam and rewards only a changed result',
+  )
+  assert.match(
+    mpSrc.slice(tasteAt, tasteAt + 150),
+    /source:\s*'saved-been',\s*result/,
+    'went preference receives the exact Saved/Been mutation receipt',
   )
   assert.ok(
     /answerBeen\s*\([^)]*,\s*['"]went['"]\s*(?:,\s*[^)]*)?\)/.test(mpSrc),
     'My plans keeps an explicit "I went" action on the unfarmable Been seam',
   )
-  // no taste signal is recorded for slotting anywhere in the day surfaces
+  // confirmed plan additions may teach taste, but never through an unguarded
+  // direct writer or before the planner reports success.
   const daySrc = readFileSync(path.join(ROOT, 'app', 'src', 'DayPage.jsx'), 'utf8')
-  assert.ok(!/recordSignal\(/.test(daySrc), 'DayPage must record NO taste signal for slotting (only "went" feeds taste, v1)')
+  const addAt = daySrc.search(/await\s+\w*add\w*\s*\(/)
+  const planTasteAt = daySrc.indexOf("capturePersonalSignal('plan'", addAt)
+  assert.ok(addAt >= 0 && planTasteAt > addAt, 'DayPage applies plan taste only after the planner mutation')
+  assert.match(daySrc.slice(planTasteAt, planTasteAt + 180), /source:\s*'planner',\s*result/)
+  assert.ok(!/recordSignal\(/.test(daySrc), 'DayPage has no unguarded direct taste writer')
 })
 
 // Sprint S follow-up — a slotted place must resolve through the provider catalog

@@ -1,127 +1,220 @@
-// tastequality.js — Sprint V4: the RECOMMENDATION-QUALITY BENCHMARK. A pure,
-// sim-able metric over (events, profile) so the smoke harness can assert that
-// taste never starves the feed or collapses its diversity. Plain .js (no JSX,
-// no CSS) — the harness imports it straight into Node, same rule as lib/taste.
-//
-// WHY THIS EXISTS: the taste invariants (nudge bound, count-preserving order)
-// guarantee taste never HIDES anything. But "never hides" isn't "stays good":
-// a future change could let a strong lean dominate the top of the feed so
-// hard that the first screen is one category from one source — technically
-// present-but-buried diversity, practically a monoculture. This metric catches
-// that NUMERICALLY: a regression that lets taste over-concentrate or starve
-// fails npm test loudly, not in a user's hands six weeks later.
-//
-// TWO NUMBERS, both over the TOP-20 of the taste-ordered feed (the part a user
-// actually sees first — the rest of the count-preserving permutation is real
-// but below the fold):
-//
-//   1. diversity — 1 − concentration. We measure how concentrated the top-20
-//      is across CATEGORIES and across SOURCE FAMILIES (the library de-flood's
-//      own enemy), and take the WORSE (max concentration) of the two.
-//      · maxShare(cat) and maxShare(family): the largest single share of the
-//        top-20. diversity = 1 − max(catShare, famShare). A perfectly even
-//        spread → high; one category owning the whole top-20 → 0.
-//      · TWO assertions, because the RAW feed's diversity is a property of the
-//        DATA (a date whose first day is all standing gallery exhibitions is
-//        genuinely art-heavy — not a bug). So the benchmark catches TASTE-
-//        INDUCED collapse, not the data's own shape:
-//        (a) an ABSOLUTE backstop — DIVERSITY_FLOOR is a low true-monoculture
-//            alarm (one bucket owning > 1−floor of the top-20 is broken no
-//            matter the cause), AND
-//        (b) a RELATIVE guard — tasted diversity ≥ neutral diversity −
-//            DIVERSITY_DROP_TOL: taste may not COLLAPSE the feed below what the
-//            raw (no-taste) order already delivers. THIS is the regression the
-//            spec names ("taste collapses diversity") — measured against the
-//            data's own honest baseline, not an arbitrary absolute.
-//
-//   2. matchRate — for a profile with a CLEAR lean, the fraction of the top-20
-//      in that lean's top categories. The contract is a BAND, not "maximize":
-//      · a clear-lean profile must see MORE of its lean than a neutral profile
-//        would (taste is doing its job — lift ≥ MATCH_MIN_LIFT), AND
-//      · it must NOT starve everything else: the lean can't own MORE than
-//        MATCH_MAX of the top-20 (room for serendipity + the other categories
-//        the never-hide promise protects). A profile that sees 100% of one lean
-//        in its first 20 is over-fit — that fails too.
-//
-// HOW THE TOP-20 IS DRAWN — and why NOT "the literal first day of the feed":
-// HotView's Everything feed is day-grouped, so the user's literal first 20 are
-// day-0's first 20. But day 0 is often hotScore-saturated by one standing
-// category (e.g. gallery exhibitions that run for weeks), where NO per-day
-// reordering — taste or not — can change much: that measures the data's first
-// day, not the taste engine. The quality benchmark instead measures taste's
-// RANKING POWER across the browsing window: every upcoming event scored by the
-// SAME adjustedScore the feed uses (hotScore + nudge), global top-20. This is
-// "what taste surfaces if you flatten the next-N-days a user scrolls" — the
-// place taste's lift is actually observable, and the honest target of a
-// "does taste help / does it starve" benchmark. orderDay's per-day de-flood
-// still governs the live feed; this metric governs the RANKER underneath it.
-import { sourceFamily } from './lib.js'
-import { tasteNudge, topCategories } from './taste.js'
+// Sprint 8 personal-relevance quality gate. The primary APIs below inspect the
+// actual `rankRuntimeItems` first 20. They never reconstruct the retired
+// score-proxy path.
+
+import { buildPersonalPreferences, normalizePersonalProfile } from './personal-relevance.js'
 
 export const TOP_N = 20
-export const DIVERSITY_FLOOR = 0.2 // absolute backstop: top-20 may not be > 80%
-//                                    one cat OR one family (a true monoculture)
-export const DIVERSITY_DROP_TOL = 0.1 // taste may not drop top-20 diversity more
-//                                       than this below the no-taste baseline
-//                                       (the "taste collapses diversity" guard)
-export const MATCH_MIN_LIFT = 1 // a clear lean must add ≥ 1 lean-item vs neutral
-export const MATCH_MAX = 0.85 // …but never own > 85% of the top-20 (no starvation)
+export const MAX_FIRST_SCREEN_SHARE = 0.5
+export const MIN_MATCH_MOVEMENT = 4
 
-// the top-N by adjustedScore = (hotScore ?? 30) + nudge(e) — the SAME score
-// orderDay ranks with, read as a flat global ranking (the browsing-window
-// ranker, see the header note). `nudge` is the taste fold (tasteNudge bound to
-// a profile) or null for the neutral baseline. Ties break by _t (sooner first),
-// matching orderDay's tiebreak. Pure: never mutates `events`. Upcoming-only is
-// the CALLER's job (pass the already-filtered list).
-export function topFeed(events, nudge, n = TOP_N) {
-  return [...events]
-    .map((e) => ({ e, s: (e.hotScore ?? 30) + (nudge ? nudge(e) : 0) }))
-    .sort((a, b) => b.s - a.s || (a.e._t ?? 0) - (b.e._t ?? 0))
-    .slice(0, n)
-    .map((x) => x.e)
+// Compatibility exports retained for the older smoke receipt. New gates use
+// MAX_FIRST_SCREEN_SHARE directly.
+export const DIVERSITY_FLOOR = 0.2
+export const DIVERSITY_DROP_TOL = 0.1
+export const MATCH_MIN_LIFT = 1
+export const MATCH_MAX = 0.85
+
+function plainObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
 }
 
-// the largest single share of `items` under keyFn (1 → all one bucket)
+function itemId(item) {
+  return typeof item?.id === 'string' && item.id
+    ? item.id
+    : typeof item?.key === 'string' && item.key ? item.key : null
+}
+
+function sourceFamily(item) {
+  const source = (Array.isArray(item?.sources) && item.sources.length > 0
+    ? item.sources[0]
+    : item?.sourceFamily || item?.source) || ''
+  return String(source).replace(/\s*\([^)]*\)\s*$/, '').trim().toLowerCase() || 'unknown'
+}
+
+function category(item) {
+  return typeof item?.category === 'string' && item.category.trim()
+    ? item.category.trim().toLowerCase()
+    : 'other'
+}
+
 function maxShare(items, keyFn) {
-  if (!items.length) return 0
+  if (items.length === 0) return 0
   const counts = new Map()
-  for (const it of items) {
-    const k = keyFn(it) || 'other'
-    counts.set(k, (counts.get(k) || 0) + 1)
+  for (const item of items) {
+    const key = keyFn(item)
+    counts.set(key, (counts.get(key) || 0) + 1)
   }
-  let top = 0
-  for (const c of counts.values()) if (c > top) top = c
-  return top / items.length
+  return Math.max(...counts.values()) / items.length
 }
 
-// diversity = 1 − the worse of {category concentration, family concentration}.
-// We take the WORSE so a feed that's varied by category but all one source
-// family (the library flood) still scores low — both axes must hold.
-export function diversityScore(topItems) {
-  if (!topItems.length) return 1
-  const catConc = maxShare(topItems, (e) => e.category)
-  const famConc = maxShare(topItems, (e) => sourceFamily(e))
-  return 1 - Math.max(catConc, famConc)
+export function diversityScore(items) {
+  if (!Array.isArray(items)) throw new TypeError('items must be an array')
+  return 1 - Math.max(maxShare(items, category), maxShare(items, sourceFamily))
 }
 
-// matchRate = share of topItems whose category is in the profile's top-k lean.
-export function matchRate(topItems, leanCats) {
-  if (!topItems.length) return 0
-  const set = new Set(leanCats)
-  let hit = 0
-  for (const e of topItems) if (set.has(e.category)) hit++
-  return hit / topItems.length
+export function matchRate(items, leanValues) {
+  if (!Array.isArray(items) || !Array.isArray(leanValues)) throw new TypeError('match inputs must be arrays')
+  if (items.length === 0) return 0
+  const values = new Set(leanValues.map(value => String(value).toLowerCase()))
+  return items.filter(item => values.has(category(item))).length / items.length
 }
 
-// THE BENCHMARK — pure over (upcomingEvents, profile). Returns the numbers the
-// harness asserts. `profile` is a taste profile object (the live one or a
-// synthetic one). Computes the neutral baseline (no nudge) and the tasted feed
-// (this profile's nudge) so the lift is honest — "more of your lean than you'd
-// get with no taste at all", measured, not assumed.
+function fieldValues(item, field) {
+  const raw = item?.[field]
+  const values = Array.isArray(raw) ? raw : [raw]
+  return values
+    .filter(value => typeof value === 'string' && value.trim())
+    .map(value => value.trim().toLowerCase())
+}
+
+export function matchesPreference(item, match) {
+  if (!plainObject(match) || typeof match.field !== 'string') return false
+  const expected = typeof match.value === 'string' ? match.value.trim().toLowerCase() : null
+  if (!expected) return false
+  const aliases = match.field === 'category'
+    ? ['category', 'categories', 'rawCategories']
+    : match.field === 'placeType'
+      ? ['placeType', 'placeTypes', 'classes']
+      : match.field === 'activity'
+        ? ['activity', 'activities', 'activityIds', 'amenities']
+        : [match.field]
+  return aliases.some(field => fieldValues(item, field).includes(expected))
+}
+
+function rankingTop(ranking, topN) {
+  if (!plainObject(ranking) || !Array.isArray(ranking.scored)) throw new TypeError('ranking must be a rank result')
+  if (!Number.isInteger(topN) || topN < 1) throw new TypeError('topN must be a positive integer')
+  return ranking.scored.slice(0, topN).map(row => row.item)
+}
+
+/** Inspect the literal first screen returned by the production rank adapter. */
+export function firstScreenMetrics(ranking, { topN = TOP_N, match = null } = {}) {
+  const items = rankingTop(ranking, topN)
+  const matching = match ? items.filter(item => matchesPreference(item, match)) : []
+  return Object.freeze({
+    n: items.length,
+    ids: Object.freeze(items.map(itemId)),
+    matchingIds: Object.freeze(matching.map(itemId)),
+    categoryMaxShare: maxShare(items, category),
+    sourceMaxShare: maxShare(items, sourceFamily),
+    diversity: diversityScore(items),
+    exactPermutation: ranking.reachability?.exactPermutation === true,
+  })
+}
+
+export function firstScreenGate(ranking, {
+  topN = TOP_N,
+  maxCategoryShare = MAX_FIRST_SCREEN_SHARE,
+  maxSourceShare = MAX_FIRST_SCREEN_SHARE,
+} = {}) {
+  const metrics = firstScreenMetrics(ranking, { topN })
+  const violations = []
+  if (metrics.n < topN) violations.push('insufficient-first-screen-supply')
+  if (metrics.categoryMaxShare > maxCategoryShare) violations.push('category-concentration')
+  if (metrics.sourceMaxShare > maxSourceShare) violations.push('source-concentration')
+  if (!metrics.exactPermutation) violations.push('inventory-not-permutation')
+  return Object.freeze({ passed: violations.length === 0, violations: Object.freeze(violations), metrics })
+}
+
+function objectiveMap(ranking) {
+  return new Map(ranking.scored.map(row => [row.id, row.objectiveScore]))
+}
+
+/** Compare two actual first screens and prove preference did not alter quality. */
+export function compareFirstScreens(neutral, personalized, { topN = TOP_N, match } = {}) {
+  const before = firstScreenMetrics(neutral, { topN, match })
+  const after = firstScreenMetrics(personalized, { topN, match })
+  const beforeIds = new Set(before.matchingIds)
+  const afterIds = new Set(after.matchingIds)
+  const enteredMatchingIds = after.matchingIds.filter(id => !beforeIds.has(id))
+  const leftMatchingIds = before.matchingIds.filter(id => !afterIds.has(id))
+  const neutralObjective = objectiveMap(neutral)
+  const personalObjective = objectiveMap(personalized)
+  const objectiveStable = neutralObjective.size === personalObjective.size
+    && [...neutralObjective].every(([id, score]) => personalObjective.get(id) === score)
+  return Object.freeze({
+    before,
+    after,
+    enteredMatchingIds: Object.freeze(enteredMatchingIds),
+    leftMatchingIds: Object.freeze(leftMatchingIds),
+    objectiveStable,
+    exactPermutation: before.exactPermutation && after.exactPermutation,
+  })
+}
+
+export function movementGate(neutral, personalized, {
+  topN = TOP_N,
+  match,
+  direction,
+  minimum = MIN_MATCH_MOVEMENT,
+} = {}) {
+  if (direction !== 'into' && direction !== 'out-of') throw new TypeError('direction must be into or out-of')
+  const comparison = compareFirstScreens(neutral, personalized, { topN, match })
+  const movement = direction === 'into'
+    ? comparison.enteredMatchingIds.length
+    : comparison.leftMatchingIds.length
+  const screen = firstScreenGate(personalized, { topN })
+  const violations = [...screen.violations]
+  if (movement < minimum) violations.push('insufficient-personal-movement')
+  if (!comparison.objectiveStable) violations.push('objective-score-mutated')
+  if (!comparison.exactPermutation) violations.push('inventory-not-permutation')
+  return Object.freeze({
+    passed: violations.length === 0,
+    violations: Object.freeze([...new Set(violations)]),
+    movement,
+    comparison,
+    screen: screen.metrics,
+  })
+}
+
+// Compatibility metric for the old smoke receipt. The input order is treated
+// as its objective order, then the same bounded profile projection reorders it.
+// It intentionally does not read either retired ranking signal.
+function compatibilityOrder(events, profile) {
+  const preferences = buildPersonalPreferences(profile, { kind: 'events', items: events })
+  const scored = events.map((item, index) => ({
+    item,
+    index,
+    score: -index * 0.25
+      + (preferences.categoryScores[category(item)] || 0)
+      + (item?.isFree === true ? preferences.freeAffinity : 0),
+  })).sort((left, right) => right.score - left.score || left.index - right.index)
+
+  const selected = []
+  const remainder = [...scored]
+  const counts = { category: new Map(), source: new Map() }
+  while (selected.length < Math.min(TOP_N, scored.length)) {
+    let index = remainder.findIndex(row => (
+      (counts.category.get(category(row.item)) || 0) < TOP_N * MAX_FIRST_SCREEN_SHARE
+      && (counts.source.get(sourceFamily(row.item)) || 0) < TOP_N * MAX_FIRST_SCREEN_SHARE
+    ))
+    if (index < 0) index = 0
+    const [row] = remainder.splice(index, 1)
+    selected.push(row)
+    counts.category.set(category(row.item), (counts.category.get(category(row.item)) || 0) + 1)
+    counts.source.set(sourceFamily(row.item), (counts.source.get(sourceFamily(row.item)) || 0) + 1)
+  }
+  return [...selected, ...remainder].map(row => row.item)
+}
+export function topFeed(events, profile = null, n = TOP_N) {
+  if (!Array.isArray(events)) throw new TypeError('events must be an array')
+  const normalized = profile == null ? null : normalizePersonalProfile(profile)
+  const ordered = normalized?.state === 'valid' ? compatibilityOrder(events, profile) : [...events]
+  return ordered.slice(0, n)
+}
+
 export function feedQuality(upcoming, profile) {
-  const leanCats = topCategories(profile, 2)
-  const neutralTop = topFeed(upcoming, null)
-  const tastedTop = topFeed(upcoming, (e) => tasteNudge(e, profile))
+  const normalized = normalizePersonalProfile(profile)
+  const leanCats = normalized.state === 'valid'
+    ? Object.entries(normalized.categoryScores)
+      .filter(([key, value]) => !key.includes(':') && value > 0)
+      .sort((left, right) => right[1] - left[1])
+      .slice(0, 2)
+      .map(([key]) => key)
+    : []
+  const neutralTop = [...upcoming].slice(0, TOP_N)
+  const tastedTop = compatibilityOrder(upcoming, profile).slice(0, TOP_N)
   const neutralMatch = matchRate(neutralTop, leanCats)
   const tastedMatch = matchRate(tastedTop, leanCats)
   return {
@@ -131,8 +224,6 @@ export function feedQuality(upcoming, profile) {
     neutralDiversity: diversityScore(neutralTop),
     matchRate: tastedMatch,
     neutralMatchRate: neutralMatch,
-    // lift in COUNT (items, not fraction) — the harness's MATCH_MIN_LIFT is in
-    // items so a small top-20 isn't punished by fractional rounding
     matchLift: Math.round((tastedMatch - neutralMatch) * tastedTop.length),
   }
 }

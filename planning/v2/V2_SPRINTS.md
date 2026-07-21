@@ -1,6 +1,6 @@
 # Wuzup V2 - active sprint map
 
-> **Status:** owner-ratified execution map; Sprint 8 active - 2026-07-20
+> **Status:** owner-ratified execution map; Sprint 9 active - 2026-07-21
 >
 > **Authority:** subordinate to [V2_PLAN.md](V2_PLAN.md). This file translates the current scope and
 > dependency queue into delivery cycles; it does not admit features that the plan parks in V3.
@@ -1213,8 +1213,9 @@ hide gates pass.
 
 Committed scope:
 
-- Use existing onboarding, interests, saves, plans, deck verdicts, went/skipped feedback, daypart, price,
-  distance, weather, novelty, and repetition in an explainable on-device taste model.
+- Use existing onboarding, interests, saves, confirmed plans, deck verdicts, and went feedback in an
+  explainable on-device taste model; a miss/skip remains neutral. Do not persist volatile daypart, price,
+  distance, weather, novelty, or repetition as personal taste without a truthful signal contract and eval.
 - Keep the quality-ordered feed as cold start and apply bounded, signed personal adjustments above it.
 - Improve deck dealing, feedback transparency, and candidate coverage; reskin the existing deck without
   creating a new co-swipe or social product.
@@ -1223,6 +1224,36 @@ Committed scope:
 **Exit gate:** strong positive/negative preferences move at least four matching items into/out of the real
 first 20, no category or source owns more than half of an unfiltered top 20, muted inventory remains reachable,
 and corrupt/no taste data falls back cleanly to objective quality.
+
+#### Sprint 8 bounded-personal-relevance receipt - 2026-07-21 (green)
+
+- **Personal relevance is signed, bounded, and lossless:** one strict on-device profile adapter turns retained
+  category, place-type, activity, free, and explicit boost/mute evidence into a `[-12, 12]` preference layer over
+  the shared objective rank. Missing, corrupt, wrong-version, oversized, or hostile profiles fail atomically to
+  neutral order. Negative evidence moves items down without filtering them, and full browse/deck reachability is
+  preserved.
+- **Only completed product actions teach the model:** event opens wait for Activity, saves and `went` wait for
+  Saved/Been, and confirmed additions wait for Planner. Exact durability receipts gate every write; misses,
+  failed/no-op actions, raw category taps, and ordinary opens in the Lens deck do not manufacture preference.
+  Session farming is bounded, and an `already-current` deck retry is accepted only after the same gate instance,
+  city, identity, and verdict observed a fresh Activity write followed by a failed taste write. Success consumes
+  that authority, so reloads and ledger eviction cannot replay it.
+- **Feedback stays truthful and retryable:** calibration Save is save-first; a failed save or taste write keeps the
+  card actionable without double-toggling retained state. `More like this` and `Less like this` are explicit signed
+  choices, opening is neutral, candidate deals prefer credible/actionable inventory, and scarce supply is disclosed.
+  Taste Profile leans and lowered categories use the same net positive-minus-avoid evidence as live rank; muted or
+  net-negative categories cannot be described as positive.
+- **The frozen real-corpus metric passes:** Tampa music moves 5 items into and 5 out of the first 20; SF art moves
+  4 in and 6 out; Tampa park avoidance moves 10 out; and SF garden preference moves 10 in. Every replay retains
+  all candidates, explicit mute remains reachable, and the maximum first-20 category/source share is `0.50`.
+- **Scope was made more truthful, not broader:** daypart, price, distance, and weather remain request/context facts
+  in the shared rank contract instead of becoming permanent taste from one observation. Novelty/repetition learning
+  is deferred until it has a labeled signal and frozen lift test. This avoids claiming a stable personal preference
+  from volatile circumstances and does not weaken the Sprint 8 movement/diversity/never-hide exit gate.
+- **Verification is green:** focused Sprint 8 contracts pass 30/30; an independent repair re-review reports 0 open
+  P0/P1; the complete serial gate passes 912/912, including the 64.4-second finder contract, app lint/build, SF
+  build, and base-path build. The separate Tampa/SF production browser journey passes 1/1. `git diff --check` is
+  clean, and no city artifact or freshness receipt changed in this sprint.
 
 ### Sprint 9 - Existing-flow depth and durable user value
 

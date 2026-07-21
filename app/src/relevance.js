@@ -2,6 +2,7 @@ import { eventActionability } from '../../shared/city-time.mjs'
 import { rankItems, selectFirstScreen, RANK_REASON_CODES } from '../../shared/rank.mjs'
 import { primaryKeyOf } from './identity.js'
 import { presentLeadImage } from './leadImage.js'
+import { buildPersonalPreferences } from './personal-relevance.js'
 
 const STATE_CODES = new Map([
   ['florida', 'FL'],
@@ -27,11 +28,6 @@ function plainObject(value) {
 
 function text(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null
-}
-
-function clamp(value, min, max) {
-  const number = Number.isFinite(value) ? value : 0
-  return Math.min(max, Math.max(min, number))
 }
 
 function family(value) {
@@ -185,6 +181,11 @@ function projectedPlace(place, { city }) {
     sourceFamily: sourceValue(place.sourceFamily || sources[0]),
     sourceFamilies: sources,
     category: place.category,
+    placeType: place.placeType,
+    classes: Array.isArray(place.classes) ? place.classes : [],
+    activities: Array.isArray(place.activities) ? place.activities : [],
+    activityIds: Array.isArray(place.activityIds) ? place.activityIds : [],
+    amenities: Array.isArray(place.amenities) ? place.amenities : [],
     venueId: place.venueId || place.operatorId || null,
     venueOrOperator: place.venueOrOperator || place.operator || place.brand || place.title || place.name,
     address: place.address,
@@ -212,24 +213,7 @@ function projectedPlace(place, { city }) {
 
 /** Convert the existing taste profile into a bounded signed preference layer. */
 export function signedRuntimeTaste(taste = {}) {
-  if (!plainObject(taste)) return { categoryScores: {}, freeAffinity: 0 }
-  const categoryScores = {}
-  const learned = plainObject(taste.catScores) ? taste.catScores : {}
-  if (Number(taste.n) > 0) {
-    for (const [category, value] of Object.entries(learned)) {
-      if (text(category) && Number.isFinite(value) && value > 0) categoryScores[category] = clamp((value / 25) * 6, 0, 6)
-    }
-  }
-  const prefs = plainObject(taste.prefs) ? taste.prefs : {}
-  for (const category of Array.isArray(prefs.boost) ? prefs.boost : []) {
-    if (text(category)) categoryScores[category] = clamp((categoryScores[category] || 0) + 6, -12, 12)
-  }
-  // Explicit user-owned mute is a real negative preference, never a filter.
-  for (const category of Array.isArray(prefs.mute) ? prefs.mute : []) {
-    if (text(category)) categoryScores[category] = -12
-  }
-  const freeAffinity = Number(taste.n) > 0 ? clamp((Number(taste.freeAffinity) / 25) * 3, 0, 3) : 0
-  return { categoryScores, freeAffinity }
+  return buildPersonalPreferences(taste, { kind: 'events' })
 }
 
 /**
@@ -260,7 +244,7 @@ export function rankRuntimeItems(items, {
   const ranking = rankItems(projected, {
     kind,
     context,
-    preferences: signedRuntimeTaste(taste),
+    preferences: buildPersonalPreferences(taste, { kind, items: projected }),
     qualityPolicy: runtimeQualityPolicy({
       kind,
       nowMs,
@@ -322,7 +306,7 @@ export function rankTonightCandidates(tonightItems, { nowMs, city, taste, limit 
   const ranking = rankItems(projected, {
     kind: 'events',
     context,
-    preferences: signedRuntimeTaste(taste),
+    preferences: buildPersonalPreferences(taste, { kind: 'events', items: projected }),
     qualityPolicy: runtimeQualityPolicy({ kind: 'events', nowMs, city }),
   })
   const first = selectFirstScreen(ranking, { limit })

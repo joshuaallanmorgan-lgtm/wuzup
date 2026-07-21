@@ -13,6 +13,7 @@
 import { useCallback, useState } from 'react'
 import { CardImg, featuredChips, spotChips } from './cards.jsx'
 import { CITY } from './city.js'
+import './tastetuner.css'
 
 const DISMISS_KEY = (kind) => `wuzup-tune-dismissed-${CITY.id}-${kind}`
 const readDismissed = (kind) => {
@@ -33,7 +34,7 @@ function TunePreviewCard({ e, kind, verdict }) {
   return (
     <div className={'tune-pc tune-pc-' + verdict}>
       <span className={'tune-cap tune-cap-' + verdict}>
-        {verdict === 'yes' ? "I'm into it" : 'Not for me'}
+        {verdict === 'yes' ? 'More like this' : 'Less like this'}
       </span>
       <div className="tune-pc-card">
         <CardImg e={e} className="tune-pc-img" />
@@ -75,7 +76,7 @@ export default function TasteTuner({ kind = 'events', samples = [], onTune }) {
   if (dismissed) {
     return (
       <button type="button" className="tune-again" onClick={restore}>
-        ✦ Tune your {noun} taste
+        ✦ Tune your {noun} order
       </button>
     )
   }
@@ -86,7 +87,7 @@ export default function TasteTuner({ kind = 'events', samples = [], onTune }) {
 
   return (
     <section className="tune" aria-label={`Tune your ${noun} taste`}>
-      <button type="button" className="tune-x" aria-label="Dismiss" onClick={dismiss}>
+      <button type="button" className="tune-x" aria-label={`Dismiss ${noun} taste tuner`} onClick={dismiss}>
         ✕
       </button>
       <div className="tune-main">
@@ -94,10 +95,10 @@ export default function TasteTuner({ kind = 'events', samples = [], onTune }) {
           {/* T2 (Batch 5): reframed backup→primary — the deck is now the main
               find-AND-tune door. The "12" was a bug (the deck deals 15 = DECK_SIZE);
               the CTA is open-ended now. Copy is a PLACEHOLDER ⚑ Charles. */}
-          <h2 className="tune-title">Find your night by swiping</h2>
-          <p className="tune-sub">Keep what you like, skip what you don’t — your {noun} feed tunes as you swipe.</p>
+          <h2 className="tune-title">Choose what moves up</h2>
+          <p className="tune-sub">Rate a small set of useful {noun}. Similar picks move up or down; full lists stay intact.</p>
           <button type="button" className="tune-cta pressable" onClick={tune}>
-            Start swiping
+            Tune my order
           </button>
         </div>
         {hasPreview && (

@@ -9,10 +9,9 @@
 // 5-deep callback prop-drilling. ZERO behavior change — the logic below moved
 // here verbatim from App.jsx; the smoke harness + a hand pass guard it.
 //
-// The two signal-capture seams stay INSIDE the moved handlers so taste/recents
-// recording is single-sourced no matter which surface opens a detail/bubble:
-//   openDetail → recordSignal('open') + recordView
-//   openBubble → recordSignal('bubble') for category bubbles only
+// Retained detail activity stays inside openDetail so every surface uses the
+// same truth-gated personal-signal handoff. Bubble/filter navigation is not a
+// durable preference and deliberately records no taste evidence.
 //
 // Contracts preserved (and load-bearing — do not reorder):
 //   · View-Transition morph: openDetail names the tapped card's [data-vt]
@@ -30,7 +29,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { useActivity } from './ActivityProvider.jsx'
-import { recordSignal } from './taste.js'
+import { capturePersonalSignal } from './personal-signals.js'
 
 // the tab roster — ids are the stable identity, INDICES ARE DERIVED (audit
 // prep #1: nothing may hardcode a position). Sprint O1: four populated tabs.
@@ -146,20 +145,14 @@ export function NavProvider({ children }) {
   // affordances reopen settings, so "one level deep" stays true in feel while
   // the union stays flat in state). Sprint Q2 added lensdeck (the finite
   // "Deck this" mode) on the same replace-the-page pattern (a bubble-lens
-  // deck's back affordance reopens its bubble via the quiet openBubble flag
-  // below) and Q2c swapped the retired 7-screen interview for interests (the
+  // deck's back affordance reopens its bubble without recording navigation as
+  // preference) and Q2c swapped the retired 7-screen interview for interests (the
   // InterestEditor) — both interests and deck carry a `from` origin so their
   // back affordances return where the user actually came from. =====
   const [page, setPage] = useState(null)
   const [pageClosing, setPageClosing] = useState(false)
   const pageTRef = useRef(null)
-  const openBubble = useCallback((bubble, opts) => {
-    // taste seam: tapping a CATEGORY bubble is a (weak) interest signal;
-    // time/free/near bubbles say nothing about category taste. {quiet:true}
-    // skips the signal — LensDeck's back affordance RE-opens the bubble the
-    // user already tapped once, and navigation back is not a second interest
-    // tap (the exactly-once seam contract, Sprint Q3).
-    if (bubble.kind === 'cat' && !opts?.quiet) recordSignal('bubble', { category: bubble.value })
+  const openBubble = useCallback((bubble) => {
     clearTimeout(pageTRef.current)
     setPageClosing(false)
     setPage({ type: 'bubble', bubble })
@@ -170,9 +163,8 @@ export function NavProvider({ children }) {
     setPage({ type: 'search' })
   }, [])
   // Sprint S: a tapped Locations bubble → a full PlaceBubblePage (the place-side
-  // twin of openBubble). No taste signal here — a place's interest signal is
-  // recorded on detail OPEN (the shared openDetail seam), same as events; the
-  // bubble tap is just navigation. `bubble` is a PLACE_BUBBLES entry.
+  // twin of openBubble). This is navigation only; preference comes from
+  // retained save/plan/deck actions. `bubble` is a PLACE_BUBBLES entry.
   const openPlaceBubble = useCallback((bubble) => {
     clearTimeout(pageTRef.current)
     setPageClosing(false)
@@ -350,10 +342,15 @@ export function NavProvider({ children }) {
   const [vtOpen, setVtOpen] = useState(false)
   const morphElRef = useRef(null)
   const openDetail = useCallback((e, cardEl) => {
-    recordSignal('open', e) // taste seam: opening a detail = +1 category interest
     // The current recap is event-only. Place views stay out of its bounded FIFO
     // until Wuzup ships a kind-correct place-history surface.
-    if (e?.kind !== 'place') void recordView(e) // navigation never waits on storage
+    if (e?.kind !== 'place') {
+      // Navigation never waits on storage, but taste waits on the exact Activity
+      // result: a failed/no-op retained view cannot manufacture a fresh signal.
+      void recordView(e)
+        .then((result) => capturePersonalSignal('open', e, { source: 'activity', result }))
+        .catch(() => {})
+    }
     setClosing(false)
     const el = cardEl ? cardEl.querySelector('[data-vt]') : null
     if (supportsVT() && el) {
