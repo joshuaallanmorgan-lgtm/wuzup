@@ -9,6 +9,7 @@ import {
   finderEventState,
   finderEventTime,
   generationContext,
+  normalizeJunkHourRange,
   publishedDayOf,
   selectLatestExplicitEnd,
 } from '../finder/time.mjs'
@@ -19,6 +20,30 @@ import {
 } from '../finder/sources/_shared.mjs'
 
 const NY = 'America/New_York'
+
+test('junk-hour normalization stays fail-closed around explicit timed ends', () => {
+  const nowMs = Date.parse('2026-07-20T20:00:00Z')
+  const explicit = Object.freeze({
+    title: 'Morning placeholder',
+    start: '2026-07-21T02:00:00-04:00',
+    end: '2026-07-21T04:00:00-04:00',
+  })
+  assert.equal(finderEventState(explicit, { timeZone: NY, nowMs }).actionable, true)
+  const normalized = normalizeJunkHourRange(explicit, { category: 'community' })
+  assert.equal(normalized.changed, true)
+  assert.notEqual(normalized.event, explicit)
+  assert.equal(normalized.event.start, '2026-07-21')
+  assert.equal(normalized.event.end, explicit.end)
+  assert.equal(finderEventState(normalized.event, { timeZone: NY, nowMs }).actionable, false)
+  assert.equal(finderEventState(normalized.event, { timeZone: NY, nowMs }).time.error, 'mixed-precision')
+  assert.equal(explicit.start, '2026-07-21T02:00:00-04:00')
+
+  const noEnd = normalizeJunkHourRange({ ...explicit, end: null }, { category: 'community' })
+  assert.equal(finderEventState(noEnd.event, { timeZone: NY, nowMs }).actionable, true)
+  const nightlife = normalizeJunkHourRange(explicit, { category: 'nightlife' })
+  assert.equal(nightlife.changed, false)
+  assert.equal(nightlife.event, explicit)
+})
 
 test('generation context requires one injected epoch and derives the city weekend', () => {
   const nowMs = Date.parse('2026-07-15T05:30:00Z')

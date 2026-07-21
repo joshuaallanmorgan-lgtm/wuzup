@@ -33,6 +33,7 @@ import {
   finderEventState,
   finderEventTime,
   generationContext,
+  normalizeJunkHourRange,
   publishedDayOf,
   selectMergedInterval,
 } from './time.mjs';
@@ -2285,16 +2286,9 @@ async function main() {
     const category = categorize(e);
     // Output sanity: a 01:00–05:59 start on anything that isn't nightlife is
     // a publisher's junk placeholder time — keep the date, strip the time.
-    if (category !== 'nightlife') {
-      const h = startHourOf(e.start);
-      if (h !== null && h >= 1 && h <= 5) {
-        const day = publishedDayOf(e.start);
-        if (day) {
-          e.start = day;
-          junkTimesStripped++;
-        }
-      }
-    }
+    const normalized = normalizeJunkHourRange(e, { category });
+    if (normalized.changed) junkTimesStripped++;
+    e = normalized.event;
     const tags = tagsFor(e, todayStr, weekend);
     return {
       // D-G2: filled by mintEventIds below (first key so the id leads every
@@ -2328,6 +2322,17 @@ async function main() {
   });
   if (junkTimesStripped) {
     console.log(`  🕑 stripped ${junkTimesStripped} junk 01:00–05:59 start times (kept the date)`);
+  }
+
+  // The junk-hour repair above is the final time-field mutation. Reassert the
+  // same city-time predicate used at the merge boundary so later scoring and
+  // ID minting can never turn an invalid or ended interval into shipped data.
+  const postNormalizationDropped = events.filter((e) =>
+    !finderEventState(e, { timeZone: CITY_TZ, nowMs: runEpoch }).actionable);
+  if (postNormalizationDropped.length) {
+    console.log(`  🧹 dropped ${postNormalizationDropped.length} non-actionable event(s) after time normalization`);
+    const dropped = new Set(postNormalizationDropped);
+    events = events.filter((e) => !dropped.has(e));
   }
 
   // Hidden gems: a curated shelf, not a census. Qualify = single-family buzz,

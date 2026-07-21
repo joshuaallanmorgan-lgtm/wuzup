@@ -25,6 +25,25 @@ export function publishedDayOf(value) {
   }
 }
 
+export function normalizeJunkHourRange(event, { category } = {}) {
+  if (!event || typeof event !== 'object' || Array.isArray(event) || category === 'nightlife') {
+    return { event, changed: false }
+  }
+  const hour = Number(String(event.start || '').match(/T(\d{2}):/)?.[1])
+  if (!Number.isInteger(hour) || hour < 1 || hour > 5) return { event, changed: false }
+  const start = publishedDayOf(event.start)
+  if (!start) return { event, changed: false }
+
+  // Preserve an explicit end exactly. A timed end paired with the repaired
+  // all-day start is intentionally mixed-precision, so the final actionability
+  // gate rejects it instead of laundering uncertain evidence into an all-day
+  // span. Rows with no end remain honest single-day listings.
+  return {
+    event: { ...event, start },
+    changed: true,
+  }
+}
+
 export function finderEventTime(event, { timeZone } = {}) {
   return eventTime(event, { timeZone })
 }
