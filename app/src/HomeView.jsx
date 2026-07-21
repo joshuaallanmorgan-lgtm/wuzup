@@ -11,18 +11,22 @@ import CoverageCard from './CoverageCard.jsx'
 import NextDays from './NextDays.jsx'
 import { useNav } from './nav.jsx'
 import { GemRow, IntentTile, SecHead } from './cards.jsx'
+import { rankTonightCandidates } from './relevance.js'
+import { useTaste } from './taste.js'
 import { CONDITION, dateKey, WEATHER_STATUS } from './weather.js'
 import { ACTIVITIES } from './places.js'
 import { GUIDES } from './guides.js'
 
 // Module-level lookups (static arrays — safe to resolve once at import time).
 const FREE_BUBBLE = BUBBLES.find((b) => b.id === 'free')
+const TONIGHT_BUBBLE = BUBBLES.find((b) => b.id === 'tonight')
 const NATURE_ACT = ACTIVITIES.find((a) => a.id === 'act-trails')
 const MARKETS_GUIDE = GUIDES.find((g) => g.id === 'markets')
 const SPORTS_BARS_GUIDE = GUIDES.find((g) => g.id === 'sports-bars')
 
 export default function HomeView({ events, anchors, wx, dataMeta, weatherState, onRefreshWeather }) {
   const { openDetail: onSelect, openNotifications, openForecast, openBubble, openPlaceBubble, openGuide } = useNav()
+  const taste = useTaste()
 
   // re-seed on tab return + every 10 min (tonight-window awareness)
   const [nowMs, setNowMs] = useState(() => Date.now())
@@ -48,9 +52,16 @@ export default function HomeView({ events, anchors, wx, dataMeta, weatherState, 
     [events, anchors]
   )
 
-  // H-L4: tonight model → top 3 picks for the "Tonight's top picks" section
+  // Sprint 6: one evidence-gated, count-preserving selector owns the lead on
+  // both Home and Events. The underlying tonight model remains the complete
+  // browse window; ranking changes order, never catalog reachability.
   const tonight = useMemo(() => tonightModel(upcoming, anchors, nowMs), [upcoming, anchors, nowMs])
-  const topPicks = useMemo(() => tonight.items.slice(0, 3).map((x) => x.e), [tonight])
+  const tonightRanked = useMemo(
+    () => rankTonightCandidates(tonight.items, { nowMs, city: CITY, taste }),
+    [tonight.items, nowMs, taste]
+  )
+  const topPicks = useMemo(() => tonightRanked.selected.map(({ e }) => e), [tonightRanked.selected])
+  const zeroCredibleTonight = tonight.items.length > 0 && topPicks.length === 0
 
   // Fresh data may flow through the app's normal decision surfaces. Home alone
   // may display today's bounded stale cache, paired in the same line with an
@@ -127,14 +138,27 @@ export default function HomeView({ events, anchors, wx, dataMeta, weatherState, 
         </section>
 
         {/* H-L4: Tonight's top picks — real tonight events as left-image GemRow cards */}
-        {topPicks.length > 0 && (
+        {tonight.items.length > 0 && (
           <section className="sec">
-            <SecHead title="Tonight's events" />
-            <div className="home-picks">
-              {topPicks.map((e) => (
-                <GemRow key={keyOf(e)} e={e} onSelect={onSelect} />
-              ))}
-            </div>
+            <SecHead title="Tonight's events"
+              sub={zeroCredibleTonight
+                ? 'No listings have enough detail to recommend yet'
+                : tonightRanked.limited
+                  ? `${topPicks.length} with enough detail to recommend`
+                  : 'Three clear, varied options to start with'}
+              onSeeAll={() => openBubble(TONIGHT_BUBBLE)}
+            />
+            {zeroCredibleTonight ? (
+              <div className="empty home-picks-limited" role="status">
+                Nothing clears our recommendation checks yet. Use See all to browse tonight's complete list.
+              </div>
+            ) : (
+              <div className="home-picks">
+                {topPicks.map((e) => (
+                  <GemRow key={keyOf(e)} e={e} onSelect={onSelect} />
+                ))}
+              </div>
+            )}
           </section>
         )}
 

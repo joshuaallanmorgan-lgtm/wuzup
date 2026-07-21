@@ -1,6 +1,6 @@
 # Wuzup V2 - active sprint map
 
-> **Status:** owner-ratified execution map; Sprint 6 active - 2026-07-21
+> **Status:** owner-ratified execution map; Sprint 7 active - 2026-07-20
 >
 > **Authority:** subordinate to [V2_PLAN.md](V2_PLAN.md). This file translates the current scope and
 > dependency queue into delivery cycles; it does not admit features that the plan parks in V3.
@@ -1129,6 +1129,33 @@ inventory remains reachable.
 The optional build-time model judgment gate is **not** scheduled by default. It enters a later sprint only
 if a frozen evaluation shows deterministic rules cannot meet the ratified bar and the model materially lifts
 precision while remaining pinned, cached, versioned, costed, schema-validated, and fail-closed.
+
+#### Sprint 6 credible-first-screen receipt - 2026-07-20 (green)
+
+- **One inspectable contract owns the lead:** `shared/rank.mjs` separates objective quality, bounded context, and
+  signed personal preference; emits stable evidence tiers/reason codes; protects canonical/series identity; applies
+  source/category/venue diversity where supply permits; and returns an exact count-preserving permutation. Blocked,
+  non-actionable, unassessed, low-information, generic, or business-promotional rows remain browseable but cannot
+  pad a recommendation prefix. Ordinary diversity relaxes only as much as supply requires, while canonical/series
+  limits stay hard; a coordinate-less same-state address cannot self-certify membership in a metro corridor.
+- **Home and Events now agree:** one Node-testable runtime adapter converts current city, source, time, identity, and
+  taste fields into the shared contract. Both lead shelves call it with the same candidates and policy, render only
+  timed and correctly located credible choices, disclose limited supply, and retain a visible route to the complete
+  Tonight inventory. Home also keeps that route visible when candidates exist but none clears the lead bar. Explicit
+  mute is a real `-12` ordering signal and never a filter.
+- **Lead imagery fails closed:** exact-item, verified-venue, and clearly contextual candidates must pass the shared
+  receipt/license/host policy before display. Current Tampa and SF event artifacts contain no compatible candidate
+  receipts or dedicated credits, so their selected recommendation cards intentionally use the designed Aurora floor;
+  raw URLs and self-declared image evidence cannot self-certify or affect rank. Existing credited place imagery is
+  unchanged. The external licensing/storage policy and supervised enrichment batch remain a later owner-gated I0
+  action, not a fabricated Sprint 6 completion claim.
+- **The first-value journey is executable:** the existing confirmed planner sheet and provider-backed My Plans flow
+  remain the one add contract. The composed Tampa and SF production builds both pass the checked-in browser journey
+  from discovery through a visible, city-scoped plan.
+- **Verification is green:** `test:s6` passes 41/41; the complete serial gate passes 854/854, including the 64.1-second
+  finder contract, exact artifact/deploy checks, app lint/build, SF build, and base-path build. The separate production
+  browser release gate passes for both cities; syntax and `git diff --check` are clean. No city artifact was regenerated
+  or relabelled fresh by this slice.
 
 ### Sprint 7 - Unified objective discovery and truthful Spots
 

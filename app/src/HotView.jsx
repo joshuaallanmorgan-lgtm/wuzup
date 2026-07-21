@@ -18,6 +18,7 @@ import { DeckThisButton } from './LensDeck.jsx'
 import SearchBarButton from './SearchBarButton.jsx'
 import { whyFits } from './weekend.js'
 import { dateKey } from './weather.js'
+import { rankTonightCandidates } from './relevance.js'
 
 // derive a neighborhood/city from a US address ("…, City, ZIP") — the last
 // non-ZIP, non-state, non-street segment. null when not confidently parseable
@@ -145,15 +146,14 @@ export default function HotView({ events, retainedEvents = events, anchors, load
       </div>
     ) : undefined
 
-  // E-L2: tag tonight items with honest _why reasons (weather + free + taste).
-  const todayWx = wx ? wx[dateKey(anchors.todayTs)] : null
-  const tonightTagged = useMemo(() => {
-    const nudge = (ev) => tasteNudge(ev, taste)
-    return tonight.items.slice(0, 3).map(({ e }) => ({
-      ...e,
-      _why: whyFits(e, { w: todayWx, nudge }),
-    }))
-  }, [tonight.items, todayWx, taste])
+  // Sprint 6: Home and Events use the same strict first-screen selector. Its
+  // reasons are evidence-derived; context/taste can reorder within the bounded
+  // contract but cannot manufacture eligibility or hide the full browse set.
+  const tonightRanked = useMemo(
+    () => rankTonightCandidates(tonight.items, { nowMs, city: CITY, taste }),
+    [tonight.items, nowMs, taste]
+  )
+  const tonightTagged = useMemo(() => tonightRanked.selected.map(({ e }) => e), [tonightRanked.selected])
 
   // E-L1/E-L5: "This weekend" — upcoming Fri + Sat events (not today), day-grouped.
   const weekendDays = useMemo(() => {
@@ -266,7 +266,9 @@ export default function HotView({ events, retainedEvents = events, anchors, load
               sub={
                 tonight.late
                   ? `${tonight.futureN} still going · ${tonight.tomorrowN} tomorrow`
-                  : `${tonight.items.length} on for tonight`
+                  : tonightRanked.limited
+                    ? `${tonightTagged.length} with enough detail to recommend · ${tonight.items.length} total`
+                    : `${tonight.items.length} on for tonight · three varied options`
               }
               onSeeAll={() => seeAll('tonight')}
             />
