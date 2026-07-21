@@ -10,19 +10,20 @@
 // Detail-open (stacks on top) + close-slide-out come from useNav() (O6).
 //
 // Filter semantics: kind 'time' → _tonight/_weekend, 'free' → _free, 'cat' →
-// e.category, 'sort' (Near Me) → everything upcoming, distance-sorted once the
-// user grants location (never hide events: no coords ≠ no list). Day-grouped
-// (Today/Tomorrow/weekday), hotScore desc within a day, RowFeed pages ~30 rows
-// via IntersectionObserver rooted at this page's own .pg scroller.
+// e.category, 'sort' (Near Me) → everything upcoming, with distance as bounded
+// context once location is granted (never hide events: no coords ≠ no list).
+// Day-grouped (Today/Tomorrow/weekday), then shared-ranked; RowFeed pages ~30
+// rows via IntersectionObserver rooted at this page's own .pg scroller.
 import { useMemo, useRef } from 'react'
-import { CITY, dayLabel, fmtLocale, hotDesc, Icon, milesBetween, orderDay, LENS_BUBBLES, CAT_BUBBLES } from './lib.js'
+import { CITY, dayLabel, fmtLocale, Icon, milesBetween, LENS_BUBBLES, CAT_BUBBLES } from './lib.js'
 import { useLocationPermission } from './LocationProvider.jsx'
 import { useNav } from './nav.jsx'
 import { RowFeed } from './cards.jsx'
 import LensNav from './LensNav.jsx'
-import { tasteNudge } from './taste.js'
+import { useTaste } from './taste.js'
 import { DeckThisButton } from './LensDeck.jsx'
 import { matchesEventFilters } from './eventFilters.js'
+import { rankRuntimeItems, runtimeRankingId } from './relevance.js'
 import './bubble.css'
 
 // TOUCHUP P2: ref-matched result headers for the time/free/near filters (the
@@ -66,6 +67,7 @@ const EMPTIES = {
 export default function BubblePage({ bubble, events, anchors, coords }) {
   const { openDetail: onSelect, closePage: onClose, openBubble, openEvFilters } = useNav()
   const location = useLocationPermission()
+  const taste = useTaste()
   const pgRef = useRef(null) // the scrolling ancestor — RowFeed's IO root
   const near = bubble.kind === 'sort'
 
@@ -87,11 +89,9 @@ export default function BubblePage({ bubble, events, anchors, coords }) {
     return up // 'sort' (Near Me): all upcoming; ordering handles the rest
   }, [events, anchors, bubble])
 
-  // day-grouped sections. Default within-day order = G1 orderDay (diversity-
-  // interleaved adjustedScore — on a category page the family constraint still
-  // de-floods single-source runs). Near Me + coords keeps the DISTANCE order:
-  // the user asked "what's closest", scrambling that for diversity would lie
-  // (missing lat/lng sinks to the bottom, ties break by hotness).
+  // Day-grouped sections use one common objective/taste/diversity order. Near Me
+  // contributes a bounded distance score to that contract; it does not replace
+  // quality with a distance-only post-sort or change result membership.
   const sections = useMemo(() => {
     const list =
       near && coords
@@ -100,7 +100,6 @@ export default function BubblePage({ bubble, events, anchors, coords }) {
             _dist: e.lat != null && e.lng != null ? milesBetween(coords, e) : null,
           }))
         : filtered
-    const byDist = (x, y) => (x._dist ?? Infinity) - (y._dist ?? Infinity) || hotDesc(x, y)
     const byDay = new Map()
     for (const e of list) {
       if (!byDay.has(e._clamp)) byDay.set(e._clamp, [])
@@ -108,11 +107,34 @@ export default function BubblePage({ bubble, events, anchors, coords }) {
     }
     return [...byDay.entries()]
       .sort((a, b) => a[0] - b[0])
-      .map(([ts, items]) => ({
-        label: dayLabel(ts, anchors),
-        items: near && coords ? items.sort(byDist) : orderDay(items, tasteNudge),
-      }))
-  }, [filtered, near, coords, anchors])
+      .map(([ts, items]) => {
+        const distanceContext = near && coords
+          ? {
+              itemScores: Object.fromEntries(items.map((event) => {
+                const distance = event._dist
+                const score = Number.isFinite(distance) ? Math.max(0, 6 - Math.min(distance, 30) / 5) : 0
+                return [runtimeRankingId(event), score]
+              })),
+            }
+          : {}
+        const ranked = rankRuntimeItems(items, {
+          kind: 'events',
+          nowMs: anchors.nowMs,
+          city: CITY,
+          taste,
+          context: distanceContext,
+          diversityPolicy: {
+            prefix: Math.min(20, items.length),
+            sourceMax: 2,
+            categoryMax: bubble.kind === 'cat' ? Math.max(items.length, 1) : 2,
+            venueMax: 1,
+            canonicalMax: 1,
+            seriesMax: 1,
+          },
+        }).ordered
+        return { label: dayLabel(ts, anchors), items: ranked }
+      })
+  }, [filtered, near, coords, anchors, taste, bubble.kind])
 
   const count = filtered.length
 
@@ -134,7 +156,7 @@ export default function BubblePage({ bubble, events, anchors, coords }) {
     : HEADERS[bubble.id] || bubble.label
   const tagline = near
     ? coords
-      ? 'Closest within each day. Check the venue before you go.'
+      ? 'Distance helps order each day. Check the venue before you go.'
       : 'Browse the current listings without a distance claim.'
     : TAGLINES[bubble.id] || 'Browse the current listings.'
 

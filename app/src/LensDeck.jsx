@@ -1,7 +1,7 @@
 // LensDeck — Sprint Q2: the FINITE "Deck this" mode. A 🃏 button on HotView's
 // Everything day-headers and on bubble pages deals the EXACT list the user
-// was browsing (lensdeal.js — same upcoming/lens filters, G1 orderDay
-// diversity interleave) into a SwipeDeck. Count-exact header ("18 for
+// was browsing (lensdeal.js — same upcoming/lens filters, shared objective
+// rank and diversity) into a SwipeDeck. Count-exact header ("18 for
 // Friday"), honest end card (kept/passed from real tallies), one explicit
 // return button. NEVER autoplays, never the default view, never re-deals on
 // its own — the end card is a stopping cue, not a loop (the research's
@@ -39,7 +39,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon, dayLabel, keyOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { useSaves } from './saves.js'
-import { recordCalibration, tasteNudge } from './taste.js'
+import { recordCalibration, useTaste } from './taste.js'
 import { dealLens, lensIdOf } from './lensdeal.js'
 import SwipeDeck from './SwipeDeck.jsx'
 import { DeckFace } from './CalibrationDeck.jsx'
@@ -70,11 +70,12 @@ export function DeckThisButton({ lens }) {
 export default function LensDeck({ lens, events, anchors }) {
   const { openDetail, openBubble, closePage } = useNav()
   const { has, toggle, canToggle, identityPending, identityAmbiguous, identityWent, isPending } = useSaves()
+  const taste = useTaste()
   const reduced = useMemo(() => prefersReduced(), [])
   // ONE deal per mount (CalibrationDeck's rule, same reason: App rebuilds
   // `norm` identities on refreshes and a re-deal mid-swipe would reshuffle
   // the stack under the user's thumb). Re-dealing = explicit re-entry only.
-  const [deck] = useState(() => dealLens(events, anchors, lens, tasteNudge))
+  const [deck] = useState(() => dealLens(events, anchors, lens, taste))
   const [kept, setKept] = useState(0)
   const [passed, setPassed] = useState(0)
   const [phase, setPhase] = useState(deck.length ? 'rate' : 'empty') // 'rate' | 'done' | 'empty'

@@ -14,6 +14,7 @@
 // The retired pieces — loadPlan/savePlan (Sprint U-c) and loadHistory/archivePlan/
 // shareText/visibleWeekend/filledCount (3.7P-8) — are gone; see git history.
 import { CITY, keyOf } from './lib.js'
+import { rankRuntimeItems } from './relevance.js'
 import {
   addCalendarDays,
   cityMidnightMs,
@@ -136,20 +137,46 @@ export function planFor(stored, weekendStartTs) {
 
 // --- picker model for one slot ---
 // (a) your SAVED events that fit this day+part first ("From your list ❤️"),
-// (b) then suggestions: upcoming events fitting day+part, ordered by
-//     (hotScore ?? 30) + tasteNudge, max 8.
+// (b) then suggestions: upcoming events fitting day+part, routed through the
+//     shared objective/context/taste/diversity rank contract, max 8.
 // Dedup: anything already slotted (any slot) never re-offers, and the
 // suggestion list never repeats an event already shown in the saved group.
-export function pickerModel({ ts, part, upcoming, saved, plan, nudge }) {
+export function pickerModel({ ts, part, upcoming, saved, plan, ranking }) {
   const slotted = new Set(Object.values(plan.slots).filter(Boolean))
-  const savedFit = saved.filter((e) => fitsSlot(e, ts, part) && !slotted.has(keyOf(e)))
+  const seenSaved = new Set()
+  const savedFit = saved.filter((e) => {
+    const key = keyOf(e)
+    if (!fitsSlot(e, ts, part) || slotted.has(key) || seenSaved.has(key)) return false
+    seenSaved.add(key)
+    return true
+  })
   const savedKeys = new Set(savedFit.map((e) => keyOf(e)))
-  const suggestions = upcoming
-    .filter((e) => fitsSlot(e, ts, part) && !slotted.has(keyOf(e)) && !savedKeys.has(keyOf(e)))
-    .map((e) => ({ e, s: (e.hotScore ?? 30) + (nudge ? nudge(e) : 0) }))
-    .sort((a, b) => b.s - a.s || a.e._t - b.e._t)
-    .slice(0, SUGGEST_MAX)
-    .map((x) => x.e)
+  const seenSuggestions = new Set()
+  const candidates = upcoming.filter((e) => {
+    const key = keyOf(e)
+    if (!fitsSlot(e, ts, part) || slotted.has(key) || savedKeys.has(key) || seenSuggestions.has(key)) return false
+    seenSuggestions.add(key)
+    return true
+  })
+  let ordered = candidates
+  if (ranking && Number.isFinite(ranking.nowMs) && ranking.city) {
+    ordered = rankRuntimeItems(candidates, {
+      kind: 'events',
+      nowMs: ranking.nowMs,
+      city: ranking.city,
+      taste: ranking.taste || {},
+      context: ranking.context || {},
+      diversityPolicy: ranking.diversityPolicy || {
+        prefix: Math.min(SUGGEST_MAX, candidates.length || 1),
+        sourceMax: 2,
+        categoryMax: 3,
+        venueMax: 2,
+        canonicalMax: 1,
+        seriesMax: 1,
+      },
+    }).ordered
+  }
+  const suggestions = ordered.slice(0, SUGGEST_MAX)
   return { saved: savedFit, suggestions }
 }
 
@@ -169,12 +196,12 @@ export function wxMood(w) {
   return null
 }
 
-export function whyFits(e, { w, nudge } = {}) {
+export function whyFits(e, { w, nudge, weatherContributed = true } = {}) {
   if (!e) return null
   const outdoor = e.category === 'outdoors'
   const mood = wxMood(w)
-  if (outdoor && mood === 'clear') return '☀️ Clear that day'
-  if (!outdoor && mood === 'rainy') return '☔ Good rainy-day pick'
+  if (weatherContributed && outdoor && mood === 'clear') return '☀️ Clear that day'
+  if (weatherContributed && !outdoor && mood === 'rainy') return '☔ Good rainy-day pick'
   if (e.isFree === true) return 'Free'
   if (nudge && nudge(e) >= 8) return 'Your kind of thing'
   return null

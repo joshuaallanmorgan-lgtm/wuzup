@@ -1,53 +1,38 @@
 // LocationsView — the Spots tab. 3.7P-12 (ADDENDUM H) recast it ACTIVITY-FIRST:
 // the old placeType browse (a 1,322-park green wall) is replaced by "what you can
 // DO" — Beach day · Trails & nature · On the water · Sports & courts · Family &
-// play · Dog-friendly · Scenic views · Hidden gems. Each is a PURE predicate over
+// play · Dog-friendly · Scenic views · More to explore. Each is a PURE predicate over
 // EXISTING fields (places.js ACTIVITIES; no new data), so a single park surfaces
 // under its real affordances instead of as "a park." Structure: hero → activity
 // intent frame (the quick nav) → Near you (persistent) → Saved places → per-
 // activity carousels (the body) → Guides (plans by mood) → Everything (never-hide
-// see-all). Taste REORDERS only (count-preserving), nearest-first with a fix.
+// see-all). One shared objective rank keeps quality, context, and taste separate.
 //
 // Places are a SECOND lazy store (usePlaces): /places.json fetches on first mount
 // of this tab, never at boot, never merged into the events feed. DRAFT copy ⚑ Charles.
-import { useMemo, useRef } from 'react'
-import { fmtLocale } from './lib.js'
+import { useMemo, useRef, useState } from 'react'
+import { CITY, fmtLocale } from './lib.js'
 import { dayStamp } from './coverage.js'
 import { useNav } from './nav.jsx'
-import { SecHead, SpotCard, IntentTile, RowFeed, SkeletonRow, photoFirst } from './cards.jsx'
+import { SecHead, SpotCard, IntentTile, RowFeed, SkeletonRow } from './cards.jsx'
 import { GUIDES } from './guides.js'
-import { railReady, tasteNudge, useTaste } from './taste.js'
-import { usePlaces, ACTIVITIES, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES, nearest, isPlaceKey, normalizePlace } from './places.js'
+import { railReady, useTaste } from './taste.js'
+import { usePlaces, ACTIVITIES, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES, isPlaceKey, normalizePlace } from './places.js'
 import { useSaves } from './saves.js'
+import { rankSpots, SPOT_NEAR_RADIUS_MILES } from './spot-context.js'
 import LensNav from './LensNav.jsx'
 import TasteTuner from './TasteTuner.jsx'
 import SearchBarButton from './SearchBarButton.jsx'
 import './locations.css'
 
-// count-preserving order: category affinity (S3) desc, then FREE, then
-// corroboration (srcCount) desc, then name — taste REORDERS, never hides. 3.7P-12
-// adds the free nudge (per spec "nearest → taste → free → srcCount"); still
-// count-preserving, so Everything keeps every place.
-function placeOrder(list, taste) {
-  return [...list].sort(
-    (a, b) =>
-      tasteNudge(b, taste) - tasteNudge(a, taste) ||
-      (b.isFree === true) - (a.isFree === true) ||
-      (b.srcCount || 0) - (a.srcCount || 0) ||
-      a.name.localeCompare(b.name)
-  )
-}
-
 // SPOTS_GRIND themed sections (ref-spots-full), each over REAL fields so the
-// grouping is honest. Coffee & Hang is now real: the finder cafe source (Phase 2)
-// added ~332 named cafes (placeType 'cafe', category 'food'), so it replaces the
-// earlier Gardens & Picnics placeholder. Cafes carry the honest art-floor (☕) —
-// OSM has no cafe photos — and stay paid (never tagged Free).
+// grouping is honest. Coffee & Hang is backed by named cafe records rather than
+// a fabricated editorial collection.
 const actMatch = (id) => ACTIVITIES.find((a) => a.id === id)?.match || (() => false)
 const SPOT_THEMES = [
-  { id: 'nature-water', emoji: '🌿', label: 'Nature & Water', hue: 150, sub: 'Trails, springs, and the water’s edge.', match: (p) => actMatch('act-trails')(p) || actMatch('act-water')(p) },
-  { id: 'coffee-hang', emoji: '☕', label: 'Coffee & Hang', hue: 24, sub: 'Cafes and cozy spots to linger.', match: (p) => p.placeType === 'cafe' },
-  { id: 'sunset-views', emoji: '🌅', label: 'Sunset Views', hue: 25, sub: 'Where the bay puts on a show.', match: (p) => actMatch('act-views')(p) || actMatch('act-beach')(p) },
+  { id: 'nature-water', emoji: '🌿', label: 'Nature & Water', hue: 150, sub: 'Trails and places by or on the water.', match: (p) => actMatch('act-trails')(p) || actMatch('act-water')(p) },
+  { id: 'coffee-hang', emoji: '☕', label: 'Coffee & Hang', hue: 24, sub: 'Cafes from the current place listings.', match: (p) => p.placeType === 'cafe' },
+  { id: 'beaches-views', emoji: '🌅', label: 'Beaches & Views', hue: 25, sub: 'Beaches, piers, and mapped viewpoints.', match: (p) => actMatch('act-views')(p) || actMatch('act-beach')(p) },
   { id: 'quiet-corners', emoji: '🧭', label: 'Preserves & more', hue: 280, sub: 'Nature preserves and additional places.', match: (p) => p.hidden === true || p.placeType === 'preserve' },
 ]
 
@@ -61,9 +46,8 @@ export default function LocationsView({ coords }) {
   const placeHealth = placeMeta?.sourceHealth?.status
   const saves = useSaves()
   const taste = useTaste()
-  // See-all on Recommended / Worth the drive scrolls to the full Everything list
-  // (never-hide — there's no derived bubble for "recommended", so the full set is
-  // the honest destination).
+  const [nowMs] = useState(() => Date.now())
+  // Lead-shelf See all scrolls to the complete, count-preserving master order.
   const scrollRef = useRef(null)
   const evRef = useRef(null)
   const scrollToEverything = () => {
@@ -71,55 +55,78 @@ export default function LocationsView({ coords }) {
     if (sc && evRef.current) sc.scrollTo({ top: Math.max(evRef.current.offsetTop - 64, 0), behavior: 'smooth' })
   }
 
-  // WS4 (photo-first, count-preserving): the master order leads with photo-bearing
-  // places, vibe order kept WITHIN each partition — so any screenful of a mixed
-  // feed reads composed (real photography up top, the designed art floor after),
-  // and nothing is hidden (stable reorder only; Everything keeps every place).
-  const all = useMemo(() => (Array.isArray(places) ? photoFirst(placeOrder(places, taste)) : []), [places, taste])
+  // One shared objective rank owns every Spots shelf. Image availability is not
+  // an input, and the complete master order preserves catalog reachability.
+  const allRanking = useMemo(
+    () => rankSpots(Array.isArray(places) ? places : [], {
+      nowMs,
+      city: CITY,
+      taste,
+      coords,
+      attachDistance: Boolean(coords),
+      mode: 'browse',
+      diversityPolicy: { prefix: 20, sourceMax: 6, categoryMax: 8, venueMax: 1, canonicalMax: 1, seriesMax: 1 },
+    }),
+    [places, nowMs, taste, coords]
+  )
+  const all = allRanking.ordered
+  const hasLocationFix = allRanking.contextInspection.hasLocationFix
   // TINDER P3: two REAL top-ranked spots for the Tune-your-taste preview cards.
   const tuneSamples = useMemo(() => all.slice(0, 2), [all])
-  const near = useMemo(() => nearest(all, coords, 12), [all, coords])
-  // 3.7P-24 (§N screen 6): the single "Recommended" featured spot — the closest
-  // taste-top place when located, else the taste-top place overall.
-  // 1-B (Stage 1): prefer a pick that has a REAL photo so the Recommended hero
-  // never falls back to a flat color block; if none in the active pool qualifies,
-  // take the top pick anyway (FeaturedCard renders the text-rich no-photo card).
-  // SP-L3: "Recommended near you" = carousel of top SpotCards (nearest with photos first).
-  // SPOTS_GRIND: "Recommended near you" / "Worth the drive" are now vertical
-  // SpotCard ROW lists (ref-spots-full), so a tighter top set.
-  // WS4 BUG FIX: the filter here compared imageMode(p) against 'none' — a
-  // tautology (imageMode returns 'photo'|'icon'|'text', never 'none'), so the
-  // stated "photos first" never actually happened. photoFirst() delivers the
-  // intent count-preservingly: photo rows lead, art-floor rows still fill the
-  // rail when photo supply is thin (a section never goes empty; reorder, never hide).
-  const nearSpots = useMemo(() => {
-    const pool = coords && near.length ? near : all
-    return photoFirst(pool).slice(0, 3)
-  }, [near, all, coords])
+  const nearbyRanking = useMemo(
+    () => rankSpots(all, {
+      nowMs,
+      city: CITY,
+      taste,
+      coords,
+      radiusMiles: SPOT_NEAR_RADIUS_MILES,
+      attachDistance: hasLocationFix,
+      mode: 'nearby',
+      diversityPolicy: { prefix: 12, sourceMax: 4, categoryMax: 5, venueMax: 1, canonicalMax: 1, seriesMax: 1 },
+    }),
+    [all, nowMs, taste, coords, hasLocationFix]
+  )
+  // A Near shelf requires an in-market location fix and an explicit radius.
+  // Without a fix, the broad evidence-ranked lead remains honestly unlabeled.
+  const nearSpots = useMemo(
+    () => hasLocationFix ? nearbyRanking.withinRadius.slice(0, 3) : all.slice(0, 3),
+    [nearbyRanking.withinRadius, all, hasLocationFix]
+  )
 
-  // SP-L3: "Worth the drive" = next batch of spots not already shown in nearSpots
-  // (photos first, count-preserving — the same WS4 fix).
-  const driveSpots = useMemo(() => {
+  const additionalRanking = useMemo(() => {
     const nearKeys = new Set(nearSpots.map((p) => p.key))
-    return photoFirst(all.filter((p) => !nearKeys.has(p.key))).slice(0, 3)
-  }, [all, nearSpots])
+    return rankSpots(all.filter((p) => !nearKeys.has(p.key)), {
+      nowMs,
+      city: CITY,
+      taste,
+      coords,
+      attachDistance: hasLocationFix,
+      mode: 'additional',
+      diversityPolicy: { prefix: 12, sourceMax: 4, categoryMax: 5, venueMax: 1, canonicalMax: 1, seriesMax: 1 },
+    })
+  }, [all, nearSpots, nowMs, taste, coords, hasLocationFix])
+  const moreSpots = additionalRanking.ordered.slice(0, 3)
 
-  // SPOTS_GRIND themed sections — each a curated vertical SpotCard-row list, real
-  // photos preferred, honestly gated (≥3 members). The FULL set is one tap away
-  // (See all → PlaceBubblePage on the theme predicate, never-hide).
-  // WS4 BUG FIX: the old "photo pool" was gated on the same against-'none'
-  // tautology, so it was ALWAYS the whole matched set. Now the nearest photo-
-  // bearing members genuinely lead and art-floor members fill the remainder
-  // (count-preserving — a section never thins below 3 rows on scarce photos).
+  // Each real theme predicate is followed by the same objective contract. See
+  // all opens the full matched set; photos never determine membership or order.
   const themeSections = useMemo(
     () =>
       SPOT_THEMES.map((t) => {
         const matched = all.filter(t.match)
-        const ordered = coords ? nearest(matched, coords, matched.length) : matched
-        const items = photoFirst(ordered).slice(0, 3)
+        const ordered = rankSpots(matched, {
+          nowMs,
+          city: CITY,
+          taste,
+          coords,
+          activity: t,
+          attachDistance: hasLocationFix,
+          mode: 'theme',
+          diversityPolicy: { prefix: 8, sourceMax: 3, categoryMax: 4, venueMax: 1, canonicalMax: 1, seriesMax: 1 },
+        }).ordered
+        const items = ordered.slice(0, 3)
         return { t, items, total: matched.length }
       }).filter((s) => s.total >= 3 && s.items.length > 0),
-    [all, coords]
+    [all, nowMs, taste, coords, hasLocationFix]
   )
 
   // 3.7P-12: Saved-places shelf (mirrors the Events saved shelf). Resolve saved
@@ -224,18 +231,18 @@ export default function LocationsView({ coords }) {
           </div>
         </section>
 
-        {/* 3.7P-24 (§N screen 6): "Recommended" — ONE featured spot DecisionCard
-            (image + name + type · distance · free + amenity chips + inline Save).
-            Replaces the old nearby carousel; always present (taste-top spot, closest
-            when located). Tap → PlaceDetail (where "Make this my plan" lives). */}
+        {/* The lead is objective quality plus bounded context. Distance appears
+            only for a real location fix; image availability never affects order. */}
         {nearSpots.length > 0 && (
           <section className="sec">
             {/* Distance language appears only with a real location fix. Without
                 one, this is simply a transparent entry into the current catalog. */}
             <SecHead
-              overline={coords ? 'Near your location' : 'Start exploring'}
-              title={coords ? 'Nearby places to explore' : 'Places to explore'}
-              sub={coords ? 'Nearby options with available photos shown first' : railReady(taste) ? 'Ordered using what you have tapped' : 'A starting point from the current catalog'}
+              overline={hasLocationFix ? 'Near your location' : 'Start exploring'}
+              title={hasLocationFix ? 'Nearby places to explore' : 'Places to explore'}
+              sub={hasLocationFix
+                ? `Within ${SPOT_NEAR_RADIUS_MILES} miles; useful details and fit come before distance`
+                : railReady(taste) ? 'Ordered using what you have tapped' : 'A starting point from the current catalog'}
               onSeeAll={scrollToEverything}
             />
             <div className="home-picks">
@@ -246,17 +253,17 @@ export default function LocationsView({ coords }) {
           </section>
         )}
 
-        {driveSpots.length >= 2 && (
+        {moreSpots.length >= 2 && (
           <section className="sec">
             {/* This is the next unused batch, not evidence of trip-worthiness. */}
             <SecHead
               overline="Keep browsing"
               title="More places to explore"
-              sub="More from the current catalog."
+              sub={hasLocationFix ? 'Useful details and fit come before distance.' : 'More from the current catalog.'}
               onSeeAll={scrollToEverything}
             />
             <div className="home-picks">
-              {driveSpots.map((p) => (
+              {moreSpots.map((p) => (
                 <SpotCard key={p.key} p={p} row onSelect={onSelect} />
               ))}
             </div>
@@ -275,10 +282,8 @@ export default function LocationsView({ coords }) {
           </section>
         )}
 
-        {/* SPOTS_GRIND: the THEMED body — curated vertical SpotCard-row sections
-            (Nature & Water · Gardens & Picnics · Sunset Views · Quiet Corners),
-            each a See-all into the full theme (never-hide). Replaces the per-
-            activity carousels; the activity intent grid above stays the quick nav. */}
+        {/* Themed rows use field-backed predicates and keep each full matched set
+            one See-all away. The activity intent grid above stays the quick nav. */}
         {themeSections.map(({ t, items }) => (
           <section className="sec" key={t.id}>
             <SecHead
@@ -317,7 +322,7 @@ export default function LocationsView({ coords }) {
         <section className="sec sec-ev" ref={evRef}>
           <SecHead
             title={<>Everything <span className="sec-count">· {all.length.toLocaleString(fmtLocale)}</span></>}
-            sub="Every place, by your vibe"
+            sub="Every place remains available in the shared ranked order"
           />
           {/* CARD_LOCK: the place list now renders the canonical SpotCard rows
               (left-image), the one card across every result feed. */}

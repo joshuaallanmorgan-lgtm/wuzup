@@ -14,11 +14,13 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNav } from './nav.jsx'
 import { usePlanner } from './PlannerProvider.jsx'
 import { PLANNER_PARTS as PARTS } from './planner-core.js'
-import { addDayTs, formatDayTs, Icon, keyOf } from './lib.js'
+import { addDayTs, CITY, formatDayTs, Icon, keyOf } from './lib.js'
 import { SecHead, TonightCard, artEmoji, auroraStyle, spotChips } from './cards.jsx'
 import { SaveHeart, useSaves } from './saves.js'
 import { dateKey } from './weather.js'
 import { usePlaces, ACTIVITIES } from './places.js'
+import { rankSpots } from './spot-context.js'
+import { useTaste } from './taste.js'
 import { DAYPART } from './weekend.js'
 import './locations.css'
 
@@ -91,6 +93,8 @@ export default function PlaceDetail({ e, anchors, wx }) {
     placement,
   } = usePlanner()
   const { places } = usePlaces()
+  const taste = useTaste()
+  const [rankNowMs] = useState(() => Date.now())
   const {
     has: hasSave,
     toggle: toggleSave,
@@ -186,18 +190,24 @@ export default function PlaceDetail({ e, anchors, wx }) {
   // D8: the detail mini-map (lazy Leaflet) is parked for v1 — removed. Coordinates
   // still drive the Directions button (Google Maps), below.
 
-  // "More spots like this" — same placeType, nearest by simple coord delta,
-  // up to 4 (places only; never crosses into events)
+  // "More spots like this" keeps the honest same-type predicate, then applies
+  // shared objective quality and bounded distance rather than nearest-only order.
   const similar = useMemo(() => {
     if (!Array.isArray(places)) return []
     const self = e.key
-    return places
-      .filter((p) => p.key !== self && p.placeType === e.placeType)
-      .map((p) => ({ p, d: hasCoords && p.lat != null ? Math.hypot(p.lat - e.lat, p.lng - e.lng) : Infinity }))
-      .sort((a, b) => a.d - b.d)
-      .slice(0, 4)
-      .map((x) => x.p)
-  }, [places, e, hasCoords])
+    const matched = places.filter((p) => p.key !== self && p.placeType === e.placeType)
+    return rankSpots(matched, {
+      nowMs: rankNowMs,
+      city: CITY,
+      taste,
+      coords: hasCoords ? { lat: e.lat, lng: e.lng } : null,
+      radiusMiles: 25,
+      activity: { id: `similar:${e.placeType}`, match: (p) => p.placeType === e.placeType },
+      mode: 'similar',
+      attachDistance: false,
+      diversityPolicy: { prefix: 8, sourceMax: 3, categoryMax: 4, venueMax: 1, canonicalMax: 1, seriesMax: 1 },
+    }).ordered.slice(0, 4)
+  }, [places, e, hasCoords, rankNowMs, taste])
 
   // ===== utility row: directions / share-or-copy + toast =====
   const [toast, setToast] = useState(null)

@@ -1,24 +1,41 @@
 // HotView — the Hot tab magazine: hero (+ 🔎 search), bubble strip (each bubble
 // opens a full BubblePage), alternating sections, Everything feed. Navigation
 // (detail/bubble/search/add/weekend openers) comes from useNav() — O6.
-// EVENTS_GRIND: Tonight carousel → vertical GemRow "Tonight's best bets" +
-// new "This weekend" section (day-grouped GemRow); both gain honest _why lines.
-import { useContext, useEffect, useMemo, useRef, useState } from 'react'
+// EVENTS_GRIND: Tonight carousel → vertical GemRow events plus a weekend section.
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useActivity } from './ActivityProvider.jsx'
-import { addDayTs, BUBBLES, CAT_BUBBLES, cityHour, CITY, Icon, LENS_BUBBLES, dayLabel, fmtLocale, hotDesc, keyOf, orderDay, tonightModel, weekdayIndex } from './lib.js'
+import { addDayTs, BUBBLES, CAT_BUBBLES, cityHour, CITY, Icon, LENS_BUBBLES, dayLabel, fmtLocale, keyOf, tonightModel, weekdayIndex } from './lib.js'
 import LensNav from './LensNav.jsx'
 import TasteTuner from './TasteTuner.jsx'
 import { curateFeed, collapseSeries } from './curate.js'
 import { useNav, viewIndex } from './nav.jsx'
-import { GemRow, IntentTile, NbhdCard, ResultCard, RowFeed, SecHead, SkeletonRow, TonightCard, WxContext } from './cards.jsx'
+import { GemRow, IntentTile, NbhdCard, ResultCard, RowFeed, SecHead, SkeletonRow, TonightCard } from './cards.jsx'
 import { GUIDES, useGuides, watchGuideActive, resolveWatchGuide } from './guides.js'
 import { shelfItems, useSaves } from './saves.js'
-import { railReady, tasteNudge, topCategories, useTaste } from './taste.js'
+import { railReady, topCategories, useTaste } from './taste.js'
 import { DeckThisButton } from './LensDeck.jsx'
 import SearchBarButton from './SearchBarButton.jsx'
-import { whyFits } from './weekend.js'
-import { dateKey } from './weather.js'
-import { rankTonightCandidates } from './relevance.js'
+import { rankRuntimeItems, rankTonightCandidates } from './relevance.js'
+
+const CURATED_EVENT_GROUP_LIMIT = 120
+
+function sharedEventOrder(items, { nowMs, taste = {}, categoryMax = 2, prefix = 20 } = {}) {
+  if (!items.length) return []
+  return rankRuntimeItems(items, {
+    kind: 'events',
+    nowMs,
+    city: CITY,
+    taste,
+    diversityPolicy: {
+      prefix: Math.min(prefix, items.length),
+      sourceMax: 2,
+      categoryMax,
+      venueMax: 1,
+      canonicalMax: 1,
+      seriesMax: 1,
+    },
+  }).ordered
+}
 
 // derive a neighborhood/city from a US address ("…, City, ZIP") — the last
 // non-ZIP, non-state, non-street segment. null when not confidently parseable
@@ -40,7 +57,6 @@ const cityOf = (addr) => {
 export default function HotView({ events, retainedEvents = events, anchors, loading, loadError = false }) {
   const { openDetail: onSelect, openBubble: onOpenBubble, openSearch: onOpenSearch, openAdd: onOpenAdd, openGuide, openEvFilters, openDeck, goTo } = useNav()
   const { recentRefs, sessionRecentRefs, resolveRecentRefs } = useActivity()
-  const wx = useContext(WxContext) // access weather without prop threading
   const scrollRef = useRef(null)
   const evRef = useRef(null)
   const [entered, setEntered] = useState(false)
@@ -82,9 +98,9 @@ export default function HotView({ events, retainedEvents = events, anchors, load
     [watchGuides, upcoming, anchors]
   )
 
-  // TINDER P3: two REAL hot upcoming events for the Tune-your-taste preview cards
+  // TINDER P3: two shared-ranked upcoming events for the Tune-your-taste preview cards
   // (the tags illustrate the swipe control — they assert no verdict on these).
-  const tuneSamples = useMemo(() => [...upcoming].sort(hotDesc).slice(0, 2), [upcoming])
+  const tuneSamples = useMemo(() => sharedEventOrder(upcoming, { nowMs }).slice(0, 2), [upcoming, nowMs])
 
   const { list: savedList } = useSaves({ events: retainedEvents, anchors })
   const shelf = useMemo(() => shelfItems(savedList, retainedEvents, anchors), [savedList, retainedEvents, anchors])
@@ -96,14 +112,10 @@ export default function HotView({ events, retainedEvents = events, anchors, load
     const top = topCategories(taste, 2)
     if (!top.length) return null
     const set = new Set(top)
-    const picks = upcoming
-      .filter((e) => set.has(e.category))
-      .map((e) => ({ e, s: (e.hotScore ?? 30) + tasteNudge(e, taste) }))
-      .sort((a, b) => b.s - a.s || a.e._t - b.e._t)
-      .slice(0, 6)
-      .map((x) => x.e)
+    const candidates = upcoming.filter((e) => set.has(e.category))
+    const picks = sharedEventOrder(candidates, { nowMs, taste, categoryMax: 6 }).slice(0, 6)
     return picks.length >= 3 ? picks : null
-  }, [upcoming, taste])
+  }, [upcoming, taste, nowMs])
 
   const recents = useMemo(() => {
     const out = resolveRecentRefs(recentRefs, upcoming).slice(0, 6)
@@ -115,9 +127,10 @@ export default function HotView({ events, retainedEvents = events, anchors, load
       curateFeed(upcoming, {
         dayOf: (e) => e._clamp,
         labelOf: (ts) => ({ label: dayLabel(ts, anchors), dayTs: ts }),
-        order: (items) => orderDay(items, tasteNudge),
+        order: (items) => sharedEventOrder(items, { nowMs, taste }),
+        curatedLimit: CURATED_EVENT_GROUP_LIMIT,
       }),
-    [upcoming, anchors]
+    [upcoming, anchors, nowMs, taste]
   )
   const [seeAllEv, setSeeAllEv] = useState(false)
   const evSections = seeAllEv ? feed.full : feed.curated
@@ -157,55 +170,55 @@ export default function HotView({ events, retainedEvents = events, anchors, load
 
   // E-L1/E-L5: "This weekend" — upcoming Fri + Sat events (not today), day-grouped.
   const weekendDays = useMemo(() => {
-    const nudge = (ev) => tasteNudge(ev, taste)
     const out = []
     for (let off = 1; off <= 14 && out.length < 2; off++) {
       const ts = addDayTs(anchors.todayTs, off)
       const dow = weekdayIndex(ts)
       if (dow !== 5 && dow !== 6) continue
-      const evs = upcoming.filter((e) => e._day === ts)
+      const evs = sharedEventOrder(upcoming.filter((e) => e._day === ts), { nowMs, taste })
       if (evs.length === 0) continue
-      const wxDay = wx ? wx[dateKey(ts)] : null
       out.push({
         ts,
         label: dow === 5 ? 'Friday' : 'Saturday',
-        evs: evs.slice(0, 3).map((e) => ({ ...e, _why: whyFits(e, { w: wxDay, nudge }) })),
+        evs: evs.slice(0, 3),
       })
     }
     return out
-  }, [upcoming, anchors, wx, taste])
+  }, [upcoming, anchors, taste, nowMs])
 
   // ===== EVENTS_GRIND new sections — all real-data + honestly gated =====
-  // "Worth planning around": the hottest FUTURE events (beyond today) to plan ahead for.
+  // "Worth planning around": shared-ranked FUTURE events (beyond today) to plan ahead for.
   const worthPlanning = useMemo(() => {
-    const nudge = (ev) => tasteNudge(ev, taste)
-    return upcoming
-      .filter((e) => e._day != null && e._day > anchors.todayTs)
-      .sort(hotDesc)
+    return sharedEventOrder(
+      upcoming.filter((e) => e._day != null && e._day > anchors.todayTs),
+      { nowMs, taste },
+    )
       .slice(0, 3)
-      .map((e) => ({ ...e, _why: whyFits(e, { w: wx ? wx[dateKey(e._day)] : null, nudge }) }))
-  }, [upcoming, anchors, wx, taste])
+  }, [upcoming, anchors, taste, nowMs])
   // "Free & Easy": free upcoming events (the section gates off when there are none).
   const freeEasy = useMemo(
-    () => upcoming.filter((e) => e._free === true || e.isFree === true).sort(hotDesc).slice(0, 3),
-    [upcoming]
+    () => sharedEventOrder(
+      upcoming.filter((e) => e._free === true || e.isFree === true),
+      { nowMs, taste },
+    ).slice(0, 3),
+    [upcoming, nowMs, taste]
   )
-  // "Recurring Series": collapsed series carrying ≥1 more date (genuinely recurring),
-  // most-recurring first — the honest "+N more dates" stamp rides each card.
+  // "Recurring Series": shared-ranked collapsed groups carrying ≥1 more date;
+  // the honest "+N more dates" stamp rides each card.
   const recurring = useMemo(
     () =>
-      collapseSeries(upcoming)
-        .filter((g) => (g._moreDates || 0) > 0)
-        .sort((a, b) => (b._moreDates || 0) - (a._moreDates || 0) || hotDesc(a, b))
-        .slice(0, 3),
-    [upcoming]
+      sharedEventOrder(
+        collapseSeries(upcoming).filter((g) => (g._moreDates || 0) > 0),
+        { nowMs, taste, categoryMax: 3 },
+      ).slice(0, 3),
+    [upcoming, nowMs, taste]
   )
-  // "Neighborhood Picks": the best upcoming pick per DISTINCT area (parsed city),
+  // "Neighborhood Picks": the first shared-ranked upcoming pick per DISTINCT area,
   // a 2-up spread across the bay. Only areas we can actually read from the address.
   const neighborhoods = useMemo(() => {
     const seen = new Set()
     const out = []
-    for (const e of [...upcoming].sort(hotDesc)) {
+    for (const e of sharedEventOrder(upcoming, { nowMs, taste })) {
       const area = cityOf(e.address)
       if (!area) continue
       const key = area.toLowerCase().replace(/[^a-z]/g, '') // "St. Petersburg" === "St Petersburg"
@@ -215,7 +228,7 @@ export default function HotView({ events, retainedEvents = events, anchors, load
       if (out.length >= 3) break
     }
     return out
-  }, [upcoming])
+  }, [upcoming, nowMs, taste])
 
   const scrollToList = (el) => {
     const sc = scrollRef.current
@@ -268,7 +281,7 @@ export default function HotView({ events, retainedEvents = events, anchors, load
                   ? `${tonight.futureN} still going · ${tonight.tomorrowN} tomorrow`
                   : tonightRanked.limited
                     ? `${tonightTagged.length} with enough detail to recommend · ${tonight.items.length} total`
-                    : `${tonight.items.length} on for tonight · three varied options`
+                    : `${tonight.items.length} on for tonight · three options with enough detail`
               }
               onSeeAll={() => seeAll('tonight')}
             />
@@ -280,7 +293,7 @@ export default function HotView({ events, retainedEvents = events, anchors, load
           </section>
         )}
 
-        {/* EVENTS_GRIND: "Worth planning around" — the hottest future events. */}
+        {/* EVENTS_GRIND: "Worth planning around" — shared-ranked future events. */}
         {worthPlanning.length >= 2 && (
           <section className="sec">
             <SecHead title="Plan ahead" sub="Upcoming events to consider." onSeeAll={() => scrollToList(evRef.current)} />
@@ -376,7 +389,7 @@ export default function HotView({ events, retainedEvents = events, anchors, load
         {/* EVENTS_GRIND: "Recurring Series" — genuinely recurring events (+N more dates). */}
         {recurring.length >= 2 && (
           <section className="sec">
-            <SecHead title="Recurring Series" sub="Reliable weeklies you can count on." onSeeAll={() => scrollToList(evRef.current)} />
+            <SecHead title="Recurring Series" sub="More dates are listed for these events." onSeeAll={() => scrollToList(evRef.current)} />
             <div className="home-picks">
               {recurring.map((e) => (
                 <GemRow key={keyOf(e)} e={e} onSelect={onSelect} />

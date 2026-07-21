@@ -2052,7 +2052,7 @@ test('3.7P-36 imageMode: photo / icon / text gate (no green placeholder as prima
 // never happened. photoFirst() is the intended predicate as a count-preserving
 // stable partition; this pins the helper AND the call sites so the tautology
 // can't creep back.
-test('WS4 photoFirst: photos lead, order stable, nothing dropped; the !== none tautology is gone', async () => {
+test('WS4 photoFirst remains a stable presentation helper but Spots ranking is image-neutral', async () => {
   const { imageMode: im, photoFirst } = await import('../app/src/imageMode.js')
   // the root cause, pinned: 'none' is not a value imageMode can return
   for (const e of [{ image: 'https://x/p.jpg' }, { kind: 'place' }, {}, undefined]) {
@@ -2068,22 +2068,23 @@ test('WS4 photoFirst: photos lead, order stable, nothing dropped; the !== none t
   assert.deepEqual(photoFirst([a, c]).map((x) => x.key), ['a', 'c'], 'an all-art pool passes through — rails still fill when photo supply is thin')
   assert.deepEqual(photoFirst([]), [], 'empty in, empty out')
   assert.deepEqual(photoFirst(null), [], 'null-safe (lazy store not yet loaded)')
-  // call sites: LocationsView orders with the real predicate, not the tautology
+  // Sprint 7 call site: objective/context rank owns Spots, not this helper.
   const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
   assert.ok(!/!==\s*'none'/.test(loc), "the `imageMode(p) !== 'none'` tautology is gone from LocationsView")
-  assert.ok(/photoFirst\(/.test(loc), 'LocationsView orders its rails/sections with photoFirst (photos lead, count-preserving)')
+  assert.ok(/rankSpots\(/.test(loc), 'LocationsView routes its rails through the shared Spots rank')
+  assert.ok(!/photoFirst\b/.test(loc), 'LocationsView does not treat image availability as quality evidence')
 })
 
 // WS4 item 2 — photo-first ordering inside the MIXED place feeds (count-
 // preserving; never-hide holds because photoFirst is a stable reorder, not a
 // filter). The Spots master order + the See-all destination both lead with
 // photo-bearing places so a screenful reads composed, not lottery.
-test('WS4 photo-first feeds: Spots master order + PlaceBubblePage results lead with photos (reorder only)', () => {
+test('Sprint 7 Spots feeds use shared evidence rank and keep bubble membership reachable', () => {
   const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
-  assert.ok(/photoFirst\(placeOrder\(/.test(loc), 'the Spots master list is photoFirst(placeOrder(...)) — photos lead, vibe order within')
+  assert.ok(/allRanking[\s\S]*?rankSpots\(/.test(loc), 'the Spots master list uses the shared evidence rank')
   const pbp = readFileSync(path.join(ROOT, 'app', 'src', 'PlaceBubblePage.jsx'), 'utf8')
-  assert.ok(/photoFirst\(/.test(pbp), 'PlaceBubblePage result feed is photo-first (count-preserving reorder)')
-  assert.ok(/\.filter\(bubble\.match\)/.test(pbp), 'PlaceBubblePage still filters ONLY by the bubble predicate (photoFirst reorders, never hides)')
+  assert.ok(/rankSpots\(/.test(pbp), 'PlaceBubblePage uses the same evidence rank')
+  assert.ok(/places\.filter\(bubble\.match\)/.test(pbp), 'PlaceBubblePage filters only by the selected bubble predicate before count-preserving rank')
 })
 
 // WS4 item 3 — the 'icon' row form imageMode's own spec promised (3.7P-36:
@@ -2311,13 +2312,12 @@ test('WS2 detail-rebuild: light title block below the hero + VT name intact', ()
   assert.ok(/\{heroTime && <span className="imgbadge detail-timebadge">/.test(dp), 'the badge renders only when a time exists (imgbadge geometry reused)')
   const detailCss = readFileSync(path.join(ROOT, 'app', 'src', 'detail.css'), 'utf8')
   assert.ok(/\.detail-timebadge\s*\{[^}]*background:\s*var\(--cta\)/.test(detailCss), 'the badge fill is --cta (the one sanctioned white-text fill, D.0-R)')
-  // WS2 3/4 — "Why this fits" is a titled prose CARD composed ONLY from ratified
-  // true signals (whyReasons + the real event-day forecast via wxMood); zero
-  // reasons → NO card (never fabricated). The bare why-chips fact row retired.
-  assert.ok(/function whyProse/.test(dp) && /whyReasons\(e\)/.test(dp) && /wxMood\(w\)/.test(dp), 'whyProse composes from the ratified whyReasons seam + the real forecast')
-  assert.ok(/if \(!frags\.length\) return null/.test(dp) && /\{whyLine && \(/.test(dp), 'no real reason → no card (the honest-omission gate)')
+  // Sprint 7 retires the detail-only explanation fork. Discovery surfaces own
+  // scored reasons; detail keeps facts/provenance and stays silent otherwise.
+  assert.ok(!/whyProse|whyReasons|whyFits/.test(dp), 'DetailPage cannot rebuild recommendation reasons from legacy taste math')
+  assert.ok(/shared scored rank contract/.test(dp), 'the source documents the single explanation authority')
   assert.ok(!/className="why-chips"/.test(dp) && !/why-chip\b/.test(dp), 'the bare why-chips fact row is retired (no rendered why-chip)')
-  assert.ok(/Why this fits/.test(dp) && /Icon\.sparkle/.test(dp), 'the card carries the refs\' sparkle + title (engineered Icon.sparkle, not a raw glyph)')
+  assert.ok(!/Why this fits/.test(dp), 'detail does not publish an unscored fit claim')
   // WS2 4/4 — link-out rows replace the event page's 4-button utility strip.
   // Honesty: every row from real data or absent — hostname sub derived from
   // e.url; Directions distance ONLY from a real upstream _dist; ICS stays
@@ -2404,9 +2404,10 @@ test('3.7P-23c §N Home: tonight GemRow picks + Quick actions grid (HOME_GRIND)'
 
 test('3.7P-24 §N Spots: SpotCard carousel sections + compact place Everything (SPOTS_GRIND SP-L1/L3)', () => {
   const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
-  // SP-L3: Recommended now a SpotCard carousel (not a single FeaturedCard); Worth the drive added
-  assert.ok(/nearSpots/.test(loc) && /<SpotCard/.test(loc), 'Spots Recommended = SpotCard carousel (SP-L3)')
-  assert.ok(/Worth the drive/.test(loc) && /driveSpots/.test(loc), 'Spots has Worth the drive section (SP-L3)')
+  // Sprint 7: a radius-backed nearby rail plus a neutrally named continuation.
+  assert.ok(/nearSpots/.test(loc) && /<SpotCard/.test(loc), 'Spots has a SpotCard lead rail')
+  assert.ok(/withinRadius/.test(loc) && /Nearby places to explore/.test(loc), 'nearby copy is backed by explicit radius membership')
+  assert.ok(/More places to explore/.test(loc) && !/Worth the drive/.test(loc), 'the continuation makes no unsupported drive-worth claim')
   assert.ok(/sections={everything}/.test(loc) && !/sections={everything} compact/.test(loc), 'CARD_LOCK: the place Everything feed renders the canonical SpotCard rows (no compact)')
   const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
   assert.ok(/const isPlace = e\.kind === 'place'/.test(cards) && /spotChips\(e\)\.map/.test(cards), 'FeaturedCard is place-aware (activity-first meta + amenity chips)')
@@ -2424,7 +2425,7 @@ test('3.7P-41 §N Search: NL example prompts + result-type tabs', () => {
   assert.ok(/srch-tabs/.test(sp) && /id: 'events'/.test(sp) && /id: 'spots'/.test(sp) && /id: 'guides'/.test(sp), 'Search has All/Events/Spots/Guides result tabs')
   assert.ok(/t\.id === 'all' \|\| t\.n > 0/.test(sp), 'a result tab is only offered when it has matches (no dead empty tab)')
   assert.ok(/activeTab === 'all' \|\| activeTab === 'events' \? eventSection/.test(sp), 'the validated active tab scopes which groups render')
-  assert.ok(/label: 'Closest matches'/.test(sp) && /label: 'Other events'/.test(sp) && /Spots that fit/.test(sp), 'sections use evidence-bounded Closest matches / Other events / Spots that fit labels')
+  assert.ok(/label: 'Event matches'/.test(sp) && /label: 'More events'/.test(sp) && /Spots that fit/.test(sp), 'sections use neutral Event matches / More events / Spots that fit labels')
   assert.ok(/searchGuides\(GUIDES/.test(sp) && /openGuide\(g\)/.test(sp), 'the Guides scope searches real GUIDES and opens their GuidePage')
   const srch = readFileSync(path.join(ROOT, 'app', 'src', 'search.js'), 'utf8')
   assert.ok(/export function searchGuides/.test(srch) && /!q\.text\.length\) return \[\]/.test(srch), 'searchGuides is text-only (a guide has no date/price) — honest, no fabricated matches')
@@ -2541,7 +2542,7 @@ test('Sprint 4 truth: hidden tags never become a user-facing gem reason', () => 
   const taste = readFileSync(path.join(ROOT, 'app', 'src', 'taste.js'), 'utf8')
   assert.ok(!/Hidden gem/.test(taste), 'whyReasons must not expose a confidence-free gem claim')
   const curate = readFileSync(path.join(ROOT, 'app', 'src', 'curate.js'), 'utf8')
-  assert.ok(/hidden-gem'\) && !NON_GEM_RE\.test/.test(curate), 'frontPagePredicate gates the gem-by-fiat promotion with NON_GEM_RE')
+  assert.ok(!/hidden-gem|frontPagePredicate|NON_GEM_RE/.test(curate), 'curation cannot promote a confidence-free gem tag')
 })
 
 // ============================================================
@@ -3182,13 +3183,12 @@ test('W3 curate: collapseSeries is count-preserving + groups recurring by title+
   assert.equal(series[0]._series, undefined, 'collapseSeries must not mutate its input events')
 })
 
-test('W3 curate: frontPagePredicate bar is buzz/hotScore/staff/gem, tunable', () => {
-  assert.equal(curate.frontPagePredicate(N(ev({ buzz: curate.FRONT_BUZZ, hotScore: 10 }), AN)), true, 'cross-source buzz earns the front page outright')
-  assert.equal(curate.frontPagePredicate(N(ev({ buzz: 1, hotScore: curate.FRONT_HOT }), AN)), true, 'hotScore at the bar earns the front page')
-  assert.equal(curate.frontPagePredicate(N(ev({ buzz: 1, hotScore: curate.FRONT_HOT - 1 }), AN)), false, 'just below the hot bar with no other signal is NOT front page')
-  assert.equal(curate.frontPagePredicate(N(ev({ buzz: 1, hotScore: 10, tags: ['hidden-gem'] }), AN)), true, 'a hand-curated hidden-gem is front page by fiat')
-  assert.equal(curate.frontPagePredicate(N(ev({ buzz: 1, hotScore: 10, tags: ['staff-pick'] }), AN)), true, 'an editorial staff-pick is front page by fiat')
-  assert.equal(curate.frontPagePredicate(null), false, 'a null event is never front page (defensive)')
+test('Sprint 7 curate: no legacy hotScore or gem-by-fiat admission gate remains', () => {
+  assert.equal(curate.frontPagePredicate, undefined)
+  assert.equal(curate.FRONT_HOT, undefined)
+  assert.equal(curate.FRONT_BUZZ, undefined)
+  const source = readFileSync(path.join(ROOT, 'app', 'src', 'curate.js'), 'utf8')
+  assert.ok(!/hotScore|hidden-gem|staff-pick/.test(source), 'curate is structural grouping plus a caller-owned bound, not a second quality model')
 })
 
 test('W3 curate: curateFeed — curated ⊆ full, See-all reaches EVERY event (never-hide)', () => {
@@ -3207,6 +3207,7 @@ test('W3 curate: curateFeed — curated ⊆ full, See-all reaches EVERY event (n
     dayOf: (e) => e._clamp,
     labelOf: (ts) => ({ label: lib.dayLabel(ts, AN), dayTs: ts }),
     order: (items) => lib.orderDay(items, null),
+    curatedLimit: 2,
   })
   // fullEventCount = the REAL raw total (what the See-all button quotes)
   assert.equal(feed.fullEventCount, upcoming.length, 'fullEventCount must equal the raw event count (honest "See all {N}")')
@@ -3214,7 +3215,7 @@ test('W3 curate: curateFeed — curated ⊆ full, See-all reaches EVERY event (n
   assert.equal(feed.fullCount, 3, '8-instance series + 2 picks → 3 collapsed cards in full')
   // the recurring flood (hotScore 30, buzz 1) is NOT on the front page; both
   // picks ARE (one by hotScore, one by buzz) → curated has only the 2 picks
-  assert.equal(feed.curatedCount, 2, 'the low-quality recurring series is de-prioritized; the 2 picks lead')
+  assert.equal(feed.curatedCount, 2, 'the bounded prefix contains exactly two collapsed groups')
   // NEVER-HIDE 1 — curated ⊆ full (every curated group is a full group)
   const fullIds = new Set()
   for (const s of feed.full) for (const g of s.items) fullIds.add(g.title + '|' + g._clamp)
@@ -3240,6 +3241,7 @@ test('W3 curate: real dataset — feed is shorter, collapse de-spams, See-all co
     dayOf: (e) => e._clamp,
     labelOf: (ts) => ({ label: lib.dayLabel(ts, AN), dayTs: ts }),
     order: (items) => lib.orderDay(items, null),
+    curatedLimit: 120,
   })
   // 1) See-all quotes the REAL total and reaches every event
   assert.equal(feed.fullEventCount, upcoming.length, 'fullEventCount must equal the live upcoming count')
@@ -3260,9 +3262,7 @@ test('W3 curate: real dataset — feed is shorter, collapse de-spams, See-all co
   // 3) the front page is SHORTER than the full collapsed feed (curation happened)
   //    but not gutted — "plenty" is judged relative to what the window holds
   //    (absolute floors flake as the snapshot ages), capped at the original 100.
-  assert.ok(feed.curatedCount < feed.fullCount, `front page (${feed.curatedCount}) must be shorter than full (${feed.fullCount})`)
-  const notGuttedFloor = Math.min(100, Math.ceil(feed.fullCount * 0.5))
-  assert.ok(feed.curatedCount >= notGuttedFloor, `front page (${feed.curatedCount}) must not be gutted (floor ${notGuttedFloor} on ${feed.fullCount} cards)`)
+  assert.equal(feed.curatedCount, Math.min(120, feed.fullCount), 'the caller-owned bound is exact and never pads thin supply')
   // 4) curated ⊆ full on real data
   const fullIds = new Set()
   for (const s of feed.full) for (const g of s.items) fullIds.add(lib.keyOf(g) + '|' + g._clamp)

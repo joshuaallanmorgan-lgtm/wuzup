@@ -145,7 +145,7 @@ export default function HomeView({ events, anchors, wx, dataMeta, weatherState, 
                 ? 'No listings have enough detail to recommend yet'
                 : tonightRanked.limited
                   ? `${topPicks.length} with enough detail to recommend`
-                  : 'Three clear, varied options to start with'}
+                  : 'Three options with enough detail to start with'}
               onSeeAll={() => openBubble(TONIGHT_BUBBLE)}
             />
             {zeroCredibleTonight ? (

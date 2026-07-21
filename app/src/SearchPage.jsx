@@ -24,15 +24,15 @@
 // has no date). A Spots result opens PlaceDetail through the SAME shared detail
 // layer (openDetail branches on kind:'place' in App). Both groups are
 // labeled-section RowFeeds; never-hide holds — every matching event and place
-// is shown, ordering is taste-neutral.
+// is shown, then reordered by the shared relevance contract.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { fmtLocale, Icon, milesBetween } from './lib.js'
+import { CITY, fmtLocale, Icon, milesBetween } from './lib.js'
 import { useNav } from './nav.jsx'
 import { IntentTile, RowFeed, SecHead } from './cards.jsx'
 import { CATEGORIES } from './categories.js'
 import { GUIDES } from './guides.js'
 import { usePlaces } from './places.js'
-import { tasteNudge } from './taste.js'
+import { useTaste } from './taste.js'
 import {
   clearSearchRecents,
   loadSearchRecents,
@@ -60,6 +60,7 @@ const SUGGESTIONS = [
 
 export default function SearchPage({ events, anchors, coords }) {
   const { openDetail, openGuide, closePage: onClose } = useNav()
+  const taste = useTaste()
   const pgRef = useRef(null) // the scrolling ancestor — RowFeed's IO root
   const inputRef = useRef(null)
   const [q, setQ] = useState('') // live input value
@@ -121,15 +122,20 @@ export default function SearchPage({ events, anchors, coords }) {
 
   const parsed = useMemo(() => parseQuery(dq, anchors), [dq, anchors])
   const results = useMemo(
-    // Phase 3.5: a date-only browse ("tonight"/"friday") may tilt by taste; a
-    // TEXT query stays taste-neutral (searchEvents only applies nudge on the
-    // date-only path). taste read at compute time, like the feed.
-    () => (parsed.empty ? [] : searchEvents(pool, anchors, dq, tasteNudge)),
-    [parsed, pool, anchors, dq]
+    () => (parsed.empty ? [] : searchEvents(pool, anchors, dq, {
+      nowMs: anchors.nowMs,
+      city: CITY,
+      taste,
+    })),
+    [parsed, pool, anchors, dq, taste]
   )
   const placeResults = useMemo(
-    () => (parsed.empty ? [] : searchPlaces(placePool, anchors, dq)),
-    [parsed, placePool, anchors, dq]
+    () => (parsed.empty ? [] : searchPlaces(placePool, anchors, dq, {
+      nowMs: anchors.nowMs,
+      city: CITY,
+      taste,
+    })),
+    [parsed, placePool, anchors, dq, taste]
   )
   // Stage R: GUIDES are the 4th scope (searchGuides matches name/pov text → real
   // GuidePages). A date/free-only query yields none (a guide has no date/price).
@@ -149,11 +155,9 @@ export default function SearchPage({ events, anchors, coords }) {
     : activeTab === 'spots'
       ? placeResults.length
       : activeTab === 'guides' ? guideResults.length : total
-  // Stage R section labels (benchmark): events split into "Best matches" (the
-  // top relevance-ranked hits — TRUE because searchEvents sorts by match score on
-  // a TEXT query) + "Other events" (the rest). A DATE-ONLY browse isn't relevance-
-  // ranked (it is de-flood/taste order), so it stays one honest "Events" group —
-  // no "best" claim. Spots → "Spots that fit"; Guides render in their own block.
+  // Text results may split the first three from the remainder for scanability,
+  // but both labels stay neutral: shared quality/context ranking is not proof of
+  // a superlative. Date-only browse stays one honest Events group.
   const eventSection = useMemo(() => {
     if (!results.length) return []
     // R-S2: only split into Best/Other when there's a REAL remainder (top 3 +
@@ -162,8 +166,8 @@ export default function SearchPage({ events, anchors, coords }) {
     // label parallels "Spots that fit"; a date-only browse stays a neutral "Events".
     if (parsed.text.length && results.length > 3) {
       return [
-        { label: 'Closest matches', items: results.slice(0, 3) },
-        { label: 'Other events', items: results.slice(3) },
+        { label: 'Event matches', items: results.slice(0, 3) },
+        { label: 'More events', items: results.slice(3) },
       ]
     }
     return [{ label: parsed.text.length ? 'Events that fit' : 'Events', items: results }]
@@ -261,7 +265,7 @@ export default function SearchPage({ events, anchors, coords }) {
         {hasQ && total > 0 && (
           <>
             <div className="srch-count">
-              {visibleTotal.toLocaleString(fmtLocale)} verified result{visibleTotal === 1 ? '' : 's'} for “{dq.trim()}”
+              {visibleTotal.toLocaleString(fmtLocale)} result{visibleTotal === 1 ? '' : 's'} for “{dq.trim()}”
             </div>
             {/* 3.7P-41 → Stage R (§N screen 9): result-type tabs scope the union —
                 All · Events · Spots · Guides. Only tabs that have results are

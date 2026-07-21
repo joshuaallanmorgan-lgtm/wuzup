@@ -1,4 +1,5 @@
-// curate.js — Phase 3.5 W3 front-page CURATION for the Everything feed.
+// curate.js — recurring-series grouping and bounded lead selection for the
+// Everything feed.
 //
 // THE PROBLEM (Josh, ratified 2026-06-15): "condense… we're not being selective
 // enough especially with the events." The default Everything feed shows ~1,200
@@ -6,63 +7,24 @@
 // Family Story Time ×71, …) — the same handful of programs repeated across days
 // and branches. The feed reads as a firehose, not a magazine.
 //
-// THE FIX = FRONT PAGE + SEE-ALL (two pure, count-preserving passes):
+// THE FIX = LEAD + SEE-ALL (two pure, count-preserving passes):
 //   1) COLLAPSE recurring series — group the same program (title + source
 //      family) into ONE card that honestly says "+ N more dates". The collapsed
 //      card carries every instance (`_series`), so nothing is dropped — it's
 //      grouped, with the count shown. (1,198 upcoming rows → ~643 groups.)
-//   2) CURATE the front page — over the collapsed groups, keep a quality set
-//      (frontPagePredicate). The non-front-page groups are NOT removed: a
-//      "See all {N}" affordance opens the FULL, uncollapsed feed (curateFeed's
-//      `full`), so every single event stays one tap away.
+//   2) CURATE the lead — the caller supplies the shared relevance ordering and
+//      a bounded prefix length. Non-lead groups are NOT removed: "See all {N}"
+//      opens `curateFeed().full`, so every event remains reachable.
 //
 // THE NEVER-HIDE CONTRACT (MASTER_PLAN2 — curation-by-quality ≠ taste-filtering):
-//   front-page ⊆ collapsed ⊆ full, and "See all" reaches `full` (every event).
+//   lead ⊆ collapsed ⊆ full, and "See all" reaches `full` (every event).
 //   curateFeed returns BOTH the curated sections AND the full sections from the
 //   SAME input, so the UI can never show a "See all" that omits anything. The
 //   collapse is count-preserving by construction (every instance lands in some
-//   group's `_series`); the front-page filter only chooses which groups LEAD —
-//   it removes nothing from `full`.
+//   group's `_series`); the bounded prefix only chooses which groups LEAD.
 //
-// PURE + tunable: no React, no CSS, no storage — Node-importable for the smoke
-// harness. The predicate + threshold are named constants so Josh/Charles can
-// ratify the bar against real data without code spelunking.
-import { NON_GEM_RE, sourceFamily } from './lib.js'
-
-// ─── tunables (Josh/Charles ratify against real data) ───────────────────────
-// FRONT_HOT: a single event earns the front page on quality alone at/above this
-// hotScore. The dataset's hotScore clusters: a ~30 default floor, then a real
-// step up at ~38+ for events the finder scored on actual signal (named venue,
-// rich description, cross-source corroboration). 38 keeps ~460 of 643 collapsed
-// groups (≈72%) — visibly shorter than the firehose, still a full magazine, and
-// no single day goes empty. Lower = more permissive; raise toward 45 to tighten.
-export const FRONT_HOT = 38
-// FRONT_BUZZ: cross-source corroboration (the 🔥 heat badge bar) is always
-// front-page-worthy regardless of hotScore — two independent sources listing the
-// same event is the strongest honest "this matters" signal we have.
-export const FRONT_BUZZ = 2
-// Collapse threshold is intrinsic, not a tunable: collapseSeries groups every
-// repeat, and a group of ONE comes back with _moreDates 0 — so a lone event
-// renders no "+N" stamp and reads as a plain single event. The "collapse only
-// when ≥2" behavior therefore needs no constant; a former SERIES_MIN export was
-// dead (never read by any caller) and was removed rather than left as a dial
-// that did nothing.
-
-// front-page predicate over a COLLAPSED group's representative event. A clearly
-// named pure boolean so the bar is inspectable + ratifiable. Tags that earn the
-// front page outright: a hand-curated hidden-gem or an editorial staff-pick is
-// front-page by editorial fiat, whatever its score. DRAFT bar — ⚑ Josh/Charles.
-export function frontPagePredicate(e) {
-  if (!e) return false
-  const tags = Array.isArray(e.tags) ? e.tags : []
-  // 3.7P-39 review: a stale hidden-gem tag on a job/career fair must not earn
-  // front-page-by-fiat (it can still qualify on its own buzz/hotScore below).
-  if (tags.includes('staff-pick') || (tags.includes('hidden-gem') && !NON_GEM_RE.test(e.title || ''))) return true
-  if (typeof e.buzz === 'number' && e.buzz >= FRONT_BUZZ) return true
-  if (typeof e.hotScore === 'number' && e.hotScore >= FRONT_HOT) return true
-  return false
-}
-
+// PURE + tunable: no React, no CSS, no storage — Node-importable for tests.
+import { sourceFamily } from './lib.js'
 // the collapse key: same program voice = same title (case/space-insensitive) +
 // same source family. Two DIFFERENT galleries' "Made in Florida" carry distinct
 // titles ("Gallery @ 2607 Presents: Made in Florida" vs "Gallery on the Avenue:
@@ -76,8 +38,10 @@ export function frontPagePredicate(e) {
 // per-event identity when a title is missing so a titleless event can never
 // accidentally merge with another.
 export function seriesKey(e) {
+  if (typeof e.seriesId === 'string' && e.seriesId.trim()) return 'series|' + e.seriesId.trim()
+  if (typeof e.seriesKey === 'string' && e.seriesKey.trim()) return 'series|' + e.seriesKey.trim()
   const t = (e.title || '').trim().toLowerCase()
-  if (!t) return 'untitled|' + (e.url || e._t || Math.random())
+  if (!t) return 'untitled|' + (e.id || e.canonicalId || e.canonicalKey || e.url || `${e.start || ''}|${e.venue || ''}`)
   return t + '||' + sourceFamily(e)
 }
 
@@ -122,14 +86,14 @@ export function collapseSeries(items) {
 // Collapsing the FLAT list first turns the whole program into ONE card on its
 // soonest day, honestly stamped "+ 87 more dates". The collapsed reps are then
 // re-grouped by their representative's day (`dayOf`) and ordered within each day
-// via `order` (orderDay's diversity de-flood).
+// via `order` (the caller's shared relevance/diversity contract).
 //
 // Two parallel section lists come back, built from the SAME collapsed groups:
 //   • full     — every collapsed group, day-grouped + ordered. This is what
 //                "See all" shows: de-spammed (recurring → one "+N" card) but
 //                UNFILTERED by quality. Count-preserving — every input event
 //                lives in exactly one group's _series.
-//   • curated  — full ∩ frontPagePredicate. The default, quality-led feed.
+//   • curated  — a bounded prefix of that shared ordering. The default lead.
 //
 // Returns { curated, full, fullCount, curatedCount, fullEventCount }:
 //   fullCount / curatedCount — GROUP (card) counts after collapse.
@@ -140,13 +104,14 @@ export function collapseSeries(items) {
 // calling). dayOf(e) → the day-bucket key (HotView passes e._clamp; the day
 // label/dayTs come from labelOf). order defaults to identity.
 //
-// NEVER-HIDE proof shape: curated ⊆ full (curated days are predicate-filtered
+// NEVER-HIDE proof shape: curated ⊆ full (curated days are prefix-selected
 // subsets of the same collapsed groups) and ⋃ full[*].items[*]._series == the
 // input set. The caller wires "See all" to `full`. Nothing is hidden — recurring
 // is grouped (with its count shown), low-quality is de-prioritized (not removed).
-export function curateFeed(upcoming, { dayOf, labelOf, order } = {}) {
+export function curateFeed(upcoming, { dayOf, labelOf, order, curatedLimit = Infinity } = {}) {
   const keyDay = typeof dayOf === 'function' ? dayOf : (e) => e._clamp ?? e._day
   const ord = typeof order === 'function' ? order : (x) => x
+  const limit = Number.isInteger(curatedLimit) && curatedLimit >= 0 ? curatedLimit : Infinity
   // 1) GLOBAL collapse — recurring program → one rep on its soonest day
   const groups = collapseSeries(upcoming)
   const fullEventCount = groups.reduce((n, g) => n + (g._seriesCount || 1), 0)
@@ -161,14 +126,16 @@ export function curateFeed(upcoming, { dayOf, labelOf, order } = {}) {
   const full = []
   let fullCount = 0
   let curatedCount = 0
+  let remaining = limit
   for (const [d, reps] of byDay.entries()) {
     const ordered = ord(reps)
-    const keep = ordered.filter((e) => frontPagePredicate(e))
+    const keep = ordered.slice(0, remaining)
+    remaining = Math.max(0, remaining - keep.length)
     fullCount += ordered.length
     curatedCount += keep.length
     const meta = labelOf ? labelOf(d) : { label: undefined, dayTs: d }
     // full always carries the day (See-all is complete); curated only when the
-    // predicate kept something (no empty-headered days in the default feed).
+    // prefix kept something (no empty-headered days in the default feed).
     full.push({ ...meta, items: ordered })
     if (keep.length) curated.push({ ...meta, items: keep })
   }

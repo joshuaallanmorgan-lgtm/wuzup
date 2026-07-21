@@ -1,5 +1,6 @@
 import { eventActionability } from '../../shared/city-time.mjs'
 import { rankItems, selectFirstScreen, RANK_REASON_CODES } from '../../shared/rank.mjs'
+import { primaryKeyOf } from './identity.js'
 import { presentLeadImage } from './leadImage.js'
 
 const STATE_CODES = new Map([
@@ -48,6 +49,14 @@ function eventSources(event) {
     ? event.sourceFamilies
     : Array.isArray(event.sources) ? event.sources : [event.sourceFamily || event.source]
   return [...new Set(sources.map(sourceValue).filter(Boolean))]
+}
+
+export function runtimeRankingId(item) {
+  const explicit = text(item?.id) || text(item?.key)
+  if (explicit) return explicit
+  const primary = primaryKeyOf(item)
+  invariant(text(primary) && primary !== '|', 'item needs stable identity evidence')
+  return primary
 }
 
 function regionCodes(city) {
@@ -118,7 +127,7 @@ function projectedEvent(wrapper, { nowMs, city }) {
     || event.marketId === city.id
     || event.addressMarketId === city.id
   return {
-    id: event.id,
+    id: runtimeRankingId(event),
     title: event.title,
     start: event.start,
     end: event.end,
@@ -163,8 +172,7 @@ function projectedEvent(wrapper, { nowMs, city }) {
 }
 
 function projectedPlace(place, { city }) {
-  const id = text(place.id) || text(place.key)
-  invariant(id, 'place.id or place.key is required')
+  const id = runtimeRankingId(place)
   const sources = eventSources(place)
   const hasCoordinates = Number.isFinite(place.lat) && Number.isFinite(place.lng)
   const hasVerifiedMarket = hasCoordinates
@@ -186,6 +194,11 @@ function projectedPlace(place, { city }) {
     descriptionLength: Number.isFinite(place.descriptionLength)
       ? place.descriptionLength
       : typeof place.description === 'string' ? place.description.length : null,
+    price: place.price,
+    priceMin: place.priceMin,
+    priceMax: place.priceMax,
+    priceState: place.priceState,
+    isFree: place.isFree === true ? true : place.isFree === false ? false : null,
     canonicalId: place.canonicalId || place.canonicalKey || place.key || id,
     actionability: hasVerifiedMarket,
     lowInformation: place.lowInformation === true || !hasVerifiedMarket,
@@ -313,17 +326,22 @@ export function rankTonightCandidates(tonightItems, { nowMs, city, taste, limit 
     qualityPolicy: runtimeQualityPolicy({ kind: 'events', nowMs, city }),
   })
   const first = selectFirstScreen(ranking, { limit })
-  const wrapperById = new Map(input.map(wrapper => [wrapper.e.id, wrapper]))
+  const wrapperById = new Map(projected.map((event, index) => [event.id, input[index]]))
   const scoreById = new Map(ranking.scored.map(scored => [scored.id, scored]))
   const selectedIds = new Set(first.selectedScored.map(scored => scored.id))
-  const selected = first.selectedScored.map(scored => decorated(wrapperById.get(scored.id), scored, imagePolicy))
+  const selectedById = new Map()
+  const selected = first.selectedScored.map(scored => {
+    const result = decorated(wrapperById.get(scored.id), scored, imagePolicy)
+    selectedById.set(scored.id, result)
+    return result
+  })
   const ordered = first.ordered.map(event => {
     const wrapper = wrapperById.get(event.id)
     return selectedIds.has(event.id) ? decorated(wrapper, scoreById.get(event.id), imagePolicy) : wrapper
   })
   const selectedScored = first.selectedScored.map(scored => ({
     ...scored,
-    item: selected.find(wrapper => wrapper.e.id === scored.id),
+    item: selectedById.get(scored.id),
   }))
   return {
     selected,

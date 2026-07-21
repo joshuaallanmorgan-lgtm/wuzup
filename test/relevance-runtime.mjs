@@ -267,6 +267,46 @@ test('runtime identity keeps canonical and series aliases while date-only rows s
   assert.equal(result.reachability.exactPermutation, true)
 })
 
+test('runtime rank accepts durable custom and legacy event identities without finder ids', () => {
+  const custom = {
+    kind: 'custom',
+    localId: 'custom_1234',
+    title: 'Added by you',
+    start: '2026-07-21T19:00:00-04:00',
+    end: '2026-07-21T20:00:00-04:00',
+    source: 'Added by you',
+    sources: ['Added by you'],
+    category: 'music',
+    address: '100 N Tampa St, Tampa, FL 33602',
+    lat: 27.95,
+    lng: -82.46,
+  }
+  const legacy = {
+    title: 'Legacy listing',
+    url: 'https://example.test/legacy',
+    start: '2026-07-21T20:00:00-04:00',
+    end: '2026-07-21T21:00:00-04:00',
+    source: 'Legacy calendar',
+    sources: ['Legacy calendar'],
+    category: 'arts',
+    address: '101 N Tampa St, Tampa, FL 33602',
+    lat: 27.951,
+    lng: -82.461,
+  }
+  const result = rankRuntimeItems([custom, legacy], {
+    kind: 'events',
+    nowMs: Date.parse('2026-07-21T18:00:00-04:00'),
+    city: TAMPA,
+  })
+
+  assert.equal(result.reachability.exactPermutation, true)
+  assert.deepEqual(new Set(result.ordered), new Set([custom, legacy]))
+  assert.deepEqual(new Set(result.scored.map(row => row.id)), new Set([
+    'c|custom_1234',
+    'https://example.test/legacy|2026-07-21T20:00:00-04:00',
+  ]))
+})
+
 test('each checked-in flagship corpus can produce a real credible, diverse first screen', () => {
   const cases = [
     { id: 'tampa-bay', city: TAMPA, offset: '-04:00' },

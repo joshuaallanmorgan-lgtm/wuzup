@@ -12,13 +12,14 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNav } from './nav.jsx'
 import { usePlanner } from './PlannerProvider.jsx'
 import { PLANNER_PARTS as PARTS } from './planner-core.js'
-import { addDayTs, calendarDayDistance, cityHour, dayKey, eventLifecycle, formatDayTs, hotDesc, Icon, keyOf, priceLabel, timeOf } from './lib.js'
+import { addDayTs, calendarDayDistance, cityHour, CITY, dayKey, eventLifecycle, formatDayTs, Icon, keyOf, priceLabel, timeOf } from './lib.js'
 import { eventIcs } from './share.js'
 import { CATEGORY_EMOJI, HeatBadge, SecHead, TonightCard, auroraStyle, hueFor } from './cards.jsx'
 import { SaveHeart, useSaves } from './saves.js'
-import { whyReasons } from './taste.js'
-import { daypartOf, DAYPART, wxMood } from './weekend.js'
+import { useTaste } from './taste.js'
+import { daypartOf, DAYPART } from './weekend.js'
 import { CONDITION, dateKey } from './weather.js'
+import { rankRuntimeItems } from './relevance.js'
 import './detail.css'
 import './locations.css' // 3.7P-34: the shared "Add to day" sheet (.loc-plan-*) lives here
 
@@ -67,38 +68,10 @@ function eventPlanDays(e, anchors) {
 // excluded from vibe matching ('added-by-you' is provenance, not a vibe)
 const GENERIC_TAGS = new Set(['tonight', 'weekend', 'one-off', 'recurring', 'ongoing', 'added-by-you'])
 
-// WS2 detail-rebuild — the refs' "Why this fits" prose card: ONE honest sentence
-// composed ONLY from already-ratified TRUE signals — whyReasons(e) (taste.js:
-// buzz≥2, free, live tonight/weekend anchors-math, gem, staff-pick, taste lean;
-// every chip true by construction) plus the same wxMood forecast cue DayPage
-// uses, fed the REAL forecast for the event's own day. 'Sponsored placement' is
-// deliberately NOT a fit reason — that disclosure renders unconditionally as the
-// .detail-sp label up top. Zero fragments → null → NO card rendered at all
-// (honesty: a missing reason is never papered over with a fabricated one).
-// Max three fragments, one sentence. ALL COPY DRAFT ⚑ Charles.
-function whyProse(e, w) {
-  const frags = []
-  // weather leads (whyFits' own priority): outdoor event + a genuinely clear day
-  if (e.category === 'outdoors' && wxMood(w) === 'clear') frags.push('the forecast looks clear that day')
-  for (const r of whyReasons(e)) {
-    if (r.startsWith('🔥')) frags.push(`${e.buzz} local sources list it`)
-    else if (r === 'Free') frags.push("it's free")
-    else if (r === 'Tonight') frags.push("it's on tonight")
-    else if (r === 'This weekend') frags.push("it's on this weekend")
-    else if (r === '⭐ Staff pick') frags.push("it's a staff pick")
-    else if (r.startsWith('Your taps lean')) frags.push(r.charAt(0).toLowerCase() + r.slice(1))
-    // anything else (incl. 'Sponsored placement') is not a fit reason — skipped
-  }
-  if (!frags.length) return null
-  const top = frags.slice(0, 3)
-  const s =
-    top.length === 1 ? top[0] : top.length === 2 ? `${top[0]} and ${top[1]}` : `${top[0]}, ${top[1]}, and ${top[2]}`
-  return s.charAt(0).toUpperCase() + s.slice(1) + '.'
-}
-
 export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, onRestoreMine }) {
   // navigation via useNav (O6): close/swap/map-handoff + the open-state flags
   const { closing, vtOpen: vt, closeDetail: onClose, openDetail: onSelect, openDay } = useNav()
+  const taste = useTaste()
   const {
     status: plannerStatus,
     add,
@@ -167,11 +140,9 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
     }
   }
 
-  // ===== trust + transparency (G3 → WS2 detail-rebuild): the why-signal now
-  // renders as the refs' "Why this fits" prose CARD (whyProse above, composed
-  // from the same honest whyReasons seam + the real forecast); the bare
-  // why-chips fact row retired. Zero reasons → no card at all. `via` stays the
-  // quiet provenance footer. =====
+  // Provenance remains explicit. Recommendation explanations are emitted only
+  // by the shared scored rank contract on discovery surfaces; detail does not
+  // reconstruct a second quality or taste story from legacy tags.
   const via = e.sources && e.sources.length ? e.sources.join(' · ') : e.source
 
   // ===== user-added event? (Add Event MVP) — provenance label + Remove =====
@@ -188,9 +159,6 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         .filter(Boolean)
         .join(' · ')
     : null
-  // the Why-this-fits sentence — needs the event-day forecast (w) above
-  const whyLine = lifecycle.actionable ? whyProse(e, w) : null
-
   // ===== detail hero image: preload + 300ms fade over the dark placeholder =====
   const [loadedSrc, setLoadedSrc] = useState(null)
   const [failedSrc, setFailedSrc] = useState(null)
@@ -220,18 +188,34 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
   // D8: the detail mini-map (lazy Leaflet) is parked for v1 — removed. Coordinates
   // still drive the Directions button (Google Maps), below.
 
-  // ===== More like this: same category first, then nearby-in-time same-vibe; hot first =====
+  // ===== More like this: same category first, then nearby-in-time same-vibe;
+  // shared objective/taste/diversity ordering within each membership set. =====
   const similar = useMemo(() => {
     if (!events.length || !anchors) return []
     const self = keyOf(e)
-    const seen = new Set([self])
+    const canonicalOf = (event) => event.canonicalId || event.canonicalKey || keyOf(event)
+    const seen = new Set([self, canonicalOf(e)])
     const upcoming = events.filter(
       (x) => keyOf(x) !== self && x._day != null && (x._endDay ?? x._day) >= anchors.todayTs
     )
+    const rank = (items) => items.length === 0 ? [] : rankRuntimeItems(items, {
+      kind: 'events',
+      nowMs: anchors.nowMs,
+      city: CITY,
+      taste,
+      diversityPolicy: {
+        prefix: Math.min(8, items.length),
+        sourceMax: 2,
+        categoryMax: Math.max(items.length, 1),
+        venueMax: 1,
+        canonicalMax: 1,
+        seriesMax: 1,
+      },
+    }).ordered
     const picks = []
     const take = (list) => {
       for (const x of list) {
-        const k = keyOf(x)
+        const k = canonicalOf(x)
         if (seen.has(k)) continue
         seen.add(k)
         picks.push(x)
@@ -240,17 +224,15 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
       return false
     }
     if (e.category && e.category !== 'other') {
-      if (take(upcoming.filter((x) => x.category === e.category).sort(hotDesc))) return picks
+      if (take(rank(upcoming.filter((x) => x.category === e.category)))) return picks
     }
     const vibes = new Set((e.tags || []).filter((t) => !GENERIC_TAGS.has(t)))
     const nearTime = (x) => e._day == null || Math.abs(calendarDayDistance(e._day, x._day)) <= 3
     take(
-      upcoming
-        .filter((x) => nearTime(x) && (vibes.size === 0 || x.tags.some((t) => vibes.has(t))))
-        .sort(hotDesc)
+      rank(upcoming.filter((x) => nearTime(x) && (vibes.size === 0 || x.tags.some((t) => vibes.has(t)))))
     )
     return picks
-  }, [events, anchors, e])
+  }, [events, anchors, e, taste])
 
   // ===== utility row: .ics download / directions / share-or-copy + toast =====
   const [toast, setToast] = useState(null)
@@ -630,19 +612,6 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
           {/* I4: provenance ("Found via …") is internal, not decision info — it
               lives in the page footer (.detail-via) */}
         </div>
-        {/* WS2 detail-rebuild: the refs' "✦ Why this fits" titled prose card —
-            replaces the bare why-chips fact row. Rendered ONLY when whyProse
-            composed a real reason; no reason → no card (never fabricated).
-            Copy DRAFT ⚑ Charles. */}
-        {whyLine && (
-          <div className="detail-why">
-            <div className="detail-why-head">
-              <Icon.sparkle className="detail-why-ic" aria-hidden />
-              Why this fits
-            </div>
-            <p className="detail-why-text">{whyLine}</p>
-          </div>
-        )}
         {/* W3 never-hide: a collapsed recurring card carries every instance in
             _series. THIS is the rendered open path for them — without it the
             non-rep instances (the same program on other days/at other venues)

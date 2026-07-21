@@ -8,17 +8,19 @@
 // DayPage. Opening that day never seeds an item; placement still requires the
 // planner's visible day/daypart confirmation. DRAFT copy — ⚑ Charles.
 import { useMemo, useRef } from 'react'
-import { Icon, LENS_BUBBLES, CAT_BUBBLES } from './lib.js'
+import { CITY, Icon, LENS_BUBBLES, CAT_BUBBLES } from './lib.js'
 import { useNav } from './nav.jsx'
 import { RowFeed } from './cards.jsx'
 import { SaveHeart } from './saves.js'
 import LensNav from './LensNav.jsx'
 import { usePlaces, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES } from './places.js'
 import { resolveGuide, resolveWatchGuide } from './guides.js'
+import { useTaste } from './taste.js'
 import './bubble.css'
 
 export default function GuidePage({ guide, events, anchors }) {
   const { openDetail: onSelect, closePage: onClose, openDay, openBubble, openPlaceBubble, openEvFilters } = useNav()
+  const taste = useTaste()
   const pgRef = useRef(null)
   const savedGuide = useMemo(
     () => guide ? { ...guide, kind: 'guide', key: `g|${guide.id}` } : null,
@@ -41,11 +43,12 @@ export default function GuidePage({ guide, events, anchors }) {
     [events, anchors]
   )
   const items = useMemo(() => {
+    const ranking = { nowMs: anchors.nowMs, city: CITY, taste }
     // 3.75b: timely Watch Guides resolve by keyword against live events; evergreen
     // intention guides resolve via their pure selector.
-    if (guide?.kind === 'watch') return resolveWatchGuide(guide, upcoming)
-    return resolveGuide(guide, { events: upcoming, places: Array.isArray(places) ? places : [], anchors })
-  }, [guide, upcoming, places, anchors])
+    if (guide?.kind === 'watch') return resolveWatchGuide(guide, upcoming, ranking)
+    return resolveGuide(guide, { events: upcoming, places: Array.isArray(places) ? places : [], anchors }, ranking)
+  }, [guide, upcoming, places, anchors, taste])
   // FB-03 (3.7P-7): a MIXED guide LABELS each item's domain — split into "Events"
   // + "Spots" sections (RowFeed renders section labels). Single-domain guides stay
   // one unlabeled list. Each section still shows ALL its matches (never-hide).

@@ -36,7 +36,7 @@ test('Near Me consumes the shared request state and cannot maintain a second per
   assert.match(bubble, /location\.status === 'requesting'/)
   assert.match(bubble, /location\.status === 'denied'/)
   assert.match(bubble, /coords \? 'Events by day and distance' : `Events across \$\{CITY\.name\}`/)
-  assert.match(bubble, /Closest within each day/)
+  assert.match(bubble, /Distance helps order each day/)
   assert.doesNotMatch(bubble, /Good times, walking distance/)
   assert.doesNotMatch(bubble, /near:\s*'Near you'/)
   assert.doesNotMatch(bubble, /near:\s*'Nothing nearby/)

@@ -12,6 +12,7 @@
 import { useEffect, useSyncExternalStore } from 'react'
 import { daypartOf } from './weekend.js'
 import { CITY, keyOf } from './lib.js'
+import { rankRuntimeItems } from './relevance.js'
 import { addCalendarDays, cityMidnightMs } from '../../shared/city-time.mjs'
 
 // indoor-ish categories — a good backup when the forecast turns
@@ -128,7 +129,42 @@ export const guideById = Object.fromEntries(GUIDES.map((g) => [g.id, g]))
 // (like a bubble) — it shows ALL its matches, nothing sliced away, so never-hide
 // holds. De-dup by key so an event/place overlap can't double. A throwing
 // selector degrades to an empty (honest) guide rather than crashing the page.
-export function resolveGuide(guide, ctx) {
+export function rankGuideItems(items, {
+  nowMs,
+  city,
+  taste = {},
+  context = {},
+  diversityPolicy = null,
+} = {}) {
+  const list = Array.isArray(items) ? items : []
+  if (!Number.isFinite(nowMs) || !city || list.length < 2) return [...list]
+  const policyFor = (length) => diversityPolicy || {
+    prefix: Math.min(12, length),
+    sourceMax: 2,
+    categoryMax: 3,
+    venueMax: 2,
+    canonicalMax: 1,
+    seriesMax: 1,
+  }
+  const rank = (domain) => rankRuntimeItems(domain.items, {
+    kind: domain.kind,
+    nowMs,
+    city,
+    taste,
+    context,
+    diversityPolicy: policyFor(domain.items.length),
+  }).ordered
+  const events = list.filter((item) => item.kind !== 'place')
+  const places = list.filter((item) => item.kind === 'place')
+  if (!events.length) return rank({ kind: 'places', items: places })
+  if (!places.length) return rank({ kind: 'events', items: events })
+  return [
+    ...rank({ kind: 'events', items: events }),
+    ...rank({ kind: 'places', items: places }),
+  ]
+}
+
+export function resolveGuide(guide, ctx, ranking) {
   if (!guide || typeof guide.select !== 'function') return []
   let items
   try {
@@ -137,13 +173,14 @@ export function resolveGuide(guide, ctx) {
     return []
   }
   const seen = new Set()
-  return items.filter((it) => {
+  const resolved = items.filter((it) => {
     if (!it) return false
     const k = keyOf(it) // the app's canonical key (handles events + places)
     if (seen.has(k)) return false
     seen.add(k)
     return true
   })
+  return ranking ? rankGuideItems(resolved, ranking) : resolved
 }
 
 // ===== the TIMELY layer: hand-authored "Watch Guides" from a static guides.json
@@ -218,11 +255,11 @@ export function watchGuideActive(guide, nowTs) {
 // resolve a watch guide against the LIVE events — matches a keyword in the event's
 // title / description / venue (case-insensitive). Real listings only; no curated
 // picks to fabricate. De-dups on the canonical key.
-export function resolveWatchGuide(guide, events) {
+export function resolveWatchGuide(guide, events, ranking) {
   if (!guide || !Array.isArray(guide.keywords) || guide.keywords.length === 0) return []
   const kws = guide.keywords.map((k) => String(k).toLowerCase())
   const seen = new Set()
-  return (events || []).filter((e) => {
+  const resolved = (events || []).filter((e) => {
     if (!e) return false
     const hay = ((e.title || '') + ' ' + (e.desc || e.description || '') + ' ' + (e.venue || '')).toLowerCase()
     if (!kws.some((k) => hay.includes(k))) return false
@@ -231,4 +268,5 @@ export function resolveWatchGuide(guide, events) {
     seen.add(k)
     return true
   })
+  return ranking ? rankGuideItems(resolved, ranking) : resolved
 }

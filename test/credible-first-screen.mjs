@@ -9,7 +9,7 @@ test('Home and Events share one credible first-screen selector and keep the full
   const hot = source('HotView.jsx')
 
   for (const [name, code] of [['HomeView', home], ['HotView', hot]]) {
-    assert.match(code, /import \{ rankTonightCandidates \} from '\.\/relevance\.js'/, `${name} must use the shared runtime adapter`)
+    assert.match(code, /import \{[^}]*\brankTonightCandidates\b[^}]*\} from '\.\/relevance\.js'/, `${name} must use the shared runtime adapter`)
     assert.match(code, /rankTonightCandidates\(tonight\.items, \{ nowMs, city: CITY, taste \}\)/, `${name} must use the same inputs`)
     assert.doesNotMatch(code, /tonight\.items\.slice\(0,\s*3\)/, `${name} must not retain an independent first-three path`)
     assert.match(code, /tonightRanked\.selected\.map\(\(\{ e \}\) => e\)/, `${name} must render the selected event, not its evidence wrapper`)

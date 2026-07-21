@@ -1,16 +1,16 @@
 # Wuzup V2 - active sprint map
 
-> **Status:** owner-ratified execution map; Sprint 7 active - 2026-07-20
+> **Status:** owner-ratified execution map; Sprint 8 active - 2026-07-20
 >
 > **Authority:** subordinate to [V2_PLAN.md](V2_PLAN.md). This file translates the current scope and
 > dependency queue into delivery cycles; it does not admit features that the plan parks in V3.
 
 ## Executive answer
 
-The minimum credible V2 program is a short Sprint 0 closeout plus **17 two-week sprints**. The nominal
-elapsed time is about **35 weeks** if every gate passes on the first attempt. Five lanes run in parallel,
-so the sprint count is driven by integration order and validation time, not by adding every lane's effort
-end to end.
+The minimum credible V2 program is a short Sprint 0 closeout plus **17 milestone-gated sprints**. Build
+sprints close as soon as their exit evidence is green; they have no two-week minimum. Three disjoint
+implementation lanes plus one integration owner are now the default cadence. Beta, refresh observation,
+and rollout sprints still require real elapsed evidence and cannot be compressed by parallel coding.
 
 The schedule driver is honest United States coverage. The app, finder, deployment path, runtime state,
 relevance model, imagery policy, and two-city product must become trustworthy before new locations are
@@ -19,7 +19,8 @@ gates.
 
 This estimate assumes:
 
-- Sprint 0 takes no more than three working days; Sprints 1-17 are two weeks each.
+- Sprint 0 takes no more than three working days. Build sprints are evidence-bound rather than calendar-bound;
+  beta and soak sprints retain the elapsed observation required by their gates.
 - H0, E0, U0, I0, and L0 are logical workstreams, not persistent chats. The V2 Architect is the sole
   integration owner and uses temporary in-task subagents only for read-only review or disjoint bounded work.
 - A failed exit gate extends the current sprint; the program does not declare a partial gate green.
@@ -1174,6 +1175,37 @@ Committed scope:
 **Exit gate:** there is no second quality model in a surface; `near`, `recommended`, `worth the drive`, `gem`,
 and superlative labels map to inspectable math/evidence; ranking, category, dedupe, source-diversity, and never-
 hide gates pass.
+
+#### Sprint 7 unified-discovery receipt - 2026-07-20 (green)
+
+- **One objective contract now owns discovery:** Home, Tonight, Events shelves, the bounded Everything lead,
+  event/place decks, bubbles, related items, Search event/place results, Guide contents, Day agenda, daypart
+  suggestions, Spots, and activity collections all route through `rankRuntimeItems` or the evidence-preserving
+  `rankSpots` adapter. Exact query, guide, category, activity, date, daypart, saved, planned, and slot membership
+  stays in the caller; the shared rank only permutes that set. Full lists and cumulative deck walks retain every
+  eligible item.
+- **The old quality forks are retired:** live discovery no longer orders on `hotScore`, `hotDesc`, `orderDay`,
+  `photoFirst`, nearest-only distance, raw `srcCount`, or the former `frontPagePredicate`. Recurrence collapse
+  prefers canonical series identity, uses a deterministic fallback, and retains every instance. User-added and
+  legacy rows without finder IDs receive one stable rank identity across projection and caller context, so custom
+  inventory keeps distance, weather, and search relevance without splitting into a second key scheme.
+- **Spots claims now have inspectable inputs:** a pure adapter separates activity fit, amenities, hours
+  confidence, and bounded distance context from objective place quality. Near requires a usable coordinate fix
+  and an explicit 12-mile radius; useful evidence and fit outrank raw proximity. Image availability cannot affect
+  order, complex or missing hours never become an Open claim, and generic/chain rows remain reachable without
+  earning a recommendation claim. Unsupported Recommended-near-you and Worth-the-drive language is gone.
+- **Intent and planner truth are preserved:** Search keeps exact lexical/date/free membership before ranking and
+  uses neutral section labels; Guides rank only inside their declared domain; Plan excludes planned, slotted,
+  saved-duplicate, and duplicate-key candidates before ranking. Day weather context contributes only through an
+  explicit item score. Visible reasons read the actual shared scored result or stay silent; the legacy
+  `tasteNudge`/`whyFits`/`whyReasons` explanation fork is no longer live.
+- **Scope stayed bounded:** no unvalidated gem slot, fuzzy merge policy, runtime model judgment, or new product
+  ceremony was added. Existing exact merge fixtures remain authoritative, and image/licensing enrichment remains
+  governed by the I0 receipt policy.
+- **Verification is green:** Sprint 7 focused contracts pass 25/25 and Sprint 6 regressions pass 44/44. The full
+  serial gate passes 882/882, including the finder acquisition/cache contract, exact artifact and deploy
+  checks, app lint/build, SF build, and base-path build. The production browser release journey passes for Tampa
+  and SF; `git diff --check` is clean. No city artifact or freshness receipt changed in this sprint.
 
 ### Sprint 8 - Bounded personal relevance and taste loop
 

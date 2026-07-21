@@ -30,18 +30,19 @@
 //
 // ALL COPY IS DRAFT for Charles (inventory in the sprint report).
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { eventLifecycle, formatDayTs, Icon, keyOf, timeOf } from './lib.js'
+import { CITY, eventLifecycle, formatDayTs, Icon, keyOf, timeOf } from './lib.js'
 import { useNav } from './nav.jsx'
 import { usePlanner } from './PlannerProvider.jsx'
 import { PLANNER_PARTS as PARTS } from './planner-core.js'
 import { CardImg, SponsoredTag, featuredChips } from './cards.jsx'
 import { shelfItems, useSaves } from './saves.js'
-import { tasteNudge, useTaste, railReady } from './taste.js'
+import { useTaste } from './taste.js'
 import { usePlaces } from './places.js'
-import { daypartOf, pickerModel, whyFits, wxMood, DAYPART } from './weekend.js'
+import { daypartOf, pickerModel, wxMood, DAYPART } from './weekend.js'
 import { eventsIcs, shareDayText } from './share.js'
 import { dateKey, CONDITION } from './weather.js'
 import PickerSheet from './PickerSheet.jsx'
+import { rankRuntimeItems, runtimeRankingId } from './relevance.js'
 import './day.css'
 
 const wdLong = (ts) => formatDayTs(ts, { weekday: 'long' })
@@ -189,7 +190,7 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
     },
     [wxMoodToday]
   )
-  const agenda = useMemo(() => {
+  const agendaRanking = useMemo(() => {
     const list = availableEvents.filter(
       (e) =>
         e._day != null &&
@@ -197,12 +198,46 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
         Math.max(e._day, anchors.todayTs) === ts &&
         !isPlanned(e)
     )
-    list.sort((a, b) => tasteNudge(b, taste) + wxBonus(b) - (tasteNudge(a, taste) + wxBonus(a)) || a._t - b._t)
-    return list
+    const context = {
+      itemScores: Object.fromEntries(list.map((event) => [runtimeRankingId(event), wxBonus(event)])),
+    }
+    return rankRuntimeItems(list, {
+      kind: 'events',
+      nowMs: anchors.nowMs,
+      city: CITY,
+      taste,
+      context,
+      diversityPolicy: {
+        prefix: Math.min(12, list.length || 1),
+        sourceMax: 2,
+        categoryMax: 3,
+        venueMax: 2,
+        canonicalMax: 1,
+        seriesMax: 1,
+      },
+    })
   }, [availableEvents, anchors, ts, taste, wxBonus, isPlanned])
   // the honest basis line — only claims a signal that actually informed the order
-  const hasTaste = railReady(taste)
-  const suggSub = hasTaste && w ? 'Based on weather and your likes' : hasTaste ? 'Based on what you like' : w ? "Based on the day's weather" : 'Everything on for this day'
+  const agenda = agendaRanking.ordered
+  const agendaScoreByItem = useMemo(
+    () => new Map(agendaRanking.scored.map((row) => [row.item, row])),
+    [agendaRanking]
+  )
+  const hasTasteRanking = agendaRanking.scored.some((row) => row.preferenceScore !== 0)
+  const hasWeatherRanking = agendaRanking.scored.some((row) => row.contextScore > 0)
+  const suggSub = hasTasteRanking && hasWeatherRanking
+    ? 'Based on weather and your likes'
+      : hasTasteRanking
+      ? 'Based on what you like'
+      : hasWeatherRanking ? "Based on the day's weather" : 'Everything on for this day'
+  const selectionReason = useCallback((event, scored) => {
+    if (scored?.contextScore > 0 && wxBonus(event) > 0) {
+      return wxMoodToday === 'clear' ? 'Clear-day fit' : wxMoodToday === 'rainy' ? 'Rainy-day fit' : null
+    }
+    if (scored?.preferenceScore > 0) return 'Matches your interests'
+    if (event.isFree === true) return 'Free'
+    return null
+  }, [wxBonus, wxMoodToday])
 
   // ===== slots: the picker's resolution pool (same wiring as WB) =====
   const upcoming = useMemo(
@@ -249,12 +284,16 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
       upcoming,
       saved: savedEvents,
       plan: { slots: liveSlots },
-      nudge: tasteNudge,
+      ranking: {
+        nowMs: anchors.nowMs,
+        city: CITY,
+        taste,
+        context: {
+          itemScores: Object.fromEntries(upcoming.map((event) => [runtimeRankingId(event), wxBonus(event)])),
+        },
+      },
     })
-    // 3.74: attach an honest "why it fits" reason per candidate (weather/free/taste)
-    const dw = wx ? wx[dateKey(ts)] : null
-    const tag = (e) => ({ ...e, _why: whyFits(e, { w: dw, nudge: tasteNudge }) })
-    return { saved: m.saved.map(tag), suggestions: m.suggestions.map(tag) }
+    return m
   })()
 
   const assign = async (e) => {
@@ -597,15 +636,14 @@ export default function DayPage({ ts, events, availableEvents = events, anchors,
         )}
 
         {/* ===== Plan Phase 1: "Suggestions for you" — the day's events, reordered
-            by taste AND the day's real weather (count-preserving; never hides). The
-            subline claims ONLY the signals that actually ordered the list, and each
-            row carries an honest weather/taste reason (whyFits). ===== */}
+            by shared taste and weather context (count-preserving; never hides).
+            Visible reasons read the exact scored result that ordered each row. ===== */}
         <h3 className="day-header dpg-sec">Suggestions for you</h3>
         <div className="dpg-sec-sub">{suggSub}</div>
         <div className="dpg-suggs">
           {agenda.length ? (
             agenda.map((e, i) => {
-              const why = whyFits(e, { w, nudge: (x) => tasteNudge(x, taste) })
+              const why = selectionReason(e, agendaScoreByItem.get(e))
               const timeBadge = e.kind !== 'place' && daypartOf(e) !== 'any' ? timeOf(e.start) : null
               const meta = [e.venue, timeBadge].filter(Boolean).join(' · ') // WS3 §9: pin renders as Icon.pin below, not 📍 in the string
               return (

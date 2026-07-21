@@ -37,9 +37,10 @@ test('place UI does not publish unsupported open, gem, or best claims', () => {
 
 test('Search count follows its active scope and names every searchable kind', () => {
   assert.match(files['SearchPage.jsx'], /const visibleTotal = activeTab === 'events'/)
-  assert.match(files['SearchPage.jsx'], /\{visibleTotal\.toLocaleString\(fmtLocale\)\} verified result/)
+  assert.match(files['SearchPage.jsx'], /\{visibleTotal\.toLocaleString\(fmtLocale\)\} result/)
+  assert.doesNotMatch(files['SearchPage.jsx'], /verified result/)
   assert.match(files['SearchPage.jsx'], /aria-label="Search events, spots, and guides"/)
-  assert.match(files['SearchPage.jsx'], /label: 'Closest matches'/)
+  assert.match(files['SearchPage.jsx'], /label: 'Event matches'/)
 })
 
 test('local-state copy distinguishes retained value from remote resources', () => {
