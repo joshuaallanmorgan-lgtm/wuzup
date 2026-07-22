@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "reportSha256": "sha256:4bee54bf0847f6de7a06443ffdf513055abfd85d0f2d6a67110f928518958830",
+  "artifacts": [
+    {
+      "cityId": "tampa-bay",
+      "manifestPath": "finder/output/tampa-bay/artifact-manifest.json",
+      "manifestSha256": "sha256:3bdb9eee32189bbc4d790ea2f48e3f95612031de196ecc9a42a1438f6d522e5a",
+      "manifestId": "sha256:035cb1eed7e67d143c4b0739d8dd3c2373bd3af2e85562aad0fc4895651615b1",
+      "buildId": "sha256:65a75e81823893d24051e99387364d1b1ab450be748f6dc58cc58c14d61d5381",
+      "placesPath": "finder/output/tampa-bay/places.json",
+      "placesSha256": "sha256:749eed658f2df7c8f9d175391ba06518c7b88168f4e27afab0a63ff647e3a57b",
+      "placesBytes": 1358383,
+      "placesCount": 2163
+    },
+    {
+      "cityId": "sf-east-bay",
+      "manifestPath": "finder/output/sf-east-bay/artifact-manifest.json",
+      "manifestSha256": "sha256:a94c3c1a68f6c860453c716a6e6cb93d6d949f72b156059fac0fa72cc91644c9",
+      "manifestId": "sha256:64bb1151dc6ab947689ac5fa661b563ce5951c7c1098a7c1733884ddccccddf9",
+      "buildId": "sha256:7b025d648b008ee914eefbc0df65cc20b2ec783d405db8958779eb11ce35a0d7",
+      "placesPath": "finder/output/sf-east-bay/places.json",
+      "placesSha256": "sha256:3266d7bd41c784fb2a87295a17498c7a6194ea93ba2b37555bdb713c89774646",
+      "placesBytes": 1530924,
+      "placesCount": 2888
+    }
+  ],
+  "summary": {
+    "total": 100,
+    "cities": [
+      {
+        "cityId": "tampa-bay",
+        "candidatePool": 139,
+        "selected": 50,
+        "delivery": [
+          { "value": "remote", "count": 35 },
+          { "value": "self-hosted", "count": 15 }
+        ],
+        "sourceFamilies": [
+          { "value": "commons-geosearch", "count": 15 },
+          { "value": "mapillary-sign", "count": 15 },
+          { "value": "wikidata-p18", "count": 15 },
+          { "value": "wikidata-p373", "count": 5 }
+        ],
+        "riskFlags": [
+          { "value": "ADDRESS_MISSING", "count": 12 },
+          { "value": "LICENSE_URL_MISSING", "count": 2 },
+          { "value": "REFERENCE_REUSED", "count": 15 },
+          { "value": "SELF_HOSTED_BYTES", "count": 15 }
+        ]
+      },
+      {
+        "cityId": "sf-east-bay",
+        "candidatePool": 175,
+        "selected": 50,
+        "delivery": [
+          { "value": "remote", "count": 50 }
+        ],
+        "sourceFamilies": [
+          { "value": "wikidata-p18", "count": 35 },
+          { "value": "wikidata-p373", "count": 15 }
+        ],
+        "riskFlags": [
+          { "value": "ADDRESS_MISSING", "count": 42 },
+          { "value": "LICENSE_URL_MISSING", "count": 10 }
+        ]
+      }
+    ]
+  },
+  "sampleItemIds": {
+    "tampa-bay": [
+      "p|grassroots-kava",
+      "p|foundation-coffee-co-ybor-city",
+      "p|honeymoon-island-state-park",
+      "p|crews-lake-wilderness-park",
+      "p|gypsysouls-coffeehouse-redington",
+      "p|bro-bowl",
+      "p|fort-de-soto-park",
+      "p|curtis-hixon-waterfront-park",
+      "p|neighborhood-joe",
+      "p|fort-hamer-park",
+      "p|desoto-national-memorial",
+      "p|florida-botanical-garden",
+      "p|tenth-street-coffee",
+      "p|edward-medard-park-boat-ramp",
+      "p|egmont-key-national-wildlife-refuge",
+      "p|nathan-benderson-park",
+      "p|whistle-stop-caf",
+      "p|morris-bridge-park",
+      "p|manatee-mineral-springs-park",
+      "p|werner-boyce-salt-springs-state-park",
+      "p|banyan-coffee-co",
+      "p|hammock-park",
+      "p|palma-sola-botanical-park",
+      "p|beangood-coffee",
+      "p|sunset-beach",
+      "p|alafia-river-state-park",
+      "p|buddy-brew-coffee",
+      "p|perry-harvey-sr-park",
+      "p|colt-creek-state-park",
+      "p|cafe-1001-and-creative-catering-company",
+      "p|edward-medard-park-canoe-kayak-launch",
+      "p|hillsborough-river-state-park",
+      "p|di-coffee-bar",
+      "p|fort-hamer-public-boat-ramp",
+      "p|little-manatee-river-state-park",
+      "p|foundation-coffee-company",
+      "p|ken-thompson-park-boat-ramp",
+      "p|ballast-point-park",
+      "p|indian-shores-coffee",
+      "p|ken-thompson-park-kayak-beach",
+      "p|boyd-hill-nature-preserve",
+      "p|kahwa-south",
+      "p|sunset-beach-park-sand-launch-beach-city-permit-required",
+      "p|vinoy-park",
+      "p|kaleisia-tea-lounge",
+      "p|ybor-city-museum-state-park",
+      "p|wall-springs-park",
+      "p|madison-avenue-cafe-and-deli",
+      "p|del-bello-park",
+      "p|weedon-island-preserve"
+    ],
+    "sf-east-bay": [
+      "p|don-castro-regional-recreation-area",
+      "p|marin-headlands",
+      "p|las-trampas-wilderness-regional-preserve",
+      "p|ocean-beach",
+      "p|point-isabel-regional-shoreline",
+      "p|sutro-heights-park",
+      "p|temescal-regional-recreation-area",
+      "p|diablo-foothills-regional-park",
+      "p|bushrod-park",
+      "p|dr-aurelia-reinhardt-redwood-regional-park",
+      "p|pardee-home-museum",
+      "p|lake-chabot-regional-park",
+      "p|san-bruno-mountain-state-and-county-park",
+      "p|heather-farm-park",
+      "p|john-muir-national-historic-site",
+      "p|joaquin-miller-park",
+      "p|morcom-rose-garden",
+      "p|keller-beach",
+      "p|yerba-buena-gardens",
+      "p|mount-diablo-state-park",
+      "p|baker-beach",
+      "p|rincon-park",
+      "p|fort-mason",
+      "p|glen-canyon-park",
+      "p|anthony-chabot-regional-park",
+      "p|st-mary-s-square",
+      "p|briones-regional-park",
+      "p|presidio-of-san-francisco",
+      "p|brooks-island-regional-preserve",
+      "p|san-francisco-botanical-garden",
+      "p|mclaughlin-eastshore-state-park",
+      "p|potrero-del-sol",
+      "p|robert-sibley-volcanic-regional-preserve",
+      "p|robert-w-crown-memorial-state-beach",
+      "p|coit-tower-cafe",
+      "p|regional-parks-botanic-garden",
+      "p|albany-bulb",
+      "p|alcatraz-island",
+      "p|alvarado-park",
+      "p|aquatic-park-historic-district",
+      "p|candlestick-point-state-recreation-area",
+      "p|china-camp-state-park",
+      "p|civic-center-plaza",
+      "p|crane-cove-park",
+      "p|dinosaur-hill-park",
+      "p|don-fernando-pacheco-adobe",
+      "p|ernie-raimondi-park",
+      "p|fort-funston",
+      "p|harvey-milk-plaza",
+      "p|hyde-street-pier"
+    ]
+  }
+}

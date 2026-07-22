@@ -8,7 +8,10 @@ test('dev-city grants the expired preview flag only to Vite serve', () => {
   const source = read('finder/dev-city.mjs')
   assert.match(source, /const EXPIRED_PREVIEW_FLAG = 'VITE_ALLOW_EXPIRED_ARTIFACT_PREVIEW'/)
   assert.match(source, /delete env\[EXPIRED_PREVIEW_FLAG\]/)
-  assert.match(source, /const viteServe = process\.env\.DEV_LAUNCH_PROBE !== '1' && \['serve', 'dev'\]\.includes\(viteCommand\)/)
+  assert.match(
+    source,
+    /const viteServe = process\.env\.DEV_STAGE_ONLY !== '1' && process\.env\.DEV_LAUNCH_PROBE !== '1' &&[\s\S]*?\['serve', 'dev'\]\.includes\(viteCommand\)/,
+  )
   assert.match(source, /if \(viteServe\) \{[\s\S]*?viteEnv\[EXPIRED_PREVIEW_FLAG\] = '1'/)
   assert.match(source, /DEVELOPMENT-ONLY EXPIRED ARTIFACT PREVIEW ENABLED/)
   assert.match(source, /env: viteEnv/)

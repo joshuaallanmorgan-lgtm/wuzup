@@ -13,6 +13,7 @@ import { CITY } from './src/city.js'
 
 const APP_ROOT = dirname(fileURLToPath(import.meta.url))
 const PUBLIC_DIR = resolve(globalThis.process?.env?.WUZUP_PUBLIC_DIR || resolve(APP_ROOT, 'public'))
+const STABLE_DEV = globalThis.process?.env?.WUZUP_STABLE_DEV === '1'
 const verifiedArtifacts = verifyArtifactSet({
   root: PUBLIC_DIR,
   expectedCityId: CITY.id,
@@ -90,6 +91,25 @@ const MANIFEST = JSON.stringify(
   2
 )
 
+function stableDevReload() {
+  let reloadTimer = null
+  return {
+    name: 'stable-development-reload',
+    apply: 'serve',
+    enforce: 'post',
+    handleHotUpdate({ server }) {
+      if (!STABLE_DEV) return
+      clearTimeout(reloadTimer)
+      reloadTimer = setTimeout(() => {
+        server.ws.send({ type: 'full-reload' })
+      }, 100)
+      // Suppress partial module updates. One debounced document reload applies
+      // the complete provider graph from a coherent module evaluation.
+      return []
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   base: BASE,
@@ -100,6 +120,7 @@ export default defineConfig({
   },
   plugins: [
     react(),
+    stableDevReload(),
     {
       // Production keeps a strict meta CSP. Vite's development-only React
       // refresh preamble is inline and HMR connects to a local WebSocket, so

@@ -1353,22 +1353,37 @@ items in the audit; the owner approves the premium existing-product pass.
   existing Aurora composition remains readable. Credited place photos keep their disclosure, broken images fail
   per URL, requests use `no-referrer`, and missing-ID custom/legacy events fall back instead of crashing. The
   shipped CSP limits images and network access to the disclosed hosts; offline behavior is described as absent.
+- **The independent image audit now has an immutable population:** a deterministic risk/source/delivery sampler
+  selects exactly 50 currently renderable credited place photos per flagship city and binds the set to manifest,
+  build, places-artifact, item, credit, rank-proxy, and selected local-byte evidence. The schema hard-codes every
+  identity, pixel, legal, and human verdict as pending/false. A separate decision contract requires exact reviewed
+  byte hashes/metadata for all remote and local verdicts; `test:s10-images` passes 8/8 and rejects omissions,
+  tampering, drift, mutable-URL-only evidence, or a fabricated keep. The actual online 100-image review and owner
+  policy remain open.
 - **Local development no longer looks falsely empty when the committed fixture ages out:** Vite serve may expose
   an expired artifact only behind an explicit development-only flag and only after the normal bytes, hash, schema,
   city, timezone, manifest, and source-health checks pass. Settings labels that state prominently. Builds,
   previews, launch probes, and production continue to refuse the same expired bytes.
+- **The mobile localhost stays coherent while Codex changes the workspace:** one in-process Vite server holds an
+  OS-backed loopback ownership socket before artifact staging, so simultaneous or duplicate launches refuse before
+  touching `app/public` and Windows cannot orphan a child server. Stable development batches a multi-file change
+  storm into one full document reload instead of hot-swapping half a provider graph. A real 390px browser regression
+  races two launchers, touches the three provider modules, proves the document instance changes, and then opens Events
+  without the prior provider-context crash or error boundary.
 - **Remote gates now carry the work:** CI enforces payload budgets after the Tampa production build, and the
   browser workflow adds the Sprint 10 mobile-width, lazy-loading, modal/focus, CSP/image, and Axe journey beside
   the existing composed-city and Sprint 9 journeys.
 - **Verification is green:** focused Sprint 10 contracts pass 36/36 and the complete serial gate passes 918/918,
   including the 64.3-second finder contract, immutable artifacts, Tampa/SF and base-path builds, and app lint. The
   payload manifest gate passes 2/2. The composed Tampa/SF browser journey, Sprint 9 durable-route journey, and
-  Sprint 10 responsive/accessibility/lazy-image journey each pass 1/1 with no serious/critical Axe finding,
-  console error, or disallowed image request. Live acquisition was unavailable during the finder gate, so its
+  Sprint 10 responsive/accessibility/lazy-image plus live-development journey pass 1/1, 1/1, and 2/2 respectively,
+  with no serious/critical Axe finding, console error, provider crash, or disallowed image request. Live acquisition
+  was unavailable during the finder gate, so its
   existing cache-backed source-count floor remained an explicit diagnostic rather than being relabeled healthy.
-- **Sprint 10 remains yellow:** deterministic image delivery is safer, but the ratified positive flagship-image
-  targets, independent 100-image identity/credit audit, and owner premium visual approval are still open. This
-  checkpoint does not claim those exit-gate decisions or advance the roadmap to beta.
+- **Sprint 10 remains yellow:** deterministic image delivery and the frozen 100-row review population are safer,
+  but the ratified positive flagship-image targets, actual independent pixel/identity/credit decisions, and owner
+  premium visual approval are still open. This checkpoint does not claim those exit-gate decisions or advance the
+  roadmap to beta.
 
 ## Validation and United States coverage
 
@@ -1386,6 +1401,21 @@ Committed scope:
 
 **Exit gate:** no open P0, green refresh/deploy SLOs, a reproducible beta report, and no evidence that the core
 first-value promise is false.
+
+#### Sprint 11 explicit-research readiness receipt - 2026-07-21 (preparatory)
+
+- **A privacy-bounded evidence contract is ready before collection begins:** each session binds to one immutable
+  flagship manifest/build pair and retains only elapsed milestones, bounded outcome counts, source-link outcome,
+  returning-use self-report, and a yes/no/unclear core-promise assessment. Exact-key validation refuses personal
+  identity, timestamps, queries, titles, URLs, coordinates, taste/plan contents, free text, and nested expansion.
+- **The report is deterministic and denominator-explicit:** aggregate and per-city median/p75 milestones, source
+  success, empty-search, duplicate, correction, repeat-use, and core-promise metrics keep their observed, attempted,
+  and session-incidence denominators according to metric type. Mixed or unexpected release bytes and replayed
+  session receipts hard-fail. Without a configuration the report is `insufficient`; adequate configured sample
+  size is only `reviewable` and never an inferred pass or fail.
+- **This does not advance the roadmap:** the six-session fixture is synthetic arithmetic evidence, not product use.
+  Sprint 10 imagery/owner approval, fresh verified flagship artifacts, green refresh/deploy observation, real research
+  sessions, and P0/P1 triage remain required before Sprint 11 can close.
 
 ### Sprint 12 - Controlled Tampa/SF beta, cycle two and pilot go/no-go
 
