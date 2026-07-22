@@ -28,6 +28,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    outputs:
+      site_release_id: ${{ steps.site-release.outputs.release_id }}
     steps:
       - name: Refuse non-main deployment refs
         shell: bash
@@ -53,13 +56,31 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: app/package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            app/package-lock.json
 
-      # app deps only: finder/deploy.mjs (the data-staging step) is
-      # dependency-free by design (node builtins + the city registry), so the
-      # root install (playwright/sharp — heavy, native) is not needed to deploy.
-      - name: Install app dependencies
-        run: npm --prefix app ci
+      # The deploy re-runs the complete contract and mobile-browser gates on
+      # this exact main SHA. Pull-request checks alone are not publication
+      # evidence for a direct push or a newly created merge commit.
+      - name: Install release dependencies
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: |
+          npm ci
+          npm --prefix app ci
+
+      - name: Gate the exact deployment commit
+        run: npm test
+
+      - name: Install release Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run exact-deployment browser journeys
+        run: |
+          npm run test:browser
+          npm run test:browser-s9
+          npm run test:browser-s10
 
       # BASE_PATH derives from the repo name — a rename keeps the site working
       # without touching this file ('/wuzup/' today).
@@ -72,6 +93,11 @@ jobs:
           CITY=tampa-bay node finder/verify-app-build.mjs app/dist
           mkdir -p _site
           cp -r app/dist/. _site/
+
+      - name: Enforce Tampa Bay release payload budgets
+        env:
+          WUZUP_BUILD_DIR: _site
+        run: npm run test:s10-performance
 
       # deploy.mjs re-stages app/public with SF's artifact set (mirrored
       # place-img and all — ephemeral in CI, exactly what it exists for), then
@@ -86,10 +112,21 @@ jobs:
           mkdir -p _site/sf
           cp -r app/dist/. _site/sf/
 
-      # .nojekyll: Pages must serve the tree verbatim (no Jekyll pass — it
-      # would drop dotfiles and anything it can't parse).
-      - name: Assemble the Pages artifact
-        run: touch _site/.nojekyll
+      - name: Enforce SF & East Bay release payload budgets
+        env:
+          WUZUP_BUILD_DIR: _site/sf
+        run: npm run test:s10-performance
+
+      # Vite's private build manifest is build evidence, not a participant-
+      # facing member. Pages must serve the remaining tree verbatim, and the
+      # site receipt binds every shipped byte before upload.
+      - name: Seal the composed Pages site
+        id: site-release
+        shell: bash
+        run: |
+          rm -rf _site/.vite _site/sf/.vite
+          : > _site/.nojekyll
+          node finder/build-site-release.mjs _site "$GITHUB_SHA" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -116,9 +153,9 @@ jobs:
   # remote bytes may be observed while stale/unhealthy data still blocks the
   # release kit. Any remote mismatch emits no deploy binding and fails loudly.
   attest:
-    needs: deploy
+    needs: [build, deploy]
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -140,6 +177,9 @@ jobs:
 
       - name: Observe participant-facing release bytes
         shell: bash
+        env:
+          SITE_RELEASE_ID: ${{ needs.build.outputs.site_release_id }}
+          SOURCE_COMMIT: ${{ github.sha }}
         run: |
           set -o pipefail
           PRODUCT_ROOT="${{ needs.deploy.outputs.page_url }}"
@@ -147,7 +187,11 @@ jobs:
             echo "::error::Pages deployment did not emit a participant-facing URL"
             exit 1
           fi
-          node shared/beta-production-observation.mjs "$PRODUCT_ROOT" \
+          if [ -z "$SITE_RELEASE_ID" ]; then
+            echo "::error::Pages build did not emit a composed-site release identity"
+            exit 1
+          fi
+          node shared/beta-production-observation.mjs "$PRODUCT_ROOT" "$SITE_RELEASE_ID" "$SOURCE_COMMIT" \
             | tee "$RUNNER_TEMP/s11-production-attestation.json"
 
       - name: Publish attestation summary

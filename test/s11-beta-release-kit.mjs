@@ -22,6 +22,7 @@ const NOW_MS = Date.parse('2026-07-22T12:00:00.000Z')
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const GENERATED_AT = '2026-07-22T10:00:00.000Z'
 const ASSEMBLED_AT = '2026-07-22T10:05:00.000Z'
+const SITE_RELEASE_ID = `sha256:${'a'.repeat(64)}`
 const CITY_TIME_ZONES = Object.freeze({
   'sf-east-bay': 'America/Los_Angeles',
   'tampa-bay': 'America/New_York',
@@ -111,6 +112,7 @@ test('checked flagship artifacts are honestly blocked at the explicit Sprint 11 
     'CITY_NOT_RELEASE_READY:sf-east-bay',
     'CITY_NOT_RELEASE_READY:tampa-bay',
     'DEPLOYED_RELEASE_BINDING_REQUIRED',
+    'DEPLOYED_SITE_RELEASE_BINDING_REQUIRED',
   ])
   for (const city of result.cities) {
     const checkedManifest = JSON.parse(readFileSync(
@@ -133,19 +135,27 @@ test('prepares exact owner-fillable research inputs only for two release-ready a
     nowMs: NOW_MS,
     artifactRoots: fixture.roots,
     deployedReleases: fixture.releases,
+    deployedSiteReleaseId: SITE_RELEASE_ID,
   })
 
   assert.equal(result.status, 'release-ready')
   assert.deepEqual(result.blockers, [])
   assert.equal(result.kit.evaluatedAt, '2026-07-22T12:00:00.000Z')
-  assert.deepEqual(result.kit.releaseBindings, fixture.releases)
+  assert.deepEqual(result.kit.releaseBindings, {
+    siteReleaseId: SITE_RELEASE_ID,
+    cityReleases: fixture.releases,
+  })
   assert.deepEqual(result.kit.reviewConfigTemplate, {
     requiredCityIds: ['sf-east-bay', 'tampa-bay'],
     minimumSessionsPerCity: null,
+    expectedSiteReleaseId: SITE_RELEASE_ID,
     expectedReleases: fixture.releases,
   })
   assert.equal('passThreshold' in result.kit.reviewConfigTemplate, false)
   assert.equal(result.kit.sessionTemplates.length, 2)
+  assert.equal(result.kit.sessionTemplates.every((template) => (
+    template.siteReleaseId === SITE_RELEASE_ID
+  )), true)
   assert.equal(Object.isFrozen(result), true)
   assert.equal(Object.isFrozen(result.kit.sessionTemplates[0].milestones), true)
 
@@ -169,7 +179,10 @@ test('fresh local artifacts cannot authorize sessions without independently obse
 
   assert.equal(result.status, 'blocked')
   assert.equal(result.kit, null)
-  assert.deepEqual(result.blockers, ['DEPLOYED_RELEASE_BINDING_REQUIRED'])
+  assert.deepEqual(result.blockers, [
+    'DEPLOYED_RELEASE_BINDING_REQUIRED',
+    'DEPLOYED_SITE_RELEASE_BINDING_REQUIRED',
+  ])
   assert.equal(result.cities.every((city) => city.status === 'artifact-ready'), true)
 })
 
@@ -225,6 +238,7 @@ test('refuses a deployed release mismatch instead of silently rebinding research
     nowMs: NOW_MS,
     artifactRoots: fixture.roots,
     deployedReleases,
+    deployedSiteReleaseId: SITE_RELEASE_ID,
   })
 
   assert.equal(result.status, 'blocked')
@@ -249,10 +263,58 @@ test('requires deterministic inputs and rejects partial or malformed release bin
     artifactRoots: fixture.roots,
     deployedReleases: { 'tampa-bay': fixture.releases['tampa-bay'] },
   }), /deployed releases must contain exactly/)
+  assert.throws(() => prepareS11BetaReleaseKit({
+    nowMs: NOW_MS,
+    artifactRoots: fixture.roots,
+    deployedReleases: fixture.releases,
+    deployedSiteReleaseId: 'latest',
+  }), /deployed site release ID is invalid/)
+
+  const missingSiteBinding = prepareS11BetaReleaseKit({
+    nowMs: NOW_MS,
+    artifactRoots: fixture.roots,
+    deployedReleases: fixture.releases,
+  })
+  assert.equal(missingSiteBinding.status, 'blocked')
+  assert.equal(missingSiteBinding.kit, null)
+  assert.deepEqual(missingSiteBinding.blockers, ['DEPLOYED_SITE_RELEASE_BINDING_REQUIRED'])
+  assert.equal(missingSiteBinding.cities.every((city) => city.status === 'artifact-ready'), true)
+
+  const missingCityBindings = prepareS11BetaReleaseKit({
+    nowMs: NOW_MS,
+    artifactRoots: fixture.roots,
+    deployedSiteReleaseId: SITE_RELEASE_ID,
+  })
+  assert.equal(missingCityBindings.status, 'blocked')
+  assert.deepEqual(missingCityBindings.blockers, ['DEPLOYED_RELEASE_BINDING_REQUIRED'])
 
   const first = prepareS11BetaReleaseKit({ nowMs: NOW_MS, artifactRoots: fixture.roots })
   const second = prepareS11BetaReleaseKit({ nowMs: NOW_MS, artifactRoots: fixture.roots })
   assert.deepEqual(second, first)
+})
+
+test('UI-only site releases remain distinct even when both city identities match', (t) => {
+  const fixture = createTwoCityArtifacts(t)
+  const first = prepareS11BetaReleaseKit({
+    nowMs: NOW_MS,
+    artifactRoots: fixture.roots,
+    deployedReleases: fixture.releases,
+    deployedSiteReleaseId: SITE_RELEASE_ID,
+  })
+  const secondSiteReleaseId = `sha256:${'b'.repeat(64)}`
+  const second = prepareS11BetaReleaseKit({
+    nowMs: NOW_MS,
+    artifactRoots: fixture.roots,
+    deployedReleases: fixture.releases,
+    deployedSiteReleaseId: secondSiteReleaseId,
+  })
+
+  assert.equal(first.status, 'release-ready')
+  assert.equal(second.status, 'release-ready')
+  assert.deepEqual(first.kit.releaseBindings.cityReleases, second.kit.releaseBindings.cityReleases)
+  assert.equal(first.kit.releaseBindings.siteReleaseId, SITE_RELEASE_ID)
+  assert.equal(second.kit.releaseBindings.siteReleaseId, secondSiteReleaseId)
+  assert.notDeepEqual(first.kit.sessionTemplates, second.kit.sessionTemplates)
 })
 
 test('each city identity and readiness decision comes from one strict artifact verification', () => {

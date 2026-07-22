@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import {
   mkdirSync,
   mkdtempSync,
@@ -15,15 +16,18 @@ import { fileURLToPath } from 'node:url'
 import { writeManifest } from '../finder/artifact-manifest.mjs'
 import {
   buildS11ProductionAttestation,
+  inspectS11ExecutedSiteBytes,
   inspectS11LoadedJavascript,
   observeS11ParticipantRelease,
   S11_PRODUCTION_ROOT_URL,
 } from '../shared/beta-production-observation.mjs'
 import { prepareS11BetaReleaseKit } from '../shared/beta-release-kit.mjs'
+import { createS11SiteReleaseReceipt } from '../shared/site-release-contract.mjs'
 
 const NOW_MS = Date.parse('2026-07-22T12:00:00.000Z')
 const PRODUCT_ROOT = S11_PRODUCTION_ROOT_URL
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+const SOURCE_COMMIT = 'a'.repeat(40)
 const CITY_TIME_ZONES = Object.freeze({
   'sf-east-bay': 'America/Los_Angeles',
   'tampa-bay': 'America/New_York',
@@ -108,7 +112,7 @@ function createTwoCityArtifacts(t, options = {}) {
     cityId,
     createArtifactRoot(base, cityId, options[cityId]),
   ]))
-  return {
+  const fixture = {
     sets,
     roots: Object.fromEntries(Object.entries(sets).map(([cityId, set]) => [cityId, set.root])),
     releases: Object.fromEntries(Object.entries(sets).map(([cityId, set]) => [cityId, {
@@ -116,6 +120,20 @@ function createTwoCityArtifacts(t, options = {}) {
       buildId: set.manifest.buildId,
     }])),
   }
+  const files = fixtureParticipantFiles(fixture)
+    .map(({ filePath, bytes }) => ({
+      path: filePath,
+      bytes: bytes.length,
+      sha256: createHash('sha256').update(bytes).digest('hex'),
+    }))
+    .sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0)
+  fixture.sourceCommit = SOURCE_COMMIT
+  fixture.siteReceipt = createS11SiteReleaseReceipt({
+    sourceCommit: fixture.sourceCommit,
+    releases: fixture.releases,
+    files,
+  })
+  return fixture
 }
 
 function route(bytes, contentType, overrides = {}) {
@@ -127,39 +145,152 @@ function route(bytes, contentType, overrides = {}) {
   }
 }
 
-function remoteRoutes(fixture) {
-  const routes = new Map()
+function fixtureParticipantFiles(fixture) {
+  const files = []
   for (const [cityId, set] of Object.entries(fixture.sets)) {
     const baseUrl = new URL(CITY_PATHS[cityId], PRODUCT_ROOT)
+    const prefix = CITY_PATHS[cityId]
     const manifestBytes = readFileSync(path.join(set.root, 'artifact-manifest.json'))
-    routes.set(new URL('artifact-manifest.json', baseUrl).href, route(manifestBytes, 'application/json'))
+    files.push({
+      filePath: `${prefix}artifact-manifest.json`,
+      url: new URL('artifact-manifest.json', baseUrl).href,
+      bytes: manifestBytes,
+      contentType: 'application/json',
+    })
     for (const name of ['events.json', 'places.json', 'guides.json']) {
-      routes.set(new URL(name, baseUrl).href, route(readFileSync(path.join(set.root, name)), 'application/json'))
+      files.push({
+        filePath: `${prefix}${name}`,
+        url: new URL(name, baseUrl).href,
+        bytes: readFileSync(path.join(set.root, name)),
+        contentType: 'application/json',
+      })
     }
-    routes.set(
-      new URL(`place-img/${set.imageName}`, baseUrl).href,
-      route(readFileSync(path.join(set.root, 'place-img', set.imageName)), 'image/jpeg'),
-    )
+    files.push({
+      filePath: `${prefix}place-img/${set.imageName}`,
+      url: new URL(`place-img/${set.imageName}`, baseUrl).href,
+      bytes: readFileSync(path.join(set.root, 'place-img', set.imageName)),
+      contentType: 'image/jpeg',
+    })
     const entryPath = `assets/index-${cityId}.js`
     const pinPath = `assets/nav-${cityId}.js`
-    routes.set(baseUrl.href, route(
-      `<html><head><script type="module" src="${baseUrl.pathname}${entryPath}"></script></head></html>`,
-      'text/html',
-    ))
-    routes.set(new URL(entryPath, baseUrl).href, route(
-      `import "./nav-${cityId}.js"; export const ready = true`,
-      'application/javascript',
-    ))
-    routes.set(new URL(pinPath, baseUrl).href, route(
-      `export const approvedManifest = "${set.manifest.manifestId}"`,
-      'application/javascript',
-    ))
+    files.push({
+      filePath: `${prefix}index.html`,
+      url: baseUrl.href,
+      bytes: Buffer.from(`<html><head><script type="module" src="${baseUrl.pathname}${entryPath}"></script></head></html>`),
+      contentType: 'text/html',
+    })
+    files.push({
+      filePath: `${prefix}${entryPath}`,
+      url: new URL(entryPath, baseUrl).href,
+      bytes: Buffer.from(`import "./nav-${cityId}.js"; export const ready = true`),
+      contentType: 'application/javascript',
+    })
+    files.push({
+      filePath: `${prefix}${pinPath}`,
+      url: new URL(pinPath, baseUrl).href,
+      bytes: Buffer.from(`export const approvedManifest = "${set.manifest.manifestId}"`),
+      contentType: 'application/javascript',
+    })
+    files.push({
+      filePath: `${prefix}assets/app-${cityId}.css`,
+      url: new URL(`assets/app-${cityId}.css`, baseUrl).href,
+      bytes: Buffer.from('.app { display: block; }'),
+      contentType: 'text/css',
+    })
+    files.push({
+      filePath: `${prefix}fonts/inter-${cityId}.woff2`,
+      url: new URL(`fonts/inter-${cityId}.woff2`, baseUrl).href,
+      bytes: Buffer.from(`fixture font for ${cityId}`),
+      contentType: 'font/woff2',
+    })
+    files.push({
+      filePath: `${prefix}manifest.webmanifest`,
+      url: new URL('manifest.webmanifest', baseUrl).href,
+      bytes: Buffer.from(`{"name":"Wuzup ${cityId}"}\n`),
+      contentType: 'application/manifest+json',
+    })
+    files.push({
+      filePath: `${prefix}favicon.svg`,
+      url: new URL('favicon.svg', baseUrl).href,
+      bytes: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>'),
+      contentType: 'image/svg+xml',
+    })
   }
+  return files
+}
+
+function remoteRoutes(fixture) {
+  const routes = new Map(fixtureParticipantFiles(fixture).map((entry) => [
+    entry.url,
+    route(entry.bytes, entry.contentType),
+  ]))
+  routes.set(
+    new URL('site-release.json', PRODUCT_ROOT).href,
+    route(`${JSON.stringify(fixture.siteReceipt, null, 2)}\n`, 'application/json'),
+  )
   return routes
 }
 
+function siteBindings(fixture) {
+  return {
+    expectedReleases: fixture.releases,
+    expectedSiteReleaseId: fixture.siteReceipt.releaseId,
+    expectedSourceCommit: fixture.sourceCommit,
+  }
+}
+
+function fixtureExecutedSiteEvidence(fixture, cityId) {
+  const prefix = CITY_PATHS[cityId]
+  const belongsToCity = (filePath) => prefix
+    ? filePath.startsWith(prefix)
+    : !filePath.startsWith(CITY_PATHS['sf-east-bay'])
+  const files = fixtureParticipantFiles(fixture).filter((entry) => belongsToCity(entry.filePath))
+  const document = files.find((entry) => entry.filePath === `${prefix}index.html`)
+  return {
+    baseUrl: new URL(prefix, PRODUCT_ROOT),
+    documentRecord: {
+      bytes: Buffer.from(document.bytes),
+      contentType: document.contentType,
+      redirected: false,
+      status: 200,
+      url: document.url,
+    },
+    scriptRecords: files
+      .filter((entry) => entry.filePath.endsWith('.js'))
+      .map((entry) => ({
+        bytes: Buffer.from(entry.bytes),
+        contentType: entry.contentType,
+        redirected: false,
+        status: 200,
+        url: entry.url,
+      })),
+  }
+}
+
+function receiptBoundFixtureBrowserProbe(fixture, mutateEvidence = (evidence) => evidence) {
+  return async ({ cityId, baseUrl, timeZone, siteReceipt }) => {
+    const evidence = mutateEvidence(fixtureExecutedSiteEvidence(fixture, cityId), cityId)
+    const siteProof = inspectS11ExecutedSiteBytes({
+      cityId,
+      baseUrl,
+      siteReceipt,
+      documentRecord: evidence.documentRecord,
+      scriptRecords: evidence.scriptRecords,
+    })
+    return {
+      cityId,
+      baseUrl: baseUrl.href,
+      timeZone,
+      runtimeStatus: 'ready',
+      manifestId: fixture.releases[cityId].manifestId,
+      buildId: fixture.releases[cityId].buildId,
+      ...siteProof,
+    }
+  }
+}
+
 function fixtureBrowserProbe(fixture, overrides = {}) {
-  return async ({ cityId, baseUrl, timeZone }) => ({
+  return async ({ cityId, baseUrl, timeZone, siteReceipt }) => ({
     cityId,
     baseUrl: baseUrl.href,
     timeZone,
@@ -169,6 +300,8 @@ function fixtureBrowserProbe(fixture, overrides = {}) {
     javascriptBytes: 256,
     javascriptFiles: 2,
     manifestPinned: true,
+    siteBytesVerified: true,
+    siteReleaseId: siteReceipt.releaseId,
     ...(overrides[cityId] || {}),
   })
 }
@@ -184,6 +317,10 @@ function fixtureFetch(routes, { mutate } = {}) {
   }
   fetchImpl.calls = calls
   return fetchImpl
+}
+
+function urlReadNumber(calls, url) {
+  return calls.reduce((count, call) => count + Number(call.url === url), 0)
 }
 
 function response(requestUrl, entry) {
@@ -207,13 +344,14 @@ test('observes exact two-city participant bytes and feeds only that complete rel
   const observed = await observeS11ParticipantRelease({
     nowMs: NOW_MS,
     productRootUrl: PRODUCT_ROOT,
-    expectedReleases: fixture.releases,
+    ...siteBindings(fixture),
     fetchImpl,
     browserProbe: fixtureBrowserProbe(fixture),
     attempts: 1,
   })
 
   assert.equal(observed.status, 'observed')
+  assert.equal(observed.schemaVersion, 2)
   assert.deepEqual(observed.deployedReleases, fixture.releases)
   assert.equal(observed.cities.every((city) => city.status === 'observed'), true)
   assert.equal(observed.cities.every((city) => city.evidence.placeImageCount === 1), true)
@@ -228,22 +366,138 @@ test('observes exact two-city participant bytes and feeds only that complete rel
     nowMs: NOW_MS,
     artifactRoots: fixture.roots,
     deployedReleases: observed.deployedReleases,
+    deployedSiteReleaseId: observed.site.releaseId,
   })
   assert.equal(kit.status, 'release-ready')
+})
+
+test('wrong composed-site release or source identities fail before either city can bind', async (t) => {
+  const fixture = createTwoCityArtifacts(t)
+  const cases = [
+    {
+      field: 'expectedSiteReleaseId',
+      value: `sha256:${'b'.repeat(64)}`,
+      problem: 'SITE_RELEASE_ID_MISMATCH',
+    },
+    {
+      field: 'expectedSourceCommit',
+      value: 'b'.repeat(40),
+      problem: 'SITE_SOURCE_COMMIT_MISMATCH',
+    },
+  ]
+  for (const current of cases) {
+    await t.test(current.field, async () => {
+      let browserCalls = 0
+      const observed = await observeS11ParticipantRelease({
+        nowMs: NOW_MS,
+        productRootUrl: PRODUCT_ROOT,
+        ...siteBindings(fixture),
+        [current.field]: current.value,
+        fetchImpl: fixtureFetch(remoteRoutes(fixture)),
+        browserProbe: async () => {
+          browserCalls += 1
+          throw new Error('browser must not run for an unbound site receipt')
+        },
+        attempts: 1,
+      })
+      assert.equal(observed.status, 'blocked')
+      assert.equal(observed.deployedReleases, null)
+      assert.deepEqual(observed.site.problems, [current.problem])
+      assert.equal(browserCalls, 0)
+    })
+  }
+})
+
+test('missing or tampered participant-facing files invalidate the composed site before city probes', async (t) => {
+  const cases = [
+    {
+      name: 'tampered file',
+      problem: 'SITE_FILE_DIGEST_MISMATCH',
+      mutate: (routes, target) => {
+        const original = routes.get(target)
+        routes.set(target, route(Buffer.from(original.bytes).fill(0x20), original.contentType))
+      },
+    },
+    {
+      name: 'missing file',
+      problem: 'SITE_FILE_HTTP_404',
+      mutate: (routes, target) => routes.delete(target),
+    },
+  ]
+  for (const current of cases) {
+    await t.test(current.name, async () => {
+      const fixture = createTwoCityArtifacts(t)
+      const routes = remoteRoutes(fixture)
+      current.mutate(routes, new URL('events.json', PRODUCT_ROOT).href)
+      const observed = await observeS11ParticipantRelease({
+        nowMs: NOW_MS,
+        productRootUrl: PRODUCT_ROOT,
+        ...siteBindings(fixture),
+        fetchImpl: fixtureFetch(routes),
+        browserProbe: fixtureBrowserProbe(fixture),
+        attempts: 1,
+      })
+      assert.equal(observed.status, 'blocked')
+      assert.equal(observed.deployedReleases, null)
+      assert.deepEqual(observed.site.problems, [current.problem])
+      assert.equal(observed.cities.every((city) => (
+        city.problems[0] === 'SITE_TRANSACTION_NOT_ATTEMPTED'
+      )), true)
+    })
+  }
+})
+
+test('receipt-byte flips retry the complete site and both city probes as one transaction', async (t) => {
+  const fixture = createTwoCityArtifacts(t)
+  const routes = remoteRoutes(fixture)
+  const receiptUrl = new URL('site-release.json', PRODUCT_ROOT).href
+  const browserCalls = []
+  const baseProbe = fixtureBrowserProbe(fixture)
+  const observed = await observeS11ParticipantRelease({
+    nowMs: NOW_MS,
+    productRootUrl: PRODUCT_ROOT,
+    ...siteBindings(fixture),
+    fetchImpl: fixtureFetch(routes, {
+      mutate: ({ url, original, calls }) => (
+        url === receiptUrl && urlReadNumber(calls, url) === 2
+          ? { ...original, bytes: Buffer.concat([original.bytes, Buffer.from(' ')]) }
+          : original
+      ),
+    }),
+    browserProbe: async (options) => {
+      browserCalls.push(options.cityId)
+      return baseProbe(options)
+    },
+    attempts: 2,
+  })
+  assert.equal(observed.status, 'observed')
+  assert.equal(observed.site.attemptsUsed, 2)
+  assert.equal(observed.cities.every((city) => city.attemptsUsed === 2), true)
+  assert.deepEqual(browserCalls, [
+    'sf-east-bay',
+    'tampa-bay',
+    'sf-east-bay',
+    'tampa-bay',
+  ])
 })
 
 test('one tampered city blocks the complete deployed-release binding', async (t) => {
   const fixture = createTwoCityArtifacts(t)
   const routes = remoteRoutes(fixture)
   const target = new URL('events.json', PRODUCT_ROOT).href
-  const original = routes.get(target)
-  routes.set(target, route(Buffer.from(original.bytes).fill(0x20), 'application/json'))
+  const fetchImpl = fixtureFetch(routes, {
+    mutate: ({ url, original, calls }) => (
+      url === target && urlReadNumber(calls, url) === 2
+        ? route(Buffer.from(original.bytes).fill(0x20), 'application/json')
+        : original
+    ),
+  })
 
   const observed = await observeS11ParticipantRelease({
     nowMs: NOW_MS,
     productRootUrl: PRODUCT_ROOT,
-    expectedReleases: fixture.releases,
-    fetchImpl: fixtureFetch(routes),
+    ...siteBindings(fixture),
+    fetchImpl,
     browserProbe: fixtureBrowserProbe(fixture),
     attempts: 1,
   })
@@ -269,7 +523,7 @@ test('encoded transfer length is never confused with the decoded bytes being has
   const observed = await observeS11ParticipantRelease({
     nowMs: NOW_MS,
     productRootUrl: PRODUCT_ROOT,
-    expectedReleases: fixture.releases,
+    ...siteBindings(fixture),
     fetchImpl,
     browserProbe: fixtureBrowserProbe(fixture),
     attempts: 1,
@@ -282,36 +536,44 @@ test('redirects, HTTP fallback, wrong-city manifests, and oversized declarations
   const cases = [
     {
       name: 'redirect',
-      mutate: ({ url, original }) => url.endsWith('/artifact-manifest.json')
+      mutate: ({ url, original, calls }) => (
+        url.endsWith('/artifact-manifest.json') && urlReadNumber(calls, url) === 2
         ? { ...original, responseUrl: `${url}?redirected=1` }
-        : original,
+        : original
+      ),
       problem: 'MANIFEST_REDIRECTED',
     },
     {
       name: 'html fallback',
-      mutate: ({ url, original }) => url.endsWith('/artifact-manifest.json')
+      mutate: ({ url, original, calls }) => (
+        url.endsWith('/artifact-manifest.json') && urlReadNumber(calls, url) === 2
         ? route('<html>missing</html>', 'text/html', { status: 404 })
-        : original,
+        : original
+      ),
       problem: 'MANIFEST_HTTP_404',
     },
     {
       name: 'oversize',
-      mutate: ({ url, original }) => url.endsWith('/artifact-manifest.json')
+      mutate: ({ url, original, calls }) => (
+        url.endsWith('/artifact-manifest.json') && urlReadNumber(calls, url) === 2
         ? { ...original, contentLength: 600 * 1024 }
-        : original,
+        : original
+      ),
       problem: 'RESPONSE_TOO_LARGE',
     },
     {
       name: 'content length mismatch',
-      mutate: ({ url, original }) => url.endsWith('/artifact-manifest.json')
+      mutate: ({ url, original, calls }) => (
+        url.endsWith('/artifact-manifest.json') && urlReadNumber(calls, url) === 2
         ? { ...original, contentLength: original.bytes.length - 1 }
-        : original,
+        : original
+      ),
       problem: 'CONTENT_LENGTH_MISMATCH',
     },
     {
       name: 'unsupported future shards',
-      mutate: ({ url, original }) => {
-        if (!url.endsWith('/artifact-manifest.json')) return original
+      mutate: ({ url, original, calls }) => {
+        if (!url.endsWith('/artifact-manifest.json') || urlReadNumber(calls, url) !== 2) return original
         const manifest = JSON.parse(original.bytes.toString('utf8'))
         manifest.shards = ['future-shard.json']
         return route(`${JSON.stringify(manifest)}\n`, 'application/json')
@@ -340,11 +602,14 @@ test('redirects, HTTP fallback, wrong-city manifests, and oversized declarations
   const routes = remoteRoutes(fixture)
   const tampaUrl = new URL('artifact-manifest.json', PRODUCT_ROOT).href
   const sfUrl = new URL('artifact-manifest.json', new URL('sf/', PRODUCT_ROOT)).href
-  routes.set(tampaUrl, routes.get(sfUrl))
   const wrongCity = await observeS11ParticipantRelease({
     nowMs: NOW_MS,
     productRootUrl: PRODUCT_ROOT,
-    fetchImpl: fixtureFetch(routes),
+    fetchImpl: fixtureFetch(routes, {
+      mutate: ({ url, original, calls }) => (
+        url === tampaUrl && urlReadNumber(calls, url) === 2 ? routes.get(sfUrl) : original
+      ),
+    }),
     browserProbe: fixtureBrowserProbe(fixture),
     attempts: 1,
   })
@@ -362,12 +627,16 @@ test('image-tree tampering and loaded browser scripts without the manifest pin b
     `place-img/${fixture.sets['tampa-bay'].imageName}`,
     PRODUCT_ROOT,
   ).href
-  const originalImage = imageRoutes.get(tampaImageUrl)
-  imageRoutes.set(tampaImageUrl, route(Buffer.from(originalImage.bytes).fill(0x78), 'image/jpeg'))
   const imageResult = await observeS11ParticipantRelease({
     nowMs: NOW_MS,
     productRootUrl: PRODUCT_ROOT,
-    fetchImpl: fixtureFetch(imageRoutes),
+    fetchImpl: fixtureFetch(imageRoutes, {
+      mutate: ({ url, original, calls }) => (
+        url === tampaImageUrl && urlReadNumber(calls, url) === 2
+          ? route(Buffer.from(original.bytes).fill(0x78), 'image/jpeg')
+          : original
+      ),
+    }),
     browserProbe: fixtureBrowserProbe(fixture),
     attempts: 1,
   })
@@ -415,7 +684,7 @@ test('actual loaded script bytes handle minified imports while static decoys and
   const decoyResult = await observeS11ParticipantRelease({
     nowMs: NOW_MS,
     productRootUrl: PRODUCT_ROOT,
-    expectedReleases: fixture.releases,
+    ...siteBindings(fixture),
     fetchImpl: fixtureFetch(remoteRoutes(fixture)),
     browserProbe: fixtureBrowserProbe(fixture, {
       'tampa-bay': { manifestPinned: decoy.manifestPinned },
@@ -431,7 +700,7 @@ test('actual loaded script bytes handle minified imports while static decoys and
   const runtimeResult = await observeS11ParticipantRelease({
     nowMs: NOW_MS,
     productRootUrl: PRODUCT_ROOT,
-    expectedReleases: fixture.releases,
+    ...siteBindings(fixture),
     fetchImpl: fixtureFetch(remoteRoutes(fixture)),
     browserProbe: fixtureBrowserProbe(fixture, {
       'tampa-bay': { manifestId: wrongRuntimeManifest },
@@ -444,15 +713,20 @@ test('actual loaded script bytes handle minified imports while static decoys and
   )
 
   const prepopulatedRoutes = remoteRoutes(fixture)
-  prepopulatedRoutes.set(PRODUCT_ROOT, route(
-    `<html><body><div class="app" data-city-runtime-status="ready" data-manifest-id="${manifestId}" data-build-id="${fixture.releases['tampa-bay'].buildId}"></div></body></html>`,
-    'text/html',
-  ))
   const prepopulated = await observeS11ParticipantRelease({
     nowMs: NOW_MS,
     productRootUrl: PRODUCT_ROOT,
-    expectedReleases: fixture.releases,
-    fetchImpl: fixtureFetch(prepopulatedRoutes),
+    ...siteBindings(fixture),
+    fetchImpl: fixtureFetch(prepopulatedRoutes, {
+      mutate: ({ url, original, calls }) => (
+        url === PRODUCT_ROOT && urlReadNumber(calls, url) === 2
+          ? route(
+            `<html><body><div class="app" data-city-runtime-status="ready" data-manifest-id="${manifestId}" data-build-id="${fixture.releases['tampa-bay'].buildId}"></div></body></html>`,
+            'text/html',
+          )
+          : original
+      ),
+    }),
     browserProbe: fixtureBrowserProbe(fixture),
     attempts: 1,
   })
@@ -462,7 +736,104 @@ test('actual loaded script bytes handle minified imports while static decoys and
   )
 })
 
-test('a manifest flip retries the whole city and never binds mixed generations', async (t) => {
+test('browser-executed HTML and scripts must be exact members of receipt A while the site bracket stays A', async (t) => {
+  const fixture = createTwoCityArtifacts(t)
+  for (const cityId of Object.keys(CITY_PATHS)) {
+    const evidence = fixtureExecutedSiteEvidence(fixture, cityId)
+    const proof = inspectS11ExecutedSiteBytes({
+      cityId,
+      baseUrl: evidence.baseUrl,
+      siteReceipt: fixture.siteReceipt,
+      documentRecord: evidence.documentRecord,
+      scriptRecords: evidence.scriptRecords,
+    })
+    assert.equal(proof.siteBytesVerified, true)
+    assert.equal(proof.siteReleaseId, fixture.siteReceipt.releaseId)
+    assert.equal(proof.manifestPinned, true)
+  }
+
+  const cases = [
+    {
+      name: 'HTML B',
+      problem: 'APP_HTML_SITE_DIGEST_MISMATCH',
+      mutate: (evidence) => ({
+        ...evidence,
+        documentRecord: {
+          ...evidence.documentRecord,
+          bytes: Buffer.from(evidence.documentRecord.bytes).fill(0x78),
+        },
+      }),
+    },
+    {
+      name: 'loaded script B',
+      problem: 'APP_SCRIPT_SITE_DIGEST_MISMATCH',
+      mutate: (evidence) => ({
+        ...evidence,
+        scriptRecords: evidence.scriptRecords.map((record, index) => index === 0
+          ? { ...record, bytes: Buffer.from(record.bytes).fill(0x78) }
+          : record),
+      }),
+    },
+    {
+      name: 'unexpected same-origin script',
+      problem: 'APP_SCRIPT_NOT_IN_SITE_RELEASE',
+      mutate: (evidence) => ({
+        ...evidence,
+        scriptRecords: [
+          ...evidence.scriptRecords,
+          {
+            bytes: Buffer.from('export const unexpected = true'),
+            contentType: 'application/javascript',
+            redirected: false,
+            status: 200,
+            url: new URL('assets/unexpected.js', PRODUCT_ROOT).href,
+          },
+        ],
+      }),
+    },
+  ]
+
+  for (const current of cases) {
+    await t.test(current.name, async () => {
+      const observed = await observeS11ParticipantRelease({
+        nowMs: NOW_MS,
+        productRootUrl: PRODUCT_ROOT,
+        ...siteBindings(fixture),
+        fetchImpl: fixtureFetch(remoteRoutes(fixture)),
+        browserProbe: receiptBoundFixtureBrowserProbe(fixture, (evidence, cityId) => (
+          cityId === 'tampa-bay' ? current.mutate(evidence) : evidence
+        )),
+        attempts: 1,
+      })
+      assert.equal(observed.status, 'blocked')
+      assert.equal(observed.site.status, 'observed')
+      assert.deepEqual(
+        observed.cities.find((city) => city.cityId === 'tampa-bay').problems,
+        [current.problem],
+      )
+    })
+  }
+
+  for (const override of [
+    { siteBytesVerified: false },
+    { siteReleaseId: `sha256:${'f'.repeat(64)}` },
+  ]) {
+    const observed = await observeS11ParticipantRelease({
+      nowMs: NOW_MS,
+      productRootUrl: PRODUCT_ROOT,
+      ...siteBindings(fixture),
+      fetchImpl: fixtureFetch(remoteRoutes(fixture)),
+      browserProbe: fixtureBrowserProbe(fixture, { 'tampa-bay': override }),
+      attempts: 1,
+    })
+    assert.deepEqual(
+      observed.cities.find((city) => city.cityId === 'tampa-bay').problems,
+      ['APP_SITE_BYTES_MISMATCH'],
+    )
+  }
+})
+
+test('a city manifest flip retries the whole site and never binds mixed generations', async (t) => {
   const fixture = createTwoCityArtifacts(t)
   const routes = remoteRoutes(fixture)
   const tampaManifestUrl = new URL('artifact-manifest.json', PRODUCT_ROOT).href
@@ -477,19 +848,31 @@ test('a manifest flip retries the whole city and never binds mixed generations',
       return original
     },
   })
+  const browserCalls = []
+  const baseProbe = fixtureBrowserProbe(fixture)
 
   const observed = await observeS11ParticipantRelease({
     nowMs: NOW_MS,
     productRootUrl: PRODUCT_ROOT,
-    expectedReleases: fixture.releases,
+    ...siteBindings(fixture),
     fetchImpl,
-    browserProbe: fixtureBrowserProbe(fixture),
+    browserProbe: async (options) => {
+      browserCalls.push(options.cityId)
+      return baseProbe(options)
+    },
     attempts: 2,
   })
 
   assert.equal(observed.status, 'observed')
+  assert.equal(observed.site.attemptsUsed, 2)
   assert.equal(observed.cities.find((city) => city.cityId === 'tampa-bay').attemptsUsed, 2)
   assert.deepEqual(observed.deployedReleases, fixture.releases)
+  assert.deepEqual(browserCalls, [
+    'sf-east-bay',
+    'tampa-bay',
+    'sf-east-bay',
+    'tampa-bay',
+  ])
 })
 
 test('exact production bytes without the approved two-city release pair remain unbound', async (t) => {
@@ -508,6 +891,37 @@ test('exact production bytes without the approved two-city release pair remain u
   assert.equal(observed.cities.every((city) => city.status === 'observed'), true)
 })
 
+test('an unbound receipt still pins each city probe to its own declared release identities', async (t) => {
+  const fixture = createTwoCityArtifacts(t)
+  const rogueReleases = structuredClone(fixture.releases)
+  rogueReleases['tampa-bay'].manifestId = `sha256:${'c'.repeat(64)}`
+  const rogueReceipt = createS11SiteReleaseReceipt({
+    sourceCommit: fixture.sourceCommit,
+    releases: rogueReleases,
+    files: fixture.siteReceipt.files,
+  })
+  const routes = remoteRoutes(fixture)
+  routes.set(
+    new URL('site-release.json', PRODUCT_ROOT).href,
+    route(`${JSON.stringify(rogueReceipt, null, 2)}\n`, 'application/json'),
+  )
+  const observed = await observeS11ParticipantRelease({
+    nowMs: NOW_MS,
+    productRootUrl: PRODUCT_ROOT,
+    fetchImpl: fixtureFetch(routes),
+    browserProbe: fixtureBrowserProbe(fixture),
+    attempts: 1,
+  })
+
+  assert.equal(observed.status, 'blocked')
+  assert.equal(observed.deployedReleases, null)
+  assert.equal(observed.site.status, 'observed')
+  assert.deepEqual(
+    observed.cities.find((city) => city.cityId === 'tampa-bay').problems,
+    ['EXPECTED_RELEASE_MISMATCH'],
+  )
+})
+
 test('stale or source-unverified exact production remains observed but cannot authorize beta', async (t) => {
   const fixture = createTwoCityArtifacts(t, {
     'sf-east-bay': {
@@ -524,7 +938,7 @@ test('stale or source-unverified exact production remains observed but cannot au
   const observed = await observeS11ParticipantRelease({
     nowMs: NOW_MS,
     productRootUrl: PRODUCT_ROOT,
-    expectedReleases: fixture.releases,
+    ...siteBindings(fixture),
     fetchImpl: fixtureFetch(remoteRoutes(fixture)),
     browserProbe: fixtureBrowserProbe(fixture),
     attempts: 1,
@@ -535,6 +949,7 @@ test('stale or source-unverified exact production remains observed but cannot au
     nowMs: NOW_MS,
     artifactRoots: fixture.roots,
     deployedReleases: observed.deployedReleases,
+    deployedSiteReleaseId: observed.site.releaseId,
   })
   assert.equal(kit.status, 'blocked')
   assert.equal(kit.kit, null)
@@ -551,16 +966,14 @@ test('expected-release mismatch and malformed observer inputs never silently reb
   const observed = await observeS11ParticipantRelease({
     nowMs: NOW_MS,
     productRootUrl: PRODUCT_ROOT,
+    ...siteBindings(fixture),
     expectedReleases: mismatch,
     fetchImpl: fixtureFetch(remoteRoutes(fixture)),
     browserProbe: fixtureBrowserProbe(fixture),
     attempts: 1,
   })
   assert.equal(observed.deployedReleases, null)
-  assert.deepEqual(
-    observed.cities.find((city) => city.cityId === 'tampa-bay').problems,
-    ['EXPECTED_RELEASE_MISMATCH'],
-  )
+  assert.deepEqual(observed.site.problems, ['SITE_CITY_RELEASE_MISMATCH'])
 
   await assert.rejects(() => observeS11ParticipantRelease(), /requires an explicit nowMs/)
   await assert.rejects(() => observeS11ParticipantRelease({
@@ -577,13 +990,39 @@ test('expected-release mismatch and malformed observer inputs never silently reb
     expectedReleases: { 'tampa-bay': fixture.releases['tampa-bay'] },
   }), /must contain exactly/)
 
-  const emptyCliRoot = spawnSync(
+  const missingCliBindings = spawnSync(
     process.execPath,
     [path.join(ROOT, 'shared', 'beta-production-observation.mjs'), ''],
     { cwd: ROOT, encoding: 'utf8' },
   )
+  assert.equal(missingCliBindings.status, 1)
+  assert.match(missingCliBindings.stderr, /usage:/)
+
+  const emptyCliRoot = spawnSync(
+    process.execPath,
+    [
+      path.join(ROOT, 'shared', 'beta-production-observation.mjs'),
+      '',
+      fixture.siteReceipt.releaseId,
+      fixture.sourceCommit,
+    ],
+    { cwd: ROOT, encoding: 'utf8' },
+  )
   assert.equal(emptyCliRoot.status, 1)
   assert.match(emptyCliRoot.stderr, /productRootUrl must be a non-empty URL/)
+
+  const emptyCliSiteId = spawnSync(
+    process.execPath,
+    [
+      path.join(ROOT, 'shared', 'beta-production-observation.mjs'),
+      PRODUCT_ROOT,
+      '',
+      fixture.sourceCommit,
+    ],
+    { cwd: ROOT, encoding: 'utf8' },
+  )
+  assert.equal(emptyCliSiteId.status, 1)
+  assert.match(emptyCliSiteId.stderr, /expectedSiteReleaseId is invalid/)
 })
 
 test('production attestation distinguishes observed publication from release-ready policy', async (t) => {
@@ -592,12 +1031,15 @@ test('production attestation distinguishes observed publication from release-rea
     nowMs: NOW_MS,
     productRootUrl: PRODUCT_ROOT,
     artifactRoots: fixture.roots,
+    expectedSiteReleaseId: fixture.siteReceipt.releaseId,
+    expectedSourceCommit: fixture.sourceCommit,
     fetchImpl: fixtureFetch(remoteRoutes(fixture)),
     browserProbe: fixtureBrowserProbe(fixture),
     attempts: 1,
     retryDelayMs: 0,
   })
   assert.equal(result.status, 'release-ready')
+  assert.equal(result.schemaVersion, 2)
   assert.equal(result.observation.status, 'observed')
   assert.equal(result.betaReadiness.status, 'release-ready')
 })
@@ -607,16 +1049,31 @@ test('Pages deploy is main-only and retains a post-deploy observation without wi
   assert.match(workflow, /if \[ "\$GITHUB_REF" != "refs\/heads\/main" \]/)
   assert.match(workflow, /ref: \$\{\{ github\.sha \}\}/)
   assert.match(workflow, /git rev-parse HEAD.*GITHUB_SHA/s)
+  assert.match(workflow, /build:\s+runs-on: ubuntu-latest\s+timeout-minutes: 45/)
+  assert.match(workflow, /PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'[\s\S]*?npm ci[\s\S]*?npm --prefix app ci/)
+  assert.match(workflow, /Gate the exact deployment commit\s+run: npm test/)
+  assert.match(workflow, /Run exact-deployment browser journeys[\s\S]*?npm run test:browser\s+npm run test:browser-s9\s+npm run test:browser-s10/)
   assert.match(workflow, /REQUIRE_FRESH_ARTIFACTS=1 REQUIRE_VERIFIED_SOURCES=1 CITY=tampa-bay node finder\/deploy\.mjs/)
   assert.match(workflow, /REQUIRE_FRESH_ARTIFACTS=1 REQUIRE_VERIFIED_SOURCES=1 CITY=sf-east-bay node finder\/deploy\.mjs/)
+  assert.match(workflow, /WUZUP_BUILD_DIR: _site\s+run: npm run test:s10-performance/)
+  assert.match(workflow, /WUZUP_BUILD_DIR: _site\/sf\s+run: npm run test:s10-performance/)
+  assert.ok(
+    workflow.indexOf('Gate the exact deployment commit') < workflow.indexOf('Stage + build Tampa Bay'),
+    'the exact-SHA gate must complete before final release assembly',
+  )
+  assert.ok(
+    workflow.indexOf('Run exact-deployment browser journeys') < workflow.indexOf('Stage + build Tampa Bay'),
+    'the exact-SHA browser journeys must complete before final release assembly',
+  )
   assert.match(workflow, /deploy:\s+needs: build[\s\S]*?permissions:\s+contents: read\s+pages: write\s+id-token: write/)
-  assert.match(workflow, /attest:\s+needs: deploy/)
+  assert.match(workflow, /attest:\s+needs: \[build, deploy\]/)
   assert.match(workflow, /PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'[\s\S]*?npm ci --ignore-scripts/)
   assert.match(workflow, /npx playwright install --with-deps chromium/)
   assert.match(workflow, /PRODUCT_ROOT="\$\{\{ needs\.deploy\.outputs\.page_url \}\}"/)
   assert.match(workflow, /if \[ -z "\$PRODUCT_ROOT" \]/)
   assert.match(workflow, /Observe participant-facing release bytes[\s\S]*?set -o pipefail[\s\S]*?\| tee/)
   assert.match(workflow, /node shared\/beta-production-observation\.mjs/)
+  assert.match(workflow, /"\$PRODUCT_ROOT" "\$SITE_RELEASE_ID" "\$SOURCE_COMMIT"/)
   assert.match(workflow, /retention-days: 90/)
   const globalPermissions = workflow.match(/^permissions:\s*\n((?:  .+\n)+)/m)?.[1] || ''
   assert.equal(globalPermissions.includes('pages: write'), false)

@@ -17,12 +17,18 @@ import {
   S11_CHECKED_ARTIFACT_ROOTS,
 } from './beta-release-kit.mjs'
 import { S11_BETA_CITY_IDS } from './beta-research.mjs'
+import {
+  S11_SITE_RELEASE_FILE,
+  S11_SITE_RELEASE_LIMITS,
+  verifyS11SiteReleaseReceipt,
+} from './site-release-contract.mjs'
 
 export const S11_PRODUCTION_OBSERVATION_SCHEMA = 'wuzup-beta-production-observation'
-export const S11_PRODUCTION_OBSERVATION_SCHEMA_VERSION = 1
+export const S11_PRODUCTION_OBSERVATION_SCHEMA_VERSION = 2
 export const S11_PRODUCTION_ROOT_URL = 'https://joshuaallanmorgan-lgtm.github.io/wuzup/'
 
 const SHA256_ID = /^sha256:[a-f0-9]{64}$/
+const SOURCE_COMMIT = /^[a-f0-9]{40}$/
 const SAFE_IMAGE_NAME = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,254}$/
 const CITY_CONTRACTS = Object.freeze({
   'sf-east-bay': Object.freeze({ path: 'sf/', timeZone: 'America/Los_Angeles' }),
@@ -45,6 +51,13 @@ const JAVASCRIPT_TYPES = new Set([
   'application/javascript',
   'application/x-javascript',
   'text/javascript',
+])
+const CSS_TYPES = new Set(['text/css'])
+const FONT_TYPES = new Set([
+  'application/font-woff',
+  'application/octet-stream',
+  'font/woff',
+  'font/woff2',
 ])
 
 class ObservationError extends Error {
@@ -164,6 +177,24 @@ function normalizeReleaseBindings(value, label, { optional = false } = {}) {
   return normalized
 }
 
+function normalizeSiteReleaseId(value, { optional = false } = {}) {
+  if (optional && (value === null || value === undefined)) return null
+  invariant(
+    typeof value === 'string' && SHA256_ID.test(value),
+    'expectedSiteReleaseId is invalid',
+  )
+  return value
+}
+
+function normalizeSourceCommit(value, { optional = false } = {}) {
+  if (optional && (value === null || value === undefined)) return null
+  invariant(
+    typeof value === 'string' && SOURCE_COMMIT.test(value),
+    'expectedSourceCommit is invalid',
+  )
+  return value
+}
+
 function mediaType(headers) {
   return String(headers?.get?.('content-type') || '').split(';', 1)[0].trim().toLowerCase()
 }
@@ -174,6 +205,8 @@ function allowedContentType(headers, expected) {
   if (expected === 'html') return HTML_TYPES.has(type)
   if (expected === 'javascript') return JAVASCRIPT_TYPES.has(type)
   if (expected === 'image') return type.startsWith('image/')
+  if (expected === 'css') return CSS_TYPES.has(type)
+  if (expected === 'font') return FONT_TYPES.has(type)
   return false
 }
 
@@ -246,7 +279,11 @@ async function fetchBytes(url, {
             ? 'text/html'
             : expectedType === 'javascript'
               ? 'application/javascript, text/javascript'
-              : 'image/avif, image/webp, image/png, image/jpeg',
+              : expectedType === 'css'
+                ? 'text/css'
+                : expectedType === 'font'
+                  ? 'font/woff2, font/woff, application/octet-stream'
+                  : 'image/avif, image/webp, image/png, image/jpeg, image/svg+xml',
         'accept-encoding': 'identity',
         'cache-control': 'no-cache',
         pragma: 'no-cache',
@@ -326,6 +363,86 @@ function exactMemberUrl(baseUrl, relativePath, label) {
     throw new ObservationError(`${label}_PATH_ESCAPES_CITY`)
   }
   return url
+}
+
+function expectedSiteFileType(filePath) {
+  const lower = filePath.toLowerCase()
+  if (lower.endsWith('.html')) return 'html'
+  if (lower.endsWith('.json') || lower.endsWith('.webmanifest')) return 'json'
+  if (lower.endsWith('.js')) return 'javascript'
+  if (lower.endsWith('.css')) return 'css'
+  if (/\.(?:avif|gif|ico|jpe?g|png|svg|webp)$/.test(lower)) return 'image'
+  if (/\.(?:otf|ttf|woff2?)$/.test(lower)) return 'font'
+  throw new ObservationError('SITE_FILE_TYPE_UNSUPPORTED')
+}
+
+function siteFileUrl(root, filePath) {
+  if (filePath === 'index.html') return root
+  if (filePath === 'sf/index.html') return new URL('sf/', root)
+  return exactMemberUrl(root, filePath, 'SITE_FILE')
+}
+
+function siteReceiptProblemCode(problems) {
+  const detail = problems.join(' | ')
+  if (detail.includes('expected releaseId')) return 'SITE_RELEASE_ID_MISMATCH'
+  if (detail.includes('expected source commit')) return 'SITE_SOURCE_COMMIT_MISMATCH'
+  if (detail.includes('match expected')) return 'SITE_CITY_RELEASE_MISMATCH'
+  return 'SITE_RELEASE_CONTRACT_INVALID'
+}
+
+function validatedSiteReceipt(bytes, {
+  expectedSiteReleaseId,
+  expectedSourceCommit,
+  expectedReleases,
+}) {
+  const parsed = parseJson(bytes, 'SITE_RELEASE')
+  const verified = verifyS11SiteReleaseReceipt(parsed, {
+    expectedReleaseId: expectedSiteReleaseId,
+    expectedSourceCommit,
+    expectedReleases,
+  })
+  if (!verified.ok) {
+    throw new ObservationError(siteReceiptProblemCode(verified.problems))
+  }
+  return verified.receipt
+}
+
+async function fetchSiteReceipt(root, options) {
+  const receiptUrl = exactMemberUrl(root, S11_SITE_RELEASE_FILE, 'SITE_RELEASE')
+  const bytes = await fetchBytes(receiptUrl, {
+    fetchImpl: options.fetchImpl,
+    timeoutMs: options.timeoutMs,
+    maximumBytes: S11_SITE_RELEASE_LIMITS.receiptBytes,
+    expectedType: 'json',
+    label: 'SITE_RELEASE',
+  })
+  const receipt = validatedSiteReceipt(bytes, options)
+  return { bytes, receipt }
+}
+
+async function observeSiteFiles({ root, receipt, fetchImpl, timeoutMs }) {
+  let totalBytes = 0
+  for (const entry of receipt.files) {
+    const bytes = await fetchBytes(siteFileUrl(root, entry.path), {
+      fetchImpl,
+      timeoutMs,
+      maximumBytes: Math.min(S11_SITE_RELEASE_LIMITS.fileBytes, entry.bytes + 1),
+      expectedType: expectedSiteFileType(entry.path),
+      label: 'SITE_FILE',
+    })
+    if (bytes.length !== entry.bytes) throw new ObservationError('SITE_FILE_BYTE_COUNT_MISMATCH')
+    if (sha256(bytes) !== entry.sha256) throw new ObservationError('SITE_FILE_DIGEST_MISMATCH')
+    totalBytes += bytes.length
+    if (totalBytes > S11_SITE_RELEASE_LIMITS.totalBytes) {
+      throw new ObservationError('SITE_TREE_TOO_LARGE')
+    }
+  }
+  if (totalBytes !== receipt.totalBytes) throw new ObservationError('SITE_TREE_BYTE_COUNT_MISMATCH')
+  return {
+    fileCount: receipt.files.length,
+    totalBytes,
+    treeSha256: receipt.treeSha256,
+  }
 }
 
 async function observeArtifacts({ baseUrl, manifest, fetchImpl, timeoutMs }) {
@@ -433,7 +550,95 @@ export function inspectS11LoadedJavascript(records, manifestId) {
   }
 }
 
-async function playwrightBrowserProbe({ cityId, baseUrl, timeZone, expectedRelease, timeoutMs }) {
+function receiptPathBelongsToCity(filePath, cityId) {
+  const prefix = CITY_CONTRACTS[cityId].path
+  if (prefix) return filePath.startsWith(prefix)
+  return !Object.values(CITY_CONTRACTS).some((contract) => (
+    contract.path && filePath.startsWith(contract.path)
+  ))
+}
+
+/**
+ * Bind the bytes the browser actually parsed/executed to the already
+ * validated composed-site receipt. Unloaded code-split chunks may remain in
+ * the receipt, but no loaded same-origin script may fall outside it.
+ */
+export function inspectS11ExecutedSiteBytes({
+  cityId,
+  baseUrl,
+  siteReceipt,
+  documentRecord,
+  scriptRecords,
+}) {
+  invariant(Object.hasOwn(CITY_CONTRACTS, cityId), 'executed site cityId is invalid')
+  invariant(baseUrl instanceof URL, 'executed site baseUrl must be a URL')
+  invariant(plainObject(siteReceipt), 'executed site receipt is invalid')
+  invariant(
+    typeof siteReceipt.releaseId === 'string' && SHA256_ID.test(siteReceipt.releaseId),
+    'executed site receipt releaseId is invalid',
+  )
+  invariant(Array.isArray(siteReceipt.files), 'executed site receipt files are invalid')
+
+  const documentPath = `${CITY_CONTRACTS[cityId].path}index.html`
+  const documentEntry = siteReceipt.files.find((entry) => entry.path === documentPath)
+  if (!documentEntry) throw new ObservationError('APP_HTML_SITE_ENTRY_MISSING')
+  if (!plainObject(documentRecord) || !Buffer.isBuffer(documentRecord.bytes)) {
+    throw new ObservationError('APP_HTML_EVIDENCE_INVALID')
+  }
+  if (documentRecord.redirected === true) throw new ObservationError('APP_HTML_REDIRECTED')
+  if (documentRecord.status !== 200) throw new ObservationError(`APP_HTML_HTTP_${documentRecord.status}`)
+  if (!HTML_TYPES.has(String(documentRecord.contentType || '').split(';', 1)[0].trim().toLowerCase())) {
+    throw new ObservationError('APP_HTML_CONTENT_TYPE_INVALID')
+  }
+  if (documentRecord.url !== baseUrl.href) {
+    throw new ObservationError('APP_HTML_RESPONSE_URL_MISMATCH')
+  }
+  if (documentRecord.bytes.length !== documentEntry.bytes) {
+    throw new ObservationError('APP_HTML_SITE_BYTE_COUNT_MISMATCH')
+  }
+  if (sha256(documentRecord.bytes) !== documentEntry.sha256) {
+    throw new ObservationError('APP_HTML_SITE_DIGEST_MISMATCH')
+  }
+
+  invariant(Array.isArray(scriptRecords), 'executed site script records must be an array')
+  const expectedScripts = new Map(siteReceipt.files
+    .filter((entry) => entry.path.endsWith('.js') && receiptPathBelongsToCity(entry.path, cityId))
+    .map((entry) => {
+      const relativePath = CITY_CONTRACTS[cityId].path
+        ? entry.path.slice(CITY_CONTRACTS[cityId].path.length)
+        : entry.path
+      return [new URL(relativePath, baseUrl).href, entry]
+    }))
+  for (const record of scriptRecords) {
+    if (!plainObject(record) || typeof record.url !== 'string') {
+      throw new ObservationError('APP_SCRIPT_EVIDENCE_INVALID')
+    }
+    const expected = expectedScripts.get(record.url)
+    if (!expected) throw new ObservationError('APP_SCRIPT_NOT_IN_SITE_RELEASE')
+    if (!Buffer.isBuffer(record.bytes)) throw new ObservationError('APP_SCRIPT_EVIDENCE_INVALID')
+    if (record.bytes.length !== expected.bytes) {
+      throw new ObservationError('APP_SCRIPT_SITE_BYTE_COUNT_MISMATCH')
+    }
+    if (sha256(record.bytes) !== expected.sha256) {
+      throw new ObservationError('APP_SCRIPT_SITE_DIGEST_MISMATCH')
+    }
+  }
+  const javascript = inspectS11LoadedJavascript(scriptRecords, siteReceipt.cities[cityId].manifestId)
+  return {
+    ...javascript,
+    siteBytesVerified: true,
+    siteReleaseId: siteReceipt.releaseId,
+  }
+}
+
+async function playwrightBrowserProbe({
+  cityId,
+  baseUrl,
+  timeZone,
+  expectedRelease,
+  siteReceipt,
+  timeoutMs,
+}) {
   const { chromium } = await import('playwright')
   const browser = await chromium.launch({ headless: true })
   try {
@@ -444,8 +649,6 @@ async function playwrightBrowserProbe({ cityId, baseUrl, timeZone, expectedRelea
       else await route.abort('blockedbyclient')
     })
     const page = await context.newPage()
-    const assetRoot = `${baseUrl.pathname}assets/`.replaceAll('//', '/')
-    const scriptUrls = new Set()
     const scriptRecords = []
     page.on('response', (response) => {
       const request = response.request()
@@ -458,13 +661,7 @@ async function playwrightBrowserProbe({ cityId, baseUrl, timeZone, expectedRelea
       }
       if (
         responseUrl.origin !== baseUrl.origin
-        || !responseUrl.pathname.startsWith(assetRoot)
-        || !responseUrl.pathname.endsWith('.js')
-        || responseUrl.search
-        || responseUrl.hash
-        || scriptUrls.has(responseUrl.href)
       ) return
-      scriptUrls.add(responseUrl.href)
       scriptRecords.push((async () => {
         try {
           return {
@@ -472,6 +669,7 @@ async function playwrightBrowserProbe({ cityId, baseUrl, timeZone, expectedRelea
             contentType: response.headers()['content-type'] || '',
             redirected: request.redirectedFrom() !== null,
             status: response.status(),
+            url: responseUrl.href,
           }
         } catch {
           return { problem: 'APP_SCRIPT_BODY_FAILED' }
@@ -481,6 +679,13 @@ async function playwrightBrowserProbe({ cityId, baseUrl, timeZone, expectedRelea
     const response = await page.goto(baseUrl.href, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
     if (!response || response.status() !== 200 || page.url() !== baseUrl.href) {
       throw new Error('participant page did not load at its exact canonical URL')
+    }
+    const documentRecord = {
+      bytes: Buffer.from(await response.body()),
+      contentType: response.headers()['content-type'] || '',
+      redirected: response.request().redirectedFrom() !== null,
+      status: response.status(),
+      url: response.url(),
     }
     const app = page.locator('.app[data-city-runtime-status="ready"][data-manifest-id][data-build-id]')
     await app.waitFor({ state: 'attached', timeout: timeoutMs })
@@ -495,7 +700,13 @@ async function playwrightBrowserProbe({ cityId, baseUrl, timeZone, expectedRelea
     if (loadedRecords.some((record) => record.problem)) {
       throw new Error('participant JavaScript response could not be read')
     }
-    const loadedJavascript = inspectS11LoadedJavascript(loadedRecords, expectedRelease.manifestId)
+    const loadedJavascript = inspectS11ExecutedSiteBytes({
+      cityId,
+      baseUrl,
+      siteReceipt,
+      documentRecord,
+      scriptRecords: loadedRecords,
+    })
     return {
       ...observed,
       ...loadedJavascript,
@@ -514,18 +725,30 @@ async function observeRuntimeIdentity({
   baseUrl,
   timeZone,
   expectedRelease,
+  siteReceipt,
   timeoutMs,
   browserProbe,
 }) {
   let observed
   try {
-    observed = await browserProbe({ cityId, baseUrl, timeZone, expectedRelease, timeoutMs })
+    observed = await browserProbe({
+      cityId,
+      baseUrl,
+      timeZone,
+      expectedRelease,
+      siteReceipt,
+      timeoutMs,
+    })
   } catch (error) {
     if (error instanceof ObservationError) throw error
     throw new ObservationError('APP_RUNTIME_PROBE_FAILED')
   }
   if (!plainObject(observed)) throw new ObservationError('APP_RUNTIME_IDENTITY_MISMATCH')
   if (observed.manifestPinned !== true) throw new ObservationError('APP_MANIFEST_PIN_MISSING')
+  if (
+    observed.siteBytesVerified !== true
+    || observed.siteReleaseId !== siteReceipt.releaseId
+  ) throw new ObservationError('APP_SITE_BYTES_MISMATCH')
   if (
     observed.cityId !== cityId
     || observed.timeZone !== timeZone
@@ -569,6 +792,7 @@ async function observeCityOnce({
   timeZone,
   nowMs,
   expectedRelease,
+  siteReceipt,
   fetchImpl,
   timeoutMs,
   browserProbe,
@@ -617,6 +841,7 @@ async function observeCityOnce({
     baseUrl,
     timeZone,
     expectedRelease: first.release,
+    siteReceipt,
     timeoutMs,
     browserProbe,
   })
@@ -650,29 +875,103 @@ async function observeCityOnce({
   }
 }
 
-async function observeCity(options) {
-  let lastError = new ObservationError('OBSERVATION_NOT_ATTEMPTED')
-  for (let attempt = 1; attempt <= options.attempts; attempt += 1) {
-    try {
-      const result = await observeCityOnce(options)
-      return { ...result, attemptsUsed: attempt }
-    } catch (error) {
-      lastError = error instanceof ObservationError
-        ? error
-        : new ObservationError('OBSERVATION_INTERNAL_ERROR')
-      if (attempt < options.attempts && options.retryDelayMs > 0) {
-        await options.delay(options.retryDelayMs)
-      }
-    }
-  }
+function blockedCity(cityId, root, attempt, problem = 'SITE_TRANSACTION_NOT_ATTEMPTED') {
+  const contract = CITY_CONTRACTS[cityId]
   return {
-    cityId: options.cityId,
-    baseUrl: options.baseUrl.href,
+    cityId,
+    baseUrl: new URL(contract.path, root).href,
     status: 'blocked',
     release: null,
-    attemptsUsed: options.attempts,
+    attemptsUsed: attempt,
     evidence: null,
-    problems: [lastError.code],
+    problems: [problem],
+  }
+}
+
+function blockedSite(attempt, problem = 'SITE_RELEASE_NOT_OBSERVED', receipt = null) {
+  return {
+    status: 'blocked',
+    releaseId: receipt?.releaseId || null,
+    sourceCommit: receipt?.sourceCommit || null,
+    attemptsUsed: attempt,
+    evidence: null,
+    problems: [problem],
+  }
+}
+
+function observationError(error) {
+  return error instanceof ObservationError
+    ? error
+    : new ObservationError('OBSERVATION_INTERNAL_ERROR')
+}
+
+async function observeReleaseOnce(options, attempt) {
+  let receipt = null
+  let site = blockedSite(attempt)
+  let cities = S11_BETA_CITY_IDS.map((cityId) => blockedCity(cityId, options.root, attempt))
+  try {
+    const first = await fetchSiteReceipt(options.root, options)
+    receipt = first.receipt
+    const siteEvidence = await observeSiteFiles({
+      root: options.root,
+      receipt,
+      fetchImpl: options.fetchImpl,
+      timeoutMs: options.timeoutMs,
+    })
+    site = {
+      status: 'observed',
+      releaseId: receipt.releaseId,
+      sourceCommit: receipt.sourceCommit,
+      attemptsUsed: attempt,
+      evidence: siteEvidence,
+      problems: [],
+    }
+
+    cities = []
+    for (const cityId of S11_BETA_CITY_IDS) {
+      const contract = CITY_CONTRACTS[cityId]
+      const baseUrl = new URL(contract.path, options.root)
+      try {
+        const observed = await observeCityOnce({
+          cityId,
+          baseUrl,
+          timeZone: contract.timeZone,
+          nowMs: options.nowMs,
+          expectedRelease: {
+            manifestId: receipt.cities[cityId].manifestId,
+            buildId: receipt.cities[cityId].buildId,
+          },
+          siteReceipt: receipt,
+          fetchImpl: options.fetchImpl,
+          browserProbe: options.browserProbe,
+          timeoutMs: options.timeoutMs,
+        })
+        cities.push({ ...observed, attemptsUsed: attempt })
+      } catch (error) {
+        cities.push(blockedCity(cityId, options.root, attempt, observationError(error).code))
+      }
+    }
+
+    const final = await fetchSiteReceipt(options.root, options)
+    if (!first.bytes.equals(final.bytes)) {
+      throw new ObservationError('SITE_RELEASE_CHANGED_DURING_OBSERVATION')
+    }
+
+    if (cities.some((city) => city.status !== 'observed')) {
+      const error = new ObservationError('CITY_OBSERVATION_FAILED')
+      error.site = site
+      error.cities = cities
+      throw error
+    }
+    return { site, cities }
+  } catch (error) {
+    const normalized = observationError(error)
+    if (normalized.code !== 'CITY_OBSERVATION_FAILED') {
+      site = blockedSite(attempt, normalized.code, receipt)
+    }
+    normalized.site ||= site
+    normalized.cities ||= cities
+    throw normalized
   }
 }
 
@@ -685,6 +984,8 @@ export async function observeS11ParticipantRelease({
   nowMs,
   productRootUrl = S11_PRODUCTION_ROOT_URL,
   expectedReleases = null,
+  expectedSiteReleaseId = null,
+  expectedSourceCommit = null,
   fetchImpl = globalThis.fetch,
   browserProbe = playwrightBrowserProbe,
   timeoutMs = 15_000,
@@ -695,6 +996,13 @@ export async function observeS11ParticipantRelease({
   const evaluatedMs = normalizeNowMs(nowMs)
   const root = normalizeProductRootUrl(productRootUrl)
   const expected = normalizeReleaseBindings(expectedReleases, 'expectedReleases', { optional: true })
+  const expectedSiteId = normalizeSiteReleaseId(expectedSiteReleaseId, { optional: true })
+  const expectedCommit = normalizeSourceCommit(expectedSourceCommit, { optional: true })
+  const bindingParts = [expected, expectedSiteId, expectedCommit]
+  invariant(
+    bindingParts.every((value) => value === null) || bindingParts.every((value) => value !== null),
+    'expected release binding requires expectedReleases, expectedSiteReleaseId, and expectedSourceCommit together',
+  )
   invariant(typeof fetchImpl === 'function', 'fetchImpl must be a function')
   invariant(typeof browserProbe === 'function', 'browserProbe must be a function')
   invariant(typeof delay === 'function', 'delay must be a function')
@@ -707,41 +1015,57 @@ export async function observeS11ParticipantRelease({
     60_000,
   )
 
-  const cities = []
-  for (const cityId of S11_BETA_CITY_IDS) {
-    const contract = CITY_CONTRACTS[cityId]
-    cities.push(await observeCity({
-      cityId,
-      baseUrl: new URL(contract.path, root),
-      timeZone: contract.timeZone,
-      nowMs: evaluatedMs,
-      expectedRelease: expected?.[cityId] || null,
-      fetchImpl,
-      browserProbe,
-      timeoutMs: normalizedTimeoutMs,
-      attempts: normalizedAttempts,
-      retryDelayMs: normalizedRetryDelayMs,
-      delay,
-    }))
+  const options = {
+    root,
+    nowMs: evaluatedMs,
+    expectedReleases: expected,
+    expectedSiteReleaseId: expectedSiteId,
+    expectedSourceCommit: expectedCommit,
+    fetchImpl,
+    browserProbe,
+    timeoutMs: normalizedTimeoutMs,
   }
 
+  let completed = null
+  let lastError = new ObservationError('OBSERVATION_NOT_ATTEMPTED')
+  for (let attempt = 1; attempt <= normalizedAttempts; attempt += 1) {
+    try {
+      completed = await observeReleaseOnce(options, attempt)
+      break
+    } catch (error) {
+      lastError = observationError(error)
+      if (attempt < normalizedAttempts && normalizedRetryDelayMs > 0) {
+        await delay(normalizedRetryDelayMs)
+      }
+    }
+  }
+
+  const site = completed?.site || lastError.site || blockedSite(normalizedAttempts, lastError.code)
+  const cities = completed?.cities
+    || lastError.cities
+    || S11_BETA_CITY_IDS.map((cityId) => blockedCity(cityId, root, normalizedAttempts))
+
   const blocked = cities.filter((city) => city.status !== 'observed')
-  const deployedReleases = blocked.length === 0 && expected
+  const transactionObserved = site.status === 'observed' && blocked.length === 0
+  const bound = expected && expectedSiteId && expectedCommit
+  const deployedReleases = transactionObserved && bound
     ? Object.fromEntries(cities.map((city) => [city.cityId, city.release]))
     : null
-  const unbound = blocked.length === 0 && !expected
+  const unbound = transactionObserved && !bound
   return deepFreeze({
     schema: S11_PRODUCTION_OBSERVATION_SCHEMA,
     schemaVersion: S11_PRODUCTION_OBSERVATION_SCHEMA_VERSION,
     evaluatedAt: new Date(evaluatedMs).toISOString(),
     status: deployedReleases ? 'observed' : unbound ? 'observed-unbound' : 'blocked',
+    site,
     cities,
     deployedReleases,
     blockers: [
+      ...(site.status !== 'observed' ? ['SITE_NOT_OBSERVED'] : []),
       ...blocked.map((city) => `CITY_NOT_OBSERVED:${city.cityId}`),
       ...(unbound ? ['EXPECTED_RELEASE_BINDING_REQUIRED'] : []),
     ],
-    interpretation: 'Observed means exact participant-facing artifact bytes, an actually loaded bundle pin, and executed app identity were verified; it is not a beta pass or refresh/deploy SLO.',
+    interpretation: 'Observed means one exact composed Pages tree, both city artifact sets, actually loaded bundle pins, and executed app identities were verified inside one stable receipt bracket; it is not a beta pass or refresh/deploy SLO.',
   })
 }
 
@@ -771,6 +1095,8 @@ export async function buildS11ProductionAttestation({
   nowMs,
   productRootUrl = S11_PRODUCTION_ROOT_URL,
   artifactRoots = S11_CHECKED_ARTIFACT_ROOTS,
+  expectedSiteReleaseId,
+  expectedSourceCommit,
   fetchImpl = globalThis.fetch,
   browserProbe = playwrightBrowserProbe,
   timeoutMs = 15_000,
@@ -783,6 +1109,8 @@ export async function buildS11ProductionAttestation({
     nowMs,
     productRootUrl,
     expectedReleases,
+    expectedSiteReleaseId,
+    expectedSourceCommit,
     fetchImpl,
     browserProbe,
     timeoutMs,
@@ -794,6 +1122,9 @@ export async function buildS11ProductionAttestation({
     nowMs,
     artifactRoots,
     deployedReleases: observation.deployedReleases,
+    deployedSiteReleaseId: observation.status === 'observed'
+      ? observation.site.releaseId
+      : null,
   })
   return deepFreeze({
     schema: 'wuzup-beta-production-attestation',
@@ -816,9 +1147,14 @@ const isMain = process.argv[1]
 if (isMain) {
   const nowMs = Date.now()
   try {
+    if (process.argv.length < 5) {
+      throw new TypeError('usage: beta-production-observation.mjs <productRootUrl> <expectedSiteReleaseId> <expectedSourceCommit>')
+    }
     const result = await buildS11ProductionAttestation({
       nowMs,
-      productRootUrl: process.argv.length >= 3 ? process.argv[2] : S11_PRODUCTION_ROOT_URL,
+      productRootUrl: process.argv[2],
+      expectedSiteReleaseId: process.argv[3],
+      expectedSourceCommit: process.argv[4],
     })
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`)
     if (result.status === 'integrity-blocked') process.exitCode = 1

@@ -9,7 +9,7 @@ import {
 } from './beta-research.mjs'
 
 export const S11_BETA_RELEASE_KIT_SCHEMA = 'wuzup-beta-release-research-kit'
-export const S11_BETA_RELEASE_KIT_SCHEMA_VERSION = 1
+export const S11_BETA_RELEASE_KIT_SCHEMA_VERSION = 2
 
 const SHA256_ID = /^sha256:[a-f0-9]{64}$/
 const CITY_CONTRACTS = Object.freeze({
@@ -83,6 +83,15 @@ function normalizeDeployedReleases(value) {
   return normalized
 }
 
+function normalizeDeployedSiteReleaseId(value) {
+  if (value === null || value === undefined) return null
+  invariant(
+    typeof value === 'string' && SHA256_ID.test(value),
+    'S11 beta deployed site release ID is invalid',
+  )
+  return value
+}
+
 function releaseIdentity(manifest) {
   return manifest
     ? { manifestId: manifest.manifestId, buildId: manifest.buildId }
@@ -108,11 +117,12 @@ function policyOnlyProblem(problem) {
     || problem === 'places source health is not fully verified and healthy'
 }
 
-function emptySessionTemplate(cityId, release) {
+function emptySessionTemplate(cityId, release, siteReleaseId) {
   return {
     schema: BETA_RESEARCH_SCHEMA,
     schemaVersion: BETA_RESEARCH_SCHEMA_VERSION,
     sessionReceiptId: null,
+    siteReleaseId,
     cityId,
     manifestId: release.manifestId,
     buildId: release.buildId,
@@ -132,7 +142,7 @@ function emptySessionTemplate(cityId, release) {
   }
 }
 
-function researchKit(nowMs, releases) {
+function researchKit(nowMs, releases, siteReleaseId) {
   const expectedReleases = Object.fromEntries(S11_BETA_CITY_IDS.map((cityId) => [
     cityId,
     {
@@ -144,13 +154,19 @@ function researchKit(nowMs, releases) {
     schema: S11_BETA_RELEASE_KIT_SCHEMA,
     schemaVersion: S11_BETA_RELEASE_KIT_SCHEMA_VERSION,
     evaluatedAt: new Date(nowMs).toISOString(),
-    releaseBindings: expectedReleases,
+    releaseBindings: {
+      siteReleaseId,
+      cityReleases: expectedReleases,
+    },
     reviewConfigTemplate: {
       requiredCityIds: [...S11_BETA_CITY_IDS],
       minimumSessionsPerCity: null,
+      expectedSiteReleaseId: siteReleaseId,
       expectedReleases,
     },
-    sessionTemplates: S11_BETA_CITY_IDS.map((cityId) => emptySessionTemplate(cityId, releases[cityId])),
+    sessionTemplates: S11_BETA_CITY_IDS.map((cityId) => (
+      emptySessionTemplate(cityId, releases[cityId], siteReleaseId)
+    )),
     interpretation: 'Technical release readiness is not a beta pass or fail decision.',
   }
 }
@@ -165,6 +181,7 @@ export function prepareS11BetaReleaseKit({
   nowMs,
   artifactRoots = S11_CHECKED_ARTIFACT_ROOTS,
   deployedReleases = null,
+  deployedSiteReleaseId = null,
 } = {}) {
   const evaluatedMs = normalizeNowMs(nowMs)
   const roots = normalizeArtifactRoots(artifactRoots)
@@ -172,6 +189,8 @@ export function prepareS11BetaReleaseKit({
   // exact manifest/build identities independently read from the participant-
   // facing deployment; local finder output alone never authorizes sessions.
   const deployed = normalizeDeployedReleases(deployedReleases)
+  const siteReleaseId = normalizeDeployedSiteReleaseId(deployedSiteReleaseId)
+  const deploymentBound = deployed !== null && siteReleaseId !== null
   const releases = {}
 
   const cities = S11_BETA_CITY_IDS.map((cityId) => {
@@ -196,11 +215,11 @@ export function prepareS11BetaReleaseKit({
       ...identityProblems(observedRelease, deployed?.[cityId], cityId),
     ]
     const artifactReady = problems.length === 0
-    if (artifactReady && deployed) releases[cityId] = observedRelease
+    if (artifactReady && deploymentBound) releases[cityId] = observedRelease
     return {
       cityId,
       timeZone,
-      status: artifactReady ? (deployed ? 'release-ready' : 'artifact-ready') : 'blocked',
+      status: artifactReady ? (deploymentBound ? 'release-ready' : 'artifact-ready') : 'blocked',
       artifactIntegrity: integrityVerified ? 'verified' : 'untrusted',
       observedRelease,
       problems,
@@ -208,8 +227,9 @@ export function prepareS11BetaReleaseKit({
   })
 
   const blocked = cities.filter((city) => city.status === 'blocked')
-  const deploymentBound = deployed !== null
-  const kit = blocked.length === 0 && deploymentBound ? researchKit(evaluatedMs, releases) : null
+  const kit = blocked.length === 0 && deploymentBound
+    ? researchKit(evaluatedMs, releases, siteReleaseId)
+    : null
   return deepFreeze({
     schema: 'wuzup-beta-release-readiness',
     schemaVersion: S11_BETA_RELEASE_KIT_SCHEMA_VERSION,
@@ -219,7 +239,8 @@ export function prepareS11BetaReleaseKit({
     kit,
     blockers: [
       ...blocked.map((city) => `CITY_NOT_RELEASE_READY:${city.cityId}`),
-      ...(!deploymentBound ? ['DEPLOYED_RELEASE_BINDING_REQUIRED'] : []),
+      ...(deployed === null ? ['DEPLOYED_RELEASE_BINDING_REQUIRED'] : []),
+      ...(siteReleaseId === null ? ['DEPLOYED_SITE_RELEASE_BINDING_REQUIRED'] : []),
     ],
     interpretation: 'Release-ready means local artifact bytes match caller-supplied deployed identities and technical gates; it is not a beta pass or fail decision.',
   })

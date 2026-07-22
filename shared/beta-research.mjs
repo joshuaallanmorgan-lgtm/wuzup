@@ -1,15 +1,23 @@
-import { readFile } from 'node:fs/promises'
+import { open } from 'node:fs/promises'
 import path from 'node:path'
+import { TextDecoder } from 'node:util'
 import { fileURLToPath } from 'node:url'
 
 export const BETA_RESEARCH_SCHEMA = 'wuzup-beta-research-session'
-export const BETA_RESEARCH_SCHEMA_VERSION = 1
+export const BETA_RESEARCH_SCHEMA_VERSION = 2
 export const S11_BETA_CITY_IDS = Object.freeze(['sf-east-bay', 'tampa-bay'])
+export const S11_BETA_RESEARCH_LIMITS = Object.freeze({
+  maxSessionsPerCity: 1000,
+  maxTotalSessions: 2000,
+  maxReceiptsJsonBytes: 8 * 1024 * 1024,
+  maxReviewConfigJsonBytes: 256 * 1024,
+})
 
 const RECEIPT_KEYS = Object.freeze([
   'schema',
   'schemaVersion',
   'sessionReceiptId',
+  'siteReleaseId',
   'cityId',
   'manifestId',
   'buildId',
@@ -22,14 +30,20 @@ const RECEIPT_KEYS = Object.freeze([
 ])
 const MILESTONE_KEYS = Object.freeze(['credibleOptionMs', 'firstRetainedValueMs'])
 const COUNT_KEYS = Object.freeze(['emptySearches', 'duplicateExposures', 'corrections'])
-const REVIEW_CONFIG_KEYS = Object.freeze(['requiredCityIds', 'minimumSessionsPerCity', 'expectedReleases'])
+const REVIEW_CONFIG_KEYS = Object.freeze([
+  'requiredCityIds',
+  'minimumSessionsPerCity',
+  'expectedSiteReleaseId',
+  'expectedReleases',
+])
 const RELEASE_KEYS = Object.freeze(['manifestId', 'buildId'])
 const SOURCE_LINK_OUTCOMES = new Set(['not-attempted', 'succeeded', 'failed'])
 const CORE_PROMISE_OUTCOMES = new Set(['yes', 'no', 'unclear'])
 const SHA256_ID = /^sha256:[a-f0-9]{64}$/
 const SESSION_RECEIPT_ID = /^r-[a-f0-9]{32}$/
 const MAX_SESSION_MS = 8 * 60 * 60 * 1000
-const MAX_SESSION_COUNT = 1000
+const MAX_SESSION_COUNT = S11_BETA_RESEARCH_LIMITS.maxSessionsPerCity
+const FILE_READ_CHUNK_BYTES = 64 * 1024
 
 function plainObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -84,6 +98,52 @@ function freezeReceipt(receipt) {
   return Object.freeze(receipt)
 }
 
+function stableFileIdentity(stat) {
+  return [stat.dev, stat.ino, stat.size, stat.mtimeNs, stat.ctimeNs]
+}
+
+async function readBoundedJsonFile(filePath, maximumBytes, label) {
+  const handle = await open(path.resolve(filePath), 'r')
+  try {
+    const before = await handle.stat({ bigint: true })
+    invariant(before.isFile(), `${label} must be a regular file`)
+    invariant(before.size <= BigInt(maximumBytes), `${label} exceeds its byte limit`)
+
+    const chunks = []
+    let totalBytes = 0
+    while (totalBytes <= maximumBytes) {
+      const remaining = maximumBytes + 1 - totalBytes
+      const chunk = Buffer.allocUnsafe(Math.min(FILE_READ_CHUNK_BYTES, remaining))
+      const { bytesRead } = await handle.read(chunk, 0, chunk.length, null)
+      if (bytesRead === 0) break
+      chunks.push(chunk.subarray(0, bytesRead))
+      totalBytes += bytesRead
+    }
+    invariant(totalBytes <= maximumBytes, `${label} exceeds its byte limit`)
+
+    const after = await handle.stat({ bigint: true })
+    invariant(after.isFile(), `${label} must remain a regular file`)
+    invariant(
+      stableFileIdentity(before).every((value, index) => value === stableFileIdentity(after)[index]),
+      `${label} changed while it was being read`,
+    )
+
+    let text
+    try {
+      text = new TextDecoder('utf-8', { fatal: true }).decode(Buffer.concat(chunks, totalBytes))
+    } catch {
+      throw new TypeError(`${label} is not valid UTF-8`)
+    }
+    try {
+      return JSON.parse(text)
+    } catch {
+      throw new TypeError(`${label} is not valid JSON`)
+    }
+  } finally {
+    await handle.close()
+  }
+}
+
 /**
  * Validate one observer-recorded beta session without accepting identifiers,
  * wall-clock timestamps, free text, listing facts, queries, or location data.
@@ -95,6 +155,10 @@ export function normalizeBetaResearchReceipt(value) {
   invariant(
     typeof value.sessionReceiptId === 'string' && SESSION_RECEIPT_ID.test(value.sessionReceiptId),
     'beta research receipt sessionReceiptId is invalid',
+  )
+  invariant(
+    typeof value.siteReleaseId === 'string' && SHA256_ID.test(value.siteReleaseId),
+    'beta research receipt siteReleaseId is invalid',
   )
   invariant(S11_BETA_CITY_IDS.includes(value.cityId), 'beta research receipt cityId is not an S11 flagship')
   invariant(
@@ -155,6 +219,7 @@ export function normalizeBetaResearchReceipt(value) {
     schema: BETA_RESEARCH_SCHEMA,
     schemaVersion: BETA_RESEARCH_SCHEMA_VERSION,
     sessionReceiptId: value.sessionReceiptId,
+    siteReleaseId: value.siteReleaseId,
     cityId: value.cityId,
     manifestId: value.manifestId,
     buildId: value.buildId,
@@ -241,6 +306,10 @@ function normalizeReviewConfig(value) {
       && S11_BETA_CITY_IDS.every((cityId) => cityIds.includes(cityId)),
     'beta research review config must require both S11 flagship cities',
   )
+  invariant(
+    typeof value.expectedSiteReleaseId === 'string' && SHA256_ID.test(value.expectedSiteReleaseId),
+    'beta research expectedSiteReleaseId is invalid',
+  )
   exactKeys(value.expectedReleases, S11_BETA_CITY_IDS, 'beta research expectedReleases')
   const expectedReleases = {}
   for (const cityId of S11_BETA_CITY_IDS) {
@@ -262,6 +331,7 @@ function normalizeReviewConfig(value) {
       MAX_SESSION_COUNT,
       'beta research minimumSessionsPerCity',
     ),
+    expectedSiteReleaseId: value.expectedSiteReleaseId,
     expectedReleases: Object.freeze(expectedReleases),
   })
 }
@@ -294,10 +364,15 @@ function reviewDecision(cityReports, config) {
 
 /**
  * Aggregate one S11 release cycle. Each city may contribute sessions from one
- * exact manifest/build pair only; mixed release bytes are a hard error.
+ * exact composed-site release and manifest/build pair only; mixed release
+ * bytes are a hard error.
  */
 export function aggregateBetaResearch(receipts, { reviewConfig = null } = {}) {
   invariant(Array.isArray(receipts), 'beta research receipts must be an array')
+  invariant(
+    receipts.length <= S11_BETA_RESEARCH_LIMITS.maxTotalSessions,
+    `beta research receipts exceed the ${S11_BETA_RESEARCH_LIMITS.maxTotalSessions}-session total limit`,
+  )
   const normalized = receipts.map(normalizeBetaResearchReceipt)
   const receiptIds = new Set()
   for (const receipt of normalized) {
@@ -305,7 +380,18 @@ export function aggregateBetaResearch(receipts, { reviewConfig = null } = {}) {
       `beta research receipt replay detected: ${receipt.sessionReceiptId}`)
     receiptIds.add(receipt.sessionReceiptId)
   }
+  const siteReleaseIds = new Set(normalized.map((receipt) => receipt.siteReleaseId))
+  invariant(siteReleaseIds.size <= 1, 'beta research receipts mix composed-site release bytes')
+  const siteReleaseId = siteReleaseIds.size === 1 ? [...siteReleaseIds][0] : null
   const releaseByCity = new Map()
+
+  for (const cityId of S11_BETA_CITY_IDS) {
+    const sessionCount = normalized.filter((receipt) => receipt.cityId === cityId).length
+    invariant(
+      sessionCount <= S11_BETA_RESEARCH_LIMITS.maxSessionsPerCity,
+      `beta research receipts exceed the ${S11_BETA_RESEARCH_LIMITS.maxSessionsPerCity}-session limit for ${cityId}`,
+    )
+  }
 
   for (const receipt of normalized) {
     const release = releaseByCity.get(receipt.cityId)
@@ -314,19 +400,24 @@ export function aggregateBetaResearch(receipts, { reviewConfig = null } = {}) {
     }
     releaseByCity.set(receipt.cityId, {
       cityId: receipt.cityId,
+      siteReleaseId: receipt.siteReleaseId,
       manifestId: receipt.manifestId,
       buildId: receipt.buildId,
     })
   }
 
   const cityReports = [...releaseByCity.values()]
-    .sort((left, right) => left.cityId.localeCompare(right.cityId, 'en'))
+    .sort((left, right) => (left.cityId < right.cityId ? -1 : left.cityId > right.cityId ? 1 : 0))
     .map((release) => Object.freeze({
       ...release,
       metrics: metricBundle(normalized.filter((receipt) => receipt.cityId === release.cityId)),
     }))
   const config = normalizeReviewConfig(reviewConfig)
   if (config) {
+    invariant(
+      siteReleaseId !== null && siteReleaseId === config.expectedSiteReleaseId,
+      'beta research composed-site release identity mismatch',
+    )
     const reportsByCity = new Map(cityReports.map(report => [report.cityId, report]))
     for (const cityId of config.requiredCityIds) {
       const actual = reportsByCity.get(cityId)
@@ -341,8 +432,10 @@ export function aggregateBetaResearch(receipts, { reviewConfig = null } = {}) {
   return Object.freeze({
     schema: 'wuzup-beta-research-report',
     schemaVersion: BETA_RESEARCH_SCHEMA_VERSION,
-    releases: Object.freeze(cityReports.map(({ cityId, manifestId, buildId }) => Object.freeze({
+    siteReleaseId,
+    releases: Object.freeze(cityReports.map(({ cityId, siteReleaseId: releaseSiteId, manifestId, buildId }) => Object.freeze({
       cityId,
+      siteReleaseId: releaseSiteId,
       manifestId,
       buildId,
     }))),
@@ -362,9 +455,17 @@ if (process.argv[1] && path.resolve(process.argv[1]) === modulePath) {
     process.exitCode = 1
   } else {
     try {
-      const receipts = JSON.parse(await readFile(path.resolve(receiptsPath), 'utf8'))
+      const receipts = await readBoundedJsonFile(
+        receiptsPath,
+        S11_BETA_RESEARCH_LIMITS.maxReceiptsJsonBytes,
+        'beta research receipts file',
+      )
       const reviewConfig = reviewConfigPath
-        ? JSON.parse(await readFile(path.resolve(reviewConfigPath), 'utf8'))
+        ? await readBoundedJsonFile(
+          reviewConfigPath,
+          S11_BETA_RESEARCH_LIMITS.maxReviewConfigJsonBytes,
+          'beta research review config file',
+        )
         : null
       const report = aggregateBetaResearch(receipts, { reviewConfig })
       process.stdout.write(`${JSON.stringify(report, null, 2)}\n`)

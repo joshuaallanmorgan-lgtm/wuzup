@@ -1513,6 +1513,43 @@ first-value promise is false.
   Sprint 10 imagery/owner approval, fresh verified flagship artifacts, green refresh/deploy observation, real research
   sessions, and P0/P1 triage remain required before Sprint 11 can close.
 
+#### Sprint 11 composed-site release receipt — 2026-07-22 (engineering green; production blocked)
+
+- **The exact publication source must pass the release suite itself:** the main-only Pages build checks out and
+  verifies `GITHUB_SHA`, installs the locked root/app dependencies, runs the complete deterministic gate plus the
+  composed, Sprint 9, and Sprint 10 mobile browser journeys, then performs the final fresh/source-verified Tampa and
+  SF builds and checks each copied build against the payload budgets. Pull-request status alone is no longer treated
+  as proof for a direct push or a newly created merge commit.
+- **The upload is sealed as one deterministic participant-facing tree:** after both verified city builds are composed,
+  the workflow removes Vite's private `.vite/` build-evidence directories, creates an exact empty `.nojekyll` control,
+  and emits root `site-release.json` before upload. The receipt binds the exact 40-character source commit, Tampa and
+  SF manifest/build identities, every remaining regular path with byte count and SHA-256, canonical file/byte totals,
+  and one tree and release digest. A streaming preflight refuses case-aliased controls or directory prefixes,
+  file/directory conflicts, symlinks, junctions, special files, unsafe/dot paths, entry/directory/file/byte budget
+  breaches, and incomplete or mismatched city artifacts before reading participant payloads.
+- **Postdeploy observation is one whole-site bracket:** the same run passes the expected site release ID and source
+  commit from the build job into the observer. Receipt R1 must match both, every listed member must match its size/hash,
+  Chromium's parsed document and every loaded same-origin script must be exact receipt members, both manifest/member/
+  image/runtime city transactions must succeed inside that bracket, and receipt R2 must be byte-identical to R1. A
+  member, city, executed-UI, runtime, or generation failure retries the whole attempt rather than combining independently
+  successful generations, and emits no deployment binding when attempts are exhausted.
+- **Research evidence now distinguishes UI-only deployments:** the release kit requires the observed composed-site ID
+  alongside both city identities. Schema-v2 review configuration, session templates/receipts, reports, and per-city
+  release rows all carry it; omission, malformed identity, config mismatch, or any cross-session UI-release mix fails
+  closed even when Tampa and SF data bytes are unchanged. Aggregation is bounded before normalization at 1,000
+  receipts per city and 2,000 total; CLI inputs are capped at 8 MiB for receipts and 256 KiB for review configuration,
+  read through one stable regular-file handle, and strictly decoded as UTF-8 before parsing.
+- **The claim remains deliberately bounded:** `.nojekyll` is represented as a locally verified control and the receipt
+  excludes itself because neither can self-hash. The observation proves the intended uploaded paths and their remote
+  bytes; it does not prove that Pages exposes no additional alias or platform-generated URL, and it does not satisfy
+  freshness, source-health, imagery-policy, beta, or refresh/deploy SLO gates.
+- **Engineering verification is green:** `npm run test:s11` passes 60/62 with only two expected Windows capability
+  skips; the complete `npm test` pre-gate is green and its serial core suite passes 919/919. Independently executed
+  composed-city, Sprint 9, and Sprint 10 browser journeys pass 1/1, 1/1, and 4/4, and the payload-performance gate
+  passes 2/2. Independent security and deployment-operations reviews returned SHIP with no open P0/P1. This branch
+  is not the participant-facing publication: the last real production observation remains red, no composed-site
+  release has been observed at the canonical origin, and no beta session is authorized.
+
 ### Sprint 12 - Controlled Tampa/SF beta, cycle two and pilot go/no-go
 
 **Outcome:** enough elapsed operation exists to decide whether expansion is responsible.
