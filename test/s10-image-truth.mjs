@@ -8,6 +8,7 @@ const source = Object.fromEntries(await Promise.all([
   ['imageMode', '../app/src/imageMode.js'],
   ['detail', '../app/src/DetailPage.jsx'],
   ['placeDetail', '../app/src/PlaceDetail.jsx'],
+  ['attribution', '../app/src/AttributionPage.jsx'],
   ['settings', '../app/src/SettingsPage.jsx'],
   ['vite', '../app/vite.config.js'],
 ].map(async ([key, relative]) => [key, await readFile(new URL(relative, import.meta.url), 'utf8')])))
@@ -61,6 +62,12 @@ test('place heroes preserve credited imagery and scope failure to the current UR
   assert.match(source.placeDetail, /failedSrc === heroImage/)
   assert.doesNotMatch(source.placeDetail, /useState\(false\)[\s\S]{0,80}heroFailed/)
   assert.match(source.placeDetail, /presentedImage\.imageCredit/)
+})
+
+test('Credits describes place imagery as audited candidates, not proved identity', () => {
+  assert.match(source.attribution, /credited place-photo candidates/)
+  assert.match(source.attribution, /Photo identity and license terms are reviewed independently/)
+  assert.doesNotMatch(source.attribution, /every one a real\s+photo of the place itself/)
 })
 
 test('privacy and offline copy names real local and remote behavior', () => {

@@ -37,7 +37,7 @@ import { fileURLToPath } from 'node:url'
 import { bbox as CITY_BBOX, rosterBenchmark as CITY_ROSTER, cityId as CITY_ID } from '../finder/cities/index.mjs'
 import { verifyArtifactSet } from '../finder/artifact-manifest.mjs'
 import { fallbackReasonForStage, fuzzyMerge } from '../finder/finder.mjs'
-import { eventTime } from '../shared/city-time.mjs'
+import { cityMidnightMs, eventTime, formatInstant } from '../shared/city-time.mjs'
 import { annotateQualityFloor } from '../shared/quality-floor.mjs'
 import { bbox as TAMPA_BBOX } from '../finder/cities/tampa-bay.mjs'
 import { PLACETYPE_HUE, CATEGORY_HUES } from '../app/src/categories.js'
@@ -101,7 +101,21 @@ function staticAcquisitionUnavailable(sources, expectedNames) {
   const receipts = sources.filter((source) => expectedNames.has(source?.name))
   if (receipts.length !== expectedNames.size) return false
   if (new Set(receipts.map((source) => source.name)).size !== expectedNames.size) return false
-  return receipts.every((source) => source.cached === true && source.fallbackReason === 'live-error')
+  const families = new Map()
+  for (const source of receipts) {
+    const family = source.name.replace(/\s*\([^)]*\)\s*$/, '')
+    if (!families.has(family)) families.set(family, [])
+    families.get(family).push(source)
+  }
+  const transportFallback = (source) =>
+    source.cached === true && source.fallbackReason === 'live-error'
+  if (receipts.every(transportFallback)) return true
+  // One publisher can occupy many pagination/query endpoints. If that
+  // dominant family is wholly on transport-error cache fallback, a live row
+  // count measures the outage rather than corpus health. Keep post-fetch,
+  // partial-family, and minority-source failures loud.
+  return [...families.values()].some((family) =>
+    family.length * 2 > receipts.length && family.every(transportFallback))
 }
 
 const startHourOf = (s) => {
@@ -234,6 +248,26 @@ test('finder source fallback causes fail closed outside transport acquisition', 
     { name: 'B', cached: true, fallbackReason: 'live-empty' },
   ], expected), false, 'parse-zero fallbacks must keep the count floor active')
   assert.equal(staticAcquisitionUnavailable([transportFailures[0]], expected), false, 'missing receipts fail closed')
+  const dominantExpected = new Set(['Eventbrite (Free)', 'Eventbrite (Tampa)', 'Eventbrite (p2)', 'Independent'])
+  const dominantOutage = [
+    { name: 'Eventbrite (Free)', cached: true, fallbackReason: 'live-error' },
+    { name: 'Eventbrite (Tampa)', cached: true, fallbackReason: 'live-error' },
+    { name: 'Eventbrite (p2)', cached: true, fallbackReason: 'live-error' },
+    { name: 'Independent', cached: false, fallbackReason: null },
+  ]
+  assert.equal(staticAcquisitionUnavailable(dominantOutage, dominantExpected), true,
+    'a correlated outage across every endpoint of the dominant family gates the live count floor')
+  assert.equal(staticAcquisitionUnavailable([
+    ...dominantOutage.slice(0, 2),
+    { name: 'Eventbrite (p2)', cached: false, fallbackReason: null },
+    dominantOutage[3],
+  ], dominantExpected), false, 'one live endpoint keeps a dominant family measurable')
+  assert.equal(staticAcquisitionUnavailable([
+    { name: 'Eventbrite (Free)', cached: false, fallbackReason: null },
+    { name: 'Eventbrite (Tampa)', cached: false, fallbackReason: null },
+    { name: 'Eventbrite (p2)', cached: false, fallbackReason: null },
+    { name: 'Independent', cached: true, fallbackReason: 'live-error' },
+  ], dominantExpected), false, 'a minority-family transport error does not gate the floor')
 })
 
 test('full city artifacts: unclassified category share stays under 8%', () => {
@@ -333,7 +367,7 @@ test('finder fast-mode: exit 0, benchmarks green, output schema-valid', { timeou
         `fast-mode static sources produced only ${totalN} events (expect ~250; >= 150 floor) — sources or caches are failing; receipts: ${sourceReceiptSummary}; acquisitions: ${sourceAcquisitionSummary}`
       )
     } else {
-      t.diagnostic(`LIVE ACQUISITION UNAVAILABLE — all ${staticReceipts.length} static sources used cache after errors; gating the source-count floor (got ${totalN}, expect ~250 from a live pull)`)
+      t.diagnostic(`DOMINANT STATIC ACQUISITION FAMILY UNAVAILABLE — gating the live source-count floor (got ${totalN}, expect ~250 from a healthy pull)`)
     }
     t.diagnostic(`fast-mode events: ${totalN}, buzz>=2: ${buzzN}`)
 
@@ -631,11 +665,11 @@ test('places data invariants: schema v1 places.json', () => {
     `finder/output/${CITY_ID}/places.json and app/public/places.json drifted — re-run node finder/places.mjs`)
 })
 
-// Phase 3.5 W4 — HONEST IMAGES. A place photo is ONLY ever a verified photo OF
-// THAT place (Wikidata P18 → Wikimedia Commons), never a representative
-// stand-in; places without a curated photo keep category-art. These invariants
-// lock that contract on the real artifact.
-test('W4/Phase1 images: place photos are real of-the-place Commons files + every one CREDITED', () => {
+// Phase 3.5 W4 — IMAGE CANDIDATE PROVENANCE. Human identity/license review is a
+// separate Sprint 10 gate; these artifact invariants prove only that every raw
+// candidate comes through the bounded Commons/local-source and credit schema.
+// Runtime presentation must still fail closed when the stronger receipt is absent.
+test('W4/Phase1 images: place candidates use bounded sources and every one is credited', () => {
   const doc = JSON.parse(readFileSync(APP_PLACES, 'utf8'))
   const places = doc.places
   const imaged = places.filter((p) => p.image)
@@ -1180,7 +1214,10 @@ test('W7 wiring: osm rec classes + Wikipedia-descriptions enrichment in the pipe
 // zero-is-silence for a new user, and DST-safe day stepping.
 test('3.7P-4 gamify: rhythm is graced, best is monotonic, rest counts, honest', async () => {
   const G = await import('../app/src/gamify.js')
-  const day = (m, d) => new Date(2026, m, d).getTime() // local midnight, DST-safe
+  const day = (m, d) => cityMidnightMs(
+    `2026-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
+    fullTimeZone,
+  )
   const anchors = { todayTs: day(5, 15) } // June 15, 2026
 
   // empty → zero-is-silence
@@ -2900,8 +2937,11 @@ test('places.js: placesForBrief matches affinity, no surprise park, never a date
 // ============================================================
 
 // a Wednesday anchor; "past planned day" tests reference days before it
-const UD_AN = lib.makeAnchors(new Date(2026, 5, 17, 12, 0)) // Wed Jun 17 2026
-const dts = (y, m, d) => new Date(y, m, d).getTime() // local-midnight ms helper
+const UD_AN = lib.makeAnchors(new Date('2026-06-17T12:00:00-04:00')) // Wed Jun 17 2026
+const dts = (y, m, d) => cityMidnightMs(
+  `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
+  fullTimeZone,
+)
 
 test('U-d: the conversion one-shot never re-fires (violet #7 is once-per-day)', () => {
   localStorage.clear()
@@ -4021,7 +4061,11 @@ test('D-G1 coverage: the promotion gate — the REAL snapshot reads rich (never 
   assert.equal(ph.photos, credited, 'photoStats counts exactly the image+imageCredit places')
   assert.ok(ph.photos > 0 && ph.photos < ph.spots, `real data: ${ph.photos}/${ph.spots} credited — a strict subset (a card claiming every spot has a photo would be a lie)`)
   // dayStamp keeps the stale-banner idiom: weekday inside 6 days, date beyond
-  assert.equal(covMod.dayStamp(Date.now()), new Date().toLocaleDateString('en-US', { weekday: 'long' }), 'a fresh stamp reads as the weekday')
+  assert.equal(
+    covMod.dayStamp(Date.now()),
+    formatInstant(Date.now(), { timeZone: fullTimeZone, locale: 'en-US', weekday: 'long' }),
+    'a fresh stamp reads as the city weekday',
+  )
   assert.match(covMod.dayStamp(Date.now() - 30 * 86400000), /^[A-Z][a-z]{2} \d{1,2}$/, 'an old stamp reads as "Mon D"')
 })
 

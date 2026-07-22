@@ -161,12 +161,22 @@ if (viteServe) {
   Object.assign(process.env, viteEnv);
   const viteApi = join(ROOT, 'app', 'node_modules', 'vite', 'dist', 'node', 'index.js');
   const { createServer: createViteServer } = await import(pathToFileURL(viteApi).href);
+  // Load the verified config once and pass it inline. Vite's default config
+  // bundler watches every transitive config import and restarts the whole
+  // server when parallel tests merely restore their mtimes. Stable localhost
+  // owns source reloads in the config plugin; config changes intentionally
+  // require restarting this development command.
+  const configPath = join(appRoot, 'vite.config.js');
+  const { default: inlineConfig } = await import(pathToFileURL(configPath).href);
   const rawOpen = optionValue(viteArgs, '--open');
   const rawMode = optionValue(viteArgs, '--mode');
   const server = await createViteServer({
+    ...inlineConfig,
+    configFile: false,
     root: appRoot,
     mode: typeof rawMode === 'string' ? rawMode : 'development',
     server: {
+      ...(inlineConfig.server || {}),
       host: devEndpoint.host,
       port: devEndpoint.port,
       strictPort: true,

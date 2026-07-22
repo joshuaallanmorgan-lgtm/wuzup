@@ -773,6 +773,18 @@
 }
 .spotcard--row .spotcard-img { flex: 0 0 102px; width: 102px; height: auto; align-self: stretch; border-radius: var(--r-md); }
 .spotcard--row .spotcard-body { flex: 1; min-width: 0; display: flex; flex-direction: column; padding-right: 46px; overflow: hidden; } /* ruling #3: reserve for the 38px circled heart */
+.spotcard--row .spotcard-title {
+  flex: 0 0 auto;
+  margin-top: 0;
+}
+.spotcard--row .spotcard-loc,
+.spotcard--row .spotcard-facts,
+.spotcard--row .spotcard-amen { flex: 0 0 auto; }
+.spotcard--row .spotcard-amen {
+  align-self: flex-start;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
 /* WS4 — the imageMode 'icon' ROW form (3.7P-36's own spec, finally built): a
    photo-less place row leads with a compact tinted placeType medallion instead
    of wearing the Aurora field in the photo-shaped 102px slot (at thumbnail

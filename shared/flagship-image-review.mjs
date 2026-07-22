@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { readFile } from 'node:fs/promises'
+import { lstat, open, readFile, realpath } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -9,7 +9,7 @@ import { validateImageReference } from './image-reference.mjs'
 import { rankItems } from './rank.mjs'
 
 export const FLAGSHIP_IMAGE_REVIEW_SCHEMA_VERSION = 1
-export const FLAGSHIP_IMAGE_DECISION_SCHEMA_VERSION = 1
+export const FLAGSHIP_IMAGE_DECISION_SCHEMA_VERSION = 2
 
 const SAMPLE_PER_CITY = 50
 const ALLOWED_REMOTE_IMAGE_HOSTS = new Set(['upload.wikimedia.org'])
@@ -18,10 +18,12 @@ const REVIEW_STATE = 'pending-independent-review'
 const REVIEW_PENDING = 'pending'
 const STRATEGY = 'risk-source-delivery-round-robin-v1'
 const RANK_PROXY = 'shared-rank-place-projection-v1'
-const REVIEW_VERDICTS = new Set(['pass', 'fail'])
+const REVIEW_VERDICTS = new Set(['pass', 'fail', 'needs-owner'])
 const REVIEW_RESOLUTIONS = new Set(['keep', 'remove', 'replace', 'fallback'])
 const REVIEW_MIME_TYPES = new Set(['image/avif', 'image/jpeg', 'image/png', 'image/webp'])
 const MAX_REVIEW_BYTE_AGE_MS = 24 * 60 * 60 * 1000
+const MAX_REVIEW_NOTES_LENGTH = 4_000
+const OWNER_POLICY_AUTHENTICATION = 'not-cryptographically-authenticated'
 
 const CITY_POLICIES = Object.freeze([
   Object.freeze({
@@ -77,6 +79,68 @@ function exactKeys(value, keys, label) {
   const expected = [...keys].sort(compareText)
   invariant(actual.length === expected.length && actual.every((key, index) => key === expected[index]),
     `${label} must contain exactly: ${expected.join(', ')}`)
+}
+
+function inside(parent, candidate) {
+  const relative = path.relative(parent, candidate)
+  return relative === '' || (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative))
+}
+
+function sameFileIdentity(left, right) {
+  return left.dev === right.dev && left.ino === right.ino
+}
+
+/**
+ * Read a regular file without allowing its declared containment root or the
+ * file itself to be a symlink/junction. Real-path containment also catches an
+ * intermediate Windows junction that redirects outside the repository.
+ */
+export async function readContainedFlagshipImageFile({
+  containmentRoot,
+  fileRoot,
+  filePath,
+  maxBytes = Number.MAX_SAFE_INTEGER,
+  label = 'flagship image file',
+} = {}) {
+  invariant(text(containmentRoot), `${label} containmentRoot is required`)
+  invariant(text(fileRoot), `${label} fileRoot is required`)
+  invariant(text(filePath), `${label} filePath is required`)
+  invariant(Number.isInteger(maxBytes) && maxBytes > 0, `${label} maxBytes must be positive`)
+
+  const containment = await realpath(path.resolve(containmentRoot))
+  const declaredRoot = path.resolve(fileRoot)
+  const rootEntry = await lstat(declaredRoot)
+  invariant(rootEntry.isDirectory() && !rootEntry.isSymbolicLink(),
+    `${label} root must be a real directory, not a symlink or junction`)
+  const root = await realpath(declaredRoot)
+  invariant(inside(containment, root), `${label} root escapes its containment root`)
+
+  const declaredFile = path.resolve(filePath)
+  invariant(declaredFile !== declaredRoot && inside(declaredRoot, declaredFile),
+    `${label} escapes its declared root`)
+  const before = await lstat(declaredFile)
+  invariant(before.isFile() && !before.isSymbolicLink(), `${label} must be a regular file, not a symlink`)
+  invariant(before.size > 0 && before.size <= maxBytes, `${label} exceeds its byte limit`)
+  const resolvedFile = await realpath(declaredFile)
+  invariant(inside(root, resolvedFile), `${label} resolves outside its declared root`)
+
+  const handle = await open(resolvedFile, 'r')
+  try {
+    const opened = await handle.stat()
+    const after = await lstat(resolvedFile)
+    invariant(opened.isFile() && !after.isSymbolicLink() && sameFileIdentity(opened, after),
+      `${label} changed while it was opened`)
+    invariant(opened.size > 0 && opened.size <= maxBytes, `${label} exceeds its byte limit`)
+    const bytes = await handle.readFile()
+    invariant(bytes.length === opened.size && bytes.length <= maxBytes,
+      `${label} changed while it was read`)
+    const finalEntry = await lstat(resolvedFile)
+    invariant(!finalEntry.isSymbolicLink() && sameFileIdentity(opened, finalEntry),
+      `${label} changed while it was read`)
+    return bytes
+  } finally {
+    await handle.close()
+  }
 }
 
 function httpsUrl(value, label) {
@@ -260,11 +324,20 @@ async function localByteEvidence({ repoRoot, cityId, image }) {
   const outputRoot = path.resolve(repoRoot, 'finder', 'output', cityId)
   const localRoot = path.resolve(outputRoot, 'place-img')
   const target = path.resolve(outputRoot, image.replace(/^\/+/, '').replace(/\//g, path.sep))
-  invariant(target.startsWith(`${localRoot}${path.sep}`), `${cityId}:${image} local image escapes place-img`)
-  const bytes = await readFile(target)
-  const metadata = await sharp(bytes).metadata()
+  invariant(inside(localRoot, target) && target !== localRoot, `${cityId}:${image} local image escapes place-img`)
+  const bytes = await readContainedFlagshipImageFile({
+    containmentRoot: repoRoot,
+    fileRoot: localRoot,
+    filePath: target,
+    maxBytes: 20 * 1024 * 1024,
+    label: `${cityId}:${image} local image`,
+  })
+  const metadata = await sharp(bytes, { failOn: 'error', limitInputPixels: 50_000_000 }).metadata()
   invariant(Number.isInteger(metadata.width) && Number.isInteger(metadata.height),
     `${cityId}:${image} image dimensions are unavailable`)
+  invariant(metadata.width <= 20_000 && metadata.height <= 20_000 &&
+    metadata.width * metadata.height <= 50_000_000,
+  `${cityId}:${image} image exceeds review pixel limits`)
   return {
     path: path.relative(repoRoot, target).replace(/\\/g, '/'),
     sha256: sha256(bytes),
@@ -621,6 +694,20 @@ function isoInstant(value, label) {
   return value
 }
 
+function validateSourcePageVerification(value, item, reviewedAt, label) {
+  exactKeys(value, ['checkedAt', 'finalUrl', 'httpStatus'], label)
+  isoInstant(value.checkedAt, `${label}.checkedAt`)
+  const ageMs = Date.parse(reviewedAt) - Date.parse(value.checkedAt)
+  invariant(ageMs >= 0, `${label}.checkedAt cannot follow the review`)
+  invariant(ageMs <= MAX_REVIEW_BYTE_AGE_MS, `${label}.checkedAt is too old for this review`)
+  httpsUrl(value.finalUrl, `${label}.finalUrl`)
+  const expected = new URL(item.credit.sourcePage)
+  const actual = new URL(value.finalUrl)
+  invariant(actual.href === expected.href,
+    `${label}.finalUrl must match the exact audited source page`)
+  invariant(value.httpStatus === 200, `${label}.httpStatus must be exactly HTTP 200`)
+}
+
 function validateReviewedBytes(bytes, item, reviewedAt, label) {
   exactKeys(bytes, ['sha256', 'bytes', 'width', 'height', 'mimeType', 'retrievedAt', 'finalUrl'], label)
   invariant(HASH.test(bytes.sha256 || ''), `${label}.sha256 must bind the reviewed bytes`)
@@ -655,13 +742,23 @@ function validateReviewedBytes(bytes, item, reviewedAt, label) {
  */
 export function validateFlagshipImageDecisionReceipt({ review, receipt } = {}) {
   validateFlagshipImageReview(review)
-  exactKeys(receipt, ['schemaVersion', 'reportSha256', 'reviewer', 'reviewedAt', 'items'], 'decision receipt')
+  exactKeys(receipt, [
+    'schemaVersion', 'reportSha256', 'evidenceSealSha256', 'reviewer', 'reviewedAt',
+    'ownerPolicySha256', 'ownerPolicyAuthentication', 'items',
+  ], 'decision receipt')
   invariant(receipt.schemaVersion === FLAGSHIP_IMAGE_DECISION_SCHEMA_VERSION,
     'decision receipt schemaVersion is invalid')
   invariant(receipt.reportSha256 === flagshipImageReviewSha256(review),
     'decision receipt reportSha256 does not match the review population')
+  invariant(HASH.test(receipt.evidenceSealSha256 || ''),
+    'decision receipt evidenceSealSha256 is invalid')
   invariant(text(receipt.reviewer), 'decision receipt reviewer is required')
+  invariant(receipt.reviewer.length <= 200, 'decision receipt reviewer is too long')
   isoInstant(receipt.reviewedAt, 'decision receipt reviewedAt')
+  invariant(receipt.ownerPolicySha256 == null || HASH.test(receipt.ownerPolicySha256),
+    'decision receipt ownerPolicySha256 must be null or a SHA-256')
+  invariant(receipt.ownerPolicyAuthentication === OWNER_POLICY_AUTHENTICATION,
+    `decision receipt ownerPolicyAuthentication must be ${OWNER_POLICY_AUTHENTICATION}`)
   invariant(Array.isArray(receipt.items) && receipt.items.length === review.items.length,
     'decision receipt must contain every reviewed item')
 
@@ -671,30 +768,39 @@ export function validateFlagshipImageDecisionReceipt({ review, receipt } = {}) {
     const label = `decision receipt items[${index}]`
     exactKeys(decision, [
       'sampleIndex', 'cityId', 'itemId', 'imageReference', 'reviewedBytes',
-      'identity', 'pixel', 'creditLicense', 'resolution',
+      'sourcePageVerification', 'identity', 'pixel', 'creditLicense', 'resolution', 'notes',
     ], label)
     invariant(decision.sampleIndex === item.sampleIndex, `${label}.sampleIndex does not match`)
     invariant(decision.cityId === item.cityId, `${label}.cityId does not match`)
     invariant(decision.itemId === item.itemId, `${label}.itemId does not match`)
     invariant(decision.imageReference === item.image.reference, `${label}.imageReference does not match`)
     validateReviewedBytes(decision.reviewedBytes, item, receipt.reviewedAt, `${label}.reviewedBytes`)
+    validateSourcePageVerification(decision.sourcePageVerification, item, receipt.reviewedAt,
+      `${label}.sourcePageVerification`)
     for (const key of ['identity', 'pixel', 'creditLicense']) {
       invariant(REVIEW_VERDICTS.has(decision[key]), `${label}.${key} is invalid`)
     }
     invariant(REVIEW_RESOLUTIONS.has(decision.resolution), `${label}.resolution is invalid`)
+    invariant(text(decision.notes) && decision.notes.length <= MAX_REVIEW_NOTES_LENGTH,
+      `${label}.notes must be non-empty and at most ${MAX_REVIEW_NOTES_LENGTH} characters`)
     const allPass = decision.identity === 'pass' && decision.pixel === 'pass' &&
       decision.creditLicense === 'pass'
     invariant(decision.resolution !== 'keep' || allPass, `${label} cannot keep a failed image`)
     if (decision.resolution === 'keep' && allPass) passed++
   }
+  invariant(passed === 0 || HASH.test(receipt.ownerPolicySha256 || ''),
+    'decision receipt cannot keep an image without an owner-policy SHA-256')
 
   return Object.freeze({
     ok: true,
     complete: true,
-    passed: passed === review.items.length,
+    allItemsKept: passed === review.items.length,
     kept: passed,
     actionRequired: review.items.length - passed,
     reportSha256: receipt.reportSha256,
+    evidenceSealSha256: receipt.evidenceSealSha256,
+    ownerPolicySha256: receipt.ownerPolicySha256,
+    ownerPolicyAuthentication: receipt.ownerPolicyAuthentication,
   })
 }
 

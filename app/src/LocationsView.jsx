@@ -214,25 +214,9 @@ export default function LocationsView({ coords }) {
       />
 
       <div className="hot-body">
-        {/* TINDER P3: "Tune your taste" — the light doorway into the SPOTS swipe
-            deck, between the chips and the first section (tinder.png). */}
-        <TasteTuner kind="places" samples={tuneSamples} onTune={openDeck} />
-
-        {/* 3.7P-12 → 3.7P-20: ACTIVITY intent frame — the primary Spots nav, now
-            an ALL-VISIBLE grid of the SHARED IntentTile (identical format to the
-            Events "Guides"). Tap an activity → everywhere you can do it (See all →
-            never-hide). The green-wall fix: browse by what you can DO. */}
-        <section className="sec">
-          <SecHead overline="What are you up for?" title="By activity" sub="Pick a move — we'll find the spot." />
-          <div className="intent-grid">
-            {ACTIVITIES.map((a) => (
-              <IntentTile key={a.id} emoji={a.emoji} label={a.label} hue={a.hue} onClick={() => openPlaceBubble(a)} />
-            ))}
-          </div>
-        </section>
-
-        {/* The lead is objective quality plus bounded context. Distance appears
-            only for a real location fix; image availability never affects order. */}
+        {/* V2 immediate value: show the common-ranked lead before asking for
+            preference work or a browse taxonomy. Distance appears only for a
+            real location fix; image availability never affects order. */}
         {nearSpots.length > 0 && (
           <section className="sec">
             {/* Distance language appears only with a real location fix. Without
@@ -252,6 +236,20 @@ export default function LocationsView({ coords }) {
             </div>
           </section>
         )}
+
+        {/* Optional taste refinement follows useful local options. */}
+        <TasteTuner kind="places" samples={tuneSamples} onTune={openDeck} />
+
+        {/* Activity browse remains the complete affordance-first route into the
+            place catalog; it no longer delays the ranked first screen. */}
+        <section className="sec">
+          <SecHead overline="What are you up for?" title="By activity" sub="Pick a move — we'll find the spot." />
+          <div className="intent-grid">
+            {ACTIVITIES.map((a) => (
+              <IntentTile key={a.id} emoji={a.emoji} label={a.label} hue={a.hue} onClick={() => openPlaceBubble(a)} />
+            ))}
+          </div>
+        </section>
 
         {moreSpots.length >= 2 && (
           <section className="sec">

@@ -10,7 +10,7 @@
 // wins live on inside editorial (FREE overlay, hue energy); cinematic survives
 // only as bespoke styling on naturally dark surfaces (FMN, Big One) — their
 // own CSS, not a mode.
-import { createContext, memo, useEffect, useRef, useState } from 'react'
+import { createContext, memo, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { CATEGORY_EMOJI, CATEGORY_HUES, PLACETYPE_EMOJI, PLACETYPE_HUE } from './categories.js'
 import { auroraVars, medallionHue } from './artseed.js'
@@ -186,12 +186,20 @@ export function SponsoredTag({ e }) {
 // data-vt marks the element that morphs into the detail hero via View Transitions.
 // children render on top (heat badges, FREE badge, …).
 export function CardImg({ e, className = '', children }) {
-  const [loadedSrc, setLoadedSrc] = useState(null)
-  const [failedSrc, setFailedSrc] = useState(null)
   const presented = presentRuntimeImage(e, { policy: RUNTIME_EVENT_IMAGE_POLICY })
   const imageSrc = presented.image
+  // A component can survive an artifact refresh or a deck-card replacement.
+  // Key load evidence to this exact source generation so A -> B -> A cannot
+  // reuse an earlier A load, and a late event from an unmounted source cannot
+  // promote the current one. The <img> key below gives each source its own DOM
+  // request while keeping the pending request mounted for onLoad/onError.
+  const imageToken = useMemo(() => ({ imageSrc }), [imageSrc])
+  const [imageLoad, setImageLoad] = useState(() => ({ token: null, state: 'pending' }))
+  const loadedSrc = imageLoad.token === imageToken && imageLoad.state === 'loaded' ? imageSrc : null
+  const failedSrc = imageLoad.token === imageToken && imageLoad.state === 'failed' ? imageSrc : null
   const ok = loadedSrc === imageSrc
   const failed = failedSrc === imageSrc
+  const photoReady = Boolean(imageSrc) && !failed && ok
   const emoji = artEmoji(e)
   // W4 trust contract: a dead/broken image URL degrades to the category-art
   // FLOOR (the designed hue + emoji), never the browser's broken-image glyph and
@@ -211,6 +219,7 @@ export function CardImg({ e, className = '', children }) {
     >
       {imageSrc && !failed ? (
         <img
+          key={imageSrc}
           className={'imgbox-img' + (ok ? ' on' : '')}
           src={imageSrc}
           alt=""
@@ -218,8 +227,8 @@ export function CardImg({ e, className = '', children }) {
           decoding="async"
           referrerPolicy="no-referrer"
           draggable={false}
-          onLoad={() => setLoadedSrc(imageSrc)}
-          onError={() => setFailedSrc(imageSrc)}
+          onLoad={() => setImageLoad({ token: imageToken, state: 'loaded' })}
+          onError={() => setImageLoad({ token: imageToken, state: 'failed' })}
         />
       ) : null}
       {showArt || !ok ? (
@@ -230,7 +239,7 @@ export function CardImg({ e, className = '', children }) {
       {/* PREMIUM A2: bottom scrim on REAL photos so on-image time/heat/dist badges
           stay legible (the art floor already carries its own dark gradients). CSS
           shows it only on the badge-bearing card thumbs. */}
-      {imageSrc && !failed && <span className="img-scrim" aria-hidden />}
+      {photoReady && <span className="img-scrim" aria-hidden />}
       {children}
     </span>
   )
@@ -552,6 +561,10 @@ export function SpotCard({ p, onSelect, row = false }) {
     // a 56px chip blown up to a hero snapshot smears, so these rows open with the
     // standard slide-up instead of the thumb→hero morph.
     const iconRow = imageMode(p) !== 'photo'
+    // Keep one complete amenity in the compact result row. Full amenity and
+    // activity-fit detail remains one tap away; repeating a derived "Good for"
+    // line here competed with the primary Add action and crushed long titles.
+    const visibleAmen = amen.slice(0, 1)
     return (
       // (REFUTE cleanup: the ' spotcard--row-icon' modifier hook was dead — no CSS
       // ever styled it; the medallion styling rides the child class. Re-mint the
@@ -574,12 +587,7 @@ export function SpotCard({ p, onSelect, row = false }) {
               </div>
             )}
             {facts && <div className="spotcard-facts">{facts}</div>}
-            {amen.length > 0 && <div className="spotcard-amen">{spotAmenChips(amen)}</div>}
-            {bestFor && (
-              <div className="spotcard-bestfor">
-                <SparkleIcon /> Good for: {bestFor}
-              </div>
-            )}
+            {visibleAmen.length > 0 && <div className="spotcard-amen">{spotAmenChips(visibleAmen)}</div>}
           </div>
         </button>
         {/* D4: bare top-right heart + a real "Add to day" button pinned bottom-right */}

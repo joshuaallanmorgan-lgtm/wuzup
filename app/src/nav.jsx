@@ -216,11 +216,15 @@ export function NavProvider({ children, city, baseUrl = '/' }) {
     setVisited((prev) => (prev.has(id) ? prev : new Set(prev).add(id)))
   }, [])
   const pagerRef = useRef(null)
+  const initialPagerIndexRef = useRef(initialActive)
   // App attaches the pager element through this ref CALLBACK (not the ref
   // object itself — a raw ref in the context value trips react-hooks/refs,
   // and rightly: nothing should read .current during render)
   const attachPager = useCallback((el) => {
     pagerRef.current = el
+    // URL-restored tabs must align the physical pager immediately. Active
+    // state alone selects the tab bar while leaving Home visible at scroll 0.
+    if (el) el.scrollLeft = initialPagerIndexRef.current * el.clientWidth
   }, [])
   const hrefForRoute = useCallback((route, fragment = '') => {
     const suffix = route?.target?.kind === 'shared-plan' ? fragment : ''

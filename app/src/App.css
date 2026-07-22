@@ -31,8 +31,36 @@
    as the .map-wrap sub-view); the pager is page / page-hot only. */
 .page-hot { overflow: hidden; }
 
+/* ===== Shared mobile page header =====
+   Home, Events, Spots, Plan, and Profile all use these eager primitives. Keep
+   them in the shell bundle so no tab's first render depends on a later lazy
+   route installing its typography or gutters. */
+.loc-head {
+  padding: 18px var(--gutter) 6px;
+}
+.loc-head-title {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: var(--ink);
+}
+.loc-head-sub {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.loc-data-note {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: var(--t-meta-sm);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
 /* ===== Stage R: the Home dashboard clean light header (title + weather) =====
-   H1/H3: the title is now the shared .loc-head-title primitive (locations.css); the
+   H1/H3: the title uses the shared .loc-head-title primitive above; the
    eyebrow .home-title + the .home-greet greeting + .home-wx are retired. */
 .home-head { padding: 22px var(--gutter) 6px; position: relative; }
 /* R-HD1: the Home search disc — light-surface icon button (the .pf-gear family),

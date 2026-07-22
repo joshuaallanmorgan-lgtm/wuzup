@@ -205,8 +205,8 @@ export default function AttributionPage({ events, dataMeta }) {
             {placesReady && (
               <>
                 <div className="at-line">
-                  <span className="num">{fmtN(photoCredits.length)}</span> place photos — every one a real
-                  photo of the place itself
+                  <span className="num">{fmtN(photoCredits.length)}</span> credited place-photo candidates in
+                  this snapshot
                 </div>
                 <div className="at-rows">
                   {photoFamilies.map(([name, n]) => (
@@ -220,6 +220,7 @@ export default function AttributionPage({ events, dataMeta }) {
                     flag #1): the self-hosted Mapillary images are CROPS of the
                     original street-level captures — adapted works must say so. */}
                 <div className="at-note">
+                  Photo identity and license terms are reviewed independently. Failed candidates use Wuzup art.
                   Street-level storefront photos are cropped from their original Mapillary captures.
                 </div>
                 {photoCredits.length > 0 && (

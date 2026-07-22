@@ -1353,37 +1353,56 @@ items in the audit; the owner approves the premium existing-product pass.
   existing Aurora composition remains readable. Credited place photos keep their disclosure, broken images fail
   per URL, requests use `no-referrer`, and missing-ID custom/legacy events fall back instead of crashing. The
   shipped CSP limits images and network access to the disclosed hosts; offline behavior is described as absent.
-- **The independent image audit now has an immutable population:** a deterministic risk/source/delivery sampler
-  selects exactly 50 currently renderable credited place photos per flagship city and binds the set to manifest,
-  build, places-artifact, item, credit, rank-proxy, and selected local-byte evidence. The schema hard-codes every
-  identity, pixel, legal, and human verdict as pending/false. A separate decision contract requires exact reviewed
-  byte hashes/metadata for all remote and local verdicts; `test:s10-images` passes 8/8 and rejects omissions,
-  tampering, drift, mutable-URL-only evidence, or a fabricated keep. The actual online 100-image review and owner
-  policy remain open.
+- **The online image inspection is now real and release-blocking:** the deterministic sampler selected exactly 50
+  currently renderable credited place candidates per flagship city and an online session captured 100 exact rows,
+  79 unique remote byte sets, MIME/dimensions, and content hashes under report
+  `sha256:4bee54bf0847f6de7a06443ffdf513055abfd85d0f2d6a67110f928518958830`.
+  Three separate inspection lanes found 26 identity failures, 17 mobile-pixel failures, and 91 rows needing owner
+  license-policy review; 31 rows fail identity or pixels, including 28 immediate replacements and three duplicate-
+  target cases requiring canonical resolution. Only four rows clear both those visual gates and the proposed narrow
+  automatic license policy. Aggregate results and row-level failure findings are preserved in
+  `S10_IMAGE_AUDIT_2026-07-21.md`; the complete 100-row byte evidence and pixels remain in the historical OS-temp
+  session and are not release authority. No pending judgment was converted into a release `keep`.
 - **Local development no longer looks falsely empty when the committed fixture ages out:** Vite serve may expose
   an expired artifact only behind an explicit development-only flag and only after the normal bytes, hash, schema,
   city, timezone, manifest, and source-health checks pass. Settings labels that state prominently. Builds,
   previews, launch probes, and production continue to refuse the same expired bytes.
-- **The mobile localhost stays coherent while Codex changes the workspace:** one in-process Vite server holds an
-  OS-backed loopback ownership socket before artifact staging, so simultaneous or duplicate launches refuse before
-  touching `app/public` and Windows cannot orphan a child server. Stable development batches a multi-file change
-  storm into one full document reload instead of hot-swapping half a provider graph. A real 390px browser regression
-  races two launchers, touches the three provider modules, proves the document instance changes, and then opens Events
-  without the prior provider-context crash or error boundary.
-- **Remote gates now carry the work:** CI enforces payload budgets after the Tampa production build, and the
+- **The mobile localhost now survives both direct entry and workspace churn:** one in-process Vite server holds an
+  OS-backed loopback ownership socket before artifact staging, so duplicate launches refuse before touching
+  `app/public`. Stable development reloads only real app/imported source inputs and ignores build output, public-data,
+  cache, screenshot, test, and temporary-file churn. Shared mobile header/search CSS loads with its owning shell
+  component, so Home, Events, Plan, and Profile no longer depend on first visiting lazy-loaded Spots. Development CSP
+  permits Vite's own blob worker without weakening the production policy. The real browser gate covers canonical
+  direct-tab and physical-pager restoration at 390px, shared mobile layout and first value at 320px/390px, duplicate
+  launch refusal, and mtime-only workspace churn without a document reload or provider crash. A deterministic unit
+  contract separately proves that a real source-byte change schedules one atomic reload.
+- **Spots and imagery show honest first value:** the common-ranked lead now appears before optional taste work and
+  activity browse; the observed first result moved from y=1106 to y=397 at 320x568 and from y=1018 to y=364 at
+  390x844. Automation requires the result inside the first viewport and above the mobile tab bar, with no vertically
+  crushed card text or title/meta/amenity overlap under the Add action.
+  Place cards/details keep Aurora visible while a remote image is pending or broken; stale A-to-B-to-A load events
+  cannot promote the wrong source, and photo scrims/credits appear only after the exact current bytes load.
+- **Hosted-runner diagnostics remain strict but portable:** the GitHub runner returned HTTP 405 for every endpoint
+  in one dominant Eventbrite family while minority sources stayed live. The fast-corpus count is now gated only when
+  a complete strict-majority acquisition family is wholly on cached transport-error fallback; partial-family,
+  post-fetch, live-empty, and minority-source failures stay loud. Time-sensitive smoke fixtures now use city-zone
+  calendar arithmetic, so running CI in UTC cannot move Tampa dates or weekday labels.
+- **Remote gates now carry the work:** CI is configured to enforce payload budgets after the Tampa production build, and the
   browser workflow adds the Sprint 10 mobile-width, lazy-loading, modal/focus, CSP/image, and Axe journey beside
-  the existing composed-city and Sprint 9 journeys.
-- **Verification is green:** focused Sprint 10 contracts pass 36/36 and the complete serial gate passes 918/918,
+  the existing composed-city and Sprint 9 journeys. A remote rerun remains pending until this checkpoint is pushed.
+- **Local verification is green:** focused Sprint 10 contracts pass 40/40, the schema-v2 image-review suites pass
+  20/20, and the complete serial gate passes 918/918,
   including the 64.3-second finder contract, immutable artifacts, Tampa/SF and base-path builds, and app lint. The
-  payload manifest gate passes 2/2. The composed Tampa/SF browser journey, Sprint 9 durable-route journey, and
-  Sprint 10 responsive/accessibility/lazy-image plus live-development journey pass 1/1, 1/1, and 2/2 respectively,
-  with no serious/critical Axe finding, console error, provider crash, or disallowed image request. Live acquisition
-  was unavailable during the finder gate, so its
+  payload manifest gate passes 2/2, beta-research contracts pass 6/6, and the Sprint 10 composed-production plus
+  live-development browser suite passes 3/3, with no serious/critical Axe finding, console error, provider crash,
+  disallowed image request, card-text clipping, or Add-action overlap. Live acquisition was unavailable during the finder gate, so its
   existing cache-backed source-count floor remained an explicit diagnostic rather than being relabeled healthy.
-- **Sprint 10 remains yellow:** deterministic image delivery and the frozen 100-row review population are safer,
-  but the ratified positive flagship-image targets, actual independent pixel/identity/credit decisions, and owner
-  premium visual approval are still open. This checkpoint does not claim those exit-gate decisions or advance the
-  roadmap to beta.
+- **Sprint 10 remains yellow:** the actual byte-level inspection exposed rather than waived bad inventory. The 28
+  immediate image replacements, three duplicate-target resolutions, 91 owner-policy decisions, fresh zero-error
+  rerun, ratified positive coverage targets, and owner premium visual approval remain open. Closeout also requires a
+  new schema-v2 release-bound session, exact HTTP-200 source-page verification, externally retained evidence and
+  final-receipt digests, and independent human finalization. This checkpoint does not claim those exit-gate decisions
+  or advance the roadmap to beta.
 
 ## Validation and United States coverage
 

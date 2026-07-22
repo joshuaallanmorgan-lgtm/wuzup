@@ -19,6 +19,10 @@ const VIEWPORTS = [
   { width: 768, height: 900 },
   { width: 1440, height: 1000 },
 ]
+const DIRECT_EVENTS_VIEWPORTS = [
+  { width: 320, height: 568 },
+  { width: 390, height: 844 },
+]
 
 function createChunkGate(chunkName) {
   let signalRequested
@@ -154,6 +158,29 @@ async function assertRootWidthContract(page, viewport) {
   )
 }
 
+async function assertSharedMobileHeading(page, label, viewport) {
+  const pageSelector = label === 'Home'
+    ? 'section.page[aria-label="Home"]:not([aria-hidden="true"])'
+    : `section.page[aria-label="${label}"]:not([aria-hidden="true"])`
+  const heading = page.locator(`${pageSelector} .loc-head-title`).first()
+  await heading.waitFor({ state: 'visible' })
+  const geometry = await heading.evaluate((node) => {
+    const rect = node.getBoundingClientRect()
+    const style = getComputedStyle(node)
+    return {
+      fontSize: Number.parseFloat(style.fontSize),
+      left: rect.left,
+      width: rect.width,
+    }
+  })
+  const expectedGutter = viewport.width < 360 ? 14 : 20
+  assert.ok(
+    Math.abs(geometry.left - expectedGutter) <= 1,
+    `${label} heading must use the shared ${expectedGutter}px mobile gutter: ${JSON.stringify(geometry)}`,
+  )
+  assert.equal(geometry.fontSize, 32, `${label} heading must use the shared 32px title step`)
+}
+
 async function assertNoNestedInteractiveControls(page, label) {
   const nested = await page.evaluate(() => [...document.querySelectorAll('button')].flatMap((outer) => {
     const invalid = [
@@ -242,6 +269,44 @@ test('Sprint 10 production accessibility, lazy-loading, responsive, and image-po
     assert.deepEqual(strictRejectedImages, [], `strict-CSP unapproved image requests: ${strictRejectedImages.join('\n')}`)
     await strictContext.close()
 
+    // A URL-restored tab owns both selected navigation and physical pager
+    // position on the first frame. The prior split state selected the right
+    // tab while still showing Home.
+    const directRejectedImages = []
+    const directContext = await browser.newContext({
+      bypassCSP: true,
+      locale: 'en-US',
+      reducedMotion: 'reduce',
+      timezoneId: 'UTC',
+      viewport: { width: 390, height: 844 },
+    })
+    await freezeClock(directContext)
+    await installRoutes(directContext, server, directRejectedImages)
+    const directPage = await directContext.newPage()
+    for (const [routeTab, label, index] of [
+      ['events', 'Events', 1],
+      ['spots', 'Spots', 2],
+      ['plan', 'Plan', 3],
+      ['profile', 'Profile', 4],
+    ]) {
+      await directPage.goto(`${base}?city=tampa-bay&tab=${routeTab}`, { waitUntil: 'domcontentloaded' })
+      await waitForApp(directPage)
+      const activeSection = directPage.locator(`section.page[aria-label="${label}"]:not([aria-hidden="true"])`)
+      await activeSection.waitFor({ state: 'visible' })
+      await activeSection.getByRole('heading', { name: label, exact: true }).waitFor({ state: 'visible' })
+      const pager = await directPage.locator('.pager').evaluate((node) => ({
+        clientWidth: node.clientWidth,
+        scrollLeft: node.scrollLeft,
+      }))
+      assert.ok(
+        Math.abs(pager.scrollLeft - index * pager.clientWidth) <= 1,
+        `direct ${label} must align pager index ${index}: ${JSON.stringify(pager)}`,
+      )
+      await assertNoDocumentOverflow(directPage, `direct ${label} route`)
+    }
+    assert.deepEqual(directRejectedImages, [], `direct-route unapproved image requests: ${directRejectedImages.join('\n')}`)
+    await directContext.close()
+
     // Axe is injected by Playwright, not shipped by Wuzup. The bypass exists
     // only in this context; the strict context above proves production boot.
     const rejectedImages = []
@@ -274,9 +339,84 @@ test('Sprint 10 production accessibility, lazy-loading, responsive, and image-po
     await assertNoNestedInteractiveControls(page, 'Home')
     await assertNoSeriousAxeViolations(page, 'resting Home')
 
+    // Events is opened before the lazy Spots route on purpose. The shared
+    // search opener must bring its own CSS instead of waiting for the Spots
+    // chunk to install the mobile pill, heading, or touch-target styles. Plan
+    // and Profile exercise the same eager heading primitive before Spots too.
+    for (const viewport of DIRECT_EVENTS_VIEWPORTS) {
+      await page.setViewportSize(viewport)
+      await openTab(page, 'Home')
+      await assertSharedMobileHeading(page, 'Home', viewport)
+      await openTab(page, 'Events')
+      await assertSharedMobileHeading(page, 'Events', viewport)
+      const eventSearch = page.getByRole('button', { name: 'Search events', exact: true })
+      await eventSearch.waitFor({ state: 'visible' })
+      const geometry = await eventSearch.evaluate((node) => {
+        const rect = node.getBoundingClientRect()
+        const style = getComputedStyle(node)
+        return {
+          borderRadius: Number.parseFloat(style.borderRadius),
+          display: style.display,
+          height: rect.height,
+          width: rect.width,
+        }
+      })
+      assert.equal(geometry.display, 'flex', `direct Events search must be styled at ${viewport.width}px`)
+      assert.ok(geometry.height >= 44, `direct Events search must be at least 44px tall: ${JSON.stringify(geometry)}`)
+      assert.ok(
+        geometry.width >= viewport.width - 60,
+        `direct Events search must retain its full-width pill: ${JSON.stringify(geometry)}`,
+      )
+      assert.ok(
+        geometry.borderRadius >= 20,
+        `direct Events search must retain its pill radius: ${JSON.stringify(geometry)}`,
+      )
+      const expectedGutter = viewport.width < 360 ? 14 : 20
+      assert.ok(
+        Math.abs((await eventSearch.boundingBox()).x - expectedGutter) <= 1,
+        `direct Events search must use the shared ${expectedGutter}px mobile gutter`,
+      )
+      assert.equal(placesRequests, 0, 'opening Events must not activate the Spots route or artifact')
+      await assertNoDocumentOverflow(page, `direct Events ${viewport.width}px`)
+      await openTab(page, 'Plan')
+      await assertSharedMobileHeading(page, 'Plan', viewport)
+      await openTab(page, 'Profile')
+      await assertSharedMobileHeading(page, 'Profile', viewport)
+    }
+
+    await page.setViewportSize({ width: 390, height: 844 })
     await openTab(page, 'Spots')
-    await page.locator('.spotcard--row').first().waitFor({ state: 'visible' })
+    const spotsPage = page.locator('section.page[aria-label="Spots"]:not([aria-hidden="true"])')
+    const spotsScroll = spotsPage.locator('.hot-scroll')
+    const firstRankedSpot = spotsPage.locator('.spotcard--row').first()
+    await firstRankedSpot.waitFor({ state: 'visible' })
     assert.equal(placesRequests, 1, 'first Spots visit must request places.json exactly once')
+    const firstSpot390 = await firstRankedSpot.evaluate((node) => node.getBoundingClientRect().top)
+    assert.ok(firstSpot390 < 844, `the ranked Spots lead must begin in the 390px first viewport, got y=${firstSpot390}`)
+    const clippedSpotText = await spotsPage.locator('.spotcard--row').evaluateAll((rows) => rows.slice(0, 3).flatMap((row, rowIndex) =>
+      [...row.querySelectorAll('.spotcard-title, .spotcard-loc, .spotcard-facts, .spotcard-amen, .spotcard-bestfor')]
+        .filter((node) => node.scrollHeight > node.clientHeight + 1)
+        .map((node) => ({ rowIndex, className: node.className, clientHeight: node.clientHeight, scrollHeight: node.scrollHeight }))))
+    assert.deepEqual(clippedSpotText, [], `ranked Spots cards must not vertically crush text: ${JSON.stringify(clippedSpotText)}`)
+    const spotActionOverlaps = await spotsPage.locator('.spotcard--row').evaluateAll((rows) => rows.slice(0, 3).flatMap((row, rowIndex) => {
+      const action = row.querySelector('.spotcard-add')?.getBoundingClientRect()
+      if (!action) return [{ rowIndex, missingAction: true }]
+      return [...row.querySelectorAll('.spotcard-title, .spotcard-loc, .spotcard-facts, .spotcard-amen')]
+        .filter((node) => {
+          const rect = node.getBoundingClientRect()
+          return rect.left < action.right && rect.right > action.left && rect.top < action.bottom && rect.bottom > action.top
+        })
+        .map((node) => ({ rowIndex, className: node.className }))
+    }))
+    assert.deepEqual(spotActionOverlaps, [], `ranked Spots text must not run under Add to day: ${JSON.stringify(spotActionOverlaps)}`)
+    await page.setViewportSize({ width: 320, height: 568 })
+    await spotsScroll.evaluate((node) => { node.scrollTop = 0 })
+    const firstSpot320 = await firstRankedSpot.evaluate((node) => node.getBoundingClientRect().top)
+    const tabbarTop320 = await page.locator('.tabbar').evaluate((node) => node.getBoundingClientRect().top)
+    assert.ok(firstSpot320 < 568, `the ranked Spots lead must begin in the 320px first viewport, got y=${firstSpot320}`)
+    assert.ok(firstSpot320 < tabbarTop320, `the ranked Spots lead must begin above the mobile tabbar, got y=${firstSpot320}, tabbar=${tabbarTop320}`)
+    await page.setViewportSize({ width: 390, height: 844 })
+    await spotsScroll.evaluate((node) => { node.scrollTop = 0 })
     await openTab(page, 'Home')
     await openTab(page, 'Spots')
     assert.equal(placesRequests, 1, 'tab hops must reuse the one place artifact request')

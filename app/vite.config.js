@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { dirname, resolve } from 'node:path'
+import { createHash } from 'node:crypto'
+import { readFile, readdir } from 'node:fs/promises'
+import { dirname, isAbsolute, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { verifyArtifactSet } from '../finder/artifact-manifest.mjs'
 import { runtimeDeploymentPlan } from './runtime-deployment.mjs'
@@ -12,8 +14,10 @@ import { runtimeDeploymentPlan } from './runtime-deployment.mjs'
 import { CITY } from './src/city.js'
 
 const APP_ROOT = dirname(fileURLToPath(import.meta.url))
+const PROJECT_ROOT = resolve(APP_ROOT, '..')
 const PUBLIC_DIR = resolve(globalThis.process?.env?.WUZUP_PUBLIC_DIR || resolve(APP_ROOT, 'public'))
 const STABLE_DEV = globalThis.process?.env?.WUZUP_STABLE_DEV === '1'
+const STABLE_DEV_TRACE = globalThis.process?.env?.WUZUP_STABLE_DEV_TRACE === '1'
 const verifiedArtifacts = verifyArtifactSet({
   root: PUBLIC_DIR,
   expectedCityId: CITY.id,
@@ -91,18 +95,124 @@ const MANIFEST = JSON.stringify(
   2
 )
 
-function stableDevReload() {
+const normalizedPath = (value) => resolve(value).replaceAll('\\', '/').toLowerCase()
+const STABLE_DEV_APP_SOURCE_ROOT = normalizedPath(resolve(APP_ROOT, 'src')) + '/'
+const STABLE_DEV_SHARED_SOURCE_ROOT = normalizedPath(resolve(PROJECT_ROOT, 'shared')) + '/'
+const STABLE_DEV_SOURCE_PATHS = [
+  resolve(APP_ROOT, 'index.html'),
+  resolve(APP_ROOT, 'runtime-deployment.mjs'),
+  resolve(APP_ROOT, 'vite.config.js'),
+]
+const STABLE_DEV_SOURCE_FILES = new Set(STABLE_DEV_SOURCE_PATHS.map(normalizedPath))
+const STABLE_DEV_NATIVE_IGNORED_FILES = new Set([
+  normalizedPath(resolve(APP_ROOT, 'index.html')),
+  normalizedPath(resolve(APP_ROOT, 'vite.config.js')),
+])
+const STABLE_DEV_TEXT_SOURCE = /\.(?:[cm]?[jt]sx?|css|html|json|svg|md)$/i
+
+export function stableDevNativeWatchIgnored(file, enabled = STABLE_DEV) {
+  if (!enabled || typeof file !== 'string' || file.trim() === '') return false
+  const absolute = isAbsolute(file) ? file : resolve(APP_ROOT, file)
+  return STABLE_DEV_NATIVE_IGNORED_FILES.has(normalizedPath(absolute))
+}
+
+async function filesUnder(root) {
+  const entries = await readdir(root, { withFileTypes: true })
+  const nested = await Promise.all(entries.map(async (entry) => {
+    const candidate = resolve(root, entry.name)
+    if (entry.isDirectory()) return filesUnder(candidate)
+    return entry.isFile() ? [candidate] : []
+  }))
+  return nested.flat()
+}
+
+async function defaultStableDevInitialFiles() {
+  const [appSources, sharedSources] = await Promise.all([
+    filesUnder(resolve(APP_ROOT, 'src')),
+    filesUnder(resolve(PROJECT_ROOT, 'shared')),
+  ])
+  return [...STABLE_DEV_SOURCE_PATHS, ...appSources, ...sharedSources]
+}
+
+export function stableDevSourceFile(file, { modules = [] } = {}) {
+  if (typeof file !== 'string' || file.trim() === '') return false
+  const normalized = normalizedPath(file)
+  return STABLE_DEV_SOURCE_FILES.has(normalized)
+    || normalized.startsWith(STABLE_DEV_APP_SOURCE_ROOT)
+    || (normalized.startsWith(STABLE_DEV_SHARED_SOURCE_ROOT) && modules.length > 0)
+}
+
+export function stableDevReload({
+  enabled = STABLE_DEV,
+  setTimer = globalThis.setTimeout,
+  clearTimer = globalThis.clearTimeout,
+  readSource = readFile,
+  initialFiles = null,
+  trace = STABLE_DEV_TRACE,
+} = {}) {
   let reloadTimer = null
+  const sourceDigests = new Map()
+  const digestSource = (bytes, file) => {
+    // Git/workspace synchronization on Windows can alternate LF and CRLF
+    // while preserving the JavaScript/CSS/HTML source. Treat that as the
+    // same source revision so line-ending restoration is also invisible.
+    if (!STABLE_DEV_TEXT_SOURCE.test(file)) return createHash('sha256').update(bytes).digest('hex')
+    const canonicalSource = (typeof bytes === 'string' ? bytes : bytes.toString('utf8')).replaceAll('\r\n', '\n')
+    return createHash('sha256').update(canonicalSource).digest('hex')
+  }
+  const initialSnapshot = enabled
+    ? Promise.resolve(initialFiles || defaultStableDevInitialFiles()).then(async (files) => {
+        await Promise.all(files.map(async (file) => {
+          try {
+            sourceDigests.set(normalizedPath(file), digestSource(await readSource(file), file))
+          } catch {
+            // A file may disappear between discovery and read. Its first real
+            // watcher event still takes the conservative missing-file path.
+          }
+        }))
+      })
+    : Promise.resolve()
+  const scheduleReload = (server, environment) => {
+    clearTimer(reloadTimer)
+    reloadTimer = setTimer(() => {
+      const channel = environment?.hot || server.environments?.client?.hot || server.ws
+      channel.send({ type: 'full-reload' })
+    }, 100)
+  }
   return {
     name: 'stable-development-reload',
     apply: 'serve',
     enforce: 'post',
-    handleHotUpdate({ server }) {
-      if (!STABLE_DEV) return
-      clearTimeout(reloadTimer)
-      reloadTimer = setTimeout(() => {
-        server.ws.send({ type: 'full-reload' })
-      }, 100)
+    async hotUpdate({ file, modules, server }) {
+      if (!enabled) return
+      // Vite invokes this hook once per environment. The document reload is a
+      // client concern; allowing SSR/module-runner environments to run the same
+      // closure would debounce and reschedule the client message unpredictably.
+      if (this?.environment?.name && this.environment.name !== 'client') return
+      // Vite watches more than the module graph while tools build, capture QA,
+      // or stage city data in the same checkout. Suppress its default handling
+      // for those generated/non-source paths so stable mode cannot turn output
+      // churn into a user-visible navigation reset.
+      if (!stableDevSourceFile(file, { modules })) return []
+      // Workspace test/build tools may restore source mtimes without changing
+      // their bytes. Vite reports those touches as updates, so bind reloads to
+      // content instead of timestamps. Startup snapshots ensure even the first
+      // touch-only event stays invisible.
+      await initialSnapshot
+      const sourceKey = normalizedPath(file)
+      let digest
+      try {
+        const bytes = await readSource(file)
+        digest = digestSource(bytes, file)
+      } catch {
+        // A real delete/rename must still invalidate the page. Cache one
+        // sentinel so a noisy missing-file watcher cannot reload forever.
+        digest = 'missing'
+      }
+      if (sourceDigests.get(sourceKey) === digest) return []
+      sourceDigests.set(sourceKey, digest)
+      if (trace) server.config.logger.info(`stable-dev: source bytes changed ${sourceKey}`)
+      scheduleReload(server, this?.environment)
       // Suppress partial module updates. One debounced document reload applies
       // the complete provider graph from a coherent module evaluation.
       return []
@@ -114,6 +224,16 @@ function stableDevReload() {
 export default defineConfig({
   base: BASE,
   publicDir: PUBLIC_DIR,
+  // Vite handles HTML changes before module hot-update hooks. Workspace tools
+  // restore index/config mtimes frequently on Windows, which otherwise forces
+  // document reloads every few seconds despite identical bytes. In stable
+  // localhost mode these two shell files are restart-owned; React/CSS source
+  // changes remain content-aware and reload through stableDevReload above.
+  server: STABLE_DEV ? {
+    watch: {
+      ignored: file => stableDevNativeWatchIgnored(file),
+    },
+  } : undefined,
   define: {
     'import.meta.env.VITE_ARTIFACT_MANIFEST_ID': JSON.stringify(APPROVED_MANIFEST_ID),
     'globalThis.__WUZUP_PRODUCT_ROOT__': JSON.stringify(PRODUCT_ROOT),
@@ -129,6 +249,7 @@ export default defineConfig({
       apply: 'serve',
       transformIndexHtml(html) {
         return html
+          .replace("worker-src 'none';", "worker-src 'self' blob:;")
           .replace("script-src 'self';", "script-src 'self' 'unsafe-inline';")
           .replace(
             "connect-src 'self' https://api.open-meteo.com;",

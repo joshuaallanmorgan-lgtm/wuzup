@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
-import { readFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises'
+import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
 import { fileURLToPath } from 'node:url'
@@ -9,6 +10,7 @@ import {
   buildFlagshipImageReview,
   FLAGSHIP_IMAGE_DECISION_SCHEMA_VERSION,
   flagshipImageReviewSha256,
+  readContainedFlagshipImageFile,
   validateFlagshipImageDecisionReceipt,
   validateFlagshipImageReview,
   verifyFlagshipImageReview,
@@ -31,6 +33,53 @@ function idsByCity(review) {
     review.items.filter(item => item.cityId === cityId).map(item => item.itemId),
   ]))
 }
+
+test('contained local image reads reject file symlinks and Windows-aware junction roots', async (t) => {
+  const containmentRoot = await mkdtemp(path.join(os.tmpdir(), 'wuzup-contained-image-test-'))
+  t.after(() => rm(containmentRoot, { recursive: true, force: true }))
+  const realRoot = path.join(containmentRoot, 'real-root')
+  const outsideRoot = path.join(containmentRoot, 'outside')
+  await mkdir(realRoot)
+  await mkdir(outsideRoot)
+  const outsideFile = path.join(outsideRoot, 'outside.jpg')
+  await writeFile(outsideFile, Buffer.from('outside'))
+
+  const linkedFile = path.join(realRoot, 'linked.jpg')
+  try {
+    await symlink(outsideFile, linkedFile, 'file')
+    await assert.rejects(
+      readContainedFlagshipImageFile({
+        containmentRoot,
+        fileRoot: realRoot,
+        filePath: linkedFile,
+        maxBytes: 100,
+      }),
+      /regular file, not a symlink|resolves outside/,
+    )
+  } catch (error) {
+    if (error?.code !== 'EPERM' && error?.code !== 'EACCES') throw error
+  }
+
+  const linkedRoot = path.join(containmentRoot, 'linked-root')
+  try {
+    await symlink(outsideRoot, linkedRoot, process.platform === 'win32' ? 'junction' : 'dir')
+  } catch (error) {
+    if (error?.code === 'EPERM' || error?.code === 'EACCES') {
+      t.skip(`platform cannot create a directory symlink or junction: ${error.code}`)
+      return
+    }
+    throw error
+  }
+  await assert.rejects(
+    readContainedFlagshipImageFile({
+      containmentRoot,
+      fileRoot: linkedRoot,
+      filePath: path.join(linkedRoot, 'outside.jpg'),
+      maxBytes: 100,
+    }),
+    /root must be a real directory, not a symlink or junction|root escapes/,
+  )
+})
 
 test('builds the pinned deterministic 50/50 flagship review manifest', async () => {
   const review = await REVIEW
@@ -188,8 +237,11 @@ test('separate decision receipts bind every reviewed remote and local byte set',
   const receipt = {
     schemaVersion: FLAGSHIP_IMAGE_DECISION_SCHEMA_VERSION,
     reportSha256: flagshipImageReviewSha256(review),
+    evidenceSealSha256: `sha256:${'a'.repeat(64)}`,
     reviewer: 'independent-reviewer-fixture',
     reviewedAt: retrievedAt,
+    ownerPolicySha256: null,
+    ownerPolicyAuthentication: 'not-cryptographically-authenticated',
     items: review.items.map(item => ({
       sampleIndex: item.sampleIndex,
       cityId: item.cityId,
@@ -214,20 +266,29 @@ test('separate decision receipts bind every reviewed remote and local byte set',
             retrievedAt,
             finalUrl: item.image.reference,
           },
+      sourcePageVerification: {
+        checkedAt: retrievedAt,
+        finalUrl: item.credit.sourcePage,
+        httpStatus: 200,
+      },
       identity: 'fail',
       pixel: 'fail',
       creditLicense: 'fail',
       resolution: 'fallback',
+      notes: 'Reviewed the cached bytes and exact source page.',
     })),
   }
 
   assert.deepEqual(validateFlagshipImageDecisionReceipt({ review, receipt }), {
     ok: true,
     complete: true,
-    passed: false,
+    allItemsKept: false,
     kept: 0,
     actionRequired: 100,
     reportSha256: receipt.reportSha256,
+    evidenceSealSha256: receipt.evidenceSealSha256,
+    ownerPolicySha256: null,
+    ownerPolicyAuthentication: 'not-cryptographically-authenticated',
   })
 
   const missingRemoteBinding = structuredClone(receipt)
@@ -273,5 +334,31 @@ test('separate decision receipts bind every reviewed remote and local byte set',
   assert.throws(
     () => validateFlagshipImageDecisionReceipt({ review, receipt: falseKeep }),
     /cannot keep a failed image/,
+  )
+
+  const needsOwner = structuredClone(receipt)
+  needsOwner.items[0].creditLicense = 'needs-owner'
+  assert.equal(validateFlagshipImageDecisionReceipt({ review, receipt: needsOwner }).kept, 0)
+
+  const wrongSourcePage = structuredClone(receipt)
+  wrongSourcePage.items[0].sourcePageVerification.finalUrl =
+    new URL('/different-source-page', review.items[0].credit.sourcePage).href
+  assert.throws(
+    () => validateFlagshipImageDecisionReceipt({ review, receipt: wrongSourcePage }),
+    /exact audited source page/,
+  )
+
+  const noContentSourcePage = structuredClone(receipt)
+  noContentSourcePage.items[0].sourcePageVerification.httpStatus = 204
+  assert.throws(
+    () => validateFlagshipImageDecisionReceipt({ review, receipt: noContentSourcePage }),
+    /exactly HTTP 200/,
+  )
+
+  const legacyReceipt = structuredClone(receipt)
+  legacyReceipt.schemaVersion = 1
+  assert.throws(
+    () => validateFlagshipImageDecisionReceipt({ review, receipt: legacyReceipt }),
+    /schemaVersion is invalid/,
   )
 })

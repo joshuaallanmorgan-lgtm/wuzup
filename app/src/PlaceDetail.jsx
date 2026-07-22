@@ -126,12 +126,19 @@ export default function PlaceDetail({ e, anchors, wx }) {
   // THIS place (Wikidata P18 → Commons), never a representative stand-in.
   const presentedImage = useMemo(() => presentRuntimeImage(e), [e])
   const heroImage = presentedImage.image
-  const [loadedSrc, setLoadedSrc] = useState(null)
-  const [failedSrc, setFailedSrc] = useState(null)
+  // Scope load evidence to this exact source generation. PlaceDetail can stay
+  // mounted while an artifact refresh changes the image URL; a unique token
+  // prevents a late/previous load (including A -> B -> A) from making the new
+  // request look ready before its own onLoad fires.
+  const heroImageToken = useMemo(() => ({ heroImage }), [heroImage])
+  const [heroImageLoad, setHeroImageLoad] = useState(() => ({ token: null, state: 'pending' }))
+  const loadedSrc = heroImageLoad.token === heroImageToken && heroImageLoad.state === 'loaded' ? heroImage : null
+  const failedSrc = heroImageLoad.token === heroImageToken && heroImageLoad.state === 'failed' ? heroImage : null
   const imgOk = loadedSrc === heroImage
   // a real photo that loads → image hero; no photo OR a broken URL → art hero
   const heroArt = !heroImage || failedSrc === heroImage
   const heroLoading = Boolean(heroImage) && !heroArt && !imgOk
+  const photoReady = Boolean(heroImage) && !heroArt && imgOk
 
   const hasCoords = e.lat != null && e.lng != null
   const mapsUrl = hasCoords
@@ -403,19 +410,21 @@ export default function PlaceDetail({ e, anchors, wx }) {
             : { viewTransitionName: 'evt-hero', background: '#241c15' }
         }
       >
-        {!heroArt ? (
+        {heroImage && !heroArt && (
           <img
+            key={heroImage}
             className={'detail-hero-img' + (imgOk ? ' on' : '')}
             src={heroImage}
             alt=""
             decoding="async"
             referrerPolicy="no-referrer"
             draggable={false}
-            onLoad={() => setLoadedSrc(heroImage)}
-            onError={() => setFailedSrc(heroImage)}
+            onLoad={() => setHeroImageLoad({ token: heroImageToken, state: 'loaded' })}
+            onError={() => setHeroImageLoad({ token: heroImageToken, state: 'failed' })}
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
-        ) : (
+        )}
+        {(heroArt || heroLoading) && (
           <span className="imgbox-mark" aria-hidden>
             {artEmoji(e)}
           </span>
@@ -429,12 +438,12 @@ export default function PlaceDetail({ e, anchors, wx }) {
           <Icon.share />
         </button>
         <SaveHeart e={e} big />
-        <div className="detail-hero-grad" />
+        {photoReady && <div className="detail-hero-grad" />}
         {/* 3.7P-2: the CC-BY/BY-SA attribution duty — a real photo of a place
             carries its captured credit (author · license), linked to the Commons
             file + the license deed. Shown only for real photos (art floor needs
             no credit). The honest twin of "no image without a captured credit". */}
-        {!heroArt && presentedImage.imageCredit && (
+        {photoReady && presentedImage.imageCredit && (
           <div className="hero-credit">
             <a href={presentedImage.imageCredit.url} target="_blank" rel="noreferrer">
               {/* author byline; when a license needs no byline (author null) fall
