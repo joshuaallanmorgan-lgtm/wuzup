@@ -30,7 +30,14 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, copyFileSyn
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
-import { area as cityArea, cafe as cityCafe, imagery as cityImagery, cityId, tz as CITY_TZ } from './cities/index.mjs';
+import {
+  area as cityArea,
+  cafe as cityCafe,
+  imageRejects,
+  imagery as cityImagery,
+  cityId,
+  tz as CITY_TZ,
+} from './cities/index.mjs';
 import { invalidateManifest } from './artifact-manifest.mjs';
 import { hasMapillaryGuardSignals, mapillaryCropFailsClosed } from './mapillary-contract.mjs';
 
@@ -219,11 +226,13 @@ for (const [rid, rec] of Object.entries(map)) {
   const cropMetaByI = Object.fromEntries((man.crops || []).map((c) => [c.i, c]));
   let v = evalCafe(rec, tr.crops || [], cropMetaByI, FORCE_KEEP.has(rec.key));
   if (FORCE_DROP.has(rec.key)) v = null; // Josh's verified-FP removal (belt-and-suspenders)
+  const reviewedQuarantine = Boolean(imageRejects[rec.key]);
+  if (reviewedQuarantine) v = null;
   const chosenMeta = v ? (cropMetaByI[v.cropI] || {}) : {};
   const chosenCrop = v ? (tr.crops || []).find((c) => c.i === v.cropI) : null;
   const slug = rec.key.replace(/^p\|/, '');
   rows.push({
-    rid, key: rec.key, name: rec.name, slug,
+    rid, key: rec.key, name: rec.name, slug, reviewedQuarantine,
     // the honesty receipt: did the CHOSEN crop carry a re-judge guard verdict? (fail-closed)
     reVerified: v ? hasMapillaryGuardSignals(chosenCrop) : null,
     nCandidates: man.nCandidates ?? null, nPersp: man.nPersp ?? null, nPano: man.nPano ?? null,
@@ -249,6 +258,7 @@ for (const [rid, rec] of Object.entries(map)) {
 
 const rejectReason = (r) => {
   if (r.ship) return null;
+  if (r.reviewedQuarantine) return 'reviewed-image-quarantine';
   const anySign = r.allSigns.some((c) => (c.signs || []).length);
   if (!anySign) return 'no-legible-storefront-sign';
   const anyConf = r.allSigns.some((c) => (c.conf ?? 0) >= CONF_FLOOR);

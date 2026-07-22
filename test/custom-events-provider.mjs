@@ -34,7 +34,7 @@ const source = await readFile(
 )
 const vite = await createServer({
   root: fileURLToPath(new URL('../app/', import.meta.url)),
-  server: { middlewareMode: true },
+  server: { middlewareMode: true, watch: null },
   appType: 'custom',
   logLevel: 'silent',
 })

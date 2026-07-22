@@ -7,11 +7,9 @@ import { buildComposedSite, serveComposedSite } from './browser/composed-site.mj
 
 const require = createRequire(import.meta.url)
 const AXE_PATH = require.resolve('axe-core/axe.min.js')
-// The checked-in legacy event packs expired before their July 15 manifests
-// were assembled. July 16 is therefore the first honest shared fixture time:
-// event failure is stale (and visible), while both verified place packs remain
-// current enough to drive the canonical add/remove planner journey.
-const FROZEN_NOW = Date.parse('2026-07-16T16:00:00.000Z')
+// buildComposedSite derives the first honest instant after both release seals.
+// Events remain stale while the verified place packs remain current enough to
+// drive the canonical add/remove planner journey.
 const PIXEL = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
   'base64'
@@ -285,7 +283,7 @@ test('the composed Tampa and SF production builds keep the canonical plan journe
         }
       }
       globalThis.Date = FrozenDate
-    }, { now: FROZEN_NOW })
+    }, { now: fixture.fixtureNow })
 
     await context.route('**/*', async (route) => {
       const request = route.request()

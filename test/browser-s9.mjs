@@ -10,7 +10,6 @@ import { buildComposedSite, serveComposedSite } from './browser/composed-site.mj
 
 const require = createRequire(import.meta.url)
 const AXE_PATH = require.resolve('axe-core/axe.min.js')
-const FROZEN_NOW = Date.parse('2026-07-16T16:00:00.000Z')
 const PIXEL = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
   'base64',
@@ -106,7 +105,7 @@ test('Sprint 9 production route, shared-plan, refresh, and guarded-transfer jour
         static now() { return now }
       }
       globalThis.Date = FrozenDate
-    }, { now: FROZEN_NOW })
+    }, { now: fixture.fixtureNow })
     await context.route('**/*', async (route) => {
       const request = route.request()
       const url = new URL(request.url())

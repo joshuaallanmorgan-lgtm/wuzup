@@ -1,6 +1,6 @@
 # Wuzup V2 - active sprint map
 
-> **Status:** owner-ratified execution map; Sprint 10 active - 2026-07-21
+> **Status:** Sprint 10 engineering checkpoint green locally; exit gate remains yellow; Sprint 11 preparation active — 2026-07-22
 >
 > **Authority:** subordinate to [V2_PLAN.md](V2_PLAN.md). This file translates the current scope and
 > dependency queue into delivery cycles; it does not admit features that the plan parks in V3.
@@ -1329,7 +1329,7 @@ Committed scope:
 checks pass; no console error or measurable performance regression; imagery has zero wrong-place or uncredited
 items in the audit; the owner approves the premium existing-product pass.
 
-#### Sprint 10 engineering checkpoint receipt - 2026-07-21 (yellow)
+#### Sprint 10 engineering checkpoint receipt - 2026-07-22 (yellow)
 
 - **The product is intentionally mobile:** the root is again a single centered phone product, full-width at 320px
   and 390px and capped at 460px on wider displays. The 768px and 1440px checks now prove centering, containment,
@@ -1343,7 +1343,9 @@ items in the audit; the owner approves the premium existing-product pass.
 - **Shared interaction primitives replaced page-local approximations:** picker and plan-option sheets use one
   modal contract for modal semantics, inert covered content, initial focus, Tab/Shift+Tab wrapping, Escape,
   scrim dismissal, reduced motion, live outcomes, and meaningful focus after add/move/remove. Calendar, tab,
-  switch, nullable toggle, card/save, and focus-ring semantics now have dedicated deterministic contracts.
+  switch, nullable toggle, card/save, and focus-ring semantics now have dedicated deterministic contracts. Text-
+  bearing page, section, detail, and root-view transitions stay fully opaque under default motion; only leaf imagery
+  may fade. The live 390px default-motion journey runs Axe while a tab entrance is deliberately still in flight.
 - **Cards tell each fact once:** the card opener and Save action are sibling native buttons rather than nested
   controls. Aurora and photo cards share the same metadata treatment; a GemRow exposes one readable
   `day - start-end` line, neighborhood cards retain one text time, and Day uses its richer body range instead of
@@ -1352,21 +1354,46 @@ items in the audit; the owner approves the premium existing-product pass.
   identity-matching receipt with an allowed role, license, host, and delivery mode may display; otherwise the
   existing Aurora composition remains readable. Credited place photos keep their disclosure, broken images fail
   per URL, requests use `no-referrer`, and missing-ID custom/legacy events fall back instead of crashing. The
-  shipped CSP limits images and network access to the disclosed hosts; offline behavior is described as absent.
-- **The online image inspection is now real and release-blocking:** the deterministic sampler selected exactly 50
+  production-build CSP configuration limits images and network access to the disclosed hosts; offline behavior is
+  described as absent.
+- **The historical online image inspection surfaced release blockers:** the deterministic sampler selected exactly 50
   currently renderable credited place candidates per flagship city and an online session captured 100 exact rows,
   79 unique remote byte sets, MIME/dimensions, and content hashes under report
   `sha256:4bee54bf0847f6de7a06443ffdf513055abfd85d0f2d6a67110f928518958830`.
-  Three separate inspection lanes found 26 identity failures, 17 mobile-pixel failures, and 91 rows needing owner
+  Three internal inspection passes found 26 identity failures, 17 mobile-pixel failures, and 91 rows needing owner
   license-policy review; 31 rows fail identity or pixels, including 28 immediate replacements and three duplicate-
   target cases requiring canonical resolution. Only four rows clear both those visual gates and the proposed narrow
   automatic license policy. Aggregate results and row-level failure findings are preserved in
   `S10_IMAGE_AUDIT_2026-07-21.md`; the complete 100-row byte evidence and pixels remain in the historical OS-temp
   session and are not release authority. No pending judgment was converted into a release `keep`.
+- **The failed image claims are now removed from branch release-candidate bytes:** an exact preimage-bound correction transaction
+  quarantined 23 Tampa and eight SF place assignments without rerunning acquisition or changing event bytes,
+  place counts, generation times, or source-health receipts. It removed the five failed Tampa Mapillary cache
+  entries/JPEGs and pruned only attributions with no retained consumer; Tampa cache entries, output JPEGs, and
+  local place references now agree at 30/30/30. Bro Bowl and Hammock Park remain item-scoped candidates, while
+  both unresolved Morris Bridge identities fall to Aurora until canonicalization. The pipeline and Mapillary Stage
+  B consume the same per-city quarantine, artifact verification rejects orphan local files, and the checked-in
+  Tampa `app/public` staging tree matches corrected manifest `sha256:7a9c4bb85d64c8488470691dc3b8f537e2ab3e2218534fa7def444d4ffc494e0`.
+  The new deterministic population is pinned under report
+  `sha256:5cda3c0d362ea1e98190d8fb77da889222d453694a9798061f1e386c14db368e` and is pending a fresh review; it
+  inherits no verdict from the historical audit.
+- **The correction transaction survives ordinary process interruption:** before removing the trust pointer it
+  writes a digest-bound recovery journal containing the exact places, cache, attribution, and deleted-image
+  preimages. Injected interruptions after journal creation, invalidation, JSON writes, image deletion, receipt or
+  manifest publication, and two recovery boundaries all leave the artifact untrusted; the next invocation restores
+  and validates the reviewed preimage off-pointer before reapplying the correction. A journal beside a newer trusted
+  manifest refuses mutation, and a committed manifest/receipt pair is recognized without rollback. The journal is
+  removed after success, is not an audit log, and makes no `fsync` or sudden-power-loss durability claim.
+- **Both ordinary place-image writers reconcile their local image tree:** the full place refresh and standalone
+  derived-image writer remove safe regular image files that have no final `places.json` consumer after invalidation
+  and before resealing. Missing references, unsafe paths, and non-regular collisions refuse before deletion;
+  retained/shared consumers survive. Artifact verification independently rejects both missing and orphan local
+  image members. These ordinary writers fail closed by withholding the manifest on interruption; only the audited
+  correction transaction has snapshot-based replay recovery.
 - **Local development no longer looks falsely empty when the committed fixture ages out:** Vite serve may expose
   an expired artifact only behind an explicit development-only flag and only after the normal bytes, hash, schema,
   city, timezone, manifest, and source-health checks pass. Settings labels that state prominently. Builds,
-  previews, launch probes, and production continue to refuse the same expired bytes.
+  production previews, and launch probes continue to refuse the same expired bytes.
 - **The mobile localhost now survives both direct entry and workspace churn:** one in-process Vite server holds an
   OS-backed loopback ownership socket before artifact staging, so duplicate launches refuse before touching
   `app/public`. Stable development reloads only real app/imported source inputs and ignores build output, public-data,
@@ -1376,7 +1403,14 @@ items in the audit; the owner approves the premium existing-product pass.
   direct-tab and physical-pager restoration at 390px, shared mobile layout and first value at 320px/390px, duplicate
   launch refusal, and mtime-only workspace churn without a document reload or provider crash. A deterministic unit
   contract separately proves that a real source-byte change schedules one atomic reload.
-- **Spots and imagery show honest first value:** the common-ranked lead now appears before optional taste work and
+- **The composed browser clock is derived from the release under test:** all release, Sprint 9, and Sprint 10 local
+  production-build browser journeys share one instant strictly after both city assemblies and both event expiries but strictly
+  before either verified place pack expires. Invalid timestamps or the absence of that shared window refuse the
+  fixture, so a refreshed corpus cannot silently change stale-event/ready-place coverage into a different journey.
+- **Events, Spots, and imagery show honest first value:** Events selects the first available useful shelf in the
+  deterministic order Tonight, Plan ahead, Weekend, then shared-ranked upcoming; it renders that shelf before
+  optional taste work and suppresses a sampleless tuner when inventory is empty. The common-ranked Spots lead also
+  appears before optional taste work and
   activity browse; the observed first result moved from y=1106 to y=397 at 320x568 and from y=1018 to y=364 at
   390x844. Automation requires the result inside the first viewport and above the mobile tab bar, with no vertically
   crushed card text or title/meta/amenity overlap under the Add action.
@@ -1387,22 +1421,24 @@ items in the audit; the owner approves the premium existing-product pass.
   a complete strict-majority acquisition family is wholly on cached transport-error fallback; partial-family,
   post-fetch, live-empty, and minority-source failures stay loud. Time-sensitive smoke fixtures now use city-zone
   calendar arithmetic, so running CI in UTC cannot move Tampa dates or weekday labels.
-- **Remote gates now carry the work:** CI is configured to enforce payload budgets after the Tampa production build, and the
+- **Remote gate definitions are wired; execution is pending:** CI is configured to enforce payload budgets after the Tampa production build, and the
   browser workflow adds the Sprint 10 mobile-width, lazy-loading, modal/focus, CSP/image, and Axe journey beside
-  the existing composed-city and Sprint 9 journeys. A remote rerun remains pending until this checkpoint is pushed.
-- **Local verification is green:** focused Sprint 10 contracts pass 40/40, the schema-v2 image-review suites pass
-  20/20, and the complete serial gate passes 918/918,
-  including the 64.3-second finder contract, immutable artifacts, Tampa/SF and base-path builds, and app lint. The
-  payload manifest gate passes 2/2, beta-research contracts pass 6/6, and the Sprint 10 composed-production plus
-  live-development browser suite passes 3/3, with no serious/critical Axe finding, console error, provider crash,
-  disallowed image request, card-text clipping, or Add-action overlap. Live acquisition was unavailable during the finder gate, so its
-  existing cache-backed source-count floor remained an explicit diagnostic rather than being relabeled healthy.
-- **Sprint 10 remains yellow:** the actual byte-level inspection exposed rather than waived bad inventory. The 28
-  immediate image replacements, three duplicate-target resolutions, 91 owner-policy decisions, fresh zero-error
-  rerun, ratified positive coverage targets, and owner premium visual approval remain open. Closeout also requires a
-  new schema-v2 release-bound session, exact HTTP-200 source-page verification, externally retained evidence and
-  final-receipt digests, and independent human finalization. This checkpoint does not claim those exit-gate decisions
-  or advance the roadmap to beta.
+  the existing composed-city and Sprint 9 journeys. No remote rerun, Pages deployment, or production-byte observation
+  is claimed until this checkpoint is pushed and those checks complete.
+- **Local engineering verification is green:** `npm run test:s10` passes 45/45; `npm run test:s10-images` passes
+  45/45; `npm run test:s10-performance` passes 2/2; `npm run test:s11` passes 13/13; and
+  `npm run test:browser-s10` passes 4/4. The complete serial repository gate passes 919/919, including the 64.6-
+  second finder contract, immutable artifact checks, Tampa/SF and base-path builds, and app lint. The local browser
+  harness reports no serious/critical Axe finding, console error, provider crash, disallowed image request, card-text
+  clipping, or Add-action overlap. The finder run exercised the explicit degraded diagnostic because one strict-
+  majority acquisition family was unavailable; this is not evidence of healthy live acquisition or a fresh corpus.
+- **Sprint 10 remains yellow:** engineering corrections and local verification are green, but the corrected 100-row
+  population still requires an independent schema-v2 human/network review, including exact HTTP-200 source-page
+  verification and externally retained evidence/final-receipt digests. Morris Bridge remains on Aurora pending
+  canonical resolution, and Bro Bowl plus Hammock Park require re-review in the corrected population. Owner imagery-
+  policy and positive-coverage decisions, owner premium visual approval, and a human screen-reader/switch journey
+  also remain open. This checkpoint has not been deployed, does not satisfy the Sprint 10 exit gate, and does not
+  authorize real beta sessions; Sprint 11's fail-closed preparatory tooling may proceed without implying beta start.
 
 ## Validation and United States coverage
 
@@ -1421,7 +1457,7 @@ Committed scope:
 **Exit gate:** no open P0, green refresh/deploy SLOs, a reproducible beta report, and no evidence that the core
 first-value promise is false.
 
-#### Sprint 11 explicit-research readiness receipt - 2026-07-21 (preparatory)
+#### Sprint 11 explicit-research readiness receipt - 2026-07-22 (preparatory)
 
 - **A privacy-bounded evidence contract is ready before collection begins:** each session binds to one immutable
   flagship manifest/build pair and retains only elapsed milestones, bounded outcome counts, source-link outcome,
@@ -1432,6 +1468,23 @@ first-value promise is false.
   and session-incidence denominators according to metric type. Mixed or unexpected release bytes and replayed
   session receipts hard-fail. Without a configuration the report is `insufficient`; adequate configured sample
   size is only `reviewable` and never an inferred pass or fail.
+
+#### Sprint 11 fail-closed beta-kit receipt — 2026-07-22 (preparatory/blocked)
+
+- **A release-bound kit now refuses research on the wrong bytes:** at one explicit caller-supplied instant it verifies
+  both flagship artifact sets through the existing city, timezone, schema, byte/hash, image-tree, freshness, and
+  fully healthy source-receipt contract. It takes one strict verification snapshot per city, and only two fresh sets
+  that exactly match caller-supplied, independently observed participant-facing deployment identities can emit
+  owner-fillable configuration and empty session templates. Fresh local finder output without that deployment
+  binding remains `artifact-ready` but returns `kit: null`; the kit defines no sample size or pass threshold. The
+  current checked Tampa and SF bytes verify for integrity but correctly remain blocked because both event packs are
+  expired and their event/place source health is unknown.
+- **The first real operations observation remains red, not inferred green:** GitHub scheduled refresh run
+  [29493668670](https://github.com/joshuaallanmorgan-lgtm/wuzup/actions/runs/29493668670) succeeded on 2026-07-16
+  and opened [PR #16](https://github.com/joshuaallanmorgan-lgtm/wuzup/pull/16), but that PR is still open and has
+  not produced a corresponding Pages deployment. The last successful main deployment observed was
+  [run 29366600769](https://github.com/joshuaallanmorgan-lgtm/wuzup/actions/runs/29366600769) on 2026-07-14.
+  Refresh-to-deploy SLO evidence is therefore still missing.
 - **This does not advance the roadmap:** the six-session fixture is synthetic arithmetic evidence, not product use.
   Sprint 10 imagery/owner approval, fresh verified flagship artifacts, green refresh/deploy observation, real research
   sessions, and P0/P1 triage remain required before Sprint 11 can close.

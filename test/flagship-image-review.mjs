@@ -18,7 +18,7 @@ import {
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const FIXTURE = JSON.parse(await readFile(
-  new URL('./fixtures/imagery/flagship-image-review.v1.json', import.meta.url),
+  new URL('./fixtures/imagery/flagship-image-review.v2.json', import.meta.url),
   'utf8',
 ))
 const REVIEW = buildFlagshipImageReview({ repoRoot: ROOT })
@@ -113,7 +113,11 @@ test('binds every review to current manifest, artifact, and selected local image
   }
 
   const local = review.items.filter(item => item.image.delivery === 'self-hosted')
-  assert.equal(local.length, 15)
+  const expectedLocal = FIXTURE.summary.cities
+    .flatMap(city => city.delivery)
+    .filter(row => row.value === 'self-hosted')
+    .reduce((sum, row) => sum + row.count, 0)
+  assert.equal(local.length, expectedLocal)
   for (const item of local) {
     const bytes = await readFile(path.join(ROOT, item.image.localByte.path))
     assert.equal(sha256(bytes), item.image.localByte.sha256)
@@ -123,7 +127,7 @@ test('binds every review to current manifest, artifact, and selected local image
     assert.equal(item.image.localByte.format, 'jpeg')
   }
 
-  assert.equal(review.items.filter(item => item.image.delivery === 'remote').length, 85)
+  assert.equal(review.items.filter(item => item.image.delivery === 'remote').length, 100 - expectedLocal)
   assert.equal(review.items.filter(item => item.image.delivery === 'remote')
     .every(item => item.image.host === 'upload.wikimedia.org' && item.image.localByte == null), true)
 
@@ -136,15 +140,14 @@ test('keeps source, delivery, risk, credit, and rank-proxy evidence explicit', a
   const tampa = review.summary.cities.find(city => city.cityId === 'tampa-bay')
   const sf = review.summary.cities.find(city => city.cityId === 'sf-east-bay')
 
-  assert.deepEqual(tampa.delivery, [
-    { value: 'remote', count: 35 },
-    { value: 'self-hosted', count: 15 },
-  ])
+  assert.deepEqual(tampa.delivery, FIXTURE.summary.cities.find(city => city.cityId === 'tampa-bay').delivery)
   assert.deepEqual(tampa.sourceFamilies.map(row => row.value), [
     'commons-geosearch', 'mapillary-sign', 'wikidata-p18', 'wikidata-p373',
   ])
   assert.deepEqual(sf.sourceFamilies.map(row => row.value), ['wikidata-p18', 'wikidata-p373'])
-  assert.ok(tampa.riskFlags.some(row => row.value === 'REFERENCE_REUSED'))
+  assert.deepEqual(tampa.riskFlags, FIXTURE.summary.cities.find(city => city.cityId === 'tampa-bay').riskFlags)
+  assert.equal(tampa.riskFlags.some(row => row.value === 'REFERENCE_REUSED'), false,
+    'the corrected deterministic sample must not retain a known reused reference')
   assert.ok(tampa.riskFlags.some(row => row.value === 'SELF_HOSTED_BYTES'))
   assert.ok(sf.riskFlags.some(row => row.value === 'LICENSE_URL_MISSING'))
 

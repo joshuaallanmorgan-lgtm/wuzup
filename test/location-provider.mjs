@@ -1,18 +1,22 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import test, { after } from 'node:test'
+import test from 'node:test'
 import { createServer } from '../app/node_modules/vite/dist/node/index.js'
 
 const source = await readFile(new URL('../app/src/LocationProvider.jsx', import.meta.url), 'utf8')
 const vite = await createServer({
   root: fileURLToPath(new URL('../app/', import.meta.url)),
-  server: { middlewareMode: true },
+  server: { middlewareMode: true, watch: null },
   appType: 'custom',
   logLevel: 'silent',
 })
-const providerModule = await vite.ssrLoadModule('/src/LocationProvider.jsx')
-after(() => vite.close())
+let providerModule
+try {
+  providerModule = await vite.ssrLoadModule('/src/LocationProvider.jsx')
+} finally {
+  await vite.close()
+}
 
 test('LocationProvider loads through Vite and exports the provider contract', () => {
   assert.equal(typeof providerModule.LocationProvider, 'function')

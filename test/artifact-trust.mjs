@@ -299,6 +299,16 @@ test('schema validation still rejects malformed payloads when their new hash is 
 }));
 
 test('local place-image references are verified and image-only transitions stay untrusted', () => withScratch((scratch) => {
+  const orphaned = fixture(join(scratch, 'orphaned-image'));
+  writeFileSync(join(orphaned.root, 'place-img', 'unreferenced.jpg'), Buffer.from([0xff, 0xd8, 0xff, 0xd9]));
+  const orphanCheck = verifyArtifactSet({
+    root: orphaned.root,
+    expectedCityId: orphaned.cityId,
+    expectedTimeZone: orphaned.timeZone,
+  });
+  assert.equal(orphanCheck.ok, false);
+  assert.match(orphanCheck.problems.join(' '), /place-img\/unreferenced\.jpg is unreferenced/);
+
   const broken = fixture(join(scratch, 'broken-reference'));
   const placesPath = join(broken.root, 'places.json');
   const placesDoc = JSON.parse(readFileSync(placesPath, 'utf8'));

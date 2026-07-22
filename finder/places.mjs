@@ -25,6 +25,7 @@ import { randomUUID } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { enrichPlacesWithImages } from './places-images.mjs';
+import { reconcileLocalPlaceImages } from './place-image-artifacts.mjs';
 import { enrichPlacesWithDescriptions } from './places-descriptions.mjs';
 import { retainedPlaceSignals } from './place-signals.mjs';
 import { bbox as TB_BOX, govOrder as GOV_ORDER, touristCentroids as TOURIST_CENTROIDS, cityId, meta as CITY_META, tz as CITY_TZ } from './cities/index.mjs';
@@ -645,6 +646,13 @@ async function main() {
   const previousManifest = invalidateManifest(OUT, { expectedCityId: cityId, expectedTimeZone: CITY_TZ });
   const payload = { schemaVersion: 1, places };
   atomicWriteFileSync(join(OUT, 'places.json'), `${JSON.stringify(payload, null, 2)}\n`);
+  const imageReconciliation = reconcileLocalPlaceImages(OUT, places);
+  if (imageReconciliation.removed.length) {
+    console.log(
+      `  🧹 local images: removed ${imageReconciliation.removed.length} unreferenced file(s) ` +
+      `(${imageReconciliation.before.count} → ${imageReconciliation.after.count})`,
+    );
+  }
 
   const typeDist = {};
   for (const p of places) typeDist[p.placeType] = (typeDist[p.placeType] || 0) + 1;

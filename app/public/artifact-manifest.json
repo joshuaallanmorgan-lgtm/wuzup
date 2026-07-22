@@ -6,7 +6,7 @@
   "generatedAt": "2026-07-07T12:25:56.000Z",
   "expiresAt": "2026-07-09T12:25:56.000Z",
   "maxAgeHours": 48,
-  "assembledAt": "2026-07-15T01:59:37.406Z",
+  "assembledAt": "2026-07-22T03:49:01.317Z",
   "provenance": "legacy-markdown",
   "sourceHealth": {
     "status": "unknown",
@@ -360,8 +360,8 @@
     },
     "places": {
       "file": "places.json",
-      "sha256": "749eed658f2df7c8f9d175391ba06518c7b88168f4e27afab0a63ff647e3a57b",
-      "bytes": 1358383,
+      "sha256": "e19e10e05780bcb55c88c59ccd1b251354f1652451ae37207b602f7aef144c25",
+      "bytes": 1347573,
       "count": 2163,
       "runId": "legacy-tampa-bay-places-749eed658f2df7c8",
       "generatedAt": "2026-06-24T23:14:45.000Z",
@@ -438,11 +438,11 @@
   },
   "placeImages": {
     "dir": "place-img",
-    "sha256": "a53552023e420f9e40486b528849748873d1fbcf30a76ecc7ba1c02c743cfcf3",
-    "bytes": 2294979,
-    "count": 35
+    "sha256": "dd00a6a0ef2f67fdda6ae222b7a021fe0648fd763cb4f25bb2bc30b257fa5ac3",
+    "bytes": 2063221,
+    "count": 30
   },
   "shards": [],
-  "buildId": "sha256:65a75e81823893d24051e99387364d1b1ab450be748f6dc58cc58c14d61d5381",
-  "manifestId": "sha256:035cb1eed7e67d143c4b0739d8dd3c2373bd3af2e85562aad0fc4895651615b1"
+  "buildId": "sha256:37e7b0bcc2ea184faaab0c066a996ef5a6511e15c2d0918725bf01d04187efe9",
+  "manifestId": "sha256:7a9c4bb85d64c8488470691dc3b8f537e2ab3e2218534fa7def444d4ffc494e0"
 }

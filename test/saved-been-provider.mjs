@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import test, { after } from 'node:test'
+import test from 'node:test'
 import { createServer } from '../app/node_modules/vite/dist/node/index.js'
 
 import {
@@ -25,12 +25,16 @@ const source = await readFile(
 )
 const vite = await createServer({
   root: fileURLToPath(new URL('../app/', import.meta.url)),
-  server: { middlewareMode: true },
+  server: { middlewareMode: true, watch: null },
   appType: 'custom',
   logLevel: 'silent',
 })
-const providerModule = await vite.ssrLoadModule('/src/SavedBeenProvider.jsx')
-after(() => vite.close())
+let providerModule
+try {
+  providerModule = await vite.ssrLoadModule('/src/SavedBeenProvider.jsx')
+} finally {
+  await vite.close()
+}
 
 const {
   createSavedBeenActions,

@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "fixtureId": "wuzup-sprint8-personal-relevance-v2",
+  "frozenAt": "2026-07-21T12:00:00-04:00",
+  "limitations": [
+    "These are frozen replays of checked-in production artifacts, not claims about current live inventory.",
+    "The artifact hashes are part of the fixture; a refresh requires an intentional eval review rather than silently changing the sample.",
+    "The v2 place hashes bind the July 21 reviewed-image correction; item order and every non-image place field stayed unchanged.",
+    "Tampa and SF place supply reaches the category/source diversity limit exactly, so the gate is <= 10 of 20 rather than a stricter unratified target."
+  ],
+  "diversityPolicy": {
+    "prefix": 20,
+    "sourceMax": 10,
+    "categoryMax": 10,
+    "venueMax": 10,
+    "canonicalMax": 1,
+    "seriesMax": 1
+  },
+  "cases": [
+    {
+      "caseId": "tampa-events-music",
+      "cityId": "tampa-bay",
+      "kind": "events",
+      "artifact": "finder/output/tampa-bay/events.json",
+      "sha256": "a8df0d0cefb461c6e417092b42de20067cf4f1bfb68314e5e91c4f70f875d090",
+      "asOf": "2026-07-21T12:00:00-04:00",
+      "match": { "field": "category", "value": "music" },
+      "positive": { "catScores": { "music": 25 } },
+      "negative": { "avoidScores": { "music": 25 } },
+      "directions": ["into", "out-of"]
+    },
+    {
+      "caseId": "sf-events-art",
+      "cityId": "sf-east-bay",
+      "kind": "events",
+      "artifact": "finder/output/sf-east-bay/events.json",
+      "sha256": "84981a8ec48f0245e23e168fb63bc2071cceb5e1eda4e115828264a92873b1d8",
+      "asOf": "2026-07-14T12:00:00-07:00",
+      "match": { "field": "category", "value": "art" },
+      "positive": { "catScores": { "art": 25 } },
+      "negative": { "avoidScores": { "art": 25 } },
+      "directions": ["into", "out-of"]
+    },
+    {
+      "caseId": "tampa-places-park-negative",
+      "cityId": "tampa-bay",
+      "kind": "places",
+      "artifact": "finder/output/tampa-bay/places.json",
+      "sha256": "e19e10e05780bcb55c88c59ccd1b251354f1652451ae37207b602f7aef144c25",
+      "asOf": "2026-07-21T12:00:00-04:00",
+      "match": { "field": "placeType", "value": "park" },
+      "negative": { "avoidScores": { "outdoors": 25, "place:park": 25 } },
+      "directions": ["out-of"]
+    },
+    {
+      "caseId": "sf-places-garden-positive",
+      "cityId": "sf-east-bay",
+      "kind": "places",
+      "artifact": "finder/output/sf-east-bay/places.json",
+      "sha256": "6e26e72aab68693ba3d9685503a81b7d8bf6c02b49afb697285dc3fbed338c1d",
+      "asOf": "2026-07-14T12:00:00-07:00",
+      "match": { "field": "placeType", "value": "garden" },
+      "positive": { "catScores": { "outdoors": 25, "place:garden": 25 } },
+      "directions": ["into"]
+    }
+  ]
+}

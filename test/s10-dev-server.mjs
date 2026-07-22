@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
-import { mkdtemp, mkdir, rm, stat, utimes } from 'node:fs/promises'
+import { cp, mkdtemp, rm, stat, utimes } from 'node:fs/promises'
 import { createServer } from 'node:net'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url'
 
 import { chromium } from 'playwright'
 import { stableDevNativeWatchIgnored, stableDevReload, stableDevSourceFile } from '../app/vite.config.js'
+import { releaseFixtureNow } from './browser/composed-site.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const DEV_CITY = path.join(ROOT, 'finder', 'dev-city.mjs')
@@ -19,6 +20,30 @@ const TOUCH_ONLY_PATHS = [
   path.join(ROOT, 'app', 'index.html'),
   path.join(ROOT, 'app', 'vite.config.js'),
 ]
+
+test('composed browser clock proves stale events while both verified place packs remain ready', () => {
+  const cities = {
+    tampa: {
+      assembledAt: '2026-07-22T12:00:00.000Z',
+      eventExpiresAt: '2026-07-20T12:00:00.000Z',
+      placeExpiresAt: '2026-07-25T12:00:00.000Z',
+    },
+    sf: {
+      assembledAt: '2026-07-21T12:00:00.000Z',
+      eventExpiresAt: '2026-07-23T12:00:00.000Z',
+      placeExpiresAt: '2026-07-24T12:00:00.000Z',
+    },
+  }
+  assert.equal(releaseFixtureNow(cities), Date.parse('2026-07-23T12:00:01.000Z'))
+  assert.throws(
+    () => releaseFixtureNow({ ...cities, sf: { ...cities.sf, eventExpiresAt: 'invalid' } }),
+    /valid release, event-expiry, and place-expiry timestamps/,
+  )
+  assert.throws(
+    () => releaseFixtureNow({ ...cities, sf: { ...cities.sf, placeExpiresAt: '2026-07-23T12:00:00.500Z' } }),
+    /no shared stale-events\/ready-places release window/,
+  )
+})
 
 test('stable localhost reloads changed source bytes but ignores generated and touch-only churn', async () => {
   assert.equal(stableDevNativeWatchIgnored(path.join(ROOT, 'app', 'index.html'), true), true)
@@ -205,7 +230,7 @@ async function waitForHttp(url, run, timeoutMs = 20_000) {
   throw new Error(`dev server did not become ready:\n${run.output()}`)
 }
 
-test('localhost startup is single-owner and touch-only churn preserves the provider graph', { timeout: 60_000 }, async () => {
+test('localhost startup is single-owner and touch-only churn preserves the provider graph', { timeout: 60_000 }, async (t) => {
   const scratch = await mkdtemp(path.join(tmpdir(), 'wuzup-s10-dev-'))
   const publicRoot = path.join(scratch, 'public')
   const port = await freePort()
@@ -223,7 +248,7 @@ test('localhost startup is single-owner and touch-only churn preserves the provi
   let browser = null
 
   try {
-    await mkdir(publicRoot)
+    await cp(path.join(ROOT, 'app', 'public'), publicRoot, { recursive: true })
     const left = launch(args, env)
     const right = launch(args, env)
     const settled = await Promise.race([
@@ -269,6 +294,56 @@ test('localhost startup is single-owner and touch-only churn preserves the provi
     await page.getByRole('navigation', { name: 'Primary navigation' })
       .getByRole('button', { name: 'Events', exact: true }).click()
     await page.getByRole('heading', { name: 'Events', exact: true }).waitFor({ state: 'visible' })
+
+    const eventsPage = page.locator('section.page[aria-label="Events"]:not([aria-hidden="true"])')
+    const eventsScroll = eventsPage.locator('.hot-scroll')
+    const firstEvent = eventsPage.locator('.gem').first()
+    const eventViewportGeometry = []
+    await firstEvent.waitFor({ state: 'visible' })
+    for (const viewport of [
+      { width: 320, height: 568 },
+      { width: 390, height: 844 },
+    ]) {
+      await page.setViewportSize(viewport)
+      await eventsScroll.evaluate((node) => { node.scrollTop = 0 })
+      const firstBox = await firstEvent.evaluate((node) => {
+        const rect = node.getBoundingClientRect()
+        return { top: rect.top, bottom: rect.bottom, height: rect.height }
+      })
+      const tabbarTop = await page.locator('.tabbar').evaluate((node) => node.getBoundingClientRect().top)
+      const visibleBand = Math.max(
+        0,
+        Math.min(firstBox.bottom, tabbarTop, viewport.height) - Math.max(firstBox.top, 0),
+      )
+      assert.ok(
+        visibleBand >= 88,
+        `Events must show at least 88px of a credible card before the ${viewport.width}px tab bar: card=${JSON.stringify(firstBox)}, tabbar=${tabbarTop}, visible=${visibleBand}`,
+      )
+      eventViewportGeometry.push({ ...viewport, card: firstBox, tabbarTop, visibleBand })
+      const cardProblems = await eventsPage.locator('.gem').evaluateAll((rows) => rows.slice(0, 3).flatMap((row, rowIndex) => {
+        const action = row.querySelector('.gem-add, .gem-lifecycle')?.getBoundingClientRect()
+        if (!action) return [{ rowIndex, issue: 'missing-action' }]
+        return [...row.querySelectorAll('.gem-title, .gem-venue, .gem-when, .gem-chips, .gem-why, .gem-series')]
+          .flatMap((node) => {
+            const rect = node.getBoundingClientRect()
+            const style = getComputedStyle(node)
+            const lineHeight = Number.parseFloat(style.lineHeight)
+            const intentionalTitleClamp = node.classList.contains('gem-title')
+              && node.scrollHeight > lineHeight + 1
+              && node.clientHeight >= lineHeight * 2 - 1
+            const verticallyCrushed = node.scrollHeight > node.clientHeight + 1 && !intentionalTitleClamp
+            const overlapsAction = rect.left < action.right && rect.right > action.left
+              && rect.top < action.bottom && rect.bottom > action.top
+            return [
+              ...(verticallyCrushed ? [{ rowIndex, className: node.className, issue: 'vertical-clipping' }] : []),
+              ...(overlapsAction ? [{ rowIndex, className: node.className, issue: 'action-overlap' }] : []),
+            ]
+          })
+      }))
+      assert.deepEqual(cardProblems, [], `${viewport.width}px event card problems: ${JSON.stringify(cardProblems)}`)
+    }
+    t.diagnostic(`Events first-value geometry: ${JSON.stringify(eventViewportGeometry)}`)
+    await page.setViewportSize({ width: 390, height: 844 })
 
     assert.equal(
       browserErrors.some((message) => /must be used within .*Provider|WUZUP-RENDER-001/.test(message)),

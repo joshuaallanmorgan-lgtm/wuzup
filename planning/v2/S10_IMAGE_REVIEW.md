@@ -1,7 +1,7 @@
 # Sprint 10 flagship image review
 
-> **Status:** exact-byte engineering inspection and schema-v2 receipt implementation complete; corrections, a new
-> release-bound review session, independent human review, and owner policy ratification pending
+> **Status:** exact-byte correction and schema-v2 receipt implementation complete; a new release-bound review
+> session, independent human review, and owner policy ratification remain pending
 >
 > **Authority:** [V2_SPRINTS.md](V2_SPRINTS.md), [V2_PLAN.md](V2_PLAN.md), and
 > [I0_IMAGE_INVENTORY.md](I0_IMAGE_INVENTORY.md). This document does not approve an image or ratify a
@@ -20,10 +20,17 @@ binds the result to:
 - explicit risk flags for reused references, missing license URLs, local delivery, and missing addresses; and
 - SHA-256, byte size, dimensions, and format for every selected local image.
 
-The selection is deterministic and risk/source/delivery stratified. Tampa contributes 35 remote Commons and
-15 local Mapillary rows; SF contributes 50 remote Commons rows. The candidate pools remain 139 Tampa and 175
-SF credited place rows. The test fixture pins the two release identities, sample item IDs, summaries, and
+The selection is deterministic and risk/source/delivery stratified. After the July 21 correction, Tampa contributes
+34 remote Commons and 16 local Mapillary rows; SF contributes 50 remote Commons rows. The current candidate pools
+are 116 Tampa and 167 SF credited place rows. The v2 test fixture pins the two corrected release identities, sample item IDs, summaries, and
 canonical report hash so artifact or policy drift requires a deliberate review-set update.
+
+The branch release candidate's reviewed correction is item-quarantined and
+artifact-bound. Its temporary recovery journal exists only during mutation and is
+removed after a verified commit; the durable checked-in evidence is the
+replay-validated correction receipt plus the corrected artifact identity. This
+engineering receipt does not approve any image or replace the required schema-v2
+human decision receipt.
 
 Run the contracts and build the immutable review population with:
 
@@ -72,7 +79,9 @@ both the visual checks and proposed automatic license metadata gate.
 
 The aggregate findings and row-level failure list are in
 [S10_IMAGE_AUDIT_2026-07-21.md](S10_IMAGE_AUDIT_2026-07-21.md).
-This inspection deliberately did not edit the decision template, approve a `keep`, or modify a shipping artifact.
+This historical inspection deliberately did not edit the decision template or approve a `keep`. Its 31 failed or
+ambiguous item assignments subsequently produced the exact quarantine/correction receipt documented in
+[S10_IMAGE_AUDIT_2026-07-21.md](S10_IMAGE_AUDIT_2026-07-21.md); those corrections do not turn historical rows into approvals.
 The complete 100-row evidence and cached pixels remain only in the OS temporary session; the report digest and audit
 Markdown do not reproduce those bytes. The now-implemented schema-v2 workflow retains reviewer rationale and exact
 source-page checks, accepts `needs-owner` without converting it into approval, binds to the originally retained
@@ -95,15 +104,15 @@ current implementation does not cryptographically authenticate that identity. Th
 4. Is any repeated photo being presented as multiple distinct places?
 5. Does a failed row need removal, a corrected candidate, or the honest Aurora fallback?
 
-The audit passes only when the reviewed release has zero wrong-place and zero uncredited displayed images.
-Remote availability and source terms must be checked at review time. The current repository contains only 35
+The audit passes only when the corrected reviewed release has zero wrong-place and zero uncredited displayed images.
+Remote availability and source terms must be checked at review time. The current repository contains only 30
 local Tampa pixels, so the remote portion requires network access or cleared local review copies.
 
 ## Positive imagery target remains an owner decision
 
 Current event artifacts have zero displayable event-image receipts and intentionally use Aurora. Credited
-place coverage is 6.43% Tampa and 6.06% SF; a current rank-based lead-eligible diagnostic is roughly 9.74% and
-8.93%. Those measurements are not an approved target. Event/spot coverage percentages, top-tier semantics,
+place coverage is 5.36% Tampa and 5.78% SF after the rejected claims were removed. Those measurements are not an
+approved target. Event/spot coverage percentages, top-tier semantics,
 license allowlists, Mapillary posture, contextual/venue use, hotlink versus self-host policy, and the independent
 reviewer remain owner decisions. Sprint 10 therefore remains yellow even though the evidence population is now
 reproducible.
@@ -144,7 +153,7 @@ default is therefore self-hosted, content-addressed bytes when the verified term
 delivery only as an explicitly recorded transitional mode.
 
 New Mapillary expansion remains disabled until the owner approves the current API/terms, commercial-use,
-self-hosting, crop, privacy, and attribution posture. The 35 existing Tampa crops are not grandfathered into a
+self-hosting, crop, privacy, and attribution posture. The 30 remaining Tampa crops are not grandfathered into a
 positive policy decision: each must independently pass place identity, crop/change disclosure, license, source,
 privacy, and attribution review or fall back to Aurora.
 

@@ -58,9 +58,10 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { area, qidDeny, cityId, tz as CITY_TZ } from './cities/index.mjs';
+import { area, imageRejects, qidDeny, cityId, tz as CITY_TZ } from './cities/index.mjs';
 import { PRODUCT_UA } from './ua.mjs';
 import { atomicWriteFileSync, invalidateManifest, writeManifest } from './artifact-manifest.mjs';
+import { reconcileLocalPlaceImages } from './place-image-artifacts.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 // D1: the slug/file-keyed image caches are COLLISION-PRONE across cities
@@ -421,7 +422,7 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
     withQid: 0, set: 0, fromCache: 0, fetched: 0, noImage: 0,
     tooSmall: 0, noCredit: 0, viaP18: 0, viaP373: 0,
     geoTried: 0, geoFetched: 0, geoFromCache: 0, viaGeo: 0,
-    viaMapillary: 0, mapMissing: 0,
+    viaMapillary: 0, mapMissing: 0, reviewedQuarantine: 0,
   };
   let dirty = false; // only rewrite the TRACKED caches when content changed
   let geoDirty = false;
@@ -430,10 +431,14 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
   for (const p of places) {
     if (!p) continue;
     const hasCoords = typeof p.lat === 'number' && typeof p.lng === 'number';
+    // A failed human review quarantines the item, not merely one URL. A later
+    // candidate needs an explicit positive review before this item can ship a
+    // photo again, so skip every acquisition ladder while the entry is active.
+    const reviewedQuarantine = p.key ? imageRejects[p.key] : null;
     let rec = null;
 
     // ── ladder 1: Wikidata Q-id (P18 → P373) — the curated, strongest signal ──
-    if (p.wikidata && !QID_DENY.has(p.wikidata)) {
+    if (!reviewedQuarantine && p.wikidata && !QID_DENY.has(p.wikidata)) {
       stats.withQid++;
       const cached = cache.byQid[p.wikidata];
       // freshness also requires the NEW record shape (3.7P-2 review P1): a pre-3.7P-2
@@ -468,7 +473,7 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
       stats.geoBanned = true;
       log(`  ⛔ Commons geosearch (ladder 2) DISABLED for '${cityId}': AREA gazetteer is empty/unreviewed (fail-closed — Wikidata P18 + art floor only)`);
     }
-    if (GEOSEARCH_ENABLED && !shippable(rec) && hasCoords && p.name) {
+    if (!reviewedQuarantine && GEOSEARCH_ENABLED && !shippable(rec) && hasCoords && p.name) {
       stats.geoTried++;
       const gkey = p.key || `${p.lat},${p.lng}`;
       const gcached = geoCache.byKey[gkey];
@@ -503,7 +508,7 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
     //    JPEG present, then ship the LOCAL path with its CC-BY-SA credit + the
     //    signTextRead honesty receipt. Self-heals BOTH ways: cafe pruned from the
     //    cache OR its JPEG deleted → no rec → the place falls to the art floor. ──
-    if (!shippable(rec) && p.placeType === 'cafe' && p.key) {
+    if (!reviewedQuarantine && !shippable(rec) && p.placeType === 'cafe' && p.key) {
       const mc = mapCache.byKey[p.key];
       const mNewShape = mc && mc.image && 'signTextRead' in mc;
       const mfresh = mc && mc.at && mNewShape && Date.now() - Date.parse(mc.at) < MAX_CACHE_AGE_MS;
@@ -535,7 +540,12 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
     // the honest art floor stays. enrich also stamps the inline credit ON the place
     // (p.imageCredit) so the place-detail hero can render the byline the CC-BY/BY-SA
     // license legally requires — no live call, no lookup.
-    if (shippable(rec)) {
+    if (reviewedQuarantine) {
+      stats.reviewedQuarantine++;
+      if ('image' in p) delete p.image;
+      if ('imageCredit' in p) delete p.imageCredit;
+      stats.noImage++;
+    } else if (shippable(rec)) {
       const fileUrl = rec.fileUrl || 'https://commons.wikimedia.org/wiki/' + encodeURIComponent(rec.fileTitle);
       p.image = rec.image;
       p.imageCredit = {
@@ -612,6 +622,44 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
   return stats;
 }
 
+// The standalone backfill is a derived artifact writer. Keep its publication
+// boundary identical to the primary places writer: remove the trust pointer,
+// write the final places consumers, reconcile local image members, then reseal.
+export function writeEnrichedPlacesArtifact({
+  artifactPath,
+  doc,
+  expectedCityId = cityId,
+  expectedTimeZone = CITY_TZ,
+}) {
+  if (!artifactPath) throw new Error('artifactPath is required');
+  if (!Array.isArray(doc?.places)) throw new Error('doc.places must be an array');
+
+  const path = artifactPath;
+  const artifactRoot = dirname(path);
+  const previousManifest = invalidateManifest(artifactRoot, {
+    expectedCityId,
+    expectedTimeZone,
+  });
+  atomicWriteFileSync(path, `${JSON.stringify(doc, null, 2)}\n`);
+  const imageReconciliation = reconcileLocalPlaceImages(artifactRoot, doc.places);
+  const previousPlaces = previousManifest?.artifacts?.places;
+  const manifest = writeManifest({
+    root: artifactRoot,
+    cityId: expectedCityId,
+    timeZone: expectedTimeZone,
+    previousManifest,
+    componentReceipts: previousPlaces ? {
+      places: {
+        runId: previousPlaces.runId,
+        generatedAt: previousPlaces.generatedAt,
+        provenance: previousPlaces.provenance,
+        sourceHealth: previousPlaces.sourceHealth,
+      },
+    } : {},
+  });
+  return { manifest, imageReconciliation };
+}
+
 // ---- standalone: backfill the existing places.json copies in place ----------
 async function main() {
   const live = process.env.PLACES_LIVE === '1';
@@ -629,23 +677,9 @@ async function main() {
     if (!Array.isArray(doc.places)) continue;
     // first target fetches live (if needed); later targets ride the warm cache
     const stats = await enrichPlacesWithImages(doc.places, { live: live && lastStats === null, log: console.log });
-    const artifactRoot = dirname(path);
-    const previousManifest = invalidateManifest(artifactRoot, { expectedCityId: cityId, expectedTimeZone: CITY_TZ });
-    atomicWriteFileSync(path, `${JSON.stringify(doc, null, 2)}\n`);
-    const previousPlaces = previousManifest?.artifacts?.places;
-    writeManifest({
-      root: artifactRoot,
-      cityId,
-      timeZone: CITY_TZ,
-      previousManifest,
-      componentReceipts: previousPlaces ? {
-        places: {
-          runId: previousPlaces.runId,
-          generatedAt: previousPlaces.generatedAt,
-          provenance: previousPlaces.provenance,
-          sourceHealth: previousPlaces.sourceHealth,
-        },
-      } : {},
+    writeEnrichedPlacesArtifact({
+      artifactPath: path,
+      doc,
     });
     lastStats = stats;
     const total = doc.places.length;

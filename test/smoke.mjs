@@ -2238,20 +2238,20 @@ test('CARD_LOCK: ResultCard is the kind-aware canonical card; CompactRow/Row ret
   }
 })
 
-// PREMIUM A2 — the card-system rework (D1–D4). The universal GemRow/SpotCard row
-// share ONE fixed height; a tall left image; a bare stroke heart top-right; a real
-// CTA bottom-right (the rail is gone); engineered stroke icons; one chip primitive.
-test('PREMIUM A2: D1 uniform height · tall image · bare heart · real CTA · stroke icons · chip primitive', () => {
+// PREMIUM A2 — the card-system rework (D1–D4). Spot rows keep a compact fixed
+// height; event rows treat that token as a minimum and grow around real content.
+test('PREMIUM A2: adaptive event height · tall image · bare heart · real CTA · stroke icons · chip primitive', () => {
   const idx = readFileSync(path.join(ROOT, 'app', 'src', 'index.css'), 'utf8')
   const cardsCss = readFileSync(path.join(ROOT, 'app', 'src', 'cards.css'), 'utf8')
   const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
   const lib = readFileSync(path.join(ROOT, 'app', 'src', 'lib.js'), 'utf8')
   const saves = readFileSync(path.join(ROOT, 'app', 'src', 'saves.js'), 'utf8')
 
-  // D1: ONE shared card height token drives BOTH event + spot rows (no ragged feed)
-  assert.ok(/--card-row-h:/.test(idx), 'index.css defines the --card-row-h token (D1: one card height)')
-  assert.ok(/\.gem\s*\{[^}]*height:\s*var\(--card-row-h\)/s.test(cardsCss), '.gem height is the shared --card-row-h')
-  assert.ok(/\.spotcard--row\s*\{[^}]*height:\s*var\(--card-row-h\)/s.test(cardsCss), '.spotcard--row height is the SAME --card-row-h (uniform with events)')
+  // D1: event content cannot be crushed into the compact place-row baseline.
+  assert.ok(/--card-row-h:/.test(idx), 'index.css defines the compact card-row baseline')
+  assert.ok(/\.gem\s*\{[^}]*min-height:\s*var\(--card-row-h\)[^}]*height:\s*auto/s.test(cardsCss), '.gem grows from the shared minimum')
+  assert.ok(/\.gem-main\s*\{[^}]*padding-bottom:\s*52px/s.test(cardsCss), '.gem reserves the complete 44px action band')
+  assert.ok(/\.spotcard--row\s*\{[^}]*height:\s*var\(--card-row-h\)/s.test(cardsCss), '.spotcard--row keeps the compact fixed baseline')
   // D2: the 1px card border is dropped (lean on the shadow)
   assert.ok(!/\.gem\s*\{[^}]*border:\s*1px solid var\(--line\)/s.test(cardsCss), 'D2: the .gem 1px hairline border is dropped')
   // tall left image (was a ~76/84px square thumb)

@@ -66,12 +66,20 @@ test('320/390 layouts protect readable cards, forms, and transient UI', () => {
 
   assert.match(index, /@media \(max-width:\s*359px\)[\s\S]*--gutter:\s*14px/)
   assert.match(index, /@media \(max-width:\s*359px\)[\s\S]*--card-row-h:\s*150px/)
+  assert.match(cards, /\.gem\s*\{[^}]*min-height:\s*var\(--card-row-h\)[^}]*height:\s*auto/s)
+  assert.match(cards, /\.gem-main\s*\{[^}]*padding-bottom:\s*52px/s)
   assert.match(cards, /@media \(max-width:\s*359px\)[\s\S]*\.gem-img,[\s\S]*flex-basis:\s*88px/)
   assert.match(addEvent, /@media \(max-width:\s*479px\)[\s\S]*\.ae-2col\s*\{\s*grid-template-columns:\s*minmax\(0, 1fr\)/)
   assert.match(cards, /\.card-toast\s*\{[^}]*width:\s*min\(var\(--toast-max\),\s*calc\(100vw - \(2 \* var\(--gutter\)\)\)\)/s)
   assert.match(cards, /\.card-toast\s*\{[^}]*white-space:\s*normal/s)
   assert.match(cards, /\.card-toast\s*\{[^}]*overflow-wrap:\s*anywhere/s)
   assert.match(app, /@media \(max-width:\s*359px\)[\s\S]*\.tune-preview\s*\{\s*display:\s*none/)
+  assert.doesNotMatch(app, /\.tune-pc-no\s*\{[^}]*opacity:/s)
+  assert.match(app, /\.tune-pc-no \.tune-pc-img\s*\{[^}]*filter:\s*grayscale\(0\.65\)[^}]*opacity:\s*0\.62/s)
+  const tuneEntrance = app.match(/@keyframes tune-in\s*\{([\s\S]*?)\n\}/)?.[1] || ''
+  const rowEntrance = cards.match(/@keyframes rowIn\s*\{([\s\S]*?)\n\}/)?.[1] || ''
+  assert.doesNotMatch(tuneEntrance, /opacity\s*:/, 'taste content must remain fully opaque while entering')
+  assert.doesNotMatch(rowEntrance, /opacity\s*:/, 'event rows must remain fully opaque while entering')
 })
 
 test('larger viewports preserve the centered single-column mobile product', () => {

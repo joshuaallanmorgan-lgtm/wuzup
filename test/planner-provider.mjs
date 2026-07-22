@@ -7,7 +7,7 @@ import { createServer } from '../app/node_modules/vite/dist/node/index.js'
 const source = await readFile(new URL('../app/src/PlannerProvider.jsx', import.meta.url), 'utf8')
 const vite = await createServer({
   root: fileURLToPath(new URL('../app/', import.meta.url)),
-  server: { middlewareMode: true },
+  server: { middlewareMode: true, watch: null },
   appType: 'custom',
   logLevel: 'silent',
 })

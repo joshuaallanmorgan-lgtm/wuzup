@@ -11,7 +11,11 @@ import {
   mapillaryCropFailsClosed,
   normalizeMapillaryCropGuard,
 } from '../finder/mapillary-contract.mjs'
-import { qidDeny as sfQidDeny } from '../finder/cities/sf-east-bay.mjs'
+import {
+  imageRejects as sfImageRejects,
+  qidDeny as sfQidDeny,
+} from '../finder/cities/sf-east-bay.mjs'
+import { imageRejects as tampaImageRejects } from '../finder/cities/tampa-bay.mjs'
 import {
   auditCityImagery,
   IMAGERY_FINDING_CODES,
@@ -23,15 +27,15 @@ const SF_CONTEXTUAL_IMAGE_QIDS = ['Q4116375', 'Q5192966']
 const SF_LIFEGUARD_IMAGE = 'East_Bay_Life_Guard_Training.JPG'
 const PINNED_ARTIFACTS = {
   'tampa-bay': {
-    buildId: 'sha256:65a75e81823893d24051e99387364d1b1ab450be748f6dc58cc58c14d61d5381',
+    buildId: 'sha256:37e7b0bcc2ea184faaab0c066a996ef5a6511e15c2d0918725bf01d04187efe9',
     events: 'a8df0d0cefb461c6e417092b42de20067cf4f1bfb68314e5e91c4f70f875d090',
-    places: '749eed658f2df7c8f9d175391ba06518c7b88168f4e27afab0a63ff647e3a57b',
-    receipt: 'f0fd946135801ced6786d3bc6b46c3ae8235bde1999ce2c8fd44a064885bd29c',
+    places: 'e19e10e05780bcb55c88c59ccd1b251354f1652451ae37207b602f7aef144c25',
+    receipt: 'd0af46101cb0cbbb368917f890e1cb59a4ba0b4a423eca0baecc71abeaed4a8b',
   },
   'sf-east-bay': {
-    buildId: 'sha256:7b025d648b008ee914eefbc0df65cc20b2ec783d405db8958779eb11ce35a0d7',
+    buildId: 'sha256:e209e102c6a821060d8abbd2fe6d475629a7be6b32b0e4a2a46bb52f561bdf04',
     events: '84981a8ec48f0245e23e168fb63bc2071cceb5e1eda4e115828264a92873b1d8',
-    places: '3266d7bd41c784fb2a87295a17498c7a6194ea93ba2b37555bdb713c89774646',
+    places: '6e26e72aab68693ba3d9685503a81b7d8bf6c02b49afb697285dc3fbed338c1d',
     receipt: null,
   },
 }
@@ -224,6 +228,62 @@ test('Tampa Mapillary receipts match the shipped local JPEG dimensions', async (
     assert.equal(entry.height, 600, `${key} receipt height must match its local JPEG`)
   }
   assert.equal(codes.has(IMAGERY_FINDING_CODES.LOCAL_IMAGE_DIMENSION_MISMATCH), false)
+})
+
+test('reviewed July failures stay on Aurora with exact correction receipts and no orphaned local bytes', async () => {
+  const registries = {
+    'tampa-bay': tampaImageRejects,
+    'sf-east-bay': sfImageRejects,
+  }
+
+  for (const [cityId, rejects] of Object.entries(registries)) {
+    const [places, attributions, receipt] = await Promise.all([
+      readRows(cityId, 'places'),
+      readFile(path.join(ROOT, 'finder', 'cache', cityId, 'attributions.json'), 'utf8').then(JSON.parse),
+      readFile(
+        path.join(ROOT, 'finder', 'cache', cityId, 'reviewed-image-rejections.receipt.json'),
+        'utf8',
+      ).then(JSON.parse),
+    ])
+    const byKey = new Map(places.map(place => [place.key, place]))
+    const retainedPages = new Set(places.map(place => place.imageCredit?.url).filter(Boolean))
+    const attributedPages = new Set(Object.values(attributions.byFile || {}).map(entry => entry.fileUrl))
+
+    assert.equal(receipt.auditReportSha256, 'sha256:4bee54bf0847f6de7a06443ffdf513055abfd85d0f2d6a67110f928518958830')
+    assert.deepEqual(receipt.removed.placeClaims, Object.keys(rejects).sort())
+    for (const rejection of Object.values(rejects)) {
+      const place = byKey.get(rejection.placeKey)
+      assert.ok(place, `${cityId}:${rejection.placeKey} must remain a reachable place`)
+      assert.equal(place.image, undefined, `${cityId}:${rejection.placeKey} must stay on Aurora`)
+      assert.equal(place.imageCredit, undefined, `${cityId}:${rejection.placeKey} must not retain stale credit`)
+      if (!retainedPages.has(rejection.sourcePage)) {
+        assert.equal(attributedPages.has(rejection.sourcePage), false,
+          `${cityId}:${rejection.placeKey} orphan attribution must be pruned`)
+      }
+    }
+  }
+
+  const tampaPlaces = await readRows('tampa-bay', 'places')
+  const tampaByKey = new Map(tampaPlaces.map(place => [place.key, place]))
+  assert.ok(tampaByKey.get('p|bro-bowl').image, 'the exact Bro Bowl item keeps its item-scoped candidate')
+  assert.ok(tampaByKey.get('p|hammock-park').image, 'the exact Hammock Park item keeps its item-scoped candidate')
+  assert.equal(tampaByKey.get('p|morris-bridge-park').image, undefined)
+  assert.equal(tampaByKey.get('p|lower-hillsborough-wilderness-preserve-morris-bridge-park').image, undefined)
+
+  const mapillary = JSON.parse(await readFile(
+    path.join(ROOT, 'finder', 'cache', 'tampa-bay', 'place-mapillary-images.json'),
+    'utf8',
+  ))
+  const files = await localImageFiles('tampa-bay')
+  const localReferences = tampaPlaces.filter(place => place.image?.startsWith('/place-img/'))
+  assert.equal(Object.keys(mapillary.byKey).length, 30)
+  assert.equal(files.length, 30)
+  assert.equal(localReferences.length, 30)
+  for (const key of Object.keys(tampaImageRejects)) {
+    if (!tampaImageRejects[key].image.startsWith('/place-img/')) continue
+    assert.equal(mapillary.byKey[key], undefined)
+    assert.equal(files.some(file => `/place-img/${file.name}` === tampaImageRejects[key].image), false)
+  }
 })
 
 test('audit reports stable findings for missing and broken local image files', async () => {

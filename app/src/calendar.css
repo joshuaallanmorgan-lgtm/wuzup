@@ -50,12 +50,14 @@
    from the grid → inline day panel below. */
 
 /* the month crossfade on month-nav (kept under reduced motion — it survives) */
-@keyframes calFade { from { opacity: 0; } to { opacity: 1; } }
+/* Opacity on this ancestor temporarily dropped every otherwise AA-safe month
+   label below contrast. Keep text fully opaque throughout the transition. */
+@keyframes calFade { from { transform: translateY(2px); } to { transform: none; } }
 .cal-fade { animation: calFade 250ms ease both; }
 
 /* month grid: 56px cells — personal marks only (no heat, no hot ring) */
 .mon-head { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-md) var(--gutter) 6px; }
-.mon-title { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.2px; } /* S1-C6: lighter */
+.mon-title { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.2px; color: var(--ink); } /* S1-C6: lighter */
 /* R-C2: the month/year picker popover (tappable label + caret → month list) */
 .mon-pickwrap { position: relative; }
 .mon-pick {
@@ -135,6 +137,7 @@
 }
 .mgrid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 0 var(--sp-sm); }
 .mdow { text-align: center; font-size: var(--t-micro); font-weight: 700; color: var(--muted); padding: var(--sp-xs) 0 4px; }
+.mdow abbr { text-decoration: none; }
 .mcell-blank { height: 56px; }
 .mcell {
   position: relative;
@@ -171,6 +174,7 @@
   border-radius: var(--r-circle);
   font-size: var(--t-body);
   font-weight: 600;
+  color: var(--ink);
   transition: background var(--dur-fast), color var(--dur-fast);
 }
 .mcell.today .mnum { box-shadow: inset 0 0 0 2px var(--accent); color: var(--accent-ink); font-weight: 800; }

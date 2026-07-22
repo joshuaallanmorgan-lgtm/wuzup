@@ -394,8 +394,8 @@ export default function CalendarView({ anchors, wx }) {
         </div>
         <div className="mgrid" role="group" aria-label={`${monthTitle} plan calendar`}>
           {WEEKDAYS.map((day) => (
-            <div className="mdow" key={day} aria-label={day}>
-              <span aria-hidden>{day[0]}</span>
+            <div className="mdow" key={day}>
+              <abbr title={day}>{day[0]}</abbr>
             </div>
           ))}
           {cells.map((ts, i) => {

@@ -1,8 +1,10 @@
 # Sprint 10 flagship image audit - 2026-07-21
 
-**Status: yellow.** This is a reproducible engineering inspection of the frozen
-100-row flagship sample, not an owner policy approval, legal opinion, or release
-receipt. No decision CSV or shipping artifact was changed from these findings.
+**Status: yellow.** This preserves the reproducible engineering inspection of the
+original frozen 100-row flagship sample and the exact corrective action it caused.
+It is not an owner policy approval, legal opinion, or final release receipt. The
+failed shipping claims have now been quarantined; the corrected release population
+still requires a fresh independent schema-v2 review.
 
 ## Evidence binding
 
@@ -85,6 +87,55 @@ Conditional dedupe/re-review rows:
   also assigned to the distinct paddlecraft-access item. Retain for at most the
   park after re-review.
 
+## Corrective release-candidate publication - 2026-07-21
+
+The audit preimage was corrected without rerunning image acquisition. A per-city,
+item-keyed quarantine now blocks the reviewed items in both the Commons/Mapillary
+enrichment path and Mapillary Stage B. The correction writer refuses any candidate
+whose image, source page, or source family differs from the reviewed tuple; it
+cannot use this historical audit to strip a later replacement. Runtime generation
+keeps each quarantined item on Aurora until a later positive review changes the
+registry explicitly.
+
+- Tampa removed 23 display claims: its 20 unconditional failures, the paddlecraft-
+  access duplicate, and both unresolved Morris Bridge identities. Exact Bro Bowl
+  and Hammock Park remain item-scoped candidates for the next review.
+- SF/East Bay removed all eight unconditional failures.
+- Five rejected Tampa Mapillary receipts and JPEGs were removed. Cache receipts,
+  output files, and shipped local references now agree at 30/30/30; source
+  `fetchedAt` was preserved.
+- Attribution entries were pruned only when no retained place still used the exact
+  source page. Shared references were not URL-denied globally.
+- Artifact verification now rejects unreferenced local place images, preventing an
+  unreferenced rejected JPEG from shipping through the mirrored directory.
+
+The checked-in, artifact-bound, replay-validated correction receipts are:
+
+- Tampa: preimage manifest `sha256:035cb1eed7e67d143c4b0739d8dd3c2373bd3af2e85562aad0fc4895651615b1`
+  -> corrected manifest `sha256:7a9c4bb85d64c8488470691dc3b8f537e2ab3e2218534fa7def444d4ffc494e0`.
+- SF/East Bay: preimage manifest `sha256:64bb1151dc6ab947689ac5fa661b563ce5951c7c1098a7c1733884ddccccddf9`
+  -> corrected manifest `sha256:62a4dfb0bd4885c419cfa44ced14ca765c6471caabf3314fa38c86ca888f0799`.
+
+The correction transaction writes a digest-bound recovery journal before it
+removes the public trust pointer. That journal contains the exact places, cache,
+attribution, and deleted-image preimages needed to recover from an ordinary
+process interruption. Recovery restores and validates the reviewed preimage
+off-pointer, then reapplies the correction; it never republishes the rejected
+preimage. A journal beside a newer trusted manifest refuses mutation, and a
+committed manifest/receipt pair is recognized without rollback. The temporary
+journal is removed after verification, is not an audit log, and makes no `fsync`
+or sudden-power-loss durability claim.
+
+Future full-place and standalone image refreshes also reconcile safe orphan image
+files before reseal, while artifact verification remains the final missing/orphan
+reference guard. Those ordinary writers fail closed and do not inherit the audited
+correction transaction's snapshot-based replay recovery.
+
+The corrected deterministic 50/50 population is report
+`sha256:5cda3c0d362ea1e98190d8fb77da889222d453694a9798061f1e386c14db368e`:
+84 remote rows/references and 16 local rows. It is pinned and explicitly pending
+review; it does not inherit a single verdict from the historical report above.
+
 ## License-policy exceptions
 
 Rows 14, 25, 31, 43, 52, 54, 81, 83, and 93 carry metadata that fits the proposed
@@ -96,8 +147,9 @@ unratified Mapillary use.
 
 ## Required closeout
 
-1. Fail every row above to Aurora or land a separately reviewed replacement;
-   resolve the three duplicate-target cases.
+1. Keep every quarantined row on Aurora until a separately reviewed replacement;
+   resolve the Morris Bridge canonical identity and re-review retained Bro Bowl and
+   Hammock Park in the new population.
 2. Ratify the license/version, Mapillary, storage, crop, attribution, and
    takedown policy; do not infer approval from a reviewer name or CSV value.
 3. Rebuild the frozen population and obtain zero identity, pixel, and

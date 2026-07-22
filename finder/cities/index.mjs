@@ -27,7 +27,7 @@ if (!mod) {
 export const cityId = id;
 export const {
   tz, bbox, bboxOverpass, bboxArcgisEnvelope, geocodeViewbox, geocode,
-  govOrder, touristCentroids, area, qidDeny, cafe, imagery, rosterBenchmark, meta,
+  govOrder, touristCentroids, area, qidDeny, imageRejects, cafe, imagery, rosterBenchmark, meta,
 } = mod;
 // Optional per-city categorization priors (venuePriors + sourceCategory —
 // see sf-east-bay.mjs). A city without the export (Tampa: its priors still

@@ -386,16 +386,15 @@
 
 /* ===== Hidden Gems (compact 3-row list) ===== */
 .gems { display: flex; flex-direction: column; gap: var(--sp-sm); padding: 0 var(--gutter); }
-/* PREMIUM A2 (D1–D4): the canonical EVENT card. ONE fixed height (--card-row-h)
-   for every event + spot card so a feed NEVER runs ragged; a TALL left image
-   defines that height; the title owns the full body width (2-line clamp, D3); a
-   bare stroke heart sits top-right of the body (D4) and a real "Add to plan"
-   button is pinned bottom-right. The 1px border is dropped (D2) — the card floats
-   on the A1 --shadow-card. Heart + CTA are absolute, so they leave the title's row. */
+/* PREMIUM A2 (D1–D4): the canonical EVENT card. --card-row-h is a minimum,
+   not a clipping box: real titles, times, chips, and reason copy may need more
+   room on a phone. A dedicated bottom inset reserves the full 44px action band,
+   while the tall left image follows the resulting card height. */
 .gem {
   position: relative;
   display: flex;
-  height: var(--card-row-h);
+  min-height: var(--card-row-h);
+  height: auto;
   background: var(--card);
   border-radius: var(--r-lg);
   padding: 14px;
@@ -417,7 +416,21 @@
 }
 /* tall left hero — fixed width, stretches to the full card height (≈ 4:5) */
 .gem-img { flex: 0 0 102px; width: 102px; align-self: stretch; border-radius: var(--r-md); }
-.gem-main { flex: 1; min-width: 0; display: flex; flex-direction: column; padding-right: 46px; overflow: hidden; } /* ruling #3: reserve for the 38px circled heart (was 26px for the bare stroke) */
+.gem-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding-right: 46px;
+  padding-bottom: 52px;
+  overflow: hidden;
+} /* top-right heart + a separate 44px bottom action band */
+.gem-title,
+.gem-venue,
+.gem-when,
+.gem-chips,
+.gem-why,
+.gem-series { flex-shrink: 0; }
 .gem-title {
   font-size: var(--t-card-size);
   font-weight: var(--t-card-weight);
@@ -560,8 +573,8 @@
 
 /* one-shot staggered rise when a page swaps its list in (RowFeed stagger prop) */
 @keyframes rowIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: none; }
+  from { transform: translateY(8px); }
+  to { transform: none; }
 }
 .feed-stagger .row { animation: rowIn var(--dur-fast) var(--ease-out) both; }
 

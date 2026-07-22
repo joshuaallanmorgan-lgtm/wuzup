@@ -8,7 +8,6 @@ import { buildComposedSite, serveComposedSite } from './browser/composed-site.mj
 
 const require = createRequire(import.meta.url)
 const AXE_PATH = require.resolve('axe-core/axe.min.js')
-const FROZEN_NOW = Date.parse('2026-07-16T16:00:00.000Z')
 const PIXEL = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
   'base64',
@@ -63,7 +62,7 @@ function createChunkGate(chunkName) {
   }
 }
 
-function freezeClock(context) {
+function freezeClock(context, now) {
   return context.addInitScript(({ now }) => {
     const RealDate = Date
     class FrozenDate extends RealDate {
@@ -71,7 +70,7 @@ function freezeClock(context) {
       static now() { return now }
     }
     globalThis.Date = FrozenDate
-  }, { now: FROZEN_NOW })
+  }, { now })
 }
 
 async function installRoutes(context, server, rejectedImages, chunkGate = null) {
@@ -249,7 +248,7 @@ test('Sprint 10 production accessibility, lazy-loading, responsive, and image-po
       timezoneId: 'UTC',
       viewport: { width: 390, height: 844 },
     })
-    await freezeClock(strictContext)
+    await freezeClock(strictContext, fixture.fixtureNow)
     await installRoutes(strictContext, server, strictRejectedImages)
     const strictPage = await strictContext.newPage()
     const strictConsole = []
@@ -269,6 +268,49 @@ test('Sprint 10 production accessibility, lazy-loading, responsive, and image-po
     assert.deepEqual(strictRejectedImages, [], `strict-CSP unapproved image requests: ${strictRejectedImages.join('\n')}`)
     await strictContext.close()
 
+    // Exercise Axe while the real tab entrance is still running under the
+    // default motion preference. Reduced-motion-only coverage used to mask an
+    // ancestor opacity fade that temporarily lowered every descendant's
+    // effective contrast. Stretching the transform-only settle makes this
+    // deterministic without changing production CSS.
+    const motionRejectedImages = []
+    const motionContext = await browser.newContext({
+      bypassCSP: true,
+      locale: 'en-US',
+      reducedMotion: 'no-preference',
+      timezoneId: 'UTC',
+      viewport: { width: 390, height: 844 },
+    })
+    await freezeClock(motionContext, fixture.fixtureNow)
+    await installRoutes(motionContext, server, motionRejectedImages)
+    const motionPage = await motionContext.newPage()
+    await motionPage.goto(base, { waitUntil: 'domcontentloaded' })
+    await waitForApp(motionPage)
+    assert.equal(
+      await motionPage.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches),
+      false,
+      'default-motion contrast coverage must not run in reduced-motion mode',
+    )
+    await motionPage.addStyleTag({
+      content: '.page.tab-settle { animation-duration: 10s !important; }',
+    })
+    await openTab(motionPage, 'Events')
+    const settlingPage = motionPage.locator('section.page.tab-settle[aria-label="Events"]')
+    await settlingPage.waitFor({ state: 'visible' })
+    const settlingStyle = await settlingPage.evaluate((node) => {
+      const style = getComputedStyle(node)
+      return { animationName: style.animationName, opacity: style.opacity }
+    })
+    assert.equal(settlingStyle.animationName, 'tabSettle', 'the default-motion entrance must still be in flight')
+    assert.equal(settlingStyle.opacity, '1', 'a moving content surface must remain fully opaque')
+    await assertNoSeriousAxeViolations(motionPage, 'default-motion Events entrance')
+    assert.deepEqual(
+      motionRejectedImages,
+      [],
+      `default-motion unapproved image requests: ${motionRejectedImages.join('\n')}`,
+    )
+    await motionContext.close()
+
     // A URL-restored tab owns both selected navigation and physical pager
     // position on the first frame. The prior split state selected the right
     // tab while still showing Home.
@@ -280,7 +322,7 @@ test('Sprint 10 production accessibility, lazy-loading, responsive, and image-po
       timezoneId: 'UTC',
       viewport: { width: 390, height: 844 },
     })
-    await freezeClock(directContext)
+    await freezeClock(directContext, fixture.fixtureNow)
     await installRoutes(directContext, server, directRejectedImages)
     const directPage = await directContext.newPage()
     for (const [routeTab, label, index] of [
@@ -318,7 +360,7 @@ test('Sprint 10 production accessibility, lazy-loading, responsive, and image-po
       timezoneId: 'UTC',
       viewport: { width: 390, height: 844 },
     })
-    await freezeClock(context)
+    await freezeClock(context, fixture.fixtureNow)
     await installRoutes(context, server, rejectedImages, myPlansChunkGate)
     const page = await context.newPage()
     const consoleErrors = []
@@ -378,8 +420,10 @@ test('Sprint 10 production accessibility, lazy-loading, responsive, and image-po
       )
       assert.equal(placesRequests, 0, 'opening Events must not activate the Spots route or artifact')
       await assertNoDocumentOverflow(page, `direct Events ${viewport.width}px`)
+      await assertNoSeriousAxeViolations(page, `direct Events ${viewport.width}px`)
       await openTab(page, 'Plan')
       await assertSharedMobileHeading(page, 'Plan', viewport)
+      await assertNoSeriousAxeViolations(page, `direct Plan ${viewport.width}px`)
       await openTab(page, 'Profile')
       await assertSharedMobileHeading(page, 'Profile', viewport)
     }

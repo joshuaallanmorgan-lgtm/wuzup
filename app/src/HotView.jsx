@@ -37,6 +37,39 @@ function sharedEventOrder(items, { nowMs, taste = {}, categoryMax = 2, prefix = 
   }).ordered
 }
 
+// The Events tab must prove value before asking someone to tune it. Tonight is
+// the preferred lead when it clears the shared credibility bar; otherwise an
+// available shared-ranked Plan ahead or Weekend shelf leads, then a neutral
+// upcoming fallback. An empty catalog owns no tuner at all, so loading/error/
+// empty truth can remain the first thing shown.
+function eventsFirstValue({
+  tonightItems = [],
+  planningItems = [],
+  weekendDays = [],
+  rankedUpcoming = [],
+  tuneSamples = [],
+} = {}) {
+  const tonight = Array.isArray(tonightItems) ? tonightItems.filter(Boolean) : []
+  const planning = Array.isArray(planningItems) ? planningItems.filter(Boolean) : []
+  const weekend = Array.isArray(weekendDays) ? weekendDays.filter((day) => day?.evs?.length > 0) : []
+  const upcoming = Array.isArray(rankedUpcoming) ? rankedUpcoming.filter(Boolean).slice(0, 3) : []
+  const samples = Array.isArray(tuneSamples) ? tuneSamples.filter(Boolean).slice(0, 2) : []
+  const kind = tonight.length > 0
+    ? 'tonight'
+    : planning.length >= 2
+      ? 'planning'
+      : weekend.length > 0
+        ? 'weekend'
+        : upcoming.length > 0
+          ? 'upcoming'
+          : 'empty'
+
+  return Object.freeze({
+    kind,
+    canTune: kind !== 'empty' && samples.length > 0,
+  })
+}
+
 // derive a neighborhood/city from a US address ("…, City, ZIP") — the last
 // non-ZIP, non-state, non-street segment. null when not confidently parseable
 // (honesty: Neighborhood Picks only labels an area it can actually read).
@@ -167,6 +200,10 @@ export default function HotView({ events, retainedEvents = events, anchors, load
     [tonight.items, nowMs, taste]
   )
   const tonightTagged = useMemo(() => tonightRanked.selected.map(({ e }) => e), [tonightRanked.selected])
+  const rankedUpcomingLead = useMemo(
+    () => sharedEventOrder(upcoming, { nowMs, taste }).slice(0, 3),
+    [upcoming, nowMs, taste]
+  )
 
   // E-L1/E-L5: "This weekend" — upcoming Fri + Sat events (not today), day-grouped.
   const weekendDays = useMemo(() => {
@@ -195,6 +232,16 @@ export default function HotView({ events, retainedEvents = events, anchors, load
     )
       .slice(0, 3)
   }, [upcoming, anchors, taste, nowMs])
+  const firstValue = useMemo(
+    () => eventsFirstValue({
+      tonightItems: tonightTagged,
+      planningItems: worthPlanning,
+      weekendDays,
+      rankedUpcoming: rankedUpcomingLead,
+      tuneSamples,
+    }),
+    [tonightTagged, worthPlanning, weekendDays, rankedUpcomingLead, tuneSamples]
+  )
   // "Free & Easy": free upcoming events (the section gates off when there are none).
   const freeEasy = useMemo(
     () => sharedEventOrder(
@@ -238,6 +285,31 @@ export default function HotView({ events, retainedEvents = events, anchors, load
     const b = BUBBLES.find((x) => x.id === bubbleId)
     if (b) onOpenBubble(b)
   }
+  const planAheadSection = worthPlanning.length >= 2 && (
+    <section className="sec">
+      <SecHead title="Plan ahead" sub="Upcoming events to consider." onSeeAll={() => scrollToList(evRef.current)} />
+      <div className="home-picks">
+        {worthPlanning.map((e) => (
+          <GemRow key={keyOf(e)} e={e} onSelect={onSelect} />
+        ))}
+      </div>
+    </section>
+  )
+  const weekendSection = weekendDays.length > 0 && (
+    <section className="sec">
+      <SecHead title="This weekend" onSeeAll={() => seeAll('weekend')} />
+      {weekendDays.map(({ ts, label, evs }) => (
+        <div key={ts} className="weekend-day">
+          <div className="weekend-day-label">{label}</div>
+          <div className="home-picks">
+            {evs.map((e) => (
+              <GemRow key={keyOf(e)} e={e} onSelect={onSelect} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </section>
+  )
 
   return (
     <div className="hot-scroll" ref={scrollRef}>
@@ -266,13 +338,9 @@ export default function HotView({ events, retainedEvents = events, anchors, load
           </div>
         )}
 
-        {/* TINDER P3: "Tune your taste" — a light doorway into the events swipe
-            deck, between the chips and the first section (tinder.png). */}
-        <TasteTuner kind="events" samples={tuneSamples} onTune={openDeck} />
-
         {/* E-L1/E-L5: "Tonight's best bets" — vertical left-image GemRow cards,
             first section per the ref (was a horizontal carousel). */}
-        {tonightTagged.length > 0 && (
+        {firstValue.kind === 'tonight' && (
           <section className={'sec' + ent(0).className} style={ent(0).style}>
             <SecHead
               title="Tonight's events"
@@ -293,34 +361,35 @@ export default function HotView({ events, retainedEvents = events, anchors, load
           </section>
         )}
 
-        {/* EVENTS_GRIND: "Worth planning around" — shared-ranked future events. */}
-        {worthPlanning.length >= 2 && (
-          <section className="sec">
-            <SecHead title="Plan ahead" sub="Upcoming events to consider." onSeeAll={() => scrollToList(evRef.current)} />
+        {firstValue.kind === 'planning' && planAheadSection}
+
+        {firstValue.kind === 'weekend' && weekendSection}
+
+        {firstValue.kind === 'upcoming' && (
+          <section className={'sec' + ent(0).className} style={ent(0).style}>
+            <SecHead
+              title="Coming up"
+              sub={`Upcoming events around ${CITY.name}.`}
+              onSeeAll={() => scrollToList(evRef.current)}
+            />
             <div className="home-picks">
-              {worthPlanning.map((e) => (
+              {rankedUpcomingLead.map((e) => (
                 <GemRow key={keyOf(e)} e={e} onSelect={onSelect} />
               ))}
             </div>
           </section>
         )}
 
+        {/* Preference work follows the first useful options. On a phone, putting
+            this module above the lead shelf pushed every real event underneath
+            the fixed tab bar; the feed now proves value before asking for labor. */}
+        {firstValue.canTune && <TasteTuner kind="events" samples={tuneSamples} onTune={openDeck} />}
+
+        {/* EVENTS_GRIND: "Worth planning around" — shared-ranked future events. */}
+        {firstValue.kind !== 'planning' && planAheadSection}
+
         {/* E-L1/E-L5: "This weekend" — day-grouped vertical GemRow cards. */}
-        {weekendDays.length > 0 && (
-          <section className="sec">
-            <SecHead title="This weekend" onSeeAll={() => seeAll('weekend')} />
-            {weekendDays.map(({ ts, label, evs }) => (
-              <div key={ts} className="weekend-day">
-                <div className="weekend-day-label">{label}</div>
-                <div className="home-picks">
-                  {evs.map((e) => (
-                    <GemRow key={keyOf(e)} e={e} onSelect={onSelect} />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </section>
-        )}
+        {firstValue.kind !== 'weekend' && weekendSection}
 
         {/* Guides intent grid */}
         {(activeWatch.length > 0 || GUIDES.some((g) => g.domain !== 'spots')) && (

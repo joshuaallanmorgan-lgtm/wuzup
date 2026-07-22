@@ -141,13 +141,19 @@ function localImageReferenceProblems(root) {
   const problems = [];
   const doc = JSON.parse(readFileSync(join(root, 'places.json'), 'utf8'));
   const available = new Set(readdirSync(join(root, 'place-img')).filter((name) => !name.startsWith('.')));
+  const referenced = new Set();
   for (const [index, place] of (doc.places || []).entries()) {
     const image = place?.image;
     if (typeof image !== 'string' || !image.startsWith('/place-img/')) continue;
     const name = image.slice('/place-img/'.length);
     if (!name || name.includes('/') || name.includes('\\') || !available.has(name)) {
       problems.push(`places.json row ${index} references missing local image '${image}'`);
+    } else {
+      referenced.add(name);
     }
+  }
+  for (const name of [...available].sort()) {
+    if (!referenced.has(name)) problems.push(`place-img/${name} is unreferenced by places.json`);
   }
   return problems;
 }

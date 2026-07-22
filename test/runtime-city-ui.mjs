@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import test, { after } from 'node:test'
+import test from 'node:test'
 import { createServer } from '../app/node_modules/vite/dist/node/index.js'
 import { createStorageScope, physicalKey } from '../app/src/storage.js'
 
@@ -18,12 +18,16 @@ const [main, app, settings, editor, selector, provider, styles, viteConfig] = aw
 
 const vite = await createServer({
   root: fileURLToPath(new URL('../app/', import.meta.url)),
-  server: { middlewareMode: true },
+  server: { middlewareMode: true, watch: null },
   appType: 'custom',
   logLevel: 'silent',
 })
-const providerModule = await vite.ssrLoadModule('/src/RuntimeCityProvider.jsx')
-after(() => vite.close())
+let providerModule
+try {
+  providerModule = await vite.ssrLoadModule('/src/RuntimeCityProvider.jsx')
+} finally {
+  await vite.close()
+}
 
 function memoryBackend() {
   const rows = new Map()

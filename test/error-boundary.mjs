@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import test, { after } from 'node:test'
+import test from 'node:test'
 import { createServer } from '../app/node_modules/vite/dist/node/index.js'
 
 const [main, boundarySource, styles] = await Promise.all([
@@ -12,12 +12,17 @@ const [main, boundarySource, styles] = await Promise.all([
 
 const vite = await createServer({
   root: fileURLToPath(new URL('../app/', import.meta.url)),
-  server: { middlewareMode: true },
+  server: { middlewareMode: true, watch: null },
   appType: 'custom',
   logLevel: 'silent',
 })
-const { AppErrorBoundary } = await vite.ssrLoadModule('/src/AppErrorBoundary.jsx')
-after(() => vite.close())
+let boundaryModule
+try {
+  boundaryModule = await vite.ssrLoadModule('/src/AppErrorBoundary.jsx')
+} finally {
+  await vite.close()
+}
+const { AppErrorBoundary } = boundaryModule
 
 function findElement(node, predicate) {
   if (!node || typeof node !== 'object') return null

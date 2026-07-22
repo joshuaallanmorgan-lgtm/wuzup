@@ -98,10 +98,37 @@ async function buildCity(city, fixtureRoot, siteRoot) {
   const manifest = JSON.parse(await readFile(join(artifactRoot, 'artifact-manifest.json'), 'utf8'))
   return {
     ...city,
+    assembledAt: manifest.assembledAt,
     buildId: manifest.buildId,
+    eventExpiresAt: manifest.artifacts.events.expiresAt,
     manifestId: manifest.manifestId,
+    placeExpiresAt: manifest.artifacts.places.expiresAt,
     timeZone: manifest.timeZone,
   }
+}
+
+export function releaseFixtureNow(cities) {
+  const releases = Object.values(cities)
+  const assembled = releases.map((city) => Date.parse(city.assembledAt))
+  const eventExpiries = releases.map((city) => Date.parse(city.eventExpiresAt))
+  const placeExpiries = releases.map((city) => Date.parse(city.placeExpiresAt))
+  if (
+    assembled.some((value) => !Number.isFinite(value))
+    || eventExpiries.some((value) => !Number.isFinite(value))
+    || placeExpiries.some((value) => !Number.isFinite(value))
+  ) {
+    throw new Error('browser fixture requires valid release, event-expiry, and place-expiry timestamps')
+  }
+  // Exercise the intentional stale-events/ready-places release state at one
+  // instant shared by both city builds. A future refresh that removes this
+  // overlap must update the fixture contract instead of silently changing the
+  // journey under test.
+  const now = Math.max(...assembled, ...eventExpiries) + 1_000
+  const placeExpiry = Math.min(...placeExpiries)
+  if (now >= placeExpiry) {
+    throw new Error('browser fixture has no shared stale-events/ready-places release window')
+  }
+  return now
 }
 
 export async function buildComposedSite() {
@@ -115,6 +142,7 @@ export async function buildComposedSite() {
     }
     return {
       cities,
+      fixtureNow: releaseFixtureNow(cities),
       fixtureRoot,
       siteRoot,
       cleanup: () => rm(fixtureRoot, { recursive: true, force: true }),

@@ -1,36 +1,6 @@
 {
   "fetchedAt": "2026-06-26T05:40:05.448Z",
   "byKey": {
-    "p|banyan-coffee-co": {
-      "id": "522934939993817",
-      "image": "/place-img/banyan-coffee-co.jpg",
-      "width": 900,
-      "height": 600,
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "author": "jcox",
-      "signTextRead": "cafe storefront — location-confirmed (align 143°, 22.2m), no conflicting business sign",
-      "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=522934939993817",
-      "tier": "B",
-      "matchKind": "tierB-storefront",
-      "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
-    },
-    "p|beangood-coffee": {
-      "id": "974016848499650",
-      "image": "/place-img/beangood-coffee.jpg",
-      "width": 900,
-      "height": 600,
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "author": "allen",
-      "signTextRead": "beangood COFFEE",
-      "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=974016848499650",
-      "tier": "A",
-      "matchKind": "phrase2",
-      "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
-    },
     "p|buddy-brew-coffee": {
       "id": "206701701094933",
       "image": "/place-img/buddy-brew-coffee.jpg",
@@ -76,21 +46,6 @@
       "reVerified": true,
       "at": "2026-06-26T05:40:05.448Z"
     },
-    "p|foundation-coffee-company": {
-      "id": "484893932562446",
-      "image": "/place-img/foundation-coffee-company.jpg",
-      "width": 900,
-      "height": 600,
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "author": "jackdripper",
-      "signTextRead": "FOUNDATION",
-      "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=484893932562446",
-      "tier": "A",
-      "matchKind": "token",
-      "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
-    },
     "p|grassroots-kava": {
       "id": "1169192823501228",
       "image": "/place-img/grassroots-kava.jpg",
@@ -118,21 +73,6 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=225871448998975",
       "tier": "A",
       "matchKind": "tokenPartial",
-      "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
-    },
-    "p|indian-shores-coffee": {
-      "id": "1342952362741418",
-      "image": "/place-img/indian-shores-coffee.jpg",
-      "width": 900,
-      "height": 600,
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "author": "fdot_vl",
-      "signTextRead": "INDIAN SHORES COFFEE",
-      "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=1342952362741418",
-      "tier": "A",
-      "matchKind": "phrase3",
       "reVerified": true,
       "at": "2026-06-26T05:40:05.448Z"
     },
@@ -463,21 +403,6 @@
       "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=619259266713896",
       "tier": "A",
       "matchKind": "token",
-      "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
-    },
-    "p|tenth-street-coffee": {
-      "id": "650653606780814",
-      "image": "/place-img/tenth-street-coffee.jpg",
-      "width": 900,
-      "height": 600,
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "author": "jcox",
-      "signTextRead": "?NTH STREET COFFEE",
-      "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=650653606780814",
-      "tier": "A",
-      "matchKind": "phrase2",
       "reVerified": true,
       "at": "2026-06-26T05:40:05.448Z"
     },

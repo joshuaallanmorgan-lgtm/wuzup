@@ -12,7 +12,7 @@ import {
   TOP_N,
 } from '../app/src/tastequality.js'
 
-const fixture = JSON.parse(readFileSync(new URL('./fixtures/personal-relevance/sprint8.v1.json', import.meta.url), 'utf8'))
+const fixture = JSON.parse(readFileSync(new URL('./fixtures/personal-relevance/sprint8.v2.json', import.meta.url), 'utf8'))
 
 function profile(evidence = {}) {
   return {

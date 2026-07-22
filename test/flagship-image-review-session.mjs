@@ -195,23 +195,23 @@ test('prepares one non-shipping bundle with unique remote fetches and determinis
     sleepImpl: async milliseconds => pacingSleeps.push(milliseconds),
   })
   assert.equal(prepared.itemCount, 100)
-  assert.equal(prepared.uniqueRemoteReferences, 79)
+  assert.equal(prepared.uniqueRemoteReferences, 84)
   assert.match(prepared.evidenceSealSha256, /^sha256:[a-f0-9]{64}$/)
-  assert.equal(prepared.calls.length, 79)
-  assert.equal(new Set(prepared.calls.map(call => call.url)).size, 79)
+  assert.equal(prepared.calls.length, 84)
+  assert.equal(new Set(prepared.calls.map(call => call.url)).size, 84)
   assert.equal(prepared.calls.every(call => call.url.startsWith('https://upload.wikimedia.org/')), true)
   assert.equal(prepared.calls.every(call => call.options.redirect === 'manual'), true)
   assert.equal(prepared.calls.every(call => call.options.headers['User-Agent'].includes('Wuzup/1.0')), true)
-  assert.equal(pacingSleeps.length, 78)
+  assert.equal(pacingSleeps.length, 83)
   assert.equal(pacingSleeps.every(milliseconds => milliseconds === 500), true)
 
   const evidence = await readEvidence(prepared.sessionDir)
   assert.equal(evidence.state, 'review-only-not-for-shipping')
   assert.deepEqual(evidence.counts, {
     items: 100,
-    remoteRows: 85,
-    uniqueRemoteReferences: 79,
-    localRows: 15,
+    remoteRows: 84,
+    uniqueRemoteReferences: 84,
+    localRows: 16,
   })
   assert.equal(evidence.items.length, 100)
   assert.equal(new Set(evidence.items.filter(item => item.delivery === 'remote')
