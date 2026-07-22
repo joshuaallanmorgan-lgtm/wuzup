@@ -18,8 +18,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 # one Pages deploy at a time; never cancel an in-flight production deploy
 # (the standard actions/deploy-pages guidance) — a queued newer run follows.
@@ -31,7 +29,25 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Refuse non-main deployment refs
+        shell: bash
+        run: |
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::Pages deploys are restricted to refs/heads/main (got $GITHUB_REF)"
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Verify exact deployment commit
+        shell: bash
+        run: |
+          if [ "$(git rev-parse HEAD)" != "$GITHUB_SHA" ]; then
+            echo "::error::checkout does not match GITHUB_SHA"
+            exit 1
+          fi
 
       - uses: actions/setup-node@v4
         with:
@@ -51,7 +67,7 @@ jobs:
         env:
           REPO_NAME: ${{ github.event.repository.name }}
         run: |
-          CITY=tampa-bay node finder/deploy.mjs
+          REQUIRE_FRESH_ARTIFACTS=1 REQUIRE_VERIFIED_SOURCES=1 CITY=tampa-bay node finder/deploy.mjs
           VITE_CITY=tampa-bay BASE_PATH="/${REPO_NAME}/" WUZUP_PRODUCT_ROOT="/${REPO_NAME}/" npm --prefix app run build
           CITY=tampa-bay node finder/verify-app-build.mjs app/dist
           mkdir -p _site
@@ -64,7 +80,7 @@ jobs:
         env:
           REPO_NAME: ${{ github.event.repository.name }}
         run: |
-          CITY=sf-east-bay node finder/deploy.mjs
+          REQUIRE_FRESH_ARTIFACTS=1 REQUIRE_VERIFIED_SOURCES=1 CITY=sf-east-bay node finder/deploy.mjs
           VITE_CITY=sf-east-bay BASE_PATH="/${REPO_NAME}/sf/" WUZUP_PRODUCT_ROOT="/${REPO_NAME}/" npm --prefix app run build
           CITY=sf-east-bay node finder/verify-app-build.mjs app/dist
           mkdir -p _site/sf
@@ -82,9 +98,79 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # Sprint 11 observes the participant-facing deployment after Pages reports
+  # success. Publication integrity and beta policy remain separate: exact
+  # remote bytes may be observed while stale/unhealthy data still blocks the
+  # release kit. Any remote mismatch emits no deploy binding and fails loudly.
+  attest:
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install observer dependencies
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: npm ci --ignore-scripts
+
+      - name: Install observer Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Observe participant-facing release bytes
+        shell: bash
+        run: |
+          set -o pipefail
+          PRODUCT_ROOT="${{ needs.deploy.outputs.page_url }}"
+          if [ -z "$PRODUCT_ROOT" ]; then
+            echo "::error::Pages deployment did not emit a participant-facing URL"
+            exit 1
+          fi
+          node shared/beta-production-observation.mjs "$PRODUCT_ROOT" \
+            | tee "$RUNNER_TEMP/s11-production-attestation.json"
+
+      - name: Publish attestation summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Sprint 11 participant-facing release attestation'
+            echo
+            if [ -s "$RUNNER_TEMP/s11-production-attestation.json" ]; then
+              echo '```json'
+              cat "$RUNNER_TEMP/s11-production-attestation.json"
+              echo '```'
+            else
+              echo 'No release identity was emitted; inspect the failed observation step.'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain participant-facing attestation
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: s11-production-attestation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/s11-production-attestation.json
+          if-no-files-found: warn
+          retention-days: 90

@@ -1,6 +1,6 @@
 # Wuzup V2 - active sprint map
 
-> **Status:** Sprint 10 engineering checkpoint green locally; exit gate remains yellow; Sprint 11 preparation active — 2026-07-22
+> **Status:** Sprint 10 engineering checkpoint green locally/remotely; exit gate yellow; Sprint 11 release observation active — 2026-07-22
 >
 > **Authority:** subordinate to [V2_PLAN.md](V2_PLAN.md). This file translates the current scope and
 > dependency queue into delivery cycles; it does not admit features that the plan parks in V3.
@@ -1421,12 +1421,12 @@ items in the audit; the owner approves the premium existing-product pass.
   a complete strict-majority acquisition family is wholly on cached transport-error fallback; partial-family,
   post-fetch, live-empty, and minority-source failures stay loud. Time-sensitive smoke fixtures now use city-zone
   calendar arithmetic, so running CI in UTC cannot move Tampa dates or weekday labels.
-- **Remote gate definitions are wired; execution is pending:** CI is configured to enforce payload budgets after the Tampa production build, and the
+- **The pushed checkpoint is green on the remote gates:** CI enforces payload budgets after the Tampa production build, and the
   browser workflow adds the Sprint 10 mobile-width, lazy-loading, modal/focus, CSP/image, and Axe journey beside
-  the existing composed-city and Sprint 9 journeys. No remote rerun, Pages deployment, or production-byte observation
-  is claimed until this checkpoint is pushed and those checks complete.
+  the existing composed-city and Sprint 9 journeys. On commit `cf5359f`, the Node 22 gate passed in 2m30s and the
+  composed browser job passed in 1m35s. No Pages deployment is inferred from those pull-request checks.
 - **Local engineering verification is green:** `npm run test:s10` passes 45/45; `npm run test:s10-images` passes
-  45/45; `npm run test:s10-performance` passes 2/2; `npm run test:s11` passes 13/13; and
+  45/45; `npm run test:s10-performance` passes 2/2; `npm run test:s11` passes 30/30; and
   `npm run test:browser-s10` passes 4/4. The complete serial repository gate passes 919/919, including the 64.6-
   second finder contract, immutable artifact checks, Tampa/SF and base-path builds, and app lint. The local browser
   harness reports no serious/critical Axe finding, console error, provider crash, disallowed image request, card-text
@@ -1437,7 +1437,7 @@ items in the audit; the owner approves the premium existing-product pass.
   verification and externally retained evidence/final-receipt digests. Morris Bridge remains on Aurora pending
   canonical resolution, and Bro Bowl plus Hammock Park require re-review in the corrected population. Owner imagery-
   policy and positive-coverage decisions, owner premium visual approval, and a human screen-reader/switch journey
-  also remain open. This checkpoint has not been deployed, does not satisfy the Sprint 10 exit gate, and does not
+  also remain open. This checkpoint is pushed to draft PR #17 but has not been deployed, does not satisfy the Sprint 10 exit gate, and does not
   authorize real beta sessions; Sprint 11's fail-closed preparatory tooling may proceed without implying beta start.
 
 ## Validation and United States coverage
@@ -1479,6 +1479,30 @@ first-value promise is false.
   binding remains `artifact-ready` but returns `kit: null`; the kit defines no sample size or pass threshold. The
   current checked Tampa and SF bytes verify for integrity but correctly remain blocked because both event packs are
   expired and their event/place source health is unknown.
+
+#### Sprint 11 participant-facing release observation receipt — 2026-07-22 (engineering green; production blocked)
+
+- **Deployment identity is now machine-observed rather than manually asserted:** the bounded observer requires an
+  exact canonical-origin HTTPS 200/no-redirect manifest for each city, validates its city/timezone/identity contract,
+  hash- and schema-checks every JSON member, reconstructs the complete referenced local-image tree, refuses unsupported
+  future shards and pre-populated runtime identity, then executes each city app in isolated Chromium. The browser
+  captures the same-origin asset JavaScript it actually loads, requires the embedded manifest pin, verifies the mounted
+  city/timezone/ready/manifest/build identity, and the observer requires final manifest bytes to equal the first. Only
+  the complete expected two-city pair can emit `deployedReleases`; exact unbound bytes stay `observed-unbound`, and
+  any failed city or generation flip emits no binding. Stale/unknown source policy remains a separate beta-kit block.
+- **The Pages workflow now closes the release-control gaps:** manual dispatch refuses every non-main ref, checkout is
+  pinned and rechecked against `GITHUB_SHA`, stale or source-unverified city artifacts cannot stage, and Pages/id-token
+  permissions exist only on the deploy job. A bounded post-deploy job installs locked Playwright/Chromium, observes
+  the public bytes and executed app, retains its receipt for 90 days, and fails without emitting a deployment binding
+  on integrity mismatch. It does not auto-rollback a publication or call exact publication a beta/SLO pass.
+- **Current production is honestly red:** a real unrestricted one-attempt observation at
+  `2026-07-22T18:36:43.431Z` received
+  `MANIFEST_HTTP_404` for both `/wuzup/artifact-manifest.json` and `/wuzup/sf/artifact-manifest.json`; older standalone
+  JSON availability therefore cannot authorize research. The observer and workflow contracts pass 17/17, and the
+  complete Sprint 11 focused gate passes 30/30. Canonical every-file UI/static tree identity, CDN-independent repeated
+  observation, and per-session revalidation remain further hardening; this receipt claims exact artifact/local-image
+  bytes, an actually loaded bundle pin, and executed app identity. The complete serial repository gate rerun passes
+  919/919.
 - **The first real operations observation remains red, not inferred green:** GitHub scheduled refresh run
   [29493668670](https://github.com/joshuaallanmorgan-lgtm/wuzup/actions/runs/29493668670) succeeded on 2026-07-16
   and opened [PR #16](https://github.com/joshuaallanmorgan-lgtm/wuzup/pull/16), but that PR is still open and has
