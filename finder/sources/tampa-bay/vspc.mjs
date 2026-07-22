@@ -494,10 +494,12 @@ async function enrichTimes(browser, events) {
 
 export async function fetchEvents(options = {}) {
   const nowMs = options?.nowMs ?? Date.now();
+  const requireLive = options?.requireLive === true;
   const { today } = sourceWindow(CITY_TZ, nowMs, DAYS_AHEAD);
   const cache = readCache();
 
   if (process.env.SKIP_RENDER === '1') {
+    if (requireLive) throw new Error('SKIP_RENDER=1 cannot satisfy requireLive');
     // No module cache -> throw, so the orchestrator serves ITS last-good-pull
     // fallback instead of us handing it an empty (and cache-clobbering) list.
     if (!cache) throw new Error('SKIP_RENDER=1 and no module cache');
@@ -510,7 +512,7 @@ export async function fetchEvents(options = {}) {
     return cache.events;
   }
 
-  if (isVspcCacheFresh(cache, { nowMs })) {
+  if (!requireLive && !options?.force && isVspcCacheFresh(cache, { nowMs })) {
     return cache.events;
   }
 
@@ -540,6 +542,7 @@ export async function fetchEvents(options = {}) {
     return events;
   } catch (e) {
     console.error('[vspc] scrape failed:', e.message);
+    if (requireLive) throw e;
     if (cache) {
       console.error(
         `[vspc] returning stale cache from ${cache.fetchedAt} ` +

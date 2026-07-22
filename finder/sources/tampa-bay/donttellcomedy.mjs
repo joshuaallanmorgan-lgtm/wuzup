@@ -106,6 +106,7 @@ export async function fetchEvents(options = {}) {
   const config = options || {};
   const nowMs = config.nowMs ?? Date.now();
   const fetchImpl = config.fetchImpl ?? globalThis.fetch;
+  const requireLive = config.requireLive === true;
   const { today } = sourceWindow(CITY_TZ, nowMs, 0);
   const seen = new Set();
   const events = [];
@@ -121,6 +122,7 @@ export async function fetchEvents(options = {}) {
         events.push(e);
       }
     } catch (err) {
+      if (requireLive) throw new Error(`[donttellcomedy] required city page failed for ${url}: ${err.message}`, { cause: err });
       console.warn(`[donttellcomedy] ${url} failed: ${err.message}`);
     }
   }

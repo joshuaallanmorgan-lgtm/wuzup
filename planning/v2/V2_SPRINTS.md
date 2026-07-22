@@ -1550,6 +1550,60 @@ first-value promise is false.
   is not the participant-facing publication: the last real production observation remains red, no composed-site
   release has been observed at the canonical origin, and no beta session is authorized.
 
+#### Sprint 11 verified-refresh acquisition receipt — 2026-07-22 (engineering hardening; bootstrap blocked)
+
+- **A publication candidate must now prove current primary acquisition:** the refresh path passes one explicit
+  require-live contract through static pages, rendered sources, every declared active city event adapter, each city's declared place
+  adapter roster, and OSM. Internal fresh/stale caches, outer last-good fallbacks, zero/partial page sets, malformed
+  payloads, rendered-listing gaps, and Overpass runtime remarks cannot earn a healthy source receipt. Ordinary local
+  runs retain their resilient cache behavior; strict publication runs fail closed without deleting the last-good data.
+- **The source roster is explicit and completeness-aware:** 11 Tampa Bay and five SF/East Bay event adapters are active;
+  Do813 stays preserved but dormant after a verified zero-row baseline, so it cannot be imported or mislabeled healthy.
+  UC Berkeley's bounded paginated JSON occurrence inventory proves whether the capped rich RSS fully covers the
+  city-local 45-day product window; cap saturation alone no longer blocks every verified SF refresh.
+- **Place acquisition is city-scoped and imagery-safe:** Tampa and SF load only their declared adapters, sharing OSM
+  intentionally rather than importing the other market's sources. Weekly/manual verified place refreshes acquire
+  current place facts while Wikimedia enrichment stays cache-only. Previously supervised, reverified Mapillary crops
+  remain usable beyond a network-cache TTL only after their canonical reviewed place name and coordinates, safe local
+  path, immutable SHA-256, decoded JPEG format/dimensions, approval, credit, license, provenance, and regular-file
+  binding are revalidated; this avoids silently deleting approved imagery during CI.
+- **The bot PR carries the failed evidence instead of laundering it through tests:** events run daily; place facts run
+  Thursday or on explicit manual selection. Both cities' event and selected place logs are captured with pipefail and
+  bounded into the Actions summary/PR body alongside immutable artifact health. Any red benchmark blocks publication,
+  strict staging verifies fresh and fully healthy event/place receipts for Tampa and SF, and the complete repository
+  gate must pass before the scoped bot branch can update.
+- **External bootstrap remains red:** the existing refresh PR #16 is legacy output with `action_required` and no
+  executed gate jobs. Its last Actions-observed Eventbrite pulls returned HTTP 405; a later local HTTP-200 listing
+  probe does not prove full acquisition from the GitHub runner. Canonical production still returns 404 for both
+  artifact manifests. After this workflow reaches `main`, an operator must manually run the first
+  `refresh_places=true` bootstrap, inspect every source/benchmark exception, approve and run the bot PR checks, merge
+  only an actually green candidate, and observe the resulting composed-site Pages receipt. Until then refresh/deploy
+  SLO evidence is missing and no real Sprint 11 beta session is authorized.
+
+#### Sprint 11 per-session release preflight — 2026-07-22 (implemented; real sessions still blocked)
+
+- **A kit no longer authorizes a later session by itself:** the session operator requires an owner-filled exact review
+  configuration and independently expected source commit, then re-observes the canonical composed site and both city
+  runtimes before allocating a CSPRNG receipt ID or starting the participant timer. The observed identities must match
+  the review cycle exactly and the same deployed bytes must pass current freshness and verified-source policy. It then
+  launches and owns one visible isolated mobile Chromium page whose document, scripts, and mounted runtime identity
+  are bound to that composed-site receipt; no separate headless observation can stand in for the participant's page.
+- **One process owns one bounded evidence timeline:** credible-option and retained-value milestones use a monotonic
+  clock; counts and outcomes have fixed commands and limits; there is no resume, participant identity, wall timestamp,
+  listing/query/location payload, or free-text field. Every command reasserts the owned page. Navigation/reload,
+  A-to-B-to-A identity mutation, unexpected script execution, page close/crash, or browser disconnect latches failure;
+  foreign source popups remain usable, but any additional tab that reaches Wuzup's origin is closed and latched.
+  Finalization checks the page both before and after the repeated live release gate, so a transient participant-page
+  identity flip or reload emits nothing.
+- **Completed evidence appears atomically or not at all:** the exact normalized receipt is synced privately and exposed
+  through an exclusive no-clobber same-directory link. Abort, interruption before publication, clock regression,
+  invalid ordering, write failure, or repeated nonce cannot leave a partial or overwrite an existing receipt; aggregate
+  replay detection remains a second boundary. This is trusted-observer research, not cryptographic proof against
+  deliberate local fabrication, and it does not change the current external beta block.
+- **The integrated engineering gate is green:** `npm run test:s11` passes 109/111 with only the two expected Windows
+  capability skips, and the complete `npm test` pre-gate plus build/lint/city staging passes with a 922/922 serial core.
+  These are code-contract receipts, not production SLO or participant evidence.
+
 ### Sprint 12 - Controlled Tampa/SF beta, cycle two and pilot go/no-go
 
 **Outcome:** enough elapsed operation exists to decide whether expansion is responsible.

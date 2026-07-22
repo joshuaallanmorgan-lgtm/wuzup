@@ -45,6 +45,21 @@ export const geocodeViewbox = `${bbox.lngMin},${bbox.latMax},${bbox.lngMax},${bb
 // math through `tz` (Intl-derived per-date offsets, DST-safe — see tampa-bay.mjs).
 export const tz = 'America/Los_Angeles';
 
+export const placeSourceModules = Object.freeze([
+  'ebrpd-parks',
+  'ggnra-seed',
+  'osm',
+  'sf-parks',
+]);
+
+export const eventSourceModules = Object.freeze([
+  'dothebay',
+  'meetup',
+  'sfrecparks',
+  'ucberkeley',
+  'visitoakland',
+]);
+
 // geocode facts (the D2 seam shape — see tampa-bay.mjs for field semantics).
 // cityRe = locality-hint extractor for THIS city's listings; corridor localities
 // only (the D3 gazetteer ambiguity traps — richmond/alameda-as-island — matter

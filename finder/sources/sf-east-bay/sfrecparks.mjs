@@ -77,6 +77,7 @@ function to24h(s) {
 export async function fetchEvents(options = {}) {
   const nowMs = options.nowMs ?? Date.now();
   const fetchImpl = options.fetchImpl ?? globalThis.fetch;
+  const requireLive = options.requireLive === true;
   const { today: todayDay, lastDay } = sourceWindow(CITY_TZ, nowMs, WINDOW_DAYS);
   const res = await fetchWithTimeout(FEED_URL, { headers: { 'user-agent': UA } }, undefined, fetchImpl);
   if (!res.ok) throw new Error(`SF Rec & Parks: HTTP ${res.status}`);
@@ -84,6 +85,7 @@ export async function fetchEvents(options = {}) {
 
   const items = xml.split(/<item>/).slice(1);
   if (!items.length) {
+    if (requireLive) throw new Error('SF Rec & Parks: live RSS contained no <item> entries');
     console.warn('SF Rec & Parks: no <item> entries found in RSS feed');
     return [];
   }

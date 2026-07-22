@@ -28,6 +28,7 @@ export const name = 'DoTheBay';
 
 const BASE = 'https://dothebay.com';
 const MAX_PAGES = 8; // 25/page — live paging says 3 pages today; headroom is cheap
+const PAGE_SIZE = 25;
 const WINDOW_DAYS = 45;
 const PAGE_GAP_MS = 400; // polite pacing between pages, same as meetup.mjs
 const UA =
@@ -116,11 +117,14 @@ export async function fetchEvents(options = {}) {
   const nowMs = config.nowMs ?? Date.now();
   const fetchImpl = config.fetchImpl ?? globalThis.fetch;
   const waitImpl = config.waitImpl ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
+  const requireLive = config.requireLive === true;
   // Window bounds as CITY-day strings — begin_date is a local calendar day,
   // mapped starts are canonicalized before exact string comparison.
   const { today, lastDay } = sourceWindow(CITY_TZ, nowMs, WINDOW_DAYS);
   const seen = new Set();
+  const acquired = new Set();
   const events = [];
+  let declaredCount = null;
   let outOfBox = 0;
 
   for (let page = 1; page <= MAX_PAGES; page++) {
@@ -136,11 +140,21 @@ export async function fetchEvents(options = {}) {
       if (!res.ok) throw new Error('HTTP ' + res.status);
       json = await res.json();
     } catch (err) {
+      if (requireLive) throw new Error(`[dothebay] required page ${page} failed: ${err.message}`, { cause: err });
       console.warn(`[dothebay] page ${page} failed: ${err.message}`);
       break;
     }
+    if (!Array.isArray(json?.events)) {
+      if (requireLive) throw new Error(`[dothebay] required page ${page} missing events array`);
+      console.warn(`[dothebay] page ${page} missing events array`);
+    }
     const batch = Array.isArray(json?.events) ? json.events : [];
     for (const raw of batch) {
+      if (requireLive) {
+        const acquisitionKey = raw?.id ?? raw?.permalink ?? `${raw?.title || ''}|${raw?.begin_date || ''}|${raw?.tz_adjusted_begin_date || ''}`;
+        if (acquired.has(acquisitionKey)) throw new Error(`[dothebay] duplicate raw row across live pages: ${acquisitionKey}`);
+        acquired.add(acquisitionKey);
+      }
       if (raw?.past === true) continue;
       const ev = mapEvent(raw, base);
       if (!ev) continue;
@@ -158,8 +172,30 @@ export async function fetchEvents(options = {}) {
       seen.add(ev.url);
       events.push(ev);
     }
-    const totalPages = json?.paging?.total_pages || 0;
+    const totalPagesValue = Number(json?.paging?.total_pages);
+    const countValue = Number(json?.paging?.count);
+    if (requireLive && (!Number.isInteger(totalPagesValue) || totalPagesValue < 0)) {
+      throw new Error(`[dothebay] required page ${page} missing valid paging.total_pages`);
+    }
+    if (requireLive && (!Number.isInteger(countValue) || countValue < 0)) {
+      throw new Error(`[dothebay] required page ${page} missing valid paging.count`);
+    }
+    if (requireLive && declaredCount !== null && countValue !== declaredCount) {
+      throw new Error(`[dothebay] paging.count changed from ${declaredCount} to ${countValue}`);
+    }
+    if (requireLive && Math.ceil(countValue / PAGE_SIZE) !== totalPagesValue) {
+      throw new Error(`[dothebay] paging count/pages are incoherent (${countValue}/${totalPagesValue})`);
+    }
+    declaredCount = countValue;
+    const totalPages = totalPagesValue || 0;
+    if (requireLive && totalPages > MAX_PAGES) {
+      throw new Error(`[dothebay] live feed requires ${totalPages} pages, above cap ${MAX_PAGES}`);
+    }
     if (page >= totalPages) break;
+  }
+
+  if (requireLive && acquired.size !== declaredCount) {
+    throw new Error(`[dothebay] live result incomplete (${acquired.size} of ${declaredCount} rows)`);
   }
 
   if (outOfBox) console.warn(`[dothebay] dropped ${outOfBox} out-of-corridor listing(s) (own coords outside the city box)`);

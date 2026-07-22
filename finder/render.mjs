@@ -2,7 +2,8 @@
 // Playwright-rendered scraper for JS-only sources (no structured data even after render).
 // Currently: Creative Loafing Tampa community calendar — highest-value "hidden gems" source.
 //
-// Exports: scrapeRenderSources(opts) -> Promise<Array<event>>
+// Exports: scrapeRenderSources(opts) -> Promise<Array<event>> and
+// scrapeRenderSourcesWithReceipt(opts) -> live/cache acquisition evidence.
 // Event shape: { title, start, end, venue, address, price, isFree, url, image,
 //                description, staffPick, promoted, source: 'Creative Loafing' }
 //
@@ -551,8 +552,14 @@ async function scrapeCreativeLoafing(opts, parseCard) {
       let cards = [];
       try {
         cards = await renderListing(page, url);
+        if (opts.requireLive && cards.length === 0) {
+          throw new Error('required live listing returned zero cards');
+        }
       } catch (e) {
         console.error(`[render] listing failed (${url}):`, e.message);
+        if (opts.requireLive) {
+          throw new Error(`required live listing failed for ${url}: ${e.message || e}`);
+        }
         continue;
       }
       for (const c of cards) {
@@ -620,29 +627,45 @@ async function scrapeCreativeLoafing(opts, parseCard) {
 // Public API
 // ---------------------------------------------------------------------------
 
-export async function scrapeRenderSources(opts = {}) {
+export async function scrapeRenderSourcesWithReceipt(opts = {}) {
   const nowMs = opts.nowMs ?? Date.now();
   if (!Number.isFinite(nowMs)) throw new TypeError('nowMs must be finite');
   const maxAgeMs = (opts.maxAgeHours ?? 6) * 3600 * 1000;
   const parseCard = createCreativeLoafingParser({ nowMs });
+  const readCacheImpl = opts.readCacheImpl || readCache;
+  const writeCacheImpl = opts.writeCacheImpl || writeCache;
+  const scrapeImpl = opts.scrapeImpl || scrapeCreativeLoafing;
+  const logger = opts.logger || console;
 
-  if (!opts.force) {
-    const cache = readCache();
+  if (!opts.force && !opts.requireLive) {
+    const cache = readCacheImpl();
     if (isRenderCacheFresh(cache, { nowMs, maxAgeMs })) {
-      return cache.events;
+      return Object.freeze({ events: cache.events, acquisition: 'fresh-cache', error: null });
     }
   }
 
   try {
-    const events = await scrapeCreativeLoafing(opts, parseCard);
+    const events = await scrapeImpl(opts, parseCard);
     if (!events.length) throw new Error('zero events extracted');
-    writeCache(events, nowMs);
-    return events;
+    writeCacheImpl(events, nowMs);
+    return Object.freeze({ events, acquisition: 'live', error: null });
   } catch (e) {
-    console.error('[render] scrape failed:', e.message);
-    const stale = readCache();
-    return stale ? stale.events : [];
+    logger.error('[render] scrape failed:', e.message);
+    if (opts.requireLive) {
+      throw new Error(`required live render acquisition failed: ${e.message || e}`);
+    }
+    const stale = readCacheImpl();
+    return Object.freeze({
+      events: stale ? stale.events : [],
+      acquisition: stale ? 'stale-cache' : 'failed',
+      error: String(e.message || e),
+    });
   }
+}
+
+export async function scrapeRenderSources(opts = {}) {
+  const receipt = await scrapeRenderSourcesWithReceipt(opts);
+  return receipt.events;
 }
 
 // ---------------------------------------------------------------------------

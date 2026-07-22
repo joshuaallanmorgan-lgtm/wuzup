@@ -295,7 +295,7 @@ function metricBundle(receipts) {
   })
 }
 
-function normalizeReviewConfig(value) {
+export function normalizeBetaResearchReviewConfig(value) {
   if (value === null || value === undefined) return null
   exactKeys(value, REVIEW_CONFIG_KEYS, 'beta research review config')
   invariant(Array.isArray(value.requiredCityIds), 'beta research requiredCityIds must be an array')
@@ -334,6 +334,19 @@ function normalizeReviewConfig(value) {
     expectedSiteReleaseId: value.expectedSiteReleaseId,
     expectedReleases: Object.freeze(expectedReleases),
   })
+}
+
+export async function readBetaResearchReviewConfigFile(filePath) {
+  invariant(
+    typeof filePath === 'string' && filePath.trim().length > 0,
+    'beta research review config path must be non-empty',
+  )
+  const value = await readBoundedJsonFile(
+    filePath,
+    S11_BETA_RESEARCH_LIMITS.maxReviewConfigJsonBytes,
+    'beta research review config file',
+  )
+  return normalizeBetaResearchReviewConfig(value)
 }
 
 function reviewDecision(cityReports, config) {
@@ -412,7 +425,7 @@ export function aggregateBetaResearch(receipts, { reviewConfig = null } = {}) {
       ...release,
       metrics: metricBundle(normalized.filter((receipt) => receipt.cityId === release.cityId)),
     }))
-  const config = normalizeReviewConfig(reviewConfig)
+  const config = normalizeBetaResearchReviewConfig(reviewConfig)
   if (config) {
     invariant(
       siteReleaseId !== null && siteReleaseId === config.expectedSiteReleaseId,

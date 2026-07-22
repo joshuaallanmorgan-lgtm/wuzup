@@ -55,9 +55,11 @@
 //   • node finder/places-images.mjs — standalone: patches the existing
 //     places.json copies in place (minimal diff: just the `image` field) and
 //     warms the caches.
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { readFileSync, writeFileSync, existsSync, lstatSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import sharp from 'sharp';
 import { area, imageRejects, qidDeny, cityId, tz as CITY_TZ } from './cities/index.mjs';
 import { PRODUCT_UA } from './ua.mjs';
 import { atomicWriteFileSync, invalidateManifest, writeManifest } from './artifact-manifest.mjs';
@@ -95,6 +97,7 @@ const THUMB_W = 1280; // crisp on a retina 460px hero, still light (~one image)
 // upscales, so `width` is the file's true pixel width.
 const MIN_HERO_W = 900;
 const MAX_CACHE_AGE_MS = 30 * 24 * 3600e3; // place photos change very rarely — 30d
+const MAX_LOCAL_IMAGE_BYTES = 10 * 1024 * 1024;
 const CAT_LIMIT = 50; // category members to consider for the P373 pick
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -407,13 +410,117 @@ const storeRec = (r) =>
 // a record ships ONLY with an image + a satisfiable credit + the hero width floor.
 const shippable = (rec) => !!(rec && rec.image && creditOk(rec) && (rec.width == null || rec.width >= MIN_HERO_W));
 
+function safeUrl(value) {
+  try {
+    return new URL(value);
+  } catch {
+    return null;
+  }
+}
+
+function isRegularFile(path) {
+  try {
+    return lstatSync(path).isFile();
+  } catch {
+    return false;
+  }
+}
+
+const canonicalPlaceName = (value) => typeof value === 'string'
+  ? value.normalize('NFKC').trim().replace(/\s+/g, ' ').toLocaleLowerCase('en-US')
+  : '';
+
+function placeIdentityMatches(receipt, place) {
+  const expected = receipt?.place;
+  if (!expected || typeof expected !== 'object' || Array.isArray(expected)) return false;
+  if (!place || typeof place !== 'object' || Array.isArray(place)) return false;
+  if (!canonicalPlaceName(expected.name) || canonicalPlaceName(expected.name) !== canonicalPlaceName(place.name)) return false;
+  if (!Number.isFinite(expected.lat) || !Number.isFinite(expected.lng)) return false;
+  if (!Number.isFinite(place.lat) || !Number.isFinite(place.lng)) return false;
+  return expected.lat === place.lat && expected.lng === place.lng;
+}
+
+async function approvedLocalImageMatches(rec, assetPath) {
+  try {
+    const stat = lstatSync(assetPath);
+    if (!stat.isFile() || stat.size <= 0 || stat.size > MAX_LOCAL_IMAGE_BYTES) return false;
+    const bytes = readFileSync(assetPath);
+    if (bytes.length !== stat.size) return false;
+    const actualSha256 = `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
+    if (!/^sha256:[a-f0-9]{64}$/.test(rec.imageSha256) || rec.imageSha256 !== actualSha256) return false;
+
+    const metadata = await sharp(bytes, { failOn: 'error' }).metadata();
+    if (metadata.format !== 'jpeg' || metadata.width !== rec.width || metadata.height !== rec.height) return false;
+    const decoded = await sharp(bytes, { failOn: 'error' }).raw().toBuffer({ resolveWithObject: true });
+    return decoded.info.width === rec.width && decoded.info.height === rec.height;
+  } catch {
+    return false;
+  }
+}
+
+// Mapillary crops are supervised, self-hosted assets rather than an online image
+// resolver cache. A verified refresh may therefore reuse an old review receipt,
+// but only after revalidating the exact approval, credit, provenance, and local
+// file binding. Ordinary runs retain the historical 30-day receipt TTL.
+export async function mapillaryReceiptUsable(rec, {
+  assetPath,
+  cacheOnly = false,
+  expectedImage,
+  nowMs = Date.now(),
+  place,
+} = {}) {
+  if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return false;
+  if (rec.reVerified !== true) return false;
+  if (
+    typeof expectedImage !== 'string' || !/^\/place-img\/[a-z0-9][a-z0-9._-]*\.jpg$/i.test(expectedImage) ||
+    rec.image !== expectedImage || !placeIdentityMatches(rec, place)
+  ) return false;
+  if (!Number.isInteger(rec.width) || rec.width < MIN_HERO_W) return false;
+  if (!Number.isInteger(rec.height) || rec.height <= 0) return false;
+  if (!['A', 'B'].includes(rec.tier)) return false;
+  const validMatchKind = rec.tier === 'B'
+    ? rec.matchKind === 'tierB-storefront'
+    : ['phrase3', 'phrase2', 'token', 'number', 'tokenPartial'].includes(rec.matchKind);
+  if (!validMatchKind) return false;
+  if (typeof rec.signTextRead !== 'string' || !rec.signTextRead.trim()) return false;
+  if (
+    typeof rec.license !== 'string' || typeof rec.author !== 'string' || !rec.author.trim() ||
+    typeof rec.licenseUrl !== 'string' || !creditOk(rec) ||
+    !/^CC BY(?:-SA)?(?:\s+\d+(?:\.\d+)?)?$/i.test(rec.license.trim())
+  ) return false;
+
+  const id = typeof rec.id === 'string' ? rec.id : '';
+  if (typeof rec.mapillaryUrl !== 'string' || typeof rec.at !== 'string') return false;
+  const sourceUrl = safeUrl(rec.mapillaryUrl);
+  const licenseUrl = safeUrl(rec.licenseUrl);
+  if (!/^\d+$/.test(id)) return false;
+  if (
+    !sourceUrl || sourceUrl.protocol !== 'https:' || sourceUrl.hostname !== 'www.mapillary.com' ||
+    sourceUrl.pathname !== '/app/' || sourceUrl.searchParams.get('focus') !== 'photo' ||
+    sourceUrl.searchParams.get('pKey') !== id
+  ) return false;
+  if (
+    !licenseUrl || licenseUrl.protocol !== 'https:' || licenseUrl.hostname !== 'creativecommons.org' ||
+    !/^\/licenses\/by(?:-sa)?\//i.test(licenseUrl.pathname)
+  ) return false;
+
+  const reviewedAt = Date.parse(rec.at);
+  if (!Number.isFinite(reviewedAt) || !Number.isFinite(nowMs)) return false;
+  if (!cacheOnly && nowMs - reviewedAt >= MAX_CACHE_AGE_MS) return false;
+  return approvedLocalImageMatches(rec, assetPath);
+}
+
 // Mutates EVERY place with coords, setting `image` when a real, CREDITED photo of
 // THAT place resolves (and recording its credit). Per place, a real-photo LADDER —
 // first hit wins: (1) Wikidata Q-id (P18 → P373) for the ~3% with a Q-id, then
 // (2) NEW Commons geosearch + name-match for the rest with coords. enrich is the
 // SOLE writer of `image` — it authoritatively sets OR clears it, so a re-run after a
 // guardrail tightened drops a now-disqualified photo. No generic stock. Returns counts.
-export async function enrichPlacesWithImages(places, { live = false, log = () => {} } = {}) {
+export async function enrichPlacesWithImages(places, {
+  live = false,
+  cacheOnly = false,
+  log = () => {},
+} = {}) {
   const cache = loadCache();
   const geoCache = loadGeoCache();
   const mapCache = loadMapCache();
@@ -450,6 +557,9 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
       if (cached && fresh && !live) {
         rec = cached;
         stats.fromCache++;
+      } else if (cacheOnly) {
+        rec = cached || storeRec(null);
+        if (cached) stats.fromCache++;
       } else {
         try {
           rec = storeRec(await resolvePlaceImage(p.wikidata, p.name));
@@ -483,6 +593,9 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
       if (gcached && gfresh && !live) {
         grec = gcached;
         stats.geoFromCache++;
+      } else if (cacheOnly) {
+        grec = gcached || storeRec(null);
+        if (gcached) stats.geoFromCache++;
       } else {
         try {
           grec = storeRec(await resolveCommonsGeosearch(p.lat, p.lng, p.name));
@@ -504,33 +617,33 @@ export async function enrichPlacesWithImages(places, { live = false, log = () =>
     // ── ladder 3: Mapillary sign-verified cafe storefront (cafes only) — only if
     //    1–2 didn't ship. enrich does NO Mapillary network: the OFFLINE verify
     //    harness already ran the vision sign-gate + self-hosted the crop. We read
-    //    the place-keyed cache, require the cached ship still fresh AND the local
+    //    the place-keyed cache, require a valid supervised receipt AND the local
     //    JPEG present, then ship the LOCAL path with its CC-BY-SA credit + the
     //    signTextRead honesty receipt. Self-heals BOTH ways: cafe pruned from the
-    //    cache OR its JPEG deleted → no rec → the place falls to the art floor. ──
+    //    cache OR its JPEG deleted → no rec → the place falls to the art floor.
+    //    A verified cache-only refresh retains that local approval beyond the
+    //    network TTL; every other run retains the 30-day freshness rule. ──
     if (!reviewedQuarantine && !shippable(rec) && p.placeType === 'cafe' && p.key) {
       const mc = mapCache.byKey[p.key];
-      const mNewShape = mc && mc.image && 'signTextRead' in mc;
-      const mfresh = mc && mc.at && mNewShape && Date.now() - Date.parse(mc.at) < MAX_CACHE_AGE_MS;
-      if (mfresh) {
-        const slug = p.key.replace(/^p\|/, '');
-        if (existsSync(join(PLACE_IMG_DIR, `${slug}.jpg`))) {
-          rec = {
-            image: `/place-img/${slug}.jpg`, // site-root local path (deploy.mjs ships the dir into app/public)
-            file: `${slug}.jpg`,
-            fileTitle: `Mapillary:${mc.id}`, // synthetic attributions key (no Commons File:)
-            fileUrl: mc.mapillaryUrl,
-            width: mc.width || THUMB_W,
-            source: 'mapillary-sign',
-            license: mc.license,
-            licenseUrl: mc.licenseUrl,
-            author: mc.author,
-            signTextRead: mc.signTextRead || null,
-            at: mc.at,
-          };
-        } else {
-          stats.mapMissing++; // cached but the JPEG is gone → stays art floor
-        }
+      const slug = p.key.replace(/^p\|/, '');
+      const expectedImage = `/place-img/${slug}.jpg`;
+      const assetPath = join(PLACE_IMG_DIR, `${slug}.jpg`);
+      if (await mapillaryReceiptUsable(mc, { assetPath, cacheOnly, expectedImage, place: p })) {
+        rec = {
+          image: expectedImage, // site-root local path (deploy.mjs ships the dir into app/public)
+          file: `${slug}.jpg`,
+          fileTitle: `Mapillary:${mc.id}`, // synthetic attributions key (no Commons File:)
+          fileUrl: mc.mapillaryUrl,
+          width: mc.width || THUMB_W,
+          source: 'mapillary-sign',
+          license: mc.license,
+          licenseUrl: mc.licenseUrl,
+          author: mc.author,
+          signTextRead: mc.signTextRead || null,
+          at: mc.at,
+        };
+      } else if (mc && !isRegularFile(assetPath)) {
+        stats.mapMissing++; // cached but the JPEG is gone → stays art floor
       }
     }
 

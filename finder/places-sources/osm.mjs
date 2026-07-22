@@ -121,12 +121,21 @@ async function overpassOnce(endpoint, query) {
 // after a filter fix) re-applies the new transform without re-querying
 // Overpass at all. PLACES_LIVE=1 / OSM_LIVE=1 force the network.
 const RAW_CACHE_MAX_AGE_MS = 24 * 3600e3;
-async function fetchClass(cls) {
-  const cacheFile = join(CACHE, `osm-${cls.id}.json`);
-  const forceLive = process.env.PLACES_LIVE === '1' || process.env.OSM_LIVE === '1';
-  if (!forceLive && existsSync(cacheFile)) {
+export async function fetchOsmClass(cls, {
+  cacheDir = CACHE,
+  forceLive = process.env.PLACES_LIVE === '1'
+    || process.env.OSM_LIVE === '1'
+    || process.env.REQUIRE_LIVE_SOURCES === '1',
+  requireLive = process.env.REQUIRE_LIVE_SOURCES === '1',
+  nowMs = Date.now(),
+  queryImpl = overpassOnce,
+  delay = sleep,
+  logger = console,
+} = {}) {
+  const cacheFile = join(cacheDir, `osm-${cls.id}.json`);
+  if (!requireLive && !forceLive && existsSync(cacheFile)) {
     try {
-      const age = Date.now() - statSync(cacheFile).mtimeMs;
+      const age = nowMs - statSync(cacheFile).mtimeMs;
       if (age < RAW_CACHE_MAX_AGE_MS) {
         const elements = JSON.parse(readFileSync(cacheFile, 'utf8'));
         if (Array.isArray(elements)) return { elements, from: `raw cache, ${(age / 3600e3).toFixed(1)}h old` };
@@ -137,22 +146,29 @@ async function fetchClass(cls) {
   let lastErr;
   for (let attempt = 0; attempt <= BACKOFF_MS.length; attempt++) {
     try {
-      const data = await overpassOnce(ENDPOINT, query);
+      const data = await queryImpl(ENDPOINT, query);
+      if (requireLive && !Array.isArray(data?.elements)) {
+        throw new Error(`osm-${cls.id} primary response has no elements array`);
+      }
+      if (requireLive && String(data?.remark || '').trim()) {
+        throw new Error(`osm-${cls.id} primary response was partial: ${String(data.remark).trim()}`);
+      }
       const elements = Array.isArray(data.elements) ? data.elements : [];
-      mkdirSync(CACHE, { recursive: true });
+      mkdirSync(cacheDir, { recursive: true });
       writeFileSync(cacheFile, JSON.stringify(elements));
       return { elements, from: 'live' };
     } catch (e) {
       lastErr = e;
       const retryable = e.status === 429 || e.status === 504 || e.name === 'AbortError';
       if (!retryable || attempt === BACKOFF_MS.length) break;
-      console.log(`    ⏳ osm-${cls.id}: ${e.message} — backing off ${BACKOFF_MS[attempt] / 1000}s (attempt ${attempt + 2})`);
-      await sleep(BACKOFF_MS[attempt]);
+      logger.log(`    ⏳ osm-${cls.id}: ${e.message} — backing off ${BACKOFF_MS[attempt] / 1000}s (attempt ${attempt + 2})`);
+      await delay(BACKOFF_MS[attempt]);
     }
   }
+  if (requireLive) throw lastErr;
   try {
-    console.log(`    🧊 osm-${cls.id}: primary failed (${lastErr.message}) — trying stale fallback endpoint`);
-    const data = await overpassOnce(FALLBACK_ENDPOINT, query);
+    logger.log(`    🧊 osm-${cls.id}: primary failed (${lastErr.message}) — trying stale fallback endpoint`);
+    const data = await queryImpl(FALLBACK_ENDPOINT, query);
     const elements = Array.isArray(data.elements) ? data.elements : [];
     return { elements, from: 'fallback (kumi, possibly stale)' };
   } catch {
@@ -163,6 +179,8 @@ async function fetchClass(cls) {
     throw lastErr;
   }
 }
+
+const fetchClass = fetchOsmClass;
 
 function coordsOf(el) {
   if (el.type === 'node') return { lat: el.lat, lng: el.lon };

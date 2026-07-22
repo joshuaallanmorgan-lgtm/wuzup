@@ -173,15 +173,17 @@ function mapEvent(node, refMap) {
   };
 }
 
-async function fetchPageEvents(url, today, lastDay, fetchImpl) {
+async function fetchPageEvents(url, today, lastDay, fetchImpl, { requireLive = false } = {}) {
   const res = await meetupFetch(url, fetchImpl);
   if (!res.ok) {
+    if (requireLive) throw new Error(`HTTP ${res.status} for ${url}`);
     console.warn(`[${name}] HTTP ${res.status} for ${url}`);
     return [];
   }
   const html = await res.text();
   const m = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
   if (!m) {
+    if (requireLive) throw new Error(`__NEXT_DATA__ script not found for ${url}`);
     console.warn(`[${name}] __NEXT_DATA__ script not found — page structure changed?`);
     return [];
   }
@@ -189,6 +191,7 @@ async function fetchPageEvents(url, today, lastDay, fetchImpl) {
   try {
     data = JSON.parse(m[1]);
   } catch (err) {
+    if (requireLive) throw new Error(`failed to parse __NEXT_DATA__ for ${url}: ${err.message}`, { cause: err });
     console.warn(`[${name}] failed to JSON.parse __NEXT_DATA__: ${err.message}`);
     return [];
   }
@@ -208,6 +211,7 @@ async function fetchPageEvents(url, today, lastDay, fetchImpl) {
       const ev = mapEvent(node, refMap);
       if (ev) events.push(ev);
     } catch (err) {
+      if (requireLive) throw new Error(`required event node mapping failed: ${err.message}`, { cause: err });
       console.warn(`[${name}] skipping unmappable event node: ${err.message}`);
     }
   }
@@ -219,6 +223,7 @@ export async function fetchEvents(options = {}) {
   const nowMs = config.nowMs ?? Date.now();
   const fetchImpl = config.fetchImpl ?? globalThis.fetch;
   const waitImpl = config.waitImpl ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
+  const requireLive = config.requireLive === true;
   const { today, lastDay } = sourceWindow(CITY_TZ, nowMs, WINDOW_DAYS);
 
   const all = [];
@@ -227,8 +232,9 @@ export async function fetchEvents(options = {}) {
     if (!firstFetch) await waitImpl(FETCH_GAP_MS);
     firstFetch = false;
     try {
-      all.push(...await fetchPageEvents(url, today, lastDay, fetchImpl));
+      all.push(...await fetchPageEvents(url, today, lastDay, fetchImpl, { requireLive }));
     } catch (err) {
+      if (requireLive) throw new Error(`[${name}] required listing failed for ${url}: ${err.message}`, { cause: err });
       // Network/abort failures on one page are soft — keep what we have.
       console.warn(`[${name}] fetch failed for ${url}: ${err.message}`);
     }
@@ -244,6 +250,7 @@ export async function fetchEvents(options = {}) {
   const events = [...byKey.values()];
 
   if (events.length === 0) {
+    if (requireLive) throw new Error(`[${name}] live listings contained no event-like objects`);
     console.warn(`[${name}] no event-like objects found — Meetup structure may have changed`);
   }
   return events;

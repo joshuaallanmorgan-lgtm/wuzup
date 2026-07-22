@@ -7,6 +7,7 @@ import test from 'node:test'
 import {
   createCreativeLoafingParser,
   isRenderCacheFresh,
+  scrapeRenderSourcesWithReceipt,
 } from '../finder/render.mjs'
 
 const card = (dateLine) => [
@@ -67,6 +68,77 @@ test('render cache freshness is elapsed-time strict and rejects future or malfor
   assert.equal(isRenderCacheFresh(cache('not-a-date'), { nowMs, maxAgeMs }), false)
   assert.equal(isRenderCacheFresh(null, { nowMs, maxAgeMs }), false)
   assert.throws(() => isRenderCacheFresh(cache(new Date(nowMs).toISOString()), { maxAgeMs }), /nowMs must be finite/i)
+})
+
+test('render acquisition receipts distinguish live, fresh-cache, and stale fallback', async () => {
+  const nowMs = Date.parse('2026-07-15T16:00:00Z')
+  const events = [{ title: 'Fixture event' }]
+  let scrapeCalls = 0
+  const fresh = await scrapeRenderSourcesWithReceipt({
+    nowMs,
+    readCacheImpl: () => ({ fetchedAt: new Date(nowMs - 1000).toISOString(), events }),
+    scrapeImpl: async () => {
+      scrapeCalls += 1
+      return events
+    },
+    logger: { error: () => {} },
+  })
+  assert.deepEqual(fresh, { events, acquisition: 'fresh-cache', error: null })
+  assert.equal(scrapeCalls, 0)
+
+  let written = null
+  const live = await scrapeRenderSourcesWithReceipt({
+    nowMs,
+    force: true,
+    scrapeImpl: async () => {
+      scrapeCalls += 1
+      return events
+    },
+    writeCacheImpl: (rows, instant) => { written = { rows, instant } },
+    logger: { error: () => {} },
+  })
+  assert.deepEqual(live, { events, acquisition: 'live', error: null })
+  assert.deepEqual(written, { rows: events, instant: nowMs })
+
+  const stale = await scrapeRenderSourcesWithReceipt({
+    nowMs,
+    force: true,
+    scrapeImpl: async () => { throw new Error('blocked') },
+    readCacheImpl: () => ({ fetchedAt: '2026-07-01T00:00:00.000Z', events }),
+    logger: { error: () => {} },
+  })
+  assert.deepEqual(stale, { events, acquisition: 'stale-cache', error: 'blocked' })
+})
+
+test('require-live render bypasses caches and refuses empty or failed acquisition', async () => {
+  const nowMs = Date.parse('2026-07-15T16:00:00Z')
+  const cache = { fetchedAt: new Date(nowMs - 1000).toISOString(), events: [{ title: 'Cached' }] }
+  let cacheReads = 0
+  const options = {
+    nowMs,
+    requireLive: true,
+    readCacheImpl: () => {
+      cacheReads += 1
+      return cache
+    },
+    logger: { error: () => {} },
+  }
+
+  await assert.rejects(
+    () => scrapeRenderSourcesWithReceipt({
+      ...options,
+      scrapeImpl: async () => { throw new Error('transport failed') },
+    }),
+    /required live render acquisition failed: transport failed/,
+  )
+  await assert.rejects(
+    () => scrapeRenderSourcesWithReceipt({
+      ...options,
+      scrapeImpl: async () => [],
+    }),
+    /required live render acquisition failed: zero events extracted/,
+  )
+  assert.equal(cacheReads, 0)
 })
 
 test('render parser output is byte-identical across device timezones', () => {

@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
+import sharp from 'sharp'
 import test from 'node:test'
 import { fileURLToPath } from 'node:url'
 
@@ -11,6 +12,7 @@ import {
   mapillaryCropFailsClosed,
   normalizeMapillaryCropGuard,
 } from '../finder/mapillary-contract.mjs'
+import { mapillaryReceiptUsable } from '../finder/places-images.mjs'
 import {
   imageRejects as sfImageRejects,
   qidDeny as sfQidDeny,
@@ -30,7 +32,7 @@ const PINNED_ARTIFACTS = {
     buildId: 'sha256:37e7b0bcc2ea184faaab0c066a996ef5a6511e15c2d0918725bf01d04187efe9',
     events: 'a8df0d0cefb461c6e417092b42de20067cf4f1bfb68314e5e91c4f70f875d090',
     places: 'e19e10e05780bcb55c88c59ccd1b251354f1652451ae37207b602f7aef144c25',
-    receipt: 'd0af46101cb0cbbb368917f890e1cb59a4ba0b4a423eca0baecc71abeaed4a8b',
+    receipt: 'f9ea65445cf999415657395cd996ddcbba60bfcc823c337de6dd6abd99fde66b',
   },
   'sf-east-bay': {
     buildId: 'sha256:e209e102c6a821060d8abbd2fe6d475629a7be6b32b0e4a2a46bb52f561bdf04',
@@ -59,6 +61,135 @@ async function localImageFiles(cityId) {
   const entries = await readdir(directory, { withFileTypes: true })
   return entries.filter((entry) => entry.isFile() && IMAGE_EXTENSIONS.has(path.extname(entry.name).toLowerCase()))
 }
+
+test('verified cache-only refresh retains expired supervised Mapillary assets without weakening receipt gates', async () => {
+  const root = await mkdtemp(path.join(tmpdir(), 'wuzup-mapillary-cache-retention-'))
+  const assetPath = path.join(root, 'verified-cafe.jpg')
+  const expectedImage = '/place-img/verified-cafe.jpg'
+  const place = { name: 'Verified Cafe', lat: 27.9477115, lng: -82.4590567 }
+  const reviewedAt = Date.parse('2026-01-01T00:00:00.000Z')
+  const dayMs = 24 * 60 * 60 * 1000
+  const receipt = {
+    id: '123456789',
+    image: expectedImage,
+    width: 900,
+    height: 600,
+    license: 'CC BY-SA 4.0',
+    licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
+    author: 'Mapillary contributor',
+    signTextRead: 'VERIFIED CAFE',
+    mapillaryUrl: 'https://www.mapillary.com/app/?focus=photo&pKey=123456789',
+    tier: 'A',
+    matchKind: 'phrase2',
+    reVerified: true,
+    place,
+    imageSha256: null,
+    at: new Date(reviewedAt).toISOString(),
+  }
+  const options = { assetPath, expectedImage, place }
+
+  try {
+    await writeFile(assetPath, 'not a jpeg')
+    receipt.imageSha256 = `sha256:${await sha256(assetPath)}`
+    assert.equal(await mapillaryReceiptUsable(receipt, {
+      ...options,
+      cacheOnly: true,
+      nowMs: reviewedAt + 365 * dayMs,
+    }), false, 'a hash-matched text file must never count as an approved JPEG')
+
+    await sharp({
+      create: { width: 900, height: 600, channels: 3, background: '#4a8060' },
+    }).jpeg({ quality: 82 }).toFile(assetPath)
+    receipt.imageSha256 = `sha256:${await sha256(assetPath)}`
+
+    assert.equal(await mapillaryReceiptUsable(receipt, {
+      ...options,
+      nowMs: reviewedAt + 30 * dayMs - 1,
+    }), true, 'ordinary use remains valid inside the existing 30-day TTL')
+    assert.equal(await mapillaryReceiptUsable(receipt, {
+      ...options,
+      nowMs: reviewedAt + 30 * dayMs,
+    }), false, 'ordinary and live runs retain the exact existing TTL boundary')
+    assert.equal(await mapillaryReceiptUsable(receipt, {
+      ...options,
+      cacheOnly: true,
+      nowMs: reviewedAt + 365 * dayMs,
+    }), true, 'cache-only refresh reuses the supervised local approval regardless of network age')
+
+    assert.equal(await mapillaryReceiptUsable(receipt, {
+      ...options,
+      place: { ...place, lat: 27.9478115 },
+      cacheOnly: true,
+      nowMs: reviewedAt + 365 * dayMs,
+    }), false, 'same-name ordinal reuse at different coordinates must not inherit an old storefront')
+    assert.equal(await mapillaryReceiptUsable(receipt, {
+      ...options,
+      place: { ...place, name: 'Different Cafe' },
+      cacheOnly: true,
+      nowMs: reviewedAt + 365 * dayMs,
+    }), false, 'same coordinates with a different normalized name must not inherit an old storefront')
+
+    const approvedBytes = await readFile(assetPath)
+    const tamperedBytes = await sharp({
+      create: { width: 900, height: 600, channels: 3, background: '#804a60' },
+    }).jpeg({ quality: 82 }).toBuffer()
+    await writeFile(assetPath, tamperedBytes)
+    assert.equal(await mapillaryReceiptUsable(receipt, {
+      ...options,
+      cacheOnly: true,
+      nowMs: reviewedAt + 365 * dayMs,
+    }), false, 'different valid JPEG bytes with the same dimensions must fail the immutable hash')
+    await writeFile(assetPath, approvedBytes)
+
+    assert.equal(await mapillaryReceiptUsable({ ...receipt, width: 899 }, {
+      ...options,
+      cacheOnly: true,
+      nowMs: reviewedAt + 365 * dayMs,
+    }), false, 'decoded JPEG dimensions must match the approved receipt')
+
+    const pngBytes = await sharp({
+      create: { width: 900, height: 600, channels: 3, background: '#4a8060' },
+    }).png().toBuffer()
+    await writeFile(assetPath, pngBytes)
+    assert.equal(await mapillaryReceiptUsable({
+      ...receipt,
+      imageSha256: `sha256:${await sha256(assetPath)}`,
+    }, {
+      ...options,
+      cacheOnly: true,
+      nowMs: reviewedAt + 365 * dayMs,
+    }), false, 'a hash-matched non-JPEG image must fail the decoded format gate')
+    await writeFile(assetPath, approvedBytes)
+
+    const invalid = [
+      ['shape', { width: '900' }],
+      ['approval', { reVerified: false }],
+      ['asset binding', { image: '/place-img/a-different-cafe.jpg' }],
+      ['credit', { author: '' }],
+      ['typed credit', { license: 42 }],
+      ['license provenance', { licenseUrl: 'https://example.com/licenses/by-sa/4.0/' }],
+      ['source provenance', { mapillaryUrl: 'https://www.mapillary.com/app/?focus=photo&pKey=987654321' }],
+      ['review evidence', { signTextRead: '' }],
+      ['review timestamp', { at: 'not-a-date' }],
+    ]
+    for (const [label, mutation] of invalid) {
+      assert.equal(await mapillaryReceiptUsable({ ...receipt, ...mutation }, {
+        ...options,
+        cacheOnly: true,
+        nowMs: reviewedAt + 365 * dayMs,
+      }), false, `cache-only mode must still reject invalid ${label}`)
+    }
+
+    assert.equal(await mapillaryReceiptUsable(receipt, {
+      ...options,
+      assetPath: path.join(root, 'missing.jpg'),
+      cacheOnly: true,
+      nowMs: reviewedAt + 365 * dayMs,
+    }), false, 'cache-only mode must not retain a receipt whose local asset is missing')
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
 
 test('current Mapillary guard fields normalize and take precedence over legacy fields', () => {
   const crop = {
@@ -212,8 +343,12 @@ test('known SF contextual lifeguard images fail closed to the art floor', async 
   )
 })
 
-test('Tampa Mapillary receipts match the shipped local JPEG dimensions', async () => {
-  const report = await auditCityImagery({ repoRoot: ROOT, cityId: 'tampa-bay' })
+test('Tampa Mapillary receipts match local JPEGs and all 30 survive an expired cache-only refresh', async () => {
+  const [report, places] = await Promise.all([
+    auditCityImagery({ repoRoot: ROOT, cityId: 'tampa-bay' }),
+    readRows('tampa-bay', 'places'),
+  ])
+  const placesByKey = new Map(places.map(place => [place.key, place]))
   const codes = new Set(report.findings.map((finding) => finding.code))
   const receipt = JSON.parse(await readFile(
     path.join(ROOT, 'finder', 'cache', 'tampa-bay', 'place-mapillary-images.json'),
@@ -221,11 +356,22 @@ test('Tampa Mapillary receipts match the shipped local JPEG dimensions', async (
   ))
 
   assert.ok(report.mapillaryReceipts.entryCount > 0)
+  assert.equal(report.mapillaryReceipts.entryCount, 30)
   assert.equal(report.mapillaryReceipts.dimensionsChecked, report.mapillaryReceipts.entryCount)
   assert.equal(report.mapillaryReceipts.dimensionMismatches.length, 0)
   for (const [key, entry] of Object.entries(receipt.byKey)) {
+    const slug = key.replace(/^p\|/, '')
+    const place = placesByKey.get(key)
+    assert.ok(place, `${key} receipt must still target a reachable place`)
     assert.equal(entry.width, 900, `${key} receipt width must match its local JPEG`)
     assert.equal(entry.height, 600, `${key} receipt height must match its local JPEG`)
+    assert.equal(await mapillaryReceiptUsable(entry, {
+      assetPath: path.join(ROOT, 'finder', 'output', 'tampa-bay', 'place-img', `${slug}.jpg`),
+      cacheOnly: true,
+      expectedImage: `/place-img/${slug}.jpg`,
+      nowMs: Date.parse('2027-07-22T00:00:00.000Z'),
+      place,
+    }), true, `${key} supervised local receipt must remain usable after its network TTL`)
   }
   assert.equal(codes.has(IMAGERY_FINDING_CODES.LOCAL_IMAGE_DIMENSION_MISMATCH), false)
 })

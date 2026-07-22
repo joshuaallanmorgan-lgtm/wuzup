@@ -26,6 +26,7 @@
 //        chosen crops to finder/output/<cityId>/place-img/<slug>.jpg (clears ONLY
 //        that city's dir first; deploy.mjs ships the dir into the app).
 // =============================================================================
+import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, copyFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -233,6 +234,7 @@ for (const [rid, rec] of Object.entries(map)) {
   const slug = rec.key.replace(/^p\|/, '');
   rows.push({
     rid, key: rec.key, name: rec.name, slug, reviewedQuarantine,
+    place: { name: man.name || rec.name, lat: man.lat, lng: man.lng },
     // the honesty receipt: did the CHOSEN crop carry a re-judge guard verdict? (fail-closed)
     reVerified: v ? hasMapillaryGuardSignals(chosenCrop) : null,
     nCandidates: man.nCandidates ?? null, nPersp: man.nPersp ?? null, nPano: man.nPano ?? null,
@@ -289,10 +291,19 @@ if (SHIP) {
     const src = path.join(ROOT, r.cropPath);
     const dst = path.join(PLACE_IMG, `${r.slug}.jpg`);
     copyFileSync(src, dst);
-    const metadata = await sharp(dst).metadata();
-    if (!Number.isInteger(metadata.width) || !Number.isInteger(metadata.height)) {
+    const imageBytes = readFileSync(dst);
+    const metadata = await sharp(imageBytes, { failOn: 'error' }).metadata();
+    const decoded = await sharp(imageBytes, { failOn: 'error' }).raw().toBuffer({ resolveWithObject: true });
+    if (
+      metadata.format !== 'jpeg' || !Number.isInteger(metadata.width) || !Number.isInteger(metadata.height) ||
+      decoded.info.width !== metadata.width || decoded.info.height !== metadata.height
+    ) {
       throw new Error(`shipped crop dimensions unavailable for ${r.key}`);
     }
+    if (
+      !r.place || typeof r.place.name !== 'string' || !r.place.name.trim() ||
+      !Number.isFinite(r.place.lat) || !Number.isFinite(r.place.lng)
+    ) throw new Error(`shipped crop place identity unavailable for ${r.key}`);
     byKey[r.key] = {
       id: String(r.mapId),
       image: `/place-img/${r.slug}.jpg`,
@@ -306,6 +317,8 @@ if (SHIP) {
       tier: r.tier,
       matchKind: r.matchKind,
       reVerified: r.reVerified === true, // fail-closed honesty receipt (asserted in smoke)
+      place: r.place,
+      imageSha256: `sha256:${createHash('sha256').update(imageBytes).digest('hex')}`,
       at: (prevByKey[r.key] && prevByKey[r.key].at) || NOW,
     };
   }

@@ -119,7 +119,7 @@ test('VSPC cache branches are wired to the window-day receipt', () => {
     fileURLToPath(new URL('../finder/sources/tampa-bay/vspc.mjs', import.meta.url)),
     'utf8',
   )
-  assert.match(source, /if \(isVspcCacheFresh\(cache, \{ nowMs \}\)\)/)
+  assert.match(source, /if \(!requireLive && !options\?\.force && isVspcCacheFresh\(cache, \{ nowMs \}\)\)/)
   assert.match(source, /writeCache\(events, today, nowMs\)/)
   assert.match(source, /SKIP_RENDER returning .*window/i)
 })

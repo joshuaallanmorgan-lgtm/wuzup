@@ -108,7 +108,11 @@ function loadCache() {
 // Sets `description` on each wikidata place that LACKS one and has a resolvable
 // Wikipedia extract. Never overwrites an existing (gov/OSM) description. Returns
 // counts.
-export async function enrichPlacesWithDescriptions(places, { live = false, log = () => {} } = {}) {
+export async function enrichPlacesWithDescriptions(places, {
+  live = false,
+  cacheOnly = false,
+  log = () => {},
+} = {}) {
   const cache = loadCache();
   const stats = { candidates: 0, set: 0, fromCache: 0, fetched: 0, noArticle: 0 };
   let dirty = false;
@@ -121,6 +125,9 @@ export async function enrichPlacesWithDescriptions(places, { live = false, log =
     if (cached && fresh && !live) {
       rec = cached;
       stats.fromCache++;
+    } else if (cacheOnly) {
+      rec = cached || { description: null, title: null, at: null };
+      if (cached) stats.fromCache++;
     } else {
       try {
         const r = await resolveWikipediaDescription(p.wikidata, p.name);

@@ -24,6 +24,7 @@ export const name = 'Do813';
 
 const BASE = 'https://do813.com';
 const MAX_PAGES = 8; // 25/page → up to 200 events
+const PAGE_SIZE = 25;
 const WINDOW_DAYS = 45;
 const UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
@@ -99,9 +100,12 @@ export async function fetchEvents(options = {}) {
   const base = config.base || BASE;
   const nowMs = config.nowMs ?? Date.now();
   const fetchImpl = config.fetchImpl ?? globalThis.fetch;
+  const requireLive = config.requireLive === true;
   const { today, lastDay } = sourceWindow(CITY_TZ, nowMs, WINDOW_DAYS);
   const seen = new Set();
+  const acquired = new Set();
   const events = [];
+  let declaredCount = null;
 
   for (let page = 1; page <= MAX_PAGES; page++) {
     let json;
@@ -115,11 +119,21 @@ export async function fetchEvents(options = {}) {
       if (!res.ok) throw new Error('HTTP ' + res.status);
       json = await res.json();
     } catch (err) {
+      if (requireLive) throw new Error(`[do813] required page ${page} failed: ${err.message}`, { cause: err });
       console.warn(`[do813] page ${page} failed: ${err.message}`);
       break;
     }
+    if (!Array.isArray(json?.events)) {
+      if (requireLive) throw new Error(`[do813] required page ${page} missing events array`);
+      console.warn(`[do813] page ${page} missing events array`);
+    }
     const batch = Array.isArray(json?.events) ? json.events : [];
     for (const raw of batch) {
+      if (requireLive) {
+        const acquisitionKey = raw?.id ?? raw?.permalink ?? `${raw?.title || ''}|${raw?.begin_date || ''}|${raw?.tz_adjusted_begin_date || ''}`;
+        if (acquired.has(acquisitionKey)) throw new Error(`[do813] duplicate raw row across live pages: ${acquisitionKey}`);
+        acquired.add(acquisitionKey);
+      }
       if (raw?.past === true) continue;
       const ev = mapEvent(raw, base);
       if (!ev) continue;
@@ -129,8 +143,30 @@ export async function fetchEvents(options = {}) {
       seen.add(ev.url);
       events.push(ev);
     }
-    const totalPages = json?.paging?.total_pages || 0;
+    const totalPagesValue = Number(json?.paging?.total_pages);
+    const countValue = Number(json?.paging?.count);
+    if (requireLive && (!Number.isInteger(totalPagesValue) || totalPagesValue < 0)) {
+      throw new Error(`[do813] required page ${page} missing valid paging.total_pages`);
+    }
+    if (requireLive && (!Number.isInteger(countValue) || countValue < 0)) {
+      throw new Error(`[do813] required page ${page} missing valid paging.count`);
+    }
+    if (requireLive && declaredCount !== null && countValue !== declaredCount) {
+      throw new Error(`[do813] paging.count changed from ${declaredCount} to ${countValue}`);
+    }
+    if (requireLive && Math.ceil(countValue / PAGE_SIZE) !== totalPagesValue) {
+      throw new Error(`[do813] paging count/pages are incoherent (${countValue}/${totalPagesValue})`);
+    }
+    declaredCount = countValue;
+    const totalPages = totalPagesValue || 0;
+    if (requireLive && totalPages > MAX_PAGES) {
+      throw new Error(`[do813] live feed requires ${totalPages} pages, above cap ${MAX_PAGES}`);
+    }
     if (page >= totalPages) break;
+  }
+
+  if (requireLive && acquired.size !== declaredCount) {
+    throw new Error(`[do813] live result incomplete (${acquired.size} of ${declaredCount} rows)`);
   }
 
   if (events.length === 0) {

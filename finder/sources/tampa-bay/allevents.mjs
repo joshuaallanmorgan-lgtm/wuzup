@@ -114,6 +114,7 @@ export async function fetchEvents(options = {}) {
   const nowMs = config.nowMs ?? Date.now();
   if (!Number.isFinite(nowMs)) throw new TypeError('nowMs must be finite');
   const fetchImpl = config.fetchImpl ?? globalThis.fetch;
+  const requireLive = config.requireLive === true;
   const { today: todayDay, lastDay } = sourceWindow(CITY_TZ, nowMs, DAYS_AHEAD);
 
   const byUrl = new Map();
@@ -128,12 +129,16 @@ export async function fetchEvents(options = {}) {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       items = extractLdEvents(await res.text());
     } catch (err) {
+      if (requireLive) {
+        throw new Error(`AllEvents: required listing failed for ${page.url}: ${err.message}`, { cause: err });
+      }
       lastError = err;
       console.warn(`AllEvents: failed to fetch ${page.url}: ${err.message}`);
       continue;
     }
     pagesOk++;
     if (!items.length) {
+      if (requireLive) throw new Error(`AllEvents: required listing had no Event objects: ${page.url}`);
       console.warn(`AllEvents: no ld+json Event objects found on ${page.url} (page structure may have changed)`);
       continue;
     }

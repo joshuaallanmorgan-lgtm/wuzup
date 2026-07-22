@@ -464,12 +464,13 @@ export function isStPeteCacheFresh(cache, { nowMs } = {}) {
 export async function fetchEvents(options = {}) {
   const nowMs = options.nowMs ?? Date.now();
   if (!Number.isFinite(nowMs)) throw new TypeError('nowMs must be finite');
+  const requireLive = options.requireLive === true;
   const { today } = sourceWindow(tampaTimeZone, nowMs, WINDOW_DAYS);
   const readCacheImpl = options.readCacheImpl ?? readCache;
   const writeCacheImpl = options.writeCacheImpl ?? writeCache;
   const fetchImpl = options.fetchImpl ?? globalThis.fetch;
   const cache = await readCacheImpl();
-  if (!options.force && isStPeteCacheFresh(cache, { nowMs })) {
+  if (!requireLive && !options.force && isStPeteCacheFresh(cache, { nowMs })) {
     return cache.events;
   }
 
@@ -482,6 +483,7 @@ export async function fetchEvents(options = {}) {
     await writeCacheImpl(events, { nowMs, windowDay: today });
     return events;
   } catch (err) {
+    if (requireLive) throw err;
     console.warn(`[stpete] feed failed: ${err.message}${cache ? ' — returning stale cache' : ''}`);
     const staleEvents = Array.isArray(cache?.events) ? cache.events : [];
     return staleEvents;

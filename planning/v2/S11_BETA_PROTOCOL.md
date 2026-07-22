@@ -118,6 +118,43 @@ not target sample sizes; the owner-supplied review configuration remains the onl
 5. Store the research receipts outside the shipped app. Run the deterministic report locally and review its
    aggregate output.
 
+### Per-session technical preflight and receipt operator
+
+The release kit's `evaluatedAt` is never session authorization. Before starting each participant, run the bounded
+operator with the owner-filled review configuration, the independently expected deploy source commit, one flagship
+city, and an existing private receipt directory:
+
+```text
+npm run beta:session -- --review-config path/to/review-config.json --source-commit <40-char-source-commit> --city tampa-bay --out-dir path/to/receipts
+```
+
+The operator rejects the unfilled kit template, performs a new canonical whole-site observation pinned to the review
+configuration's exact composed-site and two-city identities, and then applies the strict local freshness and healthy-
+source release policy to those deployed identities. It then launches one visible, isolated 390x844 Chromium page at
+the exact flagship URL. The page load is bracketed by the expected `site-release.json` bytes; its actual document and
+loaded same-origin scripts must be members of that receipt, and its mounted city, timezone, manifest, and build must
+match the review binding. Only that controlled participant page allocates a 128-bit CSPRNG receipt ID and starts the
+in-process monotonic timer. Programmatic callers must inject an equivalent participant-session controller; there is no
+headless or unbound fallback.
+
+The operator keeps that same page open as the participant surface and reasserts its binding before every recorded
+action. Post-ready main-document navigation or reload, an A-to-B-to-A runtime identity mutation, an unexpected or
+over-budget script, page close/crash, or browser disconnect latches the session invalid permanently. Same-origin app
+scripts are receipt-checked, foreign scripts and all workers are blocked on the owned Wuzup page, and source-link
+popups remain unrestricted so real follow-through is not biased. Any additional page that starts at, redirects to, or
+later navigates to Wuzup's origin is immediately closed and irreversibly latches the session; an `about:blank` opener
+cannot become an uncertified second Wuzup tab. The command surface remains only `option`, `retain`,
+the three bounded counts, a fixed source-link outcome, `finish new|returning yes|no|unclear`, or `abort`; it has no
+notes, identity, query, listing, URL, location, or other free-text field.
+
+Finishing stops the research timer, verifies the participant page, repeats the complete live observation and release
+policy, and verifies the same page again before closing it. This catches a participant reload even when the canonical
+site is release A at both remote checkpoints. A natural expiry, unhealthy source receipt, final remote deployment
+mismatch, clock regression, interruption, or latched browser mismatch writes no receipt. A successful receipt is exact-key normalized,
+written to a mode-0600 temporary file, synced, and exposed as `<sessionReceiptId>.json` through one exclusive no-
+clobber hard link. A repeated nonce cannot replace an earlier receipt, and aggregation independently rejects duplicate
+IDs. This is a trusted-observer control, not cryptographic proof against deliberate local fabrication.
+
 ## Metrics and denominators
 
 The report emits aggregate and per-city session counts; median and nearest-rank p75 timing with observed,
@@ -130,6 +167,7 @@ Run the frozen contract with:
 ```text
 npm run test:s11
 node shared/beta-production-observation.mjs https://joshuaallanmorgan-lgtm.github.io/wuzup/ <site-release-id> <40-char-source-commit>
+npm run beta:session -- --review-config path/to/review-config.json --source-commit <40-char-source-commit> --city tampa-bay --out-dir path/to/receipts
 node shared/beta-research.mjs path/to/receipts.json path/to/review-config.json
 ```
 
@@ -139,11 +177,42 @@ attestation to stdout. The site release ID and source commit are required same-r
 from the remote response. An integrity block exits nonzero; an exact but beta-ineligible publication remains explicit
 as `production-observed` rather than being mislabeled as deployment failure or beta readiness.
 
+## Verified refresh acquisition
+
+The beta kit cannot become eligible merely because old artifact bytes are internally consistent. The scheduled/manual
+refresh workflow therefore uses a distinct require-live mode: both cities' declared active event sources, rendered
+Tampa source, and city-declared place adapters must acquire their primary data during that run. Strict OSM acquisition rejects cache,
+fallback endpoints, malformed payloads, and HTTP-200 partial responses carrying an Overpass runtime remark. Event
+adapters must surface zero, truncated, capped, or partial-page acquisition rather than returning a healthy-looking
+subset. Ordinary development runs keep last-good fallbacks, but those rows remain explicitly degraded and cannot pass
+the publication contract.
+
+The active event roster is explicit: 11 Tampa Bay adapters and five SF/East Bay adapters. Do813 remains preserved but
+dormant because its verified cache and current adapter yield no rows; it is not imported, reported, cached, or counted
+as healthy. UC Berkeley's capped rich RSS is checked against the complete, bounded paginated LiveWhale JSON occurrence
+inventory for the city-local 45-day window, so the legitimate 1,000-row feed is accepted only when it is not truncating
+participant-visible inventory.
+
+Events refresh daily; place facts refresh Thursday or when a manual run selects `refresh_places=true`. Place imagery
+and descriptions stay cache-only in this verified mode, so CI does not acquire unreviewed visual claims. A supervised
+local Mapillary crop may outlive the network-cache TTL only when its exact review approval, canonical reviewed place
+name and coordinates, safe local path, immutable SHA-256, decoded JPEG format and dimensions, credit, license, source
+URL, and review evidence still validate. Event and place logs are bounded into the
+refresh report, and a red benchmark makes the report exit nonzero before strict two-city staging, `npm test`, or bot-PR
+publication can succeed.
+
+The first verified bootstrap remains an external operation after this contract reaches `main`: manually dispatch with
+`refresh_places=true`, inspect the evidence, approve an `action_required` bot run so a real gate job executes, merge
+only a green refresh, and require the resulting Pages postdeploy composed-site attestation. Existing PR #16 predates
+this contract and its checks have not executed. Its last Actions-observed Eventbrite acquisition returned HTTP 405; a
+later local HTTP-200 listing probe does not prove full acquisition from the GitHub runner. Production still lacks both
+artifact manifests. None of that state authorizes participant sessions.
+
 ## Engineering verification
 
-At the 2026-07-22 checkpoint, `npm run test:s11` passes 60/62 with only two expected Windows capability skips
+At the 2026-07-22 checkpoint, `npm run test:s11` passes 109/111 with only two expected Windows capability skips
 (case-sensitive path representation and symlink creation). The complete `npm test` pre-gate is green and its serial
-core suite passes 919/919. The independently executed composed-city, Sprint 9, and Sprint 10 browser journeys pass
+core suite passes 922/922. The independently executed composed-city, Sprint 9, and Sprint 10 browser journeys pass
 1/1, 1/1, and 4/4 respectively, and the payload-performance contract passes 2/2. Independent security and deployment-
 operations reviews reported SHIP with no open P0/P1. These results validate the code and workflow contract only;
 the current public site still lacks an observed composed-site receipt and cannot authorize beta sessions.

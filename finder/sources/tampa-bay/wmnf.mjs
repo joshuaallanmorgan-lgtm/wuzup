@@ -25,6 +25,7 @@ export async function fetchEvents(options = {}) {
   const config = options || {};
   const nowMs = config.nowMs ?? Date.now();
   const fetchImpl = config.fetchImpl ?? globalThis.fetch;
+  const requireLive = config.requireLive === true;
   const { today, lastDay } = sourceWindow(CITY_TZ, nowMs, WINDOW_DAYS);
 
   // Filter server-side to events with a datetime starting after today,
@@ -40,6 +41,9 @@ export async function fetchEvents(options = {}) {
   if (!Array.isArray(data)) {
     throw new Error(`WMNF EE API: expected array, got ${typeof data}`);
   }
+  if (requireLive && data.length >= 50) {
+    throw new Error('WMNF EE API: live list saturated its 50-row request cap');
+  }
 
   let detailCalls = 0;
   const events = [];
@@ -53,13 +57,22 @@ export async function fetchEvents(options = {}) {
 
       // Datetimes: prefer the included relation; fall back to a per-event call.
       let datetimes = Array.isArray(ev.datetimes) ? ev.datetimes : null;
-      if ((!datetimes || datetimes.length === 0) && ev.EVT_ID && detailCalls < MAX_DETAIL_CALLS) {
-        detailCalls++;
-        try {
-          const dts = await fetchJson(`${API_BASE}/events/${ev.EVT_ID}/datetimes`, fetchImpl);
-          if (Array.isArray(dts)) datetimes = dts;
-        } catch (err) {
-          console.warn(`[${name}] datetime fetch failed for EVT ${ev.EVT_ID}: ${err.message}`);
+      if ((!datetimes || datetimes.length === 0) && ev.EVT_ID) {
+        if (detailCalls >= MAX_DETAIL_CALLS) {
+          if (requireLive) throw new Error(`datetime detail cap ${MAX_DETAIL_CALLS} reached`);
+        } else {
+          detailCalls++;
+          try {
+            const dts = await fetchJson(`${API_BASE}/events/${ev.EVT_ID}/datetimes`, fetchImpl);
+            if (!Array.isArray(dts)) {
+              if (requireLive) throw new Error(`datetime response for EVT ${ev.EVT_ID} was not an array`);
+            } else {
+              datetimes = dts;
+            }
+          } catch (err) {
+            if (requireLive) throw err;
+            console.warn(`[${name}] datetime fetch failed for EVT ${ev.EVT_ID}: ${err.message}`);
+          }
         }
       }
       if (!datetimes || datetimes.length === 0) continue;
@@ -118,6 +131,7 @@ export async function fetchEvents(options = {}) {
         source: name,
       });
     } catch (err) {
+      if (requireLive) throw new Error(`[${name}] required event mapping failed: ${err.message}`, { cause: err });
       console.warn(`[${name}] skipping malformed event: ${err.message}`);
     }
   }

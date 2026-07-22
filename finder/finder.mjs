@@ -15,12 +15,13 @@
 //       SKIP_RENDER=1 node finder/finder.mjs   (skip the headless-browser sources)
 //       SKIP_EXTRA=1  node finder/finder.mjs   (skip the finder/sources/*.mjs modules)
 
-import { writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
 import { createHash, randomUUID } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
-import { bbox as TB_BOX, geocodeViewbox, tz as CITY_TZ, geocode as CITY_GEO, cityId, meta as CITY_META, priors as CITY_PRIORS } from './cities/index.mjs';
+import { bbox as TB_BOX, geocodeViewbox, tz as CITY_TZ, geocode as CITY_GEO, cityId, meta as CITY_META, priors as CITY_PRIORS, eventSourceModules } from './cities/index.mjs';
 import { PRODUCT_UA } from './ua.mjs';
+import { fallbackReasonForStage, loadEventSources } from './event-source-contract.mjs';
 import {
   atomicWriteFileSync,
   invalidateManifest,
@@ -1853,17 +1854,7 @@ async function auditImages(events) {
   return results;
 }
 
-const SOURCE_FALLBACK_BY_STAGE = Object.freeze({
-  'live-fetch': 'live-error',
-  'source-adapter': 'source-error',
-  processing: 'processing-error',
-});
-
-export function fallbackReasonForStage(stage) {
-  const reason = SOURCE_FALLBACK_BY_STAGE[stage];
-  if (!reason) throw new Error(`unknown source stage '${stage}'`);
-  return reason;
-}
+export { fallbackReasonForStage } from './event-source-contract.mjs';
 
 async function main() {
   // One immutable epoch governs the complete run: admission, labels, scoring,
@@ -1878,6 +1869,7 @@ async function main() {
   const all = [];
   const report = [];
   let onlineDropped = 0;
+  const requireLiveSources = process.env.REQUIRE_LIVE_SOURCES === '1';
 
   mkdirSync(CACHE, { recursive: true });
   for (const src of SOURCES) {
@@ -1895,6 +1887,12 @@ async function main() {
       const nodes = [];
       for (const b of blocks) collectEvents(b, nodes);
       const withDates = nodes.map((n) => normalize(n, src.name)).filter((e) => e.title && e.start);
+      if (requireLiveSources && nodes.length === 0) {
+        throw new Error('live page contained no schema.org Event objects');
+      }
+      if (requireLiveSources && withDates.length === 0) {
+        throw new Error('live page contained no usable event rows');
+      }
       const events = withDates.filter((e) => !isOnlineOnly(e));
       onlineDropped += withDates.length - events.length;
       // Events from a "free" source query are free by definition (e.g. Eventbrite's
@@ -1902,7 +1900,7 @@ async function main() {
       if (src.free) for (const e of events) { e.isFree = true; e.price = 0; }
       // Stage D REFUTE F3 (same guard as the module path): an empty parse never
       // overwrites a non-empty last-good cache — fall back to it instead.
-      if (events.length === 0 && existsSync(cacheFile)) {
+      if (!requireLiveSources && events.length === 0 && existsSync(cacheFile)) {
         let cached = null;
         try { cached = JSON.parse(readFileSync(cacheFile, 'utf8')); } catch { /* corrupt — treat empty as real */ }
         if (Array.isArray(cached) && cached.length > 0) {
@@ -1920,12 +1918,17 @@ async function main() {
         console.log(`  ⚠️  ${src.name.padEnd(26)} ${events.length} live events (cache write failed: ${e.message || e})`);
         continue;
       }
-      report.push({ source: src.name, found: events.length, ok: true });
+      report.push({
+        source: src.name,
+        found: events.length,
+        ok: true,
+        ...(requireLiveSources ? { status: 'healthy' } : {}),
+      });
       console.log(`  ✅ ${src.name.padEnd(26)} ${events.length} events`);
     } catch (e) {
       // Live fetch failed — fall back to the last good pull so one outage
       // doesn't drop the whole source.
-      if (existsSync(cacheFile)) {
+      if (!requireLiveSources && existsSync(cacheFile)) {
         try {
           const cached = JSON.parse(readFileSync(cacheFile, 'utf8'));
           all.push(...cached);
@@ -1961,8 +1964,12 @@ async function main() {
       if (renderMod.city && renderMod.city !== cityId) {
         console.log(`  ⏭️  ${'Render sources'.padEnd(26)} skipped (render.mjs is ${renderMod.city}-only; CITY=${cityId})`);
       } else {
-        const rEvents = await renderMod.scrapeRenderSources({ nowMs: runEpoch });
-        const mapped = (Array.isArray(rEvents) ? rEvents : [])
+        const receipt = await renderMod.scrapeRenderSourcesWithReceipt({
+          nowMs: runEpoch,
+          force: requireLiveSources,
+          requireLive: requireLiveSources,
+        });
+        const mapped = (Array.isArray(receipt.events) ? receipt.events : [])
           .map(normalizeRenderEvent)
           .filter((e) => e && e.title && e.start);
         // Venue-conflict guard: ship NO location rather than a wrong one.
@@ -1974,12 +1981,31 @@ async function main() {
           }
         }
         all.push(...mapped);
-        renderOk = true;
-        // render.mjs currently owns its cache fallback internally and does not
-        // expose whether these rows were live or cached. Record that uncertainty
-        // conservatively instead of laundering it into a healthy receipt.
-        report.push({ source: 'Render sources', found: mapped.length, ok: true, status: 'degraded' });
-        console.log(`  ✅ ${'Render sources'.padEnd(26)} ${mapped.length} events`);
+        renderOk = mapped.length > 0;
+        if (receipt.acquisition === 'live' && mapped.length > 0) {
+          report.push({ source: 'Render sources', found: mapped.length, ok: true, status: 'healthy' });
+          console.log(`  ✅ ${'Render sources'.padEnd(26)} ${mapped.length} events (live)`);
+        } else if (receipt.acquisition === 'failed') {
+          report.push({
+            source: 'Render sources',
+            found: 0,
+            ok: false,
+            status: 'failed',
+            error: receipt.error || 'render acquisition failed',
+          });
+          console.log(`  ❌ ${'Render sources'.padEnd(26)} failed with no cache`);
+        } else {
+          report.push({
+            source: 'Render sources',
+            found: mapped.length,
+            ok: false,
+            status: 'degraded',
+            cached: true,
+            ...(receipt.acquisition === 'stale-cache' ? { fallbackReason: 'live-error' } : {}),
+            ...(receipt.error ? { error: receipt.error } : {}),
+          });
+          console.log(`  ⚠️  ${'Render sources'.padEnd(26)} ${mapped.length} events (${receipt.acquisition})`);
+        }
       }
     } else {
       report.push({ source: 'Render sources', found: 0, ok: false, status: 'degraded', error: 'disabled by SKIP_RENDER=1' });
@@ -1990,100 +2016,26 @@ async function main() {
     console.log(`  ⚠️  ${'Render sources'.padEnd(26)} unavailable (${e.message || e}) — continuing without them`);
   }
 
-  // Self-contained source modules (finder/sources/<cityId>/*.mjs). Each
+  // Configured source modules (finder/sources/<cityId>/*.mjs). Each
   // exports { name, fetchEvents } and gets the same per-source resilience as
   // the static sources: cache on success, fall back to cache, else skip.
   //
-  // PER-CITY DIRS (Stage D module-isolation hazard): source modules are CITY
-  // DATA, exactly like the sources manifest — a flat finder/sources/*.mjs
-  // auto-discovery ran Tampa's 12 modules for EVERY city, and since events
-  // are not bbox-dropped (out-of-box coords are nulled, events kept), an SF
-  // run would have shipped Tampa events labeled SF. The loader resolves ONLY
-  // finder/sources/<cityId>/; a missing/empty dir is zero modules, loudly
-  // logged ("_"-prefixed helpers like ../_shared.mjs stay at the parent level).
+  // Source files are retained independently from the active roster: dormant or
+  // out-of-contract adapters remain available for future reactivation but are
+  // never imported, cached, or represented as current source health.
   const moduleNames = [];
   if (process.env.SKIP_EXTRA !== '1') {
-    const srcDir = join(HERE, 'sources', cityId);
-    let files = [];
-    try {
-      // "_"-prefixed files are shared helpers, not sources.
-      files = readdirSync(srcDir).filter((f) => f.endsWith('.mjs') && !f.startsWith('_')).sort();
-    } catch {
-      // no per-city sources dir — nothing to load (warned below)
-    }
-    if (!files.length) {
-      console.warn(`  ⚠️  ${'Extra source modules'.padEnd(26)} NONE for city '${cityId}' (finder/sources/${cityId}/ missing or empty)`);
-    }
-    for (const file of files) {
-      const modBase = file.replace(/\.mjs$/, '');
-      const cacheFile = join(CACHE, modBase + '.json');
-      let label = modBase;
-      let sourceStage = 'source-adapter';
-      try {
-        const mod = await import(pathToFileURL(join(srcDir, file)).href);
-        label = mod.name || modBase;
-        if (typeof mod.fetchEvents !== 'function') throw new Error('module has no fetchEvents() export');
-        const raw = await mod.fetchEvents({ nowMs: runEpoch });
-        sourceStage = 'processing';
-        const mapped = (Array.isArray(raw) ? raw : [])
-          .map((r) => normalizeModuleEvent(r, label))
-          .filter((e) => e && e.title && e.start);
-        // Stage D REFUTE F3: a module that soft-swallows every page failure
-        // (meetup.mjs's per-page catch) returns [] AS IF it were a good pull —
-        // and the cache write below would ZERO the committed last-good cache.
-        // That bit warm runs AND any real full-block day (Meetup 429ing every
-        // page erased the very fallback the resilience layer exists for). An
-        // EMPTY result never overwrites a NON-EMPTY cache: fall back to the
-        // cached pull, exactly like a thrown failure. Self-limiting staleness:
-        // cached events carry real dates, so downstream ended-at-generation
-        // filtering decays a genuinely-dead source to zero on its own.
-        if (mapped.length === 0 && existsSync(cacheFile)) {
-          let cached = null;
-          try { cached = JSON.parse(readFileSync(cacheFile, 'utf8')); } catch { /* corrupt — treat empty as real */ }
-          if (Array.isArray(cached) && cached.length > 0) {
-            all.push(...cached);
-            moduleNames.push(label);
-            report.push({ source: label, found: cached.length, ok: false, cached: true, fallbackReason: 'live-empty' });
-            console.log(`  ⚠️  ${label.padEnd(26)} ${cached.length} events (cached — live returned 0, cache kept)`);
-            continue;
-          }
-        }
-        all.push(...mapped);
-        try {
-          writeFileSync(cacheFile, JSON.stringify(mapped)); // remember last good pull
-        } catch (e) {
-          moduleNames.push(label);
-          report.push({ source: label, found: mapped.length, ok: false, status: 'degraded', error: `cache write failed: ${e.message || e}` });
-          console.log(`  ⚠️  ${label.padEnd(26)} ${mapped.length} live events (cache write failed: ${e.message || e})`);
-          continue;
-        }
-        moduleNames.push(label);
-        report.push({ source: label, found: mapped.length, ok: true });
-        console.log(`  ✅ ${label.padEnd(26)} ${mapped.length} events`);
-      } catch (e) {
-        if (existsSync(cacheFile)) {
-          try {
-            const cached = JSON.parse(readFileSync(cacheFile, 'utf8'));
-            all.push(...cached);
-            moduleNames.push(label);
-            report.push({
-              source: label,
-              found: cached.length,
-              ok: false,
-              cached: true,
-              fallbackReason: fallbackReasonForStage(sourceStage),
-              error: String(e.message || e),
-            });
-            console.log(`  ⚠️  ${label.padEnd(26)} ${cached.length} events (cached — live failed: ${e.message || e})`);
-            continue;
-          } catch {
-            // corrupt cache — fall through to the skip warning
-          }
-        }
-        report.push({ source: label, found: 0, ok: false, error: String(e.message || e) });
-        console.warn(`  ❌ ${label.padEnd(26)} failed, no cache — skipped (${e.message || e})`);
-      }
-    }
+    const loaded = await loadEventSources({
+      moduleIds: eventSourceModules,
+      sourceDir: join(HERE, 'sources', cityId),
+      cacheDir: CACHE,
+      nowMs: runEpoch,
+      requireLive: requireLiveSources,
+      normalizeEvent: normalizeModuleEvent,
+    });
+    all.push(...loaded.events);
+    report.push(...loaded.report);
+    moduleNames.push(...loaded.moduleNames);
   } else {
     report.push({ source: 'Extra source modules', found: 0, ok: false, status: 'degraded', error: 'disabled by SKIP_EXTRA=1' });
     console.log(`  ⏭️  ${'Extra source modules'.padEnd(26)} skipped (SKIP_EXTRA=1)`);

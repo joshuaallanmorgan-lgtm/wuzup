@@ -129,7 +129,7 @@ async function fetchPage(token, startISO, endISO, skip, fetchImpl) {
   if (!Array.isArray(docs)) {
     throw new Error('Visit Tampa Bay response missing docs.docs array');
   }
-  return { docs, count: body.docs.count ?? docs.length };
+  return { docs, count: body.docs.count ?? docs.length, declaredCount: body.docs.count };
 }
 
 function mapDoc(doc, todayDay, lastDay) {
@@ -194,6 +194,7 @@ function mapDoc(doc, todayDay, lastDay) {
 export async function fetchEvents(options = {}) {
   const nowMs = options.nowMs ?? Date.now();
   const fetchImpl = options.fetchImpl ?? globalThis.fetch;
+  const requireLive = options.requireLive === true;
   const { today: todayDay, lastDay } = sourceWindow(CITY_TZ, nowMs, DAYS_AHEAD);
   const startISO = midnightInTz(CITY_TZ, todayDay).toISOString();
   const endISO = midnightInTz(CITY_TZ, lastDay).toISOString();
@@ -203,12 +204,22 @@ export async function fetchEvents(options = {}) {
   const allDocs = [];
   let expected = Infinity;
   for (let page = 0; page < MAX_PAGES && allDocs.length < expected; page++) {
-    const { docs, count } = await fetchPage(token, startISO, endISO, page * PAGE_LIMIT, fetchImpl);
+    const skip = page * PAGE_LIMIT;
+    const { docs, count, declaredCount } = await fetchPage(token, startISO, endISO, skip, fetchImpl);
+    if (requireLive && (!Number.isInteger(declaredCount) || declaredCount < skip + docs.length)) {
+      throw new Error(`Visit Tampa Bay: live page ${page + 1} missing a valid docs.count`);
+    }
+    if (requireLive && Number.isFinite(expected) && declaredCount !== expected) {
+      throw new Error(`Visit Tampa Bay: docs.count changed from ${expected} to ${declaredCount}`);
+    }
     expected = count;
     allDocs.push(...docs);
     if (docs.length < PAGE_LIMIT) break;
   }
   if (allDocs.length < expected) {
+    if (requireLive) {
+      throw new Error(`Visit Tampa Bay: live result incomplete (${allDocs.length} of ${expected} docs)`);
+    }
     console.warn(`Visit Tampa Bay: fetched ${allDocs.length} of ${expected} docs (page cap reached)`);
   }
 
@@ -218,6 +229,7 @@ export async function fetchEvents(options = {}) {
       const event = mapDoc(doc, todayDay, lastDay);
       if (event) events.push(event);
     } catch (err) {
+      if (requireLive) throw new Error(`Visit Tampa Bay: required doc ${doc?.recid ?? '?'} failed mapping: ${err.message}`, { cause: err });
       console.warn(`Visit Tampa Bay: skipping doc ${doc?.recid ?? '?'}: ${err.message}`);
     }
   }

@@ -50,6 +50,33 @@ export const govOrder = [
   'Hillsborough County Parks',
 ];
 
+export const placeSourceModules = Object.freeze([
+  'fdep',
+  'fwc-ramps',
+  'hillsborough-parks',
+  'osm',
+  'pinellas-parks',
+  'swfwmd',
+  'tampa-parks',
+]);
+
+// Active event adapters only. Do813 remains implemented for future
+// reactivation, but its publisher has been dormant since at least June 2026
+// and its last-good cache contains zero rows, so it is not a live source.
+export const eventSourceModules = Object.freeze([
+  'allevents',
+  'donttellcomedy',
+  'hcplc',
+  'meetup',
+  'pinellas',
+  'stpete',
+  'tampagov',
+  'trumba-ut',
+  'visittampabay',
+  'vspc',
+  'wmnf',
+]);
+
 // tourist centroids for the hidden-gem "far from tourists" proxy.
 export const touristCentroids = [
   { name: 'St. Pete Pier', lat: 27.7659, lng: -82.6259 },

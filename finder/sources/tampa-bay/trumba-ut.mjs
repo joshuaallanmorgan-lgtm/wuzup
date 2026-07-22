@@ -49,6 +49,7 @@ export async function fetchEvents(options = {}) {
   const config = options || {};
   const nowMs = config.nowMs ?? Date.now();
   const fetchImpl = config.fetchImpl ?? globalThis.fetch;
+  const requireLive = config.requireLive === true;
   const { today, lastDay } = sourceWindow(CITY_TZ, nowMs, WINDOW_DAYS);
   const res = await fetchWithTimeout(FEED_URL, {
     headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
@@ -136,6 +137,7 @@ export async function fetchEvents(options = {}) {
         source: name,
       });
     } catch (err) {
+      if (requireLive) throw new Error(`[${name}] required item mapping failed: ${err.message}`, { cause: err });
       console.warn(`[${name}] skipping malformed item: ${err.message}`);
     }
   }

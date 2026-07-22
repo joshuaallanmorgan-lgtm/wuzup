@@ -55,6 +55,7 @@ export async function fetchEvents(options = {}) {
   const config = options || {};
   const nowMs = config.nowMs ?? Date.now();
   const fetchImpl = config.fetchImpl ?? globalThis.fetch;
+  const requireLive = config.requireLive === true;
   const { today, lastDay } = sourceWindow(CITY_TZ, nowMs, WINDOW_DAYS);
   const res = await fetchWithTimeout(
     FEED_URL,
@@ -67,6 +68,7 @@ export async function fetchEvents(options = {}) {
 
   const items = xml.split(/<item>/).slice(1);
   if (!items.length) {
+    if (requireLive) throw new Error('City of Tampa: live RSS contained no <item> entries');
     console.warn('City of Tampa: no <item> entries found in RSS feed');
     return [];
   }

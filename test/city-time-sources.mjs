@@ -83,8 +83,8 @@ test('source start day fails closed for malformed or unrepresentable values', ()
 test('finder propagates its single run epoch to render and module adapters', () => {
   const finderPath = fileURLToPath(new URL('../finder/finder.mjs', import.meta.url))
   const source = readFileSync(finderPath, 'utf8')
-  assert.match(source, /scrapeRenderSources\(\{\s*nowMs:\s*runEpoch\s*\}\)/)
-  assert.match(source, /mod\.fetchEvents\(\{\s*nowMs:\s*runEpoch\s*\}\)/)
+  assert.match(source, /scrapeRenderSourcesWithReceipt\(\{[^}]*nowMs:\s*runEpoch,[^}]*force:\s*requireLiveSources,[^}]*requireLive:\s*requireLiveSources/s)
+  assert.match(source, /loadEventSources\(\{[^}]*moduleIds:\s*eventSourceModules,[^}]*nowMs:\s*runEpoch,[^}]*requireLive:\s*requireLiveSources/s)
 })
 
 test('legacy base-url adapters accept clock options without corrupting their URL', async () => {

@@ -68,6 +68,7 @@ export async function fetchEvents(options = {}) {
   const config = options || {};
   const nowMs = config.nowMs ?? Date.now();
   const fetchImpl = config.fetchImpl ?? globalThis.fetch;
+  const requireLive = config.requireLive === true;
   const { today, lastDay } = sourceWindow(CITY_TZ, nowMs, WINDOW_DAYS);
 
   const all = [];
@@ -81,18 +82,28 @@ export async function fetchEvents(options = {}) {
       fetchImpl,
     );
     if (!res.ok) {
-      if (page === 1) throw new Error(`Pinellas County: HTTP ${res.status}`);
+      if (page === 1 || requireLive) throw new Error(`Pinellas County: HTTP ${res.status} on page ${page}`);
       console.warn(`Pinellas County: page ${page} returned HTTP ${res.status}; using ${all.length} events fetched so far`);
       break;
     }
     const data = await res.json();
     if (!Array.isArray(data.events)) {
-      if (page === 1) throw new Error('Pinellas County: unexpected response shape (no events array)');
+      if (page === 1 || requireLive) throw new Error(`Pinellas County: unexpected response shape on page ${page} (no events array)`);
       console.warn(`Pinellas County: page ${page} had unexpected shape; using ${all.length} events fetched so far`);
       break;
     }
-    totalPages = Number(data.total_pages) || totalPages;
+    const declaredPages = Number(data.total_pages);
+    if (requireLive && (!Number.isInteger(declaredPages) || declaredPages < page)) {
+      throw new Error(`Pinellas County: page ${page} missing valid total_pages`);
+    }
+    totalPages = declaredPages || totalPages;
+    if (requireLive && totalPages > MAX_PAGES) {
+      throw new Error(`Pinellas County: live feed requires ${totalPages} pages, above cap ${MAX_PAGES}`);
+    }
     all.push(...data.events);
+    if (requireLive && page < totalPages && !data.next_rest_url) {
+      throw new Error(`Pinellas County: page ${page} omitted next_rest_url before page ${totalPages}`);
+    }
     if (!data.next_rest_url) break;
   }
 
