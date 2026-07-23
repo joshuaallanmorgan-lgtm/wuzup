@@ -1,6 +1,6 @@
 # Wuzup V2 - active sprint map
 
-> **Status:** Sprint 10 engineering checkpoint green locally/remotely; exit gate yellow; Sprint 11 release observation active — 2026-07-22
+> **Status:** Sprint 11 engineering checkpoint green locally/remotely; production beta blocked; Sprint 12 decision-system preparation active — 2026-07-22
 >
 > **Authority:** subordinate to [V2_PLAN.md](V2_PLAN.md). This file translates the current scope and
 > dependency queue into delivery cycles; it does not admit features that the plan parks in V3.
@@ -1617,6 +1617,40 @@ Committed scope:
 
 **Exit gate:** the ratified trust and repeat-use signals pass, the entire two-city release gate is green, and
 the owner records an explicit go/no-go for public pilot expansion.
+
+#### Sprint 12 decision-system preparation receipt — 2026-07-22 (engineering green; operation/owner blocked)
+
+- **Two real beta cycles can be compared without laundering evidence into a verdict:** the comparator accepts exactly
+  two owner-pinned, distinct composed releases, validates the complete privacy-bounded aggregate-report schema and
+  arithmetic, pins each normalized report's semantic SHA-256 identity, and preserves every denominator and nullable
+  delta. Its only positive state is `evidence-ready`: even an all-negative trust corpus can reach that state when the
+  configured observations exist, but it can never emit a signal pass, launch authorization, or go/no-go decision.
+- **The proposed city gate is executable policy, not an activated rule:** it measures the audit's source-family,
+  concentration, artifact/visible expiry, actionable-time, location, price, severe-error, recommendation-provenance,
+  governed-claim, freshness, source-health, and CI-approval requirements. The draft adds an explicitly proposed
+  50-row weekly human-review floor. Only an owner receipt whose gate version and canonical policy ID bind every
+  threshold can make the policy ratified; replaying that receipt after any threshold change fails closed.
+- **The evidence envelope closes the easiest green-dashboard loopholes:** complete decision-ready populations are
+  hash-identified; weekly rows are the exact deterministic SHA-ordered prefix of the sealed city/artifact/selection/
+  period population; favorable substitutions, missing claim enumeration, cross-city generations, stale ordering,
+  inactive provenance, malformed arithmetic, accessors, symbols, sparse arrays, and custom prototypes reject.
+  `best`, `favorite`, `gem`, `open-now`, `near-you`, `worth-the-drive`, and `weather-based` claims require typed,
+  hash-identified receipt sets. Those self-hashes prove deterministic integrity, not external authenticity.
+- **Tampa and SF cannot pass independently or on different public bytes:** the composed consumer derives each exact
+  manifest/build binding from the raw city evidence, invokes the existing participant-facing release observer at one
+  explicit instant with the expected site release and source commit, and requires one bound, problemless observation
+  of both canonical cities. Only that observation plus two `decision-ready` city reports yields `evidence-ready`;
+  observer failure, unbound/stale/mixed identity, or either non-green city fails the pair without partial success.
+- **Provider and operating choices are now explicit, still pending:**
+  `S12_OPERATIONS_DECISION_PACKET.md` treats Cloudflare Pages/R2 only as a spike candidate and records separate owner/
+  legal gates for exact-release authorization, private access, Nominatim pacing, current flagship scraping, ODbL,
+  takedown/retention, cadence, demotion/recovery, total operating cost, the human sample, cohort freeze, and go/no-go.
+- **Engineering verification is green, but no roadmap gate advances:** `npm run test:s12` passes 44/44; all three new
+  modules pass syntax checks; and the exact final tree passes the complete `npm test` pre-gate plus its 922/922 serial
+  core (Sprint 11 retains only its two expected Windows capability skips). No real first or second beta cycle, owner
+  policy receipt, trusted CI evidence producer, source permission, hosting spike, cohort, or go/no-go exists. Sprint 11
+  production bootstrap and exact live release observation remain prerequisites; this receipt neither closes Sprint 11
+  nor starts public pilot expansion.
 
 ### Sprint 13 - City Foundry integration and private diverse-market proof
 

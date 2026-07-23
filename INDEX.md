@@ -53,6 +53,7 @@ V2's core-improvement plan is the plan of record. Human-only follow-up remains t
 |---|---|
 | **[planning/v2/V2_PLAN.md](planning/v2/V2_PLAN.md)** | ⭐ Current product plan. Trust, relevance, premium existing UI, United States coverage, imagery, and feature depth. **Authority for forward product work.** |
 | [planning/v2/V2_SPRINTS.md](planning/v2/V2_SPRINTS.md) | ⭐ Active dependency-gated execution map and receipt ledger from trust through full-US V2.0 release. |
+| [planning/v2/S12_OPERATIONS_DECISION_PACKET.md](planning/v2/S12_OPERATIONS_DECISION_PACKET.md) | Proposed hosting, source-policy, cadence, budget, and launch-gate decisions required before provider-dependent Sprint 13 work. |
 | [planning/v2/V2_COORDINATION.md](planning/v2/V2_COORDINATION.md) | Archived five-task coordination experiment; lane boundaries remain reference material. |
 | **[ROADMAP.md](ROADMAP.md)** | Completed v1 road and as-built authority: Stage spine, binding contracts, rulings, and delivery record. |
 | [INDEX.md](INDEX.md) | This map. |
