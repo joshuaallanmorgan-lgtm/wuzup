@@ -11,7 +11,8 @@
 // first loadDayPlans, by migrateBinaryToTernary (idempotent, see below).
 //
 // STORAGE: 'day-plans-v1' (auto-prefixed twh: via storage.js) = an object
-// keyed by dayTs STRING (local-midnight ms, String(ts)):
+// keyed by dayTs STRING (selected-city midnight ms, String(ts)). V1 device-
+// local keys are rekeyed idempotently through the durable source-zone basis:
 //   { [dayTs]: { state: 'rest'|null, slots: { morning: keyOf|null, afternoon: keyOf|null, night: keyOf|null }, done: false, v: 1 } }
 // · state==='rest' is the user-initiated quiet-day mark. REST AND SLOTS ARE
 //   MUTUALLY EXCLUSIVE: withSlot() clears rest, withRest(on) refuses while a
@@ -30,6 +31,8 @@
 //
 // MIGRATION (⚑U-WB, default ratified): migrateWeekendPlan() converts a stored
 // 'weekend-plan-v1' exactly once — see the function comment for semantics.
+import { CITY, fmtLocale } from './city.js'
+import { cityMidnightMs, dayIdAt, eventTime } from '../../shared/city-time.mjs'
 import { lsGet, lsRemove, lsSet } from './storage.js'
 import { DAY_IDS, PLAN_KEY, weekendDays } from './weekend.js'
 
@@ -37,7 +40,9 @@ export const DAYPLANS_KEY = 'day-plans-v1' // stored as twh:day-plans-v1
 const DAYHISTORY_KEY = 'day-history-v1'
 const WEEKEND_DONE_KEY = 'weekend-done-v1' // the WB completion beat's one-shot memory (see below)
 const CONVERTED_KEY = 'day-converted-v1' // U-d's morning-after answer ledger (see §U-d block)
-const MIGRATED_KEY = 'day-migrated-v1' // ⚑PLAN-P0 binary→ternary one-shot guard (see migrateBinaryToTernary)
+const MIGRATED_KEY = 'day-migrated-v1'
+const CITY_DAY_KEYS_KEY = 'city-day-keys-v1'
+const CITY_DAY_BASIS_KEY = 'city-day-keys-basis-v1' // ⚑PLAN-P0 binary→ternary one-shot guard (see migrateBinaryToTernary)
 export const HISTORY_CAP = 120
 // ⚑PLAN-P0: the day-plan slots are TERNARY (was binary {day,night}). PARTS is the
 // store's source of truth for slot keys, in canonical order; weekend.DAYPARTS
@@ -70,6 +75,234 @@ export function dayEntryFor(stored) {
 // (iterates PARTS so a ternary afternoon plan counts just like day/night did).
 // (done alone is impossible in U-a and meaningless without content anyway)
 export const hasContent = (d) => d.state === 'rest' || PARTS.some((p) => !!d.slots[p])
+// V1 persisted numeric keys at the DEVICE's local midnight. V2 calendar keys
+// are instants for midnight in the selected city's IANA zone. This one-release
+// migration preserves the legacy device calendar day, then projects it into
+// CITY.tz. Already-city-midnight values are recognized first, making every
+// transform idempotent even after a partial quota failure.
+const LEGACY_DAY_FORMATTERS = new Map()
+const LEGACY_DEVICE_TIME_ZONE = Intl.DateTimeFormat().resolvedOptions().timeZone
+const CITY_DAY_SOURCE_CACHE = new Map()
+let legacyMigrationSourceTimeZone = LEGACY_DEVICE_TIME_ZONE
+
+function legacyDayFormatter(timeZone) {
+  if (!LEGACY_DAY_FORMATTERS.has(timeZone)) {
+    LEGACY_DAY_FORMATTERS.set(timeZone, new Intl.DateTimeFormat(fmtLocale, {
+      timeZone,
+      calendar: 'gregory',
+      numberingSystem: 'latn',
+      hourCycle: 'h23',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }))
+  }
+  return LEGACY_DAY_FORMATTERS.get(timeZone)
+}
+
+function legacyDeviceDayId(epochMs, timeZone) {
+  const values = {}
+  for (const part of legacyDayFormatter(timeZone).formatToParts(epochMs)) {
+    if (part.type !== 'literal') values[part.type] = part.value
+  }
+  if (Number(values.hour) !== 0 || Number(values.minute) !== 0 || Number(values.second) !== 0) return null
+  return `${values.year}-${values.month}-${values.day}`
+}
+
+export function rekeyLegacyDayTs(value, { sourceTimeZone = legacyMigrationSourceTimeZone } = {}) {
+  const epochMs = Number(value)
+  if (!Number.isInteger(epochMs) || epochMs <= 0) return null
+  try {
+    const cityDay = dayIdAt(epochMs, CITY.tz)
+    if (cityMidnightMs(cityDay, CITY.tz) === epochMs) return epochMs
+    const legacyDay = legacyDeviceDayId(epochMs, sourceTimeZone)
+    if (!legacyDay || cityMidnightMs(legacyDay, sourceTimeZone) !== epochMs) return null
+    return cityMidnightMs(legacyDay, CITY.tz)
+  } catch {
+    return null
+  }
+}
+function mergeDayEntries(existing, incoming) {
+  const left = dayEntryFor(remapBinaryEntry(existing))
+  const right = dayEntryFor(remapBinaryEntry(incoming))
+  if (!left) return right || existing
+  if (!right) return left
+  const slots = {}
+  for (const part of PARTS) slots[part] = left.slots[part] || right.slots[part] || null
+  return {
+    state: PARTS.some((part) => slots[part]) ? null : left.state || right.state,
+    slots,
+    done: left.done || right.done,
+    v: 1,
+  }
+}
+
+function migratePlanMap(raw) {
+  const rows = Object.keys(raw).map((key, index) => {
+    const source = Number(key)
+    const target = rekeyLegacyDayTs(source)
+    return { key, index, source, target: target ?? source, canonical: target === source }
+  })
+  rows.sort((a, b) => Number(b.canonical) - Number(a.canonical) || a.index - b.index)
+  const next = {}
+  for (const row of rows) {
+    if (!Number.isInteger(row.source) || row.source <= 0 || !Number.isInteger(row.target)) {
+      next[row.key] = raw[row.key]
+      continue
+    }
+    const key = String(row.target)
+    next[key] = key in next ? mergeDayEntries(next[key], raw[row.key]) : remapBinaryEntry(raw[row.key])
+  }
+  return next
+}
+
+function migrateHistory(raw) {
+  const invalid = []
+  const rows = []
+  raw.forEach((entry, index) => {
+    const source = Number(entry?.dayTs)
+    const target = rekeyLegacyDayTs(source)
+    if (!entry || !Number.isInteger(source) || source <= 0 || !Number.isInteger(target)) {
+      invalid.push(entry)
+      return
+    }
+    rows.push({ entry, index, source, target, canonical: target === source })
+  })
+  rows.sort((a, b) => Number(b.canonical) - Number(a.canonical) || a.index - b.index)
+  const byDay = new Map()
+  for (const row of rows) {
+    const existing = byDay.get(row.target)
+    const merged = existing ? mergeDayEntries(existing, row.entry) : dayEntryFor(remapBinaryEntry(row.entry)) || row.entry
+    byDay.set(row.target, { ...merged, dayTs: row.target })
+  }
+  return [...byDay.values()].sort((a, b) => a.dayTs - b.dayTs).concat(invalid)
+}
+
+function migrateConverted(raw) {
+  const next = { v: 1 }
+  const rows = Object.keys(raw)
+    .filter((key) => key !== 'v')
+    .map((key, index) => {
+      const source = Number(key)
+      const target = rekeyLegacyDayTs(source)
+      return { key, index, source, target: target ?? source, canonical: target === source }
+    })
+    .sort((a, b) => Number(b.canonical) - Number(a.canonical) || a.index - b.index)
+  for (const row of rows) {
+    const value = raw[row.key]
+    if (!Number.isInteger(row.source) || row.source <= 0 || !Number.isInteger(row.target)) {
+      next[row.key] = value
+      continue
+    }
+    const key = String(row.target)
+    const valid = value === 'went' || value === 'missed'
+    const existingValid = next[key] === 'went' || next[key] === 'missed'
+    if (!(key in next) || (!existingValid && valid)) next[key] = value
+  }
+  return next
+}
+
+function migrateTimestampObject(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return raw
+  const target = rekeyLegacyDayTs(raw.weekendStartTs)
+  return Number.isInteger(target) ? { ...raw, weekendStartTs: target } : raw
+}
+
+function validTimeZone(timeZone) {
+  if (typeof timeZone !== 'string' || !timeZone) return false
+  try {
+    new Intl.DateTimeFormat(fmtLocale, { timeZone }).format(0)
+    return true
+  } catch {
+    return false
+  }
+}
+function validCityDayBasis(value) {
+  return value
+    && typeof value === 'object'
+    && !Array.isArray(value)
+    && value.v === 1
+    && value.cityId === CITY.id
+    && value.timeZone === CITY.tz
+    && validTimeZone(value.sourceDeviceTimeZone)
+}
+
+function ensureCityDayBasis() {
+  let basis = null
+  for (const key of [CITY_DAY_BASIS_KEY, CITY_DAY_KEYS_KEY]) {
+    try {
+      const candidate = JSON.parse(lsGet(key))
+      if (validCityDayBasis(candidate)) {
+        basis = {
+          v: 1,
+          cityId: CITY.id,
+          timeZone: CITY.tz,
+          sourceDeviceTimeZone: candidate.sourceDeviceTimeZone,
+        }
+        break
+      }
+    } catch {
+      // Missing/corrupt metadata falls through to the current device zone.
+    }
+  }
+  basis ||= {
+    v: 1,
+    cityId: CITY.id,
+    timeZone: CITY.tz,
+    sourceDeviceTimeZone: LEGACY_DEVICE_TIME_ZONE,
+  }
+  // The basis must be durable before any data store changes. A failed write
+  // leaves all legacy bytes untouched and retries safely on the next call.
+  if (!lsSet(CITY_DAY_BASIS_KEY, JSON.stringify(basis))) return null
+  return basis
+}
+function migrateJsonStore(key, transform) {
+  const source = lsGet(key)
+  if (source === null) return true
+  if (CITY_DAY_SOURCE_CACHE.get(key) === source) return true
+  let raw
+  try {
+    raw = JSON.parse(source)
+  } catch {
+    return false
+  }
+  const next = transform(raw)
+  const serialized = JSON.stringify(next)
+  const persisted = lsSet(key, serialized)
+  if (persisted) CITY_DAY_SOURCE_CACHE.set(key, serialized)
+  return persisted
+}
+
+export function migrateCityDayKeys() {
+  const basis = ensureCityDayBasis()
+  if (!basis) {
+    lsRemove(CITY_DAY_KEYS_KEY)
+    return false
+  }
+  legacyMigrationSourceTimeZone = basis.sourceDeviceTimeZone
+  migrateBinaryToTernary()
+  const results = [
+    migrateJsonStore(DAYPLANS_KEY, (raw) => raw && typeof raw === 'object' && !Array.isArray(raw) ? migratePlanMap(raw) : raw),
+    migrateJsonStore(DAYHISTORY_KEY, (raw) => Array.isArray(raw) ? migrateHistory(raw) : raw),
+    migrateJsonStore(CONVERTED_KEY, (raw) => raw && typeof raw === 'object' && !Array.isArray(raw) ? migrateConverted(raw) : raw),
+    migrateJsonStore(PLAN_KEY, migrateTimestampObject),
+    migrateJsonStore(WEEKEND_DONE_KEY, migrateTimestampObject),
+  ]
+  if (results.every(Boolean)) {
+    lsSet(CITY_DAY_KEYS_KEY, JSON.stringify({
+      v: 1,
+      cityId: CITY.id,
+      timeZone: CITY.tz,
+      sourceDeviceTimeZone: basis.sourceDeviceTimeZone,
+    }))
+    return true
+  }
+  lsRemove(CITY_DAY_KEYS_KEY)
+  return false
+}
 
 function readMap() {
   try {
@@ -95,6 +328,7 @@ function readHistory() {
 // rows, oldest → newest as stored (callers reverse for most-recent-first).
 // Read-only — the archive is only ever WRITTEN by the sweep in loadDayPlans.
 export function loadDayHistory() {
+  migrateCityDayKeys()
   const out = []
   for (const h of readHistory()) {
     if (!h || typeof h !== 'object' || Array.isArray(h)) continue
@@ -120,7 +354,7 @@ function archiveDays(rows) {
 // (wrong shapes drop silently), sweeps past days into history, persists the
 // cleaned map when anything changed, returns { [String(dayTs)]: entry }.
 export function loadDayPlans(anchors) {
-  migrateBinaryToTernary() // ⚑PLAN-P0 one-shot binary→ternary (idempotent, guarded) — BEFORE the weekend migration so it reads/writes ternary slots
+  migrateCityDayKeys()
   migrateWeekendPlan(anchors) // idempotent; a missing weekend-plan-v1 is one lsGet
   const raw = readMap()
   const map = {}
@@ -166,6 +400,45 @@ export function withSlot(map, dayTs, part, key) {
   const k = String(dayTs)
   const cur = dayEntryFor(map[k]) ?? emptyDay()
   return { ...map, [k]: { ...cur, state: null, slots: { ...cur.slots, [part]: key } } }
+}
+
+// The one safe add operation for every planner entry point. Low-level
+// `withSlot` remains available for deliberate moves, but new items must not
+// overwrite a slot or appear twice elsewhere in the plan.
+export function findPlannedItem(map, key) {
+  if (!map || typeof map !== 'object' || Array.isArray(map) || typeof key !== 'string' || !key) return null
+  for (const rawDayTs of Object.keys(map)) {
+    const dayTs = Number(rawDayTs)
+    const entry = Number.isInteger(dayTs) && dayTs > 0 ? dayEntryFor(map[rawDayTs]) : null
+    if (!entry) continue
+    for (const part of PARTS) if (entry.slots[part] === key) return { dayTs, part }
+  }
+  return null
+}
+
+export function plannedItemKeys(map) {
+  const keys = new Set()
+  if (!map || typeof map !== 'object' || Array.isArray(map)) return keys
+  for (const stored of Object.values(map)) {
+    const entry = dayEntryFor(stored)
+    if (!entry) continue
+    for (const part of PARTS) if (entry.slots[part]) keys.add(entry.slots[part])
+  }
+  return keys
+}
+
+export function planItem(map, dayTs, part, key) {
+  if (
+    !map || typeof map !== 'object' || Array.isArray(map)
+    || !Number.isInteger(dayTs) || dayTs <= 0
+    || !PARTS.includes(part)
+    || typeof key !== 'string' || !key
+  ) return { code: 'invalid', map }
+  const existing = findPlannedItem(map, key)
+  if (existing) return { code: 'already-planned', map, existing }
+  const entry = dayEntryFor(map[String(dayTs)])
+  if (entry?.slots[part]) return { code: 'slot-taken', map, occupiedBy: entry.slots[part] }
+  return { code: 'added', map: withSlot(map, dayTs, part, key), existing: null }
 }
 
 export function withClearedSlot(map, dayTs, part) {
@@ -339,6 +612,7 @@ export function migrateWeekendPlan(anchors) {
 // Single-slot: only the CURRENT weekend's flag ever matters; a stale ts
 // simply reads false and the next markWeekendDone overwrites it.
 export function loadWeekendDone(wkStartTs) {
+  migrateCityDayKeys()
   try {
     const v = JSON.parse(lsGet(WEEKEND_DONE_KEY))
     return !!(v && typeof v === 'object' && !Array.isArray(v) && v.v === 1 && v.weekendStartTs === wkStartTs && v.done === true)
@@ -386,6 +660,7 @@ function readConverted() {
 // the answered-day map { [String(dayTs)]: 'went'|'missed' } — read-only view
 // (the `v` marker filtered out) for the candidate derivation + the journal.
 export function loadConverted() {
+  migrateCityDayKeys()
   const raw = readConverted()
   const out = {}
   for (const k of Object.keys(raw)) {
@@ -402,6 +677,7 @@ export function loadConverted() {
 //   violet     — true only on the first-ever 'went' for this day (#7's one-shot)
 export function markDayConverted(dayTs, answer) {
   if (answer !== 'went' && answer !== 'missed') return { firstWrite: false, violet: false }
+  migrateCityDayKeys()
   const k = String(dayTs)
   const raw = readConverted()
   if (raw[k] === 'went' || raw[k] === 'missed') return { firstWrite: false, violet: false }
@@ -415,16 +691,8 @@ export function markDayConverted(dayTs, answer) {
 // so it never drifts a day across timezones; anything unparseable → null.
 // (Kept local so this module stays import-light — see the file header rule.)
 function dayTsOf(iso) {
-  if (typeof iso !== 'string' || !iso) return null
-  let d
-  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})/)
-  if (m) d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
-  else {
-    const t = new Date(iso)
-    if (Number.isNaN(t.getTime())) return null
-    d = new Date(t.getFullYear(), t.getMonth(), t.getDate())
-  }
-  return Number.isNaN(d.getTime()) ? null : d.getTime()
+  const time = eventTime({ start: iso }, { timeZone: CITY.tz })
+  return time.ok ? cityMidnightMs(time.startDay, CITY.tz) : null
 }
 
 // DID-DAYS — derived from the been-there store (NOT day-history): a day you

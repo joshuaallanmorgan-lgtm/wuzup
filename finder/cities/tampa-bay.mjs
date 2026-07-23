@@ -14,6 +14,8 @@
 // offset stamping, weekend windows, junk-hour checks) routes through this.
 // Offsets incl. DST come from Intl at runtime, never hardcoded ("every SF event
 // stamped 7 hours early" is the bug class this prevents).
+import { defineReviewedImageRejects } from '../reviewed-image-rejections.mjs';
+
 export const tz = 'America/New_York';
 
 // sanity box — any coordinate outside this is wrong for a local place/event.
@@ -48,6 +50,33 @@ export const govOrder = [
   'Hillsborough County Parks',
 ];
 
+export const placeSourceModules = Object.freeze([
+  'fdep',
+  'fwc-ramps',
+  'hillsborough-parks',
+  'osm',
+  'pinellas-parks',
+  'swfwmd',
+  'tampa-parks',
+]);
+
+// Active event adapters only. Do813 remains implemented for future
+// reactivation, but its publisher has been dormant since at least June 2026
+// and its last-good cache contains zero rows, so it is not a live source.
+export const eventSourceModules = Object.freeze([
+  'allevents',
+  'donttellcomedy',
+  'hcplc',
+  'meetup',
+  'pinellas',
+  'stpete',
+  'tampagov',
+  'trumba-ut',
+  'visittampabay',
+  'vspc',
+  'wmnf',
+]);
+
 // tourist centroids for the hidden-gem "far from tourists" proxy.
 export const touristCentroids = [
   { name: 'St. Pete Pier', lat: 27.7659, lng: -82.6259 },
@@ -68,6 +97,189 @@ export const area =
 
 // Wikidata P18/P373 entity-image conflations to exclude (per-city).
 export const qidDeny = ['Q966471']; // Gwazi Field → the Iron Gwazi coaster that replaced it
+
+const imageAuditEvidence = Object.freeze({
+  report: 'planning/v2/S10_IMAGE_AUDIT_2026-07-21.md',
+  reportSha256: 'sha256:4bee54bf0847f6de7a06443ffdf513055abfd85d0f2d6a67110f928518958830',
+});
+const reviewedImageRejection = (
+  placeKey, image, sourcePage, sourceFamily, reviewRow, disposition, reason,
+) => ({
+  placeKey,
+  image,
+  sourcePage,
+  sourceFamily,
+  evidence: { ...imageAuditEvidence, reviewRow },
+  disposition,
+  reason,
+});
+
+// Exact-item image quarantine from the frozen Sprint 10 review. The recorded
+// candidate/provenance tuple keeps the audit exact, while an active entry
+// quarantines every image ladder for that item until a positive review clears it.
+export const imageRejects = defineReviewedImageRejects('tampa-bay', [
+  reviewedImageRejection(
+    'p|foundation-coffee-co-ybor-city',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Ybor_City_%288061548385%29.jpg/1280px-Ybor_City_%288061548385%29.jpg',
+    'https://commons.wikimedia.org/wiki/File%3AYbor%20City%20(8061548385).jpg',
+    'commons-geosearch', 2, 'remove-or-replace',
+    'An Amtrak/Ybor streetscape does not depict Foundation Coffee.',
+  ),
+  reviewedImageRejection(
+    'p|curtis-hixon-waterfront-park',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Curtis_Hixon_Park_Tampa_Florida_United_States_-_panoramio_%281%29.jpg/1280px-Curtis_Hixon_Park_Tampa_Florida_United_States_-_panoramio_%281%29.jpg',
+    'https://commons.wikimedia.org/wiki/File%3ACurtis%20Hixon%20Park%20Tampa%20Florida%20United%20States%20-%20panoramio%20(1).jpg',
+    'wikidata-p373', 8, 'remove-or-replace',
+    'A generic skyline and palm view does not establish the listed park.',
+  ),
+  reviewedImageRejection(
+    'p|fort-hamer-park',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Fort_Hamer_Bridge.jpg/1280px-Fort_Hamer_Bridge.jpg',
+    'https://commons.wikimedia.org/wiki/File%3AFort%20Hamer%20Bridge.jpg',
+    'commons-geosearch', 10, 'remove-or-replace',
+    'Fort Hamer Bridge and docks do not establish the exact park item.',
+  ),
+  reviewedImageRejection(
+    'p|tenth-street-coffee',
+    '/place-img/tenth-street-coffee.jpg',
+    'https://www.mapillary.com/app/?focus=photo&pKey=650653606780814',
+    'mapillary-sign', 13, 'remove-or-replace',
+    'The storefront is too blurry for the mobile image bar.',
+  ),
+  reviewedImageRejection(
+    'p|edward-medard-park-boat-ramp',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Edward_Medard_Park_Lake_July_2024.jpg/1280px-Edward_Medard_Park_Lake_July_2024.jpg',
+    'https://commons.wikimedia.org/wiki/File%3AEdward%20Medard%20Park%20Lake%20July%202024.jpg',
+    'commons-geosearch', 14, 'remove-or-replace',
+    'A reservoir overview does not show the listed boat ramp.',
+  ),
+  reviewedImageRejection(
+    'p|banyan-coffee-co',
+    '/place-img/banyan-coffee-co.jpg',
+    'https://www.mapillary.com/app/?focus=photo&pKey=522934939993817',
+    'mapillary-sign', 21, 'remove-or-replace',
+    'The storefront is too blurred for the mobile image bar.',
+  ),
+  reviewedImageRejection(
+    'p|palma-sola-botanical-park',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/CassiaFistula02_PalmaSola_Asit.jpg/1280px-CassiaFistula02_PalmaSola_Asit.jpg',
+    'https://commons.wikimedia.org/wiki/File%3ACassiaFistula02%20PalmaSola%20Asit.jpg',
+    'wikidata-p18', 23, 'remove-or-replace',
+    'A fruit close-up is not a useful or identifying park image.',
+  ),
+  reviewedImageRejection(
+    'p|beangood-coffee',
+    '/place-img/beangood-coffee.jpg',
+    'https://www.mapillary.com/app/?focus=photo&pKey=974016848499650',
+    'mapillary-sign', 24, 'remove-or-replace',
+    'The subject is tiny, dark, tilted, and soft.',
+  ),
+  reviewedImageRejection(
+    'p|sunset-beach',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Sunset_Beach%2C_Tarpon_Springs%2C_United_States_%28Unsplash%29.jpg/1280px-Sunset_Beach%2C_Tarpon_Springs%2C_United_States_%28Unsplash%29.jpg',
+    'https://commons.wikimedia.org/wiki/File%3ASunset%20Beach%2C%20Tarpon%20Springs%2C%20United%20States%20(Unsplash).jpg',
+    'commons-geosearch', 25, 'remove-or-replace',
+    'A people-first beach portrait does not usefully depict the listed place.',
+  ),
+  reviewedImageRejection(
+    'p|perry-harvey-sr-park',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Bro_Bowl_at_Perry_Harvey_Sr._Park_-_Tampa%2C_Florida.jpg/1280px-Bro_Bowl_at_Perry_Harvey_Sr._Park_-_Tampa%2C_Florida.jpg',
+    'https://commons.wikimedia.org/wiki/File%3ABro%20Bowl%20at%20Perry%20Harvey%20Sr.%20Park%20-%20Tampa%2C%20Florida.jpg',
+    'commons-geosearch', 28, 'remove-or-replace',
+    'Bro Bowl pixels are assigned to the broader Perry Harvey Sr. Park item.',
+  ),
+  reviewedImageRejection(
+    'p|colt-creek-state-park',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Colt_Creek_SP_road01.jpg/1280px-Colt_Creek_SP_road01.jpg',
+    'https://commons.wikimedia.org/wiki/File%3AColt%20Creek%20SP%20road01.jpg',
+    'wikidata-p18', 29, 'remove-or-replace',
+    'A generic access road does not establish Colt Creek State Park.',
+  ),
+  reviewedImageRejection(
+    'p|edward-medard-park-canoe-kayak-launch',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Edward_Medard_Park_Lake_July_2024.jpg/1280px-Edward_Medard_Park_Lake_July_2024.jpg',
+    'https://commons.wikimedia.org/wiki/File%3AEdward%20Medard%20Park%20Lake%20July%202024.jpg',
+    'commons-geosearch', 31, 'remove-or-replace',
+    'A reservoir overview does not show the listed canoe and kayak launch.',
+  ),
+  reviewedImageRejection(
+    'p|fort-hamer-public-boat-ramp',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Fort_Hamer_Bridge.jpg/1280px-Fort_Hamer_Bridge.jpg',
+    'https://commons.wikimedia.org/wiki/File%3AFort%20Hamer%20Bridge.jpg',
+    'commons-geosearch', 34, 'remove-or-replace',
+    'Fort Hamer Bridge and docks do not establish the exact boat-ramp item.',
+  ),
+  reviewedImageRejection(
+    'p|foundation-coffee-company',
+    '/place-img/foundation-coffee-company.jpg',
+    'https://www.mapillary.com/app/?focus=photo&pKey=484893932562446',
+    'mapillary-sign', 36, 'remove-or-replace',
+    'The drive-by is dark, distant, and ambiguous.',
+  ),
+  reviewedImageRejection(
+    'p|ken-thompson-park-boat-ramp',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Ken_Thompson_Park_-_Sarasota%2C_Florida_2023-01-23_%2801%29.jpg/1280px-Ken_Thompson_Park_-_Sarasota%2C_Florida_2023-01-23_%2801%29.jpg',
+    'https://commons.wikimedia.org/wiki/File%3AKen%20Thompson%20Park%20-%20Sarasota%2C%20Florida%202023-01-23%20(01).jpg',
+    'commons-geosearch', 37, 'remove-or-replace',
+    'A mangrove-channel image does not show the listed boat ramp.',
+  ),
+  reviewedImageRejection(
+    'p|indian-shores-coffee',
+    '/place-img/indian-shores-coffee.jpg',
+    'https://www.mapillary.com/app/?focus=photo&pKey=1342952362741418',
+    'mapillary-sign', 39, 'remove-or-replace',
+    'The roadside capture is too dark and unclear.',
+  ),
+  reviewedImageRejection(
+    'p|ken-thompson-park-kayak-beach',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Ken_Thompson_Park_-_Sarasota%2C_Florida_2023-01-23_%2801%29.jpg/1280px-Ken_Thompson_Park_-_Sarasota%2C_Florida_2023-01-23_%2801%29.jpg',
+    'https://commons.wikimedia.org/wiki/File%3AKen%20Thompson%20Park%20-%20Sarasota%2C%20Florida%202023-01-23%20(01).jpg',
+    'commons-geosearch', 40, 'remove-or-replace',
+    'A mangrove-channel image does not show the listed kayak beach.',
+  ),
+  reviewedImageRejection(
+    'p|sunset-beach-park-sand-launch-beach-city-permit-required',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Sunset_Beach%2C_Tarpon_Springs%2C_United_States_%28Unsplash%29.jpg/1280px-Sunset_Beach%2C_Tarpon_Springs%2C_United_States_%28Unsplash%29.jpg',
+    'https://commons.wikimedia.org/wiki/File%3ASunset%20Beach%2C%20Tarpon%20Springs%2C%20United%20States%20(Unsplash).jpg',
+    'commons-geosearch', 43, 'remove-or-replace',
+    'A people-first beach portrait does not depict the listed sand launch.',
+  ),
+  reviewedImageRejection(
+    'p|ybor-city-museum-state-park',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Ybor_City_%288061548385%29.jpg/1280px-Ybor_City_%288061548385%29.jpg',
+    'https://commons.wikimedia.org/wiki/File%3AYbor%20City%20(8061548385).jpg',
+    'commons-geosearch', 46, 'remove-or-replace',
+    'An Amtrak/Ybor streetscape does not depict the museum.',
+  ),
+  reviewedImageRejection(
+    'p|del-bello-park',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Bikini_modelling_Del_Bello_Park_pp.jpg/1280px-Bikini_modelling_Del_Bello_Park_pp.jpg',
+    'https://commons.wikimedia.org/wiki/File%3ABikini%20modelling%20Del%20Bello%20Park%20pp.jpg',
+    'commons-geosearch', 49, 'remove-or-replace',
+    'A bikini-model portrait is not a place-identifying park image.',
+  ),
+  reviewedImageRejection(
+    'p|dundedin-hammock-park-paddlecraft-access',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Hammock_Park_%2815208028960%29.jpg/1280px-Hammock_Park_%2815208028960%29.jpg',
+    'https://commons.wikimedia.org/wiki/File%3AHammock%20Park%20(15208028960).jpg',
+    'commons-geosearch', 22, 'quarantine-noncanonical-duplicate',
+    'The Hammock Park boardwalk belongs at most to the park, not the paddlecraft-access item.',
+  ),
+  reviewedImageRejection(
+    'p|morris-bridge-park',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Morris_Bridge_Summer_Day_%289433839633%29.jpg/1280px-Morris_Bridge_Summer_Day_%289433839633%29.jpg',
+    'https://commons.wikimedia.org/wiki/File%3AMorris%20Bridge%20Summer%20Day%20(9433839633).jpg',
+    'commons-geosearch', 18, 'quarantine-pending-canonical-choice',
+    'The shared Morris Bridge image has no ratified canonical target.',
+  ),
+  reviewedImageRejection(
+    'p|lower-hillsborough-wilderness-preserve-morris-bridge-park',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Morris_Bridge_Summer_Day_%289433839633%29.jpg/1280px-Morris_Bridge_Summer_Day_%289433839633%29.jpg',
+    'https://commons.wikimedia.org/wiki/File%3AMorris%20Bridge%20Summer%20Day%20(9433839633).jpg',
+    'commons-geosearch', 18, 'quarantine-pending-canonical-choice',
+    'The shared Morris Bridge image has no ratified canonical target.',
+  ),
+]);
 
 // Mapillary cafe-imagery honesty (the OFFLINE Stage-B harness; per-city, does NOT
 // affect places.json directly — it produces the committed place-mapillary cache).

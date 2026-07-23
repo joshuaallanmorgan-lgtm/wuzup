@@ -1,7 +1,7 @@
 # INDEX — the planning-doc map (start here)
 
 > **What this is:** the single map of every planning doc, so we never again wonder "which plan is real?"
-> **Current product plan = [planning/v2/V2_VISION.md](planning/v2/V2_VISION.md).**
+> **Current product plan = [planning/v2/V2_PLAN.md](planning/v2/V2_PLAN.md).**
 > **v1 as-built authority = [ROADMAP.md](ROADMAP.md).** **Idea intake = [BACKLOG.md](BACKLOG.md).**
 > Everything else is execution detail, durable reference, or history.
 > Maintained by the project cop. _Established 2026-06-22 · re-synced 2026-07-14 for the GPT handoff._
@@ -11,7 +11,7 @@
 ## The one naming spine (lettered Stages — use these words only)
 
 Wuzup v1 was delivered through the **lettered Stage A–E spine** below. Those stages are now the
-completed v1 record, not names for new work. Current development follows the Day Engine plan and its
+completed v1 record, not names for new work. Current development follows the V2 core-improvement plan and its
 named workstreams in `planning/v2/`; the old numbered Stages (R/1/1.5/2/2.5/3/4) and all
 Phase/Sprint/3.7x numbers remain retired history.
 
@@ -23,7 +23,7 @@ Phase/Sprint/3.7x numbers remain retired history.
 | **C.5** | **Cohesion Pass** | the premium gap as 4 whole-cloth passes (data quality · app feel · one visual language · Aurora re-derivation) | ✅ merged (PR #7) |
 | **D** | Multi-City | geo-refactor + city #2 = **SF & East Bay (reconfirmed 2026-07-01)** + the two V2 grafts (D-G1 Coverage Card, D-G2 stable event IDs) | ✅ merged (PRs #8–#13) |
 | **E** | v1 Ship | PWA/dark/attribution (PRs #9/#10) · deploy topology + refresh automation · final path-trace + shippability REFUTE — [STAGE_E.md](STAGE_E.md) | ✅ merged (PR #14, `f3a9589`) · production repair verified 2026-07-14 |
-| **v2** | Day Engine | Compose → Decide → Keep, with Layer Zero first and Reach in parallel | ▶ **current plan** — [V2_VISION.md](planning/v2/V2_VISION.md) |
+| **v2** | Core improvement | Trust · relevance · premium existing UI · full-US locations · imagery · feature depth | ▶ **current plan** — [V2_PLAN.md](planning/v2/V2_PLAN.md) |
 
 **Where we are right now (2026-07-14):** v1 code is complete through Stage E. PR #14 merged at
 `f3a9589`; the repository is now `joshuaallanmorgan-lgtm/wuzup`. A post-rename Pages artifact briefly
@@ -31,7 +31,7 @@ referenced the old `/cj/*` base and rendered blank; a fresh deploy was dispatche
 builds are verified in a real browser at `/wuzup/` and `/wuzup/sf/`, with city-specific data and no
 console errors. The weekly refresh workflow opens test-gated PRs and its first scheduled-cycle proof
 is still outstanding. Current work is the handoff closeout plus the first bounded post-ship fixes;
-V2's Day Engine is the plan of record. Human-only follow-up remains the supervised SF imagery pass.
+V2's core-improvement plan is the plan of record. Human-only follow-up remains the supervised SF imagery pass.
 
 ## Dead-vocabulary crosswalk
 
@@ -51,11 +51,15 @@ V2's Day Engine is the plan of record. Human-only follow-up remains the supervis
 ### 🟢 LIVE — current plan + intake
 | Doc | Purpose |
 |---|---|
-| **[planning/v2/V2_VISION.md](planning/v2/V2_VISION.md)** | ⭐ Current product plan. The Day Engine, Layer Zero, release spine, rulings, and parallel Everywhere/City Foundry track. **Authority for forward product work.** |
+| **[planning/v2/V2_PLAN.md](planning/v2/V2_PLAN.md)** | ⭐ Current product plan. Trust, relevance, premium existing UI, United States coverage, imagery, and feature depth. **Authority for forward product work.** |
+| [planning/v2/V2_SPRINTS.md](planning/v2/V2_SPRINTS.md) | ⭐ Active dependency-gated execution map and receipt ledger from trust through full-US V2.0 release. |
+| [planning/v2/S12_OPERATIONS_DECISION_PACKET.md](planning/v2/S12_OPERATIONS_DECISION_PACKET.md) | Proposed hosting, source-policy, cadence, budget, and launch-gate decisions required before provider-dependent Sprint 13 work. |
+| [planning/v2/V2_COORDINATION.md](planning/v2/V2_COORDINATION.md) | Archived five-task coordination experiment; lane boundaries remain reference material. |
 | **[ROADMAP.md](ROADMAP.md)** | Completed v1 road and as-built authority: Stage spine, binding contracts, rulings, and delivery record. |
 | [INDEX.md](INDEX.md) | This map. |
 | [BACKLOG.md](BACKLOG.md) | Post-v1 idea intake, operational closeout, and v2 triage. |
 | [planning/v2/README.md](planning/v2/README.md) | V2 workstream registry and spec-status rules. |
+| [ADVERSARIAL_AUDIT_2026-07-14.md](ADVERSARIAL_AUDIT_2026-07-14.md) | Primary V2 risk evidence: release blockers, product/data/UI findings, launch gates, and builder backlog. |
 
 ### ✅ COMPLETED v1 execution records
 | Doc | Purpose |
@@ -88,6 +92,7 @@ V2's Day Engine is the plan of record. Human-only follow-up remains the supervis
 | [PHASE_3.7.md](PHASE_3.7.md) | Gen 4 — 3.71–3.78 + addenda | Historical source for the shipped Stage-D packet (Addendum I / §15); Addendum G is absorbed by the Quality Engine spec. |
 | [W5_W8_PROPOSAL.md](W5_W8_PROPOSAL.md) | Gen 4 satellite | Ratified into 3.6. |
 | [LONG_TERM.md](LONG_TERM.md) | the old backlog | Triaged into BACKLOG. |
+| [planning/v2/V2_VISION.md](planning/v2/V2_VISION.md) | Fable Day Engine plan | Nonbinding concept archive; optional product ideas are V3 suggestions. |
 | [PREMIUM_PUNCH.md](PREMIUM_PUNCH.md) | Stage A source doc | §0 D1–D8 record; §2 promoted into DESIGN_SYSTEM. ⚠️ §1's checkboxes under-report ship-state (~11 shipped items unticked) — trust §0's reconciliation + render checks, not §1 boxes. |
 | [V1_PUNCHLIST.md](V1_PUNCHLIST.md) | Stage B execution doc | Shipped (PR #5); the house execution style exemplar. |
 | [STAGE1_PUNCHLIST.md](STAGE1_PUNCHLIST.md) · [TOUCHUP_PUNCHLIST.md](TOUCHUP_PUNCHLIST.md) | Stage-1-era punch lists | Shipped. |
@@ -99,8 +104,8 @@ _Not planning docs: `app/README.md` and `finder/output/{events,places}.md` (gene
 ---
 
 ## House rules (project-cop conventions)
-1. **One current spine.** Forward product work follows `planning/v2/V2_VISION.md`; A–E remain the completed v1 vocabulary.
-2. **Authority is time-scoped.** `ROADMAP.md` wins for v1 as-built facts; `V2_VISION.md` wins for forward product planning. Superseded docs get a banner, never silent deletion.
+1. **One current spine.** Forward product work follows `planning/v2/V2_PLAN.md`; A–E remain the completed v1 vocabulary.
+2. **Authority is time-scoped.** `ROADMAP.md` wins for v1 as-built facts; `V2_PLAN.md` wins for forward product planning. Superseded docs get a banner, never silent deletion.
 3. **Ideas go to BACKLOG.** Material v2 ideas get a spec in `/planning/v2/` and an explicit status before implementation.
 4. **Execution plans live in repo docs** (STAGE_C.md-style), never only in session prompts — a stage's granular plan must survive any session's death.
 5. **Doc edits ship with the work.** Status headers (this file + ROADMAP's completion/current-plan headers) update in the same commit that changes the status.

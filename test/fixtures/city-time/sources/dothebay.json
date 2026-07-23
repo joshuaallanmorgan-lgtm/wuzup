@@ -1,0 +1,11 @@
+{
+  "events": [
+    { "title": "Prior SF event", "begin_date": "2026-03-07", "tz_adjusted_begin_date": "2026-03-07T20:00:00-08:00", "permalink": "/prior" },
+    { "title": "Today SF boundary", "begin_date": "2026-03-08", "tz_adjusted_begin_date": "2026-03-08T03:30:00-07:00", "permalink": "/today", "venue": { "latitude": 37.78, "longitude": -122.42 } },
+    { "title": "Last SF boundary", "begin_date": "2026-04-22", "tz_adjusted_begin_date": "2026-04-22T19:00:00-07:00", "permalink": "/last", "venue": { "latitude": 37.80, "longitude": -122.27 } },
+    { "title": "After SF event", "begin_date": "2026-04-23", "tz_adjusted_begin_date": "2026-04-23T19:00:00-07:00", "permalink": "/after" },
+    { "title": "Gap SF event", "begin_date": "2026-03-08", "tz_adjusted_begin_date": "2026-03-08T02:30:00-08:00", "permalink": "/gap" },
+    { "title": "Outside corridor", "begin_date": "2026-03-08", "tz_adjusted_begin_date": "2026-03-08T12:00:00-07:00", "permalink": "/outside", "venue": { "latitude": 37.30, "longitude": -121.90 } }
+  ],
+  "paging": { "total_pages": 1 }
+}

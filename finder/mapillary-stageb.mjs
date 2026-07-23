@@ -2,7 +2,8 @@
 // finder/mapillary-stageb.mjs — STRICT deterministic ship-gate for the vision pass.
 //
 // Stage A (agent, name-blind) transcribed each crop → { signsRead, confidence,
-// isCafeStorefront, otherBusinessNameOnSign, imageQuality, sceneNote }. Stage B
+// isCafeStorefront, otherBusinessNameOnSign, isDirectoryOrPylon,
+// cafeIsDominantSubject, imageQuality, sceneNote }. Stage B
 // (here, name-AWARE, deterministic) decides ship/no-ship in TWO tiers:
 //
 //   • TIER A — the cafe's own identity is IN the image (name-match). LENIENT in
@@ -25,10 +26,21 @@
 //        chosen crops to finder/output/<cityId>/place-img/<slug>.jpg (clears ONLY
 //        that city's dir first; deploy.mjs ships the dir into the app).
 // =============================================================================
+import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, copyFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { area as cityArea, cafe as cityCafe, imagery as cityImagery, cityId } from './cities/index.mjs';
+import sharp from 'sharp';
+import {
+  area as cityArea,
+  cafe as cityCafe,
+  imageRejects,
+  imagery as cityImagery,
+  cityId,
+  tz as CITY_TZ,
+} from './cities/index.mjs';
+import { invalidateManifest } from './artifact-manifest.mjs';
+import { hasMapillaryGuardSignals, mapillaryCropFailsClosed } from './mapillary-contract.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -39,6 +51,7 @@ const REVIEW = path.join(CROP_DIR, '_review');
 // city's crops (the old app/public/place-img target deleted Tampa's 35 ships on
 // any other city's run). deploy.mjs is what copies the dir into app/public/.
 const PLACE_IMG = path.join(ROOT, 'finder', 'output', cityId, 'place-img');
+const OUTPUT_ROOT = path.join(ROOT, 'finder', 'output', cityId);
 const MAP_CACHE = path.join(ROOT, 'finder', 'cache', cityId, 'place-mapillary-images.json');
 
 // thresholds: config DEFAULTS (per active city), env vars still override at runtime.
@@ -125,30 +138,26 @@ const RANK = { phrase3: 6, phrase2: 5, token: 4, number: 4, tokenPartial: 3, non
 const STRONG = new Set(['phrase3', 'phrase2', 'token', 'number']); // vs LENIENT tier
 
 // a crop is INELIGIBLE for EITHER tier (the multi-city lock, 2026-06-26). The two
-// guard signals come from a name-blind re-judge pass and are kept in rj* fields,
-// SEPARATE from the original sign-read so the reviewed matches/confidence are
-// preserved (re-transcribing introduced noise that dropped real ships). A crop fails
+// guard signals come from the name-blind transcription. The current workflow fields
+// take precedence, with rj* aliases retained for older saved transcriptions. A crop
+// fails
 // when it's a multi-tenant DIRECTORY/PYLON that merely LISTS businesses (the 2
 // Starbucks pylons), OR a DIFFERENT business is the dominant subject — encoded as
-// rjDominant===false AND a specific OTHER business is named (so a non-coffee food
+// cafeIsDominantSubject===false AND a specific OTHER business is named (so a
+// non-coffee food
 // venue like "The Sandwich on Main", whose own sign just isn't a coffee cafe, is
 // NOT false-dropped; only a genuine other-business hero like La Casa's tattoo shop is).
-const hasBiz = (x) => x != null && !/^(none|null|n\/?a|no|na)$/i.test(String(x).trim());
-// a crop carries a re-judge guard verdict only when BOTH name-blind fields are present.
-const hasGuardSignal = (cr) => typeof cr.rjPylon === 'boolean' && typeof cr.rjDominant === 'boolean';
 // FAIL CLOSED: a crop with NO re-judge signal CANNOT ship. A skipped or incomplete
 // re-judge must DISABLE its crops, not silently disable the pylon + dominant guards —
 // the fail-OPEN bug was the exact failure mode behind the 4 Tampa false positives. The
 // guarantee that every shipped crop was re-verified is enforced again at ship time
 // (the cache records reVerified) and asserted in the smoke harness.
-const guardFail = (cr) => !hasGuardSignal(cr) || cr.rjPylon === true || (cr.rjDominant === false && hasBiz(cr.rjOtherBiz));
-
 // ---- evaluate one cafe across its crops → a tier-A or tier-B ship, or reject --
 // bypassGuards: a force-KEEP cafe (Josh's explicit call) is exempt from the pylon/
 // dominant guards (a faint-wordmark storefront can read as "not dominant").
 function evalCafe(rec, crops, cropMetaByI, bypassGuards = false) {
   const q = (cr) => (cr.imageQuality ?? cr.confidence ?? 0.5);
-  const eligible = (cr) => bypassGuards || !guardFail(cr);
+  const eligible = (cr) => bypassGuards || !mapillaryCropFailsClosed(cr);
   // Tier A candidates: a name-match at/above the confidence floor, on an eligible crop
   const tierA = [];
   for (const cr of crops) {
@@ -218,13 +227,16 @@ for (const [rid, rec] of Object.entries(map)) {
   const cropMetaByI = Object.fromEntries((man.crops || []).map((c) => [c.i, c]));
   let v = evalCafe(rec, tr.crops || [], cropMetaByI, FORCE_KEEP.has(rec.key));
   if (FORCE_DROP.has(rec.key)) v = null; // Josh's verified-FP removal (belt-and-suspenders)
+  const reviewedQuarantine = Boolean(imageRejects[rec.key]);
+  if (reviewedQuarantine) v = null;
   const chosenMeta = v ? (cropMetaByI[v.cropI] || {}) : {};
   const chosenCrop = v ? (tr.crops || []).find((c) => c.i === v.cropI) : null;
   const slug = rec.key.replace(/^p\|/, '');
   rows.push({
-    rid, key: rec.key, name: rec.name, slug,
+    rid, key: rec.key, name: rec.name, slug, reviewedQuarantine,
+    place: { name: man.name || rec.name, lat: man.lat, lng: man.lng },
     // the honesty receipt: did the CHOSEN crop carry a re-judge guard verdict? (fail-closed)
-    reVerified: v ? (typeof (chosenCrop || {}).rjPylon === 'boolean' && typeof (chosenCrop || {}).rjDominant === 'boolean') : null,
+    reVerified: v ? hasMapillaryGuardSignals(chosenCrop) : null,
     nCandidates: man.nCandidates ?? null, nPersp: man.nPersp ?? null, nPano: man.nPano ?? null,
     ship: !!v, tier: v ? v.tier : null, matchKind: v ? v.matchKind : 'none',
     matched: v ? v.matched : null, lenient: v ? !!v.lenient : false,
@@ -248,6 +260,7 @@ for (const [rid, rec] of Object.entries(map)) {
 
 const rejectReason = (r) => {
   if (r.ship) return null;
+  if (r.reviewedQuarantine) return 'reviewed-image-quarantine';
   const anySign = r.allSigns.some((c) => (c.signs || []).length);
   if (!anySign) return 'no-legible-storefront-sign';
   const anyConf = r.allSigns.some((c) => (c.conf ?? 0) >= CONF_FLOOR);
@@ -270,6 +283,7 @@ if (SHIP) {
   // diff (idempotent timestamps); a genuinely new ship gets NOW.
   const prev = existsSync(MAP_CACHE) ? JSON.parse(readFileSync(MAP_CACHE, 'utf8')) : { byKey: {} };
   const prevByKey = prev.byKey || {};
+  invalidateManifest(OUTPUT_ROOT, { expectedCityId: cityId, expectedTimeZone: CITY_TZ, preservePending: true });
   if (existsSync(PLACE_IMG)) rmSync(PLACE_IMG, { recursive: true, force: true });
   mkdirSync(PLACE_IMG, { recursive: true });
   const byKey = {};
@@ -277,10 +291,24 @@ if (SHIP) {
     const src = path.join(ROOT, r.cropPath);
     const dst = path.join(PLACE_IMG, `${r.slug}.jpg`);
     copyFileSync(src, dst);
+    const imageBytes = readFileSync(dst);
+    const metadata = await sharp(imageBytes, { failOn: 'error' }).metadata();
+    const decoded = await sharp(imageBytes, { failOn: 'error' }).raw().toBuffer({ resolveWithObject: true });
+    if (
+      metadata.format !== 'jpeg' || !Number.isInteger(metadata.width) || !Number.isInteger(metadata.height) ||
+      decoded.info.width !== metadata.width || decoded.info.height !== metadata.height
+    ) {
+      throw new Error(`shipped crop dimensions unavailable for ${r.key}`);
+    }
+    if (
+      !r.place || typeof r.place.name !== 'string' || !r.place.name.trim() ||
+      !Number.isFinite(r.place.lat) || !Number.isFinite(r.place.lng)
+    ) throw new Error(`shipped crop place identity unavailable for ${r.key}`);
     byKey[r.key] = {
       id: String(r.mapId),
       image: `/place-img/${r.slug}.jpg`,
-      width: 1280,
+      width: metadata.width,
+      height: metadata.height,
       license: 'CC BY-SA 4.0',
       licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
       author: r.creator || 'Mapillary contributor',
@@ -289,6 +317,8 @@ if (SHIP) {
       tier: r.tier,
       matchKind: r.matchKind,
       reVerified: r.reVerified === true, // fail-closed honesty receipt (asserted in smoke)
+      place: r.place,
+      imageSha256: `sha256:${createHash('sha256').update(imageBytes).digest('hex')}`,
       at: (prevByKey[r.key] && prevByKey[r.key].at) || NOW,
     };
   }
@@ -357,4 +387,7 @@ writeFileSync(path.join(REVIEW, '_verdicts.json'), JSON.stringify({
 }, null, 2));
 
 console.log(`SHIPPED ${shipped.length}/${totalCafes} cafes (${pct(shipped.length, totalCafes)}%) · TierA ${tierA.length} (lenient ${lenientA.length}) · TierB ${tierB.length} · ${SHIP ? 'CACHE+JPEGs WRITTEN' : 'report only (no --ship)'}`);
+if (SHIP) {
+  console.log('artifact manifest remains invalid pending places-images.mjs; deploy-city will refuse the intermediate image tree');
+}
 console.log('reject tally:', JSON.stringify(tally));

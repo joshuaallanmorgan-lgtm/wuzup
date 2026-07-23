@@ -1,6 +1,7 @@
 // City of Tampa calendar RSS (tampa.gov Drupal feed), parsed with string ops only.
 import { pathToFileURL } from 'node:url';
-import { decodeEntities, stripHtml, truncate, fetchWithTimeout } from '../_shared.mjs';
+import { decodeEntities, stripHtml, truncate, fetchWithTimeout, sourceStartDay, sourceWindow } from '../_shared.mjs';
+import { tz as CITY_TZ } from '../../cities/tampa-bay.mjs';
 
 export const name = 'City of Tampa';
 
@@ -50,20 +51,27 @@ function spanText(html, className) {
   return m ? stripHtml(m[1]) || null : null;
 }
 
-export async function fetchEvents() {
-  const res = await fetchWithTimeout(FEED_URL, { headers: { 'user-agent': USER_AGENT } });
+export async function fetchEvents(options = {}) {
+  const config = options || {};
+  const nowMs = config.nowMs ?? Date.now();
+  const fetchImpl = config.fetchImpl ?? globalThis.fetch;
+  const requireLive = config.requireLive === true;
+  const { today, lastDay } = sourceWindow(CITY_TZ, nowMs, WINDOW_DAYS);
+  const res = await fetchWithTimeout(
+    FEED_URL,
+    { headers: { 'user-agent': USER_AGENT } },
+    undefined,
+    fetchImpl,
+  );
   if (!res.ok) throw new Error(`City of Tampa: HTTP ${res.status}`);
   const xml = await res.text();
 
   const items = xml.split(/<item>/).slice(1);
   if (!items.length) {
+    if (requireLive) throw new Error('City of Tampa: live RSS contained no <item> entries');
     console.warn('City of Tampa: no <item> entries found in RSS feed');
     return [];
   }
-
-  const today = new Date();
-  const windowStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const windowEnd = new Date(windowStart.getTime() + WINDOW_DAYS * 86400000);
 
   const events = [];
   for (const item of items) {
@@ -78,10 +86,9 @@ export async function fetchEvents() {
     const whenDates = extractWhen(descHtml);
     const start = whenDates[0] || null;
     if (!start) continue;
-    const startDate = new Date(start);
-    if (Number.isNaN(startDate.getTime())) continue;
-    if (startDate < windowStart || startDate > windowEnd) continue;
-    const end = whenDates[1] && !Number.isNaN(new Date(whenDates[1]).getTime()) ? whenDates[1] : null;
+    const startDay = sourceStartDay(CITY_TZ, start);
+    if (!startDay || startDay < today || startDay > lastDay) continue;
+    const end = whenDates[1] && sourceStartDay(CITY_TZ, whenDates[1]) ? whenDates[1] : null;
 
     // Geolocation block carries coordinates as data attributes.
     const latM = descHtml.match(/data-lat="(-?\d+(?:\.\d+)?)"/);

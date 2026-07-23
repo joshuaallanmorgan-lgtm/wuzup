@@ -1,7 +1,7 @@
 // places.mjs — Tampa Bay Places Finder (Sprint R2)
 //
-// What it does: loads every self-contained source module in
-// finder/places-sources/*.mjs (two-backbone architecture: government ArcGIS
+// What it does: loads the active city's explicit source-module roster from
+// finder/places-sources/ (two-backbone architecture: government ArcGIS
 // layers for truth — hours, amenity booleans, fees, descriptions — and OSM
 // Overpass for breadth), merges duplicates across sources with a
 // grid-blocked, edit-tolerant name + spatial-gate clusterer, scores a capped
@@ -20,12 +20,22 @@
 // Refresh cadence: places change slowly — weekly is plenty (per-source caches
 // under 24h serve re-runs instantly; the weekly cron always goes live).
 
-import { writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { enrichPlacesWithImages } from './places-images.mjs';
+import { reconcileLocalPlaceImages } from './place-image-artifacts.mjs';
 import { enrichPlacesWithDescriptions } from './places-descriptions.mjs';
-import { bbox as TB_BOX, govOrder as GOV_ORDER, touristCentroids as TOURIST_CENTROIDS, cityId, meta as CITY_META } from './cities/index.mjs';
+import { retainedPlaceSignals } from './place-signals.mjs';
+import { bbox as TB_BOX, govOrder as GOV_ORDER, touristCentroids as TOURIST_CENTROIDS, cityId, meta as CITY_META, placeSourceModules as PLACE_SOURCE_MODULES, tz as CITY_TZ } from './cities/index.mjs';
+import {
+  atomicWriteFileSync,
+  invalidateManifest,
+  summarizeSourceHealth,
+  writeManifest,
+} from './artifact-manifest.mjs';
+import { normalizePlaceSourceModules } from './place-source-contract.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 // D1 multi-tenant artifacts: outputs AND caches are namespaced per city (a
@@ -167,60 +177,96 @@ function categoryOf(placeType) {
 // — a live failure of any age falls back to the last good pull.
 const MAX_CACHE_AGE_MS = (Number(process.env.PLACES_MAX_CACHE_H) || 24) * 3600e3;
 const FORCE_LIVE = process.env.PLACES_LIVE === '1';
+const REQUIRE_LIVE_SOURCES = process.env.REQUIRE_LIVE_SOURCES === '1';
 
-async function loadSources() {
+export async function loadSources({
+  moduleIds = PLACE_SOURCE_MODULES,
+  sourceDir = SRC_DIR,
+  cacheDir = CACHE,
+  forceLive = FORCE_LIVE || REQUIRE_LIVE_SOURCES,
+  maxCacheAgeMs = MAX_CACHE_AGE_MS,
+  nowMs = Date.now(),
+  importSource = (sourcePath) => import(pathToFileURL(sourcePath).href),
+  logger = console,
+} = {}) {
   const raws = [];
   const report = [];
-  let files = [];
-  try {
-    files = readdirSync(SRC_DIR).filter((f) => f.endsWith('.mjs') && !f.startsWith('_')).sort();
-  } catch {
-    // no places-sources/ directory — nothing to load
-  }
-  mkdirSync(CACHE, { recursive: true });
+  const files = normalizePlaceSourceModules(moduleIds).map((moduleId) => `${moduleId}.mjs`);
+  mkdirSync(cacheDir, { recursive: true });
   for (const file of files) {
     const modBase = file.replace(/\.mjs$/, '');
-    const cacheFile = join(CACHE, `places-${modBase}.json`);
+    const cacheFile = join(cacheDir, `places-${modBase}.json`);
     let label = modBase;
-    // freshness fast-path
-    if (!FORCE_LIVE && existsSync(cacheFile)) {
-      try {
-        const cached = JSON.parse(readFileSync(cacheFile, 'utf8'));
-        const age = Date.now() - Date.parse(cached.fetchedAt || 0);
-        if (Array.isArray(cached.places) && age < MAX_CACHE_AGE_MS) {
-          raws.push(...cached.places);
-          label = cached.source || modBase;
-          report.push({ source: label, found: cached.places.length, ok: true, cached: 'fresh' });
-          console.log(`  💾 ${label.padEnd(26)} ${cached.places.length} places (cache, ${(age / 3600e3).toFixed(1)}h old)`);
-          continue;
-        }
-      } catch { /* unreadable cache — go live */ }
-    }
+    let moduleLoaded = false;
     try {
-      const mod = await import(pathToFileURL(join(SRC_DIR, file)).href);
+      // Import the configured adapter before trusting its cache. A deleted or
+      // broken adapter cannot be hidden behind an old outer cache.
+      const mod = await importSource(join(sourceDir, file));
       label = mod.name || modBase;
       if (typeof mod.fetchPlaces !== 'function') throw new Error('module has no fetchPlaces() export');
+      moduleLoaded = true;
+
+      // freshness fast-path
+      if (!forceLive && existsSync(cacheFile)) {
+        try {
+          const cached = JSON.parse(readFileSync(cacheFile, 'utf8'));
+          const age = nowMs - Date.parse(cached.fetchedAt || 0);
+          if (Array.isArray(cached.places) && age >= 0 && age < maxCacheAgeMs) {
+            raws.push(...cached.places);
+            label = cached.source || modBase;
+            report.push({ source: label, found: cached.places.length, ok: true, cached: 'fresh' });
+            logger.log(`  💾 ${label.padEnd(26)} ${cached.places.length} places (cache, ${(age / 3600e3).toFixed(1)}h old)`);
+            continue;
+          }
+        } catch { /* unreadable cache — go live */ }
+      }
+
       const fetched = await mod.fetchPlaces();
       const list = Array.isArray(fetched) ? fetched : [];
+      if (list.length === 0 && existsSync(cacheFile)) {
+        try {
+          const cached = JSON.parse(readFileSync(cacheFile, 'utf8'));
+          if (Array.isArray(cached.places) && cached.places.length > 0) {
+            raws.push(...cached.places);
+            label = cached.source || label;
+            report.push({
+              source: label,
+              found: cached.places.length,
+              ok: false,
+              cached: 'stale',
+              fallbackReason: 'live-empty',
+            });
+            logger.log(`  ⚠️  ${label.padEnd(26)} ${cached.places.length} places (cached — live returned zero)`);
+            continue;
+          }
+        } catch { /* corrupt cache — retain the honest empty result */ }
+      }
       raws.push(...list);
-      writeFileSync(cacheFile, JSON.stringify({ fetchedAt: new Date().toISOString(), source: label, places: list }));
+      writeFileSync(cacheFile, JSON.stringify({ fetchedAt: new Date(nowMs).toISOString(), source: label, places: list }));
       report.push({ source: label, found: list.length, ok: true });
-      console.log(`  ✅ ${label.padEnd(26)} ${list.length} places`);
+      logger.log(`  ✅ ${label.padEnd(26)} ${list.length} places`);
     } catch (e) {
-      if (existsSync(cacheFile)) {
+      if (moduleLoaded && existsSync(cacheFile)) {
         try {
           const cached = JSON.parse(readFileSync(cacheFile, 'utf8'));
           if (Array.isArray(cached.places)) {
             raws.push(...cached.places);
             label = cached.source || label;
-            report.push({ source: label, found: cached.places.length, ok: false, cached: 'stale' });
-            console.log(`  ⚠️  ${label.padEnd(26)} ${cached.places.length} places (cached — live failed: ${e.message || e})`);
+            report.push({
+              source: label,
+              found: cached.places.length,
+              ok: false,
+              cached: 'stale',
+              fallbackReason: 'live-error',
+              error: String(e.message || e),
+            });
+            logger.log(`  ⚠️  ${label.padEnd(26)} ${cached.places.length} places (cached — live failed: ${e.message || e})`);
             continue;
           }
         } catch { /* corrupt cache — fall through */ }
       }
       report.push({ source: label, found: 0, ok: false, error: String(e.message || e) });
-      console.warn(`  ❌ ${label.padEnd(26)} failed, no cache — skipped (${e.message || e})`);
+      logger.warn(`  ❌ ${label.padEnd(26)} failed, no cache — skipped (${e.message || e})`);
     }
   }
   return { raws, report };
@@ -434,6 +480,8 @@ function mergeCluster(members) {
     hours: pickBy(byRank, 'hours'),
     url: pickBy(byRank, 'url'),
     phone: pickBy(byRank, 'phone'),
+    brand: pickBy(byRank, 'brand'),
+    brandWikidata: pickBy(byRank, 'brandWikidata'),
     isFree: pickBy(byRank, 'isFree'),       // explicit fee sources outrank inference
     fee: pickBy(byRank, 'fee'),
     designation: pickBy(byRank, 'designation'),
@@ -604,6 +652,7 @@ async function main() {
     if (p.operator) out.operator = p.operator;
     out.sources = p.sources;
     out.srcCount = p.srcCount;
+    Object.assign(out, retainedPlaceSignals(p));
     // variant spellings survive for refresh-time re-matching and Sprint S
     // save-keys ("Weeden" stays findable after the official spelling won)
     if (p._aliases && p._aliases.length > 1) out.aliases = p._aliases;
@@ -618,18 +667,37 @@ async function main() {
   // (Wikidata P18 → Commons thumbnail), cached so this doesn't refetch weekly.
   // Sets `image` on the ~24 with a curated photo; the rest keep category-art.
   // PLACES_LIVE forces a refresh in lockstep with the source caches above.
-  const imgStats = await enrichPlacesWithImages(places, { live: FORCE_LIVE, log: console.log });
+  const imgStats = await enrichPlacesWithImages(places, {
+    live: FORCE_LIVE,
+    cacheOnly: REQUIRE_LIVE_SOURCES,
+    log: console.log,
+  });
   console.log(`  🖼️  images: ${imgStats.set}/${imgStats.withQid} wikidata places photographed (${imgStats.noImage} no P18 → category-art)`);
 
   // W7: give wikidata places a real Wikipedia description where they lack one
   // (gov/OSM descriptions win; no Wikipedia article → no blurb, never faked).
-  const descStats = await enrichPlacesWithDescriptions(places, { live: FORCE_LIVE, log: console.log });
+  const descStats = await enrichPlacesWithDescriptions(places, {
+    live: FORCE_LIVE,
+    cacheOnly: REQUIRE_LIVE_SOURCES,
+    log: console.log,
+  });
   console.log(`  📝 descriptions: +${descStats.set} from Wikipedia (${descStats.noArticle}/${descStats.candidates} wikidata places have no article)`);
 
   // ---- write outputs --------------------------------------------------------
+  const generatedAt = new Date().toISOString();
+  const runId = `places-${cityId}-${randomUUID()}`;
+  const sourceHealth = summarizeSourceHealth(report, { runId, checkedAt: generatedAt });
   mkdirSync(OUT, { recursive: true });
+  const previousManifest = invalidateManifest(OUT, { expectedCityId: cityId, expectedTimeZone: CITY_TZ });
   const payload = { schemaVersion: 1, places };
-  writeFileSync(join(OUT, 'places.json'), JSON.stringify(payload, null, 2));
+  atomicWriteFileSync(join(OUT, 'places.json'), `${JSON.stringify(payload, null, 2)}\n`);
+  const imageReconciliation = reconcileLocalPlaceImages(OUT, places);
+  if (imageReconciliation.removed.length) {
+    console.log(
+      `  🧹 local images: removed ${imageReconciliation.removed.length} unreferenced file(s) ` +
+      `(${imageReconciliation.before.count} → ${imageReconciliation.after.count})`,
+    );
+  }
 
   const typeDist = {};
   for (const p of places) typeDist[p.placeType] = (typeDist[p.placeType] || 0) + 1;
@@ -643,7 +711,7 @@ async function main() {
   // City name from the active config — byte-identical for Tampa (meta.name
   // is 'Tampa Bay'), honest for every other city's artifact.
   let md = `# ${CITY_META.name} Places — ${places.length} real places\n\n`;
-  md += `_Generated ${new Date().toLocaleString('en-US')} · sources: ${report.map((r) => r.source).join(', ')}_\n\n`;
+  md += `_Generated ${new Date(generatedAt).toLocaleString('en-US', { timeZone: CITY_TZ })} · sources: ${report.map((r) => r.source).join(', ')}_\n\n`;
   md += `## Summary\n\n`;
   md += `- Total places: ${places.length}\n`;
   md += `- By type: ${Object.entries(typeDist).sort((a, b) => b[1] - a[1]).map(([t, n]) => `${t} ${n}`).join(' · ')}\n`;
@@ -661,7 +729,7 @@ async function main() {
   for (const p of places.filter((x) => x.srcCount >= 3).slice(0, 25)) {
     md += `- **${p.name}** — ${p.placeType} · sources: ${p.sources.join(', ')}\n`;
   }
-  writeFileSync(join(OUT, 'places.md'), md);
+  atomicWriteFileSync(join(OUT, 'places.md'), md);
 
   // D1: the app's copy (app/public/places.json — the second lazy fetch) is
   // written ONLY by the deploy step (`npm run deploy-city`, finder/deploy.mjs).
@@ -740,6 +808,16 @@ async function main() {
   }
 
   console.log('──────────────────────────────────────────');
+  const manifest = writeManifest({
+    root: OUT,
+    cityId,
+    timeZone: CITY_TZ,
+    previousManifest,
+    componentReceipts: {
+      places: { generatedAt, runId, provenance: 'finder-run', sourceHealth },
+    },
+  });
+  console.log(`  Sealed: ${manifest.buildId}`);
   console.log(`  Wrote: finder/output/${cityId}/places.json  (structured, schema v1)`);
   console.log(`  Wrote: finder/output/${cityId}/places.md    (readable + hidden shelf for the eyeball pass)`);
   console.log('  (ship into the app with: npm run deploy-city)');

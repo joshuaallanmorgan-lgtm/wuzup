@@ -152,7 +152,7 @@ the fixes that landed on this branch:
   Until then SF ships photo-light: 175 credited Commons photos + the Aurora floor, zero fakes.
 - ⚑**Charles:** the real mark/favicon (placeholder ⚑ ships) · DRAFT copy passes · warmed
   greens · medallion tints · the 9 drawn glyphs.
-- First-cycle watches (E2 §post-merge list) + the v2 road: [planning/v2/V2_VISION.md](planning/v2/V2_VISION.md).
+- First-cycle watches (E2 §post-merge list) + the v2 road: [planning/v2/V2_PLAN.md](planning/v2/V2_PLAN.md).
 - Finder fast-mode merge coverage: the former live `buzz >= 2` assertion depended on incidental
   three-source overlap and expired with its July 7–11 events. The full current corpus still proves
   cross-family merging; the handoff branch replaces the brittle canary with a deterministic merge

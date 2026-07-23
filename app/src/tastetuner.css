@@ -1,0 +1,24 @@
+/* Sprint 8: a compact doorway into calibration, not another content shelf. */
+.tune {
+  padding: 13px 14px 14px;
+}
+
+.tune-copy { gap: 5px; }
+.tune-sub { max-width: 31ch; }
+.tune-cta { min-height: 44px; margin-top: 4px; }
+
+.tune-x:focus-visible,
+.tune-cta:focus-visible,
+.tune-again:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 360px) {
+  .tune-preview { display: none; }
+  .tune-sub { max-width: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tune { animation: none; }
+}

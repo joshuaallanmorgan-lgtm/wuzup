@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="referrer" content="no-referrer" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-src 'none'; worker-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://upload.wikimedia.org; connect-src 'self' https://api.open-meteo.com; manifest-src 'self'; media-src 'self'; form-action 'self'" />
     <!-- Stage E dark mode: the browser chrome follows the canvas token pair
          (index.css --bg light/dark). The manifest's theme_color has no dark
          conditional in the spec — these metas win at runtime. -->
@@ -14,8 +16,8 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <!-- Stage E ship-shell: installable-PWA wiring. The manifest is emitted from
          vite.config.js (city-manifest plugin) off the ONE city registry; icons are
-         rendered from the ⚑ Charles placeholder favicon.svg. No service worker —
-         Chrome/Edge install on manifest-only; offline is v2 (BACKLOG). -->
+         rendered from the ⚑ Charles placeholder favicon.svg. There is deliberately
+         no service worker: Wuzup is online-required and never implies offline cache. -->
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="mobile-web-app-capable" content="yes" />

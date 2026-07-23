@@ -13,10 +13,17 @@
 // shows as a small thumb that can't dominate. (3.7P-36 review: an earlier CardImg
 // runtime "contain a tall poster" + sub-120px crop was dropped — it hid small-but-
 // real photos and mismatched the cover detail-hero it View-Transitions into.
-// Honest rule: a successfully-loaded photo is real content and is always shown;
-// the art floor is for no-image + load-error only.) Pure + Node-safe (no JSX/DOM).
+// Honest rule: only the same receipt-gated image CardImg can display counts as a
+// photo; raw URLs cannot silently change layout while rendering as Aurora.
+// Pure + Node-safe (no JSX/DOM).
+import { presentRuntimeImage, RUNTIME_EVENT_IMAGE_POLICY } from './leadImage.js'
+
 export function imageMode(e) {
-  if (e && typeof e.image === 'string' && e.image) return 'photo'
+  try {
+    if (presentRuntimeImage(e, { policy: RUNTIME_EVENT_IMAGE_POLICY }).image) return 'photo'
+  } catch {
+    // Invalid/missing event identity fails closed to the text presentation.
+  }
   return e?.kind === 'place' ? 'icon' : 'text'
 }
 

@@ -2,7 +2,9 @@
 // List endpoint supports relation includes (Datetime, Venue) and `where` filters,
 // so one request usually suffices; per-event datetime fetches are a capped fallback.
 
-import { decodeEntities, stripHtml, truncate, fetchWithTimeout } from '../_shared.mjs';
+import { eventTime } from '../../../shared/city-time.mjs';
+import { decodeEntities, stripHtml, truncate, fetchWithTimeout, sourceStartDay, sourceWindow } from '../_shared.mjs';
+import { tz as CITY_TZ } from '../../cities/tampa-bay.mjs';
 
 export const name = 'WMNF 88.5';
 
@@ -11,26 +13,20 @@ const USER_AGENT = 'tampabay-events-finder/0.1';
 const WINDOW_DAYS = 45;
 const MAX_DETAIL_CALLS = 20;
 
-async function fetchJson(url) {
+async function fetchJson(url, fetchImpl) {
   const res = await fetchWithTimeout(url, {
     headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
-  });
+  }, undefined, fetchImpl);
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
   return await res.json();
 }
 
-function pad(n) {
-  return String(n).padStart(2, '0');
-}
-
-function localIso(d) {
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T00:00:00`;
-}
-
-export async function fetchEvents() {
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const windowEnd = new Date(todayStart.getTime() + WINDOW_DAYS * 86400000);
+export async function fetchEvents(options = {}) {
+  const config = options || {};
+  const nowMs = config.nowMs ?? Date.now();
+  const fetchImpl = config.fetchImpl ?? globalThis.fetch;
+  const requireLive = config.requireLive === true;
+  const { today, lastDay } = sourceWindow(CITY_TZ, nowMs, WINDOW_DAYS);
 
   // Filter server-side to events with a datetime starting after today,
   // soonest first; include Datetime + Venue relations inline.
@@ -39,11 +35,14 @@ export async function fetchEvents() {
     `&include=${encodeURIComponent('Datetime.*,Venue.*')}` +
     `&order_by=${encodeURIComponent('Datetime.DTT_EVT_start')}&order=ASC` +
     `&where[Datetime.DTT_EVT_start][]=${encodeURIComponent('>')}` +
-    `&where[Datetime.DTT_EVT_start][]=${encodeURIComponent(localIso(todayStart))}`;
+    `&where[Datetime.DTT_EVT_start][]=${encodeURIComponent(`${today}T00:00:00`)}`;
 
-  const data = await fetchJson(listUrl);
+  const data = await fetchJson(listUrl, fetchImpl);
   if (!Array.isArray(data)) {
     throw new Error(`WMNF EE API: expected array, got ${typeof data}`);
+  }
+  if (requireLive && data.length >= 50) {
+    throw new Error('WMNF EE API: live list saturated its 50-row request cap');
   }
 
   let detailCalls = 0;
@@ -58,22 +57,41 @@ export async function fetchEvents() {
 
       // Datetimes: prefer the included relation; fall back to a per-event call.
       let datetimes = Array.isArray(ev.datetimes) ? ev.datetimes : null;
-      if ((!datetimes || datetimes.length === 0) && ev.EVT_ID && detailCalls < MAX_DETAIL_CALLS) {
-        detailCalls++;
-        try {
-          const dts = await fetchJson(`${API_BASE}/events/${ev.EVT_ID}/datetimes`);
-          if (Array.isArray(dts)) datetimes = dts;
-        } catch (err) {
-          console.warn(`[${name}] datetime fetch failed for EVT ${ev.EVT_ID}: ${err.message}`);
+      if ((!datetimes || datetimes.length === 0) && ev.EVT_ID) {
+        if (detailCalls >= MAX_DETAIL_CALLS) {
+          if (requireLive) throw new Error(`datetime detail cap ${MAX_DETAIL_CALLS} reached`);
+        } else {
+          detailCalls++;
+          try {
+            const dts = await fetchJson(`${API_BASE}/events/${ev.EVT_ID}/datetimes`, fetchImpl);
+            if (!Array.isArray(dts)) {
+              if (requireLive) throw new Error(`datetime response for EVT ${ev.EVT_ID} was not an array`);
+            } else {
+              datetimes = dts;
+            }
+          } catch (err) {
+            if (requireLive) throw err;
+            console.warn(`[${name}] datetime fetch failed for EVT ${ev.EVT_ID}: ${err.message}`);
+          }
         }
       }
       if (!datetimes || datetimes.length === 0) continue;
 
       // Earliest upcoming datetime within the window.
       const upcoming = datetimes
-        .map((dt) => ({ dt, d: new Date(dt?.DTT_EVT_start) }))
-        .filter((x) => !Number.isNaN(x.d.getTime()) && x.d >= todayStart && x.d <= windowEnd)
-        .sort((a, b) => a.d - b.d);
+        .map((dt) => ({
+          dt,
+          canonical: eventTime({ start: dt?.DTT_EVT_start }, { timeZone: CITY_TZ }),
+        }))
+        .filter(({ canonical }) => (
+          canonical.ok
+          && canonical.startDay >= today
+          && canonical.startDay <= lastDay
+        ))
+        .sort((a, b) => (
+          a.canonical.startAt - b.canonical.startAt
+          || String(a.dt.DTT_EVT_start).localeCompare(String(b.dt.DTT_EVT_start))
+        ));
       if (upcoming.length === 0) continue;
       const { dt } = upcoming[0];
 
@@ -95,7 +113,7 @@ export async function fetchEvents() {
       events.push({
         title,
         start: dt.DTT_EVT_start,
-        end: dt.DTT_EVT_end || null,
+        end: dt.DTT_EVT_end && sourceStartDay(CITY_TZ, dt.DTT_EVT_end) ? dt.DTT_EVT_end : null,
         venue,
         address,
         price: null,
@@ -113,6 +131,7 @@ export async function fetchEvents() {
         source: name,
       });
     } catch (err) {
+      if (requireLive) throw new Error(`[${name}] required event mapping failed: ${err.message}`, { cause: err });
       console.warn(`[${name}] skipping malformed event: ${err.message}`);
     }
   }

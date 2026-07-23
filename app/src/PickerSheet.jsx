@@ -9,72 +9,100 @@
 // Props:
 //   part     — the daypart id ('morning'|'afternoon'|'night') being filled
 //   dayLabel — the day label ("Today" / "Saturday") for the subline
-//   model    — pickerModel() output: { saved, suggestions }
+//   model    — pickerModel() output: { saved, suggestions, suggestionPages }
 //   noSaves  — true when the user has NO saves at all (the ♥ hint)
 //   closing  — plays the slide-down exit animation
 //   onPick(e) / onClose()
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { keyOf, timeOf, tablistArrowKey } from './lib.js'
 import { CardImg, SponsoredTag } from './cards.jsx'
 import { daypartOf, DAYPART } from './weekend.js'
+import ModalSheet from './ModalSheet.jsx'
 import './weekend.css'
 
-export default function PickerSheet({ part, dayLabel, model, noSaves, closing, onPick, onClose }) {
-  // default to whichever group has something; prefer Suggested (the ref default)
-  const [tab, setTab] = useState(model.suggestions.length === 0 && model.saved.length > 0 ? 'saved' : 'suggested')
-  const tabRefs = useRef([])
+const PICKER_TAB_IDS = {
+  suggested: 'picker-tab-suggested',
+  saved: 'picker-tab-saved',
+}
+const PICKER_PANEL_IDS = {
+  suggested: 'picker-panel-suggested',
+  saved: 'picker-panel-saved',
+}
 
-  // Escape closes the sheet BEFORE App's window listener can close the whole
-  // page (capture phase runs first; stopPropagation keeps the page up)
-  useEffect(() => {
-    const onKey = (ev) => {
-      if (ev.key !== 'Escape') return
-      ev.stopPropagation()
-      onClose()
-    }
-    window.addEventListener('keydown', onKey, true)
-    return () => window.removeEventListener('keydown', onKey, true)
-  }, [onClose])
+export default function PickerSheet({ part, dayLabel, model, noSaves, closing, onPick, onClose, returnFocusRef, resolveFallbackFocus }) {
+  const suggestionPages = model.suggestionPages?.length
+    ? model.suggestionPages
+    : model.suggestions.length
+      ? [model.suggestions.map(item => ({ item, reasons: [], primaryReason: null }))]
+      : []
+  const suggestionKey = model.suggestionResetKey || suggestionPages
+    .flat()
+    .map(record => keyOf(record.item))
+    .join('\u001f')
+  const [suggestionRun, setSuggestionRun] = useState(() => ({ key: suggestionKey, page: 0 }))
+  const suggestionPage = suggestionRun.key === suggestionKey
+    ? Math.min(suggestionRun.page, Math.max(0, suggestionPages.length - 1))
+    : 0
+  const suggestionRecords = suggestionPages[suggestionPage] || []
+  const suggestionRemaining = suggestionPages
+    .slice(suggestionPage + 1)
+    .reduce((count, nextPage) => count + nextPage.length, 0)
+  const suggestionTotal = suggestionPages.reduce((count, nextPage) => count + nextPage.length, 0)
+  const browseSuggestions = model.browseSuggestions || model.suggestions
+  // default to whichever group has something; prefer Suggested (the ref default)
+  const [tab, setTab] = useState(suggestionPages.length === 0 && model.saved.length > 0 ? 'saved' : 'suggested')
+  const tabRefs = useRef([])
 
   const partLow = part ? DAYPART[part].label.toLowerCase() : 'plan'
   const art = part === 'afternoon' ? 'an' : 'a'
   const heading = part ? `Add ${art} ${partLow} plan` : 'Add a plan'
 
-  const pickRow = (e, top = false) => (
-    <button key={keyOf(e)} className={'wkb-pick pressable' + (top ? ' wkb-pick-top' : '')} onClick={() => onPick(e)}>
-      <CardImg e={e} className="wkb-pick-img" />
-      <span className="wkb-pick-main">
-        <span className="wkb-pick-title">{e.title}</span>
-        <span className="wkb-pick-meta">
-          {[daypartOf(e) === 'any' ? 'Anytime' : timeOf(e.start) || null, e.venue].filter(Boolean).join(' · ')}
-        </span>
-        {(e._why || top) && (
-          <span className="wkb-pick-why">
-            {top && <span className="wkb-pick-star">★ Top pick</span>}
-            {e._why && <span className="wkb-pick-fit">{e._why}</span>}
+  const pickRow = (entry) => {
+    const record = entry?.item ? entry : null
+    const e = record?.item || entry
+    const why = record?.primaryReason?.label || null
+    return (
+      <button key={keyOf(e)} className="wkb-pick pressable" onClick={() => onPick(e)}>
+        <CardImg e={e} className="wkb-pick-img" />
+        <span className="wkb-pick-main">
+          <span className="wkb-pick-title">{e.title}</span>
+          <span className="wkb-pick-meta">
+            {[daypartOf(e) === 'any' ? 'Anytime' : timeOf(e.start) || null, e.venue].filter(Boolean).join(' · ')}
           </span>
-        )}
-        <SponsoredTag e={e} />
-      </span>
-      <span className="wkb-pick-add" aria-hidden>
-        +
-      </span>
-    </button>
-  )
+          {why && (
+            <span className="wkb-pick-why">
+              <span className="wkb-pick-fit">{why}</span>
+            </span>
+          )}
+          <SponsoredTag e={e} />
+        </span>
+        <span className="wkb-pick-add" aria-hidden>
+          +
+        </span>
+      </button>
+    )
+  }
 
-  const list = tab === 'saved' ? model.saved : model.suggestions
   const sub =
     tab === 'saved'
       ? 'From your saved list'
-      : `Suggested for the ${partLow}${dayLabel ? ' · ' + dayLabel : ''}`
+      : `Suggested for the ${partLow}${dayLabel ? ' · ' + dayLabel : ''}${suggestionTotal ? ` · ${suggestionTotal} options` : ''}`
 
   return (
-    <div className={'wkb-sheet-wrap' + (closing ? ' closing' : '')}>
-      <button className="wkb-scrim" onClick={onClose} aria-label="Close picker" />
-      <div className="wkb-sheet" role="dialog" aria-label={heading}>
+    <ModalSheet
+      className={'wkb-sheet-wrap' + (closing ? ' closing' : '')}
+      scrimClassName="wkb-scrim"
+      dialogClassName="wkb-sheet"
+      label={heading}
+      closing={closing}
+      onDismiss={onClose}
+      returnFocusRef={returnFocusRef}
+      resolveFallbackFocus={resolveFallbackFocus}
+    >
+      <>
         <div className="wkb-sheet-head">
           <div className="wkb-sheet-title">{heading}</div>
-          <button className="wkb-sheet-close" onClick={onClose} aria-label="Close">
+          <button className="wkb-sheet-close" onClick={onClose} aria-label="Close" data-modal-initial-focus>
             ✕
           </button>
         </div>
@@ -82,9 +110,11 @@ export default function PickerSheet({ part, dayLabel, model, noSaves, closing, o
         <div className="wkb-tabs" role="tablist" aria-label="Picker source">
           <button
             ref={(el) => (tabRefs.current[0] = el)}
+            id={PICKER_TAB_IDS.suggested}
             className={'wkb-tab' + (tab === 'suggested' ? ' on' : '')}
             role="tab"
             aria-selected={tab === 'suggested'}
+            aria-controls={PICKER_PANEL_IDS.suggested}
             tabIndex={tab === 'suggested' ? 0 : -1}
             onClick={() => setTab('suggested')}
             onKeyDown={(ev) => tablistArrowKey(ev, ['suggested', 'saved'], tab === 'suggested' ? 0 : 1, setTab, tabRefs)}
@@ -93,9 +123,11 @@ export default function PickerSheet({ part, dayLabel, model, noSaves, closing, o
           </button>
           <button
             ref={(el) => (tabRefs.current[1] = el)}
+            id={PICKER_TAB_IDS.saved}
             className={'wkb-tab' + (tab === 'saved' ? ' on' : '')}
             role="tab"
             aria-selected={tab === 'saved'}
+            aria-controls={PICKER_PANEL_IDS.saved}
             tabIndex={tab === 'saved' ? 0 : -1}
             onClick={() => setTab('saved')}
             onKeyDown={(ev) => tablistArrowKey(ev, ['suggested', 'saved'], tab === 'suggested' ? 0 : 1, setTab, tabRefs)}
@@ -105,17 +137,54 @@ export default function PickerSheet({ part, dayLabel, model, noSaves, closing, o
         </div>
         <div className="wkb-sheet-sub">{sub}</div>
         <div className="wkb-sheet-body">
-          {list.length > 0 ? (
-            list.map((e, i) => pickRow(e, tab === 'suggested' && i === 0))
-          ) : tab === 'saved' ? (
-            <div className="wkb-note">
-              {noSaves ? "♥ save things and they'll show up here first" : 'None of your saved picks fit this slot.'}
-            </div>
-          ) : (
-            <div className="wkb-note">Nothing fits this slot yet.</div>
-          )}
+          <div
+            id={PICKER_PANEL_IDS.suggested}
+            role="tabpanel"
+            aria-labelledby={PICKER_TAB_IDS.suggested}
+            hidden={tab !== 'suggested'}
+            tabIndex={0}
+          >
+            {suggestionRecords.length > 0
+              ? suggestionRecords.map(pickRow)
+              : <div className="wkb-note">Nothing fits this slot yet.</div>}
+            {suggestionPages.length > 1 && (
+              <div className="wkb-more-row">
+                {suggestionRemaining > 0 ? (
+                  <button
+                    className="wkb-more pressable"
+                    onClick={() => setSuggestionRun({ key: suggestionKey, page: suggestionPage + 1 })}
+                  >
+                    More options · {suggestionRemaining} left
+                  </button>
+                ) : (
+                  <span className="wkb-more-done" role="status">All suggestions shown</span>
+                )}
+              </div>
+            )}
+            {browseSuggestions.length > 0 && (
+              <details className="wkb-browse">
+                <summary>Browse every fitting listing · {browseSuggestions.length}</summary>
+                <div className="wkb-browse-list">{browseSuggestions.map(pickRow)}</div>
+              </details>
+            )}
+          </div>
+          <div
+            id={PICKER_PANEL_IDS.saved}
+            role="tabpanel"
+            aria-labelledby={PICKER_TAB_IDS.saved}
+            hidden={tab !== 'saved'}
+            tabIndex={0}
+          >
+            {model.saved.length > 0 ? (
+              model.saved.map(pickRow)
+            ) : (
+              <div className="wkb-note">
+                {noSaves ? "♥ save things and they'll show up here first" : 'None of your saved picks fit this slot.'}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </div>
+      </>
+    </ModalSheet>
   )
 }

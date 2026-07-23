@@ -6,7 +6,12 @@
    (AA on bg/card per the token ledger). */
 
 .at { background: var(--bg); }
-.at-body { padding: 4px 0 120px; }
+.at-body {
+  width: 100%;
+  max-width: var(--reading-max);
+  margin-inline: auto;
+  padding: 4px 0 120px;
+}
 
 .at-intro {
   margin: 0;

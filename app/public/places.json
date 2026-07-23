@@ -2762,15 +2762,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": false,
-      "image": "/place-img/banyan-coffee-co.jpg",
-      "imageCredit": {
-        "author": "jcox",
-        "license": "CC BY-SA 4.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-        "url": "https://www.mapillary.com/app/?focus=photo&pKey=522934939993817",
-        "sourceFamily": "mapillary-sign"
-      }
+      "hidden": false
     },
     {
       "key": "p|baranoff-oak-park",
@@ -3805,15 +3797,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
-      "hidden": false,
-      "image": "/place-img/beangood-coffee.jpg",
-      "imageCredit": {
-        "author": "allen",
-        "license": "CC BY-SA 4.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-        "url": "https://www.mapillary.com/app/?focus=photo&pKey=974016848499650",
-        "sourceFamily": "mapillary-sign"
-      }
+      "hidden": false
     },
     {
       "key": "p|bear-creek-park",
@@ -9429,14 +9413,6 @@
       "wikidata": "Q5149398",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Colt_Creek_SP_road01.jpg/1280px-Colt_Creek_SP_road01.jpg",
-      "imageCredit": {
-        "author": "Ebyabe",
-        "license": "CC BY-SA 2.5",
-        "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5",
-        "url": "https://commons.wikimedia.org/wiki/File%3AColt%20Creek%20SP%20road01.jpg",
-        "sourceFamily": "wikidata-p18"
-      },
       "description": "Colt Creek State Park is a Florida State Park in Central Florida, 16 miles (26 km) north of Lakeland off of State Road 471. This 5,067-acre park nestled within the Green Swamp Wilderness Area and named after one of the tributaries that flows through the property was opened to the public on January 20, 2007."
     },
     {
@@ -11266,15 +11242,7 @@
       "srcCount": 2,
       "wikidata": "Q5195767",
       "hiddenScore": 0,
-      "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Curtis_Hixon_Park_Tampa_Florida_United_States_-_panoramio_%281%29.jpg/1280px-Curtis_Hixon_Park_Tampa_Florida_United_States_-_panoramio_%281%29.jpg",
-      "imageCredit": {
-        "author": "Michelle Maria",
-        "license": "CC BY 3.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ACurtis%20Hixon%20Park%20Tampa%20Florida%20United%20States%20-%20panoramio%20(1).jpg",
-        "sourceFamily": "wikidata-p373"
-      }
+      "hidden": false
     },
     {
       "key": "p|cuscaden-park",
@@ -12138,15 +12106,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Bikini_modelling_Del_Bello_Park_pp.jpg/1280px-Bikini_modelling_Del_Bello_Park_pp.jpg",
-      "imageCredit": {
-        "author": "Walter",
-        "license": "CC BY 2.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ABikini%20modelling%20Del%20Bello%20Park%20pp.jpg",
-        "sourceFamily": "commons-geosearch"
-      }
+      "hidden": false
     },
     {
       "key": "p|del-oro-park",
@@ -13366,15 +13326,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 1,
-      "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Hammock_Park_%2815208028960%29.jpg/1280px-Hammock_Park_%2815208028960%29.jpg",
-      "imageCredit": {
-        "author": "Michel Curi",
-        "license": "CC BY 2.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AHammock%20Park%20(15208028960).jpg",
-        "sourceFamily": "commons-geosearch"
-      }
+      "hidden": false
     },
     {
       "key": "p|dunedin-beach",
@@ -14325,15 +14277,7 @@
         "Edward Medard Park and Reservoir"
       ],
       "hiddenScore": 3,
-      "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Edward_Medard_Park_Lake_July_2024.jpg/1280px-Edward_Medard_Park_Lake_July_2024.jpg",
-      "imageCredit": {
-        "author": "Trevorrrrvalent",
-        "license": "CC BY 4.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AEdward%20Medard%20Park%20Lake%20July%202024.jpg",
-        "sourceFamily": "commons-geosearch"
-      }
+      "hidden": false
     },
     {
       "key": "p|edward-medard-park-canoe-kayak-launch",
@@ -14360,15 +14304,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Edward_Medard_Park_Lake_July_2024.jpg/1280px-Edward_Medard_Park_Lake_July_2024.jpg",
-      "imageCredit": {
-        "author": "Trevorrrrvalent",
-        "license": "CC BY 4.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AEdward%20Medard%20Park%20Lake%20July%202024.jpg",
-        "sourceFamily": "commons-geosearch"
-      }
+      "hidden": false
     },
     {
       "key": "p|edward-w-chance-reserve-coker-prairie-tract",
@@ -16203,15 +16139,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 0,
-      "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Fort_Hamer_Bridge.jpg/1280px-Fort_Hamer_Bridge.jpg",
-      "imageCredit": {
-        "author": "Mykhaylovdimitriy",
-        "license": "CC BY-SA 4.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AFort%20Hamer%20Bridge.jpg",
-        "sourceFamily": "commons-geosearch"
-      }
+      "hidden": false
     },
     {
       "key": "p|fort-hamer-public-boat-ramp",
@@ -16238,15 +16166,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Fort_Hamer_Bridge.jpg/1280px-Fort_Hamer_Bridge.jpg",
-      "imageCredit": {
-        "author": "Mykhaylovdimitriy",
-        "license": "CC BY-SA 4.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AFort%20Hamer%20Bridge.jpg",
-        "sourceFamily": "commons-geosearch"
-      }
+      "hidden": false
     },
     {
       "key": "p|fossil-park",
@@ -16339,15 +16259,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 0,
-      "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Ybor_City_%288061548385%29.jpg/1280px-Ybor_City_%288061548385%29.jpg",
-      "imageCredit": {
-        "author": "Walter from Tampa/St Petersburg, Florida",
-        "license": "CC BY 2.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AYbor%20City%20(8061548385).jpg",
-        "sourceFamily": "commons-geosearch"
-      }
+      "hidden": false
     },
     {
       "key": "p|foundation-coffee-company",
@@ -16372,15 +16284,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": false,
-      "image": "/place-img/foundation-coffee-company.jpg",
-      "imageCredit": {
-        "author": "jackdripper",
-        "license": "CC BY-SA 4.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-        "url": "https://www.mapillary.com/app/?focus=photo&pKey=484893932562446",
-        "sourceFamily": "mapillary-sign"
-      }
+      "hidden": false
     },
     {
       "key": "p|fountain-of-youth-park",
@@ -21607,15 +21511,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": false,
-      "image": "/place-img/indian-shores-coffee.jpg",
-      "imageCredit": {
-        "author": "fdot_vl",
-        "license": "CC BY-SA 4.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-        "url": "https://www.mapillary.com/app/?focus=photo&pKey=1342952362741418",
-        "sourceFamily": "mapillary-sign"
-      }
+      "hidden": false
     },
     {
       "key": "p|indian-shores-tiki-gardens-beach-access",
@@ -23725,15 +23621,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Ken_Thompson_Park_-_Sarasota%2C_Florida_2023-01-23_%2801%29.jpg/1280px-Ken_Thompson_Park_-_Sarasota%2C_Florida_2023-01-23_%2801%29.jpg",
-      "imageCredit": {
-        "author": "Ryan Hodnett",
-        "license": "CC BY-SA 4.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AKen%20Thompson%20Park%20-%20Sarasota%2C%20Florida%202023-01-23%20(01).jpg",
-        "sourceFamily": "commons-geosearch"
-      }
+      "hidden": false
     },
     {
       "key": "p|ken-thompson-park-kayak-beach",
@@ -23760,15 +23648,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Ken_Thompson_Park_-_Sarasota%2C_Florida_2023-01-23_%2801%29.jpg/1280px-Ken_Thompson_Park_-_Sarasota%2C_Florida_2023-01-23_%2801%29.jpg",
-      "imageCredit": {
-        "author": "Ryan Hodnett",
-        "license": "CC BY-SA 4.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AKen%20Thompson%20Park%20-%20Sarasota%2C%20Florida%202023-01-23%20(01).jpg",
-        "sourceFamily": "commons-geosearch"
-      }
+      "hidden": false
     },
     {
       "key": "p|kenly",
@@ -27715,15 +27595,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Morris_Bridge_Summer_Day_%289433839633%29.jpg/1280px-Morris_Bridge_Summer_Day_%289433839633%29.jpg",
-      "imageCredit": {
-        "author": "Trish Hartmann from Tampa, Florida, USA",
-        "license": "CC BY 2.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AMorris%20Bridge%20Summer%20Day%20(9433839633).jpg",
-        "sourceFamily": "commons-geosearch"
-      }
+      "hidden": false
     },
     {
       "key": "p|lower-hillsborough-wilderness-preserve-oak-ridge-equestrian-area",
@@ -30796,15 +30668,7 @@
         "Wilderness Park @ Morris Bridge"
       ],
       "hiddenScore": 3,
-      "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Morris_Bridge_Summer_Day_%289433839633%29.jpg/1280px-Morris_Bridge_Summer_Day_%289433839633%29.jpg",
-      "imageCredit": {
-        "author": "Trish Hartmann from Tampa, Florida, USA",
-        "license": "CC BY 2.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AMorris%20Bridge%20Summer%20Day%20(9433839633).jpg",
-        "sourceFamily": "commons-geosearch"
-      }
+      "hidden": false
     },
     {
       "key": "p|mort-nfl-yet",
@@ -33975,14 +33839,6 @@
       "wikidata": "Q7128121",
       "hiddenScore": 0,
       "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/CassiaFistula02_PalmaSola_Asit.jpg/1280px-CassiaFistula02_PalmaSola_Asit.jpg",
-      "imageCredit": {
-        "author": "Asit K. Ghosh Thaumaturgist",
-        "license": "CC BY-SA 3.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ACassiaFistula02%20PalmaSola%20Asit.jpg",
-        "sourceFamily": "wikidata-p18"
-      },
       "description": "Palma Sola Botanical Park is a botanical garden located at 9800 17th Avenue N.W. Bradenton, Florida, United States. The park showcases collections of rare palms, fruits, and flowering trees, as well as three lakes, a butterfly garden, gazebo, and pavilion. It is open daily without charge."
     },
     {
@@ -35064,15 +34920,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 4,
-      "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Bro_Bowl_at_Perry_Harvey_Sr._Park_-_Tampa%2C_Florida.jpg/1280px-Bro_Bowl_at_Perry_Harvey_Sr._Park_-_Tampa%2C_Florida.jpg",
-      "imageCredit": {
-        "author": "Payton Chung from DCA, USA",
-        "license": "CC BY 2.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3ABro%20Bowl%20at%20Perry%20Harvey%20Sr.%20Park%20-%20Tampa%2C%20Florida.jpg",
-        "sourceFamily": "commons-geosearch"
-      }
+      "hidden": false
     },
     {
       "key": "p|perry-havery-senior-park",
@@ -46675,15 +46523,7 @@
       ],
       "srcCount": 2,
       "hiddenScore": 3,
-      "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Sunset_Beach%2C_Tarpon_Springs%2C_United_States_%28Unsplash%29.jpg/1280px-Sunset_Beach%2C_Tarpon_Springs%2C_United_States_%28Unsplash%29.jpg",
-      "imageCredit": {
-        "author": "AnonymousUnknown author",
-        "license": "CC0",
-        "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-        "url": "https://commons.wikimedia.org/wiki/File%3ASunset%20Beach%2C%20Tarpon%20Springs%2C%20United%20States%20(Unsplash).jpg",
-        "sourceFamily": "commons-geosearch"
-      }
+      "hidden": false
     },
     {
       "key": "p|sunset-beach-park-sand-launch-beach-city-permit-required",
@@ -46709,15 +46549,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 3,
-      "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Sunset_Beach%2C_Tarpon_Springs%2C_United_States_%28Unsplash%29.jpg/1280px-Sunset_Beach%2C_Tarpon_Springs%2C_United_States_%28Unsplash%29.jpg",
-      "imageCredit": {
-        "author": "AnonymousUnknown author",
-        "license": "CC0",
-        "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-        "url": "https://commons.wikimedia.org/wiki/File%3ASunset%20Beach%2C%20Tarpon%20Springs%2C%20United%20States%20(Unsplash).jpg",
-        "sourceFamily": "commons-geosearch"
-      }
+      "hidden": false
     },
     {
       "key": "p|sunset-beach-pavilion",
@@ -48165,15 +47997,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 0,
-      "hidden": false,
-      "image": "/place-img/tenth-street-coffee.jpg",
-      "imageCredit": {
-        "author": "jcox",
-        "license": "CC BY-SA 4.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-        "url": "https://www.mapillary.com/app/?focus=photo&pKey=650653606780814",
-        "sourceFamily": "mapillary-sign"
-      }
+      "hidden": false
     },
     {
       "key": "p|terra-ceia-bay-at-highway-19-southbound-paddlecraft-access",
@@ -54240,15 +54064,7 @@
       ],
       "srcCount": 1,
       "hiddenScore": 0,
-      "hidden": false,
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Ybor_City_%288061548385%29.jpg/1280px-Ybor_City_%288061548385%29.jpg",
-      "imageCredit": {
-        "author": "Walter from Tampa/St Petersburg, Florida",
-        "license": "CC BY 2.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-        "url": "https://commons.wikimedia.org/wiki/File%3AYbor%20City%20(8061548385).jpg",
-        "sourceFamily": "commons-geosearch"
-      }
+      "hidden": false
     },
     {
       "key": "p|yellow-brick-park",

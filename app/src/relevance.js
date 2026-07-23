@@ -1,0 +1,339 @@
+import { eventActionability } from '../../shared/city-time.mjs'
+import { rankItems, selectFirstScreen, RANK_REASON_CODES } from '../../shared/rank.mjs'
+import { primaryKeyOf } from './identity.js'
+import { presentLeadImage } from './leadImage.js'
+import { buildPersonalPreferences } from './personal-relevance.js'
+
+const STATE_CODES = new Map([
+  ['florida', 'FL'],
+  ['california', 'CA'],
+])
+const REASON_COPY = Object.freeze({
+  [RANK_REASON_CODES.SOURCE_CORROBORATED]: 'Confirmed by multiple sources',
+  [RANK_REASON_CODES.DETAIL_RICH]: 'Useful event details available',
+  [RANK_REASON_CODES.LOCATION_KNOWN]: 'Location confirmed',
+  [RANK_REASON_CODES.TIME_KNOWN]: 'Time confirmed',
+  [RANK_REASON_CODES.PRICE_KNOWN]: 'Price details available',
+  [RANK_REASON_CODES.ORGANIZER_IDENTIFIED]: 'Organizer identified',
+  [RANK_REASON_CODES.PREFERENCE_MATCH]: 'Matches your interests',
+})
+
+function invariant(condition, message) {
+  if (!condition) throw new TypeError(message)
+}
+
+function plainObject(value) {
+  return value && typeof value === 'object' && !Array.isArray(value)
+}
+
+function text(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null
+}
+
+function family(value) {
+  const source = text(value)
+  return source ? source.replace(/\s*\([^)]*\)\s*$/, '').trim() : null
+}
+
+function sourceValue(value) {
+  if (plainObject(value)) return family(value.family || value.name || value.source)
+  return family(value)
+}
+
+function eventSources(event) {
+  const sources = Array.isArray(event.sourceFamilies)
+    ? event.sourceFamilies
+    : Array.isArray(event.sources) ? event.sources : [event.sourceFamily || event.source]
+  return [...new Set(sources.map(sourceValue).filter(Boolean))]
+}
+
+export function runtimeRankingId(item) {
+  const explicit = text(item?.id) || text(item?.key)
+  if (explicit) return explicit
+  const primary = primaryKeyOf(item)
+  invariant(text(primary) && primary !== '|', 'item needs stable identity evidence')
+  return primary
+}
+
+function regionCodes(city) {
+  if (Array.isArray(city.regionCodes) && city.regionCodes.length > 0) return city.regionCodes
+  const explicit = text(city.regionCode)
+  if (explicit) return [explicit]
+  const derived = STATE_CODES.get((text(city.region) || '').toLowerCase())
+  invariant(derived, 'city.regionCode or city.regionCodes is required for this region')
+  return [derived]
+}
+
+function market(city) {
+  invariant(plainObject(city) && text(city.id), 'city.id is required')
+  invariant(text(city.tz), 'city.tz is required')
+  const box = city.bbox
+  invariant(plainObject(box), 'city.bbox is required')
+  const bbox = {
+    latMin: box.latMin ?? box.south,
+    latMax: box.latMax ?? box.north,
+    lngMin: box.lngMin ?? box.west,
+    lngMax: box.lngMax ?? box.east,
+  }
+  return { id: city.id, bbox, regionCodes: regionCodes(city) }
+}
+
+/** Shared conversion from current CITY shape to the objective quality contract. */
+export function runtimeQualityPolicy({
+  kind,
+  nowMs,
+  city,
+  knownJunkIds = [],
+  knownFalseMergeIds = [],
+} = {}) {
+  invariant(kind === 'events' || kind === 'places', 'kind must be events or places')
+  invariant(Number.isFinite(nowMs), 'nowMs must be finite')
+  invariant(Array.isArray(knownJunkIds), 'knownJunkIds must be an array')
+  invariant(Array.isArray(knownFalseMergeIds), 'knownFalseMergeIds must be an array')
+  return {
+    kind,
+    nowMs,
+    timeZone: city?.tz,
+    market: market(city),
+    knownJunkIds: [...knownJunkIds],
+    knownFalseMergeIds: [...knownFalseMergeIds],
+  }
+}
+
+function wrappers(tonightItems) {
+  invariant(Array.isArray(tonightItems), 'tonightItems must be an array')
+  return tonightItems.map((candidate, index) => {
+    invariant(plainObject(candidate), `tonightItems[${index}] must be an object`)
+    const wrapped = plainObject(candidate.e) ? candidate : { e: candidate, withDate: false }
+    invariant(text(wrapped.e.id), `tonightItems[${index}].e.id is required`)
+    return wrapped
+  })
+}
+
+function projectedEvent(wrapper, { nowMs, city }) {
+  const event = wrapper.e
+  const sources = eventSources(event)
+  const availability = eventActionability(event, { nowMs, timeZone: city.tz })
+  // A same-state address is not proof that a coordinate-less event belongs to
+  // a metro corridor (for example, Napa is not SF/East Bay coverage). Lead
+  // placement therefore needs coordinates, which the bbox gate verifies, or
+  // an explicit upstream market attachment. The address remains browseable.
+  const hasCoordinates = Number.isFinite(event.lat) && Number.isFinite(event.lng)
+  const hasVerifiedMarket = hasCoordinates
+    || event.marketId === city.id
+    || event.addressMarketId === city.id
+  return {
+    id: runtimeRankingId(event),
+    title: event.title,
+    start: event.start,
+    end: event.end,
+    allDay: event.allDay,
+    status: event.status,
+    sourceFamily: family(event.sourceFamily || sources[0]),
+    sourceFamilies: sources,
+    organizer: event.organizer,
+    category: event.category,
+    rawCategories: event.rawCategories,
+    venue: event.venue,
+    venueId: event.venueId,
+    address: event.address,
+    lat: event.lat,
+    lng: event.lng,
+    description: event.description,
+    descriptionLength: Number.isFinite(event.descriptionLength)
+      ? event.descriptionLength
+      : typeof event.description === 'string' ? event.description.length : null,
+    price: event.price,
+    priceMin: event.priceMin,
+    priceMax: event.priceMax,
+    priceState: event.priceState,
+    isFree: event.isFree === true || event._free === true
+      ? true
+      : event.isFree === false ? false : null,
+    canonicalId: event.canonicalId || event.canonicalKey || event.id,
+    seriesId: event.seriesId || event.seriesKey || event.recurrence?.seriesId || event.recurrence?.seriesKey || null,
+    recurrence: event.recurrence,
+    actionability: availability.actionable
+      && availability.time?.kind === 'timed'
+      && event._actionable !== false,
+    lowInformation: event.lowInformation === true || !hasVerifiedMarket,
+    isBusiness: event.isBusiness === true,
+    isGeneric: event.isGeneric === true,
+    isChain: event.isChain === true,
+    isRecurring: event.isRecurring === true || event.recurrence?.kind === 'recurring',
+    marketId: event.marketId,
+    rankingEvidence: event.rankingEvidence,
+    runtimeStarted: availability.time?.kind === 'timed' && availability.time.startAt < nowMs,
+  }
+}
+
+function projectedPlace(place, { city }) {
+  const id = runtimeRankingId(place)
+  const sources = eventSources(place)
+  const hasCoordinates = Number.isFinite(place.lat) && Number.isFinite(place.lng)
+  const hasVerifiedMarket = hasCoordinates
+    || place.marketId === city.id
+    || place.addressMarketId === city.id
+  return {
+    id,
+    key: place.key,
+    title: place.title || place.name,
+    sourceFamily: sourceValue(place.sourceFamily || sources[0]),
+    sourceFamilies: sources,
+    category: place.category,
+    placeType: place.placeType,
+    classes: Array.isArray(place.classes) ? place.classes : [],
+    activities: Array.isArray(place.activities) ? place.activities : [],
+    activityIds: Array.isArray(place.activityIds) ? place.activityIds : [],
+    amenities: Array.isArray(place.amenities) ? place.amenities : [],
+    venueId: place.venueId || place.operatorId || null,
+    venueOrOperator: place.venueOrOperator || place.operator || place.brand || place.title || place.name,
+    address: place.address,
+    lat: place.lat,
+    lng: place.lng,
+    description: place.description,
+    descriptionLength: Number.isFinite(place.descriptionLength)
+      ? place.descriptionLength
+      : typeof place.description === 'string' ? place.description.length : null,
+    price: place.price,
+    priceMin: place.priceMin,
+    priceMax: place.priceMax,
+    priceState: place.priceState,
+    isFree: place.isFree === true ? true : place.isFree === false ? false : null,
+    canonicalId: place.canonicalId || place.canonicalKey || place.key || id,
+    actionability: hasVerifiedMarket,
+    lowInformation: place.lowInformation === true || !hasVerifiedMarket,
+    isBusiness: place.isBusiness === true,
+    isGeneric: place.isGeneric === true,
+    isChain: place.isChain === true,
+    marketId: place.marketId,
+    addressMarketId: place.addressMarketId,
+  }
+}
+
+/** Convert the existing taste profile into a bounded signed preference layer. */
+export function signedRuntimeTaste(taste = {}) {
+  return buildPersonalPreferences(taste, { kind: 'events' })
+}
+
+/**
+ * Rank a complete runtime event/place result set without changing membership.
+ * Surface-specific matching stays in the caller as bounded context; objective
+ * quality, city truth, signed taste, and diversity stay centralized here.
+ */
+export function rankRuntimeItems(items, {
+  kind,
+  nowMs,
+  city,
+  taste = {},
+  context = {},
+  diversityPolicy = null,
+  knownJunkIds = [],
+  knownFalseMergeIds = [],
+} = {}) {
+  invariant(Array.isArray(items), 'items must be an array')
+  invariant(kind === 'events' || kind === 'places', 'kind must be events or places')
+  invariant(plainObject(context), 'context must be an object')
+  const projected = items.map((item, index) => {
+    invariant(plainObject(item), `items[${index}] must be an object`)
+    return kind === 'events'
+      ? projectedEvent({ e: item, withDate: false }, { nowMs, city })
+      : projectedPlace(item, { city })
+  })
+  const originalById = new Map(projected.map((item, index) => [item.id, items[index]]))
+  const ranking = rankItems(projected, {
+    kind,
+    context,
+    preferences: buildPersonalPreferences(taste, { kind, items: projected }),
+    qualityPolicy: runtimeQualityPolicy({
+      kind,
+      nowMs,
+      city,
+      knownJunkIds,
+      knownFalseMergeIds,
+    }),
+    diversityPolicy,
+  })
+  return {
+    ...ranking,
+    ordered: ranking.ordered.map(item => originalById.get(item.id)),
+    scored: ranking.scored.map(scored => ({ ...scored, item: originalById.get(scored.id) })),
+  }
+}
+
+function whyCopy(scored, wrapper) {
+  if (scored.reasons.includes(RANK_REASON_CODES.PREFERENCE_MATCH)) return REASON_COPY[RANK_REASON_CODES.PREFERENCE_MATCH]
+  if (scored.reasons.includes(RANK_REASON_CODES.SOURCE_CORROBORATED)) return REASON_COPY[RANK_REASON_CODES.SOURCE_CORROBORATED]
+  const time = scored.reasons.includes(RANK_REASON_CODES.TIME_KNOWN)
+  const location = scored.reasons.includes(RANK_REASON_CODES.LOCATION_KNOWN)
+  if (time && location) return wrapper.withDate ? 'Tomorrow time and location confirmed' : 'Tonight time and location confirmed'
+  for (const code of scored.reasons) if (REASON_COPY[code]) return REASON_COPY[code]
+  return null
+}
+
+function decorated(wrapper, scored, imagePolicy) {
+  const why = whyCopy(scored, wrapper)
+  const imageSafeEvent = presentLeadImage(wrapper.e, { policy: imagePolicy })
+  return {
+    ...wrapper,
+    e: {
+      ...imageSafeEvent,
+      _why: why,
+    },
+    relevance: {
+      tier: scored.tier,
+      reasonCodes: [...scored.reasons],
+      why,
+    },
+  }
+}
+
+/**
+ * Rank the exact candidates emitted by tonightModel. Weak/blocked candidates
+ * remain in `ordered`; only receipt-backed credible rows can enter `selected`.
+ */
+export function rankTonightCandidates(tonightItems, { nowMs, city, taste, limit = 3, imagePolicy } = {}) {
+  invariant(Number.isFinite(nowMs), 'nowMs must be finite')
+  invariant(Number.isInteger(limit) && limit > 0, 'limit must be a positive integer')
+  const input = wrappers(tonightItems)
+  const projected = input.map(wrapper => projectedEvent(wrapper, { nowMs, city }))
+  const context = {
+    itemScores: Object.fromEntries(projected.map((event, index) => [
+      event.id,
+      input[index].withDate ? 0 : event.runtimeStarted ? -12 : 3,
+    ])),
+  }
+  const ranking = rankItems(projected, {
+    kind: 'events',
+    context,
+    preferences: buildPersonalPreferences(taste, { kind: 'events', items: projected }),
+    qualityPolicy: runtimeQualityPolicy({ kind: 'events', nowMs, city }),
+  })
+  const first = selectFirstScreen(ranking, { limit })
+  const wrapperById = new Map(projected.map((event, index) => [event.id, input[index]]))
+  const scoreById = new Map(ranking.scored.map(scored => [scored.id, scored]))
+  const selectedIds = new Set(first.selectedScored.map(scored => scored.id))
+  const selectedById = new Map()
+  const selected = first.selectedScored.map(scored => {
+    const result = decorated(wrapperById.get(scored.id), scored, imagePolicy)
+    selectedById.set(scored.id, result)
+    return result
+  })
+  const ordered = first.ordered.map(event => {
+    const wrapper = wrapperById.get(event.id)
+    return selectedIds.has(event.id) ? decorated(wrapper, scoreById.get(event.id), imagePolicy) : wrapper
+  })
+  const selectedScored = first.selectedScored.map(scored => ({
+    ...scored,
+    item: selectedById.get(scored.id),
+  }))
+  return {
+    selected,
+    ordered,
+    selectedScored,
+    scored: ranking.scored,
+    limited: first.limited,
+    availableLeadCount: first.availableLeadCount,
+    reachability: first.reachability,
+  }
+}

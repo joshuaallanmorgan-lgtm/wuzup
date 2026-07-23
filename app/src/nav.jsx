@@ -9,10 +9,9 @@
 // 5-deep callback prop-drilling. ZERO behavior change — the logic below moved
 // here verbatim from App.jsx; the smoke harness + a hand pass guard it.
 //
-// The two signal-capture seams stay INSIDE the moved handlers so taste/recents
-// recording is single-sourced no matter which surface opens a detail/bubble:
-//   openDetail → recordSignal('open') + recordView
-//   openBubble → recordSignal('bubble') for category bubbles only
+// Retained detail activity stays inside openDetail so every surface uses the
+// same truth-gated personal-signal handoff. Bubble/filter navigation is not a
+// durable preference and deliberately records no taste evidence.
 //
 // Contracts preserved (and load-bearing — do not reorder):
 //   · View-Transition morph: openDetail names the tapped card's [data-vt]
@@ -29,8 +28,19 @@
 // to a function during render"); the semantically identical JSX form passes.
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
-import { recordSignal } from './taste.js'
-import { recordView } from './recents.js'
+import { useActivity } from './ActivityProvider.jsx'
+import { primaryKeyOf } from './identity.js'
+import { capturePersonalSignal } from './personal-signals.js'
+import {
+  ROUTE_STATE_VERSION,
+  navIdToRouteTab,
+  normalizeRouteState,
+  parseRouteQuery,
+  routeTabToNavId,
+  serializeRouteHref,
+  validRouteIdentity,
+} from './route-state.js'
+import { dayIdAt } from '../../shared/city-time.mjs'
 
 // the tab roster — ids are the stable identity, INDICES ARE DERIVED (audit
 // prep #1: nothing may hardcode a position). Sprint O1: four populated tabs.
@@ -72,13 +82,124 @@ const supportsVT = () =>
 
 const NavContext = createContext(null)
 
+const ROUTE_QUERY_KEYS = Object.freeze(['city', 'tab', 'event', 'place', 'guide', 'day', 'shared'])
+
+function tabRoute(cityId, navId = 'home') {
+  const tab = navIdToRouteTab(navId) || 'home'
+  return normalizeRouteState({ v: ROUTE_STATE_VERSION, cityId, tab, target: null })
+}
+
+function initialRouteSnapshot({ cityId, search = '', hash = '' }) {
+  const params = new URLSearchParams(String(search).replace(/^\?/, ''))
+  const ownsQuery = ROUTE_QUERY_KEYS.some((key) => params.has(key))
+  if (!ownsQuery) return Object.freeze({ route: tabRoute(cityId), fragment: '', issue: null })
+  const parsed = parseRouteQuery(search)
+  if (!parsed.ok) {
+    return Object.freeze({
+      route: tabRoute(cityId),
+      fragment: '',
+      issue: Object.freeze({ status: 'unavailable', code: parsed.code }),
+    })
+  }
+  if (parsed.route.cityId !== cityId) {
+    return Object.freeze({
+      route: tabRoute(cityId),
+      fragment: '',
+      issue: Object.freeze({
+        status: 'unavailable',
+        code: 'ROUTE_CITY_UNAVAILABLE',
+        requestedCityId: parsed.route.cityId,
+        activeCityId: cityId,
+      }),
+    })
+  }
+  return Object.freeze({
+    route: parsed.route,
+    fragment: parsed.route.target?.kind === 'shared-plan' ? String(hash || '') : '',
+    issue: null,
+  })
+}
+
+function routeForPage(city, activeNavId, page) {
+  const base = tabRoute(city.id, activeNavId)
+  if (!base || !page) return base
+  let target = null
+  if (page.type === 'guide') {
+    const raw = typeof page.guide?.id === 'string' ? page.guide.id : ''
+    const id = raw.startsWith('g|') ? raw : `g|${raw}`
+    if (validRouteIdentity('guide', id)) target = { kind: 'guide', id }
+  } else if (page.type === 'day' && Number.isFinite(page.ts)) {
+    target = { kind: 'day', day: dayIdAt(page.ts, city.tz) }
+  } else if (page.type === 'sharedplan') {
+    target = { kind: 'shared-plan' }
+  }
+  return normalizeRouteState({ ...base, target }) || base
+}
+
+function routeForDetail(city, activeNavId, detail) {
+  const base = tabRoute(city.id, activeNavId)
+  if (!base || !detail) return base
+  const kind = detail.kind === 'place' ? 'place' : 'event'
+  const id = primaryKeyOf(detail)
+  return validRouteIdentity(kind, id)
+    ? normalizeRouteState({ ...base, target: { kind, id } })
+    : base
+}
+
+function sameRoute(left, right) {
+  return Boolean(left && right && JSON.stringify(left) === JSON.stringify(right))
+}
+
 export function useNav() {
   return useContext(NavContext)
 }
 
-export function NavProvider({ children }) {
+export function NavProvider({ children, city, baseUrl = '/' }) {
+  const { recordView } = useActivity()
+  const [initial] = useState(() => initialRouteSnapshot({
+    cityId: city.id,
+    search: window.location.search,
+    hash: window.location.hash,
+  }))
+  const initialNavId = routeTabToNavId(initial.route.tab) || 'home'
+  const initialActive = Math.max(0, viewIndex(initialNavId))
+  const [existingDepth] = useState(() => (
+    window.history.state?.wzRoute === ROUTE_STATE_VERSION
+      && Number.isInteger(window.history.state?.wzDepth)
+      && window.history.state.wzDepth >= 0
+      ? window.history.state.wzDepth
+      : null
+  ))
+  const [initialDepth] = useState(
+    () => existingDepth ?? (initial.issue === null && initial.route.target !== null ? 1 : 0),
+  )
+  const [initialPage] = useState(() => initial.issue === null
+    ? null
+    : Object.freeze({
+      type: 'route-unavailable',
+      outcome: initial.issue,
+      requestedRoute: null,
+    }))
+  const histDepthRef = useRef(initialDepth)
+  const detailOpenRef = useRef(false)
+  const pageOpenRef = useRef(false)
+  const currentRouteRef = useRef(initial.route)
+  const routeRequestIdRef = useRef(initial.issue === null && initial.route.target !== null ? 1 : 0)
+  const skipPageHistoryRef = useRef(initialPage)
+  const skipDetailHistoryRef = useRef(null)
+  const [routeIntent, setRouteIntent] = useState(() => (
+    initial.issue === null && initial.route.target !== null
+      ? Object.freeze({
+        id: 1,
+        route: initial.route,
+        fragment: initial.fragment,
+        historyDepth: initialDepth,
+        preservePage: false,
+      })
+      : null
+  ))
   // ===== active tab + pager =====
-  const [active, setActive] = useState(0)
+  const [active, setActive] = useState(initialActive)
   // ===== lazy tab mounting (O1): the pager's section SHELLS always render
   // (scroll-snap needs all N widths), but a tab's CHILDREN mount on its FIRST
   // visit only — the boot tab is seeded, so boot renders exactly one tab's
@@ -88,19 +209,80 @@ export function NavProvider({ children }) {
   // tab hops. Visits are recorded INSIDE the two tab-changing handlers (goTo /
   // onPagerScroll) — event-driven, not an effect; a swipe counts the moment
   // the page crosses halfway (Math.round), so it mounts mid-gesture. =====
-  const [visited, setVisited] = useState(() => new Set([VIEWS[0].id]))
+  const [visited, setVisited] = useState(() => new Set([VIEWS[initialActive].id]))
   const visit = useCallback((i) => {
     const id = VIEWS[i]?.id
     if (!id) return
     setVisited((prev) => (prev.has(id) ? prev : new Set(prev).add(id)))
   }, [])
   const pagerRef = useRef(null)
+  const initialPagerIndexRef = useRef(initialActive)
   // App attaches the pager element through this ref CALLBACK (not the ref
   // object itself — a raw ref in the context value trips react-hooks/refs,
   // and rightly: nothing should read .current during render)
   const attachPager = useCallback((el) => {
     pagerRef.current = el
+    // URL-restored tabs must align the physical pager immediately. Active
+    // state alone selects the tab bar while leaving Home visible at scroll 0.
+    if (el) el.scrollLeft = initialPagerIndexRef.current * el.clientWidth
   }, [])
+  const hrefForRoute = useCallback((route, fragment = '') => {
+    const suffix = route?.target?.kind === 'shared-plan' ? fragment : ''
+    return `${serializeRouteHref(route, { baseUrl })}${suffix}`
+  }, [baseUrl])
+  const writeRoute = useCallback((route, {
+    mode = 'push',
+    depth = histDepthRef.current,
+    fragment = '',
+  } = {}) => {
+    const normalized = normalizeRouteState(route)
+    if (!normalized || normalized.cityId !== city.id) return false
+    const href = hrefForRoute(normalized, fragment)
+    if (mode === 'replace') {
+      window.history.replaceState(
+        { wzDepth: depth, wzRoute: ROUTE_STATE_VERSION },
+        '',
+        href,
+      )
+    } else {
+      window.history.pushState(
+        { wzDepth: depth, wzRoute: ROUTE_STATE_VERSION },
+        '',
+        href,
+      )
+    }
+    currentRouteRef.current = normalized
+    return true
+  }, [city.id, hrefForRoute])
+
+  // Canonicalize the current static-deployment address once. A first visit to
+  // a durable target receives an in-app tab entry underneath it, so Back from
+  // a refreshed/shared detail stays inside Wuzup. Reloads retain the marker and
+  // replace in place instead of growing the history stack.
+  useEffect(() => {
+    if (initial.issue !== null) return
+    const target = initial.route.target
+    if (target !== null && existingDepth === null) {
+      const base = normalizeRouteState({ ...initial.route, target: null })
+      window.history.replaceState(
+        { wzDepth: 0, wzRoute: ROUTE_STATE_VERSION },
+        '',
+        hrefForRoute(base),
+      )
+      window.history.pushState(
+        { wzDepth: 1, wzRoute: ROUTE_STATE_VERSION },
+        '',
+        hrefForRoute(initial.route, initial.fragment),
+      )
+      histDepthRef.current = 1
+    } else {
+      writeRoute(initial.route, {
+        mode: 'replace',
+        depth: initialDepth,
+        fragment: initial.fragment,
+      })
+    }
+  }, [existingDepth, hrefForRoute, initial, initialDepth, writeRoute])
   const goTo = useCallback(
     (i) => {
       setActive(i)
@@ -122,8 +304,19 @@ export function NavProvider({ children }) {
         void child.offsetWidth
         child.classList.add('tab-settle')
       }
+
+      // A tab is the base URL-visible state. Covered layers normally make the
+      // tab bar inert; the ref guard also prevents programmatic tab changes
+      // from rewriting a still-open page/detail entry.
+      if (!pageOpenRef.current && !detailOpenRef.current) {
+        const nextRoute = tabRoute(city.id, VIEWS[i]?.id)
+        if (nextRoute && !sameRoute(currentRouteRef.current, nextRoute)) {
+          histDepthRef.current = 0
+          writeRoute(nextRoute, { mode: 'push', depth: 0 })
+        }
+      }
     },
-    [visit]
+    [city.id, visit, writeRoute]
   )
   const onPagerScroll = useCallback(() => {
     const p = pagerRef.current
@@ -131,7 +324,14 @@ export function NavProvider({ children }) {
     const i = Math.round(p.scrollLeft / p.clientWidth)
     setActive((prev) => (i !== prev ? i : prev))
     visit(i)
-  }, [visit])
+    if (!pageOpenRef.current && !detailOpenRef.current) {
+      const nextRoute = tabRoute(city.id, VIEWS[i]?.id)
+      if (nextRoute && !sameRoute(currentRouteRef.current, nextRoute)) {
+        histDepthRef.current = 0
+        writeRoute(nextRoute, { mode: 'replace', depth: 0 })
+      }
+    }
+  }, [city.id, visit, writeRoute])
 
   // ===== subpage overlay: null | {type:'bubble',bubble} |
   // {type:'placebubble',bubble} (Sprint S) | {type:'search'} |
@@ -145,20 +345,14 @@ export function NavProvider({ children }) {
   // affordances reopen settings, so "one level deep" stays true in feel while
   // the union stays flat in state). Sprint Q2 added lensdeck (the finite
   // "Deck this" mode) on the same replace-the-page pattern (a bubble-lens
-  // deck's back affordance reopens its bubble via the quiet openBubble flag
-  // below) and Q2c swapped the retired 7-screen interview for interests (the
+  // deck's back affordance reopens its bubble without recording navigation as
+  // preference) and Q2c swapped the retired 7-screen interview for interests (the
   // InterestEditor) — both interests and deck carry a `from` origin so their
   // back affordances return where the user actually came from. =====
-  const [page, setPage] = useState(null)
+  const [page, setPage] = useState(initialPage)
   const [pageClosing, setPageClosing] = useState(false)
   const pageTRef = useRef(null)
-  const openBubble = useCallback((bubble, opts) => {
-    // taste seam: tapping a CATEGORY bubble is a (weak) interest signal;
-    // time/free/near bubbles say nothing about category taste. {quiet:true}
-    // skips the signal — LensDeck's back affordance RE-opens the bubble the
-    // user already tapped once, and navigation back is not a second interest
-    // tap (the exactly-once seam contract, Sprint Q3).
-    if (bubble.kind === 'cat' && !opts?.quiet) recordSignal('bubble', { category: bubble.value })
+  const openBubble = useCallback((bubble) => {
     clearTimeout(pageTRef.current)
     setPageClosing(false)
     setPage({ type: 'bubble', bubble })
@@ -169,9 +363,8 @@ export function NavProvider({ children }) {
     setPage({ type: 'search' })
   }, [])
   // Sprint S: a tapped Locations bubble → a full PlaceBubblePage (the place-side
-  // twin of openBubble). No taste signal here — a place's interest signal is
-  // recorded on detail OPEN (the shared openDetail seam), same as events; the
-  // bubble tap is just navigation. `bubble` is a PLACE_BUBBLES entry.
+  // twin of openBubble). This is navigation only; preference comes from
+  // retained save/plan/deck actions. `bubble` is a PLACE_BUBBLES entry.
   const openPlaceBubble = useCallback((bubble) => {
     clearTimeout(pageTRef.current)
     setPageClosing(false)
@@ -279,6 +472,11 @@ export function NavProvider({ children }) {
     setPageClosing(false)
     setPage({ type: 'attribution' })
   }, [])
+  const openDataTransfer = useCallback(() => {
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    setPage({ type: 'datatransfer' })
+  }, [])
   // Q2c: the InterestEditor. `from` is honored ONLY as the literal 'settings'
   // (callers pass it through onClick, so a click-event arg must read as "not
   // from settings") — it routes the editor's back affordance: settings row →
@@ -322,13 +520,6 @@ export function NavProvider({ children }) {
     setPageClosing(false)
     setPage({ type: 'lensdeck', lens })
   }, [])
-  // WS2 back-button refs (full design note at the WS2 block below): history
-  // entry count we own + per-layer open flags, flipped at open (effects) and
-  // at close INITIATION (the Now-closers), so races can't desync them.
-  const histDepthRef = useRef(0)
-  const detailOpenRef = useRef(false)
-  const pageOpenRef = useRef(false)
-
   // the REAL page close (animation owner) — flips its open-ref at INITIATION so
   // the history layer (WS2 below) sees the close immediately, not 400ms later.
   const closePageNow = useCallback(() => {
@@ -348,9 +539,34 @@ export function NavProvider({ children }) {
   const [closing, setClosing] = useState(false)
   const [vtOpen, setVtOpen] = useState(false)
   const morphElRef = useRef(null)
+  const openEditEvent = useCallback((event) => {
+    if (!event || typeof event !== 'object') return
+    const editPage = { type: 'add', ts: null, editEvent: event }
+    clearTimeout(pageTRef.current)
+    setPageClosing(false)
+    if (detailOpenRef.current) {
+      detailOpenRef.current = false
+      setClosing(false)
+      setVtOpen(false)
+      setDetail(null)
+      skipPageHistoryRef.current = editPage
+      writeRoute(routeForPage(city, VIEWS[active]?.id, editPage), {
+        mode: 'replace',
+        depth: histDepthRef.current,
+      })
+    }
+    setPage(editPage)
+  }, [active, city, writeRoute])
   const openDetail = useCallback((e, cardEl) => {
-    recordSignal('open', e) // taste seam: opening a detail = +1 category interest
-    recordView(e) // recents seam (H3): FIFO recents + the in-session list (H4)
+    // The current recap is event-only. Place views stay out of its bounded FIFO
+    // until Wuzup ships a kind-correct place-history surface.
+    if (e?.kind !== 'place') {
+      // Navigation never waits on storage, but taste waits on the exact Activity
+      // result: a failed/no-op retained view cannot manufacture a fresh signal.
+      void recordView(e)
+        .then((result) => capturePersonalSignal('open', e, { source: 'activity', result }))
+        .catch(() => {})
+    }
     setClosing(false)
     const el = cardEl ? cardEl.querySelector('[data-vt]') : null
     if (supportsVT() && el) {
@@ -373,7 +589,7 @@ export function NavProvider({ children }) {
       setVtOpen(false)
       setDetail(e)
     }
-  }, [])
+  }, [recordView])
   // the REAL detail close (animation owner) — see closePageNow's ref note.
   const closeDetailNow = useCallback(() => {
     detailOpenRef.current = false
@@ -421,27 +637,89 @@ export function NavProvider({ children }) {
   // Now-closers, which flip them at close initiation.)
   useEffect(() => {
     if (page !== null) {
+      const restored = skipPageHistoryRef.current === page
+      skipPageHistoryRef.current = null
       if (!pageOpenRef.current) {
         pageOpenRef.current = true
-        histDepthRef.current++
-        window.history.pushState({ wzDepth: histDepthRef.current }, '')
+        if (!restored) {
+          histDepthRef.current++
+          writeRoute(routeForPage(city, VIEWS[active]?.id, page), {
+            mode: 'push',
+            depth: histDepthRef.current,
+          })
+        }
+      } else if (!restored) {
+        writeRoute(routeForPage(city, VIEWS[active]?.id, page), {
+          mode: 'replace',
+          depth: histDepthRef.current,
+        })
       }
     } else pageOpenRef.current = false
-  }, [page])
+  }, [active, city, page, writeRoute])
   useEffect(() => {
     if (detail !== null) {
+      const restored = skipDetailHistoryRef.current === detail
+      skipDetailHistoryRef.current = null
       if (!detailOpenRef.current) {
         detailOpenRef.current = true
-        histDepthRef.current++
-        window.history.pushState({ wzDepth: histDepthRef.current }, '')
+        if (!restored) {
+          histDepthRef.current++
+          writeRoute(routeForDetail(city, VIEWS[active]?.id, detail), {
+            mode: 'push',
+            depth: histDepthRef.current,
+          })
+        }
+      } else if (!restored) {
+        writeRoute(routeForDetail(city, VIEWS[active]?.id, detail), {
+          mode: 'replace',
+          depth: histDepthRef.current,
+        })
       }
     } else detailOpenRef.current = false
-  }, [detail])
+  }, [active, city, detail, writeRoute])
   useEffect(() => {
     const onPop = (ev) => {
       const target = typeof ev.state?.wzDepth === 'number' ? Math.max(0, ev.state.wzDepth) : 0
+      const snapshot = initialRouteSnapshot({
+        cityId: city.id,
+        search: window.location.search,
+        hash: window.location.hash,
+      })
+      if (snapshot.issue) {
+        const unavailable = Object.freeze({
+          type: 'route-unavailable',
+          outcome: snapshot.issue,
+          requestedRoute: null,
+        })
+        skipPageHistoryRef.current = unavailable
+        skipDetailHistoryRef.current = null
+        setPage(unavailable)
+        setDetail(null)
+        setRouteIntent(null)
+        histDepthRef.current = target
+        return
+      }
+
+      currentRouteRef.current = snapshot.route
+      const navId = routeTabToNavId(snapshot.route.tab) || 'home'
+      const index = Math.max(0, viewIndex(navId))
+      setActive(index)
+      visit(index)
+      const pager = pagerRef.current
+      if (pager) pager.scrollTo({ left: index * pager.clientWidth, behavior: 'instant' })
       let open = (detailOpenRef.current ? 1 : 0) + (pageOpenRef.current ? 1 : 0)
       histDepthRef.current = target
+      if (snapshot.route.target !== null) {
+        setRouteIntent(Object.freeze({
+          id: ++routeRequestIdRef.current,
+          route: snapshot.route,
+          fragment: snapshot.fragment,
+          historyDepth: target,
+          preservePage: pageOpenRef.current && target > 1,
+        }))
+        return
+      }
+      setRouteIntent(null)
       if (open > target && detailOpenRef.current) {
         closeDetailNow()
         open--
@@ -450,20 +728,88 @@ export function NavProvider({ children }) {
     }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
-  }, [closeDetailNow, closePageNow])
+  }, [city.id, closeDetailNow, closePageNow, visit])
   // the public closers every consumer calls — consume our history entry so the
   // real close runs through popstate; fall back to a direct close if the depth
   // ever desyncs (belt-and-braces, e.g. an open landing inside a close window).
   const closeDetail = useCallback(() => {
     if (!detailOpenRef.current) return
     if (histDepthRef.current > 0) window.history.back()
-    else closeDetailNow()
-  }, [closeDetailNow])
+    else {
+      writeRoute(tabRoute(city.id, VIEWS[active]?.id), { mode: 'replace', depth: 0 })
+      closeDetailNow()
+    }
+  }, [active, city.id, closeDetailNow, writeRoute])
   const closePage = useCallback(() => {
     if (!pageOpenRef.current) return
     if (histDepthRef.current > 0) window.history.back()
-    else closePageNow()
-  }, [closePageNow])
+    else {
+      writeRoute(tabRoute(city.id, VIEWS[active]?.id), { mode: 'replace', depth: 0 })
+      closePageNow()
+    }
+  }, [active, city.id, closePageNow, writeRoute])
+
+  // App resolves a durable target only after the corresponding verified city
+  // catalog is ready. This handoff opens that resolved object without adding a
+  // second history entry: the query-string entry already represents the layer.
+  const settleRouteIntent = useCallback((requestId, result) => {
+    if (!routeIntent || routeIntent.id !== requestId) return false
+    const resolved = result?.status === 'resolved'
+    if (resolved && result.detail) {
+      clearTimeout(pageTRef.current)
+      setPageClosing(false)
+      if (!routeIntent.preservePage) {
+        pageOpenRef.current = false
+        setPage(null)
+      }
+      skipDetailHistoryRef.current = result.detail
+      setClosing(false)
+      setVtOpen(false)
+      setDetail(result.detail)
+    } else {
+      const nextPage = resolved && result?.page
+        ? result.page
+        : Object.freeze({
+          type: 'route-unavailable',
+          outcome: result?.outcome || Object.freeze({
+            status: 'unavailable',
+            code: 'ROUTE_TARGET_UNAVAILABLE',
+          }),
+          requestedRoute: routeIntent.route,
+        })
+      detailOpenRef.current = false
+      setDetail(null)
+      clearTimeout(pageTRef.current)
+      setPageClosing(false)
+      skipPageHistoryRef.current = nextPage
+      setPage(nextPage)
+    }
+    setRouteIntent(null)
+    return true
+  }, [routeIntent])
+
+  const absoluteHref = useCallback((route, fragment = '') => (
+    new URL(hrefForRoute(route, fragment), window.location.origin).href
+  ), [hrefForRoute])
+  const durableHrefForItem = useCallback((item) => {
+    const navId = item?.kind === 'place' ? 'locations' : 'hot'
+    const route = routeForDetail(city, navId, item)
+    return route.target ? absoluteHref(route) : null
+  }, [absoluteHref, city])
+  const durableHrefForDay = useCallback((dayTs) => {
+    if (!Number.isFinite(dayTs)) return absoluteHref(tabRoute(city.id, 'calendar'))
+    return absoluteHref(normalizeRouteState({
+      ...tabRoute(city.id, 'calendar'),
+      target: { kind: 'day', day: dayIdAt(dayTs, city.tz) },
+    }))
+  }, [absoluteHref, city])
+  const durableHrefForSharedPlan = useCallback((fragment) => absoluteHref(
+    normalizeRouteState({
+      ...tabRoute(city.id, 'calendar'),
+      target: { kind: 'shared-plan' },
+    }),
+    fragment,
+  ), [absoluteHref, city.id])
 
   // D8: openMap / focusMap / the mapFocus handoff (the Map sub-view) are parked for
   // v1 — removed. Place detail routes to Google Maps via its Directions link.
@@ -496,6 +842,7 @@ export function NavProvider({ children }) {
       openGuide,
       openSearch,
       openAdd,
+      openEditEvent,
       openDay,
       openCalendarPicker,
       openSettings,
@@ -507,11 +854,18 @@ export function NavProvider({ children }) {
       openNotifications,
       openEvFilters,
       openAttribution,
+      openDataTransfer,
       openInterests,
       openTaste,
       openDeck,
       openLensDeck,
       closePage,
+      // durable routes
+      routeIntent,
+      settleRouteIntent,
+      durableHrefForItem,
+      durableHrefForDay,
+      durableHrefForSharedPlan,
       // detail
       detail,
       closing,
@@ -532,6 +886,7 @@ export function NavProvider({ children }) {
       openGuide,
       openSearch,
       openAdd,
+      openEditEvent,
       openDay,
       openCalendarPicker,
       openSettings,
@@ -543,11 +898,17 @@ export function NavProvider({ children }) {
       openNotifications,
       openEvFilters,
       openAttribution,
+      openDataTransfer,
       openInterests,
       openTaste,
       openDeck,
       openLensDeck,
       closePage,
+      routeIntent,
+      settleRouteIntent,
+      durableHrefForItem,
+      durableHrefForDay,
+      durableHrefForSharedPlan,
       detail,
       closing,
       vtOpen,

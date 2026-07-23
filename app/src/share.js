@@ -13,74 +13,83 @@
 // Sprint U-c uses these for "Share this day": shareDayText for the human text,
 // eventsIcs for the multi-VEVENT download. weekend.js's shareText (the whole
 // weekend) is untouched — the Weekend Builder still uses it verbatim.
-import { CITY, fmtLocale, parseDate, timeOf } from './lib.js'
+import { CITY, formatDayTs, timeOf } from './lib.js'
 import { DAYPART } from './weekend.js'
+import { addCalendarDays, eventTime, zonedDateTimeParts } from '../../shared/city-time.mjs'
 
 // ===== ICS (RFC 5545) =====
-// vevent(e) → the lines of ONE VEVENT (no envelope). Date-only events become
-// all-day (VALUE=DATE, exclusive DTEND); timed events use local floating
-// wall-clock. Text escaped per RFC (backslash, semicolon, comma, newline) and
-// folded at 60 UTF-16 chars (well under RFC's 75 octets even for multi-byte
-// text, never lands mid-surrogate-pair in practice). Lifted verbatim from
-// DetailPage.icsText's body — same UID derivation, so the same event always
-// produces the same UID and calendars never duplicate it.
+// Calendar identity is city-local and deterministic. Timed values carry the
+// city's IANA TZID; date-only values use RFC's exclusive DTEND convention.
 const esc = (s) =>
   String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n')
+const encoder = new TextEncoder()
+const utf8Length = (value) => encoder.encode(value).length
+
+// RFC 5545 content lines are at most 75 octets. Continuation lines begin with
+// one space, leaving 74 octets for content; iteration by code point avoids
+// splitting surrogate pairs or UTF-8 sequences.
 const fold = (line) => {
-  let s = line
-  let out = ''
-  while (s.length > 60) {
-    out += s.slice(0, 60) + '\r\n '
-    s = s.slice(60)
+  let rest = String(line)
+  const lines = []
+  let limit = 75
+  while (utf8Length(rest) > limit) {
+    let part = ''
+    for (const char of rest) {
+      if (utf8Length(part + char) > limit) break
+      part += char
+    }
+    if (!part) part = Array.from(rest)[0]
+    lines.push(part)
+    rest = rest.slice(part.length)
+    limit = 74
   }
-  return out + s
+  lines.push(rest)
+  return lines.map((part, index) => index ? ' ' + part : part).join('\r\n')
 }
+
 const p2 = (n) => String(n).padStart(2, '0')
-const dOf = (d) => '' + d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate())
-const tOf = (d) => dOf(d) + 'T' + p2(d.getHours()) + p2(d.getMinutes()) + p2(d.getSeconds())
-
-function dtStamp() {
-  const now = new Date()
-  return (
-    '' + now.getUTCFullYear() + p2(now.getUTCMonth() + 1) + p2(now.getUTCDate()) +
-    'T' + p2(now.getUTCHours()) + p2(now.getUTCMinutes()) + p2(now.getUTCSeconds()) + 'Z'
-  )
+const dayValue = (dayId) => dayId.replaceAll('-', '')
+const localValue = (epochMs) => {
+  const part = zonedDateTimeParts(epochMs, CITY.tz)
+  return String(part.year).padStart(4, '0') + p2(part.month) + p2(part.day)
+    + 'T' + p2(part.hour) + p2(part.minute) + p2(part.second)
+}
+const stampValue = (nowMs) => {
+  const part = zonedDateTimeParts(nowMs, 'UTC')
+  return String(part.year).padStart(4, '0') + p2(part.month) + p2(part.day)
+    + 'T' + p2(part.hour) + p2(part.minute) + p2(part.second) + 'Z'
 }
 
-export function vevent(e) {
-  // a calendar VEVENT needs a date. A place (Sprint S: kind:'place' slotted via
-  // Make-this-my-plan) has none — it's "always there", not a timed event — so
-  // it produces NO VEVENT and is simply absent from the .ics (it still appears
-  // in the human shareDayText). Guard the dateless/unparseable case: without
-  // this, parseDate(undefined).getFullYear() would throw mid-export.
-  if (!e || !e.start || !parseDate(e.start)) return null
-  // deterministic UID from url|title+start (same event → same UID → no dupes)
-  const idKey = (e.url || e.title || 'event') + '|' + (e.start || '')
-  let h = 0
-  for (let i = 0; i < idKey.length; i++) h = (h * 31 + idKey.charCodeAt(i)) >>> 0
-  // UID domain rides the city registry (Stage E ship gate: the old hardcoded
-  // '@whats-hot-tampa-bay' shipped Tampa-branded UIDs in every SF export).
-  // One-time UID break for pre-ship exports — acceptable, nothing is live yet.
-  const lines = ['BEGIN:VEVENT', 'UID:' + h.toString(36) + '@wuzup-' + CITY.id, 'DTSTAMP:' + dtStamp()]
-  if (/^\d{4}-\d{2}-\d{2}$/.test(e.start)) {
-    const s = parseDate(e.start)
-    const last = new Date(e._endDay ?? e._day) // last day the event runs
-    const dtend = new Date(last.getFullYear(), last.getMonth(), last.getDate() + 1) // exclusive
-    lines.push('DTSTART;VALUE=DATE:' + dOf(s), 'DTEND;VALUE=DATE:' + dOf(dtend))
+function fallbackUid(e) {
+  const key = (e.url || e.title || 'event') + '|' + (e.start || '')
+  let hash = 0
+  for (let index = 0; index < key.length; index++) hash = (hash * 31 + key.charCodeAt(index)) >>> 0
+  return hash.toString(36)
+}
+
+export function vevent(e, { nowMs = Date.now() } = {}) {
+  const canonical = eventTime(e, { timeZone: CITY.tz })
+  if (!canonical.ok) return null
+
+  const uid = e.id ? String(e.id).replace(/[^A-Za-z0-9_.-]/g, '-') : fallbackUid(e)
+  const lines = [
+    'BEGIN:VEVENT',
+    'UID:' + uid + '@wuzup-' + CITY.id,
+    'DTSTAMP:' + stampValue(nowMs),
+  ]
+
+  if (canonical.kind === 'all-day') {
+    lines.push(
+      'DTSTART;VALUE=DATE:' + dayValue(canonical.startDay),
+      'DTEND;VALUE=DATE:' + dayValue(addCalendarDays(canonical.endDay, 1)),
+    )
   } else {
-    const s = parseDate(e.start)
-    lines.push('DTSTART:' + tOf(s))
-    // timed end → literal; date-only end (timed-start festivals) → midnight
-    // after the last day, matching DTSTART's DATE-TIME value type
-    const en = e.end
-      ? /T\d/.test(e.end)
-        ? parseDate(e.end)
-        : e._endDay != null && e._endDay > e._day
-          ? new Date(new Date(e._endDay).getFullYear(), new Date(e._endDay).getMonth(), new Date(e._endDay).getDate() + 1)
-          : null
-      : null
-    if (en && en.getTime() > s.getTime()) lines.push('DTEND:' + tOf(en))
+    lines.push(
+      'DTSTART;TZID=' + CITY.tz + ':' + localValue(canonical.startAt),
+      'DTEND;TZID=' + CITY.tz + ':' + localValue(canonical.endAt),
+    )
   }
+
   lines.push(fold('SUMMARY:' + esc(e.title || 'Event')))
   const loc = [e.venue, e.address].filter(Boolean).join(', ')
   if (loc) lines.push(fold('LOCATION:' + esc(loc)))
@@ -90,26 +99,22 @@ export function vevent(e) {
   return lines
 }
 
-// wrapIcs(bodies) — the VCALENDAR envelope around any number of VEVENT line
-// arrays. The CRLF + trailing CRLF formatting matches the old single-event
-// output byte-for-byte when given exactly one body.
 export function wrapIcs(bodies) {
   const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', `PRODID:-//Wuzup ${CITY.name}//EN`, 'CALSCALE:GREGORIAN']
-  for (const b of bodies) lines.push(...b)
+  for (const body of bodies || []) if (Array.isArray(body)) lines.push(...body)
   lines.push('END:VCALENDAR')
   return lines.join('\r\n') + '\r\n'
 }
 
-// one-event calendar (DetailPage's .ics download — the old icsText, unchanged
-// output for any dated event) and a multi-event calendar (the day plan's ICS,
-// one VEVENT per slot). vevent returns null for a dateless entry (a place), so
-// both filter those out — a place is never a calendar line.
-export const eventIcs = (e) => {
-  const b = vevent(e)
-  return wrapIcs(b ? [b] : [])
+export function eventIcs(e, options = {}) {
+  const body = vevent(e, options)
+  return wrapIcs(body ? [body] : [])
 }
-export const eventsIcs = (list) => wrapIcs(list.map(vevent).filter(Boolean))
 
+export function eventsIcs(list, { nowMs = Date.now() } = {}) {
+  const events = Array.isArray(list) ? list : []
+  return wrapIcs(events.map((event) => vevent(event, { nowMs })).filter(Boolean))
+}
 // ===== human share text for ONE day =====
 // generalizes weekend.js shareText's per-day block. entries = the day's filled
 // slots in render order [{ part:'morning'|'afternoon'|'night', e }] (caller
@@ -120,7 +125,7 @@ export const eventsIcs = (list) => wrapIcs(list.map(vevent).filter(Boolean))
 export function shareDayText(dayTs, entries) {
   const picks = (entries || []).filter((x) => x && x.e)
   if (!picks.length) return null
-  const dateLine = new Date(dayTs).toLocaleDateString(fmtLocale, { weekday: 'long', month: 'short', day: 'numeric' })
+  const dateLine = formatDayTs(dayTs, { weekday: 'long', month: 'short', day: 'numeric' })
   const lines = ['My plan for ' + dateLine + ' 🌴'] // DRAFT for Charles
   for (const { part, e } of picks) {
     const bits = [e.title, timeOf(e.start) || null, e.venue || null].filter(Boolean).join(' · ')

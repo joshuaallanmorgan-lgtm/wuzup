@@ -13,21 +13,36 @@
 //       (dayplan.migrateWeekendPlan is the ONLY remaining reader of PLAN_KEY).
 // The retired pieces — loadPlan/savePlan (Sprint U-c) and loadHistory/archivePlan/
 // shareText/visibleWeekend/filledCount (3.7P-8) — are gone; see git history.
-import { keyOf } from './lib.js'
+import { CITY, keyOf } from './lib.js'
+import { rankRuntimeItems } from './relevance.js'
+import {
+  buildPlanBrowseInventory,
+  buildPlanSuggestionPages,
+  filterPlanSavedCandidates,
+  PLAN_SUGGESTION_MAX,
+} from './plan-suggestions.js'
+import {
+  addCalendarDays,
+  cityMidnightMs,
+  coversDay,
+  dayIdAt,
+  daypartOfTime,
+  eventTime,
+} from '../../shared/city-time.mjs'
 
 export const PLAN_KEY = 'weekend-plan-v1' // stored as twh:weekend-plan-v1 via storage.js
 export const DAY_IDS = ['fri', 'sat', 'sun']
 export const SLOT_IDS = ['fri_day', 'fri_night', 'sat_day', 'sat_night', 'sun_day', 'sun_night']
-export const SUGGEST_MAX = 8
+export const SUGGEST_MAX = PLAN_SUGGESTION_MAX
 
 // --- the weekend window ---
 // makeAnchors (lib.js) already picks the Fri–Sun window containing-or-after
 // today: Mon–Thu → this coming Fri; Fri/Sat/Sun → the in-progress weekend.
-// weekendDays expands wkStartTs to the three day timestamps with the date
-// constructor (NOT +DAY ms) so a DST hop can never misalign a midnight.
+// weekendDays expands the city-local Friday ID with calendar arithmetic (NOT
+// +DAY ms), so a DST hop can never misalign one of the three city midnights.
 export function weekendDays(anchors) {
-  const d0 = new Date(anchors.wkStartTs)
-  return [0, 1, 2].map((i) => new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() + i).getTime())
+  const startDay = anchors.wkStartDay ?? dayIdAt(anchors.wkStartTs, CITY.tz)
+  return [0, 1, 2].map((i) => cityMidnightMs(addCalendarDays(startDay, i), CITY.tz))
 }
 // the columns to SHOW: already-finished weekend days drop (Sat → [sat, sun];
 // Sun → [sun]); today itself stays — "this weekend incl. today's remaining days".
@@ -47,11 +62,8 @@ export function visibleWeekend(anchors) {
 //   morning plan) → night. No clocked time (date-only) → 'any' — shown in ALL
 //   THREE pickers (flagged "Anytime") and defaulting to morning when auto-routed.
 export function daypartOf(e) {
-  if (!/T\d/.test(e.start || '')) return 'any'
-  const h = new Date(e.start).getHours()
-  if (h >= 5 && h < 13) return 'morning'
-  if (h >= 13 && h < 17) return 'afternoon'
-  return 'night'
+  const canonical = e?._time?.ok ? e._time : eventTime(e, { timeZone: CITY.tz })
+  return daypartOfTime(canonical)
 }
 
 // --- the three dayparts: ONE source of truth for slot label + emoji, in the
@@ -82,7 +94,9 @@ export function fillOrder(e) {
 // an event fits a day when its start..end span covers that day — a Saturday
 // pick can legitimately be a 3-week exhibit that runs through this weekend
 export function fitsDay(e, ts) {
-  return e._day != null && e._day <= ts && (e._endDay ?? e._day) >= ts
+  const canonical = e?._time?.ok ? e._time : eventTime(e, { timeZone: CITY.tz })
+  const day = typeof ts === 'string' ? ts : dayIdAt(ts, CITY.tz)
+  return coversDay(canonical, day)
 }
 export function fitsSlot(e, ts, part) {
   if (!fitsDay(e, ts)) return false
@@ -129,21 +143,80 @@ export function planFor(stored, weekendStartTs) {
 
 // --- picker model for one slot ---
 // (a) your SAVED events that fit this day+part first ("From your list ❤️"),
-// (b) then suggestions: upcoming events fitting day+part, ordered by
-//     (hotScore ?? 30) + tasteNudge, max 8.
+// (b) then suggestions: upcoming events fitting day+part, routed through the
+//     shared objective/context/taste/diversity rank contract, dealt in honest
+//     complementary pages of 3-6.
 // Dedup: anything already slotted (any slot) never re-offers, and the
 // suggestion list never repeats an event already shown in the saved group.
-export function pickerModel({ ts, part, upcoming, saved, plan, nudge }) {
+export function pickerModel({ ts, part, upcoming, saved, plan, ranking, planned = [] }) {
   const slotted = new Set(Object.values(plan.slots).filter(Boolean))
-  const savedFit = saved.filter((e) => fitsSlot(e, ts, part) && !slotted.has(keyOf(e)))
+  const plannedEvidence = planned.length > 0 ? planned : [...slotted]
+  const savedInventory = filterPlanSavedCandidates({
+    candidates: saved.filter((e) => fitsSlot(e, ts, part)),
+    planned: plannedEvidence,
+  })
+  const savedFit = savedInventory.items
   const savedKeys = new Set(savedFit.map((e) => keyOf(e)))
-  const suggestions = upcoming
-    .filter((e) => fitsSlot(e, ts, part) && !slotted.has(keyOf(e)) && !savedKeys.has(keyOf(e)))
-    .map((e) => ({ e, s: (e.hotScore ?? 30) + (nudge ? nudge(e) : 0) }))
-    .sort((a, b) => b.s - a.s || a.e._t - b.e._t)
-    .slice(0, SUGGEST_MAX)
-    .map((x) => x.e)
-  return { saved: savedFit, suggestions }
+  const seenSuggestions = new Set()
+  const candidates = upcoming.filter((e) => {
+    const key = keyOf(e)
+    if (!fitsSlot(e, ts, part) || slotted.has(key) || savedKeys.has(key) || seenSuggestions.has(key)) return false
+    seenSuggestions.add(key)
+    return true
+  })
+  let ordered = candidates
+  let rankingResult = null
+  if (ranking && Number.isFinite(ranking.nowMs) && ranking.city) {
+    rankingResult = rankRuntimeItems(candidates, {
+      kind: 'events',
+      nowMs: ranking.nowMs,
+      city: ranking.city,
+      taste: ranking.taste || {},
+      context: ranking.context || {},
+      diversityPolicy: ranking.diversityPolicy || {
+        prefix: Math.min(SUGGEST_MAX, candidates.length || 1),
+        sourceMax: 2,
+        categoryMax: 3,
+        venueMax: 2,
+        canonicalMax: 1,
+        seriesMax: 1,
+      },
+    })
+    ordered = rankingResult.ordered
+  }
+  const preferenceScores = Object.fromEntries((rankingResult?.scored || []).map(row => [
+    row.id,
+    row.preferenceScore,
+  ]))
+  const suggestionContext = ranking?.suggestionContext
+    ? { ...ranking.suggestionContext, preferenceScores }
+    : { preferenceScores }
+  const credible = rankingResult
+    ? rankingResult.scored
+        .filter(row => row.leadEligible && row.item?._actionable === true)
+        .map(row => row.item)
+    : []
+  const suggestionDeal = buildPlanSuggestionPages({
+    candidates: credible,
+    planned: plannedEvidence,
+    offered: savedFit,
+    context: suggestionContext,
+  })
+  const browseInventory = buildPlanBrowseInventory({
+    candidates: ordered,
+    planned: plannedEvidence,
+    offered: savedFit,
+  })
+  const suggestionPages = suggestionDeal.pages
+  const suggestions = (suggestionPages[0] || []).map(record => record.item)
+  return {
+    saved: savedFit,
+    suggestions,
+    suggestionPages,
+    suggestionDeal,
+    browseSuggestions: browseInventory.items,
+    suggestionResetKey: ranking?.suggestionResetKey || null,
+  }
 }
 
 // 3.74 — an honest "why it fits" reason for a plan-builder pick, composed ONLY
@@ -162,12 +235,12 @@ export function wxMood(w) {
   return null
 }
 
-export function whyFits(e, { w, nudge } = {}) {
+export function whyFits(e, { w, nudge, weatherContributed = true } = {}) {
   if (!e) return null
   const outdoor = e.category === 'outdoors'
   const mood = wxMood(w)
-  if (outdoor && mood === 'clear') return '☀️ Clear that day'
-  if (!outdoor && mood === 'rainy') return '☔ Good rainy-day pick'
+  if (weatherContributed && outdoor && mood === 'clear') return '☀️ Clear that day'
+  if (weatherContributed && !outdoor && mood === 'rainy') return '☔ Good rainy-day pick'
   if (e.isFree === true) return 'Free'
   if (nudge && nudge(e) >= 8) return 'Your kind of thing'
   return null

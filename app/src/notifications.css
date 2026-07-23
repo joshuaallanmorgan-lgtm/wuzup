@@ -1,5 +1,8 @@
 /* notifications.css — NotificationsPage (HOME_PHASE2). */
 .notif-body {
+  width: 100%;
+  max-width: var(--reading-max);
+  margin-inline: auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -28,7 +31,12 @@
   line-height: 1.55;
 }
 /* TOUCHUP P2: derived notification list (saved reminders · weather · weekend) */
-.notif-list { padding: 4px 0 80px; }
+.notif-list {
+  width: 100%;
+  max-width: var(--reading-max);
+  margin-inline: auto;
+  padding: 4px 0 80px;
+}
 .notif-item {
   display: flex;
   align-items: center;

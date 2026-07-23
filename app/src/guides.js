@@ -11,7 +11,10 @@
 // Plain .js (no JSX, Node-importable for the smoke harness). DRAFT copy — ⚑ Charles.
 import { useEffect, useSyncExternalStore } from 'react'
 import { daypartOf } from './weekend.js'
-import { keyOf } from './lib.js'
+import { CITY, keyOf } from './lib.js'
+import { rankRuntimeItems } from './relevance.js'
+import { addCalendarDays, cityMidnightMs } from '../../shared/city-time.mjs'
+import { canonicalGuide } from './guide-model.js'
 
 // indoor-ish categories — a good backup when the forecast turns
 const INDOOR = new Set(['art', 'theatre', 'comedy', 'music', 'nightlife', 'food', 'family', 'market', 'community'])
@@ -44,6 +47,8 @@ export const GUIDES = [
     domain: 'spots',
     plannable: true,
     needsPlaces: true,
+    keywords: ['beach', 'sand', 'water'],
+    selectionMethod: { type: 'place-type', summary: 'Shows live spots whose place type is beach.' },
     select: ({ places }) => (places || []).filter((p) => p.placeType === 'beach'),
   },
   {
@@ -55,6 +60,8 @@ export const GUIDES = [
     domain: 'mixed',
     plannable: true,
     needsPlaces: true,
+    keywords: ['free', 'outdoor', 'park', 'trail'],
+    selectionMethod: { type: 'field-filter', summary: 'Shows free outdoor events and free outdoor spot types from live fields.' },
     select: ({ events, places }) => [
       ...(events || []).filter((e) => e._free === true && e.category === 'outdoors'),
       ...(places || []).filter((p) => p.isFree === true && OUTDOOR_PLACE.has(p.placeType)),
@@ -69,6 +76,8 @@ export const GUIDES = [
     domain: 'events',
     plannable: false,
     needsPlaces: false,
+    keywords: ['rainy', 'indoor'],
+    selectionMethod: { type: 'category-filter', summary: 'Shows live events in indoor-friendly categories.' },
     select: ({ events }) => (events || []).filter((e) => INDOOR.has(e.category)),
   },
   {
@@ -80,6 +89,8 @@ export const GUIDES = [
     domain: 'events',
     plannable: false,
     needsPlaces: false,
+    keywords: ['date', 'night', 'evening'],
+    selectionMethod: { type: 'category-and-time', summary: 'Shows live evening events in food, music, theatre, art, and nightlife.' },
     select: ({ events }) =>
       // an EVENING-out cut: night events, or weekend evenings — never a weekend
       // DAYTIME (morning/afternoon) thing riding in under a "night" label (3.75
@@ -100,6 +111,8 @@ export const GUIDES = [
     domain: 'events',
     plannable: false,
     needsPlaces: false,
+    keywords: ['market', 'makers'],
+    selectionMethod: { type: 'category-filter', summary: 'Shows live events categorized as markets.' },
     select: ({ events }) => (events || []).filter((e) => e.category === 'market'),
   },
   {
@@ -111,6 +124,8 @@ export const GUIDES = [
     domain: 'events',
     plannable: false,
     needsPlaces: false,
+    keywords: ['sports', 'watch', 'game'],
+    selectionMethod: { type: 'field-and-keyword', summary: 'Shows live sports or nightlife listings whose text explicitly describes watching a game.' },
     // honest "catch the game" cut: real sports-watch events. (A sports-bar PLACES
     // activity is the right end state but only once real bar data is sourced —
     // see BACKLOG. places.json is parks/beaches/trails today, no bars.)
@@ -119,7 +134,7 @@ export const GUIDES = [
         (e) => (e.category === 'sports' || e.category === 'nightlife') && GAMEWATCH_RE.test(`${e.title || ''} ${e.description || ''}`)
       ),
   },
-]
+].map(canonicalGuide).filter(Boolean)
 
 export const guideById = Object.fromEntries(GUIDES.map((g) => [g.id, g]))
 
@@ -127,7 +142,42 @@ export const guideById = Object.fromEntries(GUIDES.map((g) => [g.id, g]))
 // (like a bubble) — it shows ALL its matches, nothing sliced away, so never-hide
 // holds. De-dup by key so an event/place overlap can't double. A throwing
 // selector degrades to an empty (honest) guide rather than crashing the page.
-export function resolveGuide(guide, ctx) {
+export function rankGuideItems(items, {
+  nowMs,
+  city,
+  taste = {},
+  context = {},
+  diversityPolicy = null,
+} = {}) {
+  const list = Array.isArray(items) ? items : []
+  if (!Number.isFinite(nowMs) || !city || list.length < 2) return [...list]
+  const policyFor = (length) => diversityPolicy || {
+    prefix: Math.min(12, length),
+    sourceMax: 2,
+    categoryMax: 3,
+    venueMax: 2,
+    canonicalMax: 1,
+    seriesMax: 1,
+  }
+  const rank = (domain) => rankRuntimeItems(domain.items, {
+    kind: domain.kind,
+    nowMs,
+    city,
+    taste,
+    context,
+    diversityPolicy: policyFor(domain.items.length),
+  }).ordered
+  const events = list.filter((item) => item.kind !== 'place')
+  const places = list.filter((item) => item.kind === 'place')
+  if (!events.length) return rank({ kind: 'places', items: places })
+  if (!places.length) return rank({ kind: 'events', items: events })
+  return [
+    ...rank({ kind: 'events', items: events }),
+    ...rank({ kind: 'places', items: places }),
+  ]
+}
+
+export function resolveGuide(guide, ctx, ranking) {
   if (!guide || typeof guide.select !== 'function') return []
   let items
   try {
@@ -136,13 +186,14 @@ export function resolveGuide(guide, ctx) {
     return []
   }
   const seen = new Set()
-  return items.filter((it) => {
+  const resolved = items.filter((it) => {
     if (!it) return false
     const k = keyOf(it) // the app's canonical key (handles events + places)
     if (seen.has(k)) return false
     seen.add(k)
     return true
   })
+  return ranking ? rankGuideItems(resolved, ranking) : resolved
 }
 
 // ===== the TIMELY layer: hand-authored "Watch Guides" from a static guides.json
@@ -173,7 +224,9 @@ export function loadGuides() {
   _ginflight = fetch((import.meta.env?.BASE_URL ?? '/') + 'guides.json')
     .then((r) => (r.ok ? r.json() : Promise.reject(new Error('guides http ' + r.status))))
     .then((doc) => {
-      _guides = Array.isArray(doc?.guides) ? doc.guides : []
+      _guides = (Array.isArray(doc?.guides) ? doc.guides : [])
+        .map(canonicalGuide)
+        .filter((guide) => guide?.guideType === 'watch')
       _gstatus = 'ready'
       _gemit()
       return _guides
@@ -205,20 +258,23 @@ export function useGuides(enabled = true) {
 // a watch guide is "active" only inside its window (honest — never advertise a
 // World Cup guide in October).
 export function watchGuideActive(guide, nowTs) {
-  if (!guide || guide.kind !== 'watch' || !guide.window) return false
-  const start = Date.parse(guide.window.start)
-  const end = Date.parse(guide.window.end)
-  return Number.isFinite(start) && Number.isFinite(end) && nowTs >= start && nowTs <= end
+  if (!guide || guide.kind !== 'watch' || !guide.window || !Number.isFinite(nowTs)) return false
+  try {
+    const start = cityMidnightMs(guide.window.start, CITY.tz)
+    const endExclusive = cityMidnightMs(addCalendarDays(guide.window.end, 1), CITY.tz)
+    return nowTs >= start && nowTs < endExclusive
+  } catch {
+    return false
+  }
 }
-
 // resolve a watch guide against the LIVE events — matches a keyword in the event's
 // title / description / venue (case-insensitive). Real listings only; no curated
 // picks to fabricate. De-dups on the canonical key.
-export function resolveWatchGuide(guide, events) {
+export function resolveWatchGuide(guide, events, ranking) {
   if (!guide || !Array.isArray(guide.keywords) || guide.keywords.length === 0) return []
   const kws = guide.keywords.map((k) => String(k).toLowerCase())
   const seen = new Set()
-  return (events || []).filter((e) => {
+  const resolved = (events || []).filter((e) => {
     if (!e) return false
     const hay = ((e.title || '') + ' ' + (e.desc || e.description || '') + ' ' + (e.venue || '')).toLowerCase()
     if (!kws.some((k) => hay.includes(k))) return false
@@ -227,4 +283,5 @@ export function resolveWatchGuide(guide, events) {
     seen.add(k)
     return true
   })
+  return ranking ? rankGuideItems(resolved, ranking) : resolved
 }

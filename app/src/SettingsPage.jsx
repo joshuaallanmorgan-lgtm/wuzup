@@ -3,7 +3,7 @@
 // LEFT for the InterestEditor). Shows nothing it can't honestly do: the
 // taste tools (read-only summary, Customize interests, primer retake,
 // calibration deck, a sober two-step reset), data provenance (the
-// Last-Modified stamp App's fetch already carries + a live source count) and
+// immutable generated/source-health metadata + a live source count) and
 // an about stub Phase 4 will fill. NO email, NO account fields, NO dead
 // buttons — every row does the thing it says.
 //
@@ -14,40 +14,89 @@
 // over this page, and never touches the first-open gate).
 //
 // ALL COPY IS DRAFT for Charles (inventory in the sprint report).
-import { useMemo, useState } from 'react'
-import { CITY, fmtLocale, Icon } from './lib.js'
+import { useEffect, useMemo, useState } from 'react'
+import { CITY, formatCityInstant, Icon } from './lib.js'
 import { coverageStats, dayStamp } from './coverage.js'
+import { useActivity } from './ActivityProvider.jsx'
+import { useLocationPermission } from './LocationProvider.jsx'
 import { useNav } from './nav.jsx'
-import { lsRemove } from './storage.js'
 import { resetTaste } from './taste.js'
 import Primer from './Primer.jsx'
+import CityCoverageSelector from './CityCoverageSelector.jsx'
 import './settings.css'
 
 // "Events updated {when}": the shared dayStamp idiom (weekday inside the last
 // 6 days, date beyond — coverage.js) with the clock added — settings is where
 // precision belongs
 const fmtUpdated = (ms) =>
-  `${dayStamp(ms)} · ${new Date(ms).toLocaleTimeString(fmtLocale, { hour: 'numeric', minute: '2-digit' })}`
+  `${dayStamp(ms)} · ${formatCityInstant(ms, { hour: 'numeric', minute: '2-digit' })}`
 
-export default function SettingsPage({ events, dataAt, primer, onPrimerDone, locationAllowed, onAllowLocation }) {
+function locationStatusCopy(location) {
+  if (location.status === 'granted') {
+    if (!location.inMarket) {
+      return `On, but your current location is outside ${CITY.name}. Distance sorting stays off.`
+    }
+    return location.durability === 'session-only'
+      ? 'On for this visit. Your browser could not remember the setting.'
+      : 'On. Nearby results use this device’s current location.'
+  }
+  if (location.status === 'requesting') return 'Waiting for your browser’s location response…'
+  if (location.status === 'denied') {
+    return 'Blocked in browser settings. Wuzup is not using your location.'
+  }
+  if (location.status === 'unavailable') return 'Location is unavailable in this browser.'
+  if (location.status === 'error') return 'Location is off because the last request failed. You can try again.'
+  if (location.status === 'desired') return 'Off until you confirm location access with your browser.'
+  return 'Off. Turn it on to sort nearby results by distance.'
+}
+
+export default function SettingsPage({ events, dataMeta, primer, onPrimerDone }) {
   // openAttribution (Stage E ⚑X3): the About row → Data & photo credits page
   // (single-slot REPLACE; its back affordance reopens Settings)
-  const { closePage: onClose, openAttribution } = useNav()
+  const { closePage: onClose, openAttribution, openDataTransfer } = useNav()
+  const { clearDeckMemories } = useActivity()
+  const location = useLocationPermission()
   const [retaking, setRetaking] = useState(false)
   const [arming, setArming] = useState(false) // reset's two-step confirm
-  const [wiped, setWiped] = useState(false) // honest one-line receipt after a reset
+  const [resetStatus, setResetStatus] = useState(null)
+  const [resetPending, setResetPending] = useState(false)
+  const [online, setOnline] = useState(() => typeof navigator === 'undefined' || navigator.onLine)
+  useEffect(() => {
+    const sync = () => setOnline(navigator.onLine)
+    window.addEventListener('online', sync)
+    window.addEventListener('offline', sync)
+    return () => {
+      window.removeEventListener('online', sync)
+      window.removeEventListener('offline', sync)
+    }
+  }, [])
 
   // events + distinct source FAMILIES in the fetched dataset — the shared
   // coverage.js derivation (one tally, spoken here, on Home's Coverage Card,
   // and on the attribution page's header)
   const { events: evCount, sources: srcCount } = useMemo(() => coverageStats(events), [events])
+  const dataAt = dataMeta?.generatedAt ? Date.parse(dataMeta.generatedAt) : null
+  const sourceHealth = dataMeta?.sourceHealth?.status
 
-  const doReset = () => {
-    resetTaste() // wipes taste-v1 + the in-memory profile (taste.js owns both)
-    lsRemove('fmn-seen-v1') // Find My Night's no-repeat memory starts over too
-    lsRemove('deck-last-v1') // "wipe everything" includes the deck's rated-card memory
+  const doReset = async () => {
+    if (resetPending) return
+    setResetPending(true)
+    setResetStatus(null)
+    const result = await clearDeckMemories()
+    if (result?.applied !== true) {
+      setResetPending(false)
+      setArming(false)
+      setResetStatus('failed')
+      return
+    }
+    const tastePersisted = resetTaste()
+    setResetPending(false)
     setArming(false)
-    setWiped(true)
+    setResetStatus(
+      tastePersisted && result.persisted === true && result.durability !== 'session-only'
+        ? 'persisted'
+        : 'session-only'
+    )
   }
 
   return (
@@ -60,6 +109,11 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone, loc
       </header>
 
       <div className="st-body">
+        <section className="st-sec">
+          <div className="st-over">Coverage area</div>
+          <CityCoverageSelector />
+        </section>
+
         {/* Phase 3.6 N4: Settings regrouped by INTENT (was a "bunch of weird
             sections", Josh). Five clean groups: identity → tune → reset → data
             → about. Taste transparency + the deck are CANONICAL on Profile now
@@ -88,7 +142,7 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone, loc
           <div className="st-over">Reset</div>
           <div className="st-rows">
             {!arming ? (
-              <button className="st-row st-row-danger" onClick={() => { setWiped(false); setArming(true) }}>
+              <button className="st-row st-row-danger" onClick={() => { setResetStatus(null); setArming(true) }}>
                 <span className="st-row-main">
                   <span className="st-row-title">Start fresh</span>
                   <span className="st-row-sub">Wipe what this phone learned — saves &amp; plans stay</span>
@@ -100,17 +154,33 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone, loc
                   Wipe everything this phone has learned about your taste? Saves and plans stay. No undo.
                 </div>
                 <div className="st-confirm-btns">
-                  <button className="st-confirm-yes" onClick={doReset}>
-                    Yes — wipe it
+                  <button
+                    className="st-confirm-yes"
+                    onClick={doReset}
+                    disabled={resetPending}
+                    aria-busy={resetPending || undefined}
+                  >
+                    {resetPending ? 'Wiping…' : 'Yes — wipe it'}
                   </button>
-                  <button className="st-confirm-no" onClick={() => setArming(false)}>
+                  <button className="st-confirm-no" onClick={() => setArming(false)} disabled={resetPending}>
                     Keep it
                   </button>
                 </div>
               </div>
             )}
             {/* WS3 §9: engineered sprout (inherits the sage .st-wiped color), not 🌱 */}
-            {wiped && <div className="st-wiped">Wiped. The next tap starts the new you. <Icon.sprout className="meta-ic" aria-hidden /></div>}
+            {resetStatus === 'persisted' && <div className="st-wiped">Wiped. The next tap starts the new you. <Icon.sprout className="meta-ic" aria-hidden /></div>}
+            {resetStatus === 'session-only' && (
+              <div className="st-reset-error" role="alert">
+                Cleared for this visit, but your browser could not save the reset.
+                Some preferences may return after you close Wuzup.
+              </div>
+            )}
+            {resetStatus === 'failed' && (
+              <div className="st-reset-error" role="alert">
+                Wuzup could not clear what it learned. Nothing was reported as wiped; try again.
+              </div>
+            )}
           </div>
         </section>
 
@@ -123,29 +193,52 @@ export default function SettingsPage({ events, dataAt, primer, onPrimerDone, loc
           <div className="st-rows">
             <button
               className="st-row st-row-toggle"
-              onClick={() => onAllowLocation(!locationAllowed)}
-              aria-pressed={!!locationAllowed}
-              aria-label="Allow location"
+              onClick={() => location.enabled ? location.disable() : location.request()}
+              role="switch"
+              aria-checked={Boolean(location.enabled)}
+              aria-label="Use current location"
             >
               <span className="st-row-main">
-                <span className="st-row-title">Allow location</span>
-                <span className="st-row-sub">
-                  Surfaces “Near you” spots, sorted by distance. On-device only — the browser asks once.
+                <span className="st-row-title">Use current location</span>
+                <span className="st-row-sub" aria-live="polite">
+                  {locationStatusCopy(location)}
                 </span>
               </span>
-              <span className={'st-switch' + (locationAllowed ? ' on' : '')} aria-hidden>
+              <span className={'st-switch' + (location.enabled ? ' on' : '')} aria-hidden>
                 <span className="st-switch-knob" />
               </span>
             </button>
+            <button className="st-row" onClick={openDataTransfer}>
+              <span className="st-row-main">
+                <span className="st-row-title">Export or restore your data</span>
+                <span className="st-row-sub">Portable JSON backup for plans, saves, taste, and your added items</span>
+              </span>
+              <span className="st-row-go" aria-hidden>→</span>
+            </button>
           </div>
           <div className="st-card">
+            {dataMeta?.developmentExpired && (
+              <div className="st-line" role="alert">
+                Development preview only: these listings are expired. Their artifact hashes were verified,
+                but production Wuzup still refuses these bytes until a fresh data run is staged.
+              </div>
+            )}
             <div className="st-line">
               {evCount} events from {srcCount} local source{srcCount === 1 ? '' : 's'}
             </div>
-            {/* Last-Modified is host-dependent; absent header = no claim made.
-                Demoted to a quiet line (it's provenance, not a headline). */}
-            {dataAt != null && <div className="st-line st-dim">Updated {fmtUpdated(dataAt)}</div>}
-            <div className="st-line st-dim">Everything lives on this phone — no account, nothing leaves it.</div>
+            {Number.isFinite(dataAt) && <div className="st-line st-dim">Listings generated {fmtUpdated(dataAt)}</div>}
+            {sourceHealth === 'healthy' && <div className="st-line st-dim">Source check complete</div>}
+            {sourceHealth === 'degraded' && <div className="st-line st-dim">Some sources were unavailable</div>}
+            {sourceHealth === 'unknown' && <div className="st-line st-dim">Source check unavailable for this snapshot</div>}
+            <div className="st-line st-dim">
+              Plans, saves, taste, and added items stay in this browser. Wuzup downloads listings from this site,
+              forecasts from Open-Meteo, and credited photos from their hosts. Sites you open receive their own requests.
+            </div>
+            <div className="st-line st-dim" role="status">
+              {online
+                ? 'Offline mode is not available yet. Refreshing listings, forecasts, or photos needs a connection.'
+                : 'Your browser reports that it is offline. Already-open information may remain visible, but refreshing listings, forecasts, or photos needs a connection.'}
+            </div>
           </div>
         </section>
 

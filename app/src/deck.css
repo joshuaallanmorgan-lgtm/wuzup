@@ -45,6 +45,9 @@
 .deck-kicker { padding: 4px 4px 14px; }
 .deck-kicker-title { font-size: 22px; font-weight: 900; letter-spacing: -0.4px; }
 .deck-kicker-sub { margin-top: 4px; font-size: var(--t-meta); font-weight: 600; color: rgba(255, 255, 255, 0.55); }
+.deck-candidate-note { margin-top: 6px; font-size: var(--t-micro); font-weight: 600; color: rgba(255, 255, 255, 0.68); }
+.deck-feedback { min-height: 20px; margin: -6px 4px 6px; font-size: var(--t-micro); font-weight: 700; color: rgba(255, 255, 255, 0.7); }
+.deck-feedback.is-error { color: #ffd1c7; }
 
 /* ===== the card stack (mechanics live in swipedeck.css — sizing + the dark
    card look stay here) ===== */
@@ -178,6 +181,10 @@
 .deck-btn-save { color: var(--hot); border-color: rgba(var(--hot-rgb), 0.45); }
 .deck-btn-save.is-saved { background: rgba(var(--hot-rgb), 0.18); }
 .deck-btn-yes { color: var(--accent-on-dark); border-color: rgba(var(--accent-on-dark-rgb), 0.45); }
+.deck-btn:focus-visible,
+.deck-early:focus-visible,
+.deck-done-btn:focus-visible { outline: 3px solid var(--accent-on-dark); outline-offset: 3px; }
+.deck-btn:disabled { cursor: wait; opacity: 0.5; }
 
 /* ===== progress dots + early exit ===== */
 .deck-progress {

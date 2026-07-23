@@ -1,0 +1,418 @@
+{
+  "schemaVersion": 1,
+  "cityId": "sf-east-bay",
+  "timeZone": "America/Los_Angeles",
+  "runId": "legacy-sf-east-bay-events-84981a8ec48f0245",
+  "generatedAt": "2026-07-06T04:11:23.000Z",
+  "expiresAt": "2026-07-08T04:11:23.000Z",
+  "maxAgeHours": 48,
+  "assembledAt": "2026-07-22T03:49:10.351Z",
+  "provenance": "legacy-markdown",
+  "sourceHealth": {
+    "status": "unknown",
+    "runId": "legacy-sf-east-bay-events-84981a8ec48f0245",
+    "checkedAt": "2026-07-06T04:11:23.000Z",
+    "total": 22,
+    "healthy": 0,
+    "degraded": 0,
+    "failed": 0,
+    "unknown": 22,
+    "sources": [
+      {
+        "name": "AllEvents (San Francisco)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "AllEvents (SF Free)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (SF Free)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "AllEvents (Oakland)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (SF)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "AllEvents (Berkeley)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (SF p2)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "AllEvents (Walnut Creek)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (SF p3)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (Oakland Free)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (Oakland)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (Oakland p2)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (Oakland p3)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (Berkeley Free)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (Berkeley)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (Walnut Creek Free)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Eventbrite (Walnut Creek)",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "DoTheBay",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Meetup",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "SF Rec & Parks",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "UC Berkeley",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      },
+      {
+        "name": "Visit Oakland",
+        "status": "unknown",
+        "rows": null,
+        "cached": null
+      }
+    ],
+    "note": "Legacy artifact predates persisted per-source run receipts."
+  },
+  "artifacts": {
+    "events": {
+      "file": "events.json",
+      "sha256": "84981a8ec48f0245e23e168fb63bc2071cceb5e1eda4e115828264a92873b1d8",
+      "bytes": 741553,
+      "count": 743,
+      "runId": "legacy-sf-east-bay-events-84981a8ec48f0245",
+      "generatedAt": "2026-07-06T04:11:23.000Z",
+      "expiresAt": "2026-07-08T04:11:23.000Z",
+      "maxAgeHours": 48,
+      "provenance": "legacy-markdown",
+      "sourceHealth": {
+        "status": "unknown",
+        "runId": "legacy-sf-east-bay-events-84981a8ec48f0245",
+        "checkedAt": "2026-07-06T04:11:23.000Z",
+        "total": 22,
+        "healthy": 0,
+        "degraded": 0,
+        "failed": 0,
+        "unknown": 22,
+        "sources": [
+          {
+            "name": "AllEvents (San Francisco)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "AllEvents (SF Free)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (SF Free)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "AllEvents (Oakland)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (SF)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "AllEvents (Berkeley)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (SF p2)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "AllEvents (Walnut Creek)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (SF p3)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (Oakland Free)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (Oakland)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (Oakland p2)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (Oakland p3)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (Berkeley Free)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (Berkeley)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (Walnut Creek Free)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Eventbrite (Walnut Creek)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "DoTheBay",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Meetup",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "SF Rec & Parks",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "UC Berkeley",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Visit Oakland",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          }
+        ],
+        "note": "Legacy artifact predates persisted per-source run receipts."
+      }
+    },
+    "places": {
+      "file": "places.json",
+      "sha256": "6e26e72aab68693ba3d9685503a81b7d8bf6c02b49afb697285dc3fbed338c1d",
+      "bytes": 1527368,
+      "count": 2888,
+      "runId": "legacy-sf-east-bay-places-1f42b49ee860b3ad",
+      "generatedAt": "2026-07-07T15:01:25.000Z",
+      "expiresAt": "2026-08-06T15:01:25.000Z",
+      "maxAgeHours": 720,
+      "provenance": "legacy-markdown",
+      "sourceHealth": {
+        "status": "unknown",
+        "runId": "legacy-sf-east-bay-places-1f42b49ee860b3ad",
+        "checkedAt": "2026-07-07T15:01:25.000Z",
+        "total": 10,
+        "healthy": 0,
+        "degraded": 0,
+        "failed": 0,
+        "unknown": 10,
+        "sources": [
+          {
+            "name": "EBRPD Parks",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "FDEP State Parks",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "FWC Boat Ramps",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "GGNRA (editorial seed)",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Hillsborough County Parks",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "OSM",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Pinellas Park Points",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "SF Rec & Parks",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "SWFWMD Recreation",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          },
+          {
+            "name": "Tampa Parks",
+            "status": "unknown",
+            "rows": null,
+            "cached": null
+          }
+        ],
+        "note": "Legacy artifact predates persisted per-source run receipts."
+      }
+    },
+    "guides": {
+      "file": "guides.json",
+      "sha256": "d0a239aa8e0655198d19f01e9f42af7c1359dc69244e1fffe0c69b0046aa43c4",
+      "bytes": 452,
+      "count": 1,
+      "runId": "legacy-sf-east-bay-guides-d0a239aa8e065519",
+      "generatedAt": null,
+      "expiresAt": null,
+      "maxAgeHours": null,
+      "provenance": "unknown"
+    }
+  },
+  "placeImages": {
+    "dir": "place-img",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "count": 0
+  },
+  "shards": [],
+  "buildId": "sha256:e209e102c6a821060d8abbd2fe6d475629a7be6b32b0e4a2a46bb52f561bdf04",
+  "manifestId": "sha256:62a4dfb0bd4885c419cfa44ced14ca765c6471caabf3314fa38c86ca888f0799"
+}

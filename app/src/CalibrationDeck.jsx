@@ -16,27 +16,25 @@
 // stamps, buttons, dots and the finish beat render here unchanged. The card
 // index is DERIVED (idx ≡ into + nope — every commit increments exactly one
 // tally and SwipeDeck's idx in lockstep), so progress/counthead/top-card
-// reads are unchanged. (C5: the fmn-seen write-mirror was deleted — FindMyNight
-// is long gone and nothing ever read the key; rejections leave no seen-residue.)
+// reads are unchanged. Retained verdict memory now crosses the atomic activity
+// provider before taste or progress advances.
 //
 // THE SAMPLER + the CUMULATIVE re-deal WALK live in deckdeal.js now (pure +
 // Node-importable so the never-hide COVERAGE proof is testable). dealDeck is
 // stratified — one hottest event per registry category, remainder filled
 // (≤2/category), shuffled; SPONSORED IS EXCLUDED (a paid placement must not harvest
-// taste calibration). The INITIAL deal excludes the persisted FIFO ('deck-last-v1',
-// cap 30) for cross-session freshness; each "Deal again" excludes (FIFO ∪ an
+// taste calibration). The INITIAL deal excludes the provider's kind-scoped,
+// alias-aware retained FIFO for cross-session freshness; each "Deal again" excludes (FIFO ∪ an
 // in-memory cumulative SEEN set) via nextEventsBatch, so it WALKS FORWARD through
 // the whole catalog (not a top-N carousel) and wraps when exhausted — never dead-ends.
 //
 // VERDICTS (each = exactly ONE taste signal, never two):
-//   right / ✓  "into it"    → recordCalibration('yes') (+3 category)
-//   left  / ✕  "not for me" → recordCalibration('no')  (−1, floor 0 — P4).
-//              Ordering only — nothing is ever hidden. (C5: the old fmn-seen
-//              push died with FindMyNight; only the last-deal FIFO persists.)
-//   up    / ♥  save         → toggleSave (the existing save seam records the
-//              +3, so a save is never double-counted); counts as "into it"
-//              in the tally. Already-saved card? recordCalibration('yes')
-//              instead — the verdict still means something, un-saving doesn't.
+//   right / ✓  "into it"    → Activity, then capturePersonalSignal('deck-yes')
+//   left  / ✕  "not for me" → Activity, then capturePersonalSignal('deck-no').
+//              The validated gate is the only route to recordCalibration;
+//              ordering changes, but nothing is hidden.
+//   up    / ♥  save          → toggleSave first, then Activity. The save seam
+//              records its own positive signal, so this path never adds one.
 // GESTURES are raw pointer events (SwipeDeck, no deps) with always-visible
 // button fallbacks; reduced-motion users get buttons only and cards crossfade
 // instead of flying (swipedeck.css). Skippable anytime — verdicts are
@@ -45,34 +43,23 @@
 //
 // ALL COPY IS DRAFT for Charles (inventory in the sprint report).
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useActivity } from './ActivityProvider.jsx'
 import { categoryById } from './categories.js'
+import { CITY } from './city.js'
 import { Icon, dayLoose, keyOf, timeOf } from './lib.js'
-import { lsGet, lsSet } from './storage.js'
 import { CardImg, PriceChip, SponsoredTag, placeTypeLabel, spotChips, hueFor, artEmoji } from './cards.jsx'
 import { useSaves } from './saves.js'
 import { usePlaces } from './places.js'
-import { getProfile, recordCalibration, topCategories } from './taste.js'
+import { getProfile, topCategories } from './taste.js'
+import { capturePersonalSignal, projectPersonalEvidence } from './personal-signals.js'
 import SwipeDeck from './SwipeDeck.jsx'
-import { DECK_SIZE, dealDeck, dealPlaceDeck, nextEventsBatch, nextPlacesBatch } from './deckdeal.js'
+import { DECK_SIZE, dealDeck, dealPlaceDeck, deckKeyOf, nextEventsBatch, nextPlacesBatch } from './deckdeal.js'
+import {
+  commitCalibrationVerdict,
+  deckFeedback,
+  selectCalibrationCandidates,
+} from './feedback-transparency.js'
 import './deck.css'
-
-// ===== re-deal memory: keys rated in recent deals (FIFO, cap 30 ≈ two full
-// decks). Kind-scoped so the Events + Spots Tinder decks keep INDEPENDENT
-// re-deal memories ('deck-last-v1' events · 'deck-last-places-v1' spots). =====
-const LAST_CAP = 30
-const lastKeyFor = (kind) => (kind === 'places' ? 'deck-last-places-v1' : 'deck-last-v1')
-function loadLastDeal(kind) {
-  try {
-    const v = JSON.parse(lsGet(lastKeyFor(kind)))
-    return Array.isArray(v) ? v.filter((k) => typeof k === 'string') : []
-  } catch {
-    return [] // missing / corrupt / private mode — memory just starts empty
-  }
-}
-function pushLastDeal(kind, key) {
-  const kept = loadLastDeal(kind).filter((k) => k !== key)
-  lsSet(lastKeyFor(kind), JSON.stringify(kept.concat(key).slice(-LAST_CAP))) // guarded in storage.js
-}
 
 const prefersReduced = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -137,21 +124,53 @@ export function PlaceDeckFace({ e }) {
 // closeLabel: the done/empty button's text — defaults to the settings-origin
 // phrasing; the primer-origin mount (Q2d onboarding offer) passes its own,
 // since a fresh user closes to the Events tab, not to Settings.
-export default function CalibrationDeck({ kind = 'events', events, places, anchors, onClose, closeLabel = 'Back to Settings' }) {
+function ReadyCalibrationDeck({ activity, kind = 'events', events: inputEvents = [], places: inputPlaces = [], anchors, onClose, closeLabel = 'Back to Settings' }) {
   const reduced = useMemo(() => prefersReduced(), [])
-  const { has, toggle } = useSaves()
+  const { has, toggle, canToggle, identityPending, identityAmbiguous, identityWent, isPending } = useSaves()
+  const {
+    eventDeckExclusions,
+    placeDeckExclusions,
+    isEventDeckExcluded,
+    isPlaceDeckExcluded,
+    recordEventDeck,
+    recordPlaceDeck,
+  } = activity
   // TINDER: the deck is parameterized by kind (events|places) — the pool sampler,
   // the card face, and the re-deal memory differ; the verdict→taste mapping is the
   // SAME category model (recordCalibration reads e.category — places carry one).
   const isPlaces = kind === 'places'
   const noun = isPlaces ? 'spots' : 'events'
+  const retainedExclusions = isPlaces ? placeDeckExclusions : eventDeckExclusions
+  const isRetained = isPlaces ? isPlaceDeckExcluded : isEventDeckExcluded
+  const recordDeck = isPlaces ? recordPlaceDeck : recordEventDeck
+  // Calibration asks for judgments on credible/actionable inventory first.
+  // The complete Events and Spots browse paths keep the original arrays.
+  const [candidateModel] = useState(() => {
+    const eligible = isPlaces
+      ? inputPlaces.filter((item) => !isRetained(item))
+      : inputEvents.filter((item) => item._day != null
+        && (item._endDay ?? item._day) >= anchors.todayTs
+        && item.sponsored !== true
+        && !isRetained(item))
+    return selectCalibrationCandidates(eligible, {
+      kind: isPlaces ? 'places' : 'events',
+      nowMs: anchors?.nowMs ?? anchors?.todayTs ?? 0,
+      city: CITY,
+      taste: getProfile(),
+      minimum: DECK_SIZE,
+    })
+  })
+  // These local names deliberately keep the cumulative walk on the bounded
+  // calibration pool while preserving the established re-deal seam.
+  const events = isPlaces ? [] : candidateModel.candidates
+  const places = isPlaces ? candidateModel.candidates : []
   // ONE deal per mount (deliberately not a useMemo on [events]: App rebuilds
   // `norm` identities on anchor refreshes / my-event edits, and a re-deal
   // mid-rating would reshuffle the stack under the user's thumb)
   const [deck, setDeck] = useState(() =>
     isPlaces
-      ? dealPlaceDeck(places, { exclude: new Set(loadLastDeal('places')) })
-      : dealDeck(events, anchors, { exclude: new Set(loadLastDeal('events')) })
+      ? dealPlaceDeck(places, { exclude: new Set(retainedExclusions), excludeItem: isRetained })
+      : dealDeck(events, anchors, { exclude: new Set(retainedExclusions), excludeItem: isRetained })
   )
   // BATCH 5 COVERAGE FIX: the in-memory cumulative seen set. The persisted FIFO above only
   // freshens the INITIAL deal cross-session; `seen` accumulates EVERY served key, so each
@@ -159,13 +178,16 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
   // (~ceil(pool/15) deals), wrapping when exhausted — never a shallow top-N carousel.
   // Seeded from the initial deck via a guarded lazy ref (StrictMode-safe: no render mutation).
   const seenRef = useRef(null)
-  if (seenRef.current === null) seenRef.current = new Set(deck.map((x) => keyOf(x)))
+  if (seenRef.current === null) seenRef.current = new Set(deck.map((x) => deckKeyOf(x)))
   // BATCH 5: re-deal counter — keys SwipeDeck so a "Deal again" remounts it with the
   // next batch (its derived index resets in lockstep with into/nope below).
   const [dealNum, setDealNum] = useState(0)
   const [beforeTop] = useState(() => topCategories(getProfile(), 3)) // the honest "before"
   const [into, setInto] = useState(0) // 'yes' + 'save' verdicts
   const [nope, setNope] = useState(0)
+  const saveAppliedRef = useRef(new Set())
+  const [verdictPending, setVerdictPending] = useState(null)
+  const [feedback, setFeedback] = useState(null)
   const [phase, setPhase] = useState(deck.length ? 'rate' : 'empty') // 'rate' | 'done' | 'empty'
   const deckApi = useRef(null) // SwipeDeck's { left, right, up } — the button fallbacks' commit path
 
@@ -174,22 +196,71 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
   // tracks SwipeDeck's internal index in lockstep — counthead, dots and the
   // top-card read below are unchanged from the pre-refactor component.
   const rated = into + nope
-  const verdictNo = (e) => {
-    recordCalibration('no', e) // −1 category, floored at 0 (P4)
-    pushLastDeal(kind, keyOf(e))
+  const verdictNo = async (e) => {
+    setVerdictPending('no')
+    const expectedEvidence = projectPersonalEvidence('deck-no', e, { cityId: CITY.id })
+    const result = await commitCalibrationVerdict({
+      action: 'no',
+      retain: async () => {
+        const retained = await recordDeck(e)
+        if (retained?.applied !== true) return retained
+        return retained
+      },
+      signal: (retained) => capturePersonalSignal('deck-no', e, {
+        cityId: CITY.id,
+        source: 'activity',
+        result: retained,
+      }),
+      expectedEvidence,
+    })
+    setVerdictPending(null)
+    setFeedback(deckFeedback(result))
+    if (result?.applied !== true) return false
     setNope((n) => n + 1)
+    return true
   }
-  const verdictYes = (e) => {
-    recordCalibration('yes', e)
-    pushLastDeal(kind, keyOf(e))
+  const verdictYes = async (e) => {
+    setVerdictPending('yes')
+    const expectedEvidence = projectPersonalEvidence('deck-yes', e, { cityId: CITY.id })
+    const result = await commitCalibrationVerdict({
+      action: 'yes',
+      retain: async () => {
+        const retained = await recordDeck(e)
+        if (retained?.applied !== true) return retained
+        return retained
+      },
+      signal: (retained) => capturePersonalSignal('deck-yes', e, {
+        cityId: CITY.id,
+        source: 'activity',
+        result: retained,
+      }),
+      expectedEvidence,
+    })
+    setVerdictPending(null)
+    setFeedback(deckFeedback(result))
+    if (result?.applied !== true) return false
     setInto((n) => n + 1)
+    return true
   }
-  const verdictSave = (e) => {
-    // 'yes' and 'save' are both "into it"; exactly ONE +3 signal either way
-    if (!has(e)) toggle(e) // save seam records the +3 (works for places too)
-    else recordCalibration('yes', e) // save on an already-saved card
-    pushLastDeal(kind, keyOf(e))
+  const verdictSave = async (e) => {
+    setVerdictPending('save')
+    const itemKey = deckKeyOf(e)
+    const result = await commitCalibrationVerdict({
+      action: 'save',
+      alreadySaved: has(e) || saveAppliedRef.current.has(itemKey),
+      save: async () => await toggle(e),
+      retain: async () => {
+        const retained = await recordDeck(e)
+        if (retained?.applied !== true) return retained
+        return retained
+      },
+    })
+    if (result?.saveApplied === true) saveAppliedRef.current.add(itemKey)
+    setVerdictPending(null)
+    setFeedback(deckFeedback(result))
+    if (result?.applied !== true) return false
     setInto((n) => n + 1)
+    return true
   }
 
   // BATCH 5 (the never-hide door): re-deal the NEXT batch from the done screen so the deck
@@ -199,13 +270,20 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
   // kept in-feed "See all N" fallback + curate.js's count-preserving proof.)
   const dealAgain = () => {
     const next = isPlaces
-      ? nextPlacesBatch(places, seenRef.current, { persisted: loadLastDeal('places') })
-      : nextEventsBatch(events, anchors, seenRef.current, { persisted: loadLastDeal('events') })
+      ? nextPlacesBatch(places, seenRef.current, {
+          persisted: placeDeckExclusions,
+          excludeItem: isPlaceDeckExcluded,
+        })
+      : nextEventsBatch(events, anchors, seenRef.current, {
+          persisted: eventDeckExclusions,
+          excludeItem: isEventDeckExcluded,
+        })
     setDeck(next)
     setInto(0)
     setNope(0)
     setDealNum((n) => n + 1) // remounts SwipeDeck → its derived index resets to 0 (== rated)
     setPhase(next.length ? 'rate' : 'empty')
+    setFeedback(null)
   }
 
   // "Done early" keeps what it learned — verdicts were recorded as they
@@ -236,6 +314,10 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
 
   const top = deck[rated]
   const saved = top ? has(top) : false
+  const savePending = top ? isPending(top) : false
+  const saveIdentityPending = top ? identityPending(top) : false
+  const saveIdentityAmbiguous = top ? identityAmbiguous(top) : false
+  const saveIdentityWent = top ? identityWent(top) : false
 
   // ===== finish beat (the --reward sanctioned moment #6) =====
   if (phase === 'done') {
@@ -255,19 +337,16 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
             <div className="deck-done-spark" aria-hidden>
               ✨
             </div>
-            <h2 className="deck-done-title">Got it — your feed just got smarter</h2>
+            <h2 className="deck-done-title">Your choices are recorded</h2>
             <div className="deck-done-sub">
-              {rated} rated · {into} into it · {nope} not for you
+              {rated} choices · {into} kept or moved up · {nope} moved down
             </div>
-            {afterTop.length > 0 && (
+            {changed && afterTop.length > 0 && (
               <div className="deck-vibes">
                 Your top vibes: <span className="deck-vibes-now">{vibes(afterTop)}</span>
-                {/* before/after shows ONLY when the deck actually moved it — honest, never theatrical */}
-                {changed && (
-                  <span className="deck-vibes-was">
-                    {beforeTop.length ? `was ${vibes(beforeTop)}` : 'that’s brand new'}
-                  </span>
-                )}
+                <span className="deck-vibes-was">
+                  {beforeTop.length ? `was ${vibes(beforeTop)}` : 'that’s brand new'}
+                </span>
               </div>
             )}
             {/* BATCH 5: "Deal again" keeps the catalog reachable — the done screen no
@@ -312,16 +391,32 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
         ) : (
           <>
             <div className="deck-kicker">
-              <div className="deck-kicker-title">Rate {deck.length} — we’ll dial you in.</div>
+              <div className="deck-kicker-title">Choose what should move up</div>
               <div className="deck-kicker-sub">
-                {reduced ? 'Tap a button to call each one.' : 'Swipe, or use the buttons — every call tunes your feed.'}
+                {reduced
+                  ? 'Into it lifts similar picks; Not for me lowers them. Save keeps this item.'
+                  : 'Swipe or tap. Ratings change order only; every item stays browseable.'}
               </div>
+              {candidateModel.fallbackCount > 0 && (
+                <div className="deck-candidate-note">
+                  Limited high-confidence supply: {candidateModel.fallbackCount} broader {noun} included.
+                </div>
+              )}
+            </div>
+
+            <div
+              className={'deck-feedback' + (feedback?.tone === 'error' ? ' is-error' : '')}
+              role={feedback?.tone === 'error' ? 'alert' : 'status'}
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              {feedback?.text || (verdictPending ? 'Applying your choice…' : '')}
             </div>
 
             <SwipeDeck
               key={dealNum}
               cards={deck}
-              keyFor={keyOf}
+              keyFor={deckKeyOf}
               classPrefix="deck"
               apiRef={deckApi}
               renderCard={isPlaces ? (e) => <PlaceDeckFace e={e} /> : (e) => <DeckFace e={e} />}
@@ -352,27 +447,39 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
               <button
                 className="deck-btn deck-btn-no pressable"
                 onClick={() => deckApi.current?.left()}
-                aria-label="Not for me"
+                aria-label="Not for me — move similar options down"
+                disabled={savePending || verdictPending !== null}
               >
                 ✕
-                <span className="deck-btn-label">Not for me</span>
+                <span className="deck-btn-label">Less like this</span>
               </button>
               <button
                 className={'deck-btn deck-btn-save pressable' + (saved ? ' is-saved' : '')}
                 onClick={() => deckApi.current?.up()}
-                aria-label={saved ? 'Already saved — counts as into it' : 'Save it'}
+                aria-label={saveIdentityWent
+                  ? 'Already in your Been history'
+                  : saveIdentityAmbiguous
+                  ? 'Saved item needs review before it can be changed'
+                  : saveIdentityPending
+                    ? 'Save unavailable until this added event can be saved'
+                  : saved
+                    ? 'Already saved — mark this card complete'
+                    : 'Save it'}
+                disabled={!top || !canToggle(top) || verdictPending !== null}
+                aria-busy={savePending || verdictPending === 'save' || undefined}
               >
                 {/* D6: the engineered stroke heart (matches SaveHeart app-wide), not a raw ♥ */}
                 {saved ? <Icon.heartFill className="deck-btn-ic" aria-hidden /> : <Icon.heart className="deck-btn-ic" aria-hidden />}
-                <span className="deck-btn-label">Save</span>
+                <span className="deck-btn-label">{saveIdentityWent ? 'Completed' : saveIdentityAmbiguous ? 'Needs review' : saveIdentityPending ? 'Unavailable' : 'Save'}</span>
               </button>
               <button
                 className="deck-btn deck-btn-yes pressable"
                 onClick={() => deckApi.current?.right()}
-                aria-label="Into it"
+                aria-label="Into it — move similar options up"
+                disabled={savePending || verdictPending !== null}
               >
                 ✓
-                <span className="deck-btn-label">Into it</span>
+                <span className="deck-btn-label">More like this</span>
               </button>
             </div>
 
@@ -384,7 +491,7 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
 
             {rated > 0 && (
               <button className="deck-early" onClick={finishEarly}>
-                Done early — keep what it learned
+                Done early — keep these choices
               </button>
             )}
           </>
@@ -394,15 +501,47 @@ export default function CalibrationDeck({ kind = 'events', events, places, ancho
   )
 }
 
+export default function CalibrationDeck(props) {
+  const activity = useActivity()
+  if (!activity.ready) {
+    const failed = ['corrupt', 'error'].includes(activity.status)
+    return (
+      <div className="pg deck">
+        <header className="pg-head deck-head">
+          <button className="pg-back" onClick={props.onClose} aria-label="Close">
+            <Icon.chevron />
+          </button>
+          <h1 className="pg-head-title">Dial It In</h1>
+        </header>
+        <div className="pg-body deck-body">
+          <div className="deck-empty">
+            <p role={failed ? 'alert' : 'status'}>
+              {failed
+                ? 'Your deck history could not be loaded. Try again before rating cards.'
+                : 'Getting your deck history ready…'}
+            </p>
+            <button className="deck-done-btn pressable" onClick={props.onClose}>
+              {props.closeLabel || 'Back to Settings'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+  return <ReadyCalibrationDeck {...props} activity={activity} />
+}
+
 // TINDER Spots deck: lazy-loads the places store (the deck deals ONCE on mount, so
 // the places must be ready first) and then mounts the kind='places' CalibrationDeck.
 // usePlaces fetches only because this wrapper is mounted only when the Spots Tinder
 // is open (App gates on page.kind==='places').
 export function PlacesDeck({ onClose, closeLabel = 'Done' }) {
-  const { places, status } = usePlaces(true)
+  const { places, status, recover, recoverLabel } = usePlaces(true)
   if (status === 'ready' && Array.isArray(places) && places.length) {
     return <CalibrationDeck kind="places" places={places} onClose={onClose} closeLabel={closeLabel} />
   }
+  const loading = status === 'idle' || status === 'loading'
+  const unavailable = ['stale', 'offline', 'error'].includes(status)
   return (
     <div className="pg deck">
       <header className="pg-head deck-head">
@@ -416,7 +555,24 @@ export function PlacesDeck({ onClose, closeLabel = 'Done' }) {
           <div className="deck-empty-emoji" aria-hidden>
             🃏
           </div>
-          <p>{status === 'error' ? "Couldn't load spots right now — try again in a moment." : 'Loading spots…'}</p>
+          <p role={loading ? 'status' : unavailable ? 'alert' : undefined}>
+            {loading
+              ? 'Loading spots…'
+              : status === 'empty' || (status === 'ready' && places?.length === 0)
+                ? 'No spots are available here yet.'
+                : status === 'stale'
+                  ? 'These spot listings are too old to use safely.'
+                  : status === 'offline'
+                    ? 'You’re offline. Spots weren’t loaded.'
+                    : status === 'error'
+                      ? "Couldn't verify spots right now."
+                      : 'Spots are unavailable right now.'}
+          </p>
+          {unavailable && recover && (
+            <button className="deck-done-btn pressable" onClick={recover}>
+              {recoverLabel}
+            </button>
+          )}
           <button className="deck-done-btn pressable" onClick={onClose}>
             {closeLabel}
           </button>

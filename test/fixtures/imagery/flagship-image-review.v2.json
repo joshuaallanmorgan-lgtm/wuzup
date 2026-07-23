@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 1,
+  "reportSha256": "sha256:5cda3c0d362ea1e98190d8fb77da889222d453694a9798061f1e386c14db368e",
+  "artifacts": [
+    {
+      "cityId": "tampa-bay",
+      "manifestPath": "finder/output/tampa-bay/artifact-manifest.json",
+      "manifestSha256": "sha256:c09bc9b75a56e6dd0b8f06b4ab6a4e937c3d741764eed006dcccb3df5c71a295",
+      "manifestId": "sha256:7a9c4bb85d64c8488470691dc3b8f537e2ab3e2218534fa7def444d4ffc494e0",
+      "buildId": "sha256:37e7b0bcc2ea184faaab0c066a996ef5a6511e15c2d0918725bf01d04187efe9",
+      "placesPath": "finder/output/tampa-bay/places.json",
+      "placesSha256": "sha256:e19e10e05780bcb55c88c59ccd1b251354f1652451ae37207b602f7aef144c25",
+      "placesBytes": 1347573,
+      "placesCount": 2163
+    },
+    {
+      "cityId": "sf-east-bay",
+      "manifestPath": "finder/output/sf-east-bay/artifact-manifest.json",
+      "manifestSha256": "sha256:45a559f74fefa1158f9f5db9b738735649e92c7f1c0b2150983c67200b4c9b0b",
+      "manifestId": "sha256:62a4dfb0bd4885c419cfa44ced14ca765c6471caabf3314fa38c86ca888f0799",
+      "buildId": "sha256:e209e102c6a821060d8abbd2fe6d475629a7be6b32b0e4a2a46bb52f561bdf04",
+      "placesPath": "finder/output/sf-east-bay/places.json",
+      "placesSha256": "sha256:6e26e72aab68693ba3d9685503a81b7d8bf6c02b49afb697285dc3fbed338c1d",
+      "placesBytes": 1527368,
+      "placesCount": 2888
+    }
+  ],
+  "summary": {
+    "total": 100,
+    "cities": [
+      {
+        "cityId": "tampa-bay",
+        "candidatePool": 116,
+        "selected": 50,
+        "delivery": [
+          { "value": "remote", "count": 34 },
+          { "value": "self-hosted", "count": 16 }
+        ],
+        "sourceFamilies": [
+          { "value": "commons-geosearch", "count": 15 },
+          { "value": "mapillary-sign", "count": 16 },
+          { "value": "wikidata-p18", "count": 15 },
+          { "value": "wikidata-p373", "count": 4 }
+        ],
+        "riskFlags": [
+          { "value": "ADDRESS_MISSING", "count": 21 },
+          { "value": "LICENSE_URL_MISSING", "count": 3 },
+          { "value": "SELF_HOSTED_BYTES", "count": 16 }
+        ]
+      },
+      {
+        "cityId": "sf-east-bay",
+        "candidatePool": 167,
+        "selected": 50,
+        "delivery": [
+          { "value": "remote", "count": 50 }
+        ],
+        "sourceFamilies": [
+          { "value": "wikidata-p18", "count": 39 },
+          { "value": "wikidata-p373", "count": 11 }
+        ],
+        "riskFlags": [
+          { "value": "ADDRESS_MISSING", "count": 43 },
+          { "value": "LICENSE_URL_MISSING", "count": 9 }
+        ]
+      }
+    ]
+  },
+  "sampleItemIds": {
+    "tampa-bay": [
+      "p|grassroots-kava",
+      "p|the-centre-of-palm-harbor",
+      "p|honeymoon-island-state-park",
+      "p|crews-lake-wilderness-park",
+      "p|gypsysouls-coffeehouse-redington",
+      "p|black-brew",
+      "p|fort-de-soto-park",
+      "p|florida-botanical-garden",
+      "p|neighborhood-joe",
+      "p|bonnet-springs-park",
+      "p|desoto-national-memorial",
+      "p|nathan-benderson-park",
+      "p|whistle-stop-caf",
+      "p|bro-bowl",
+      "p|egmont-key-national-wildlife-refuge",
+      "p|werner-boyce-salt-springs-state-park",
+      "p|buddy-brew-coffee",
+      "p|celery-fields",
+      "p|manatee-mineral-springs-park",
+      "p|cafe-1001-and-creative-catering-company",
+      "p|crystal-beach",
+      "p|alafia-river-state-park",
+      "p|di-coffee-bar",
+      "p|five-points-park",
+      "p|hillsborough-river-state-park",
+      "p|kahwa-south",
+      "p|fox-hollow-golf-club-and-restaurant",
+      "p|little-manatee-river-state-park",
+      "p|kaleisia-tea-lounge",
+      "p|northlakes-sagebrush-wood-stork-colony",
+      "p|ballast-point-park",
+      "p|madison-avenue-cafe-and-deli",
+      "p|park-square",
+      "p|boyd-hill-nature-preserve",
+      "p|nina-s-cafe-on-the-beach",
+      "p|quick-point-nature-preserve",
+      "p|vinoy-park",
+      "p|parkside-cafe",
+      "p|redington-long-pier",
+      "p|wall-springs-park",
+      "p|pineapple-espresso",
+      "p|sarasota-bay-walk",
+      "p|weedon-island-preserve",
+      "p|raining-berries",
+      "p|seven-wetlands-se7en-wetlands",
+      "p|weeki-wachee-springs-state-park",
+      "p|starbucks-18",
+      "p|simmons-park",
+      "p|sunken-gardens",
+      "p|starbucks-22"
+    ],
+    "sf-east-bay": [
+      "p|las-trampas-wilderness-regional-preserve",
+      "p|marin-headlands",
+      "p|point-isabel-regional-shoreline",
+      "p|diablo-foothills-regional-park",
+      "p|temescal-regional-recreation-area",
+      "p|dr-aurelia-reinhardt-redwood-regional-park",
+      "p|bushrod-park",
+      "p|heather-farm-park",
+      "p|pardee-home-museum",
+      "p|joaquin-miller-park",
+      "p|san-bruno-mountain-state-and-county-park",
+      "p|keller-beach",
+      "p|john-muir-national-historic-site",
+      "p|mount-diablo-state-park",
+      "p|morcom-rose-garden",
+      "p|rincon-park",
+      "p|yerba-buena-gardens",
+      "p|glen-canyon-park",
+      "p|baker-beach",
+      "p|st-mary-s-square",
+      "p|fort-mason",
+      "p|san-francisco-botanical-garden",
+      "p|anthony-chabot-regional-park",
+      "p|briones-regional-park",
+      "p|brooks-island-regional-preserve",
+      "p|mclaughlin-eastshore-state-park",
+      "p|potrero-del-sol",
+      "p|robert-sibley-volcanic-regional-preserve",
+      "p|robert-w-crown-memorial-state-beach",
+      "p|regional-parks-botanic-garden",
+      "p|albany-bulb",
+      "p|alcatraz-island",
+      "p|alvarado-park",
+      "p|aquatic-park-historic-district",
+      "p|china-camp-state-park",
+      "p|civic-center-plaza",
+      "p|crane-cove-park",
+      "p|don-fernando-pacheco-adobe",
+      "p|ernie-raimondi-park",
+      "p|fort-funston",
+      "p|harvey-milk-plaza",
+      "p|hyde-street-pier",
+      "p|levi-s-plaza",
+      "p|middle-harbor-shoreline-park",
+      "p|mosswood-park",
+      "p|municipal-pier",
+      "p|music-concourse",
+      "p|panhandle",
+      "p|pier-1-2",
+      "p|pink-triangle-memorial"
+    ]
+  }
+}

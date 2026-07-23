@@ -1,10 +1,13 @@
 # Wuzup V2 — The Day Engine
 ### "Give me a Saturday."
 
-> **Plan of record for V2** — synthesized 2026-07-05 by Fable 5 from a 21-agent visioning fleet
+> **Status: NONBINDING CONCEPT ARCHIVE.** Josh's 2026-07-14 direction supersedes this document's
+> mandatory V2 release shape. Optional product concepts below are suggestions for V3 unless explicitly
+> promoted. The current execution plan is [V2_PLAN.md](V2_PLAN.md).
+>
+> Synthesized 2026-07-05 by Fable 5 from a 21-agent visioning fleet
 > (6 ground recon · 10 visionary concepts · 3 adversarial judges · 2 stress critics; ~1.4M tokens).
-> V1 shipped through Stage E; V2 kickoff now depends on the operational/data gates below rather than
-> unfinished launch code. Adjudication sheet at the bottom.
+> Historical plan-only source material. Adjudication sheet at the bottom.
 > Raw fleet output: workflow `wf_90b6eaba-e15`.
 
 ---

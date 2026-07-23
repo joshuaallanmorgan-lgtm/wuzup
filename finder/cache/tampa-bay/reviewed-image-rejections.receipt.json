@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "cityId": "tampa-bay",
+  "appliedAt": "2026-07-22T03:49:01.317Z",
+  "auditDocument": "planning/v2/S10_IMAGE_AUDIT_2026-07-21.md",
+  "auditReportSha256": "sha256:4bee54bf0847f6de7a06443ffdf513055abfd85d0f2d6a67110f928518958830",
+  "registrySha256": "sha256:b75d312bd7bb5495e2005d3805b148eef8c4b14ff46c0c8f91e631f601af0afb",
+  "preimage": {
+    "manifestId": "sha256:035cb1eed7e67d143c4b0739d8dd3c2373bd3af2e85562aad0fc4895651615b1",
+    "buildId": "sha256:65a75e81823893d24051e99387364d1b1ab450be748f6dc58cc58c14d61d5381",
+    "placesSha256": "749eed658f2df7c8f9d175391ba06518c7b88168f4e27afab0a63ff647e3a57b"
+  },
+  "result": {
+    "manifestId": "sha256:7a9c4bb85d64c8488470691dc3b8f537e2ab3e2218534fa7def444d4ffc494e0",
+    "buildId": "sha256:37e7b0bcc2ea184faaab0c066a996ef5a6511e15c2d0918725bf01d04187efe9",
+    "placesSha256": "e19e10e05780bcb55c88c59ccd1b251354f1652451ae37207b602f7aef144c25",
+    "placeImagesSha256": "dd00a6a0ef2f67fdda6ae222b7a021fe0648fd763cb4f25bb2bc30b257fa5ac3",
+    "placeImagesCount": 30
+  },
+  "removed": {
+    "placeClaims": [
+      "p|banyan-coffee-co",
+      "p|beangood-coffee",
+      "p|colt-creek-state-park",
+      "p|curtis-hixon-waterfront-park",
+      "p|del-bello-park",
+      "p|dundedin-hammock-park-paddlecraft-access",
+      "p|edward-medard-park-boat-ramp",
+      "p|edward-medard-park-canoe-kayak-launch",
+      "p|fort-hamer-park",
+      "p|fort-hamer-public-boat-ramp",
+      "p|foundation-coffee-co-ybor-city",
+      "p|foundation-coffee-company",
+      "p|indian-shores-coffee",
+      "p|ken-thompson-park-boat-ramp",
+      "p|ken-thompson-park-kayak-beach",
+      "p|lower-hillsborough-wilderness-preserve-morris-bridge-park",
+      "p|morris-bridge-park",
+      "p|palma-sola-botanical-park",
+      "p|perry-harvey-sr-park",
+      "p|sunset-beach",
+      "p|sunset-beach-park-sand-launch-beach-city-permit-required",
+      "p|tenth-street-coffee",
+      "p|ybor-city-museum-state-park"
+    ],
+    "attributionEntries": [
+      "File:CassiaFistula02 PalmaSola Asit.jpg",
+      "File:Colt Creek SP road01.jpg",
+      "File:Curtis Hixon Park Tampa Florida United States - panoramio (1).jpg",
+      "File:Edward Medard Park Lake July 2024.jpg",
+      "File:Fort Hamer Bridge.jpg",
+      "File:Morris Bridge Summer Day (9433839633).jpg",
+      "File:Sunset Beach, Tarpon Springs, United States (Unsplash).jpg",
+      "File:Ybor City (8061548385).jpg",
+      "Mapillary:1342952362741418",
+      "Mapillary:484893932562446",
+      "Mapillary:522934939993817",
+      "Mapillary:650653606780814",
+      "Mapillary:974016848499650"
+    ],
+    "mapillaryEntries": [
+      "p|banyan-coffee-co",
+      "p|beangood-coffee",
+      "p|foundation-coffee-company",
+      "p|indian-shores-coffee",
+      "p|tenth-street-coffee"
+    ],
+    "localImages": [
+      {
+        "key": "p|banyan-coffee-co",
+        "image": "/place-img/banyan-coffee-co.jpg",
+        "bytes": 47900,
+        "sha256": "8619db7d532cb30e6afaf547d0425922dc81b1f6814b2df751be6009e633f6bd"
+      },
+      {
+        "key": "p|beangood-coffee",
+        "image": "/place-img/beangood-coffee.jpg",
+        "bytes": 50537,
+        "sha256": "e4edbae7e7013f3533cb0eafb778a4a5862f5644cd4405ac973551f234502d8f"
+      },
+      {
+        "key": "p|foundation-coffee-company",
+        "image": "/place-img/foundation-coffee-company.jpg",
+        "bytes": 36583,
+        "sha256": "220e9679cbc8599e2cb849377e9f3b45e94caaf53e2ec36f985781e37cf68bec"
+      },
+      {
+        "key": "p|indian-shores-coffee",
+        "image": "/place-img/indian-shores-coffee.jpg",
+        "bytes": 54401,
+        "sha256": "2e413cda8c75b069942a9df8cea092efb6d8a34b73977295c443f7262b13dde9"
+      },
+      {
+        "key": "p|tenth-street-coffee",
+        "image": "/place-img/tenth-street-coffee.jpg",
+        "bytes": 42337,
+        "sha256": "e85b2422d9b8e9cf997ec8492d181521e331edbae6878dc56f32d1868e4b64a5"
+      }
+    ]
+  }
+}

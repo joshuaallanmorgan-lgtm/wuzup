@@ -1,0 +1,63 @@
+{
+  "v": 1,
+  "cases": {
+    "stableSurvives": {
+      "prior": {
+        "id": "4f083c10296600fa",
+        "title": "Gulfport Tuesday Fresh Market",
+        "url": "https://www.visitstpeteclearwater.com/event/gulfport-tuesday-fresh-market/1596",
+        "start": "2026-07-07"
+      },
+      "current": {
+        "id": "4f083c10296600fa",
+        "title": "Gulfport Tuesday Fresh Market",
+        "url": "https://www.visitstpeteclearwater.com/event/gulfport-tuesday-fresh-market/1596",
+        "start": "2026-07-07T09:00:00-04:00"
+      }
+    },
+    "legacySurvives": {
+      "prior": {
+        "id": "36ec15d158ebe5f0",
+        "title": "Train",
+        "url": "https://www.visittampabay.com/tampa-events/details/train/99194/",
+        "start": "2026-07-10T18:45:00-04:00"
+      },
+      "current": {
+        "id": "e742c347c9f31d72",
+        "title": "Train, Barenaked Ladies & Matt Nathanson",
+        "url": "https://www.visittampabay.com/tampa-events/details/train/99194/",
+        "start": "2026-07-10T18:45:00-04:00"
+      }
+    },
+    "bothSurvive": {
+      "prior": {
+        "id": "f0d796c582367c85",
+        "title": "Free Mat Pilates Class at Urban Therapy Coffee",
+        "url": "https://www.eventbrite.com/e/free-mat-pilates-class-at-urban-therapy-coffee-tickets-1991860749120",
+        "start": "2026-07-07"
+      },
+      "current": {
+        "id": "f0d796c582367c85",
+        "title": "Free Mat Pilates Class at Urban Therapy Coffee",
+        "url": "https://www.eventbrite.com/e/free-mat-pilates-class-at-urban-therapy-coffee-tickets-1991860749120",
+        "start": "2026-07-07"
+      }
+    },
+    "removed": {
+      "prior": {
+        "id": "8ba456b89218aaef",
+        "title": "KE & Friends Just Be Doin Shxt",
+        "url": "https://www.eventbrite.com/e/ke-friends-just-be-doin-shxt-tickets-1992070100295",
+        "start": "2026-07-02"
+      }
+    },
+    "newSf": {
+      "current": {
+        "id": "b86a5eb04847b0b4",
+        "title": "Vuori Broadway Plaza x Pvolve",
+        "url": "https://example.test/vuori-pvolve",
+        "start": "2026-07-18T09:00:00-07:00"
+      }
+    }
+  }
+}

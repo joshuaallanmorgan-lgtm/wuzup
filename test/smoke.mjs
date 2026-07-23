@@ -11,8 +11,7 @@
 //      must never leave the app pointing at the small fast-mode dataset.
 //   2. data invariants    — on the CURRENT full app/public/events.json, captured
 //      at module load (i.e. before the finder run can touch it). "Ended" is
-//      measured against the GENERATION stamp parsed from events.md (file
-//      mtime lies after any byte-identical restore — see generationTime());
+//      measured against its hash-bound artifact-manifest generation receipt;
 //      the invariant is "the finder wrote no already-ended events", not
 //      "no event has ended since". Windows note: node --test wall-clock can
 //      exceed the runner-reported time (spawned npm shells linger after the
@@ -28,8 +27,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
-import { lookup as dnsLookup } from 'node:dns/promises'
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -37,59 +35,48 @@ import { fileURLToPath } from 'node:url'
 // place/category vocab from the canonical taxonomy (categories.js) — so a new city
 // doesn't fail the build on hard-coded Tampa values.
 import { bbox as CITY_BBOX, rosterBenchmark as CITY_ROSTER, cityId as CITY_ID } from '../finder/cities/index.mjs'
-import { fuzzyMerge } from '../finder/finder.mjs'
+import { verifyArtifactSet } from '../finder/artifact-manifest.mjs'
+import { fallbackReasonForStage, fuzzyMerge } from '../finder/finder.mjs'
+import { cityMidnightMs, eventTime, formatInstant } from '../shared/city-time.mjs'
+import { annotateQualityFloor } from '../shared/quality-floor.mjs'
+import { bbox as TAMPA_BBOX } from '../finder/cities/tampa-bay.mjs'
 import { PLACETYPE_HUE, CATEGORY_HUES } from '../app/src/categories.js'
 import * as deckdeal from '../app/src/deckdeal.js'
 import * as gesture from '../app/src/deckgesture.js'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const APP_EVENTS = path.join(ROOT, 'app', 'public', 'events.json')
+const APP_PUBLIC = path.join(ROOT, 'app', 'public')
+const APP_EVENTS = path.join(APP_PUBLIC, 'events.json')
 // D1 multi-tenant artifacts: the finder writes finder/output/<cityId>/…
 const FINDER_JSON = path.join(ROOT, 'finder', 'output', CITY_ID, 'events.json')
 const FINDER_MD = path.join(ROOT, 'finder', 'output', CITY_ID, 'events.md')
+const FINDER_MANIFEST = path.join(ROOT, 'finder', 'output', CITY_ID, 'artifact-manifest.json')
+const STATIC_SOURCE_NAMES = new Set(
+  JSON.parse(readFileSync(path.join(ROOT, 'finder', 'cities', `${CITY_ID}.sources.json`), 'utf8'))
+    .map((source) => source.name)
+)
 
 // ---------- capture the CURRENT full dataset BEFORE anything can mutate it ----------
 assert.ok(existsSync(APP_EVENTS), `missing ${APP_EVENTS} — run "npm run refresh" first; the app has no data`)
 const fullRaw = readFileSync(APP_EVENTS, 'utf8')
 const fullEvents = JSON.parse(fullRaw)
-// "Ended" must be judged against the dataset's GENERATION time. File mtime is
-// untrustworthy here — any restore (this harness's own finally-restore, cp,
-// git checkout) rewrites identical content with a fresh mtime and would make
-// honest-at-write-time events read as "ended". The finder stamps the real
-// generation moment into events.md ("_Generated 6/10/2026, 12:21:37 PM · …_"),
-// written in the same run as both json files; trust it whenever the app copy
-// and the finder output are byte-identical (the normal pipeline state), else
-// fall back to mtime and say so in the failure message.
-// D-G2: the finder artifact carries stable event ids AHEAD of the deployed
-// copy (ids mint at finder emit; app/public changes only via `npm run
-// deploy-city`). "Same artifact" for stamp-trust purposes = identical once
-// ids are ignored on BOTH sides — byte-identity resumes at the next deploy.
-const sansIds = (raw) => {
-  try {
-    const a = JSON.parse(raw)
-    if (!Array.isArray(a)) return raw
-    for (const e of a) if (e && typeof e === 'object') delete e.id
-    return JSON.stringify(a)
-  } catch {
-    return raw
-  }
-}
-const genRefMs = (() => {
-  try {
-    if (
-      existsSync(FINDER_MD) &&
-      existsSync(FINDER_JSON) &&
-      sansIds(readFileSync(FINDER_JSON, 'utf8')) === sansIds(fullRaw)
-    ) {
-      const m = readFileSync(FINDER_MD, 'utf8').match(/_Generated ([^·]+) ·/)
-      const t = m ? new Date(m[1].trim()).getTime() : NaN
-      if (!Number.isNaN(t)) return { ms: t, src: 'events.md generation stamp' }
-    }
-  } catch {
-    /* unreadable sidecar — fall through to mtime */
-  }
-  return { ms: statSync(APP_EVENTS).mtimeMs, src: 'file mtime (no matching events.md stamp!)' }
-})()
+// "Ended" must be judged against immutable generation provenance bound to
+// these exact bytes. Freshness is intentionally not required here: this gate
+// asks whether the artifact was honest when written, while stale-data UX and
+// deployment gates own whether it is current enough to serve.
+const fullArtifactVerification = verifyArtifactSet({
+  root: APP_PUBLIC,
+  expectedCityId: CITY_ID,
+})
+assert.ok(
+  fullArtifactVerification.ok,
+  `app/public artifact verification failed: ${fullArtifactVerification.problems.join(' · ')}`,
+)
+const fullManifest = fullArtifactVerification.manifest
+const fullEventReceipt = fullManifest.artifacts.events
+const fullTimeZone = fullManifest.timeZone
+const generationMs = Date.parse(fullEventReceipt.generatedAt)
+assert.ok(Number.isFinite(generationMs), `invalid events generatedAt '${fullEventReceipt.generatedAt}'`)
 
 // ---------- helpers ----------
 function collect(child) {
@@ -109,36 +96,28 @@ const runNode = (script, env) =>
 const runNpm = (cmdline) => collect(spawn(cmdline, { cwd: ROOT, shell: true }))
 const tail = (s, n = 30) => s.split(/\r?\n/).slice(-n).join('\n')
 
-// network gate: the finder fast-mode pulls from live sources (Nominatim geocode +
-// static feeds). When the box is OFFLINE the yield collapses and the source-count
-// + cross-source-merge assertions go falsely red. A quick DNS probe (no HTTP load,
-// no rate-limit) lets those hold the line when online and downgrade to a diagnostic
-// when not — "gate when offline, never silently delete the assertion".
-async function isOnline() {
-  for (const host of ['one.one.one.one', 'dns.google']) {
-    try {
-      await dnsLookup(host)
-      return true
-    } catch {
-      /* try the next probe host */
-    }
+function staticAcquisitionUnavailable(sources, expectedNames) {
+  if (!Array.isArray(sources) || !(expectedNames instanceof Set)) return false
+  const receipts = sources.filter((source) => expectedNames.has(source?.name))
+  if (receipts.length !== expectedNames.size) return false
+  if (new Set(receipts.map((source) => source.name)).size !== expectedNames.size) return false
+  const families = new Map()
+  for (const source of receipts) {
+    const family = source.name.replace(/\s*\([^)]*\)\s*$/, '')
+    if (!families.has(family)) families.set(family, [])
+    families.get(family).push(source)
   }
-  return false
+  const transportFallback = (source) =>
+    source.cached === true && source.fallbackReason === 'live-error'
+  if (receipts.every(transportFallback)) return true
+  // One publisher can occupy many pagination/query endpoints. If that
+  // dominant family is wholly on transport-error cache fallback, a live row
+  // count measures the outage rather than corpus health. Keep post-fetch,
+  // partial-family, and minority-source failures loud.
+  return [...families.values()].some((family) =>
+    family.length * 2 > receipts.length && family.every(transportFallback))
 }
 
-// mirrors finder.mjs endedAtMs: date-only → exclusive next-midnight; timed
-// no-end → start + 3h assumed duration
-const ASSUMED_MS = 3 * 3600 * 1000
-function endedAtMs(e) {
-  const s = String(e.end || e.start || '')
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-    const [y, m, d] = s.split('-').map(Number)
-    return new Date(y, m - 1, d + 1).getTime()
-  }
-  const t = Date.parse(s)
-  if (Number.isNaN(t)) return NaN
-  return e.end ? t : t + ASSUMED_MS
-}
 const startHourOf = (s) => {
   const m = String(s || '').match(/T(\d{2}):/)
   return m ? Number(m[1]) : null
@@ -248,6 +227,49 @@ test('finder fuzzy merge: cross-family consensus is deterministic', () => {
   assert.equal(separate.buzz, 1, 'an unrelated-venue listing remains a one-family event')
 })
 
+test('finder source fallback causes fail closed outside transport acquisition', () => {
+  assert.equal(fallbackReasonForStage('live-fetch'), 'live-error')
+  assert.equal(fallbackReasonForStage('source-adapter'), 'source-error')
+  assert.equal(fallbackReasonForStage('processing'), 'processing-error')
+  assert.throws(() => fallbackReasonForStage('cache-write'), /unknown source stage/)
+
+  const expected = new Set(['A', 'B'])
+  const transportFailures = [
+    { name: 'A', cached: true, fallbackReason: 'live-error' },
+    { name: 'B', cached: true, fallbackReason: 'live-error' },
+  ]
+  assert.equal(staticAcquisitionUnavailable(transportFailures, expected), true)
+  assert.equal(staticAcquisitionUnavailable([
+    transportFailures[0],
+    { name: 'B', cached: true, fallbackReason: 'processing-error' },
+  ], expected), false, 'post-fetch processing errors must keep the count floor active')
+  assert.equal(staticAcquisitionUnavailable([
+    transportFailures[0],
+    { name: 'B', cached: true, fallbackReason: 'live-empty' },
+  ], expected), false, 'parse-zero fallbacks must keep the count floor active')
+  assert.equal(staticAcquisitionUnavailable([transportFailures[0]], expected), false, 'missing receipts fail closed')
+  const dominantExpected = new Set(['Eventbrite (Free)', 'Eventbrite (Tampa)', 'Eventbrite (p2)', 'Independent'])
+  const dominantOutage = [
+    { name: 'Eventbrite (Free)', cached: true, fallbackReason: 'live-error' },
+    { name: 'Eventbrite (Tampa)', cached: true, fallbackReason: 'live-error' },
+    { name: 'Eventbrite (p2)', cached: true, fallbackReason: 'live-error' },
+    { name: 'Independent', cached: false, fallbackReason: null },
+  ]
+  assert.equal(staticAcquisitionUnavailable(dominantOutage, dominantExpected), true,
+    'a correlated outage across every endpoint of the dominant family gates the live count floor')
+  assert.equal(staticAcquisitionUnavailable([
+    ...dominantOutage.slice(0, 2),
+    { name: 'Eventbrite (p2)', cached: false, fallbackReason: null },
+    dominantOutage[3],
+  ], dominantExpected), false, 'one live endpoint keeps a dominant family measurable')
+  assert.equal(staticAcquisitionUnavailable([
+    { name: 'Eventbrite (Free)', cached: false, fallbackReason: null },
+    { name: 'Eventbrite (Tampa)', cached: false, fallbackReason: null },
+    { name: 'Eventbrite (p2)', cached: false, fallbackReason: null },
+    { name: 'Independent', cached: true, fallbackReason: 'live-error' },
+  ], dominantExpected), false, 'a minority-family transport error does not gate the floor')
+})
+
 test('full city artifacts: unclassified category share stays under 8%', () => {
   for (const cityId of ['tampa-bay', 'sf-east-bay']) {
     const file = path.join(ROOT, 'finder', 'output', cityId, 'events.json')
@@ -271,7 +293,7 @@ test('finder fast-mode: exit 0, benchmarks green, output schema-valid', { timeou
     return d.isDirectory() ? walkJson(p) : d.name.endsWith('.json') ? [p] : []
   })
   const cacheFiles = existsSync(cacheDir) ? walkJson(cacheDir) : []
-  const backups = [APP_EVENTS, FINDER_JSON, FINDER_MD, ...cacheFiles]
+  const backups = [APP_EVENTS, FINDER_JSON, FINDER_MD, FINDER_MANIFEST, ...cacheFiles]
     .filter((f) => existsSync(f))
     .map((f) => [f, readFileSync(f)])
   let res
@@ -306,13 +328,7 @@ test('finder fast-mode: exit 0, benchmarks green, output schema-valid', { timeou
     const buzzLine = res.out.split(/\r?\n/).find((l) => l.includes('events with buzz >= 2:'))
     assert.ok(buzzLine, 'buzz >= 2 benchmark line missing from finder output')
     const buzzN = Number(buzzLine.match(/buzz >= 2:\s*(\d+)/)?.[1])
-    // Source-count floors still depend on live sources; DNS gates that check.
-    const online = await isOnline()
-    if (online) {
-      t.diagnostic(`ONLINE — live fast-mode cross-family overlaps: ${buzzN} (corpus diagnostic; merge behavior is fixture-tested)`)
-    } else {
-      t.diagnostic(`OFFLINE — live fast-mode cross-family overlaps unavailable (got ${buzzN}); merge behavior is fixture-tested`)
-    }
+    t.diagnostic(`fast-mode cross-family overlaps: ${buzzN} (corpus diagnostic; merge behavior is fixture-tested)`)
     // sponsored is render-sourced: fast mode prints the ⚠️ offline variant
     assert.ok(
       res.out.includes('sponsored (promoted) cltampa events'),
@@ -321,19 +337,124 @@ test('finder fast-mode: exit 0, benchmarks green, output schema-valid', { timeou
     const totalLine = res.out.split(/\r?\n/).find((l) => l.includes('TOTAL upcoming events:'))
     assert.ok(totalLine, 'TOTAL upcoming events line missing from finder output')
     const totalN = Number(totalLine.match(/TOTAL upcoming events:\s*(\d+)/)?.[1])
-    if (online) {
+    const runManifest = JSON.parse(readFileSync(FINDER_MANIFEST, 'utf8'))
+    const sourceReceiptSummary = runManifest.sourceHealth.sources
+      .map((source) => `${source.name}=${source.status}/${source.rows}${source.cached ? `/cached/${source.fallbackReason || 'unknown'}` : ''}`)
+      .join(', ')
+    const sourceAcquisitionSummary = res.out.split(/\r?\n/)
+      .filter((line) => line.includes('cached — live'))
+      .map((line) => line.trim())
+      .join(' | ')
+    const staticReceipts = runManifest.sourceHealth.sources
+      .filter((source) => STATIC_SOURCE_NAMES.has(source.name))
+    assert.equal(
+      staticReceipts.length,
+      STATIC_SOURCE_NAMES.size,
+      `fast-mode manifest is missing static source receipts; got: ${sourceReceiptSummary}`
+    )
+    assert.equal(
+      new Set(staticReceipts.map((source) => source.name)).size,
+      STATIC_SOURCE_NAMES.size,
+      `fast-mode manifest has duplicate static source receipts; got: ${sourceReceiptSummary}`
+    )
+    const acquisitionUnavailable = staticAcquisitionUnavailable(
+      runManifest.sourceHealth.sources,
+      STATIC_SOURCE_NAMES
+    )
+    if (!acquisitionUnavailable) {
       assert.ok(
         totalN >= 150,
-        `fast-mode static sources produced only ${totalN} events (expect ~250; >= 150 floor) — sources or caches are failing`
+        `fast-mode static sources produced only ${totalN} events (expect ~250; >= 150 floor) — sources or caches are failing; receipts: ${sourceReceiptSummary}; acquisitions: ${sourceAcquisitionSummary}`
       )
     } else {
-      t.diagnostic(`OFFLINE — gating the source-count floor (got ${totalN}, expect ~250 online)`)
+      t.diagnostic(`DOMINANT STATIC ACQUISITION FAMILY UNAVAILABLE — gating the live source-count floor (got ${totalN}, expect ~250 from a healthy pull)`)
     }
     t.diagnostic(`fast-mode events: ${totalN}, buzz>=2: ${buzzN}`)
 
     // --- fast output exists and schema-validates: 20 random spot checks ---
     const fast = JSON.parse(readFileSync(FINDER_JSON, 'utf8'))
     assert.ok(Array.isArray(fast) && fast.length > 0, `finder/output/${CITY_ID}/events.json is not a non-empty array`)
+    const fastReceipt = runManifest.artifacts.events
+    const fastGenerationMs = Date.parse(fastReceipt.generatedAt)
+    assert.ok(Number.isFinite(fastGenerationMs), `fast manifest has invalid generatedAt '${fastReceipt.generatedAt}'`)
+    assert.equal(runManifest.generatedAt, fastReceipt.generatedAt, 'manifest generation aliases must agree')
+    assert.equal(fastReceipt.count, fast.length, 'fast manifest count must bind the emitted events array')
+
+    // Sprint 5's emitted-event contract belongs only to a fresh finder run:
+    // pinned artifacts retain their own historical compatibility gates below.
+    const canonicalStatuses = new Set(['scheduled', 'cancelled', 'postponed', 'sold_out', 'unknown'])
+    const rangeSemantics = new Set(['all-day', 'continuous', 'occurrence', 'single'])
+    const signalProblems = fast.flatMap((event, index) => {
+      const label = `event[${index}] ${JSON.stringify(event.id)}`
+      const errors = []
+      const sourceFamilies = event.sourceFamilies
+      if (typeof event.sourceFamily !== 'string' || !event.sourceFamily.trim()) errors.push(`${label}: sourceFamily must be a non-empty string`)
+      if (!Array.isArray(sourceFamilies) || !sourceFamilies.length || sourceFamilies.some((family) => typeof family !== 'string' || !family.trim())) {
+        errors.push(`${label}: sourceFamilies must be a non-empty string array`)
+      } else {
+        if (new Set(sourceFamilies).size !== sourceFamilies.length) errors.push(`${label}: sourceFamilies must be deduped`)
+        if (!sourceFamilies.includes(event.sourceFamily)) errors.push(`${label}: sourceFamily must be represented in sourceFamilies`)
+      }
+      if (!canonicalStatuses.has(event.status)) errors.push(`${label}: status ${JSON.stringify(event.status)} is not canonical`)
+      if (!Array.isArray(event.rawCategories)) errors.push(`${label}: rawCategories must be an array`)
+      if (!(event.descriptionLength === null || (Number.isInteger(event.descriptionLength) && event.descriptionLength >= 0))) {
+        errors.push(`${label}: descriptionLength must be null or a non-negative integer`)
+      }
+      if (!Number.isInteger(event.imageRank) || event.imageRank < -1 || event.imageRank > 2) errors.push(`${label}: imageRank must be an integer in [-1, 2]`)
+      if (event.canonicalId !== event.id) errors.push(`${label}: canonicalId must equal id`)
+      if (event.actionability !== true) errors.push(`${label}: actionability must be true after final filtering`)
+      if (!event.recurrence || typeof event.recurrence !== 'object' || Array.isArray(event.recurrence) || !['one-off', 'recurring'].includes(event.recurrence.kind)) {
+        errors.push(`${label}: recurrence.kind must be one-off or recurring`)
+      } else if (event.recurrence.kind === 'one-off' && event.seriesId !== null) {
+        errors.push(`${label}: one-off events must have seriesId null`)
+      } else if (event.recurrence.kind === 'recurring' && (typeof event.seriesId !== 'string' || !event.seriesId.trim())) {
+        errors.push(`${label}: recurring events must have a non-empty seriesId`)
+      }
+      if (!event.range || typeof event.range !== 'object' || Array.isArray(event.range) || !rangeSemantics.has(event.range.semantics) || event.range.start !== event.start || event.range.end !== event.end) {
+        errors.push(`${label}: range must use a canonical semantic and match event start/end`)
+      }
+      return errors
+    })
+    assert.equal(signalProblems.length, 0, `fresh finder output signal-contract problems:\n  ${signalProblems.join('\n  ')}`)
+
+    const qualityAnnotated = annotateQualityFloor(fast, {
+      kind: 'events',
+      nowMs: fastGenerationMs,
+      timeZone: runManifest.timeZone,
+      market: { id: 'tampa-bay', bbox: TAMPA_BBOX, regionCodes: ['FL'] },
+      knownJunkIds: [],
+      knownFalseMergeIds: [],
+    })
+    assert.equal(qualityAnnotated.length, fast.length, 'quality-floor annotation must preserve fresh Tampa event count')
+    assert.deepEqual(qualityAnnotated.map((event) => event.id), fast.map((event) => event.id), 'quality-floor annotation must preserve fresh Tampa event order and IDs')
+    const qualityBlockers = qualityAnnotated.filter((event) => event.qualityFloor.blockerCodes.length > 0)
+    assert.equal(
+      qualityBlockers.length,
+      0,
+      `fresh finder output has objective quality-floor blockers: ${qualityBlockers.slice(0, 5).map((event) => `${event.id}(${event.qualityFloor.blockerCodes.join(',')})`).join('; ')}`,
+    )
+
+    const fastCanonical = fast.map((event) => ({
+      event,
+      time: eventTime(event, { timeZone: runManifest.timeZone }),
+    }))
+    const fastInvalid = fastCanonical.filter(({ time }) => !time.ok)
+    assert.equal(
+      fastInvalid.length,
+      0,
+      `fresh finder output contains invalid event times: ${fastInvalid.slice(0, 5)
+        .map(({ event, time }) => `${event.id} "${event.title}" start=${event.start} end=${event.end} (${time.error})`)
+        .join('; ')}`,
+    )
+    const fastEnded = fastCanonical.filter(({ time }) => time.ok && time.endAt <= fastGenerationMs)
+    assert.equal(
+      fastEnded.length,
+      0,
+      `fresh finder output contains events ended at generation: ${fastEnded.slice(0, 5)
+        .map(({ event, time }) => `${event.id} "${event.title}" endAt=${new Date(time.endAt).toISOString()}`)
+        .join('; ')}`,
+    )
+
     const picked = []
     const count = Math.min(20, fast.length)
     // deterministic, evenly-spaced spot-check indices (was Math.random — flaky: a
@@ -392,25 +513,39 @@ test(`data invariants: full events.json (${fullEvents.length} events)`, (t) => {
     `junk-hour events (non-nightlife, 01:00–05:59 start): ${junk.slice(0, 5).map((e) => `"${e.title}" @ ${e.start}`).join('; ')}`
   )
 
-  // zero ended AS OF the dataset's generation time — the finder must never
-  // OUTPUT an already-over event; events ending after the snapshot is the
-  // stale-data banner's territory, not a data bug
-  // this invariant needs a TRUSTWORTHY generation reference. When the events.md
-  // stamp is missing/mismatched we fall back to file mtime, which a byte-identical
-  // restore or a git checkout rewrites to ~now (the Windows wall-clock quirk),
-  // making honest-at-write events read as already-ended. Hold the assertion when
-  // the real stamp is available; gate it (diagnostic, not red) in the degraded state.
-  const ended = fullEvents.filter((e) => !(endedAtMs(e) > genRefMs.ms))
-  if (genRefMs.src.startsWith('events.md')) {
-    assert.equal(
-      ended.length,
-      0,
-      `events already ended at generation time (${new Date(genRefMs.ms).toISOString()}, via ${genRefMs.src}): ` +
-        ended.slice(0, 5).map((e) => `"${e.title}" start=${e.start} end=${e.end}`).join('; ')
-    )
-  } else {
-    t.diagnostic(`generation stamp unavailable (using ${genRefMs.src}) — gating the ended-at-generation invariant (${ended.length} would-be-flagged)`)
-  }
+  // Zero valid rows ended AS OF the exact artifact's immutable generation
+  // time. Invalid legacy rows are explicit debt, not silently counted as
+  // ended; exact equality forces this ratchet to shrink when data is healed
+  // and rejects every new invalid row.
+  const fullCanonical = fullEvents.map((event) => ({
+    event,
+    time: eventTime(event, { timeZone: fullTimeZone }),
+  }))
+  const invalidDebt = fullCanonical
+    .filter(({ time }) => !time.ok)
+    .map(({ event, time }) => `${event.id}:${time.error}`)
+    .sort()
+  const expectedInvalidDebt = CITY_ID === 'tampa-bay'
+    ? [
+        '8be54b345ccd237e:end-before-start',
+        'ea7a370fe7fb7a46:end-before-start',
+      ].sort()
+    : []
+  assert.deepEqual(
+    invalidDebt,
+    expectedInvalidDebt,
+    `invalid event-time debt changed: ${invalidDebt.join(', ') || 'none'}`,
+  )
+
+  const ended = fullCanonical.filter(({ time }) => time.ok && time.endAt <= generationMs)
+  assert.equal(
+    ended.length,
+    0,
+    `events already ended at generation time (${new Date(generationMs).toISOString()}, hash-bound manifest): ` +
+      ended.slice(0, 5).map(({ event, time }) =>
+        `${event.id} "${event.title}" start=${event.start} end=${event.end} endAt=${new Date(time.endAt).toISOString()}`,
+      ).join('; '),
+  )
 
   // sponsored: the field exists (boolean) on EVERY event — labels can only
   // render if the data carries the flag (never-unlabeled invariant)
@@ -530,11 +665,11 @@ test('places data invariants: schema v1 places.json', () => {
     `finder/output/${CITY_ID}/places.json and app/public/places.json drifted — re-run node finder/places.mjs`)
 })
 
-// Phase 3.5 W4 — HONEST IMAGES. A place photo is ONLY ever a verified photo OF
-// THAT place (Wikidata P18 → Wikimedia Commons), never a representative
-// stand-in; places without a curated photo keep category-art. These invariants
-// lock that contract on the real artifact.
-test('W4/Phase1 images: place photos are real of-the-place Commons files + every one CREDITED', () => {
+// Phase 3.5 W4 — IMAGE CANDIDATE PROVENANCE. Human identity/license review is a
+// separate Sprint 10 gate; these artifact invariants prove only that every raw
+// candidate comes through the bounded Commons/local-source and credit schema.
+// Runtime presentation must still fail closed when the stronger receipt is absent.
+test('W4/Phase1 images: place candidates use bounded sources and every one is credited', () => {
   const doc = JSON.parse(readFileSync(APP_PLACES, 'utf8'))
   const places = doc.places
   const imaged = places.filter((p) => p.image)
@@ -676,7 +811,7 @@ test('D1 deploy seam: deploy.mjs exists + refuses an incomplete set + scratch-de
   // the per-city artifact set is COMPLETE for BOTH registered cities (deploy's
   // contract — Stage D sf-app: sf-east-bay is deployable from this commit on)
   for (const city of ['tampa-bay', 'sf-east-bay']) {
-    for (const f of ['events.json', 'places.json', 'guides.json', 'place-img']) {
+    for (const f of ['events.json', 'places.json', 'guides.json', 'artifact-manifest.json', 'place-img']) {
       assert.ok(existsSync(path.join(ROOT, 'finder', 'output', city, f)), `finder/output/${city}/${f} missing — the deployable set is incomplete`)
     }
   }
@@ -1022,8 +1157,10 @@ test('3.75b: watch guides resolve to real keyword matches + honor the window', a
     'a matched event contains none of the keywords (resolver is fabricating)'
   )
   // window gate
-  assert.equal(watchGuideActive(wc, Date.parse('2026-06-20')), true, 'should be active mid-window')
-  assert.equal(watchGuideActive(wc, Date.parse('2027-01-01')), false, 'should be inactive outside its window')
+  assert.equal(watchGuideActive(wc, lib.dayTs('2026-06-20')), true, 'should be active mid-window')
+  assert.equal(watchGuideActive(wc, lib.dayTs(wc.window.end)), true, 'inclusive final city day stays active')
+  assert.equal(watchGuideActive(wc, lib.addDayTs(lib.dayTs(wc.window.end), 1)), false, 'day after the window is inactive')
+  assert.equal(watchGuideActive(wc, lib.dayTs('2027-01-01')), false, 'should be inactive outside its window')
   // Stage D sf-app: the PER-CITY artifact guides (finder/output/<city>/guides.json,
   // what deploy-city ships) obey the same honesty shape — schemaVersion 1 and
   // every watch guide carries a parseable window + non-empty keywords (a
@@ -1077,7 +1214,10 @@ test('W7 wiring: osm rec classes + Wikipedia-descriptions enrichment in the pipe
 // zero-is-silence for a new user, and DST-safe day stepping.
 test('3.7P-4 gamify: rhythm is graced, best is monotonic, rest counts, honest', async () => {
   const G = await import('../app/src/gamify.js')
-  const day = (m, d) => new Date(2026, m, d).getTime() // local midnight, DST-safe
+  const day = (m, d) => cityMidnightMs(
+    `2026-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
+    fullTimeZone,
+  )
   const anchors = { todayTs: day(5, 15) } // June 15, 2026
 
   // empty → zero-is-silence
@@ -1188,8 +1328,13 @@ test('Stage C C3 a11y: contrast fixes, reduced-motion gates, dialog focus, rovin
   }
   // (3) dialog focus management (focus-in + Tab-trap [+ return]) mirrors LensNav/DetailPage
   const dp = read('DayPage.jsx')
-  assert.ok(/aria-modal="true"/.test(dp) && /ref=\{menuRef\}/.test(dp) && /onKeyDown=\{menuTrap\}/.test(dp), 'the DayPage ⋯ menu must be a focus-trapped modal dialog')
-  assert.ok(/menuBtnRef\.current/.test(dp) && /btn\?\.focus\(\)/.test(dp), 'the DayPage menu must return focus to the ⋯ trigger on dismiss (WCAG 2.4.3)')
+  const modal = read('ModalSheet.jsx')
+  assert.ok(/<ModalSheet/.test(dp) && /label="Plan item options"/.test(dp) && /returnFocusRef=\{menuBtnRef\}/.test(dp), 'the DayPage ⋯ menu must use the shared focus-managed modal')
+  assert.ok(/role="dialog"/.test(modal) && /aria-modal="true"/.test(modal) && /onKeyDown=\{trapTab\}/.test(modal), 'the shared modal must expose modal semantics and trap Tab')
+  assert.ok(
+    /queueMicrotask\([\s\S]*?if \(layer\?\.isConnected\) return[\s\S]*?const target = trigger\?\.isConnected \? trigger : resolveFallbackFocus\?\.\(\)[\s\S]*?if \(target\?\.isConnected\) focusWithoutScroll\(target\)/.test(modal),
+    'the shared modal must restore a connected exact trigger, or its resolved connected fallback, only after a real unmount (WCAG 2.4.3)',
+  )
   const pr = read('Primer.jsx')
   assert.ok(/ref=\{dialogRef\}/.test(pr) && /onKeyDown=\{trap\}/.test(pr) && /\}, \[step\]\)/.test(pr), 'the Primer modal must trap Tab and move focus in on each step')
   // (4) roving tabindex + arrow-key nav on the two tablists (shared helper, no dup)
@@ -1312,16 +1457,27 @@ test('app lint: eslint exits 0', { timeout: 300_000 }, async (t) => {
 // and isolated — a scratch --outDir, so the default (Tampa) build's app/dist
 // is never clobbered. Runs after the Tampa build test (node:test is
 // sequential in-file), so the two vite runs never overlap.
-test('Stage D sf-app: VITE_CITY=sf-east-bay builds — title + manifest carry the SF name', { timeout: 300_000 }, async (t) => {
+test('Stage D sf-app: staged SF bytes build with their exact approved manifest', { timeout: 300_000 }, async (t) => {
   startAppChecks()
   await buildP // never overlap the Tampa build (shared caches, half the machine)
-  const outDir = mkdtempSync(path.join(tmpdir(), 'wuzup-sf-build-'))
+  const scratch = mkdtempSync(path.join(tmpdir(), 'wuzup-sf-build-'))
+  const publicDir = path.join(scratch, 'public')
+  const outDir = path.join(scratch, 'dist')
   try {
+    cpSync(path.join(ROOT, 'app', 'public'), publicDir, { recursive: true })
+    const staged = await runNode('finder/deploy.mjs', { CITY: 'sf-east-bay', DEPLOY_DEST: publicDir })
+    assert.equal(staged.code, 0, `SF staging failed (exit ${staged.code}):\n${tail(staged.out)}`)
     const r = await collect(
       spawn(`npm --prefix app run build -- --outDir "${outDir}" --emptyOutDir`, {
         cwd: ROOT,
         shell: true,
-        env: { ...process.env, VITE_CITY: 'sf-east-bay' },
+        env: {
+          ...process.env,
+          VITE_CITY: 'sf-east-bay',
+          WUZUP_PUBLIC_DIR: publicDir,
+          BASE_PATH: '/wuzup/sf/',
+          WUZUP_PRODUCT_ROOT: '/wuzup/',
+        },
       })
     )
     t.diagnostic(`sf build took ${r.secs}s`)
@@ -1330,13 +1486,27 @@ test('Stage D sf-app: VITE_CITY=sf-east-bay builds — title + manifest carry th
     assert.ok(html.includes('<title>Wuzup · SF & East Bay</title>'), 'the emitted index.html title must carry the SF name')
     const manifest = JSON.parse(readFileSync(path.join(outDir, 'manifest.webmanifest'), 'utf8'))
     assert.equal(manifest.name, 'Wuzup · SF & East Bay', 'the emitted manifest name must carry the SF name')
+    assert.equal(manifest.start_url, '/wuzup/sf/', 'the SF manifest must start on its canonical runtime route')
+    assert.equal(manifest.scope, '/wuzup/sf/', 'the SF manifest scope must stay inside its canonical runtime route')
+    const approved = JSON.parse(readFileSync(path.join(publicDir, 'artifact-manifest.json'), 'utf8')).manifestId
+    const bundle = readdirSync(path.join(outDir, 'assets'))
+      .filter((file) => file.endsWith('.js'))
+      .map((file) => readFileSync(path.join(outDir, 'assets', file), 'utf8'))
+      .join('\n')
+    assert.ok(bundle.includes(approved), 'the SF browser bundle must embed its staged manifestId')
+    const proof = await collect(spawn(
+      process.execPath,
+      [path.join(ROOT, 'finder', 'verify-app-build.mjs'), outDir],
+      { cwd: ROOT, env: { ...process.env, CITY: 'sf-east-bay' } }
+    ))
+    assert.equal(proof.code, 0, `SF production-byte proof failed (exit ${proof.code}):\n${tail(proof.out)}`)
   } finally {
-    rmSync(outDir, { recursive: true, force: true })
+    rmSync(scratch, { recursive: true, force: true })
   }
 })
 
 // Stage E deploy-infra — base-path safety, the SOURCE pin. GitHub Pages serves
-// the app under /wuzup/ (Tampa) and /wuzup/sf/ (SF); a root-absolute '/events.json'
+// the app under /wuzup/ (Tampa) and /wuzup/sf/ (SF); a root-absolute data
 // fetch 404s there. Every runtime data fetch must ride import.meta.env.BASE_URL
 // (which vite statically folds back to the identical root-absolute literal at
 // the default base — the default build is byte-identical, verified at land).
@@ -1349,12 +1519,11 @@ test('Stage E base-path: no root-absolute fetch literals in app/src — data fet
   }
   assert.deepEqual(offenders, [],
     `root-absolute fetch literal(s) in app/src — these 404 under a subpath deployment: ${offenders.join(', ')}`)
-  // the three data artifacts are fetched BASE_URL-relative (the folding pattern)
-  for (const [f, artifact] of [['App.jsx', 'events.json'], ['places.js', 'places.json'], ['guides.js', 'guides.json']]) {
-    const src = readFileSync(path.join(srcDir, f), 'utf8')
-    assert.ok(src.includes(`+ '${artifact}'`) && src.includes('import.meta.env'),
-      `${f} must fetch ${artifact} via import.meta.env BASE_URL + '${artifact}'`)
-  }
+  const artifactSrc = readFileSync(path.join(srcDir, 'artifacts.js'), 'utf8')
+  assert.ok(/const BASE = import\.meta\.env\?\.BASE_URL \?\? '\/'/.test(artifactSrc), 'the artifact repository derives its base from Vite')
+  assert.ok(/joinUrl\(baseUrl, MANIFEST_FILE\)/.test(artifactSrc) && /joinUrl\(baseUrl, entry\.file\)/.test(artifactSrc), 'manifest, events, and places share the BASE_URL-relative join')
+  const guidesSrc = readFileSync(path.join(srcDir, 'guides.js'), 'utf8')
+  assert.ok(guidesSrc.includes("+ 'guides.json'") && guidesSrc.includes('import.meta.env'), 'guides remain BASE_URL-relative')
   // the data-embedded /place-img/ crop paths get rebased in normalizePlace —
   // the ONE choke point every consumer (cards/detail/attribution/saved
   // snapshots) flows through
@@ -1381,7 +1550,11 @@ test(`Stage E base-path: BASE_PATH=${DEPLOY_BASE} build rebases every runtime su
       spawn(`npm --prefix app run build -- --outDir "${outDir}" --emptyOutDir`, {
         cwd: ROOT,
         shell: true,
-        env: { ...process.env, BASE_PATH: DEPLOY_BASE },
+        env: {
+          ...process.env,
+          BASE_PATH: DEPLOY_BASE,
+          WUZUP_PRODUCT_ROOT: DEPLOY_BASE,
+        },
       })
     )
     t.diagnostic(`BASE_PATH build took ${r.secs}s`)
@@ -1402,16 +1575,18 @@ test(`Stage E base-path: BASE_PATH=${DEPLOY_BASE} build rebases every runtime su
     }
     // the @font-face public URL in the emitted CSS
     const assets = readdirSync(path.join(outDir, 'assets'))
-    const css = readFileSync(path.join(outDir, 'assets', assets.find((f) => f.endsWith('.css'))), 'utf8')
+    const css = assets.filter((file) => file.endsWith('.css'))
+      .map((file) => readFileSync(path.join(outDir, 'assets', file), 'utf8')).join('\n')
     assert.ok(css.includes(`url(${DEPLOY_PREFIX}/fonts/inter-var-latin.woff2)`), 'the CSS @font-face URL must be base-prefixed')
     assert.ok(!css.includes('url(/fonts/'), 'the CSS still carries a root-absolute /fonts/ URL')
-    // the folded fetch literals in the app bundle
-    const bundle = assets.filter((f) => f.startsWith('index-') && f.endsWith('.js'))
+    // the repository folds the base once, then joins manifest-declared files.
+    const bundle = assets.filter((f) => f.endsWith('.js'))
       .map((f) => readFileSync(path.join(outDir, 'assets', f), 'utf8')).join('\n')
-    for (const a of ['events.json', 'places.json', 'guides.json']) {
+    assert.ok(bundle.includes(DEPLOY_BASE), `bundle must carry the folded ${DEPLOY_BASE} repository base`)
+    for (const a of ['artifact-manifest.json', 'events.json', 'places.json', 'guides.json']) {
       const esc = a.replace('.', '\\.')
-      assert.ok(new RegExp(`fetch\\((['"\`])${DEPLOY_PREFIX}/${esc}\\1\\)`).test(bundle), `bundle must fetch ${DEPLOY_PREFIX}/${a}`)
-      assert.ok(!new RegExp(`fetch\\((['"\`])/${esc}\\1\\)`).test(bundle), `bundle still fetches root-absolute /${a}`)
+      assert.ok(bundle.includes(a), `bundle must carry the ${a} runtime member`)
+      assert.ok(!new RegExp(`(['"\`])/${esc}\\1`).test(bundle), `bundle still carries root-absolute /${a}`)
     }
   } finally {
     rmSync(outDir, { recursive: true, force: true })
@@ -1424,6 +1599,7 @@ test(`Stage E base-path: BASE_PATH=${DEPLOY_BASE} build rebases every runtime su
 //    guarded, so importing them here is supported by design)
 // ============================================================
 const lib = await import('../app/src/lib.js')
+const cityMs = (iso) => lib.parseDate(iso)?.getTime()
 const weekend = await import('../app/src/weekend.js')
 const taste = await import('../app/src/taste.js')
 const share = await import('../app/src/share.js')
@@ -1464,7 +1640,7 @@ const ev = (over = {}) => ({
   ...over,
 })
 const N = (raw, anchors) => lib.normalize(raw, anchors)
-const AN = lib.makeAnchors(new Date(2026, 5, 10, 12, 0)) // Wed Jun 10 2026, noon
+const AN = lib.makeAnchors(cityMs('2026-06-10T12:00:00')) // Wed Jun 10 2026, city noon
 
 test('orderDay: count-preserving on 3 synthetic shapes + de-flood property', () => {
   // shape 1 — single-source flood (the library case): same family+category
@@ -1526,7 +1702,7 @@ test('tonightModel: future-first ordering, started sink, late-night fold-in', ()
   ]
   // 7 PM: futures lead hot-desc (date-only today is a future all-day plan),
   // started sinks below despite the highest hotScore, tomorrow excluded
-  const m1 = lib.tonightModel(up, AN, new Date(2026, 5, 10, 19, 0))
+  const m1 = lib.tonightModel(up, AN, cityMs('2026-06-10T19:00:00'))
   assert.deepEqual(
     m1.items.map((x) => x.e.title),
     ['future-b', 'dateonly-today', 'future-a', 'started-hot'],
@@ -1535,7 +1711,7 @@ test('tonightModel: future-first ordering, started sink, late-night fold-in', ()
   assert.equal(m1.futureN, 2, 'futureN counts TIMED not-yet-started events only')
   assert.equal(m1.late, false)
   // 22:30 with <3 timed futures: late mode folds in tomorrow 16–22h, withDate
-  const m2 = lib.tonightModel(up, AN, new Date(2026, 5, 10, 22, 30))
+  const m2 = lib.tonightModel(up, AN, cityMs('2026-06-10T22:30:00'))
   assert.equal(m2.late, true, 'late mode must trigger after 22:00 with < 3 timed futures')
   assert.deepEqual(
     m2.items.map((x) => x.e.title),
@@ -1563,26 +1739,29 @@ test('daypartOf: boundary hours (ternary morning/afternoon/night)', () => {
 // path must stay byte-for-byte the old DetailPage output; the day path must
 // emit one VEVENT per slotted entry inside ONE VCALENDAR.
 test('share.js: eventIcs is a single well-formed VEVENT, eventsIcs is multi', () => {
+  const nowMs = Date.parse('2026-07-15T16:00:00Z')
   const timed = N(ev({ title: 'Vinyl Night', start: '2026-06-13T19:00:00', venue: 'The Attic' }), AN)
   const dated = N(ev({ title: 'Art Walk', start: '2026-06-14', venue: 'Riverwalk' }), AN)
-  const one = share.eventIcs(timed)
+  const one = share.eventIcs(timed, { nowMs })
   assert.ok(one.startsWith('BEGIN:VCALENDAR\r\n') && one.endsWith('END:VCALENDAR\r\n'), 'single ICS must be a full VCALENDAR')
   assert.equal((one.match(/BEGIN:VEVENT/g) || []).length, 1, 'eventIcs must contain exactly one VEVENT')
-  assert.ok(one.includes('DTSTART:20260613T190000'), 'timed event must emit local floating DTSTART')
+  assert.ok(one.includes('DTSTART;TZID=America/New_York:20260613T190000'), 'timed event must emit a city-zoned DTSTART')
+  assert.ok(one.includes('DTEND;TZID=America/New_York:20260613T220000'), 'timed event must emit its canonical end')
+  assert.ok(one.includes('DTSTAMP:20260715T160000Z'), 'injected stamp must be deterministic')
   assert.ok(one.includes('SUMMARY:Vinyl Night'), 'SUMMARY must carry the title')
   // multi: two slotted entries → two VEVENTs, one envelope
-  const many = share.eventsIcs([timed, dated])
+  const many = share.eventsIcs([timed, dated], { nowMs })
   assert.equal((many.match(/BEGIN:VCALENDAR/g) || []).length, 1, 'eventsIcs must wrap ONE VCALENDAR')
   assert.equal((many.match(/BEGIN:VEVENT/g) || []).length, 2, 'eventsIcs must emit one VEVENT per entry')
   assert.equal((many.match(/END:VEVENT/g) || []).length, 2, 'every VEVENT must be closed')
   assert.ok(many.includes('DTSTART;VALUE=DATE:20260614'), 'date-only entry must be all-day')
   // empty list is still a valid (empty) calendar — never throws
-  const none = share.eventsIcs([])
+  const none = share.eventsIcs([], { nowMs })
   assert.equal((none.match(/BEGIN:VEVENT/g) || []).length, 0, 'empty plan ICS has no VEVENTs')
 })
 
 test('share.js: shareDayText composes ☀️/🌙 lines, null on nothing to share', () => {
-  const dayTs = new Date(2026, 5, 13).getTime()
+  const dayTs = lib.dayTs('2026-06-13')
   const day = N(ev({ title: 'Beach', start: '2026-06-13T10:00:00', venue: 'Fort De Soto' }), AN)
   const night = N(ev({ title: 'Show', start: '2026-06-13T20:00:00', venue: 'Orpheum' }), AN)
   const txt = share.shareDayText(dayTs, [{ part: 'afternoon', e: day }, { part: 'night', e: night }])
@@ -1851,8 +2030,8 @@ test('O1 lazy mounting: non-boot tabs gate on visited, boot seeds one tab', () =
   }
   const navSrc = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
   assert.ok(
-    navSrc.includes('new Set([VIEWS[0].id])'),
-    'nav.jsx must seed the visited set with the boot tab only — eager mounting crept back in'
+    navSrc.includes('new Set([VIEWS[initialActive].id])'),
+    'nav.jsx must seed visited with only the route-selected boot tab — eager mounting crept back in'
   )
 })
 
@@ -1900,8 +2079,35 @@ test('3.7P-35 normalizeTitle: SHOUTING → Title Case, parens/venue cleanup, mix
 // renders, a photo-less PLACE gets an icon card, a photo-less EVENT goes text-led.
 test('3.7P-36 imageMode: photo / icon / text gate (no green placeholder as primary UI)', async () => {
   const { imageMode: im } = await import('../app/src/imageMode.js')
-  assert.equal(im({ image: 'https://x/p.jpg' }), 'photo', 'a usable image URL → photo')
-  assert.equal(im({ kind: 'place', image: 'https://x/p.jpg' }), 'photo', 'a place WITH a photo still → photo')
+  const approvedEvent = {
+    id: 'event:approved',
+    image: 'https://raw.example.test/untrusted.jpg',
+    imageCandidates: [{
+      itemId: 'event:approved',
+      role: 'exact-item',
+      image: 'https://upload.wikimedia.org/wikipedia/commons/a/a1/approved.jpg',
+      sourcePage: 'https://commons.wikimedia.org/wiki/File:Approved.jpg',
+      attribution: 'Photo: Example Author',
+      author: 'Example Author',
+      license: 'CC BY 4.0',
+      licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
+      retrievedAt: '2026-07-21T12:00:00.000Z',
+    }],
+  }
+  const creditedPlace = {
+    kind: 'place',
+    key: 'p|credited',
+    image: 'https://upload.wikimedia.org/wikipedia/commons/c/c1/credited.jpg',
+    imageCredit: {
+      author: 'Example Author',
+      license: 'CC BY-SA 4.0',
+      url: 'https://commons.wikimedia.org/wiki/File:Credited.jpg',
+    },
+  }
+  assert.equal(im(approvedEvent), 'photo', 'a receipt-approved event image → photo')
+  assert.equal(im({ id: 'event:raw', image: 'https://x/p.jpg' }), 'text', 'a raw event URL cannot change presentation')
+  assert.equal(im(creditedPlace), 'photo', 'a credited place photo still → photo')
+  assert.equal(im({ kind: 'place', key: 'p|raw', image: 'https://x/p.jpg' }), 'icon', 'an uncredited place URL fails closed')
   assert.equal(im({ kind: 'place' }), 'icon', 'a place with no photo → icon card (never a big hue block)')
   assert.equal(im({ kind: 'place', image: '' }), 'icon', 'an empty image string is not a photo')
   assert.equal(im({}), 'text', 'an event with no photo → text-led')
@@ -1915,38 +2121,40 @@ test('3.7P-36 imageMode: photo / icon / text gate (no green placeholder as prima
 // never happened. photoFirst() is the intended predicate as a count-preserving
 // stable partition; this pins the helper AND the call sites so the tautology
 // can't creep back.
-test('WS4 photoFirst: photos lead, order stable, nothing dropped; the !== none tautology is gone', async () => {
+test('WS4 photoFirst remains a stable presentation helper but Spots ranking is image-neutral', async () => {
   const { imageMode: im, photoFirst } = await import('../app/src/imageMode.js')
   // the root cause, pinned: 'none' is not a value imageMode can return
-  for (const e of [{ image: 'https://x/p.jpg' }, { kind: 'place' }, {}, undefined]) {
+  for (const e of [{ id: 'raw', image: 'https://x/p.jpg' }, { kind: 'place' }, {}, undefined]) {
     assert.notEqual(im(e), 'none', 'imageMode never returns "none" — consumers must compare against real modes')
   }
   const a = { key: 'a', kind: 'place' }
-  const b = { key: 'b', kind: 'place', image: 'https://x/b.jpg' }
+  const credit = (name) => ({ author: 'Example', license: 'CC BY-SA 4.0', url: `https://commons.wikimedia.org/wiki/File:${name}.jpg` })
+  const b = { key: 'b', kind: 'place', image: 'https://upload.wikimedia.org/b.jpg', imageCredit: credit('B') }
   const c = { key: 'c', kind: 'place' }
-  const d = { key: 'd', kind: 'place', image: 'https://x/d.jpg' }
+  const d = { key: 'd', kind: 'place', image: 'https://upload.wikimedia.org/d.jpg', imageCredit: credit('D') }
   const out = photoFirst([a, b, c, d])
   assert.deepEqual(out.map((x) => x.key), ['b', 'd', 'a', 'c'], 'photo-bearing lead; both partitions keep incoming order (stable)')
   assert.equal(out.length, 4, 'count-preserving: reorder only, never hide')
   assert.deepEqual(photoFirst([a, c]).map((x) => x.key), ['a', 'c'], 'an all-art pool passes through — rails still fill when photo supply is thin')
   assert.deepEqual(photoFirst([]), [], 'empty in, empty out')
   assert.deepEqual(photoFirst(null), [], 'null-safe (lazy store not yet loaded)')
-  // call sites: LocationsView orders with the real predicate, not the tautology
+  // Sprint 7 call site: objective/context rank owns Spots, not this helper.
   const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
   assert.ok(!/!==\s*'none'/.test(loc), "the `imageMode(p) !== 'none'` tautology is gone from LocationsView")
-  assert.ok(/photoFirst\(/.test(loc), 'LocationsView orders its rails/sections with photoFirst (photos lead, count-preserving)')
+  assert.ok(/rankSpots\(/.test(loc), 'LocationsView routes its rails through the shared Spots rank')
+  assert.ok(!/photoFirst\b/.test(loc), 'LocationsView does not treat image availability as quality evidence')
 })
 
 // WS4 item 2 — photo-first ordering inside the MIXED place feeds (count-
 // preserving; never-hide holds because photoFirst is a stable reorder, not a
 // filter). The Spots master order + the See-all destination both lead with
 // photo-bearing places so a screenful reads composed, not lottery.
-test('WS4 photo-first feeds: Spots master order + PlaceBubblePage results lead with photos (reorder only)', () => {
+test('Sprint 7 Spots feeds use shared evidence rank and keep bubble membership reachable', () => {
   const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
-  assert.ok(/photoFirst\(placeOrder\(/.test(loc), 'the Spots master list is photoFirst(placeOrder(...)) — photos lead, vibe order within')
+  assert.ok(/allRanking[\s\S]*?rankSpots\(/.test(loc), 'the Spots master list uses the shared evidence rank')
   const pbp = readFileSync(path.join(ROOT, 'app', 'src', 'PlaceBubblePage.jsx'), 'utf8')
-  assert.ok(/photoFirst\(/.test(pbp), 'PlaceBubblePage result feed is photo-first (count-preserving reorder)')
-  assert.ok(/\.filter\(bubble\.match\)/.test(pbp), 'PlaceBubblePage still filters ONLY by the bubble predicate (photoFirst reorders, never hides)')
+  assert.ok(/rankSpots\(/.test(pbp), 'PlaceBubblePage uses the same evidence rank')
+  assert.ok(/places\.filter\(bubble\.match\)/.test(pbp), 'PlaceBubblePage filters only by the selected bubble predicate before count-preserving rank')
 })
 
 // WS4 item 3 — the 'icon' row form imageMode's own spec promised (3.7P-36:
@@ -1979,11 +2187,14 @@ test('WS4 detail hero: art-floor hero is a ~26svh band, photo hero keeps 42svh, 
   const appCss = readFileSync(path.join(ROOT, 'app', 'src', 'App.css'), 'utf8')
   assert.ok(/\.detail-hero\s*\{[^}]*height:\s*42svh/s.test(appCss), 'the photo hero keeps its full 42svh')
   assert.ok(/\.detail-hero\.imgbox-art\s*\{[^}]*height:\s*26svh/s.test(appCss), 'the photo-less (art-floor) hero drops to the 26svh band')
-  // both detail paths reach the rule through the same shared class + keep the
-  // same viewTransitionName, so the thumb→hero morph contract is untouched
+  // both detail paths derive the hero from the shared presentation gate, reach
+  // the same art/loading class, and keep the same View Transition identity.
   for (const f of ['DetailPage.jsx', 'PlaceDetail.jsx']) {
     const src = readFileSync(path.join(ROOT, 'app', 'src', f), 'utf8')
-    assert.ok(/'detail-hero' \+ \(heroArt \? ' imgbox-art' : ''\)/.test(src), `${f} art hero wears the shared .imgbox-art class`)
+    assert.ok(/presentRuntimeImage\(e(?:, \{ policy: RUNTIME_EVENT_IMAGE_POLICY \})?\)/.test(src), `${f} hero must use the shared runtime presentation gate`)
+    assert.ok(/const heroImage = presentedImage\.image/.test(src), `${f} hero must render only the presented image`)
+    assert.ok(/const heroArt = !heroImage \|\| failedSrc === heroImage/.test(src), `${f} art fallback must derive from the presented image`)
+    assert.ok(/'detail-hero' \+ \(heroArt \|\| heroLoading \? ' imgbox-art' : ''\)/.test(src), `${f} art/loading hero wears the shared .imgbox-art class`)
     assert.ok(/viewTransitionName: 'evt-hero'/.test(src), `${f} hero keeps the evt-hero morph name`)
   }
 })
@@ -2027,20 +2238,20 @@ test('CARD_LOCK: ResultCard is the kind-aware canonical card; CompactRow/Row ret
   }
 })
 
-// PREMIUM A2 — the card-system rework (D1–D4). The universal GemRow/SpotCard row
-// share ONE fixed height; a tall left image; a bare stroke heart top-right; a real
-// CTA bottom-right (the rail is gone); engineered stroke icons; one chip primitive.
-test('PREMIUM A2: D1 uniform height · tall image · bare heart · real CTA · stroke icons · chip primitive', () => {
+// PREMIUM A2 — the card-system rework (D1–D4). Spot rows keep a compact fixed
+// height; event rows treat that token as a minimum and grow around real content.
+test('PREMIUM A2: adaptive event height · tall image · bare heart · real CTA · stroke icons · chip primitive', () => {
   const idx = readFileSync(path.join(ROOT, 'app', 'src', 'index.css'), 'utf8')
   const cardsCss = readFileSync(path.join(ROOT, 'app', 'src', 'cards.css'), 'utf8')
   const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
   const lib = readFileSync(path.join(ROOT, 'app', 'src', 'lib.js'), 'utf8')
   const saves = readFileSync(path.join(ROOT, 'app', 'src', 'saves.js'), 'utf8')
 
-  // D1: ONE shared card height token drives BOTH event + spot rows (no ragged feed)
-  assert.ok(/--card-row-h:/.test(idx), 'index.css defines the --card-row-h token (D1: one card height)')
-  assert.ok(/\.gem\s*\{[^}]*height:\s*var\(--card-row-h\)/s.test(cardsCss), '.gem height is the shared --card-row-h')
-  assert.ok(/\.spotcard--row\s*\{[^}]*height:\s*var\(--card-row-h\)/s.test(cardsCss), '.spotcard--row height is the SAME --card-row-h (uniform with events)')
+  // D1: event content cannot be crushed into the compact place-row baseline.
+  assert.ok(/--card-row-h:/.test(idx), 'index.css defines the compact card-row baseline')
+  assert.ok(/\.gem\s*\{[^}]*min-height:\s*var\(--card-row-h\)[^}]*height:\s*auto/s.test(cardsCss), '.gem grows from the shared minimum')
+  assert.ok(/\.gem-main\s*\{[^}]*padding-bottom:\s*52px/s.test(cardsCss), '.gem reserves the complete 44px action band')
+  assert.ok(/\.spotcard--row\s*\{[^}]*height:\s*var\(--card-row-h\)/s.test(cardsCss), '.spotcard--row keeps the compact fixed baseline')
   // D2: the 1px card border is dropped (lean on the shadow)
   assert.ok(!/\.gem\s*\{[^}]*border:\s*1px solid var\(--line\)/s.test(cardsCss), 'D2: the .gem 1px hairline border is dropped')
   // tall left image (was a ~76/84px square thumb)
@@ -2066,13 +2277,17 @@ test('PREMIUM A2: D1 uniform height · tall image · bare heart · real CTA · s
 
 // PREMIUM A4 — the depth (elevation scale) + motion systems. Locks: the ranked
 // shadow tokens + their assignment, the press-tighten, the shared primary recipe,
-// and the motion set (add-morph, skeleton, blur-up, carousel stagger, tab settle,
+// and the motion set (confirmed planner sheet, skeleton, blur-up, carousel stagger, tab settle,
 // symmetric sheet close) — every motion reduced-motion-safe.
-test('PREMIUM A4: elevation scale + motion (depth tokens, press, btn-primary, add-morph, skeleton, blur-up, reduced-motion)', () => {
+test('PREMIUM A4: elevation scale + motion (depth tokens, press, confirmed planner sheet, skeleton, blur-up, reduced-motion)', () => {
   const idx = readFileSync(path.join(ROOT, 'app', 'src', 'index.css'), 'utf8')
   const cardsCss = readFileSync(path.join(ROOT, 'app', 'src', 'cards.css'), 'utf8')
   const appCss = readFileSync(path.join(ROOT, 'app', 'src', 'App.css'), 'utf8')
   const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
+  const detail = readFileSync(path.join(ROOT, 'app', 'src', 'DetailPage.jsx'), 'utf8')
+  const placeDetail = readFileSync(path.join(ROOT, 'app', 'src', 'PlaceDetail.jsx'), 'utf8')
+  const day = readFileSync(path.join(ROOT, 'app', 'src', 'DayPage.jsx'), 'utf8')
+  const dayCss = readFileSync(path.join(ROOT, 'app', 'src', 'day.css'), 'utf8')
   const saves = readFileSync(path.join(ROOT, 'app', 'src', 'saves.css'), 'utf8')
   const nav = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
 
@@ -2098,11 +2313,16 @@ test('PREMIUM A4: elevation scale + motion (depth tokens, press, btn-primary, ad
   // hero vignette gained a radial layer
   assert.ok(/\.detail-hero-grad\s*\{[\s\S]*?radial-gradient/.test(appCss), 'the detail hero scrim layers a radial vignette')
 
-  // MOTION: the add-to-plan confirmation morph
-  assert.ok(/function AddButton/.test(cards) && /is-added/.test(cards), 'the Add button morphs (AddButton + is-added)')
-  assert.ok(/return true \/\/ PREMIUM A4|return true/.test(cards) && /addToPlan\(e\)\)/.test(cards), 'addToPlan reports success so the button can confirm')
-  assert.ok(/@keyframes cardToastIn/.test(cardsCss), 'the card toast has a real entrance')
-  assert.ok(/\.is-added\b[\s\S]*?animation:\s*slotPop/.test(cardsCss), 'a successful add plays the gold slotPop')
+  // MOTION + trust: card CTAs are doorways, then a focus-managed sheet confirms
+  // the exact day/daypart. The filled slot owns the gold confirmation beat.
+  assert.ok(/function AddButton/.test(cards) && /else openDetail\(e\)/.test(cards), 'an unplanned card opens detail instead of silently writing a slot')
+  assert.ok(/planned && plannedPlacement[\s\S]*?openDay\(plannedPlacement\.dayTs\)/.test(cards), 'a planned card becomes a reactive View-plan doorway')
+  for (const [name, src] of [['DetailPage', detail], ['PlaceDetail', placeDetail]]) {
+    assert.ok(/planClosing/.test(src) && /className=\{'loc-plan-wrap' \+ \(planClosing \? ' closing' : ''\)\}/.test(src), `${name} plays the symmetric sheet close`)
+    assert.ok(/reduced \? 0 : 240/.test(src), `${name} makes the sheet close instant under reduced motion`)
+    assert.ok(/aria-modal="true"/.test(src) && /aria-busy=\{planPending \|\| undefined\}/.test(src), `${name} exposes modal + pending state during the confirmed write`)
+  }
+  assert.ok(/setJustFilled\(part\)/.test(day) && /\.dpg-filled\.pop\s*\{\s*animation:\s*slotPop/.test(dayCss), 'a confirmed fill plays slotPop on the destination slot')
   // skeleton + blur-up
   assert.ok(/export function SkeletonRow/.test(cards) && /@keyframes skel/.test(cardsCss), 'first-load skeleton (SkeletonRow + .skel shimmer)')
   assert.ok(/\.imgbox-img\s*\{[\s\S]*?filter:\s*blur\(8px\)/.test(cardsCss), 'image blur-up settle on load')
@@ -2124,15 +2344,19 @@ test('PREMIUM A4: elevation scale + motion (depth tokens, press, btn-primary, ad
 // demoted to a secondary util action. A dated event plans onto ITS OWN day.
 test('3.7P-34 event-detail: planner-first Add-to-day CTA + demoted event link', () => {
   const dp = readFileSync(path.join(ROOT, 'app', 'src', 'DetailPage.jsx'), 'utf8')
-  assert.ok(/from '\.\/dayplan\.js'/.test(dp) && /withSlot/.test(dp) && /dayEntryFor/.test(dp), 'DetailPage imports the day-plan seams')
+  assert.ok(/usePlanner/.test(dp) && /status: plannerStatus/.test(dp), 'DetailPage reads the reactive atomic planner provider')
+  assert.ok(!/\bloadDayPlans\b|\bsaveDayPlans\b|\bplanItem\b|\bdayEntryFor\b/.test(dp), 'DetailPage has no V1 planner reader/writer path')
   assert.ok(/daypartOf/.test(dp), 'uses daypartOf for the natural slot suggestion')
   // Stage R: the primary is now an honest day-specific label (Add to tonight /
   // Add to Friday night) in a two-button action bar (Save + Add). canPlan gates it.
   assert.ok(/＋ \{addLabel\}/.test(dp) && /canPlan \?/.test(dp), 'the primary CTA is the planner Add when the event can be planned')
   assert.ok(/Add to tonight/.test(dp) && /Add to \$\{d0\.label\}/.test(dp), 'the Add label is day-specific + honest (event own day + natural daypart)')
   assert.ok(/detail-actionbar/.test(dp) && /detail-save-btn/.test(dp), 'the bottom bar pairs Save + the primary (two-button)')
-  assert.ok(/if \(entry && entry\.slots\[part\]\) return/.test(dp), 'addToPlan never clobbers a filled slot')
-  assert.ok(/canPlan \? \(/.test(dp) && /e\.url && \(/.test(dp), 'the official event / ticket link is the fallback primary for a non-plannable event')
+  assert.ok(/await add\(e, \{ dayTs: curDay, part \}\)/.test(dp), 'the confirmed action sends the exact selected day and daypart')
+  assert.ok(/code === 'duplicate'/.test(dp) && /code === 'slot-occupied'/.test(dp) && /code === 'rest-conflict'/.test(dp), 'addToPlan surfaces duplicate, occupied-slot, and rest conflicts')
+  assert.ok(/planned && plannedPlacement/.test(dp) && /openDay\(plannedPlacement\.dayTs\)/.test(dp) && />\s*View plan\s*</.test(dp), 'a planned event routes to its exact stored day instead of offering Add again')
+  assert.ok(/plannerReady/.test(dp) && /Loading plans/.test(dp) && /Plans unavailable/.test(dp), 'non-ready planner states cannot expose an enabled false-success CTA')
+  assert.ok(/lifecycle\.actionable && e\.url/.test(dp) && /!lifecycle\.actionable \?/.test(dp), 'event and ticket actions disappear when retained inventory is unavailable')
   assert.ok(/function eventPlanDays/.test(dp) && /Math\.max\(e\._day, anchors\.todayTs\)/.test(dp), 'plan days are clamped to the event run (its own day), never arbitrary')
   assert.ok(/aria-modal="true"/.test(dp) && /planSheetRef/.test(dp) && /planBtnRef\.current\?\.focus\(\)/.test(dp), 'the add-to-day sheet is a focus-managed dialog (focus in + return to trigger)')
 })
@@ -2161,13 +2385,12 @@ test('WS2 detail-rebuild: light title block below the hero + VT name intact', ()
   assert.ok(/\{heroTime && <span className="imgbadge detail-timebadge">/.test(dp), 'the badge renders only when a time exists (imgbadge geometry reused)')
   const detailCss = readFileSync(path.join(ROOT, 'app', 'src', 'detail.css'), 'utf8')
   assert.ok(/\.detail-timebadge\s*\{[^}]*background:\s*var\(--cta\)/.test(detailCss), 'the badge fill is --cta (the one sanctioned white-text fill, D.0-R)')
-  // WS2 3/4 — "Why this fits" is a titled prose CARD composed ONLY from ratified
-  // true signals (whyReasons + the real event-day forecast via wxMood); zero
-  // reasons → NO card (never fabricated). The bare why-chips fact row retired.
-  assert.ok(/function whyProse/.test(dp) && /whyReasons\(e\)/.test(dp) && /wxMood\(w\)/.test(dp), 'whyProse composes from the ratified whyReasons seam + the real forecast')
-  assert.ok(/if \(!frags\.length\) return null/.test(dp) && /\{whyLine && \(/.test(dp), 'no real reason → no card (the honest-omission gate)')
+  // Sprint 7 retires the detail-only explanation fork. Discovery surfaces own
+  // scored reasons; detail keeps facts/provenance and stays silent otherwise.
+  assert.ok(!/whyProse|whyReasons|whyFits/.test(dp), 'DetailPage cannot rebuild recommendation reasons from legacy taste math')
+  assert.ok(/shared scored rank contract/.test(dp), 'the source documents the single explanation authority')
   assert.ok(!/className="why-chips"/.test(dp) && !/why-chip\b/.test(dp), 'the bare why-chips fact row is retired (no rendered why-chip)')
-  assert.ok(/Why this fits/.test(dp) && /Icon\.sparkle/.test(dp), 'the card carries the refs\' sparkle + title (engineered Icon.sparkle, not a raw glyph)')
+  assert.ok(!/Why this fits/.test(dp), 'detail does not publish an unscored fit claim')
   // WS2 4/4 — link-out rows replace the event page's 4-button utility strip.
   // Honesty: every row from real data or absent — hostname sub derived from
   // e.url; Directions distance ONLY from a real upstream _dist; ICS stays
@@ -2228,11 +2451,12 @@ test('3.7P-23b §N Home: "Your next days" stack + title header + weather line', 
   assert.ok(/nowMs/.test(home) && /tonightModel\(/.test(home), 'V1 H3: nowMs is KEPT — it still feeds tonightModel (not just the retired greeting)')
   assert.ok(/wxLine/.test(home), 'the Home header shows the real weather line when loaded')
   const nd = readFileSync(path.join(ROOT, 'app', 'src', 'NextDays.jsx'), 'utf8')
-  assert.ok(/loadDayPlans/.test(nd) && /dayEntryFor/.test(nd), 'NextDays reads the real day-plan store')
+  assert.ok(/usePlanner/.test(nd) && /const \{[^}]*\bstatus\b[^}]*\bgetDay\b[^}]*\} = usePlanner\(\)/.test(nd), 'NextDays subscribes to planner status and the reactive day model')
+  assert.ok(/status === 'durable' \|\| status === 'session-only'/.test(nd), 'NextDays distinguishes ready planner data from loading/unavailable states')
+  assert.ok(/const day = getDay\(d\.ts\)/.test(nd) && /const n = day\.slots\.length/.test(nd), 'each card derives its rest/filled state from the provider day model')
+  assert.ok(!/\bloadDayPlans\b|\bdayEntryFor\b|\bemptyDay\b/.test(nd), 'NextDays has no stale V1 read or fallback object')
   assert.ok(/wxMood|CONDITION/.test(nd), 'NextDays derives its weather line from the real forecast only')
-  assert.ok(/\?\? emptyDay\(\)/.test(nd), 'an unplanned day falls back to emptyDay (no null crash)')
   assert.ok(/openDay\(/.test(nd), 'a day card opens its DayPage (the Discover→Plan bridge)')
-  assert.ok(/void page/.test(nd), 'plan-state re-reads on the subpage edge (stays fresh)')
 })
 
 test('3.7P-23c §N Home: tonight GemRow picks + Quick actions grid (HOME_GRIND)', () => {
@@ -2253,13 +2477,14 @@ test('3.7P-23c §N Home: tonight GemRow picks + Quick actions grid (HOME_GRIND)'
 
 test('3.7P-24 §N Spots: SpotCard carousel sections + compact place Everything (SPOTS_GRIND SP-L1/L3)', () => {
   const loc = readFileSync(path.join(ROOT, 'app', 'src', 'LocationsView.jsx'), 'utf8')
-  // SP-L3: Recommended now a SpotCard carousel (not a single FeaturedCard); Worth the drive added
-  assert.ok(/nearSpots/.test(loc) && /<SpotCard/.test(loc), 'Spots Recommended = SpotCard carousel (SP-L3)')
-  assert.ok(/Worth the drive/.test(loc) && /driveSpots/.test(loc), 'Spots has Worth the drive section (SP-L3)')
+  // Sprint 7: a radius-backed nearby rail plus a neutrally named continuation.
+  assert.ok(/nearSpots/.test(loc) && /<SpotCard/.test(loc), 'Spots has a SpotCard lead rail')
+  assert.ok(/withinRadius/.test(loc) && /Nearby places to explore/.test(loc), 'nearby copy is backed by explicit radius membership')
+  assert.ok(/More places to explore/.test(loc) && !/Worth the drive/.test(loc), 'the continuation makes no unsupported drive-worth claim')
   assert.ok(/sections={everything}/.test(loc) && !/sections={everything} compact/.test(loc), 'CARD_LOCK: the place Everything feed renders the canonical SpotCard rows (no compact)')
   const cards = readFileSync(path.join(ROOT, 'app', 'src', 'cards.jsx'), 'utf8')
   assert.ok(/const isPlace = e\.kind === 'place'/.test(cards) && /spotChips\(e\)\.map/.test(cards), 'FeaturedCard is place-aware (activity-first meta + amenity chips)')
-  assert.ok(/\{onAdd && <button className="featc-act featc-add"/.test(cards), 'the inline Add only renders when onAdd is provided (places open the detail to pick a day)')
+  assert.ok(/\{onAdd && \([\s\S]*?<AddButton[\s\S]*?className="featc-act featc-add"/.test(cards), 'the inline planner doorway only renders when onAdd is provided (places open detail to confirm a day)')
   // SP-L1: SpotCard gains honest bestFor line
   assert.ok(/spotBestFor/.test(cards) && /spotcard-bestfor/.test(cards), 'SpotCard renders SP-L1 bestFor line')
 })
@@ -2272,9 +2497,15 @@ test('3.7P-41 §N Search: NL example prompts + result-type tabs', () => {
   // 0-match Guides tab hidden). Events split into "Best matches" / "Other events".
   assert.ok(/srch-tabs/.test(sp) && /id: 'events'/.test(sp) && /id: 'spots'/.test(sp) && /id: 'guides'/.test(sp), 'Search has All/Events/Spots/Guides result tabs')
   assert.ok(/t\.id === 'all' \|\| t\.n > 0/.test(sp), 'a result tab is only offered when it has matches (no dead empty tab)')
-  assert.ok(/tab === 'all' \|\| tab === 'events' \? eventSection/.test(sp), 'the active tab scopes which groups render')
-  assert.ok(/label: 'Best matches'/.test(sp) && /label: 'Other events'/.test(sp) && /Spots that fit/.test(sp), 'sections are labelled Best matches / Other events / Spots that fit')
-  assert.ok(/searchGuides\(GUIDES/.test(sp) && /openGuide\(g\)/.test(sp), 'the Guides scope searches real GUIDES and opens their GuidePage')
+  assert.ok(/activeTab === 'all' \|\| activeTab === 'events' \? eventSection/.test(sp), 'the validated active tab scopes which groups render')
+  assert.ok(/label: 'Event matches'/.test(sp) && /label: 'More events'/.test(sp) && /Spots that fit/.test(sp), 'sections use neutral Event matches / More events / Spots that fit labels')
+  assert.ok(
+    /const guideCatalog = useMemo/.test(sp)
+      && /\.\.\.GUIDES/.test(sp)
+      && /searchGuides\(guideCatalog/.test(sp)
+      && /openGuide\(g\)/.test(sp),
+    'the Guides scope searches the real evergreen + active-watch catalog and opens its GuidePage',
+  )
   const srch = readFileSync(path.join(ROOT, 'app', 'src', 'search.js'), 'utf8')
   assert.ok(/export function searchGuides/.test(srch) && /!q\.text\.length\) return \[\]/.test(srch), 'searchGuides is text-only (a guide has no date/price) — honest, no fabricated matches')
 })
@@ -2285,9 +2516,11 @@ test('S1-P3: the Profile header stats-trio is computed from real stores (re-adde
   // The drill-ins keep their own counts too.
   const pv = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
   assert.ok(/pf-stats/.test(pv), 'the header stats-trio is present (S1-P3)')
-  assert.ok(/loadDayPlans\(/.test(pv) && /didDays\(/.test(pv) && /useSaves\(/.test(pv), 'the trio is computed from real stores (plans / days-out / saves)')
+  assert.ok(/usePlanner\(\)/.test(pv) && /filledDayCount:\s*planCount/.test(pv), 'the plan stat subscribes to the atomic planner filled-day count')
+  assert.ok(/didDays\(/.test(pv) && /useSaves\(/.test(pv), 'the days-out and saves stats still derive from their real stores')
+  assert.ok(!/\bloadDayPlans\b|\bdayEntryFor\b/.test(pv), 'Profile has no stale V1 planner read')
   const mp = readFileSync(path.join(ROOT, 'app', 'src', 'MyPlansPage.jsx'), 'utf8')
-  assert.ok(/plansCount/.test(mp) && /PARTS\.some\(\(p\) => e\.slots\[p\]\)/.test(mp), 'My plans count = distinct filled days across all dayparts (PARTS-iterated; no hardcoded day/night)')
+  assert.ok(/filledDayCount:\s*plansCount/.test(mp), 'My Plans uses the provider count of distinct filled active and historical days')
   const ms = readFileSync(path.join(ROOT, 'app', 'src', 'MySavesPage.jsx'), 'utf8')
   assert.ok(/shelf\.length/.test(ms), 'My saves count = the real saved-shelf length')
   assert.ok(!/\b47\b|>128<|>23</.test(pv), 'no hardcoded stat numbers')
@@ -2296,6 +2529,7 @@ test('S1-P3: the Profile header stats-trio is computed from real stores (re-adde
 test('PROFILE_GRIND (final): title + white identity card + pencil + 6 menu cards (no Recently saved)', () => {
   const pv = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
   const css = readFileSync(path.join(ROOT, 'app', 'src', 'profile.css'), 'utf8')
+  const profileState = readFileSync(path.join(ROOT, 'app', 'src', 'profile-state.js'), 'utf8')
   // P1: the page title
   assert.ok(/loc-head-title/.test(pv) && />Profile</.test(pv), 'P1: a "Profile" page title (V1 H1: on the shared .loc-head-title primitive)')
   // P2/P3: WHITE identity card (the old --cta fill is reverted) + monogram avatar
@@ -2304,7 +2538,12 @@ test('PROFILE_GRIND (final): title + white identity card + pencil + 6 menu cards
   assert.ok(/\.pf-id-card\s*\{[^}]*background:\s*var\(--card\)/.test(css), 'P2: the identity card is WHITE (var(--card), not --cta)')
   assert.ok(!/\.pf-name-block\s*\{[^}]*background:\s*var\(--cta\)/.test(css), 'P2: the colored --cta identity block is gone')
   // honest name + on-device store; no fabricated person / mock numbers
-  assert.ok(/profile-name-v1/.test(pv) && /lsGet\(NAME_KEY\)/.test(pv), 'the display name is read on-device (profile-name-v1); the write moved to Edit Profile')
+  assert.ok(
+    /readProfileState\(\)\.name/.test(pv)
+      && /PROFILE_NAME_KEY = 'profile-name-v1'/.test(profileState)
+      && /globalGet\(PROFILE_NAME_KEY\)/.test(profileState),
+    'the display name is read through the transferable profile-state contract from the intentional cross-city scope',
+  )
   assert.ok(/Add your name/.test(pv) && !/'Alex'/.test(pv), 'name defaults to "Add your name" — never a fabricated name')
   assert.ok(/\{CITY\.name\}/.test(pv), 'city = the app active-city label (CITY.name)')
   assert.ok(!/\b47\b|>128<|>23</.test(pv), 'no hardcoded mock stat numbers (real counts only)')
@@ -2344,13 +2583,18 @@ test('PROFILE_PHASE2: net-new drill-ins (Edit Profile · Help & Feedback) wired 
   const nav = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
   const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
   const pv = readFileSync(path.join(ROOT, 'app', 'src', 'ProfileView.jsx'), 'utf8')
+  const profileState = readFileSync(path.join(ROOT, 'app', 'src', 'profile-state.js'), 'utf8')
   // nav openers follow the single-slot pattern + App renders each subpage
   for (const [opener, type] of [['openEditProfile', 'editprofile'], ['openHelpFeedback', 'helpfeedback']]) {
     assert.ok(new RegExp('const ' + opener + ' = useCallback').test(nav), `nav exposes ${opener}`)
     assert.ok(new RegExp("setPage\\(\\{ type: '" + type + "' \\}\\)").test(nav), `${opener} sets {type:'${type}'}`)
     assert.ok(app.includes("page.type === '" + type + "'"), `App renders the ${type} subpage`)
   }
-  assert.ok(/import EditProfilePage/.test(app) && /import HelpFeedbackPage/.test(app), 'App imports the 2 net-new pages')
+  assert.ok(
+    /const EditProfilePage = lazy\(\(\) => import\('\.\/EditProfilePage\.jsx'\)\)/.test(app)
+      && /const HelpFeedbackPage = lazy\(\(\) => import\('\.\/HelpFeedbackPage\.jsx'\)\)/.test(app),
+    'App lazy-loads the 2 net-new pages',
+  )
   // the removed Recently Saved destination is fully gone (final MVP wipe)
   assert.ok(!/recentlysaved/.test(nav) && !/recentlysaved/.test(app), 'the Recently Saved opener/route is removed everywhere')
   // ProfileView rewiring: pencil/name → Edit Profile, Help → Help & Feedback
@@ -2359,11 +2603,23 @@ test('PROFILE_PHASE2: net-new drill-ins (Edit Profile · Help & Feedback) wired 
   assert.ok(!/onClick: \(\) => \{\}/.test(pv), 'no dead no-op onClick remains on the Profile menu')
   // Edit Profile: writes the on-device name; honest stubs (never a fabricated person)
   const ep = readFileSync(path.join(ROOT, 'app', 'src', 'EditProfilePage.jsx'), 'utf8')
-  assert.ok(/lsSet\(NAME_KEY/.test(ep) && /profile-name-v1/.test(ep), 'Edit Profile writes the on-device name (profile-name-v1)')
-  assert.ok(!/'Alex'/.test(ep) && /(Coming soon|Soon)/.test(ep), 'Edit Profile uses honest placeholders, never a fabricated person')
-  // Help & Feedback: real mailto actions, not fake UI
+  assert.ok(
+    /writeProfileState/.test(ep)
+      && /globalSet\(PROFILE_NAME_KEY/.test(profileState)
+      && /globalReadDurable\(PROFILE_NAME_KEY\)/.test(profileState),
+    'Edit Profile writes and verifies the on-device cross-city profile name through the profile-state contract',
+  )
+  assert.ok(!/'Alex'/.test(ep) && /Private note/.test(ep) && /CityCoverageSelector/.test(ep), 'Edit Profile uses private, real controls and never a fabricated person or placeholder feature')
+  // Help & Feedback: a real correction-receipt workflow, with an explicit
+  // export boundary instead of a fake support-send promise.
   const hf = readFileSync(path.join(ROOT, 'app', 'src', 'HelpFeedbackPage.jsx'), 'utf8')
-  assert.ok(/mailto:/.test(hf) && /Contact support/.test(hf) && /Report a problem/.test(hf), 'Help & Feedback rows are real mailto actions')
+  assert.ok(
+    /useCorrections/.test(hf)
+      && /Export correction receipts/.test(hf)
+      && /not automatically sent or monitored/.test(hf)
+      && !/mailto:/.test(hf),
+    'Help & Feedback exposes real local correction receipts and an honest user-controlled export boundary',
+  )
 })
 
 test('3.7P-40 §N Calendar: Upcoming day-stack (NextDays) + date-state legend', () => {
@@ -2384,11 +2640,11 @@ test('3.7P-24 §N spot detail: Best-for (from activity predicates) + honest Watc
 // D8 (Stage A5): the Map feature is PARKED for v1 — MapView (and its in-view decision
 // deck) is retired; the file is gone, so its §N test is removed with it.
 
-test('3.7P-39 review: every hidden-gem reader honors NON_GEM_RE (no off-shelf "gem" claim)', () => {
+test('Sprint 4 truth: hidden tags never become a user-facing gem reason', () => {
   const taste = readFileSync(path.join(ROOT, 'app', 'src', 'taste.js'), 'utf8')
-  assert.ok(/hidden-gem'\) && !NON_GEM_RE\.test/.test(taste), 'whyReasons gates the "Hidden gem" reason chip with NON_GEM_RE')
+  assert.ok(!/Hidden gem/.test(taste), 'whyReasons must not expose a confidence-free gem claim')
   const curate = readFileSync(path.join(ROOT, 'app', 'src', 'curate.js'), 'utf8')
-  assert.ok(/hidden-gem'\) && !NON_GEM_RE\.test/.test(curate), 'frontPagePredicate gates the gem-by-fiat promotion with NON_GEM_RE')
+  assert.ok(!/hidden-gem|frontPagePredicate|NON_GEM_RE/.test(curate), 'curation cannot promote a confidence-free gem tag')
 })
 
 // ============================================================
@@ -2399,7 +2655,12 @@ test('3.7P-39 review: every hidden-gem reader honors NON_GEM_RE (no off-shelf "g
 test('Addendum O seam-lock: nav.jsx VT morph + Escape layering + openDetail signal', () => {
   const nav = readFileSync(path.join(ROOT, 'app', 'src', 'nav.jsx'), 'utf8')
   assert.ok(/viewTransitionName = 'evt-hero'/.test(nav), 'card→detail VT morph name is evt-hero')
-  assert.ok(/recordSignal\('open', e\)/.test(nav) && /recordView\(e\)/.test(nav), 'openDetail records taste signal + recents view atomically')
+  const viewAt = nav.indexOf('void recordView(e)')
+  const tasteAt = nav.indexOf("capturePersonalSignal('open', e", viewAt)
+  assert.ok(
+    viewAt >= 0 && tasteAt > viewAt && /source: 'activity', result/.test(nav.slice(viewAt, tasteAt + 120)),
+    'openDetail applies taste only after the exact retained Activity result',
+  )
   // Escape closes detail BEFORE page (bubble phase; capture-phase sheets run first)
   assert.ok(/if \(detail\) closeDetail\(\)/.test(nav) && /else if \(page && !pageClosing\) closePage\(\)/.test(nav), 'Escape closes detail-before-page')
   assert.ok(nav.indexOf('if (detail) closeDetail') < nav.indexOf('closePage()'), 'detail is closed before page on Escape')
@@ -2420,7 +2681,13 @@ test('Stage R nav: roster is home/hot/locations/calendar/profile, Map is PARKED'
   // Cohesion WS2: hardware/browser back closes layers instead of exiting the app.
   // Both halves pinned: layers PUSH marker entries, and popstate runs the REAL
   // closers (all closes flow through history so depth can never desync).
-  assert.ok(/history\.pushState\(\{ wzDepth/.test(nav) && /addEventListener\('popstate'/.test(nav), 'WS2: open layers push history markers + a popstate handler closes them')
+  assert.ok(
+    /writeRoute\(routeForPage[\s\S]{0,180}?mode: 'push'/.test(nav)
+      && /writeRoute\(routeForDetail[\s\S]{0,180}?mode: 'push'/.test(nav)
+      && /window\.history\.pushState\(/.test(nav)
+      && /addEventListener\('popstate'/.test(nav),
+    'WS2: page/detail layers push durable history routes and a popstate handler closes them',
+  )
   assert.ok(/closeDetailNow\(\)\s*[\s\S]{0,40}open--/.test(nav) && /if \(open > target && pageOpenRef\.current\) closePageNow\(\)/.test(nav), 'WS2: popstate closes detail-first then page (the Escape ladder order)')
   assert.ok(/id: 'calendar', label: 'Plan'/.test(nav), "the 4th tab is labelled 'Plan' (ruling 2026-07-01 #4, reversing S1-C1; id stays 'calendar')")
   // D8: map parked — no opener, no sub-view render, no MapView file.
@@ -2443,7 +2710,8 @@ test('Addendum O seam-lock: App.jsx detail-after-subpage order + DayPage key + s
 
 test('Addendum O seam-lock: PickerSheet Escape is capture-phase (closes the sheet, not the page)', () => {
   const ps = readFileSync(path.join(ROOT, 'app', 'src', 'PickerSheet.jsx'), 'utf8')
-  assert.ok(/window\.addEventListener\('keydown', onKey, true\)/.test(ps) && /ev\.stopPropagation\(\)/.test(ps), 'PickerSheet Escape is capture-phase + stopPropagation')
+  const modal = readFileSync(path.join(ROOT, 'app', 'src', 'ModalSheet.jsx'), 'utf8')
+  assert.ok(/<ModalSheet/.test(ps) && /window\.addEventListener\('keydown', onEscape, true\)/.test(modal) && /event\.stopPropagation\(\)/.test(modal), 'PickerSheet Escape is capture-phase + stopPropagation through the shared modal')
 })
 
 test('CARD_LOCK seam-lock: one kind-aware ResultCard feeds every result list', () => {
@@ -2491,7 +2759,7 @@ test('places.js: normalizePlace aliases name→title, defaults category, rejects
 
 test('places.js: the bubbles partition sensibly + the reconciled filter chips + classics', () => {
   const ids = placesMod.PLACE_BUBBLES.map((b) => b.id)
-  assert.equal(ids.length, 10, 'the Locations bubbles incl. the reconciled Easy Walk + Open Now chips')
+  assert.equal(ids.length, 10, 'the Locations bubbles include the reconciled Easy Walk + Hours listed chips')
   const mk = (over) => placesMod.normalizePlace({ key: 'p|t', name: 'T', lat: 28, lng: -82, placeType: 'park', classes: [], amenities: [], srcCount: 1, ...over })
   const find = (id) => placesMod.PLACE_BUBBLES.find((b) => b.id === id)
   assert.ok(find('beaches').match(mk({ placeType: 'beach' })), 'a beach matches Beaches')
@@ -2503,8 +2771,10 @@ test('places.js: the bubbles partition sensibly + the reconciled filter chips + 
   // Spots-full: the reconciled filter chips (ref-spots-full) map to REAL predicates
   assert.equal(find('views').label, 'Water Views', 'the views chip is relabeled "Water Views"')
   assert.ok(find('easywalk').match(mk({ placeType: 'garden' })) && find('easywalk').match(mk({ amenities: ['boardwalk'] })), 'Easy Walk matches gardens / boardwalks')
-  assert.equal(typeof placesMod.isOpenNow, 'function', 'isOpenNow is exported (the Open Now predicate)')
-  assert.equal(find('open').match, placesMod.isOpenNow, 'the Open Now chip uses isOpenNow')
+  assert.equal(typeof placesMod.isOpenNow, 'function', 'isOpenNow remains a pure time helper for structured-hours work')
+  assert.equal(find('open').label, 'Hours listed', 'the public filter does not claim a place is open')
+  assert.equal(find('open').match(mk({ hours: 'Monday 10-4' })), true, 'the Hours listed chip requires source hours')
+  assert.equal(find('open').match(mk({ hours: '' })), false, 'the Hours listed chip excludes unknown hours')
   assert.equal(placesMod.isOpenNow({ hours: '24/7' }), true, '24/7 reads as open')
   assert.equal(placesMod.isOpenNow({ hours: '' }), false, 'unknown hours are NEVER claimed open (honesty)')
   // classics = corroborated across 3+ sources
@@ -2538,6 +2808,19 @@ test('places: a saved place round-trips (snapshot carries kind+key → PlaceDeta
   const savesSrc = readFileSync(path.join(ROOT, 'app', 'src', 'saves.js'), 'utf8')
   assert.ok(/snap\.kind = 'place'/.test(savesSrc), 'toggleSave snapshot must persist kind:place for a saved place')
   assert.ok(/snap\.key = e\.key/.test(savesSrc), 'toggleSave snapshot must persist the place key')
+  assert.ok(/const retainedNonTemporal = retainedGuide \|\| retainedPlace/.test(savesSrc), 'only retained guide/place snapshots bypass temporal event lifecycle checks')
+  assert.ok(
+    /s\.resolution === 'missing'[\s\S]{0,100}?s\.resolution === 'ambiguous'[\s\S]{0,140}?s\.source === 'snapshot'\s*&&\s*!retainedNonTemporal/.test(savesSrc),
+    'the shelf must fail closed for unresolved identity and snapshot-only temporal event saves',
+  )
+  assert.ok(
+    /out\.push\(\{\s*e,\s*record:\s*s,[\s\S]{0,220}?unavailable:\s*true,[\s\S]{0,160}?resolution:\s*s\.resolution/.test(savesSrc),
+    'an unavailable shelf row must retain its exact save record and resolution for safe review/removal',
+  )
+  assert.ok(
+    /out\.push\(\{\s*e,\s*record:\s*s,\s*past,\s*unavailable,\s*resolution:\s*s\.resolution,\s*lifecycle\s*\}\)/.test(savesSrc),
+    'an actionable shelf row must carry retained record identity and provider resolution alongside lifecycle',
+  )
   // the contract shelfItems leans on: normalize keeps kind via {...raw}, so a
   // place snapshot reconstructs to a place whose keyOf is the 'p|' key again
   const snapshot = { kind: 'place', key: 'p|test-park', name: 'Test Park', title: 'Test Park', lat: 27.9, lng: -82.5, placeType: 'park', category: 'outdoors' }
@@ -2547,19 +2830,19 @@ test('places: a saved place round-trips (snapshot carries kind+key → PlaceDeta
 })
 
 test('weekend window: Fri–Sun for 3 different start days', () => {
-  const wd = (d) => new Date(d).getDay()
+  const wd = (d) => lib.weekdayIndex(d)
   // Wednesday → upcoming Fri 12 / Sat 13 / Sun 14
-  const wed = lib.makeAnchors(new Date(2026, 5, 10))
+  const wed = lib.makeAnchors(cityMs('2026-06-10T12:00:00'))
   assert.deepEqual(weekend.weekendDays(wed).map(wd), [5, 6, 0], 'weekend days must be Fri/Sat/Sun')
-  assert.equal(new Date(wed.wkStartTs).getDate(), 12, 'Wed Jun 10 → weekend starts Fri Jun 12')
+  assert.equal(lib.dayNumber(wed.wkStartTs), 12, 'Wed Jun 10 → weekend starts Fri Jun 12')
   assert.equal(weekend.visibleWeekend(wed).length, 3, 'midweek: all 3 weekend days visible')
   // Saturday → the IN-PROGRESS weekend (Fri 13 was yesterday) — Fri column drops
-  const sat = lib.makeAnchors(new Date(2026, 5, 13))
-  assert.equal(new Date(sat.wkStartTs).getDate(), 12, 'Sat Jun 13 → weekend started Fri Jun 12')
+  const sat = lib.makeAnchors(cityMs('2026-06-13T12:00:00'))
+  assert.equal(lib.dayNumber(sat.wkStartTs), 12, 'Sat Jun 13 → weekend started Fri Jun 12')
   assert.deepEqual(weekend.visibleWeekend(sat).map((d) => d.id), ['sat', 'sun'], 'on Saturday the spent Friday drops')
   // Sunday → still the in-progress weekend, only Sunday remains
-  const sun = lib.makeAnchors(new Date(2026, 5, 14))
-  assert.equal(new Date(sun.wkStartTs).getDate(), 12, 'Sun Jun 14 → weekend started Fri Jun 12')
+  const sun = lib.makeAnchors(cityMs('2026-06-14T12:00:00'))
+  assert.equal(lib.dayNumber(sun.wkStartTs), 12, 'Sun Jun 14 → weekend started Fri Jun 12')
   assert.deepEqual(weekend.visibleWeekend(sun).map((d) => d.id), ['sun'], 'on Sunday only Sunday remains')
   // window math: a Saturday event is _weekend, a Monday event is not
   assert.equal(N(ev({ start: '2026-06-13' }), wed)._weekend, true, 'Saturday event must be _weekend')
@@ -2654,8 +2937,11 @@ test('places.js: placesForBrief matches affinity, no surprise park, never a date
 // ============================================================
 
 // a Wednesday anchor; "past planned day" tests reference days before it
-const UD_AN = lib.makeAnchors(new Date(2026, 5, 17, 12, 0)) // Wed Jun 17 2026
-const dts = (y, m, d) => new Date(y, m, d).getTime() // local-midnight ms helper
+const UD_AN = lib.makeAnchors(new Date('2026-06-17T12:00:00-04:00')) // Wed Jun 17 2026
+const dts = (y, m, d) => cityMidnightMs(
+  `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
+  fullTimeZone,
+)
 
 test('U-d: the conversion one-shot never re-fires (violet #7 is once-per-day)', () => {
   localStorage.clear()
@@ -2832,10 +3118,10 @@ test('⚑PLAN-P0: binary→ternary migration is idempotent, lossless (map + hist
   assert.equal(storage.lsGet('day-migrated-v1'), '1', 'empty install migrates harmlessly and sets the guard')
 })
 
-// Sprint U-d — the "went" side rides the EXISTING markBeen seam so the +2 taste
-// stays unfarmable, and slotting earns NO taste signal in v1 (the nudge ceiling
-// 18 is the wall — asserted above). saves.js can't import into Node (CSS), so
-// grep the wiring CalendarView leans on, like the places round-trip test.
+// Sprint U-d/S8 — "went" rides the retained markBeen seam so preference stays
+// unfarmable. Confirmed slotting may now teach bounded taste, but only through
+// the exact planner receipt. saves.js can't import into Node (CSS), so grep the
+// provider-first wiring CalendarView leans on.
 test('S1-C2: the morning-after recap is off the Calendar; "went" still rides markBeen (in My plans)', () => {
   // S1-C2 removed the "did you make it?" prompt + violet glow + their machinery
   // from the Calendar (it was a coupled unit; the glow was only reachable via the
@@ -2846,36 +3132,50 @@ test('S1-C2: the morning-after recap is off the Calendar; "went" still rides mar
   assert.ok(!/cal-recap/.test(calSrc), 'the recap markup is removed from the Calendar')
   // the idempotent +2 "went" seam relocated to My plans (still unfarmable)
   const mpSrc = readFileSync(path.join(ROOT, 'app', 'src', 'MyPlansPage.jsx'), 'utf8')
-  assert.ok(/markBeen\(key, snapshot, 'went'\)/.test(mpSrc), 'My plans "I went" rides the idempotent markBeen seam (+2 unfarmable)')
-  // no taste signal is recorded for slotting anywhere in the day surfaces
+  const markAt = mpSrc.search(/await\s+\w*markBeen\w*\s*\(/)
+  const changedAt = mpSrc.indexOf('result?.changed !== true', markAt)
+  const tasteAt = mpSrc.indexOf("capturePersonalSignal('went'", changedAt)
+  assert.ok(
+    markAt >= 0 && changedAt > markAt && tasteAt > changedAt,
+    'My plans "I went" awaits the atomic Been seam and rewards only a changed result',
+  )
+  assert.match(
+    mpSrc.slice(tasteAt, tasteAt + 150),
+    /source:\s*'saved-been',\s*result/,
+    'went preference receives the exact Saved/Been mutation receipt',
+  )
+  assert.ok(
+    /answerBeen\s*\([^)]*,\s*['"]went['"]\s*(?:,\s*[^)]*)?\)/.test(mpSrc),
+    'My plans keeps an explicit "I went" action on the unfarmable Been seam',
+  )
+  // confirmed plan additions may teach taste, but never through an unguarded
+  // direct writer or before the planner reports success.
   const daySrc = readFileSync(path.join(ROOT, 'app', 'src', 'DayPage.jsx'), 'utf8')
-  assert.ok(!/recordSignal\(/.test(daySrc), 'DayPage must record NO taste signal for slotting (only "went" feeds taste, v1)')
+  const addAt = daySrc.search(/await\s+\w*add\w*\s*\(/)
+  const planTasteAt = daySrc.indexOf("capturePersonalSignal('plan'", addAt)
+  assert.ok(addAt >= 0 && planTasteAt > addAt, 'DayPage applies plan taste only after the planner mutation')
+  assert.match(daySrc.slice(planTasteAt, planTasteAt + 180), /source:\s*'planner',\s*result/)
+  assert.ok(!/recordSignal\(/.test(daySrc), 'DayPage has no unguarded direct taste writer')
 })
 
-// Sprint S follow-up — a SLOTTED PLACE ('p|' key) must resolve in the U-d
-// surfaces, not just on DayPage. CalendarView's morning-after card and
-// ProfileView's past-days journal both build their key→title maps from `events`
-// only; a place is NEVER in `events`, so each must fold the lazily-loaded
-// places in (gated on a place key, the DayPage pattern) or a slotted place
-// degrades to the generic "did you make it out?" / "no longer listed". These
-// are grep wiring asserts (the views can't import into Node — they pull in JSX
-// and CSS), same approach as the CalendarView wiring test above.
-test('Sprint S: Calendar + Profile fold lazy places into their slot resolvers (gated)', () => {
-  const calSrc = readFileSync(path.join(ROOT, 'app', 'src', 'CalendarView.jsx'), 'utf8')
-  // S1-C2: the morning-after card is gone — the inline day panel is the remaining
-  // place-slot resolver. The fetch is GATED on a place key in the SELECTED day
-  // (never unconditional; an event-only/empty selection pays no ~1.2MB fetch).
-  assert.ok(/isPlaceKey\(selEntry\.slots\[p\]\)/.test(calSrc), 'CalendarView gates the places fetch on a place key in the selected day')
-  assert.ok(/usePlaces\(hasSelPlaceKey\)/.test(calSrc), 'CalendarView lazily loads places only when the selected day holds a place key')
-  // …and folds them into the shared resolver so a slotted place NAMES itself
-  assert.ok(/for \(const p of placeList\) m\.set\(p\.key, p\)/.test(calSrc), 'CalendarView must fold places into the byKey resolver')
+// Sprint S follow-up — a slotted place must resolve through the provider catalog
+// on every planner surface. Calendar may activate the places layer only when its
+// selected slot needs one; My Plans can always render the retained slot snapshot
+// while the provider subscribes to (but does not boot-fetch) the shared catalog.
+test('Sprint S: provider-backed planner surfaces keep place slots named without an eager boot fetch', () => {
+  const providerSrc = readFileSync(path.join(ROOT, 'app', 'src', 'PlannerProvider.jsx'), 'utf8')
+  assert.ok(/usePlaces\(false\)/.test(providerSrc), 'PlannerProvider subscribes to places without activating the large artifact at boot')
+  assert.ok(/places: placeList/.test(providerSrc), 'loaded places are folded into the one planner catalog')
 
-  // Stage R: the days/journal (with its place-slot resolver) moved to the My plans
-  // subpage; the gated lazy-places fold lives there now.
+  const calSrc = readFileSync(path.join(ROOT, 'app', 'src', 'CalendarView.jsx'), 'utf8')
+  assert.ok(/slot\.ref\?\.kind === 'place'/.test(calSrc), 'Calendar gates place activation from the selected provider slot reference')
+  assert.ok(/usePlaces\(hasSelPlaceRef\)/.test(calSrc), 'Calendar activates places only when a selected slot requires them')
+  assert.ok(/const e = slot\?\.item/.test(calSrc), 'Calendar renders the provider-resolved live or retained item')
+
   const mpSrc = readFileSync(path.join(ROOT, 'app', 'src', 'MyPlansPage.jsx'), 'utf8')
-  assert.ok(/isPlaceKey\(/.test(mpSrc), 'MyPlansPage must gate the places fetch on a place key in a plan/journal slot')
-  assert.ok(/usePlaces\(hasPlaceKey\)/.test(mpSrc), 'MyPlansPage must lazily load places only when a slotted place is present')
-  assert.ok(/for \(const p of placeList\) m\.set\(p\.key, p\.title\)/.test(mpSrc), 'MyPlansPage must fold place titles into titleByKey (no "no longer listed" for a live place)')
+  assert.ok(/slot\?\.item\?\.title \|\| slot\?\.item\?\.name/.test(mpSrc), 'My Plans names place slots from the provider item or retained snapshot')
+  assert.ok(/resolution === 'missing'/.test(mpSrc) && /resolution === 'ambiguous'/.test(mpSrc), 'unresolved identity is labeled instead of blanking the plan')
+  assert.ok(!/usePlaces\(/.test(mpSrc), 'My Plans does not duplicate place loading or resolver ownership')
 })
 
 // Sprint U-d — the --reward ledger names the did-day conversion (moment #6).
@@ -3011,13 +3311,12 @@ test('W3 curate: collapseSeries is count-preserving + groups recurring by title+
   assert.equal(series[0]._series, undefined, 'collapseSeries must not mutate its input events')
 })
 
-test('W3 curate: frontPagePredicate bar is buzz/hotScore/staff/gem, tunable', () => {
-  assert.equal(curate.frontPagePredicate(N(ev({ buzz: curate.FRONT_BUZZ, hotScore: 10 }), AN)), true, 'cross-source buzz earns the front page outright')
-  assert.equal(curate.frontPagePredicate(N(ev({ buzz: 1, hotScore: curate.FRONT_HOT }), AN)), true, 'hotScore at the bar earns the front page')
-  assert.equal(curate.frontPagePredicate(N(ev({ buzz: 1, hotScore: curate.FRONT_HOT - 1 }), AN)), false, 'just below the hot bar with no other signal is NOT front page')
-  assert.equal(curate.frontPagePredicate(N(ev({ buzz: 1, hotScore: 10, tags: ['hidden-gem'] }), AN)), true, 'a hand-curated hidden-gem is front page by fiat')
-  assert.equal(curate.frontPagePredicate(N(ev({ buzz: 1, hotScore: 10, tags: ['staff-pick'] }), AN)), true, 'an editorial staff-pick is front page by fiat')
-  assert.equal(curate.frontPagePredicate(null), false, 'a null event is never front page (defensive)')
+test('Sprint 7 curate: no legacy hotScore or gem-by-fiat admission gate remains', () => {
+  assert.equal(curate.frontPagePredicate, undefined)
+  assert.equal(curate.FRONT_HOT, undefined)
+  assert.equal(curate.FRONT_BUZZ, undefined)
+  const source = readFileSync(path.join(ROOT, 'app', 'src', 'curate.js'), 'utf8')
+  assert.ok(!/hotScore|hidden-gem|staff-pick/.test(source), 'curate is structural grouping plus a caller-owned bound, not a second quality model')
 })
 
 test('W3 curate: curateFeed — curated ⊆ full, See-all reaches EVERY event (never-hide)', () => {
@@ -3036,6 +3335,7 @@ test('W3 curate: curateFeed — curated ⊆ full, See-all reaches EVERY event (n
     dayOf: (e) => e._clamp,
     labelOf: (ts) => ({ label: lib.dayLabel(ts, AN), dayTs: ts }),
     order: (items) => lib.orderDay(items, null),
+    curatedLimit: 2,
   })
   // fullEventCount = the REAL raw total (what the See-all button quotes)
   assert.equal(feed.fullEventCount, upcoming.length, 'fullEventCount must equal the raw event count (honest "See all {N}")')
@@ -3043,7 +3343,7 @@ test('W3 curate: curateFeed — curated ⊆ full, See-all reaches EVERY event (n
   assert.equal(feed.fullCount, 3, '8-instance series + 2 picks → 3 collapsed cards in full')
   // the recurring flood (hotScore 30, buzz 1) is NOT on the front page; both
   // picks ARE (one by hotScore, one by buzz) → curated has only the 2 picks
-  assert.equal(feed.curatedCount, 2, 'the low-quality recurring series is de-prioritized; the 2 picks lead')
+  assert.equal(feed.curatedCount, 2, 'the bounded prefix contains exactly two collapsed groups')
   // NEVER-HIDE 1 — curated ⊆ full (every curated group is a full group)
   const fullIds = new Set()
   for (const s of feed.full) for (const g of s.items) fullIds.add(g.title + '|' + g._clamp)
@@ -3069,6 +3369,7 @@ test('W3 curate: real dataset — feed is shorter, collapse de-spams, See-all co
     dayOf: (e) => e._clamp,
     labelOf: (ts) => ({ label: lib.dayLabel(ts, AN), dayTs: ts }),
     order: (items) => lib.orderDay(items, null),
+    curatedLimit: 120,
   })
   // 1) See-all quotes the REAL total and reaches every event
   assert.equal(feed.fullEventCount, upcoming.length, 'fullEventCount must equal the live upcoming count')
@@ -3089,9 +3390,7 @@ test('W3 curate: real dataset — feed is shorter, collapse de-spams, See-all co
   // 3) the front page is SHORTER than the full collapsed feed (curation happened)
   //    but not gutted — "plenty" is judged relative to what the window holds
   //    (absolute floors flake as the snapshot ages), capped at the original 100.
-  assert.ok(feed.curatedCount < feed.fullCount, `front page (${feed.curatedCount}) must be shorter than full (${feed.fullCount})`)
-  const notGuttedFloor = Math.min(100, Math.ceil(feed.fullCount * 0.5))
-  assert.ok(feed.curatedCount >= notGuttedFloor, `front page (${feed.curatedCount}) must not be gutted (floor ${notGuttedFloor} on ${feed.fullCount} cards)`)
+  assert.equal(feed.curatedCount, Math.min(120, feed.fullCount), 'the caller-owned bound is exact and never pads thin supply')
   // 4) curated ⊆ full on real data
   const fullIds = new Set()
   for (const s of feed.full) for (const g of s.items) fullIds.add(lib.keyOf(g) + '|' + g._clamp)
@@ -3396,6 +3695,16 @@ test('D-G2 stable ids: the recipe contract — versioned, day-based, folded, ven
     eventIdCanonical({ title: 'Baby Time', start: '2026-07-02' }, 'sf-east-bay'),
     c({ title: 'Baby Time', start: '2026-07-02' })
   )
+  assert.match(
+    c({ title: 'Night Market', start: '2026-07-15T01:00:00+02:00' }),
+    /\|2026-07-15$/,
+    'stable id v1 must retain the literal publisher day even when the city day differs',
+  )
+  assert.equal(
+    c({ title: 'Mystery', start: 'July 15, 2026 7:00 PM' }),
+    'v1|tampa-bay|mystery|tbd',
+    'non-ISO dates must never mint a device-timezone-dependent identity day',
+  )
 })
 
 test('D-G2 stable ids: minting — order-independent, tiebreaks confined, hard-fail loud', async () => {
@@ -3493,7 +3802,7 @@ test('Stage E attribution: page wired from Settings (nav union + App slot + Abou
   assert.ok(/setPage\(\{ type: 'attribution' \}\)/.test(nav), "openAttribution sets {type:'attribution'} (single-slot union)")
   assert.ok((nav.match(/openAttribution,/g) || []).length >= 2, 'openAttribution is in the context value AND the memo deps')
   // App: imports the page + renders it in the .subpage slot with the live events
-  assert.ok(/import AttributionPage/.test(app), 'App imports AttributionPage')
+  assert.ok(/const AttributionPage = lazy\(\(\) => import\('\.\/AttributionPage\.jsx'\)\)/.test(app), 'App lazy-loads AttributionPage')
   assert.ok(/page\.type === 'attribution' && <AttributionPage events=\{norm\}/.test(app), 'App renders the attribution subpage with the LOADED events (derivation input)')
   // Settings: the About row opens it; the old "coming soon" stub is retired
   assert.ok(/openAttribution/.test(st) && /Data &amp; photo credits/.test(st), 'Settings has a real "Data & photo credits" row wired to openAttribution')
@@ -3627,14 +3936,16 @@ test('Stage E dark mode: the ladder exists, covers the core tokens, and every pi
 
 test('post-ship honesty: event fetch failure is distinct from a genuinely empty city', () => {
   const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
+  const artifacts = readFileSync(path.join(ROOT, 'app', 'src', 'artifacts.js'), 'utf8')
   const css = readFileSync(path.join(ROOT, 'app', 'src', 'App.css'), 'utf8')
   const hot = readFileSync(path.join(ROOT, 'app', 'src', 'HotView.jsx'), 'utf8')
-  assert.ok(/const \[loadError, setLoadError\] = useState\(false\)/.test(app), 'App tracks fetch failure separately from events=[]')
-  assert.ok(/setLoadError\(true\)/.test(app), 'the exhausted retry path enters the explicit error state')
-  assert.ok(/setLoadCycle\(\(n\) => n \+ 1\)/.test(app), 'the error state offers a real manual re-fetch')
-  assert.ok(/loadError && primer/.test(app) && /className="load-note" role="alert"/.test(app) && /onClick=\{retryEvents\}/.test(app), 'the load error is announced after onboarding and retryable')
-  assert.ok(/\.load-note \{[\s\S]*?z-index: 2050;/.test(css), 'the global load error stays above event subpages and detail instead of exposing false empty copy')
-  assert.ok(/loadError=\{loadError\}/.test(app), 'App tells Events whether the empty array came from a fetch failure')
+  assert.ok(/useArtifact\('events'\)/.test(app), 'App consumes the verified runtime repository')
+  assert.ok(/eventArtifact\.status === 'offline' \|\| eventArtifact\.status === 'error'/.test(app), 'transport/integrity failure remains separate from empty')
+  assert.ok(/status: 'empty'/.test(artifacts) && /status: error\.code === 'OFFLINE' \? 'offline' : 'error'/.test(artifacts), 'the repository has distinct empty/offline/error states')
+  assert.ok(/transportError && primer && !remotePageBlocked/.test(app) && /className=\{'load-note'/.test(app) && /onClick=\{recoverEvents\}/.test(app), 'the load error is announced after onboarding with a usable recovery action')
+  assert.ok(/remotePageBlocked[\s\S]*?<EventUnavailablePage/.test(app), 'event-only subpages replace false empty results with an actionable unavailable state')
+  assert.ok(/\.stale-note,[\s\S]*?\.load-note \{[\s\S]*?z-index: 2050;/.test(css), 'the global data alert stays above mixed subpages and detail instead of exposing false empty copy')
+  assert.ok(/loadError=\{unavailable\}/.test(app), 'App tells Events when inventory is unavailable rather than genuinely empty')
   assert.ok(/!loading && !loadError && upcoming\.length === 0/.test(hot), 'HotView empty copy is reserved for a successful empty dataset')
 })
 
@@ -3683,20 +3994,20 @@ test('Stage E dark mode: straggler seams hold — no resurrected light literals,
 // ============================================================================
 const stripComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '')
 
-test('D-G1 coverage: wired — App hands dataAt, Home carries both forms in their positions, attribution carries the header', () => {
+test('D-G1 coverage: wired — App hands immutable metadata, Home carries both forms, attribution carries the header', () => {
   const app = readFileSync(path.join(ROOT, 'app', 'src', 'App.jsx'), 'utf8')
-  assert.ok(/<HomeView events=\{norm\} anchors=\{anchors\} wx=\{wx\} dataAt=\{dataAt\}/.test(app), 'App hands dataAt to HomeView — the "updated" line is the REAL Last-Modified ms, never a guess')
-  assert.ok(/<AttributionPage events=\{norm\} dataAt=\{dataAt\}/.test(app), 'App hands dataAt to AttributionPage (the header form)')
+  assert.ok(/<HomeView events=\{norm\} anchors=\{anchors\} wx=\{wx\} dataMeta=\{eventArtifact\.meta\}/.test(app), 'App hands manifest metadata to HomeView')
+  assert.ok(/<AttributionPage events=\{norm\} dataMeta=\{eventArtifact\.meta\}/.test(app), 'App hands manifest metadata to AttributionPage')
   const home = readFileSync(path.join(ROOT, 'app', 'src', 'HomeView.jsx'), 'utf8')
   assert.ok(/import CoverageCard from '\.\/CoverageCard\.jsx'/.test(home), 'Home imports the card')
   assert.ok(/isSparse\(coverageStats\(events\)\.events\)/.test(home), "Home's placement decision rides coverage.js (one derivation, no local magic number)")
   assert.ok(/\{sparse && \(/.test(home) && /\{!sparse && \(/.test(home), 'ONE card: promoted (sparse) XOR colophon (rich) — never both')
-  const promotedAt = home.indexOf('<CoverageCard events={events} dataAt={dataAt} promoted />')
+  const promotedAt = home.indexOf('<CoverageCard events={events} dataMeta={dataMeta} promoted />')
   assert.ok(promotedAt !== -1, 'the sparse form renders promoted')
   assert.ok(promotedAt < home.indexOf('title="Your next days"'), 'the promoted form leads Home (above the first section) — the week-one honest floor')
   assert.ok(home.indexOf('title="Quick actions"') < home.indexOf('{!sparse && ('), 'the rich-city colophon sits under the LAST section')
   const at = readFileSync(path.join(ROOT, 'app', 'src', 'AttributionPage.jsx'), 'utf8')
-  assert.ok(/<CoverageCard events=\{events\} dataAt=\{dataAt\} \/>/.test(at), 'the attribution page mounts the card as its summary header')
+  assert.ok(/<CoverageCard events=\{events\} dataMeta=\{dataMeta\} \/>/.test(at), 'the attribution page mounts the card as its summary header')
   assert.ok(at.indexOf('<CoverageCard') < at.indexOf('Event listings'), 'the header sits above the per-source breakdown sections')
 })
 
@@ -3709,7 +4020,9 @@ test('D-G1 coverage: every number DERIVES — no hardcoded names/counts/city, no
   assert.ok(/p\.image && p\.imageCredit/.test(cov), 'imagery coverage counts REAL credited photos only (the attribution-ledger predicate)')
   assert.ok(/usePlaces\(false\)/.test(cc), 'the card SUBSCRIBES to the places store but never triggers the ~1.2MB fetch (usePlaces(false) — Home pays nothing at boot)')
   // honesty guards
-  assert.ok(/dataAt != null &&/.test(cc), '"updated" renders ONLY when Last-Modified existed (absent header = no claim — the stale-banner grace)')
+  assert.ok(/dataMeta\?\.generatedAt/.test(cc) && /Number\.isFinite\(dataAt\)/.test(cc), 'the data date renders only from a valid immutable generatedAt')
+  assert.ok(/sourceHealth === 'degraded'/.test(cc) && /sourceHealth === 'unknown'/.test(cc), 'source-health limitations are disclosed instead of hidden')
+  assert.ok(!/Last-Modified|last-modified/.test(cc), 'host file timestamps never drive coverage freshness')
   assert.ok(/stats\.events === 0\) return null/.test(cc), 'zero loaded events renders NOTHING (a failed fetch is not a sparse city)')
   assert.ok(/CITY\.shortName/.test(cc), 'the sparse sentence interpolates CITY.shortName (per-city by construction)')
   // the anti-drift tripwire (attribution precedent): nothing real is hand-typed
@@ -3748,7 +4061,11 @@ test('D-G1 coverage: the promotion gate — the REAL snapshot reads rich (never 
   assert.equal(ph.photos, credited, 'photoStats counts exactly the image+imageCredit places')
   assert.ok(ph.photos > 0 && ph.photos < ph.spots, `real data: ${ph.photos}/${ph.spots} credited — a strict subset (a card claiming every spot has a photo would be a lie)`)
   // dayStamp keeps the stale-banner idiom: weekday inside 6 days, date beyond
-  assert.equal(covMod.dayStamp(Date.now()), new Date().toLocaleDateString('en-US', { weekday: 'long' }), 'a fresh stamp reads as the weekday')
+  assert.equal(
+    covMod.dayStamp(Date.now()),
+    formatInstant(Date.now(), { timeZone: fullTimeZone, locale: 'en-US', weekday: 'long' }),
+    'a fresh stamp reads as the city weekday',
+  )
   assert.match(covMod.dayStamp(Date.now() - 30 * 86400000), /^[A-Z][a-z]{2} \d{1,2}$/, 'an old stamp reads as "Mon D"')
 })
 

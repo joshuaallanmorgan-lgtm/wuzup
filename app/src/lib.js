@@ -2,6 +2,7 @@
 // NOTE: this file is plain .js, so NO JSX here — icons use createElement.
 import { createElement as h } from 'react'
 import { categoryById } from './categories.js'
+import { assignLocalEventIds } from './identity.js'
 import { lsGet, lsSet } from './storage.js'
 
 // Stage D4: the CITY config (identity, center, heroes + credits) moved wholesale
@@ -10,6 +11,23 @@ import { lsGet, lsSet } from './storage.js'
 // stay untouched; new city-shaped code may import './city.js' directly.
 // fmtLocale (D4 §3) rides along: the one formatting-locale constant every
 // toLocale* call site uses instead of a hardcoded locale literal.
+import {
+  calendarDayDiff,
+  addCalendarDays,
+  cityClock,
+  cityHourAt,
+  cityMidnightMs,
+  coversDay,
+  dayIdAt,
+  daysInMonth,
+  eventAvailability,
+  eventTime,
+  formatDay,
+  formatInstant,
+  monthStart,
+  parseZonedDateTime,
+  weekdayOf,
+} from '../../shared/city-time.mjs'
 import { CITY, fmtLocale } from './city.js'
 export { CITY, fmtLocale }
 export const DAY = 86400000
@@ -158,31 +176,111 @@ export function orderDay(items, nudge) {
 // --- date / formatting helpers ---
 export function parseDate(iso) {
   if (!iso) return null
-  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
-    const [y, m, d] = iso.split('-').map(Number)
-    return new Date(y, m - 1, d) // local midnight, NOT UTC
-  }
-  const d = new Date(iso)
-  return isNaN(d) ? null : d
+  const parsed = /^\d{4}-\d{2}-\d{2}$/.test(iso)
+    ? eventTime({ start: iso }, { timeZone: CITY.tz })
+    : parseZonedDateTime(iso, CITY.tz)
+  const epochMs = parsed?.ok ? (parsed.startAt ?? parsed.epochMs) : NaN
+  return Number.isFinite(epochMs) ? new Date(epochMs) : null
 }
 export function dayTs(iso) {
-  const d = parseDate(iso)
-  return d ? new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() : null
+  const parsed = eventTime({ start: iso }, { timeZone: CITY.tz })
+  return parsed.ok ? cityMidnightMs(parsed.startDay, CITY.tz) : null
 }
 export function dayKey(iso) {
-  const d = parseDate(iso)
-  return d ? d.toLocaleDateString(fmtLocale, { weekday: 'long', month: 'long', day: 'numeric' }) : null
+  const parsed = eventTime({ start: iso }, { timeZone: CITY.tz })
+  return parsed.ok
+    ? formatDay(parsed.startDay, { timeZone: CITY.tz, locale: fmtLocale, weekday: 'long', month: 'long', day: 'numeric' })
+    : null
 }
 export function timeOf(iso) {
   if (!iso || !/T\d/.test(iso)) return ''
-  const d = new Date(iso)
-  return isNaN(d) ? '' : d.toLocaleTimeString(fmtLocale, { hour: 'numeric', minute: '2-digit' })
+  const parsed = parseZonedDateTime(iso, CITY.tz)
+  return parsed.ok
+    ? formatInstant(parsed.epochMs, { timeZone: CITY.tz, locale: fmtLocale, hour: 'numeric', minute: '2-digit' })
+    : ''
 }
 export function dayLabel(ts, anchors) {
-  if (ts === anchors.todayTs) return 'Today'
-  if (ts === anchors.tomorrowTs) return 'Tomorrow'
-  return new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'short', month: 'short', day: 'numeric' })
+  const day = dayIdAt(ts, CITY.tz)
+  const today = anchors.todayDay ?? dayIdAt(anchors.todayTs, CITY.tz)
+  const tomorrow = anchors.tomorrowDay ?? dayIdAt(anchors.tomorrowTs, CITY.tz)
+  if (day === today) return 'Today'
+  if (day === tomorrow) return 'Tomorrow'
+  return formatDay(day, { timeZone: CITY.tz, locale: fmtLocale, weekday: 'short', month: 'short', day: 'numeric' })
 }
+export function dayIdOf(ts) {
+  return dayIdAt(ts, CITY.tz)
+}
+
+export function addDayTs(ts, amount) {
+  const day = dayIdOf(ts)
+  return cityMidnightMs(addCalendarDays(day, amount), CITY.tz)
+}
+
+export function calendarDayDistance(fromTs, toTs) {
+  return calendarDayDiff(dayIdOf(fromTs), dayIdOf(toTs))
+}
+
+export function formatDayTs(ts, options = {}) {
+  const day = dayIdOf(ts)
+  return formatDay(day, { timeZone: CITY.tz, locale: fmtLocale, ...options })
+}
+
+export function calendarDayAriaLabel(ts, {
+  todayTs = null,
+  selected = false,
+  planned = false,
+  quiet = false,
+  went = false,
+  disabled = false,
+} = {}) {
+  const date = formatDayTs(ts, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  })
+  const states = [
+    ts === todayTs ? 'today' : null,
+    selected ? 'selected' : null,
+    planned ? 'planned' : null,
+    quiet ? 'quiet day' : null,
+    went ? 'went' : null,
+    disabled ? 'disabled' : null,
+  ].filter(Boolean)
+  return states.length ? `${date}. ${states.join(', ')}.` : date
+}
+
+export function listboxIndexForKey(index, key, length) {
+  if (!Number.isInteger(length) || length <= 0) return null
+  const current = Math.max(0, Math.min(length - 1, Number.isInteger(index) ? index : 0))
+  if (key === 'ArrowDown') return Math.min(length - 1, current + 1)
+  if (key === 'ArrowUp') return Math.max(0, current - 1)
+  if (key === 'Home') return 0
+  if (key === 'End') return length - 1
+  return null
+}
+
+export function formatCityInstant(ts, options = {}) {
+  return formatInstant(ts, { timeZone: CITY.tz, locale: fmtLocale, ...options })
+}
+
+export function weekdayIndex(ts) {
+  return weekdayOf(dayIdOf(ts))
+}
+
+export function monthStartTs(ts, offset = 0) {
+  const day = monthStart(dayIdOf(ts), offset)
+  return cityMidnightMs(day, CITY.tz)
+}
+
+export function daysInCityMonth(ts) {
+  return daysInMonth(dayIdOf(ts))
+}
+
+export function dayNumber(ts) {
+  return Number(dayIdOf(ts).slice(8, 10))
+}
+
 export function priceLabel(e) {
   if (e.isFree === true) return 'Free'
   if (e.price > 0) return '$' + e.price
@@ -212,11 +310,21 @@ export function milesBetween(a, b) {
 }
 
 // today/tomorrow/weekend anchors; weekend = Fri–Sun window containing or after today
-export function makeAnchors(now = new Date()) {
-  const at = (off) => new Date(now.getFullYear(), now.getMonth(), now.getDate() + off).getTime()
-  const dow = now.getDay()
-  const friOff = dow === 0 ? -2 : dow === 6 ? -1 : 5 - dow
-  return { todayTs: at(0), tomorrowTs: at(1), wkStartTs: at(friOff), wkEndTs: at(friOff + 2) }
+export function makeAnchors(now = Date.now()) {
+  const nowMs = now instanceof Date ? now.getTime() : Number(now)
+  const clock = cityClock({ timeZone: CITY.tz, nowMs })
+  return {
+    nowMs,
+    nextMidnightMs: clock.nextMidnightMs,
+    todayDay: clock.today,
+    tomorrowDay: clock.tomorrow,
+    wkStartDay: clock.weekendStart,
+    wkEndDay: clock.weekendEnd,
+    todayTs: cityMidnightMs(clock.today, CITY.tz),
+    tomorrowTs: cityMidnightMs(clock.tomorrow, CITY.tz),
+    wkStartTs: cityMidnightMs(clock.weekendStart, CITY.tz),
+    wkEndTs: cityMidnightMs(clock.weekendEnd, CITY.tz),
+  }
 }
 
 // --- schema v2 normalization (defensive: fields may be absent in the file on disk) ---
@@ -300,14 +408,27 @@ export function normalize(raw, anchors) {
   const category = typeof raw.category === 'string' && raw.category ? raw.category : 'other'
   const sponsored = raw.sponsored === true
   const _ongoing = tags.includes('ongoing')
-  const _day = dayTs(raw.start)
-  const _endDay = dayTs(raw.end) ?? _day
-  const _t = parseDate(raw.start)?.getTime() ?? Number.MAX_SAFE_INTEGER
+  const _time = eventTime(raw, { timeZone: CITY.tz })
+  const _availability = eventAvailability(_time, {
+    nowMs: anchors.nowMs ?? Date.now(),
+    status: raw.status,
+  })
+  const _day = _time.ok ? cityMidnightMs(_time.startDay, CITY.tz) : null
+  const _endDay = _time.ok ? cityMidnightMs(_time.endDay, CITY.tz) : _day
+  const _t = _time.ok ? _time.startAt : Number.MAX_SAFE_INTEGER
   const _free = raw.isFree === true || tags.includes('free')
   // computed from the live anchors only — baked _tonight/_weekend tags in the
   // snapshot can be a day old and must never override the runtime range math
-  const _tonight = _day != null && anchors.todayTs >= _day && anchors.todayTs <= (_endDay ?? _day)
-  const _weekend = _day != null && _day <= anchors.wkEndTs && (_endDay ?? _day) >= anchors.wkStartTs
+  const todayDay = anchors.todayDay ?? dayIdAt(anchors.todayTs, CITY.tz)
+  const wkStartDay = anchors.wkStartDay ?? dayIdAt(anchors.wkStartTs, CITY.tz)
+  const wkEndDay = anchors.wkEndDay ?? dayIdAt(anchors.wkEndTs, CITY.tz)
+  const tonightSpan = _time.ok ? calendarDayDiff(_time.startDay, _time.endDay) : Infinity
+  const _tonight = coversDay(_time, todayDay) && (
+    _time.kind === 'all-day'
+      ? _time.startDay === todayDay && _time.endDay === todayDay
+      : tonightSpan <= 1
+  )
+  const _weekend = _time.ok && _time.startDay <= wkEndDay && _time.endDay >= wkStartDay
   // 3.7P-35: clean the scraped title (override raw's pass-through). Conservative —
   // only SHOUTING titles get Title-cased; mixed-case is left exactly as authored.
   // Stash the original ONLY for url-less events, where keyOf needs a stable
@@ -315,28 +436,53 @@ export function normalize(raw, anchors) {
   // (whose `title` is already cleaned) can't drift the key off the cleaned title.
   const title = normalizeTitle(raw.title, raw.venue)
   const _keyTitle = raw.url ? undefined : (raw._keyTitle ?? raw.title)
-  return { ...raw, title, _keyTitle, tags, sources, hotScore, buzz, category, sponsored, _day, _endDay, _t, _free, _tonight, _weekend, _ongoing }
+  return {
+    ...raw,
+    title, _keyTitle, tags, sources, hotScore, buzz, category, sponsored,
+    _time, _availability, _actionable: _availability.actionable,
+    _day, _endDay, _t, _free, _tonight, _weekend, _ongoing,
+  }
+}
+
+export function currentEvents(events) {
+  return Array.isArray(events) ? events.filter((event) => event?._actionable === true) : []
+}
+const LIFECYCLE_LABEL = {
+  ended: 'Happened',
+  cancelled: 'Cancelled',
+  postponed: 'Postponed',
+  'sold-out': 'Sold out',
+  invalid: 'Unavailable',
+}
+
+export function eventLifecycle(event) {
+  if (event?.kind === 'place') return { actionable: true, code: 'place', label: null }
+  if (event?._actionable === true) return { actionable: true, code: 'actionable', label: null }
+  const code = event?._availability?.code || 'invalid'
+  return { actionable: false, code, label: LIFECYCLE_LABEL[code] || 'Unavailable' }
 }
 // 'ongoing' events show "Ongoing" instead of a stale start date/time; a timed
 // start that already passed TODAY reads "Started 7:00 PM" — the card stays
 // visible, it just stops posing as a plan. Date-only events NEVER say Started
 // (an all-day event isn't late). `now` injectable for tests.
-export function startLabel(e, now = new Date()) {
+export function startLabel(e, now = Date.now()) {
   if (e._ongoing) return 'Ongoing'
   const t = timeOf(e.start)
   if (!t) return ''
-  const d = new Date(e.start)
-  const sameDay =
-    d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()
-  return sameDay && d.getTime() < now.getTime() ? 'Started ' + t : t
+  const nowMs = now instanceof Date ? now.getTime() : Number(now)
+  const canonical = e._time?.ok ? e._time : eventTime(e, { timeZone: CITY.tz })
+  const sameDay = canonical.ok && canonical.startDay === dayIdAt(nowMs, CITY.tz)
+  return sameDay && canonical.startAt < nowMs ? 'Started ' + t : t
 }
 
 // startedness for sorting: timed starts compare against the clock; date-only
 // events only count as started once their whole day is behind todayTs (a
 // date-only event today is an all-day plan, never "missed")
 export function startedPast(e, todayTs, nowMs = Date.now()) {
-  if (e.start && /T\d/.test(e.start)) return e._t < nowMs
-  return e._day != null && e._day < todayTs
+  const canonical = e._time?.ok ? e._time : eventTime(e, { timeZone: CITY.tz })
+  if (!canonical.ok) return false
+  if (canonical.kind === 'timed') return canonical.startAt < nowMs
+  return canonical.startDay < dayIdAt(todayTs, CITY.tz)
 }
 
 // Tonight section model (HotView): not-yet-started events lead (hotScore desc),
@@ -346,8 +492,8 @@ export function startedPast(e, todayTs, nowMs = Date.now()) {
 // events (4–10 PM starts) fold in between tonight's future and tonight's
 // started picks, date-labeled via TonightCard's withDate prop. Pure + clock-
 // injectable so the ordering is Node-traceable.
-export function tonightModel(upcoming, anchors, now = new Date()) {
-  const nowMs = now.getTime()
+export function tonightModel(upcoming, anchors, now = Date.now()) {
+  const nowMs = now instanceof Date ? now.getTime() : Number(now)
   const all = upcoming.filter((e) => e._tonight)
   // future leads via G1 orderDay: hotScore-desc with the same family/category
   // de-flood as the Everything feed (late at night, when every timed event has
@@ -359,15 +505,15 @@ export function tonightModel(upcoming, anchors, now = new Date()) {
   // date-only listing at 11 PM is almost certainly over, not "still to come" —
   // counting them kept late mode permanently dead (41 phantom futures at 11 PM)
   const futureTimed = future.filter((e) => /T\d/.test(e.start || ''))
-  const late = now.getHours() >= 22 && futureTimed.length < 3
+  const late = cityHourAt(nowMs, CITY.tz) >= 22 && futureTimed.length < 3
   let tomorrow = []
   if (late) {
     // strictly tomorrow-starting (an in-progress event already lives in `all`,
     // so nothing renders twice), timed, early-evening start
     tomorrow = upcoming
-      .filter((e) => e._day === anchors.tomorrowTs && /T\d/.test(e.start || ''))
+      .filter((e) => e._time?.startDay === (anchors.tomorrowDay ?? addCalendarDays(dayIdAt(anchors.todayTs, CITY.tz), 1)) && /T\d/.test(e.start || ''))
       .filter((e) => {
-        const h = new Date(e.start).getHours()
+        const h = cityHourAt(e._time.startAt, CITY.tz)
         return h >= 16 && h < 22
       })
       .sort(hotDesc)
@@ -380,7 +526,10 @@ export function tonightModel(upcoming, anchors, now = new Date()) {
   return { items, late, futureN: futureTimed.length, tomorrowN: tomorrow.length }
 }
 export function dayLabelLoose(e) {
-  return e._day != null ? new Date(e._day).toLocaleDateString(fmtLocale, { weekday: 'short', month: 'short', day: 'numeric' }) : null
+  const day = e._time?.startDay ?? (e._day != null ? dayIdAt(e._day, CITY.tz) : null)
+  return day
+    ? formatDay(day, { timeZone: CITY.tz, locale: fmtLocale, weekday: 'short', month: 'short', day: 'numeric' })
+    : null
 }
 export function dayLoose(e) {
   return e._ongoing ? 'Ongoing' : dayLabelLoose(e)
@@ -868,16 +1017,53 @@ export const Icon = {
 // path as fetched events; tag 'added-by-you' drives the provenance label).
 export const MY_EVENTS_KEY = 'my-events-v1' // stored as twh:my-events-v1 via storage.js
 export const MY_SOURCE = 'Added by you'
+export function validMyEvent(value) {
+  return value
+    && typeof value === 'object'
+    && !Array.isArray(value)
+    && typeof value.title === 'string'
+    && value.title.trim().length > 0
+    && typeof value.start === 'string'
+    && /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2})?)?/.test(value.start)
+}
+function legacySafeMyEvents(valid) {
+  return assignLocalEventIds(valid, { createId: () => null }).items
+}
 export function loadMyEvents() {
   try {
     const v = JSON.parse(lsGet(MY_EVENTS_KEY))
-    return Array.isArray(v) ? v : []
+    const valid = Array.isArray(v) ? v.filter(validMyEvent) : []
+    const migration = assignLocalEventIds(valid)
+    if (!migration.changed) return valid
+    if (lsSet(MY_EVENTS_KEY, JSON.stringify(migration.items))) return migration.items
+    if (!migration.complete) {
+      // Duplicate IDs are unsafe even for one session. Keep the collision-free
+      // legacy fallback in memory while the untouched durable source retries.
+      lsSet(MY_EVENTS_KEY, JSON.stringify(migration.items))
+      return migration.items
+    }
+    // Newly minted IDs would disappear on reload. Keep only durable prior IDs,
+    // strip later duplicate owners, and fall new rows back to legacy identity.
+    const fallback = legacySafeMyEvents(valid)
+    lsSet(MY_EVENTS_KEY, JSON.stringify(fallback))
+    return fallback
   } catch {
     return [] // missing key / corrupt JSON / private mode — never crash the boot
   }
 }
-export function saveMyEvents(list) {
-  lsSet(MY_EVENTS_KEY, JSON.stringify(list)) // guarded in storage.js — session state still works
+export function saveMyEvents(list, { createId } = {}) {
+  const valid = Array.isArray(list) ? list.filter(validMyEvent) : []
+  const migration = assignLocalEventIds(valid, { createId })
+  if (!migration.complete) {
+    const persisted = lsSet(MY_EVENTS_KEY, JSON.stringify(migration.items))
+    return { items: migration.items, persisted, complete: false }
+  }
+  const persisted = lsSet(MY_EVENTS_KEY, JSON.stringify(migration.items))
+  if (persisted) return { items: migration.items, persisted: true, complete: true }
+  // Keep failed writes collision-free on legacy identities in session too.
+  const fallback = legacySafeMyEvents(valid)
+  lsSet(MY_EVENTS_KEY, JSON.stringify(fallback))
+  return { items: fallback, persisted: false, complete: false }
 }
 // strip normalize()'s computed _fields → a clean schema-v2 object (an
 // undo-restored event persists as raw data, identical to a fresh submission)
@@ -885,4 +1071,8 @@ export function rawOf(e) {
   const out = {}
   for (const k in e) if (k[0] !== '_') out[k] = e[k]
   return out
+}
+
+export function cityHour(ts) {
+  return cityHourAt(ts, CITY.tz)
 }

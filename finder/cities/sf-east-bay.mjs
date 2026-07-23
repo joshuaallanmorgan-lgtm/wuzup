@@ -33,6 +33,8 @@
 // is operator-run, at need — the weekly refresh workflow is events-only by
 // design (STAGE_E.md §E4); a bbox/config change here does nothing to the
 // shipped spots until someone runs `CITY=sf-east-bay node finder/places.mjs`.
+import { defineReviewedImageRejects } from '../reviewed-image-rejections.mjs';
+
 export const bbox = { latMin: 37.68, latMax: 38.00, lngMin: -122.53, lngMax: -121.88 };
 // the box in each source's required wire format (derived — edit the box once).
 export const bboxOverpass = `(${bbox.latMin},${bbox.lngMin},${bbox.latMax},${bbox.lngMax})`;
@@ -42,6 +44,21 @@ export const geocodeViewbox = `${bbox.lngMin},${bbox.latMax},${bbox.lngMax},${bb
 // timezone — America/Los_Angeles (Pacific + DST). Wired: D2 routes ALL day/time
 // math through `tz` (Intl-derived per-date offsets, DST-safe — see tampa-bay.mjs).
 export const tz = 'America/Los_Angeles';
+
+export const placeSourceModules = Object.freeze([
+  'ebrpd-parks',
+  'ggnra-seed',
+  'osm',
+  'sf-parks',
+]);
+
+export const eventSourceModules = Object.freeze([
+  'dothebay',
+  'meetup',
+  'sfrecparks',
+  'ucberkeley',
+  'visitoakland',
+]);
 
 // geocode facts (the D2 seam shape — see tampa-bay.mjs for field semantics).
 // cityRe = locality-hint extractor for THIS city's listings; corridor localities
@@ -113,9 +130,88 @@ export const touristCentroids = [
 // comment block at the bottom of this file — a human review promotes them here.
 export const area = '';
 
-// Wikidata P18/P373 entity-image conflations to exclude (per-city; fills in as
-// the imagery pass finds them — starts empty like every honesty verdict set).
-export const qidDeny = [];
+// Wikidata P18/P373 entity-image conflations to exclude. Both entities resolve
+// to a lifeguard-training photo: related context, but not an exact photo of the
+// named trail or recreation area. Exact-place imagery fails closed to art.
+export const qidDeny = ['Q4116375', 'Q5192966'];
+
+const imageAuditEvidence = Object.freeze({
+  report: 'planning/v2/S10_IMAGE_AUDIT_2026-07-21.md',
+  reportSha256: 'sha256:4bee54bf0847f6de7a06443ffdf513055abfd85d0f2d6a67110f928518958830',
+});
+const reviewedImageRejection = (
+  placeKey, image, sourcePage, sourceFamily, reviewRow, reason,
+) => ({
+  placeKey,
+  image,
+  sourcePage,
+  sourceFamily,
+  evidence: { ...imageAuditEvidence, reviewRow },
+  disposition: 'remove-or-replace',
+  reason,
+});
+
+// Exact-item image quarantine from the frozen Sprint 10 review. The recorded
+// candidate/provenance tuple keeps the audit exact, while an active entry
+// quarantines every image ladder for that item until a positive review clears it.
+export const imageRejects = defineReviewedImageRejects('sf-east-bay', [
+  reviewedImageRejection(
+    'p|don-castro-regional-recreation-area',
+    'https://upload.wikimedia.org/wikipedia/commons/6/6f/Don_Guillermo_Castro_%28cropped%29.jpg',
+    'https://commons.wikimedia.org/wiki/File%3ADon%20Guillermo%20Castro%20(cropped).jpg',
+    'wikidata-p18', 51,
+    'A portrait of Don Castro is not an image of the recreation area.',
+  ),
+  reviewedImageRejection(
+    'p|ocean-beach',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Ocean_and_waves_%28Unsplash%29.jpg/1280px-Ocean_and_waves_%28Unsplash%29.jpg',
+    'https://commons.wikimedia.org/wiki/File%3AOcean%20and%20waves%20(Unsplash).jpg',
+    'wikidata-p373', 54,
+    'A generic Unsplash beach does not establish San Francisco\'s Ocean Beach.',
+  ),
+  reviewedImageRejection(
+    'p|sutro-heights-park',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Sutro_Heights_Park_-_panoramio.jpg/1280px-Sutro_Heights_Park_-_panoramio.jpg',
+    'https://commons.wikimedia.org/wiki/File%3ASutro%20Heights%20Park%20-%20panoramio.jpg',
+    'wikidata-p373', 56,
+    'The shallow panorama cannot produce a useful mobile crop.',
+  ),
+  reviewedImageRejection(
+    'p|lake-chabot-regional-park',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Chabot_Park%2C_San_Leandro%2C_California%2C_US.jpg/1280px-Chabot_Park%2C_San_Leandro%2C_California%2C_US.jpg',
+    'https://commons.wikimedia.org/wiki/File%3AChabot%20Park%2C%20San%20Leandro%2C%20California%2C%20US.jpg',
+    'wikidata-p373', 62,
+    'A wood-chip and parking scene neither shows Lake Chabot nor establishes the park.',
+  ),
+  reviewedImageRejection(
+    'p|presidio-of-san-francisco',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Euc_presidio.jpg/1280px-Euc_presidio.jpg',
+    'https://commons.wikimedia.org/wiki/File%3AEuc%20presidio.jpg',
+    'wikidata-p373', 78,
+    'An electric-unicycle group is not a representative exact-place image.',
+  ),
+  reviewedImageRejection(
+    'p|coit-tower-cafe',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Coit_Tower_2021.jpg/1280px-Coit_Tower_2021.jpg',
+    'https://commons.wikimedia.org/wiki/File%3ACoit%20Tower%202021.jpg',
+    'wikidata-p18', 85,
+    'Coit Tower is shown for the distinct Coit Tower Cafe item.',
+  ),
+  reviewedImageRejection(
+    'p|candlestick-point-state-recreation-area',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Candlestick_Point_Park5.jpg/1280px-Candlestick_Point_Park5.jpg',
+    'https://commons.wikimedia.org/wiki/File%3ACandlestick%20Point%20Park5.jpg',
+    'wikidata-p18', 91,
+    'The demolished stadium makes this materially outdated for the current recreation area.',
+  ),
+  reviewedImageRejection(
+    'p|dinosaur-hill-park',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/DinoHillPano2731x505.jpg/1280px-DinoHillPano2731x505.jpg',
+    'https://commons.wikimedia.org/wiki/File%3ADinoHillPano2731x505.jpg',
+    'wikidata-p18', 95,
+    'The shallow panorama is too generic for a useful mobile card crop.',
+  ),
+]);
 
 // Mapillary cafe-imagery honesty (the OFFLINE Stage-B harness; per-city).
 export const cafe = {

@@ -10,14 +10,19 @@
 // a rail swap remounts and scroll resets.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNav } from './nav.jsx'
-import { DAY, dayKey, fmtLocale, hotDesc, Icon, keyOf, parseDate, priceLabel, timeOf } from './lib.js'
+import { usePlanner } from './PlannerProvider.jsx'
+import { PLANNER_PARTS as PARTS } from './planner-core.js'
+import { addDayTs, calendarDayDistance, cityHour, CITY, dayKey, eventLifecycle, formatDayTs, Icon, keyOf, priceLabel, timeOf } from './lib.js'
 import { eventIcs } from './share.js'
 import { CATEGORY_EMOJI, HeatBadge, SecHead, TonightCard, auroraStyle, hueFor } from './cards.jsx'
+import { capturePersonalSignal } from './personal-signals.js'
 import { SaveHeart, useSaves } from './saves.js'
-import { whyReasons } from './taste.js'
-import { daypartOf, DAYPART, wxMood } from './weekend.js'
-import { loadDayPlans, saveDayPlans, withSlot, dayEntryFor, PARTS } from './dayplan.js'
+import { useTaste } from './taste.js'
+import { daypartOf, DAYPART } from './weekend.js'
 import { CONDITION, dateKey } from './weather.js'
+import { rankRuntimeItems } from './relevance.js'
+import { presentRuntimeImage, RUNTIME_EVENT_IMAGE_POLICY } from './leadImage.js'
+import CorrectionSheet from './CorrectionSheet.jsx'
 import './detail.css'
 import './locations.css' // 3.7P-34: the shared "Add to day" sheet (.loc-plan-*) lives here
 
@@ -35,27 +40,25 @@ function timeRange(start, end) {
 }
 
 // short "Fri, Jun 12" for ranges (long-form dayKey stays on single days)
-const fmtShort = (ts) =>
-  new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'short', month: 'short', day: 'numeric' })
+const fmtShort = (ts) => formatDayTs(ts, { weekday: 'short', month: 'short', day: 'numeric' })
 
 // 3.7P-34 — the days an event can be planned onto: each day of its run that is
 // today-or-later, capped at two weeks. A single-day event yields exactly its own
 // day (never an arbitrary one — that would misrepresent when it happens); a
 // multi-day / ongoing run offers each open day so the user picks which to plan.
 function eventPlanDays(e, anchors) {
-  if (e._day == null) return []
+  if (e._actionable !== true || e._day == null) return []
   const start = Math.max(e._day, anchors.todayTs)
   // an OPEN-ENDED ongoing run (tagged ongoing, no real end date so _endDay === _day)
   // is available through the planning horizon like a place; a dated/multi-day run
   // clamps to its actual end so it can never be planned past when it runs.
   const openEnded = e._ongoing && (e._endDay == null || e._endDay <= e._day)
   const end = openEnded ? Infinity : (e._endDay ?? e._day)
-  const d0 = new Date(start)
   const out = []
   for (let i = 0; i < 14; i++) {
-    const ts = new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() + i).getTime()
+    const ts = addDayTs(start, i)
     if (ts > end) break
-    out.push({ ts, label: ts === anchors.todayTs ? 'Today' : ts === anchors.tomorrowTs ? 'Tomorrow' : new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'long' }) })
+    out.push({ ts, label: ts === anchors.todayTs ? 'Today' : ts === anchors.tomorrowTs ? 'Tomorrow' : formatDayTs(ts, { weekday: 'long' }) })
   }
   return out
 }
@@ -68,48 +71,44 @@ function eventPlanDays(e, anchors) {
 // excluded from vibe matching ('added-by-you' is provenance, not a vibe)
 const GENERIC_TAGS = new Set(['tonight', 'weekend', 'one-off', 'recurring', 'ongoing', 'added-by-you'])
 
-// WS2 detail-rebuild — the refs' "Why this fits" prose card: ONE honest sentence
-// composed ONLY from already-ratified TRUE signals — whyReasons(e) (taste.js:
-// buzz≥2, free, live tonight/weekend anchors-math, gem, staff-pick, taste lean;
-// every chip true by construction) plus the same wxMood forecast cue DayPage
-// uses, fed the REAL forecast for the event's own day. 'Sponsored placement' is
-// deliberately NOT a fit reason — that disclosure renders unconditionally as the
-// .detail-sp label up top. Zero fragments → null → NO card rendered at all
-// (honesty: a missing reason is never papered over with a fabricated one).
-// Max three fragments, one sentence. ALL COPY DRAFT ⚑ Charles.
-function whyProse(e, w) {
-  const frags = []
-  // weather leads (whyFits' own priority): outdoor event + a genuinely clear day
-  if (e.category === 'outdoors' && wxMood(w) === 'clear') frags.push('the forecast looks clear that day')
-  for (const r of whyReasons(e)) {
-    if (r.startsWith('🔥')) frags.push(`${e.buzz} local sources list it`)
-    else if (r === 'Free') frags.push("it's free")
-    else if (r === 'Tonight') frags.push("it's on tonight")
-    else if (r === 'This weekend') frags.push("it's on this weekend")
-    else if (r === '💎 Hidden gem') frags.push("it's a hidden gem")
-    else if (r === '⭐ Staff pick') frags.push("it's a staff pick")
-    else if (r.startsWith('Your taps lean')) frags.push(r.charAt(0).toLowerCase() + r.slice(1))
-    // anything else (incl. 'Sponsored placement') is not a fit reason — skipped
-  }
-  if (!frags.length) return null
-  const top = frags.slice(0, 3)
-  const s =
-    top.length === 1 ? top[0] : top.length === 2 ? `${top[0]} and ${top[1]}` : `${top[0]}, ${top[1]}, and ${top[2]}`
-  return s.charAt(0).toUpperCase() + s.slice(1) + '.'
-}
-
 export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, onRestoreMine }) {
   // navigation via useNav (O6): close/swap/map-handoff + the open-state flags
-  const { closing, vtOpen: vt, closeDetail: onClose, openDetail: onSelect } = useNav()
+  const {
+    closing,
+    vtOpen: vt,
+    closeDetail: onClose,
+    openDetail: onSelect,
+    openDay,
+    openEditEvent,
+    durableHrefForItem,
+  } = useNav()
+  const taste = useTaste()
+  const {
+    status: plannerStatus,
+    add,
+    getDay,
+    isPlanned,
+    placement,
+  } = usePlanner()
+  const mountedRef = useRef(true)
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
+  const lifecycle = eventLifecycle(e)
   // ===== WHEN: end-date honesty (multi-day ranges, same-day time ranges, ongoing) =====
   // whenShort is the SAME honest WHEN in short form ("Fri, Jun 19 · 7:00 PM") for
   // the title-block eyebrow (WS2 detail-rebuild); `when` (long form) stays
   // byte-identical for the When fact row. One branch block so they can't desync.
   let when, whenShort
-  const DAY_MS = 86400000
   // overnight show (ends ≤6 AM the next day) reads as one evening, not a "range"
   const overnight = !!(
-    e.end && /T\d/.test(e.end) && e._endDay - e._day === DAY_MS && parseDate(e.end)?.getHours() <= 6
+    e._time?.ok &&
+    e._time.kind === 'timed' &&
+    calendarDayDistance(e._day, e._endDay) === 1 &&
+    cityHour(e._time.endAt) <= 6
   )
   if (e._ongoing) {
     when = 'Ongoing' + (e._endDay != null && e._endDay !== e._day ? ' · through ' + fmtShort(e._endDay) : '')
@@ -152,15 +151,19 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
     }
   }
 
-  // ===== trust + transparency (G3 → WS2 detail-rebuild): the why-signal now
-  // renders as the refs' "Why this fits" prose CARD (whyProse above, composed
-  // from the same honest whyReasons seam + the real forecast); the bare
-  // why-chips fact row retired. Zero reasons → no card at all. `via` stays the
-  // quiet provenance footer. =====
+  // Provenance remains explicit. Recommendation explanations are emitted only
+  // by the shared scored rank contract on discovery surfaces; detail does not
+  // reconstruct a second quality or taste story from legacy tags.
   const via = e.sources && e.sources.length ? e.sources.join(' · ') : e.source
 
   // ===== user-added event? (Add Event MVP) — provenance label + Remove =====
   const mine = Array.isArray(e.tags) && e.tags.includes('added-by-you')
+  const [correcting, setCorrecting] = useState(false)
+  const correctionButtonRef = useRef(null)
+  const closeCorrection = () => {
+    setCorrecting(false)
+    requestAnimationFrame(() => correctionButtonRef.current?.focus())
+  }
 
   // ===== event-day weather (only within the 16-day forecast window) =====
   const w = wx && e._day != null ? wx[dateKey(e._day)] : null
@@ -173,31 +176,22 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         .filter(Boolean)
         .join(' · ')
     : null
-  // the Why-this-fits sentence — needs the event-day forecast (w) above
-  const whyLine = whyProse(e, w)
-
-  // ===== detail hero image: preload + 300ms fade over the dark placeholder =====
+  // ===== detail hero image: receipt gate + Aurora-underlaid async decode =====
+  const presentedImage = useMemo(
+    () => presentRuntimeImage(e, { policy: RUNTIME_EVENT_IMAGE_POLICY }),
+    [e],
+  )
+  const heroImage = presentedImage.image
   const [loadedSrc, setLoadedSrc] = useState(null)
   const [failedSrc, setFailedSrc] = useState(null)
-  useEffect(() => {
-    if (!e.image) return
-    const src = e.image
-    const img = new Image()
-    img.onload = () => setLoadedSrc(src)
-    img.onerror = () => setFailedSrc(src) // dead URL → fall back to category-art
-    img.src = src
-    return () => {
-      img.onload = null
-      img.onerror = null
-    }
-  }, [e.image])
-  const imgOk = loadedSrc === e.image
+  const imgOk = loadedSrc === heroImage
   // a real photo that loads → image hero; no image OR a broken URL → art hero.
   // failedSrc is compared against the CURRENT image (same derivation as imgOk):
   // a boolean here latched across More-like-this hops — a dead poster on event
   // A forced the art hero onto every event opened after it in this mounted
   // detail (Stage E ship gate — surfaced chasing the VSPC hotlink-block finds).
-  const heroArt = !e.image || failedSrc === e.image
+  const heroArt = !heroImage || failedSrc === heroImage
+  const heroLoading = Boolean(heroImage) && !heroArt && !imgOk
   // WS2 detail-rebuild: the hero time badge — GemRow's exact honesty gate (never
   // on an ongoing run, only a real start time; '' renders nothing).
   const heroTime = !e._ongoing ? timeOf(e.start) : ''
@@ -205,18 +199,34 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
   // D8: the detail mini-map (lazy Leaflet) is parked for v1 — removed. Coordinates
   // still drive the Directions button (Google Maps), below.
 
-  // ===== More like this: same category first, then nearby-in-time same-vibe; hot first =====
+  // ===== More like this: same category first, then nearby-in-time same-vibe;
+  // shared objective/taste/diversity ordering within each membership set. =====
   const similar = useMemo(() => {
     if (!events.length || !anchors) return []
     const self = keyOf(e)
-    const seen = new Set([self])
+    const canonicalOf = (event) => event.canonicalId || event.canonicalKey || keyOf(event)
+    const seen = new Set([self, canonicalOf(e)])
     const upcoming = events.filter(
       (x) => keyOf(x) !== self && x._day != null && (x._endDay ?? x._day) >= anchors.todayTs
     )
+    const rank = (items) => items.length === 0 ? [] : rankRuntimeItems(items, {
+      kind: 'events',
+      nowMs: anchors.nowMs,
+      city: CITY,
+      taste,
+      diversityPolicy: {
+        prefix: Math.min(8, items.length),
+        sourceMax: 2,
+        categoryMax: Math.max(items.length, 1),
+        venueMax: 1,
+        canonicalMax: 1,
+        seriesMax: 1,
+      },
+    }).ordered
     const picks = []
     const take = (list) => {
       for (const x of list) {
-        const k = keyOf(x)
+        const k = canonicalOf(x)
         if (seen.has(k)) continue
         seen.add(k)
         picks.push(x)
@@ -225,26 +235,27 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
       return false
     }
     if (e.category && e.category !== 'other') {
-      if (take(upcoming.filter((x) => x.category === e.category).sort(hotDesc))) return picks
+      if (take(rank(upcoming.filter((x) => x.category === e.category)))) return picks
     }
     const vibes = new Set((e.tags || []).filter((t) => !GENERIC_TAGS.has(t)))
-    const nearTime = (x) => e._day == null || Math.abs(x._day - e._day) <= 3 * DAY
+    const nearTime = (x) => e._day == null || Math.abs(calendarDayDistance(e._day, x._day)) <= 3
     take(
-      upcoming
-        .filter((x) => nearTime(x) && (vibes.size === 0 || x.tags.some((t) => vibes.has(t))))
-        .sort(hotDesc)
+      rank(upcoming.filter((x) => nearTime(x) && (vibes.size === 0 || x.tags.some((t) => vibes.has(t)))))
     )
     return picks
-  }, [events, anchors, e])
+  }, [events, anchors, e, taste])
 
   // ===== utility row: .ics download / directions / share-or-copy + toast =====
   const [toast, setToast] = useState(null)
   const toastTRef = useRef(null)
   useEffect(() => () => clearTimeout(toastTRef.current), [])
   const flash = (msg) => {
+    if (!mountedRef.current) return
     setToast(msg)
     clearTimeout(toastTRef.current)
-    toastTRef.current = setTimeout(() => setToast(null), 1600)
+    toastTRef.current = setTimeout(() => {
+      if (mountedRef.current) setToast(null)
+    }, 1600)
   }
 
   // ===== 3.7P-34: Add to day — the event→day-plan bridge, the PLANNER-FIRST
@@ -257,8 +268,20 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
   // Stage R: the bottom bar pairs Save + the primary (benchmark). An honest
   // day-specific CTA label — the event's first plannable day (the sheet's
   // default) + its natural daypart ("tonight"/"today" when that day is today).
-  const { has: hasSave, toggle: toggleSave } = useSaves()
+  const {
+    has: hasSave,
+    toggle: toggleSave,
+    canToggle: canToggleSave,
+    identityPending: isSaveIdentityPending,
+    identityAmbiguous: isSaveIdentityAmbiguous,
+    identityWent: isSaveIdentityWent,
+    isPending: isSavePending,
+  } = useSaves()
   const saved = hasSave(e)
+  const savePending = isSavePending(e)
+  const saveIdentityPending = isSaveIdentityPending(e)
+  const saveIdentityAmbiguous = isSaveIdentityAmbiguous(e)
+  const saveIdentityWent = isSaveIdentityWent(e)
   const d0 = planDays[0]
   const addLabel = d0
     ? d0.ts === anchors.todayTs
@@ -269,20 +292,32 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
     : 'Add to day'
   const [planning, setPlanning] = useState(false)
   const [planDayTs, setPlanDayTs] = useState(null)
-  const [plansVersion, setPlansVersion] = useState(0)
+  const [planPending, setPlanPending] = useState(false)
+  const planned = isPlanned(e)
+  const plannedPlacement = placement(e)
+  const plannerReady = plannerStatus === 'durable' || plannerStatus === 'session-only'
+  const plannerUnavailableLabel = plannerStatus === 'idle' || plannerStatus === 'initializing'
+    ? 'Loading plans…'
+    : 'Plans unavailable'
   // Plan Phase 2 (flows-2 p2): the add-to-day sheet is select-then-confirm — the
   // user picks a daypart, then taps "Add to {day}". selPart holds the pick; null
   // until they choose (the natural free daypart is the rendered default).
   const [selPart, setSelPart] = useState(null)
-  const curDay = planDayTs ?? planDays[0]?.ts ?? null
+  const curDay = planDays.some((day) => day.ts === planDayTs)
+    ? planDayTs
+    : planDays[0]?.ts ?? null
   const planSheetRef = useRef(null)
   const planBtnRef = useRef(null)
+  const planPendingRef = useRef(false)
   const filled = useMemo(() => {
-    void plansVersion
     if (curDay == null) return {}
-    const entry = dayEntryFor(loadDayPlans(anchors)[String(curDay)])
-    return { ...Object.fromEntries(PARTS.map((p) => [p, entry?.slots[p] || null])), rest: entry?.state === 'rest' }
-  }, [curDay, anchors, plansVersion])
+    const day = getDay(curDay)
+    const occupied = new Map(day.slots.map((slot) => [slot.part, slot]))
+    return {
+      ...Object.fromEntries(PARTS.map((part) => [part, occupied.get(part) || null])),
+      rest: day.state === 'rest',
+    }
+  }, [curDay, getDay])
   // the effective selected daypart: the user's pick when still free, else the
   // natural daypart, else the first free slot (so "Add to {day}" always targets
   // a real open slot — and stays disabled only when every slot is taken).
@@ -302,21 +337,63 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         setPlanning(false)
         setPlanClosing(false)
         setSelPart(null)
-        planBtnRef.current?.focus() // WCAG 2.4.3: focus returns to the trigger
+        const restoreFocus = () => planBtnRef.current?.focus()
+        if (typeof requestAnimationFrame === 'function') requestAnimationFrame(restoreFocus)
+        else setTimeout(restoreFocus, 0)
       },
       reduced ? 0 : 240
     )
   }
-  const addToPlan = (part) => {
-    if (curDay == null) return
-    const map = loadDayPlans(anchors)
-    const entry = dayEntryFor(map[String(curDay)])
-    if (entry && entry.slots[part]) return // never clobber a filled slot
-    saveDayPlans(withSlot(map, curDay, part, keyOf(e)))
-    setPlansVersion((v) => v + 1)
-    const dl = planDays.find((d) => d.ts === curDay)?.label || ''
-    flash(`Added to ${dl} ${DAYPART[part].emoji} ✓`)
-    closePlan()
+  const addToPlan = async (part) => {
+    if (!plannerReady || curDay == null || planPendingRef.current || planClosing) return
+    planPendingRef.current = true
+    setPlanPending(true)
+    try {
+      const result = await add(e, { dayTs: curDay, part })
+      const code = result?.conflict?.reducerCode || result?.code
+      if (code === 'duplicate' || code === 'already-planned') {
+        flash('Already in your plan')
+        closePlan()
+        return
+      }
+      if (code === 'slot-occupied') {
+        flash('That time is already planned')
+        return
+      }
+      if (code === 'rest-conflict') {
+        flash("That's a quiet day — clear the rest mark first")
+        return
+      }
+      capturePersonalSignal('plan', e, {
+        source: 'planner',
+        result,
+        context: { daypart: part },
+      })
+      if (result?.changed && result.durability === 'session-only') {
+        flash("Added for this visit, but your browser couldn't save it")
+        closePlan()
+        return
+      }
+      if (!result?.changed || result?.persisted !== true) {
+        flash(code === 'planner-rebase-conflict'
+          ? 'Your plan changed — check this day and try again'
+          : "Couldn't add this to your plan")
+        return
+      }
+      const dl = planDays.find((d) => d.ts === curDay)?.label || ''
+      flash(`Added to ${dl} ${DAYPART[part].emoji} ✓`)
+      closePlan()
+    } catch {
+      flash("Couldn't add this to your plan")
+    } finally {
+      planPendingRef.current = false
+      setPlanPending(false)
+    }
+  }
+  const viewPlan = () => {
+    if (!plannedPlacement) return
+    openDay(plannedPlacement.dayTs)
+    onClose()
   }
   // dialog a11y (mirrors the map filter sheet): focus in on open, Escape closes,
   // Tab is trapped, focus returns to the trigger on close.
@@ -361,11 +438,11 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
   const share = async () => {
     // URL-less events (added-by-you etc.) share their facts as TEXT — never
     // window.location.href, which is just this device's app address.
-    const url = e.url || null
+    const url = durableHrefForItem(e)
     const text = [e.title, when, whereMain].filter(Boolean).join(' · ')
     if (navigator.share) {
       try {
-        await navigator.share(url ? { title: e.title, text: e.title, url } : { title: e.title, text })
+        await navigator.share({ title: e.title, text, ...(url ? { url } : {}) })
       } catch {
         /* user dismissed the share sheet — not an error */
       }
@@ -381,24 +458,80 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
     }
   }
 
-  // ===== Remove (added events only): instant delete from my-events + 6s undo.
+  // ===== Remove (added events only): awaited atomic delete + 6s undo.
   // The open detail keeps showing the removed event so Undo can restore it;
   // closing during/after the window simply commits the removal. =====
   const [undoVis, setUndoVis] = useState(false)
+  const [undoReceipt, setUndoReceipt] = useState(null)
+  const [undoError, setUndoError] = useState(null)
+  const [removedMine, setRemovedMine] = useState(false)
+  const [removePending, setRemovePending] = useState(false)
+  const removePendingRef = useRef(false)
   const undoTRef = useRef(null)
   useEffect(() => () => clearTimeout(undoTRef.current), [])
-  const removeMine = () => {
-    if (!onRemoveMine) return
-    onRemoveMine(e)
-    setUndoVis(true)
+  const scheduleUndoExpiry = () => {
     clearTimeout(undoTRef.current)
-    undoTRef.current = setTimeout(() => setUndoVis(false), 6000)
+    undoTRef.current = setTimeout(() => {
+      if (!mountedRef.current) return
+      setUndoVis(false)
+      setUndoReceipt(null)
+      setUndoError(null)
+    }, 6000)
   }
-  const undoRemove = () => {
+  const keepUndoAfterFailure = () => {
+    if (!mountedRef.current) return
+    setUndoError("Couldn't restore that event. Try again.")
+    setUndoVis(true)
+    scheduleUndoExpiry()
+  }
+  const removeMine = async () => {
+    if (!onRemoveMine || removedMine || removePendingRef.current) return
+    removePendingRef.current = true
+    setRemovePending(true)
+    setUndoError(null)
+    try {
+      const removed = await onRemoveMine(e)
+      if (!mountedRef.current) return
+      if (removed?.changed !== true || !removed?.item) {
+        flash("Couldn't remove that event")
+        return
+      }
+      setRemovedMine(true)
+      setUndoReceipt(removed?.item)
+      setUndoVis(true)
+      scheduleUndoExpiry()
+    } catch {
+      if (mountedRef.current) flash("Couldn't remove that event")
+    } finally {
+      removePendingRef.current = false
+      if (mountedRef.current) setRemovePending(false)
+    }
+  }
+  const undoRemove = async () => {
+    if (!onRestoreMine || !undoReceipt || removePendingRef.current) return
     clearTimeout(undoTRef.current)
-    setUndoVis(false)
-    if (onRestoreMine) onRestoreMine(e)
-    flash('Restored ✓')
+    removePendingRef.current = true
+    setRemovePending(true)
+    setUndoError(null)
+    try {
+      const restored = await onRestoreMine(undoReceipt)
+      if (!mountedRef.current) return
+      if (restored?.changed !== true) {
+        keepUndoAfterFailure()
+        return
+      }
+      clearTimeout(undoTRef.current)
+      setRemovedMine(false)
+      setUndoVis(false)
+      setUndoReceipt(null)
+      setUndoError(null)
+      flash('Restored ✓')
+    } catch {
+      keepUndoAfterFailure()
+    } finally {
+      removePendingRef.current = false
+      if (mountedRef.current) setRemovePending(false)
+    }
   }
 
   return (
@@ -406,19 +539,37 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
       {/* 3.7P-22: hero + body scroll inside .detail-scroll; the CTA is a flex
           sibling below it (a real bottom bar — never a fixed overlay drifting
           over content, which broke because .detail is transformed). */}
-      <div className="detail-scroll">
+      <div
+        className="detail-scroll"
+        inert={planning || planClosing || correcting ? true : undefined}
+        aria-hidden={planning || planClosing || correcting || undefined}
+      >
       {/* no-image hero shares the I3 .imgbox-art composition (same hue + watermark
           the card showed), so the VT morph lands on matching artwork */}
       <div
-        className={'detail-hero' + (heroArt ? ' imgbox-art' : '')}
+        className={'detail-hero' + (heroArt || heroLoading ? ' imgbox-art' : '')}
         style={
-          heroArt
-            ? { viewTransitionName: 'evt-hero', ...auroraStyle(e) }
+          heroArt || heroLoading
+            ? {
+                viewTransitionName: 'evt-hero',
+                ...auroraStyle(e),
+                ...(heroLoading ? { height: '42svh', minHeight: '250px' } : {}),
+              }
             : { viewTransitionName: 'evt-hero', background: '#241c15' }
         }
       >
         {!heroArt ? (
-          <div className={'detail-hero-img' + (imgOk ? ' on' : '')} style={{ backgroundImage: `url(${e.image})` }} />
+          <img
+            className={'detail-hero-img' + (imgOk ? ' on' : '')}
+            src={heroImage}
+            alt=""
+            decoding="async"
+            referrerPolicy="no-referrer"
+            draggable={false}
+            onLoad={() => setLoadedSrc(heroImage)}
+            onError={() => setFailedSrc(heroImage)}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
         ) : (
           <span className="imgbox-mark" aria-hidden>
             {CATEGORY_EMOJI[e.category] ?? CATEGORY_EMOJI.other}
@@ -435,7 +586,7 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         </button>
         {/* ♥ save toggle (saves.js) — heat badge slides left of it via saves.css */}
         <SaveHeart e={e} big />
-        <HeatBadge e={e} />
+        {lifecycle.actionable && <HeatBadge e={e} />}
         {/* WS2 detail-rebuild: the refs' TIME BADGE, bottom-left on the hero —
             solid --cta fill + white text (D.0-R compliant, 4.68:1; the refs'
             light-orange fill fails AA with white). Card .imgbadge geometry,
@@ -444,6 +595,19 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         {/* WS2 detail-rebuild: chrome-only scrim — the title moved below the hero
             (light surface), so the heavy bottom title-wash retired with it */}
         <div className="detail-hero-grad detail-hero-grad-ev" />
+        {!heroArt && presentedImage.imageCredit && (
+          <div className="hero-credit">
+            <a href={presentedImage.imageCredit.url} target="_blank" rel="noreferrer">
+              {presentedImage.imageCredit.attribution || `Photo: ${presentedImage.imageCredit.author}`}
+            </a>
+            {' · '}
+            {presentedImage.imageCredit.licenseUrl ? (
+              <a href={presentedImage.imageCredit.licenseUrl} target="_blank" rel="noreferrer">
+                {presentedImage.imageCredit.license}
+              </a>
+            ) : presentedImage.imageCredit.license}
+          </div>
+        )}
       </div>
       <div className="detail-body">
         {e.sponsored === true && <div className="sp-label detail-sp">Sponsored</div>}
@@ -455,6 +619,11 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
         <div className="detail-head">
           <div className="detail-eyebrow">{whenShort}</div>
           <h1 className="detail-title">{e.title}</h1>
+          {!lifecycle.actionable && (
+            <div className={'detail-lifecycle detail-lifecycle-' + lifecycle.code} role="status">
+              {lifecycle.label}
+            </div>
+          )}
           {whereMain && <div className="detail-venue">{whereMain}</div>}
           {(e.category !== 'other' || priceLabel(e)) && (
             <div className="detail-chips">
@@ -486,19 +655,6 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
           {/* I4: provenance ("Found via …") is internal, not decision info — it
               lives in the page footer (.detail-via) */}
         </div>
-        {/* WS2 detail-rebuild: the refs' "✦ Why this fits" titled prose card —
-            replaces the bare why-chips fact row. Rendered ONLY when whyProse
-            composed a real reason; no reason → no card (never fabricated).
-            Copy DRAFT ⚑ Charles. */}
-        {whyLine && (
-          <div className="detail-why">
-            <div className="detail-why-head">
-              <Icon.sparkle className="detail-why-ic" aria-hidden />
-              Why this fits
-            </div>
-            <p className="detail-why-text">{whyLine}</p>
-          </div>
-        )}
         {/* W3 never-hide: a collapsed recurring card carries every instance in
             _series. THIS is the rendered open path for them — without it the
             non-rep instances (the same program on other days/at other venues)
@@ -544,9 +700,9 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
             computed upstream — never fabricated), and the ICS download rides as
             the "Add to calendar" row (my call: the row family beats a stray lone
             button). Share stays in the hero chrome (R-HD2). Copy DRAFT ⚑ Charles. */}
-        {((canPlan && e.url) || mapsUrl || e.start) && (
+        {((lifecycle.actionable && e.url) || mapsUrl || (lifecycle.actionable && e.start)) && (
           <div className="detail-links">
-            {canPlan && e.url && (
+            {lifecycle.actionable && e.url && (
               <a className="dlink" href={e.url} target="_blank" rel="noreferrer">
                 <span className="dlink-ic" aria-hidden><Icon.tag /></span>
                 <span className="dlink-main">
@@ -565,7 +721,7 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
                 <span className="dlink-go" aria-hidden>›</span>
               </a>
             )}
-            {e.start && (
+            {lifecycle.actionable && e.start && (
               <button className="dlink" onClick={downloadIcs}>
                 <span className="dlink-ic" aria-hidden><Icon.calendar /></span>
                 <span className="dlink-main">
@@ -582,9 +738,14 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
             <p className="detail-desc">{e.description}</p>
           </div>
         )}
+        {mine && (
+          <button className="d-remove" onClick={() => openEditEvent(e)} disabled={removedMine || removePending}>
+            Edit this event
+          </button>
+        )}
         {mine && onRemoveMine && (
-          <button className="d-remove" onClick={removeMine} disabled={undoVis}>
-            Remove from my feed
+          <button className="d-remove" onClick={removeMine} disabled={removedMine || removePending}>
+            {removedMine ? 'Removed from my feed' : removePending ? 'Removing…' : 'Remove from my feed'}
           </button>
         )}
         {similar.length > 0 && (
@@ -610,17 +771,28 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
             <div className="detail-via-list">Found via {via}</div>
           </details>
         )}
+        <button ref={correctionButtonRef} className="correction-link" type="button" onClick={() => setCorrecting(true)}>
+          Suggest a correction
+        </button>
       </div>
       </div>
-      {toast && <div className="detail-toast">{toast}</div>}
+      {toast && <div className="detail-toast" role="status" aria-live="polite">{toast}</div>}
       {undoVis && (
-        <div className="detail-toast undo-toast">
-          Removed from your feed
-          <button className="undo-btn" onClick={undoRemove}>
-            Undo
+        <div
+          className="detail-toast undo-toast"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          inert={planning || planClosing || correcting ? true : undefined}
+          aria-hidden={planning || planClosing || correcting || undefined}
+        >
+          <span>{undoError || 'Removed from your feed'}</span>
+          <button className="undo-btn" onClick={undoRemove} disabled={removePending}>
+            {removePending ? 'Restoring…' : 'Undo'}
           </button>
         </div>
       )}
+      {correcting && <CorrectionSheet item={e} onClose={closeCorrection} />}
 
       {/* 3.7P-34: Add-to-day sheet — locked to the event's own day(s). Reuses the
           shared .loc-plan-* sheet (PlaceDetail's bridge); a single-day event shows
@@ -628,7 +800,16 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
       {planning && (
         <div className={'loc-plan-wrap' + (planClosing ? ' closing' : '')}>
           <button className="loc-scrim" onClick={closePlan} aria-label="Close" />
-          <div className="loc-plan-sheet" role="dialog" aria-modal="true" aria-label="Add to a day" tabIndex={-1} ref={planSheetRef} onKeyDown={planTrap}>
+          <div
+            className="loc-plan-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Add to a day"
+            aria-busy={planPending || undefined}
+            tabIndex={-1}
+            ref={planSheetRef}
+            onKeyDown={planTrap}
+          >
             <div className="loc-sheet-head">
               <div className="loc-sheet-title">Add to your day</div>
               <button className="loc-sheet-close" onClick={closePlan} aria-label="Close">✕</button>
@@ -636,7 +817,13 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
             {planDays.length > 1 ? (
               <div className="loc-plan-days">
                 {planDays.map((d) => (
-                  <button key={d.ts} className={'loc-plan-day' + (d.ts === curDay ? ' on' : '')} onClick={() => setPlanDayTs(d.ts)}>
+                  <button
+                    key={d.ts}
+                    className={'loc-plan-day' + (d.ts === curDay ? ' on' : '')}
+                    disabled={planPending}
+                    aria-pressed={d.ts === curDay}
+                    onClick={() => setPlanDayTs(d.ts)}
+                  >
                     {d.label}
                   </button>
                 ))}
@@ -659,7 +846,7 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
                     <button
                       key={part}
                       className={'loc-plan-slot' + (part === sel ? ' on' : '')}
-                      disabled={!!filled[part]}
+                      disabled={planPending || !!filled[part]}
                       onClick={() => setSelPart(part)}
                       aria-pressed={part === sel}
                     >
@@ -673,8 +860,13 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
                     </button>
                   ))}
                 </div>
-                <button className="loc-plan-add" disabled={!sel} onClick={() => sel && addToPlan(sel)}>
-                  Add to {planDays.find((d) => d.ts === curDay)?.label || 'day'}
+                <button
+                  className="loc-plan-add"
+                  disabled={!sel || planPending || planClosing}
+                  aria-busy={planPending || undefined}
+                  onClick={() => sel && addToPlan(sel)}
+                >
+                  {planPending ? 'Adding…' : `Add to ${planDays.find((d) => d.ts === curDay)?.label || 'day'}`}
                 </button>
               </>
             )}
@@ -686,21 +878,43 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
           + the primary (gold, flex:1), side by side (mirrors the spot-detail bar).
           PLANNER-FIRST (3.7P-34): "Add to {day}" leads; the official event/ticket
           link is the fallback primary for a past/undated event (still saveable). */}
-      <div className="detail-actionbar">
+      <div
+        className="detail-actionbar"
+        inert={planning || planClosing || correcting ? true : undefined}
+        aria-hidden={planning || planClosing || correcting || undefined}
+      >
         <button
           className={'detail-save-btn' + (saved ? ' on' : '')}
-          onClick={() => toggleSave(e)}
+          onClick={async () => { await toggleSave(e) }}
           aria-pressed={saved}
+          aria-busy={savePending || undefined}
+          disabled={!canToggleSave(e)}
+          aria-label={saveIdentityWent
+            ? 'Already in your Been history'
+            : saveIdentityAmbiguous
+            ? 'Saved item needs review before it can be changed'
+            : saveIdentityPending
+              ? 'Save unavailable until this added event can be saved'
+              : undefined}
         >
-          {saved ? '♥ Saved' : '♡ Save'}
+          {saveIdentityWent ? '✓ Completed' : saveIdentityAmbiguous ? 'Needs review' : saveIdentityPending ? 'Save unavailable' : saved ? '♥ Saved' : '♡ Save'}
         </button>
-        {canPlan ? (
+        {planned && plannedPlacement ? (
+          <button className="loc-plan-cta detail-actionbar-cta" ref={planBtnRef} onClick={viewPlan}>
+            View plan
+          </button>
+        ) : planned ? (
+          <button className="loc-plan-cta detail-actionbar-cta" ref={planBtnRef} disabled>In your plan</button>
+        ) : canPlan && plannerReady ? (
           <button className="loc-plan-cta detail-actionbar-cta" ref={planBtnRef} onClick={() => setPlanning(true)}>
             ＋ {addLabel}
           </button>
-        ) : (
-          e.url && (
-            <a className="loc-plan-cta detail-actionbar-cta" href={e.url} target="_blank" rel="noreferrer">
+        ) : canPlan ? (
+          <button className="loc-plan-cta detail-actionbar-cta" ref={planBtnRef} disabled>
+            {plannerUnavailableLabel}
+          </button>
+        ) : lifecycle.actionable && e.url ? (
+            <a className="loc-plan-cta detail-actionbar-cta" ref={planBtnRef} href={e.url} target="_blank" rel="noreferrer">
               {e.isFree === true || !(e.price > 0) ? (
                 <>
                   View event <span className="cta-arr">↗</span>
@@ -711,8 +925,9 @@ export default function DetailPage({ e, events = [], anchors, wx, onRemoveMine, 
                 </>
               )}
             </a>
-          )
-        )}
+        ) : !lifecycle.actionable ? (
+          <button className="loc-plan-cta detail-actionbar-cta" ref={planBtnRef} disabled>{lifecycle.label}</button>
+        ) : null}
       </div>
     </div>
   )

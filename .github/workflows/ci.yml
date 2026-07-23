@@ -47,7 +47,12 @@ jobs:
         run: npm --prefix app run lint
 
       - name: Build Tampa Bay
-        run: VITE_CITY=tampa-bay npm --prefix app run build
+        run: |
+          VITE_CITY=tampa-bay npm --prefix app run build
+          CITY=tampa-bay node finder/verify-app-build.mjs app/dist
+
+      - name: Enforce Sprint 10 payload budgets
+        run: npm run test:s10-performance
 
       # smoke runs BEFORE the SF stage: the suite reads the tree as committed
       # (Tampa's app/public; the deploy-monopoly guard compares against it) —
@@ -59,3 +64,4 @@ jobs:
         run: |
           CITY=sf-east-bay node finder/deploy.mjs
           VITE_CITY=sf-east-bay npm --prefix app run build
+          CITY=sf-east-bay node finder/verify-app-build.mjs app/dist

@@ -1,0 +1,21 @@
+[
+  {
+    "events": [
+      { "title": "Prior county event", "start_date": "2026-03-07 10:00:00", "end_date": "2026-03-07 11:00:00", "url": "https://pinellas.gov/prior" },
+      { "title": "Today county event", "start_date": "2026-03-08 03:30:00", "end_date": "2026-03-08 04:30:00", "url": "https://pinellas.gov/today" },
+      { "title": "Malformed county event", "start_date": "2026-02-30 10:00:00", "url": "https://pinellas.gov/malformed" },
+      { "title": "Nonexistent county time", "start_date": "2026-03-08 02:30:00", "url": "https://pinellas.gov/nonexistent" },
+      { "title": "Virtual county event", "start_date": "2026-03-08 12:00:00", "url": "https://pinellas.gov/virtual", "is_virtual": true }
+    ],
+    "total_pages": 2,
+    "next_rest_url": "https://example.invalid/untrusted-next-page"
+  },
+  {
+    "events": [
+      { "title": "Last-day county event", "start_date": "2026-04-22 19:00:00", "end_date": "2026-04-22 20:00:00", "url": "https://pinellas.gov/last" },
+      { "title": "After county window", "start_date": "2026-04-23 19:00:00", "end_date": "2026-04-23 20:00:00", "url": "https://pinellas.gov/after" }
+    ],
+    "total_pages": 2,
+    "next_rest_url": null
+  }
+]

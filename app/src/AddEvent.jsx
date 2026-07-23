@@ -1,18 +1,16 @@
 // AddEvent — "+ Add event" subpage (Sprint C MVP, sanctioned by Josh night 1:
 // "a very basic version" proving user-submitted events; the full social pipeline
 // stays parked). One Editorial-clean screen → a real schema-v2 event object →
-// App persists it (localStorage 'my-events-v1' via lib.saveMyEvents) and merges
-// it through the SAME normalize() path as fetched data, so it surfaces in the
+// the city-bound custom-event provider persists it and App merges its projection
+// through the SAME normalize() path as fetched data, so it surfaces in the
 // feed, bubbles, search and calendar (lat/lng are null → no map pin). Provenance
 // invariant: these events always wear the "Added by you" label — never
 // confusable with sourced data. Footer exports my-events as JSON — the seed of
 // the future submission pipeline (PLAN.md Sprint C).
 import { useEffect, useRef, useState } from 'react'
-import { BUBBLES, CITY, dayTs, Icon, keyOf, MY_SOURCE } from './lib.js'
+import { BUBBLES, CITY, dayIdOf, dayTs, Icon, MY_SOURCE } from './lib.js'
 import { useNav } from './nav.jsx'
 import { recordSignal } from './taste.js'
-import { fillOrder } from './weekend.js'
-import { dayEntryFor, loadDayPlans, saveDayPlans, withSlot } from './dayplan.js'
 import './addevent.css'
 
 // 12 category chips: the 11 real categories (canonical emoji/label/hue from
@@ -22,12 +20,7 @@ const CATS = [
   { value: 'other', label: 'Other', emoji: '⭐', hue: 220 },
 ]
 
-const pad = (n) => String(n).padStart(2, '0')
-const isoDay = (ts) => {
-  const d = new Date(ts)
-  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
-}
-
+const isoDay = (ts) => dayIdOf(ts)
 // URL shape if present: scheme optional (https:// assumed), dotted host required
 function checkUrl(v) {
   const s = (v || '').trim()
@@ -41,29 +34,47 @@ function checkUrl(v) {
   }
 }
 
-export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) {
+export default function AddEvent({ anchors, myEvents, onAdd, editEvent = null, onUpdate = null, presetTs = null, status = 'durable' }) {
   const { closePage: onClose } = useNav() // slide back out (O6)
-  // Sprint U-c: when opened from the day screen, presetTs is that day's
-  // local-midnight ms — pre-fill the date field and remember the day so a
-  // submit auto-slots the new event into it. A presetTs in the past is ignored
-  // defensively (the date field's own min guard + validation already block it).
+  // When opened from a day screen, presetTs only pre-fills the date. Saving a
+  // custom event adds it to My Events; planning always requires the separate,
+  // visible day/daypart confirmation flow.
   const fromDay = typeof presetTs === 'number' && presetTs >= anchors.todayTs
-  const [f, setF] = useState({
-    title: '',
-    date: fromDay ? isoDay(presetTs) : '',
-    time: '',
-    venue: '',
-    address: '',
-    cat: null,
-    free: false,
-    price: '',
-    link: '',
-    desc: '',
-  })
+  const editing = Boolean(editEvent && typeof onUpdate === 'function')
+  const [f, setF] = useState(() => ({
+    title: editing ? editEvent.title || '' : '',
+    date: editing ? String(editEvent.start || '').slice(0, 10) : fromDay ? isoDay(presetTs) : '',
+    time: editing && /T\d{2}:\d{2}/.test(editEvent.start || '') ? String(editEvent.start).slice(11, 16) : '',
+    venue: editing ? editEvent.venue || '' : '',
+    address: editing ? editEvent.address || '' : '',
+    cat: editing ? editEvent.category || 'other' : null,
+    free: editing ? editEvent.isFree === true : false,
+    price: editing && Number.isFinite(editEvent.price) ? String(editEvent.price) : '',
+    link: editing ? editEvent.url || '' : '',
+    desc: editing ? editEvent.description || '' : '',
+  }))
   const [errors, setErrors] = useState({})
-  const [done, setDone] = useState(false)
+  const [done, setDone] = useState(null)
+  const [submitError, setSubmitError] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
+  const submittingRef = useRef(false)
+  const mountedRef = useRef(true)
   const doneTRef = useRef(null)
-  useEffect(() => () => clearTimeout(doneTRef.current), [])
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+      clearTimeout(doneTRef.current)
+    }
+  }, [])
+  const catalogReady = status === 'durable' || status === 'session-only'
+  const scheduleClose = () => {
+    if (!mountedRef.current) return
+    clearTimeout(doneTRef.current)
+    doneTRef.current = setTimeout(() => {
+      if (mountedRef.current) onClose()
+    }, 1400)
+  }
 
   // field setter: accepts an input event OR a raw value; touching a field clears its error
   const set = (k) => (ev) => {
@@ -77,31 +88,14 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
     })
   }
 
-  // Sprint U-c auto-slot: write the just-created event into presetTs's day
-  // entry, routed by daypart. NEVER clobbers — if the routed slot is taken, it
-  // falls back to the other slot; if BOTH are full, it slots nothing (the
-  // event still lives in my-events + the agenda, it just isn't auto-placed).
-  // 'any' (date-only) prefers the morning slot. Writes straight to the store
-  // because AddEvent REPLACED the day screen in the subpage union (single slot)
-  // — DayPage re-reads the store on its next mount and shows the slot. The
-  // event itself never goes through a second store; this only records a key.
-  const autoSlot = (raw) => {
-    const k = keyOf(raw)
-    const map = loadDayPlans(anchors)
-    const cur = dayEntryFor(map[String(presetTs)])
-    const order = fillOrder(raw) // natural daypart first, then the rest ('any' → morning-first)
-    const target = order.find((p) => !(cur && cur.slots[p])) // first free slot in preference order
-    if (!target) return // every slot filled — never overwrite silently
-    saveDayPlans(withSlot(map, presetTs, target, k)) // withSlot clears any rest mark
-  }
-
-  const submit = (ev) => {
+  const submit = async (ev) => {
     ev.preventDefault()
+    if (submittingRef.current) return
     const errs = {}
     const title = f.title.trim()
     if (!title) errs.title = 'Give it a title.'
     if (!f.date) errs.date = 'Pick a date.'
-    else if ((dayTs(f.date) ?? 0) < anchors.todayTs) errs.date = "That date's already passed."
+    else if (!editing && (dayTs(f.date) ?? 0) < anchors.todayTs) errs.date = "That date's already passed."
     const u = checkUrl(f.link)
     if (!u.ok) errs.link = "That doesn't look like a link."
     const priceNum = f.price === '' ? null : Number(f.price)
@@ -110,34 +104,67 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
     if (Object.keys(errs).length) return
     // taste seam: creating an event is a strong category signal (+2). Recorded
     // HERE, not in App.addMine — an undo-restore must not double-count.
-    recordSignal('add', { category: f.cat || 'other' })
     // full schema-v2 shape — identical fields to a fetched event, honest values
     const raw = {
       title,
       start: f.time ? f.date + 'T' + f.time + ':00' : f.date, // local floating, like the finder's output
-      end: null,
+      end: editing ? editEvent.end ?? null : null,
+      timeZone: editing ? editEvent.timeZone ?? CITY.tz : CITY.tz,
       venue: f.venue.trim() || null,
       address: f.address.trim() || null,
       price: f.free ? 0 : priceNum,
       currency: 'USD',
       isFree: f.free === true,
-      lat: null,
-      lng: null,
+      lat: editing ? editEvent.lat ?? null : null,
+      lng: editing ? editEvent.lng ?? null : null,
       url: u.url,
-      image: null,
+      image: editing ? editEvent.image ?? null : null,
+      imageAlt: editing ? editEvent.imageAlt ?? null : null,
       description: f.desc.trim() || null,
       source: MY_SOURCE,
       sources: [MY_SOURCE],
-      buzz: 1,
+      buzz: editing ? editEvent.buzz ?? 1 : 1,
       hotScore: null, // never competes with sourced hot-ness
       tags: f.free ? ['added-by-you', 'free'] : ['added-by-you'],
       category: f.cat || 'other',
-      sponsored: false,
+      sponsored: editing ? editEvent.sponsored === true : false,
     }
-    onAdd(raw) // the ONE event seam — my-events; no second event store (U-c contract)
-    if (fromDay) autoSlot(raw)
-    setDone(true)
-    doneTRef.current = setTimeout(onClose, 1400) // success beat, then back to Hot
+    submittingRef.current = true
+    setSubmitting(true)
+    setSubmitError(null)
+    try {
+      const added = editing ? await onUpdate(editEvent, raw) : await onAdd(raw)
+      if (added?.changed !== true) {
+        if (!mountedRef.current) return
+        if (editing && added?.code === 'unchanged') {
+          setDone(added)
+          scheduleClose()
+          return
+        }
+        if (typeof added?.code === 'string' && added.code.startsWith('duplicate-')) {
+          setDone(added)
+          scheduleClose()
+          return
+        }
+        setSubmitError(
+          added?.code === 'event-cap-reached'
+            ? 'My Events is full. Remove one before adding another.'
+            : "Couldn't add that event. Your existing events are unchanged.",
+        )
+        return
+      }
+      if (!editing) recordSignal('add', { category: f.cat || 'other' })
+      if (!mountedRef.current) return
+      setDone(added)
+      scheduleClose()
+    } catch {
+      if (mountedRef.current) {
+        setSubmitError("Couldn't add that event. Your existing events are unchanged.")
+      }
+    } finally {
+      submittingRef.current = false
+      if (mountedRef.current) setSubmitting(false)
+    }
   }
 
   // the seed of the future submission pipeline: download my-events as raw JSON
@@ -159,17 +186,40 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
         <button className="pg-back" onClick={onClose} aria-label="Back">
           <Icon.chevron />
         </button>
-        <h1 className="pg-head-title">Add Your Own</h1>
+        <h1 className="pg-head-title">{editing ? 'Edit Your Event' : 'Add Your Own'}</h1>
       </header>
       <div className="pg-body">
-        {done ? (
+        {!catalogReady ? (
+          <div
+            className="empty"
+            role={status === 'initializing' ? 'status' : 'alert'}
+            aria-live={status === 'initializing' ? 'polite' : 'assertive'}
+          >
+            <div className="ae-done-title">
+              {status === 'initializing' ? 'Loading your events…' : 'Adding is unavailable'}
+            </div>
+            <div className="ae-done-sub">
+              {status === 'initializing'
+                ? 'The add form will be ready when your saved events finish loading.'
+                : status === 'corrupt'
+                  ? "Your saved events couldn't be read safely, so the add form is paused."
+                  : "Your saved events couldn't be loaded, so the add form is paused."}
+            </div>
+          </div>
+        ) : done ? (
           <div className="ae-done" role="status">
             <div className="ae-done-emoji">🎉</div>
-            <div className="ae-done-title">Added!</div>
-            <div className="ae-done-sub">It's in your feed.</div>
+            <div className="ae-done-title">{editing ? (done?.changed === false ? 'No changes' : 'Updated!') : (done?.changed === false ? 'Already added' : 'Added!')}</div>
+            <div className="ae-done-sub">
+              {done?.changed === false
+                ? (editing ? 'The event already has those details.' : "It's already in My Events and your feed.")
+                : done.persisted === false
+                  ? (editing ? "It's updated for this visit, but your browser couldn't save it." : "It's here for this visit, but your browser couldn't save it.")
+                  : (editing ? "It's updated in My Events and your feed." : "It's saved in My Events and your feed.")}
+            </div>
           </div>
         ) : (
-          <form className="ae-form" noValidate onSubmit={submit}>
+          <form className="ae-form" noValidate onSubmit={submit} aria-busy={submitting}>
             {/* 3.76c: grouped What / When / Where / Details for a calmer form (DRAFT) */}
             <div className="ae-group">What’s the plan?</div>
             <div className="ae-field">
@@ -199,7 +249,7 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
                   id="ae-date"
                   className="ae-input"
                   type="date"
-                  min={isoDay(anchors.todayTs)}
+                  min={editing ? undefined : isoDay(anchors.todayTs)}
                   value={f.date}
                   onChange={set('date')}
                   aria-invalid={!!errors.date}
@@ -245,14 +295,13 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
             </div>
             <div className="ae-group">Details</div>
             <div className="ae-field">
-              <div className="ae-label">Category</div>
-              <div className="ae-cats" role="radiogroup" aria-label="Category">
+              <div className="ae-label" id="ae-category-label">Category</div>
+              <div className="ae-cats" role="group" aria-labelledby="ae-category-label">
                 {CATS.map((c) => (
                   <button
                     key={c.value}
                     type="button"
-                    role="radio"
-                    aria-checked={f.cat === c.value}
+                    aria-pressed={f.cat === c.value}
                     className={'ae-cat' + (f.cat === c.value ? ' on' : '')}
                     style={{ '--bh': c.hue }}
                     onClick={() => set('cat')(f.cat === c.value ? null : c.value)}
@@ -334,11 +383,12 @@ export default function AddEvent({ anchors, myEvents, onAdd, presetTs = null }) 
               />
               <div className="ae-count">{f.desc.length}/250</div>
             </div>
-            <button className="ae-submit" type="submit">
-              Add event
+            {submitError && <div className="ae-err" role="alert">{submitError}</div>}
+            <button className="ae-submit" type="submit" disabled={submitting}>
+              {submitting ? (editing ? 'Updating...' : 'Adding...') : (editing ? 'Save changes' : 'Add event')}
             </button>
             <div className="ae-foot">
-              {myEvents.length > 0 && (
+              {!editing && myEvents.length > 0 && (
                 <button type="button" className="ae-export" onClick={exportJson}>
                   Export my events (JSON){myEvents.length > 1 ? ` · ${myEvents.length}` : ''}
                 </button>

@@ -20,7 +20,9 @@
 // - SKIP_RENDER=1  -> return cached events (any age) without launching;
 //   no cache -> THROW so the orchestrator can serve its own last-good-pull
 //   fallback (returning [] would overwrite that fallback with nothing).
-// - Module cache finder/cache/vspc-source.json {fetchedAt, events}, 6h TTL.
+// - Module cache finder/cache/vspc-source.json {fetchedAt, windowDay, events}, 6h TTL.
+//   A normal cache hit must match the current Tampa window day; stale/mismatched
+//   bytes remain an explicit degraded fallback when rendering is unavailable.
 //   (NOT vspc.json — the orchestrator writes its own normalized fallback
 //   there and was silently clobbering this module's cache every run.)
 // - On scrape failure, return stale cache; no cache -> throw.
@@ -45,8 +47,10 @@ import { chromium } from 'playwright';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { cleanText } from '../_shared.mjs';
+import { calendarDayDiff, parseZonedDateTime } from '../../../shared/city-time.mjs';
+import { cleanText, isoInTz, sourceWindow } from '../_shared.mjs';
 import { cityId } from '../../cities/index.mjs';
+import { tz as CITY_TZ } from '../../cities/tampa-bay.mjs';
 
 export const name = 'Visit St. Pete/Clearwater';
 
@@ -70,6 +74,7 @@ const NEG_RECHECK_MS = 7 * 24 * 3600 * 1000; // re-probe no-time pages weekly
 const MAX_END_SPAN_DAYS = 7;
 const UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36';
+const operationalNowMs = () => Date.now();
 
 // Site category -> our vocabulary. Iteration order IS priority: specific signals
 // (music/film/food) beat broad buckets (Festivals, Annual Festivals & Events).
@@ -97,19 +102,10 @@ const CATEGORY_MAP = new Map([
 ]);
 
 // ---------------------------------------------------------------------------
-// Date helpers (local time, per contract)
+// Date helpers (city calendar, per contract)
 // ---------------------------------------------------------------------------
 
 const pad = (n) => String(n).padStart(2, '0');
-
-function localDayStr(date) {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-}
-
-function addDays(dayStr, days) {
-  const [y, m, d] = dayStr.split('-').map(Number);
-  return localDayStr(new Date(y, m - 1, d + days));
-}
 
 // 'M/D/YYYY' (site format for start_date/end_date) -> 'YYYY-MM-DD' | null.
 function usDateToISO(str) {
@@ -119,9 +115,7 @@ function usDateToISO(str) {
 }
 
 function diffDays(a, b) {
-  const [ay, am, ad] = a.split('-').map(Number);
-  const [by, bm, bd] = b.split('-').map(Number);
-  return Math.round((Date.UTC(by, bm - 1, bd) - Date.UTC(ay, am - 1, ad)) / 86400000);
+  return calendarDayDiff(a, b);
 }
 
 // ---------------------------------------------------------------------------
@@ -135,6 +129,16 @@ function mapCategory(categories) {
     if (present.has(siteCat)) return ours;
   }
   return null;
+}
+
+function rawCategoryNames(categories) {
+  const names = [];
+  for (const value of Array.isArray(categories) ? categories : []) {
+    const categoryName = cleanText(value, 80);
+    if (categoryName && !names.includes(categoryName)) names.push(categoryName);
+    if (names.length === 12) break;
+  }
+  return names;
 }
 
 function mapResult(result, todayDay, lastDay) {
@@ -200,12 +204,28 @@ function mapResult(result, todayDay, lastDay) {
   };
   const category = mapCategory(j.categories);
   if (category) event.category = category;
+  const rawCategories = rawCategoryNames(j.categories);
+  if (rawCategories.length) event.rawCategories = rawCategories;
   // Recurring hint for the pipeline: the blob's recurrence field, or 3+
   // occurrence days. We ship ONE instance, so the pipeline's own 3-distinct-
   // dates detection can never fire — without this, a month-long attraction
   // poses as a one-night event (one-off heat bonus, Tonight-rail filler).
   if (j.recurrence || days.length >= 3) event.recurring = true;
   return event;
+}
+
+export function mapListingsForWindow(results, { nowMs } = {}) {
+  const { today, lastDay } = sourceWindow(CITY_TZ, nowMs, DAYS_AHEAD);
+  const events = [];
+  for (const result of Array.isArray(results) ? results : []) {
+    try {
+      const event = mapResult(result, today, lastDay);
+      if (event) events.push(event);
+    } catch (e) {
+      console.warn(`[vspc] skipping result ${result?.id ?? '?'}: ${e.message}`);
+    }
+  }
+  return events;
 }
 
 // ---------------------------------------------------------------------------
@@ -222,13 +242,30 @@ function readCache() {
   return null;
 }
 
-function writeCache(events) {
+function writeCache(events, windowDay, nowMs) {
   try {
     fs.mkdirSync(path.dirname(CACHE_FILE), { recursive: true });
-    fs.writeFileSync(CACHE_FILE, JSON.stringify({ fetchedAt: new Date().toISOString(), events }, null, 2));
+    fs.writeFileSync(
+      CACHE_FILE,
+      JSON.stringify({ fetchedAt: new Date(nowMs).toISOString(), windowDay, events }, null, 2),
+    );
   } catch (e) {
     console.error('[vspc] cache write failed:', e.message);
   }
+}
+
+export function isVspcCacheFresh(cache, { nowMs } = {}) {
+  const { today } = sourceWindow(CITY_TZ, nowMs, 0);
+  const fetchedAtMs = Date.parse(cache?.fetchedAt);
+  const ageMs = nowMs - fetchedAtMs;
+  return Boolean(
+    cache
+    && Array.isArray(cache.events)
+    && cache.windowDay === today
+    && Number.isFinite(fetchedAtMs)
+    && ageMs >= 0
+    && ageMs < MAX_AGE_HOURS * 3600 * 1000
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -241,9 +278,9 @@ async function scrapeListingsGrid(page) {
   // Poll for a parseable drupal-settings blob with grid results. The Cloudflare
   // interstitial ("Just a moment...") renders first on a challenged session and
   // is replaced after the JS challenge solves, so keep retrying for a while.
-  const deadline = Date.now() + 45000;
+  const deadline = operationalNowMs() + 45000;
   let results = null;
-  while (Date.now() < deadline) {
+  while (operationalNowMs() < deadline) {
     await page.waitForTimeout(3000);
     const rawSettings = await page
       .evaluate(() => {
@@ -292,16 +329,6 @@ function writeTimesCache(cache) {
   }
 }
 
-// UTC offset in effect in Tampa on a given local day ('-04:00' / '-05:00').
-function easternOffsetFor(day) {
-  const probe = new Date(`${day}T12:00:00Z`);
-  const part = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/New_York', timeZoneName: 'longOffset',
-  }).formatToParts(probe).find((p) => p.type === 'timeZoneName');
-  const m = /GMT([+-]\d{2}:\d{2})/.exec(part?.value || '');
-  return m ? m[1] : '-04:00';
-}
-
 // '9:00 pm' / '6 pm' / '10:30 AM' -> {h, min}; null when ambiguous (no am/pm).
 function parseClock(s) {
   const m = String(s || '').trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(a|p)\.?m\.?$/i);
@@ -313,14 +340,20 @@ function parseClock(s) {
   return { h, min };
 }
 
-function clockToISO(day, clock) {
-  return `${day}T${pad(clock.h)}:${pad(clock.min)}:00${easternOffsetFor(day)}`;
+function resolveClock(day, clock, disambiguation) {
+  const wallTime = `${day}T${pad(clock.h)}:${pad(clock.min)}:00`;
+  const parsed = parseZonedDateTime(wallTime, CITY_TZ, { disambiguation });
+  if (!parsed.ok) return null;
+  return {
+    epochMs: parsed.epochMs,
+    iso: isoInTz(CITY_TZ, new Date(parsed.epochMs)),
+  };
 }
 
 // From a detail page's vspc_listings.event_dates, pick the start (and end)
 // whose the_date matches `day` — the occurrence we actually ship. A time on a
 // DIFFERENT day is not evidence about this occurrence; skip it.
-function pickTimesForDay(eventDates, day) {
+export function pickTimesForDay(eventDates, day) {
   const entries = [];
   for (const d of Array.isArray(eventDates) ? eventDates : []) {
     if (d && typeof d === 'object') {
@@ -335,11 +368,12 @@ function pickTimesForDay(eventDates, day) {
     const startClock = parseClock(entry.start_time);
     if (!startClock) continue;
     if (startClock.h === 0 && startClock.min === 0) continue; // midnight placeholder
-    const start = clockToISO(day, startClock);
+    const start = resolveClock(day, startClock, 'earlier');
+    if (!start) continue;
     const endClock = parseClock(entry.end_time);
-    let end = endClock ? clockToISO(day, endClock) : null;
-    if (end && end <= start) end = null; // past-midnight ends: skip rather than lie
-    return { start, end };
+    const resolvedEnd = endClock ? resolveClock(day, endClock, 'later') : null;
+    const end = resolvedEnd && resolvedEnd.epochMs > start.epochMs ? resolvedEnd.iso : null;
+    return { start: start.iso, end }; // past-midnight ends: skip rather than lie
   }
   return null;
 }
@@ -351,7 +385,7 @@ function pickTimesForDay(eventDates, day) {
 // navigation in the same context indefinitely (probed live 2026-06-10).
 async function enrichTimes(browser, events) {
   const cache = readTimesCache();
-  const now = Date.now();
+  const now = operationalNowMs();
   let fromCache = 0;
 
   const dateOnly = events
@@ -382,7 +416,7 @@ async function enrichTimes(browser, events) {
   if (batch.length) {
     const deadline = now + ENRICH_WALL_CLOCK_MS;
     for (const e of batch) {
-      if (Date.now() > deadline) {
+      if (operationalNowMs() > deadline) {
         console.error(`[vspc] enrichment wall clock hit — stopping early (${enriched} enriched)`);
         break;
       }
@@ -399,10 +433,10 @@ async function enrichTimes(browser, events) {
         await page.goto(e.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
         // Poll for the settled drupal-settings blob (first navigation of a
         // fresh context typically settles in ~2 s; challenges are rare here).
-        const pageDeadline = Date.now() + 15000;
+        const pageDeadline = operationalNowMs() + 15000;
         let eventDates = null;
         let settled = false;
-        while (Date.now() < pageDeadline) {
+        while (operationalNowMs() < pageDeadline) {
           await page.waitForTimeout(1500);
           const settings = await page
             .evaluate(() => {
@@ -428,12 +462,12 @@ async function enrichTimes(browser, events) {
         } else {
           const times = pickTimesForDay(eventDates, e.start);
           if (times) {
-            cache[key] = { ...times, at: Date.now() };
+            cache[key] = { ...times, at: operationalNowMs() };
             e.start = times.start;
             if (times.end && !e.end) e.end = times.end;
             enriched++;
           } else {
-            cache[key] = { none: true, at: Date.now() };
+            cache[key] = { none: true, at: operationalNowMs() };
             misses++;
           }
           writeTimesCache(cache); // crash-safe: persist after every page
@@ -458,22 +492,29 @@ async function enrichTimes(browser, events) {
 // Public API
 // ---------------------------------------------------------------------------
 
-export async function fetchEvents() {
+export async function fetchEvents(options = {}) {
+  const nowMs = options?.nowMs ?? Date.now();
+  const requireLive = options?.requireLive === true;
+  const { today } = sourceWindow(CITY_TZ, nowMs, DAYS_AHEAD);
   const cache = readCache();
 
   if (process.env.SKIP_RENDER === '1') {
+    if (requireLive) throw new Error('SKIP_RENDER=1 cannot satisfy requireLive');
     // No module cache -> throw, so the orchestrator serves ITS last-good-pull
     // fallback instead of us handing it an empty (and cache-clobbering) list.
     if (!cache) throw new Error('SKIP_RENDER=1 and no module cache');
+    if (cache.windowDay !== today) {
+      console.error(
+        `[vspc] SKIP_RENDER returning cache from window ${cache.windowDay || 'unknown'} ` +
+        `for requested window ${today}`,
+      );
+    }
     return cache.events;
   }
 
-  if (cache && Date.now() - Date.parse(cache.fetchedAt) < MAX_AGE_HOURS * 3600 * 1000) {
+  if (!requireLive && !options?.force && isVspcCacheFresh(cache, { nowMs })) {
     return cache.events;
   }
-
-  const todayDay = localDayStr(new Date());
-  const lastDay = addDays(todayDay, DAYS_AHEAD);
 
   try {
     const browser = await chromium.launch({
@@ -485,15 +526,7 @@ export async function fetchEvents() {
       const context = await browser.newContext({ userAgent: UA, viewport: { width: 1366, height: 900 } });
       const page = await context.newPage();
       const results = await scrapeListingsGrid(page);
-      events = [];
-      for (const result of results) {
-        try {
-          const event = mapResult(result, todayDay, lastDay);
-          if (event) events.push(event);
-        } catch (e) {
-          console.warn(`[vspc] skipping result ${result?.id ?? '?'}: ${e.message}`);
-        }
-      }
+      events = mapListingsForWindow(results, { nowMs });
       if (!events.length) throw new Error('grid rendered but zero events mapped');
       // Budgeted detail-page time enrichment, same browser session
       // (fresh context per page — see enrichTimes).
@@ -505,12 +538,16 @@ export async function fetchEvents() {
     } finally {
       await browser.close().catch(() => {});
     }
-    writeCache(events);
+    writeCache(events, today, nowMs);
     return events;
   } catch (e) {
     console.error('[vspc] scrape failed:', e.message);
+    if (requireLive) throw e;
     if (cache) {
-      console.error(`[vspc] returning stale cache from ${cache.fetchedAt} (${cache.events.length} events)`);
+      console.error(
+        `[vspc] returning stale cache from ${cache.fetchedAt} ` +
+        `(window ${cache.windowDay || 'unknown'}, requested ${today}; ${cache.events.length} events)`,
+      );
       return cache.events;
     }
     throw e; // orchestrator falls back to its own cached pull
@@ -522,12 +559,14 @@ export async function fetchEvents() {
 // ---------------------------------------------------------------------------
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const events = await fetchEvents();
+  const nowMs = operationalNowMs();
+  const events = await fetchEvents({ nowMs });
+  const sevenDayBoundary = sourceWindow(CITY_TZ, nowMs, 7).lastDay;
   console.log(`count: ${events.length}`);
   console.log(`categorized: ${events.filter((e) => e.category).length}`);
   console.log(`with address: ${events.filter((e) => e.address).length}`);
   console.log(`with end: ${events.filter((e) => e.end).length}`);
   console.log(`with timed start: ${events.filter((e) => /T\d{2}:/.test(e.start)).length}`);
-  console.log(`starting within 7 days: ${events.filter((e) => e.start <= addDays(localDayStr(new Date()), 7)).length}`);
+  console.log(`starting within 7 days: ${events.filter((e) => e.start <= sevenDayBoundary).length}`);
   for (const sample of events.slice(0, 3)) console.log(JSON.stringify(sample));
 }

@@ -1,0 +1,5 @@
+/* Shared interaction scaffolding for modal sheets. Surface-specific files own
+   dimensions, color, elevation, and motion. */
+.modal-sheet-layer { isolation: isolate; }
+.modal-sheet-scrim { touch-action: manipulation; }
+.modal-sheet-dialog { outline-offset: 3px; }

@@ -5,14 +5,12 @@
 // No hourly strip — the forecast feed is daily-only, and we never fabricate data.
 // No forecast at all = honest empty state.
 import { useMemo } from 'react'
-import { CITY, fmtLocale, Icon } from './lib.js'
+import { addDayTs, CITY, formatDayTs, Icon } from './lib.js'
 import { useNav } from './nav.jsx'
 import { CONDITION, dateKey } from './weather.js'
 import './forecast.css'
 
-const DAY_MS = 86400000
-const fmtDate = (ts) =>
-  new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'long', month: 'short', day: 'numeric' })
+const fmtDate = (ts) => formatDayTs(ts, { weekday: 'long', month: 'short', day: 'numeric' })
 
 // outdoor-friendliness rank per condition emoji (higher = better day to be outside)
 const OUTDOOR_RANK = { '☀️': 6, '⛅': 5, '☁️': 4, '🌫️': 3, '🌦️': 2, '🌧️': 1, '❄️': 1, '⛈️': 0 }
@@ -23,7 +21,7 @@ export default function ForecastPage({ anchors, wx }) {
   const days = useMemo(() => {
     const out = []
     for (let i = 0; i < 7; i++) {
-      const ts = anchors.todayTs + i * DAY_MS
+      const ts = addDayTs(anchors.todayTs, i)
       const w = wx ? wx[dateKey(ts)] : null
       if (!w) continue
       const label = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : fmtDate(ts)
@@ -32,7 +30,7 @@ export default function ForecastPage({ anchors, wx }) {
     return out
   }, [anchors, wx])
 
-  const today = days[0]?.w || null
+  const today = days.find((day) => day.isToday)?.w || null
 
   // honest "best day to get outside": the next-7 day with the best outdoor rank,
   // ties broken by lowest rain. Only surfaced when a genuinely nice day exists

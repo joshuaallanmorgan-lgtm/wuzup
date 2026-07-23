@@ -1,33 +1,26 @@
 // EditProfilePage — the Profile pencil's destination (PROFILE_PHASE2 #4; absorbs
 // the old inline name-edit). Edits the on-device display name (profile-name-v1) +
-// shows the read-only active city. Photo upload, preferred-city and profile
-// visibility are HONEST placeholders (stubbed future features — no fake person, no
-// fake data). Save/back via closePage → the Profile tab.
+// shows the read-only active city and links to the other verified coverage
+// deployment. Save/back via closePage → the Profile tab.
 import { useState } from 'react'
 import { CITY, Icon } from './lib.js'
 import { useNav } from './nav.jsx'
-import { lsGet, lsSet } from './storage.js'
+import CityCoverageSelector from './CityCoverageSelector.jsx'
+import { readProfileState, writeProfileState } from './profile-state.js'
 import './profile.css'
 
-const NAME_KEY = 'profile-name-v1'
-const BIO_KEY = 'profile-bio-v1'
 const BIO_MAX = 120
-const PersonIc = () => (
-  <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <circle cx="12" cy="9" r="3.4" />
-    <path d="M5.5 19.5c1-3.3 3.6-5 6.5-5s5.5 1.7 6.5 5" />
-  </svg>
-)
 
 export default function EditProfilePage() {
   const { closePage: onClose, openInterests } = useNav()
-  const [name, setName] = useState(() => lsGet(NAME_KEY) || '')
-  const [bio, setBio] = useState(() => lsGet(BIO_KEY) || '')
-  const initial = name ? name.trim()[0].toUpperCase() : ''
+  const [initialState] = useState(readProfileState)
+  const [name, setName] = useState(initialState.name)
+  const [bio, setBio] = useState(initialState.bio)
+  const [saveError, setSaveError] = useState(null)
   const save = () => {
-    lsSet(NAME_KEY, (name || '').trim().slice(0, 40))
-    lsSet(BIO_KEY, (bio || '').trim().slice(0, BIO_MAX))
-    onClose()
+    const result = writeProfileState({ version: 1, name, bio })
+    if (result.ok) onClose()
+    else setSaveError("Couldn't save profile details on this device.")
   }
 
   return (
@@ -40,13 +33,6 @@ export default function EditProfilePage() {
       </header>
       <div className="pg-body ep-body">
         {/* photo — neutral monogram; upload is a stubbed future feature (no fake person) */}
-        <div className="ep-photo-row">
-          <div className="ep-photo">{initial || <PersonIc />}</div>
-          <button className="ep-photo-edit" type="button" disabled aria-disabled="true">
-            Add photo <span className="ep-soon">Soon</span>
-          </button>
-        </div>
-
         <label className="ep-field">
           <span className="ep-label">Name</span>
           <input
@@ -60,13 +46,13 @@ export default function EditProfilePage() {
         </label>
 
         <label className="ep-field">
-          <span className="ep-label">Location</span>
-          <input className="ep-input ep-input-ro" value={CITY.name} readOnly aria-label="Your city" />
+          <span className="ep-label">Current coverage</span>
+          <input className="ep-input ep-input-ro" value={CITY.name} readOnly aria-label="Current coverage area" />
         </label>
 
         <label className="ep-field">
           <span className="ep-label ep-label-row">
-            <span>Bio <span className="ep-optional">(optional)</span></span>
+            <span>Private note <span className="ep-optional">(optional)</span></span>
             <span className="ep-count">{bio.length}/{BIO_MAX}</span>
           </span>
           <textarea
@@ -75,22 +61,16 @@ export default function EditProfilePage() {
             onChange={(e) => setBio(e.target.value)}
             maxLength={BIO_MAX}
             rows={3}
-            placeholder="Tell people what you're into (optional)"
-            aria-label="Your bio"
+            placeholder="A note about what you like"
+            aria-label="Private profile note"
           />
+          <span className="ep-optional">Your name and note stay on this device unless you export your data.</span>
         </label>
 
-        {/* Profile preferences — honest stubs (future keys); shown so the screen
-            matches the ref, never faking a saved value. */}
+        {/* Coverage is a real hard-navigation choice; retained state is city-scoped. */}
+        <div className="ep-sec-label">Coverage area</div>
+        <CityCoverageSelector compact />
         <div className="ep-sec-label">Profile preferences</div>
-        <div className="ep-pref">
-          <span>Preferred city</span>
-          <span className="ep-pref-v">{CITY.name}</span>
-        </div>
-        <div className="ep-pref">
-          <span>Profile visibility</span>
-          <span className="ep-soon">Coming soon</span>
-        </div>
         {/* a real destination — the interest editor (matches the ref's Interests row) */}
         <button className="ep-pref ep-pref-link pressable" type="button" onClick={() => openInterests()}>
           <span>Interests</span>
@@ -98,6 +78,7 @@ export default function EditProfilePage() {
         </button>
       </div>
 
+      {saveError && <div className="ae-err" role="alert">{saveError}</div>}
       <button className="ep-save" type="button" onClick={save}>
         Save changes
       </button>

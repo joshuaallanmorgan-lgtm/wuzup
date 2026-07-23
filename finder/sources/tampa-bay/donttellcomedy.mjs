@@ -12,7 +12,8 @@
 //   <div>Saturday, June 13</div>                 ← weekday, month day (no year)
 //   <div class="font-weight-bold mb-2"> St. Petersburg - Grand Central District </div>
 //   time appears as e.g. "8:00 PM" within the card; price badge like "$30" when shown.
-import { fetchWithTimeout, cleanText } from '../_shared.mjs';
+import { fetchWithTimeout, cleanText, sourceStartDay, sourceWindow } from '../_shared.mjs';
+import { tz as CITY_TZ } from '../../cities/tampa-bay.mjs';
 
 export const name = "Don't Tell Comedy";
 
@@ -37,15 +38,19 @@ const NEIGHBORHOOD_COORDS = {
 };
 
 // "June 13" → next occurrence on/after today (the page lists upcoming shows only).
-function inferDate(monthName, day) {
-  const now = new Date();
+function inferDate(monthName, day, today) {
   const mi = MONTHS.indexOf(monthName.toLowerCase());
   if (mi < 0) return null;
-  let d = new Date(now.getFullYear(), mi, day);
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  if (d < today) d = new Date(now.getFullYear() + 1, mi, day);
   const pad = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const month = pad(mi + 1);
+  const currentYear = Number(today.slice(0, 4));
+  const candidate = (year) => `${year}-${month}-${pad(day)}`;
+  let result = candidate(currentYear);
+  if (result < today) {
+    result = candidate(currentYear + 1);
+  }
+  if (sourceStartDay(CITY_TZ, result) !== result) return null;
+  return result;
 }
 
 function to24h(h, m, ap) {
@@ -54,7 +59,7 @@ function to24h(h, m, ap) {
   return `${String(hh).padStart(2, '0')}:${m}:00`;
 }
 
-function parseCards(html, pageUrl) {
+function parseCards(html, pageUrl, today) {
   const out = [];
   const chunks = html.split(/show-card-clickable/).slice(1);
   for (const chunk of chunks) {
@@ -63,7 +68,7 @@ function parseCards(html, pageUrl) {
     const date = head.match(/<div>\s*(?:Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day,\s*([A-Za-z]+)\s+(\d{1,2})\s*<\/div>/);
     const loc = head.match(/font-weight-bold mb-2[^>]*>\s*([^<]+?)\s*</);
     if (!href || !date) continue;
-    const start = inferDate(date[1], Number(date[2]));
+    const start = inferDate(date[1], Number(date[2]), today);
     if (!start) continue;
     const time = head.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
     const img = head.match(/src="\s*(https:\/\/[^"]*cloudinary[^"]+\.(?:webp|jpg|jpeg|png))/i)?.[1] || null;
@@ -97,21 +102,27 @@ function parseCards(html, pageUrl) {
   return out;
 }
 
-export async function fetchEvents() {
+export async function fetchEvents(options = {}) {
+  const config = options || {};
+  const nowMs = config.nowMs ?? Date.now();
+  const fetchImpl = config.fetchImpl ?? globalThis.fetch;
+  const requireLive = config.requireLive === true;
+  const { today } = sourceWindow(CITY_TZ, nowMs, 0);
   const seen = new Set();
   const events = [];
   for (const url of CITY_PAGES) {
     try {
-      const res = await fetchWithTimeout(url, { headers: { 'user-agent': UA } }, 20000);
+      const res = await fetchWithTimeout(url, { headers: { 'user-agent': UA } }, 20000, fetchImpl);
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const html = await res.text();
-      for (const e of parseCards(html, url)) {
+      for (const e of parseCards(html, url, today)) {
         if (seen.has(e.url)) continue; // city pages cross-promote each other's shows
         seen.add(e.url);
         delete e._page;
         events.push(e);
       }
     } catch (err) {
+      if (requireLive) throw new Error(`[donttellcomedy] required city page failed for ${url}: ${err.message}`, { cause: err });
       console.warn(`[donttellcomedy] ${url} failed: ${err.message}`);
     }
   }

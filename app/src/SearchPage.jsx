@@ -24,21 +24,22 @@
 // has no date). A Spots result opens PlaceDetail through the SAME shared detail
 // layer (openDetail branches on kind:'place' in App). Both groups are
 // labeled-section RowFeeds; never-hide holds — every matching event and place
-// is shown, ordering is taste-neutral.
+// is shown, then reordered by the shared relevance contract.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { fmtLocale, Icon, milesBetween } from './lib.js'
+import { CITY, fmtLocale, Icon, milesBetween } from './lib.js'
 import { useNav } from './nav.jsx'
 import { IntentTile, RowFeed, SecHead } from './cards.jsx'
 import { CATEGORIES } from './categories.js'
-import { GUIDES } from './guides.js'
+import { GUIDES, useGuides, watchGuideActive } from './guides.js'
 import { usePlaces } from './places.js'
-import { tasteNudge } from './taste.js'
+import { useTaste } from './taste.js'
 import {
   clearSearchRecents,
   loadSearchRecents,
   parseQuery,
   recordSearchRecent,
   removeSearchRecent,
+  resolveSearchScope,
   searchEvents,
   searchGuides,
   searchPlaces,
@@ -59,16 +60,17 @@ const SUGGESTIONS = [
 
 export default function SearchPage({ events, anchors, coords }) {
   const { openDetail, openGuide, closePage: onClose } = useNav()
+  const taste = useTaste()
   const pgRef = useRef(null) // the scrolling ancestor — RowFeed's IO root
   const inputRef = useRef(null)
   const [q, setQ] = useState('') // live input value
   const [dq, setDq] = useState('') // debounced ~120ms — drives the matcher
   const [recents, setRecents] = useState(loadSearchRecents)
   const [tab, setTab] = useState('all') // 3.7P-41: result-type scope (all/events/spots)
-  useEffect(() => {
-    const t = setTimeout(() => setDq(q), 120)
-    return () => clearTimeout(t)
-  }, [q])
+  const searchSupplyNeeded = q.trim().length > 0
+  const updateQuery = useCallback((value) => {
+    setQ(value)
+  }, [])
 
   // searchable pool: upcoming (span-aware) plus undated events; _dist attached
   // when App already has a location fix (RowFeed's showDist) — passive only
@@ -84,7 +86,14 @@ export default function SearchPage({ events, anchors, coords }) {
   // T2: the places pool — the SAME lazy /places.json store the Locations tab
   // uses (usePlaces fires the one-shot fetch on first mount of this page).
   // _dist is attached for the distance pill the same way events get it.
-  const { places } = usePlaces()
+  const {
+    places,
+    status: placeStatus,
+    recover: recoverPlaces,
+    recoverLabel: recoverPlacesLabel,
+  } = usePlaces(searchSupplyNeeded)
+  const placesPending = searchSupplyNeeded && (placeStatus === 'idle' || placeStatus === 'loading')
+  const placesUnavailable = searchSupplyNeeded && ['stale', 'offline', 'error'].includes(placeStatus)
   const placePool = useMemo(() => {
     if (!Array.isArray(places)) return []
     return places.map((p) => ({
@@ -92,32 +101,71 @@ export default function SearchPage({ events, anchors, coords }) {
       _dist: coords && p.lat != null && p.lng != null ? milesBetween(coords, p) : null,
     }))
   }, [places, coords])
+  const { watchGuides } = useGuides(searchSupplyNeeded)
+  const guideCatalog = useMemo(() => [
+    ...GUIDES,
+    ...(Array.isArray(watchGuides)
+      ? watchGuides.filter((guide) => watchGuideActive(guide, anchors.nowMs))
+      : []),
+  ], [watchGuides, anchors.nowMs])
+
+  // Debounce the matcher and reconcile the selected scope against the same
+  // next-query counts in one timer. A still-valid scope stays selected; only a
+  // scope that disappeared resets to All.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const nextParsed = parseQuery(q, anchors)
+      const counts = nextParsed.empty
+        ? { events: 0, spots: 0, guides: 0 }
+        : {
+            events: searchEvents(pool, anchors, q).length,
+            spots: searchPlaces(placePool, anchors, q).length,
+            guides: searchGuides(guideCatalog, q, anchors).length,
+          }
+      setDq(q)
+      setTab((current) => resolveSearchScope(current, counts))
+    }, 120)
+    return () => clearTimeout(t)
+  }, [q, pool, placePool, guideCatalog, anchors])
 
   const parsed = useMemo(() => parseQuery(dq, anchors), [dq, anchors])
   const results = useMemo(
-    // Phase 3.5: a date-only browse ("tonight"/"friday") may tilt by taste; a
-    // TEXT query stays taste-neutral (searchEvents only applies nudge on the
-    // date-only path). taste read at compute time, like the feed.
-    () => (parsed.empty ? [] : searchEvents(pool, anchors, dq, tasteNudge)),
-    [parsed, pool, anchors, dq]
+    () => (parsed.empty ? [] : searchEvents(pool, anchors, dq, {
+      nowMs: anchors.nowMs,
+      city: CITY,
+      taste,
+    })),
+    [parsed, pool, anchors, dq, taste]
   )
   const placeResults = useMemo(
-    () => (parsed.empty ? [] : searchPlaces(placePool, anchors, dq)),
-    [parsed, placePool, anchors, dq]
+    () => (parsed.empty ? [] : searchPlaces(placePool, anchors, dq, {
+      nowMs: anchors.nowMs,
+      city: CITY,
+      taste,
+    })),
+    [parsed, placePool, anchors, dq, taste]
   )
   // Stage R: GUIDES are the 4th scope (searchGuides matches name/pov text → real
   // GuidePages). A date/free-only query yields none (a guide has no date/price).
   const guideResults = useMemo(
-    () => (parsed.empty ? [] : searchGuides(GUIDES, dq, anchors)),
-    [parsed, dq, anchors]
+    () => (parsed.empty ? [] : searchGuides(guideCatalog, dq, anchors)),
+    [parsed, dq, anchors, guideCatalog]
   )
   const hasQ = !parsed.empty
   const total = results.length + placeResults.length + guideResults.length
-  // Stage R section labels (benchmark): events split into "Best matches" (the
-  // top relevance-ranked hits — TRUE because searchEvents sorts by match score on
-  // a TEXT query) + "Other events" (the rest). A DATE-ONLY browse isn't relevance-
-  // ranked (it is de-flood/taste order), so it stays one honest "Events" group —
-  // no "best" claim. Spots → "Spots that fit"; Guides render in their own block.
+  const activeTab = resolveSearchScope(tab, {
+    events: results.length,
+    spots: placeResults.length,
+    guides: guideResults.length,
+  })
+  const visibleTotal = activeTab === 'events'
+    ? results.length
+    : activeTab === 'spots'
+      ? placeResults.length
+      : activeTab === 'guides' ? guideResults.length : total
+  // Text results may split the first three from the remainder for scanability,
+  // but both labels stay neutral: shared quality/context ranking is not proof of
+  // a superlative. Date-only browse stays one honest Events group.
   const eventSection = useMemo(() => {
     if (!results.length) return []
     // R-S2: only split into Best/Other when there's a REAL remainder (top 3 +
@@ -126,8 +174,8 @@ export default function SearchPage({ events, anchors, coords }) {
     // label parallels "Spots that fit"; a date-only browse stays a neutral "Events".
     if (parsed.text.length && results.length > 3) {
       return [
-        { label: 'Best matches', items: results.slice(0, 3) },
-        { label: 'Other events', items: results.slice(3) },
+        { label: 'Event matches', items: results.slice(0, 3) },
+        { label: 'More events', items: results.slice(3) },
       ]
     }
     return [{ label: parsed.text.length ? 'Events that fit' : 'Events', items: results }]
@@ -155,18 +203,20 @@ export default function SearchPage({ events, anchors, coords }) {
     setDq(q)
     if (
       !parseQuery(q, anchors).empty &&
-      (searchEvents(pool, anchors, q).length > 0 || searchPlaces(placePool, anchors, q).length > 0)
+      (searchEvents(pool, anchors, q).length > 0
+        || searchPlaces(placePool, anchors, q).length > 0
+        || searchGuides(guideCatalog, q, anchors).length > 0)
     ) {
       setRecents(recordSearchRecent(q))
     }
   }
 
   const run = (s) => {
-    setQ(s) // chips run their query visibly in the input
+    updateQuery(s) // chips run their query visibly in the input
     inputRef.current?.focus()
   }
   const clear = () => {
-    setQ('')
+    updateQuery('')
     inputRef.current?.focus()
   }
 
@@ -185,16 +235,16 @@ export default function SearchPage({ events, anchors, coords }) {
             className="srch-input"
             type="text"
             enterKeyHint="search"
-            placeholder="Search events, venues, vibes…"
-            aria-label="Search events"
+            placeholder="Search events, spots, and guides…"
+            aria-label="Search events, spots, and guides"
             autoFocus
             value={q}
-            onChange={(ev) => setQ(ev.target.value)}
+            onChange={(ev) => updateQuery(ev.target.value)}
             onKeyDown={(ev) => {
               // Escape clears the query first; a second Escape closes the page (App)
               if (ev.key === 'Escape' && q) {
                 ev.stopPropagation()
-                setQ('')
+                updateQuery('')
               }
               if (ev.key === 'Enter') submit()
             }}
@@ -207,10 +257,25 @@ export default function SearchPage({ events, anchors, coords }) {
         </div>
       </header>
       <div className="pg-body">
+        {hasQ && placesPending && (
+          <div className="empty empty-sm" role="status">Checking spot results…</div>
+        )}
+        {placesUnavailable && (
+          <div className="empty empty-sm" role="alert">
+            {placeStatus === 'stale'
+              ? 'Spot results are too old to show.'
+              : placeStatus === 'offline'
+                ? 'You’re offline. Spot results weren’t loaded.'
+                : 'Spot results couldn’t be verified.'}
+            {recoverPlaces && (
+              <button className="empty-cta" onClick={recoverPlaces}>{recoverPlacesLabel}</button>
+            )}
+          </div>
+        )}
         {hasQ && total > 0 && (
           <>
             <div className="srch-count">
-              {total.toLocaleString(fmtLocale)} result{total === 1 ? '' : 's'} for “{dq.trim()}”
+              {visibleTotal.toLocaleString(fmtLocale)} result{visibleTotal === 1 ? '' : 's'} for “{dq.trim()}”
             </div>
             {/* 3.7P-41 → Stage R (§N screen 9): result-type tabs scope the union —
                 All · Events · Spots · Guides. Only tabs that have results are
@@ -226,9 +291,9 @@ export default function SearchPage({ events, anchors, coords }) {
                 .map((t) => (
                   <button
                     key={t.id}
-                    className={'srch-tab' + (tab === t.id ? ' on' : '')}
+                    className={'srch-tab' + (activeTab === t.id ? ' on' : '')}
                     onClick={() => setTab(t.id)}
-                    aria-pressed={tab === t.id}
+                    aria-pressed={activeTab === t.id}
                   >
                     {t.label} <span className="srch-tab-n">{t.n}</span>
                   </button>
@@ -238,12 +303,12 @@ export default function SearchPage({ events, anchors, coords }) {
                 ResultCard renders GemRow per event + SpotCard per place, so this
                 mixed feed splits itself per item. Not on the Guides tab (a guide
                 isn't a RowFeed item). key resets paging per query+tab. */}
-            {tab !== 'guides' && (
+            {activeTab !== 'guides' && (
               <RowFeed
-                key={dq.trim() + '|' + tab}
+                key={dq.trim() + '|' + activeTab}
                 sections={[
-                  ...(tab === 'all' || tab === 'events' ? eventSection : []),
-                  ...(tab === 'all' || tab === 'spots' ? placeSection : []),
+                  ...(activeTab === 'all' || activeTab === 'events' ? eventSection : []),
+                  ...(activeTab === 'all' || activeTab === 'spots' ? placeSection : []),
                 ]}
                 stagger
                 scrollRootRef={pgRef}
@@ -252,7 +317,7 @@ export default function SearchPage({ events, anchors, coords }) {
             )}
             {/* Guides — real GuidePages whose name/pov matched the query; shown in
                 the All feed (after events/spots) and as the dedicated Guides tab. */}
-            {(tab === 'all' || tab === 'guides') && guideResults.length > 0 && (
+            {(activeTab === 'all' || activeTab === 'guides') && guideResults.length > 0 && (
               <section className="sec">
                 <SecHead overline="Collections" title="Guides" />
                 <div className="intent-grid">
@@ -274,7 +339,7 @@ export default function SearchPage({ events, anchors, coords }) {
             )}
           </>
         )}
-        {hasQ && total === 0 && (
+        {hasQ && total === 0 && !placesPending && !placesUnavailable && (
           <div className="empty">
             No matches.
             <br />
@@ -331,7 +396,7 @@ export default function SearchPage({ events, anchors, coords }) {
               </div>
             )}
             <div className={'empty' + (recents.length ? ' empty-sm' : '')}>
-              {events.length.toLocaleString(fmtLocale)} events. One search bar. 🔎
+              Search current events, spots, and transparent collections. 🔎
               <br />
               Try one of these:
               <div className="srch-sug">

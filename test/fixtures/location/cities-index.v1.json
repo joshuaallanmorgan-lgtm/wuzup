@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-15T12:00:00.000Z",
+  "indexId": "sha256:c330dd1d1371dcc18f527076e5cfd2fcdf471b6f76fc9ec0213f06413107354c",
+  "defaultCityId": "tampa-bay",
+  "cities": [
+    {
+      "cityId": "tampa-bay",
+      "name": "Tampa Bay",
+      "shortName": "Tampa",
+      "region": "Florida",
+      "countryCode": "US",
+      "timeZone": "America/New_York",
+      "center": {
+        "lat": 27.95,
+        "lng": -82.46
+      },
+      "bbox": {
+        "south": 27.3,
+        "west": -83.3,
+        "north": 28.6,
+        "east": -81.9
+      },
+      "coverageTier": "flagship",
+      "pathAliases": [
+        "tampa",
+        "tpa"
+      ],
+      "artifactPack": {
+        "manifestUrl": "/cities/tampa-bay/releases/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/artifact-manifest.json",
+        "manifestId": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "buildId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "generatedAt": "2026-07-15T08:00:00.000Z",
+        "expiresAt": "2026-07-18T08:00:00.000Z",
+        "counts": {
+          "events": 120,
+          "places": 80,
+          "guides": 4
+        },
+        "sourceHealth": "healthy",
+        "shards": [
+          {
+            "kind": "events",
+            "url": "/cities/tampa-bay/releases/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/events.json",
+            "sha256": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "bytes": 12000,
+            "count": 120
+          },
+          {
+            "kind": "places",
+            "url": "/cities/tampa-bay/releases/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/places.json",
+            "sha256": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "bytes": 8000,
+            "count": 80
+          },
+          {
+            "kind": "guides",
+            "url": "/cities/tampa-bay/releases/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/guides.json",
+            "sha256": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "bytes": 400,
+            "count": 4
+          }
+        ]
+      }
+    },
+    {
+      "cityId": "sf-east-bay",
+      "name": "SF & East Bay",
+      "shortName": "SF / East Bay",
+      "region": "California",
+      "countryCode": "US",
+      "timeZone": "America/Los_Angeles",
+      "center": {
+        "lat": 37.84,
+        "lng": -122.25
+      },
+      "bbox": {
+        "south": 37.68,
+        "west": -122.53,
+        "north": 38,
+        "east": -121.88
+      },
+      "coverageTier": "flagship",
+      "pathAliases": [
+        "sf",
+        "san-francisco",
+        "east-bay"
+      ],
+      "artifactPack": {
+        "manifestUrl": "/cities/sf-east-bay/releases/1111111111111111111111111111111111111111111111111111111111111111/artifact-manifest.json",
+        "manifestId": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "buildId": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "generatedAt": "2026-07-15T09:00:00.000Z",
+        "expiresAt": "2026-07-18T09:00:00.000Z",
+        "counts": {
+          "events": 90,
+          "places": 60,
+          "guides": 3
+        },
+        "sourceHealth": "degraded",
+        "shards": [
+          {
+            "kind": "events",
+            "url": "/cities/sf-east-bay/releases/1111111111111111111111111111111111111111111111111111111111111111/events.json",
+            "sha256": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+            "bytes": 9000,
+            "count": 90
+          },
+          {
+            "kind": "places",
+            "url": "/cities/sf-east-bay/releases/1111111111111111111111111111111111111111111111111111111111111111/places.json",
+            "sha256": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "bytes": 6000,
+            "count": 60
+          },
+          {
+            "kind": "guides",
+            "url": "/cities/sf-east-bay/releases/1111111111111111111111111111111111111111111111111111111111111111/guides.json",
+            "sha256": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+            "bytes": 300,
+            "count": 3
+          }
+        ]
+      }
+    }
+  ],
+  "fallbacks": {
+    "nationwideFloor": {
+      "fallbackId": "nationwide-floor",
+      "name": "Nationwide floor",
+      "coverageTier": "thin",
+      "countryCode": "US",
+      "artifactPack": null
+    },
+    "notCovered": {
+      "fallbackId": "not-covered",
+      "name": "Not covered",
+      "coverageTier": "not-covered",
+      "countryCode": null,
+      "artifactPack": null
+    }
+  },
+  "usRegions": [
+    {
+      "regionId": "contiguous-us",
+      "bbox": {
+        "south": 24.396308,
+        "west": -124.848974,
+        "north": 49.384358,
+        "east": -66.885444
+      }
+    },
+    {
+      "regionId": "alaska",
+      "bbox": {
+        "south": 51.214183,
+        "west": -179.148909,
+        "north": 71.365162,
+        "east": -129.9795
+      }
+    },
+    {
+      "regionId": "hawaii",
+      "bbox": {
+        "south": 18.910361,
+        "west": -160.2471,
+        "north": 22.2356,
+        "east": -154.806773
+      }
+    }
+  ]
+}

@@ -5,7 +5,7 @@
 // · updated <time> · imagery coverage. Its contract is the ATTRIBUTION page's
 // contract (the anti-drift precedent): every number DERIVES at render time from
 // the data the app already loads — the events array App fetched, the places
-// store the Spots tab shares, the Last-Modified stamp the boot fetch carried.
+// store the Spots tab shares, and the immutable manifest the repository verified.
 // Nothing here is hand-typed, nothing is ever inflated, and an absent input
 // makes a line DISAPPEAR rather than fabricate (the stale-banner grace).
 //
@@ -16,7 +16,7 @@
 // Shared helpers extracted here (not duplicated): the event/source tally that
 // SettingsPage's provenance card and AttributionPage's headline both spoke,
 // and the stale-banner's day-label idiom (App.jsx staleDayLabel → dayStamp).
-import { DAY, fmtLocale, sourceFamily } from './lib.js'
+import { DAY, formatDayTs, sourceFamily } from './lib.js'
 
 // ===== the sparse-city floor (D-G1's real point) =====
 // Below this many loaded events, the Coverage Card PROMOTES: it moves to the
@@ -64,6 +64,6 @@ export function isSparse(nEvents) {
 // weekday inside the last 6 days ("Friday"), month + day beyond ("Jul 2").
 export function dayStamp(ms) {
   return Date.now() - ms <= 6 * DAY
-    ? new Date(ms).toLocaleDateString(fmtLocale, { weekday: 'long' })
-    : new Date(ms).toLocaleDateString(fmtLocale, { month: 'short', day: 'numeric' })
+    ? formatDayTs(ms, { weekday: 'long' })
+    : formatDayTs(ms, { month: 'short', day: 'numeric' })
 }

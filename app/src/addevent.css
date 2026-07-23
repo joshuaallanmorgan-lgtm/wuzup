@@ -11,7 +11,7 @@
 .sp-label.my-label { color: var(--muted); }
 
 /* ===== form page ===== */
-.ae-form { padding: 4px var(--gutter) 28px; }
+.ae-form { width: 100%; max-width: var(--reading-max); margin-inline: auto; padding: 4px var(--gutter) 28px; }
 .ae-field { margin-top: 18px; }
 /* 3.76c: a calm What/When/Where/Details group header in the add-your-own form */
 .ae-group { margin: 22px 0 2px; font-size: var(--t-meta-sm); font-weight: 800; letter-spacing: 0.2px; color: var(--muted); } /* A6 accent restraint: group header off orange */
@@ -52,7 +52,7 @@ textarea.ae-input { height: auto; min-height: 96px; padding: 11px 14px; resize: 
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 36px;
+  min-height: 44px;
   padding: 0 13px;
   border: 1px solid var(--line);
   border-radius: var(--r-pill);
@@ -72,21 +72,28 @@ textarea.ae-input { height: auto; min-height: 96px; padding: 11px 14px; resize: 
 .ae-free { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
 .ae-free .ae-label { margin-bottom: 3px; }
 .ae-switch {
-  flex: 0 0 52px;
-  width: 52px;
-  height: 30px;
+  flex: 0 0 56px;
+  width: 56px;
+  height: 44px;
   border: none;
   border-radius: var(--r-pill);
-  background: rgba(var(--ink-rgb), 0.18); /* WS3 cool-relic purge: warm ink-derived track (was the cool slate #d8dbe1; knob contrast 1.49 vs 1.39 before) */
+  background: transparent;
   cursor: pointer;
   position: relative;
+}
+.ae-switch::before {
+  content: '';
+  position: absolute;
+  inset: 7px 2px;
+  border-radius: var(--r-pill);
+  background: rgba(var(--ink-rgb), 0.18); /* WS3 cool-relic purge: warm ink-derived track */
   transition: background var(--dur-fast);
 }
-.ae-switch.on { background: var(--accent); }
+.ae-switch.on::before { background: var(--accent); }
 .ae-knob {
   position: absolute;
-  top: 3px;
-  left: 3px;
+  top: 10px;
+  left: 5px;
   width: 24px;
   height: 24px;
   border-radius: var(--r-circle);
@@ -141,6 +148,7 @@ textarea.ae-input { height: auto; min-height: 96px; padding: 11px 14px; resize: 
   color: var(--muted);
   text-decoration: underline;
   cursor: pointer;
+  min-height: 44px;
 }
 .ae-export:hover { color: var(--accent-ink); }
 
@@ -157,6 +165,7 @@ textarea.ae-input { height: auto; min-height: 96px; padding: 11px 14px; resize: 
 /* ===== detail page: Remove (added events only) + 6s undo toast ===== */
 .d-remove {
   display: block;
+  min-height: 44px;
   margin: var(--sp-md) auto 0;
   padding: var(--sp-xs) 14px;
   background: none;
@@ -179,6 +188,13 @@ textarea.ae-input { height: auto; min-height: 96px; padding: 11px 14px; resize: 
   font-weight: 800;
   color: var(--accent-ink);
   cursor: pointer;
+  min-height: 44px;
+}
+
+/* Date/time side-by-side is too compressed on phone-sized forms. Tablet and
+   desktop keep the efficient pair inside the bounded reading column. */
+@media (max-width: 479px) {
+  .ae-2col { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ===== reduced motion ===== */

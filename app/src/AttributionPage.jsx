@@ -15,6 +15,7 @@
 // ALL COPY IS DRAFT ⚑ Charles.
 import { useMemo, useState } from 'react'
 import { CITY, fmtLocale, Icon, sourceFamily } from './lib.js'
+import { dayStamp } from './coverage.js'
 import { usePlaces } from './places.js'
 import { useNav } from './nav.jsx'
 import CoverageCard from './CoverageCard.jsx'
@@ -41,7 +42,7 @@ function tally(names) {
   return [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
 }
 
-export default function AttributionPage({ events, dataAt }) {
+export default function AttributionPage({ events, dataMeta }) {
   // opened ONLY from Settings (the About row): the visible back affordance
   // reopens Settings (the InterestEditor settings-origin idiom) so the trio
   // reads as layers; hardware/browser back + Escape ride the nav page layer
@@ -49,7 +50,12 @@ export default function AttributionPage({ events, dataAt }) {
   const { openSettings: onClose } = useNav()
   // the places layer (same lazy /places.json fetch the Spots tab uses) — this
   // page exists to disclose that data, so it pays the fetch on open.
-  const { places, status } = usePlaces()
+  const { places, status, recover, recoverLabel, meta: placeMeta } = usePlaces()
+  const placesReady = status === 'ready' || status === 'empty'
+  const placesLoading = status === 'idle' || status === 'loading'
+  const placesUnavailable = ['stale', 'offline', 'error'].includes(status)
+  const placeDataAt = placeMeta?.generatedAt ? Date.parse(placeMeta.generatedAt) : null
+  const placeHealth = placeMeta?.sourceHealth?.status
   const [creditsOpen, setCreditsOpen] = useState(false)
 
   // (a) EVENT sources — the distinct source FAMILIES actually present in the
@@ -102,7 +108,7 @@ export default function AttributionPage({ events, dataAt }) {
                    same derived numbers the sections below break down (this
                    page's own usePlaces fetch feeds its spots/photos line) ===== */}
         <section className="at-sec">
-          <CoverageCard events={events} dataAt={dataAt} />
+          <CoverageCard events={events} dataMeta={dataMeta} />
         </section>
 
         {/* ===== (a) EVENT LISTINGS — derived from the loaded events ===== */}
@@ -142,7 +148,15 @@ export default function AttributionPage({ events, dataAt }) {
                 Open Database License
               </a>
             </div>
-            {status === 'ready' && places && places.length > 0 && (
+            {Number.isFinite(placeDataAt) && (
+              <div className="at-line at-dim">
+                Place snapshot from {dayStamp(placeDataAt)}
+                {placeHealth === 'healthy' && ' · source check complete'}
+                {placeHealth === 'degraded' && ' · some sources unavailable'}
+                {placeHealth === 'unknown' && ' · source check unavailable'}
+              </div>
+            )}
+            {placesReady && places && places.length > 0 && (
               <>
                 <div className="at-line at-dim">
                   <span className="num">{fmtN(places.length)}</span> spots, drawn from{' '}
@@ -166,9 +180,19 @@ export default function AttributionPage({ events, dataAt }) {
                 </div>
               </>
             )}
-            {status === 'loading' && <div className="at-line at-dim">Loading place data…</div>}
-            {status === 'error' && (
-              <div className="at-line at-dim">Couldn’t load place data — the dataset credits appear once it loads.</div>
+            {placesLoading && <div className="at-line at-dim">Loading place data…</div>}
+            {status === 'empty' && (
+              <div className="at-line at-dim">The verified snapshot contains no spots.</div>
+            )}
+            {placesUnavailable && (
+              <div className="at-line at-dim">
+                {status === 'stale'
+                  ? 'The place snapshot is too old to show.'
+                  : status === 'offline'
+                    ? 'You’re offline. Place data wasn’t loaded.'
+                    : 'Place data couldn’t be verified.'}{' '}
+                {recover && <button className="at-expand" onClick={recover}>{recoverLabel}</button>}
+              </div>
             )}
           </div>
         </section>
@@ -178,11 +202,11 @@ export default function AttributionPage({ events, dataAt }) {
         <section className="at-sec">
           <div className="at-over">Photography</div>
           <div className="at-card">
-            {status === 'ready' && (
+            {placesReady && (
               <>
                 <div className="at-line">
-                  <span className="num">{fmtN(photoCredits.length)}</span> place photos — every one a real
-                  photo of the place itself
+                  <span className="num">{fmtN(photoCredits.length)}</span> credited place-photo candidates in
+                  this snapshot
                 </div>
                 <div className="at-rows">
                   {photoFamilies.map(([name, n]) => (
@@ -196,6 +220,7 @@ export default function AttributionPage({ events, dataAt }) {
                     flag #1): the self-hosted Mapillary images are CROPS of the
                     original street-level captures — adapted works must say so. */}
                 <div className="at-note">
+                  Photo identity and license terms are reviewed independently. Failed candidates use Wuzup art.
                   Street-level storefront photos are cropped from their original Mapillary captures.
                 </div>
                 {photoCredits.length > 0 && (
@@ -240,8 +265,8 @@ export default function AttributionPage({ events, dataAt }) {
                 )}
               </>
             )}
-            {status === 'loading' && <div className="at-line at-dim">Loading photo credits…</div>}
-            {status === 'error' && (
+            {placesLoading && <div className="at-line at-dim">Loading photo credits…</div>}
+            {placesUnavailable && (
               <div className="at-line at-dim">Couldn’t load photo credits — they appear once the place data loads.</div>
             )}
             {/* the city heroes are config-carried credits (never in the finder

@@ -1,0 +1,47 @@
+[
+  {
+    "recid": 1,
+    "title": "Oakland before the jump",
+    "date": "2026-03-09T06:59:59Z",
+    "endDate": "2026-03-09T06:59:59Z",
+    "startTime": "01:30:00",
+    "endTime": "03:30:00",
+    "recurType": 0,
+    "absoluteUrl": "https://example.com/oakland-before"
+  },
+  {
+    "recid": 2,
+    "title": "Oakland after the jump",
+    "date": "2026-03-09T06:59:59Z",
+    "startTime": "03:30:00",
+    "recurType": 1,
+    "absoluteUrl": "https://example.com/oakland-after"
+  },
+  {
+    "recid": 3,
+    "title": "Oakland nonexistent clock",
+    "date": "2026-03-09T06:59:59Z",
+    "startTime": "02:30:00",
+    "recurType": 1,
+    "absoluteUrl": "https://example.com/oakland-gap"
+  },
+  {
+    "recid": 4,
+    "title": "Oakland last day",
+    "date": "2026-04-23T06:59:59Z",
+    "recurType": 1,
+    "absoluteUrl": "https://example.com/oakland-last"
+  },
+  {
+    "recid": 5,
+    "title": "Oakland prior day",
+    "date": "2026-03-08T07:59:59Z",
+    "recurType": 1
+  },
+  {
+    "recid": 6,
+    "title": "Oakland after window",
+    "date": "2026-04-24T06:59:59Z",
+    "recurType": 1
+  }
+]

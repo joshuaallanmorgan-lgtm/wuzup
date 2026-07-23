@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+  <head>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Event",
+            "name": "Before window",
+            "startDate": "2026-03-07T23:59:00",
+            "url": "https://example.test/before"
+          },
+          {
+            "@type": "Event",
+            "name": "First boundary",
+            "startDate": "2026-03-08T00:00:00",
+            "endDate": "2026-03-08T01:00:00",
+            "url": "https://example.test/first"
+          },
+          {
+            "@type": "Event",
+            "name": "UTC Tampa today",
+            "startDate": "2026-03-08T05:30:00Z",
+            "url": "https://example.test/utc-today"
+          },
+          {
+            "@type": "Event",
+            "name": "Lexical prior Tampa today",
+            "startDate": "2026-03-07T23:30:00-10:00",
+            "url": "https://example.test/lexical-prior"
+          },
+          {
+            "@type": "Event",
+            "name": "Lexical today Tampa prior",
+            "startDate": "2026-03-08T01:00:00+02:00",
+            "url": "https://example.test/lexical-today"
+          },
+          {
+            "@type": "Event",
+            "name": "Zoneless midwindow",
+            "startDate": "2026-03-20T19:00:00",
+            "url": "https://example.test/zoneless"
+          },
+          {
+            "@type": "Event",
+            "name": "Last boundary",
+            "startDate": "2026-04-22T23:59:00",
+            "url": "https://example.test/last"
+          },
+          {
+            "@type": "Event",
+            "name": "Lexical after Tampa last",
+            "startDate": "2026-04-23T01:00:00+02:00",
+            "url": "https://example.test/lexical-after"
+          },
+          {
+            "@type": "Event",
+            "name": "After window",
+            "startDate": "2026-04-23T00:00:00",
+            "url": "https://example.test/after"
+          },
+          {
+            "@type": "Event",
+            "name": "Invalid calendar day",
+            "startDate": "2026-02-30T12:00:00",
+            "url": "https://example.test/invalid"
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body></body>
+</html>

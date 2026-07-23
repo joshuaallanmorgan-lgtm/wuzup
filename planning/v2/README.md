@@ -1,27 +1,31 @@
-# /planning/v2 — the V2 plan and workstream registry
+# /planning/v2 — V2 plan and supporting specs
 
-> **Current plan of record:** [V2_VISION.md](V2_VISION.md).
+> **Current plan of record:** [V2_PLAN.md](V2_PLAN.md).
 > V1 is shipped; [../../ROADMAP.md](../../ROADMAP.md) is its as-built history. New ideas enter
-> [../../BACKLOG.md](../../BACKLOG.md). A supporting spec may propose a workstream, but cannot expand
-> the ratified plan or resolve an owner decision by itself.
+> [../../BACKLOG.md](../../BACKLOG.md), but optional feature concepts stay suggestions/V3 unless the
+> current plan explicitly admits them.
 
 ## How it works
 
-1. [V2_VISION.md](V2_VISION.md) owns the product spine, rulings, release shape, and V2/V3 boundary.
-2. Supporting specs explain a workstream and flag decisions; they do not become binding by being detailed.
-3. Each spec carries a status: `stub` → `spec` → `ready` → `building` → `shipped`.
-4. Implementation begins when its material rulings are resolved, or when it is an explicitly bounded
-   post-ship hardening fix that does not pre-empt a product choice.
-5. Code, current artifacts, reproducible tests, and repo-visible decision records outrank stale prose.
+1. [V2_PLAN.md](V2_PLAN.md) owns scope, ordering, acceptance gates, and the V2/V3 boundary.
+2. [V2_COORDINATION.md](V2_COORDINATION.md) owns the five-chat operating model and merge dependencies.
+3. Supporting specs explain implementation details but cannot expand V2 by themselves.
+4. Each spec carries a status: `draft` → `evaluating` → `ready` → `building` → `shipped`.
+5. A new product concept goes to V3 until Josh explicitly promotes it.
+6. Code, current artifacts, reproducible tests, and repo-visible decision records outrank stale prose.
 
 ## Specs
 
 | File | Status | One-liner |
 |---|---|---|
-| [V2_VISION.md](V2_VISION.md) | **current** | The Day Engine: Compose → Decide → Keep; Layer Zero first; Reach/City Foundry in parallel. |
+| [V2_PLAN.md](V2_PLAN.md) | **current** | GPT hardening plus relevance, premium existing UI, full-US locations, imagery, and bounded feature enrichment. |
+| [V2_SPRINTS.md](V2_SPRINTS.md) | **active** | Dependency-gated Sprint 0 plus 17 two-week build, beta, pilot, nationwide, and release cycles; current execution receipts live here. |
+| [S12_OPERATIONS_DECISION_PACKET.md](S12_OPERATIONS_DECISION_PACKET.md) | proposed | Evidence and explicit owner/legal decisions required before provider-dependent Sprint 13 work or pilot expansion. |
+| [V2_COORDINATION.md](V2_COORDINATION.md) | archive | Five-task coordination experiment; logical lane ownership remains useful, but persistent sidebar workers were retired. |
+| [V2_VISION.md](V2_VISION.md) | archive | Fable Day Engine concept research; optional product ideas are nonbinding/V3. |
 | [smart-engine.md](smart-engine.md) | stub · rescope pending | On-device taste signals → bounded personal reorder/tiering over a quality-ordered base. |
 | [guides-and-rankings.md](guides-and-rankings.md) | stub | Honest popular + hidden-gem lists by interest; deeper successor to shipped guides-lite. |
-| [quality-engine.md](quality-engine.md) | spec · pending ratification | Proposed build-time corpus-quality stage and candidate mechanism for the binding quality gate. |
-| [premium-ui.md](premium-ui.md) | spec · threshold pending | Proposed Feel Substrate for shared motion/touch/material/loading/ceremony grammar. |
+| [quality-engine.md](quality-engine.md) | draft | Useful corpus-quality research; deterministic phases lead and model assumptions require rebaselining. |
+| [premium-ui.md](premium-ui.md) | draft | Existing-surface feel work is V2; ceremonies/layouts for archived features are V3 with those features. |
 
-_Reach is already mandated in V2_VISION §10. Social/community and ticketing remain unscheduled ideas._
+_Primary audit evidence: [../../ADVERSARIAL_AUDIT_2026-07-14.md](../../ADVERSARIAL_AUDIT_2026-07-14.md). Specs still needed: `us-coverage.md` and `imagery.md`._

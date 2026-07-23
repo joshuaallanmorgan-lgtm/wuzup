@@ -22,7 +22,8 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PRODUCT_UA } from './ua.mjs';
-import { cityId } from './cities/index.mjs';
+import { cityId, tz as CITY_TZ } from './cities/index.mjs';
+import { atomicWriteFileSync, invalidateManifest, writeManifest } from './artifact-manifest.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CACHE_FILE = join(HERE, 'cache', cityId, 'wikidata-descriptions.json');
@@ -107,7 +108,11 @@ function loadCache() {
 // Sets `description` on each wikidata place that LACKS one and has a resolvable
 // Wikipedia extract. Never overwrites an existing (gov/OSM) description. Returns
 // counts.
-export async function enrichPlacesWithDescriptions(places, { live = false, log = () => {} } = {}) {
+export async function enrichPlacesWithDescriptions(places, {
+  live = false,
+  cacheOnly = false,
+  log = () => {},
+} = {}) {
   const cache = loadCache();
   const stats = { candidates: 0, set: 0, fromCache: 0, fetched: 0, noArticle: 0 };
   let dirty = false;
@@ -120,6 +125,9 @@ export async function enrichPlacesWithDescriptions(places, { live = false, log =
     if (cached && fresh && !live) {
       rec = cached;
       stats.fromCache++;
+    } else if (cacheOnly) {
+      rec = cached || { description: null, title: null, at: null };
+      if (cached) stats.fromCache++;
     } else {
       try {
         const r = await resolveWikipediaDescription(p.wikidata, p.name);
@@ -151,7 +159,8 @@ export async function enrichPlacesWithDescriptions(places, { live = false, log =
 async function main() {
   const live = process.env.PLACES_LIVE === '1';
   // D1: only the per-city finder artifact is patched — app/public/places.json
-  // is deploy.mjs's territory (re-run `npm run deploy-city` after a backfill).
+  // is deploy.mjs's territory. This derived writer invalidates before mutation
+  // and reseals on success while retaining the base places run receipt.
   const targets = [join(HERE, 'output', cityId, 'places.json')].filter((p) => existsSync(p));
   if (!targets.length) {
     console.error('no places.json found (run finder/places.mjs first)');
@@ -162,13 +171,31 @@ async function main() {
     const doc = JSON.parse(readFileSync(path, 'utf8'));
     if (!Array.isArray(doc.places)) continue;
     const stats = await enrichPlacesWithDescriptions(doc.places, { live: live && first, log: console.log });
-    writeFileSync(path, JSON.stringify(doc, null, 2));
+    const artifactRoot = dirname(path);
+    const previousManifest = invalidateManifest(artifactRoot, { expectedCityId: cityId, expectedTimeZone: CITY_TZ });
+    atomicWriteFileSync(path, `${JSON.stringify(doc, null, 2)}\n`);
+    const previousPlaces = previousManifest?.artifacts?.places;
+    writeManifest({
+      root: artifactRoot,
+      cityId,
+      timeZone: CITY_TZ,
+      previousManifest,
+      componentReceipts: previousPlaces ? {
+        places: {
+          runId: previousPlaces.runId,
+          generatedAt: previousPlaces.generatedAt,
+          provenance: previousPlaces.provenance,
+          sourceHealth: previousPlaces.sourceHealth,
+        },
+      } : {},
+    });
     first = false;
     console.log(
       `${path}: ${stats.set}/${stats.candidates} descriptions added ` +
         `(fetched ${stats.fetched}, cache ${stats.fromCache}, no-article ${stats.noArticle})`
     );
   }
+  console.log('artifact manifest resealed — deploy-city may now verify the enriched set');
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

@@ -15,7 +15,15 @@
 // enclosure. The 228 Calendar.aspx?EID= detail pages are NOT fetched
 // (politeness; nothing needed lives only there).
 import { pathToFileURL } from 'node:url';
-import { decodeEntities, stripHtml, truncate, fetchWithTimeout, dayInTz, offsetForDay, addDaysStr } from '../_shared.mjs';
+import {
+  addDaysStr,
+  decodeEntities,
+  fetchWithTimeout,
+  sourceWallTime,
+  sourceWindow,
+  stripHtml,
+  truncate,
+} from '../_shared.mjs';
 // D2 seam: Pacific from the city config.
 import { tz as CITY_TZ } from '../../cities/sf-east-bay.mjs';
 
@@ -46,31 +54,41 @@ function parseUsDate(s) {
   if (!m) return null;
   const mo = MONTHS[m[1].toLowerCase()];
   if (!mo) return null;
-  return `${m[3]}-${String(mo).padStart(2, '0')}-${String(m[2]).padStart(2, '0')}`;
+  const day = `${m[3]}-${String(mo).padStart(2, '0')}-${String(m[2]).padStart(2, '0')}`;
+  try {
+    return addDaysStr(day, 0);
+  } catch {
+    return null;
+  }
 }
 
 // '04:00 PM' → '16:00:00' (null when it isn't a clock time).
 function to24h(s) {
   const m = String(s || '').match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
   if (!m) return null;
-  let h = Number(m[1]) % 12;
+  const rawHour = Number(m[1]);
+  const minute = Number(m[2]);
+  if (rawHour < 1 || rawHour > 12 || minute > 59) return null;
+  let h = rawHour % 12;
   if (/pm/i.test(m[3])) h += 12;
   return `${String(h).padStart(2, '0')}:${m[2]}:00`;
 }
 
-export async function fetchEvents() {
-  const res = await fetchWithTimeout(FEED_URL, { headers: { 'user-agent': UA } });
+export async function fetchEvents(options = {}) {
+  const nowMs = options.nowMs ?? Date.now();
+  const fetchImpl = options.fetchImpl ?? globalThis.fetch;
+  const requireLive = options.requireLive === true;
+  const { today: todayDay, lastDay } = sourceWindow(CITY_TZ, nowMs, WINDOW_DAYS);
+  const res = await fetchWithTimeout(FEED_URL, { headers: { 'user-agent': UA } }, undefined, fetchImpl);
   if (!res.ok) throw new Error(`SF Rec & Parks: HTTP ${res.status}`);
   const xml = await res.text();
 
   const items = xml.split(/<item>/).slice(1);
   if (!items.length) {
+    if (requireLive) throw new Error('SF Rec & Parks: live RSS contained no <item> entries');
     console.warn('SF Rec & Parks: no <item> entries found in RSS feed');
     return [];
   }
-
-  const todayDay = dayInTz(CITY_TZ);
-  const lastDay = addDaysStr(todayDay, WINDOW_DAYS);
 
   const events = [];
   for (const item of items) {
@@ -88,9 +106,11 @@ export async function fetchEvents() {
     const [startRaw, endRaw] = timesRaw.split(/\s*-\s*/);
     const startT = to24h(startRaw);
     const endT = to24h(endRaw);
-    const offset = offsetForDay(CITY_TZ, day);
-    const start = startT ? `${day}T${startT}${offset}` : day;
-    const end = startT && endT && endT !== startT ? `${day}T${endT}${offset}` : null;
+    const start = startT ? sourceWallTime(CITY_TZ, day, startT) : day;
+    if (!start) continue;
+    const end = startT && endT && endT !== startT
+      ? sourceWallTime(CITY_TZ, day, endT, { disambiguation: 'later' })
+      : null;
 
     // <description> holds XML-escaped HTML; decode once to get real markup.
     // Shape: 'Event date:… <br><strong>Event Time: </strong>…<br><strong>

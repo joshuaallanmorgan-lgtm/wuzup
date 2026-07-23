@@ -1,38 +1,11 @@
 {
   "fetchedAt": "2026-06-26T05:40:05.448Z",
   "byKey": {
-    "p|banyan-coffee-co": {
-      "id": "522934939993817",
-      "image": "/place-img/banyan-coffee-co.jpg",
-      "width": 1280,
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "author": "jcox",
-      "signTextRead": "cafe storefront — location-confirmed (align 143°, 22.2m), no conflicting business sign",
-      "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=522934939993817",
-      "tier": "B",
-      "matchKind": "tierB-storefront",
-      "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
-    },
-    "p|beangood-coffee": {
-      "id": "974016848499650",
-      "image": "/place-img/beangood-coffee.jpg",
-      "width": 1280,
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "author": "allen",
-      "signTextRead": "beangood COFFEE",
-      "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=974016848499650",
-      "tier": "A",
-      "matchKind": "phrase2",
-      "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
-    },
     "p|buddy-brew-coffee": {
       "id": "206701701094933",
       "image": "/place-img/buddy-brew-coffee.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "jackdripper",
@@ -41,12 +14,19 @@
       "tier": "A",
       "matchKind": "phrase3",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Buddy Brew Coffee",
+        "lat": 27.9477115,
+        "lng": -82.4590567
+      },
+      "imageSha256": "sha256:133a877b75c93bb35d813ea589cdf6b889976816480785761459f5db05b88b8d"
     },
     "p|cafe-1001-and-creative-catering-company": {
       "id": "2776152355980246",
       "image": "/place-img/cafe-1001-and-creative-catering-company.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "coleman",
@@ -55,12 +35,19 @@
       "tier": "A",
       "matchKind": "phrase3",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Cafe 1001 and Creative Catering Company",
+        "lat": 27.772211,
+        "lng": -82.648283
+      },
+      "imageSha256": "sha256:59a5bb440e6ffedba893dba727ed0b220dbae20a28c06c4e77b8836fc8101888"
     },
     "p|di-coffee-bar": {
       "id": "3993411867382548",
       "image": "/place-img/di-coffee-bar.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "jackdripper",
@@ -69,26 +56,19 @@
       "tier": "A",
       "matchKind": "phrase3",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
-    },
-    "p|foundation-coffee-company": {
-      "id": "484893932562446",
-      "image": "/place-img/foundation-coffee-company.jpg",
-      "width": 1280,
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "author": "jackdripper",
-      "signTextRead": "FOUNDATION",
-      "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=484893932562446",
-      "tier": "A",
-      "matchKind": "token",
-      "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "DI Coffee Bar",
+        "lat": 27.9270191,
+        "lng": -82.4538236
+      },
+      "imageSha256": "sha256:e3c2d517371dd430a9b04412dc0e2aaf2a7a4a22a0cc118a546b6a7bbd0df63c"
     },
     "p|grassroots-kava": {
       "id": "1169192823501228",
       "image": "/place-img/grassroots-kava.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "samsamples",
@@ -97,12 +77,19 @@
       "tier": "A",
       "matchKind": "token",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Grassroots Kava",
+        "lat": 27.771338,
+        "lng": -82.6480824
+      },
+      "imageSha256": "sha256:f1798e3d527d55ce3d26b49ea9ede558264734a6d8ceb92d85c303e778574d89"
     },
     "p|gypsysouls-coffeehouse-redington": {
       "id": "225871448998975",
       "image": "/place-img/gypsysouls-coffeehouse-redington.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "fdot_vl",
@@ -111,26 +98,19 @@
       "tier": "A",
       "matchKind": "tokenPartial",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
-    },
-    "p|indian-shores-coffee": {
-      "id": "1342952362741418",
-      "image": "/place-img/indian-shores-coffee.jpg",
-      "width": 1280,
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "author": "fdot_vl",
-      "signTextRead": "INDIAN SHORES COFFEE",
-      "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=1342952362741418",
-      "tier": "A",
-      "matchKind": "phrase3",
-      "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "GypsySouls Coffeehouse Redington",
+        "lat": 27.8234448,
+        "lng": -82.8276095
+      },
+      "imageSha256": "sha256:6be56d8f0e3eb9e0fbd43b0888cce1bdaa3fe9783360a1909f85433181e326d3"
     },
     "p|kahwa-south": {
       "id": "920674348728641",
       "image": "/place-img/kahwa-south.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "samsamples",
@@ -139,12 +119,19 @@
       "tier": "A",
       "matchKind": "token",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Kahwa South",
+        "lat": 27.76928,
+        "lng": -82.63586
+      },
+      "imageSha256": "sha256:17c8ede1992a8a753c4e6cf35d60edb1d7491a9e519268f1523e225fa3102123"
     },
     "p|kaleisia-tea-lounge": {
       "id": "1071050807021320",
       "image": "/place-img/kaleisia-tea-lounge.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "laye",
@@ -153,12 +140,19 @@
       "tier": "A",
       "matchKind": "phrase2",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Kaleisia Tea Lounge",
+        "lat": 28.0688473,
+        "lng": -82.4444011
+      },
+      "imageSha256": "sha256:9e28d8a82f3544535f32c815ace68011ea65d9565003bd61aa62ce8148bc0143"
     },
     "p|madison-avenue-cafe-and-deli": {
       "id": "652353633233497",
       "image": "/place-img/madison-avenue-cafe-and-deli.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "networklanman",
@@ -167,12 +161,19 @@
       "tier": "A",
       "matchKind": "token",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Madison Avenue Cafe And Deli",
+        "lat": 27.319669,
+        "lng": -82.5777344
+      },
+      "imageSha256": "sha256:900c76a7ddc92572474eed8131babc074785c9fd3ab4a43ea85449f88ca25411"
     },
     "p|neighborhood-joe": {
       "id": "218242623086011",
       "image": "/place-img/neighborhood-joe.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "nfgusedautoparts",
@@ -181,12 +182,19 @@
       "tier": "A",
       "matchKind": "phrase2",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Neighborhood Joe",
+        "lat": 27.7960019,
+        "lng": -82.646533
+      },
+      "imageSha256": "sha256:43481c76c2d456610ad4deb37a299d07a3b34bccbdb3a02726a16062bf648490"
     },
     "p|nina-s-cafe-on-the-beach": {
       "id": "3257252564502403",
       "image": "/place-img/nina-s-cafe-on-the-beach.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "fdot_vl",
@@ -195,12 +203,19 @@
       "tier": "A",
       "matchKind": "phrase3",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Nina's Cafe On the Beach",
+        "lat": 27.7561867,
+        "lng": -82.7596208
+      },
+      "imageSha256": "sha256:5f9474ee15915305ded144c4b54eaba848832299b40f0c1fbab0e8e2a68c9000"
     },
     "p|parkside-cafe": {
       "id": "1889082411246868",
       "image": "/place-img/parkside-cafe.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "lvl5",
@@ -209,12 +224,19 @@
       "tier": "A",
       "matchKind": "phrase2",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Parkside Cafe",
+        "lat": 27.8462381,
+        "lng": -82.7004459
+      },
+      "imageSha256": "sha256:3f42d70582594a691e5cc94de628a763a5a6233008aa45253fe60223eb3b1cc8"
     },
     "p|pineapple-espresso": {
       "id": "2988536004759309",
       "image": "/place-img/pineapple-espresso.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "nfgusedautoparts",
@@ -223,12 +245,19 @@
       "tier": "A",
       "matchKind": "phrase2",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Pineapple Espresso",
+        "lat": 27.8001396,
+        "lng": -82.6464761
+      },
+      "imageSha256": "sha256:49199f142df5701c2cfed73a1426efa37dfad00c3eecbcdf568a322d7de450ad"
     },
     "p|raining-berries": {
       "id": "456553075449221",
       "image": "/place-img/raining-berries.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "samsamples",
@@ -237,12 +266,19 @@
       "tier": "A",
       "matchKind": "phrase2",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Raining Berries",
+        "lat": 28.1955857,
+        "lng": -82.3935346
+      },
+      "imageSha256": "sha256:70324752f1f972a627b8a84bc37cd8b30312e4653ea8d5496b0d557d7ce84b17"
     },
     "p|starbucks-18": {
       "id": "753205092012301",
       "image": "/place-img/starbucks-18.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "samsamples",
@@ -251,12 +287,19 @@
       "tier": "A",
       "matchKind": "tokenPartial",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Starbucks",
+        "lat": 27.772293,
+        "lng": -82.63531
+      },
+      "imageSha256": "sha256:e8a2b6bdd39d839fedd1fe8a5613592fe165139506075f4b9d536826c66d9152"
     },
     "p|starbucks-22": {
       "id": "158391199514303",
       "image": "/place-img/starbucks-22.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "fdot_vl",
@@ -265,12 +308,19 @@
       "tier": "A",
       "matchKind": "token",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Starbucks",
+        "lat": 27.817437,
+        "lng": -82.638906
+      },
+      "imageSha256": "sha256:7267cab44775ee4bd018d02e879c073dd526f56518b25d4a5986483096459a24"
     },
     "p|starbucks-25": {
       "id": "1224995091291079",
       "image": "/place-img/starbucks-25.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "fdot_vl",
@@ -279,12 +329,19 @@
       "tier": "A",
       "matchKind": "token",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Starbucks",
+        "lat": 27.85279,
+        "lng": -82.638357
+      },
+      "imageSha256": "sha256:ce32aaf1e7417728eff63c44b249e677e379173251d6ba99ecfd38f264216096"
     },
     "p|starbucks-29": {
       "id": "1676967175824433",
       "image": "/place-img/starbucks-29.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "fdot_vl",
@@ -293,12 +350,19 @@
       "tier": "A",
       "matchKind": "token",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Starbucks",
+        "lat": 27.893451,
+        "lng": -82.68844
+      },
+      "imageSha256": "sha256:242bf94c960403c899b0e35de4d3c7f7f8bb4b2afda5e2aa0343d86f9d102b4d"
     },
     "p|starbucks-30": {
       "id": "379979213355234",
       "image": "/place-img/starbucks-30.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "lvl5",
@@ -307,12 +371,19 @@
       "tier": "A",
       "matchKind": "token",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Starbucks",
+        "lat": 27.8940834,
+        "lng": -82.5036769
+      },
+      "imageSha256": "sha256:8fa46b7c956617bb1d835805d046342eba7b02e0b264a8a784230efc05aeb19b"
     },
     "p|starbucks-37": {
       "id": "936707000397501",
       "image": "/place-img/starbucks-37.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "fdot_vl",
@@ -321,12 +392,19 @@
       "tier": "A",
       "matchKind": "token",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Starbucks",
+        "lat": 27.9600789,
+        "lng": -82.7466256
+      },
+      "imageSha256": "sha256:466cf2630c9deec2d482603714dc91a0e79431469e24538009187e485c881e4a"
     },
     "p|starbucks-38": {
       "id": "827550541208634",
       "image": "/place-img/starbucks-38.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "fdot_vl",
@@ -335,12 +413,19 @@
       "tier": "A",
       "matchKind": "token",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Starbucks",
+        "lat": 27.9654779,
+        "lng": -82.8001524
+      },
+      "imageSha256": "sha256:6ba8a104c19b0f3c0e897143bc40e47b14c7c76d4b79bc3dfd05d1e74544e8a6"
     },
     "p|starbucks-44": {
       "id": "479138580021201",
       "image": "/place-img/starbucks-44.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "cory_spatialnetworks_com",
@@ -349,12 +434,19 @@
       "tier": "A",
       "matchKind": "token",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Starbucks",
+        "lat": 27.9906547,
+        "lng": -82.6890649
+      },
+      "imageSha256": "sha256:6e212b2a8285fced3ec014a452823442f237e44317f8cdf3160eede6999375ac"
     },
     "p|starbucks-48": {
       "id": "4013967625346366",
       "image": "/place-img/starbucks-48.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "fdot_vl",
@@ -363,12 +455,19 @@
       "tier": "A",
       "matchKind": "tokenPartial",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Starbucks",
+        "lat": 28.0141109,
+        "lng": -82.709414
+      },
+      "imageSha256": "sha256:0a325072131e01ac8d499cd759dd464a6b61c349cdf3d3390fcc68d314ce7659"
     },
     "p|starbucks-52": {
       "id": "844951273067945",
       "image": "/place-img/starbucks-52.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "fdot_vl",
@@ -377,12 +476,19 @@
       "tier": "A",
       "matchKind": "token",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Starbucks",
+        "lat": 28.0404982,
+        "lng": -82.5053831
+      },
+      "imageSha256": "sha256:60445aa5af190f852142a2ce7a1ac545eac53835682a4b18465b5c55073337b9"
     },
     "p|starbucks-57": {
       "id": "377027563659438",
       "image": "/place-img/starbucks-57.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "jackdripper",
@@ -391,12 +497,19 @@
       "tier": "A",
       "matchKind": "token",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Starbucks",
+        "lat": 28.0686674,
+        "lng": -82.370626
+      },
+      "imageSha256": "sha256:c3f482b2c855e501bdbafc2e71c9840c85965afaafd4ebd77c6b2eb12e7e1fe5"
     },
     "p|starbucks-7": {
       "id": "1188296658285250",
       "image": "/place-img/starbucks-7.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "jpace",
@@ -405,12 +518,19 @@
       "tier": "A",
       "matchKind": "token",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Starbucks",
+        "lat": 27.389529,
+        "lng": -82.5168232
+      },
+      "imageSha256": "sha256:b656aa6a173cccabc1a68c5bf88d547ddcb67db68add652067881d9b385e33ee"
     },
     "p|starbucks-75": {
       "id": "957714605056349",
       "image": "/place-img/starbucks-75.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "samsamples",
@@ -419,12 +539,19 @@
       "tier": "A",
       "matchKind": "token",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Starbucks",
+        "lat": 28.2595021,
+        "lng": -82.187528
+      },
+      "imageSha256": "sha256:24bce91c7577bc1d3750bc358535af6c586f20ee1b7e565e878165f917ae2fbc"
     },
     "p|swann-avenue-market-cafe": {
       "id": "619259266713896",
       "image": "/place-img/swann-avenue-market-cafe.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "PalauanReich",
@@ -433,26 +560,19 @@
       "tier": "A",
       "matchKind": "token",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
-    },
-    "p|tenth-street-coffee": {
-      "id": "650653606780814",
-      "image": "/place-img/tenth-street-coffee.jpg",
-      "width": 1280,
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "author": "jcox",
-      "signTextRead": "?NTH STREET COFFEE",
-      "mapillaryUrl": "https://www.mapillary.com/app/?focus=photo&pKey=650653606780814",
-      "tier": "A",
-      "matchKind": "phrase2",
-      "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Swann Avenue Market & Cafe",
+        "lat": 27.9375872,
+        "lng": -82.4704253
+      },
+      "imageSha256": "sha256:b0ba0113fc8ad92706f9e969f48ad80fae8f4561ff878a2069eec3c7cb8f2442"
     },
     "p|the-bikery": {
       "id": "468856554227142",
       "image": "/place-img/the-bikery.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "nfgusedautoparts",
@@ -461,12 +581,19 @@
       "tier": "A",
       "matchKind": "tokenPartial",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "The Bikery",
+        "lat": 27.7699767,
+        "lng": -82.6636919
+      },
+      "imageSha256": "sha256:5cbb01b4a45f7846e73c4fef84084ca839da4732e58ed80c27dedbb95a30002f"
     },
     "p|the-sandwich-on-main": {
       "id": "2904712599776057",
       "image": "/place-img/the-sandwich-on-main.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "cory_spatialnetworks_com",
@@ -475,12 +602,19 @@
       "tier": "A",
       "matchKind": "token",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "The Sandwich on Main",
+        "lat": 27.9906791,
+        "lng": -82.690283
+      },
+      "imageSha256": "sha256:22ae0037ff72f5bc6782c0f387825320cf67b9f6cfe825690646ba87a555b0d0"
     },
     "p|whistle-stop-caf": {
       "id": "4309207739089763",
       "image": "/place-img/whistle-stop-caf.jpg",
-      "width": 1280,
+      "width": 900,
+      "height": 600,
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "author": "jackdripper",
@@ -489,7 +623,13 @@
       "tier": "A",
       "matchKind": "phrase3",
       "reVerified": true,
-      "at": "2026-06-26T05:40:05.448Z"
+      "at": "2026-06-26T05:40:05.448Z",
+      "place": {
+        "name": "Whistle Stop Café",
+        "lat": 28.0150838,
+        "lng": -82.1229933
+      },
+      "imageSha256": "sha256:50db5a295ff669cbe0d0c8c194ab737ea7bd96355513c168f77569bf04787d45"
     }
   }
 }

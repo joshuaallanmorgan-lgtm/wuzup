@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 1,
+  "fixtureId": "sf-east-bay-relevance-v1",
+  "judgmentStatus": "draft-owner-review",
+  "origin": {
+    "cityId": "sf-east-bay",
+    "timeZone": "America/Los_Angeles",
+    "manifestId": "sha256:1690a379633d3a7117ee167a8600d27a151d650bfad66ae9efa010af47c2740a",
+    "buildId": "sha256:df88fafec557c009b195a845332273f006a074fc12dbe0d97292777e0a1bd4cb",
+    "eventsSha256": "84981a8ec48f0245e23e168fb63bc2071cceb5e1eda4e115828264a92873b1d8",
+    "placesSha256": "1f42b49ee860b3ad2a5a887192eaa0b77689ab457f4671b28bdda85c4a39ad78",
+    "eventsGeneratedAt": "2026-07-06T04:11:23.000Z",
+    "placesGeneratedAt": "2026-07-07T15:01:25.000Z"
+  },
+  "limitations": [
+    "This is an expired artifact replay, not a claim about current SF/East Bay inventory.",
+    "Actionability and quality labels are frozen contextual judgments, not production fields.",
+    "The SF/East Bay product footprint is a corridor and must not imply Bay Area-wide coverage."
+  ],
+  "cases": [
+    {
+      "caseId": "sf-home-top-picks-morning",
+      "context": { "caseType": "surface-order", "surface": "home.top-picks", "kind": "event", "asOf": "2026-07-14T09:00:00-07:00", "prefix": 4, "intent": "broad-discovery" },
+      "candidates": [
+        {
+          "id": "d0bdff0e770df0c5",
+          "display": { "title": "Bastille on Belden | Free Event in Downtown San Francisco" },
+          "facets": { "sourceFamily": "Eventbrite", "category": "other", "venueOrOperator": "belden-place" },
+          "groups": { "canonicalId": null, "seriesId": null },
+          "labels": { "relevance": 2, "actionable": false, "knownBad": false, "gem": "insufficient" },
+          "evidence": ["Plausible street event with a location, but date-only."]
+        },
+        {
+          "id": "f33085f86ddb2cf4",
+          "display": { "title": "Forrest Frank - World Vision Volunteers - Oakland, CA" },
+          "facets": { "sourceFamily": "Eventbrite", "category": "music", "venueOrOperator": "oakland-arena" },
+          "groups": { "canonicalId": null, "seriesId": null },
+          "labels": { "relevance": 0, "actionable": false, "knownBad": true, "gem": "no" },
+          "evidence": ["Volunteer recruitment for a concert, not an attendee-facing event."]
+        },
+        {
+          "id": "a078fca643e19132",
+          "display": { "title": "Prescott Circus Theatre presents its FREE Summer Performance Series!" },
+          "facets": { "sourceFamily": "AllEvents", "category": "theatre", "venueOrOperator": "malonga-casquelourd-center" },
+          "groups": { "canonicalId": null, "seriesId": "oakland:prescott-circus-summer-performance" },
+          "labels": { "relevance": 2, "actionable": false, "knownBad": false, "gem": "insufficient" },
+          "evidence": ["Credible free youth-circus performance, but date-only."]
+        },
+        {
+          "id": "9fc70f7fd8a6a08d",
+          "display": { "title": "Self-Defense Workshop" },
+          "facets": { "sourceFamily": "UC Berkeley", "category": "community", "venueOrOperator": "unknown" },
+          "groups": { "canonicalId": null, "seriesId": null },
+          "labels": { "relevance": 0, "actionable": false, "knownBad": true, "gem": "no" },
+          "evidence": ["Venue is explicitly 520 8th Ave, New York, NY; wrong market despite the Berkeley feed."]
+        },
+        {
+          "id": "7683e8cfec42a73d",
+          "display": { "title": "Berkeley Coffee Club | Foodies + New Friends" },
+          "facets": { "sourceFamily": "AllEvents", "category": "community", "venueOrOperator": "cafe-of-the-month" },
+          "groups": { "canonicalId": null, "seriesId": "berkeley:coffee-club" },
+          "labels": { "relevance": 0, "actionable": false, "knownBad": true, "gem": "no" },
+          "evidence": ["One listing spans July 2026 through December 2027 and becomes a phantom Tonight item."]
+        },
+        {
+          "id": "17ed1cf203d69294",
+          "display": { "title": "Union Square Daily Programming: Toddler Tuesdays" },
+          "facets": { "sourceFamily": "SF Rec & Parks", "category": "family", "venueOrOperator": "union-square" },
+          "groups": { "canonicalId": "sf:union-square:toddler-tuesdays:2026-07-14", "seriesId": "sf:union-square:toddler-tuesdays" },
+          "labels": { "relevance": 3, "actionable": true, "knownBad": false, "gem": "no" },
+          "evidence": ["Government-backed, timed, located recurring family activity."]
+        }
+      ],
+      "baseline": {
+        "selector": "HomeView.topPicks via tonightModel",
+        "projectionOf": "frozen full surface order; rows appeared at positions 1, 2, 3, 4, 13, and 14",
+        "rankedIds": ["d0bdff0e770df0c5", "f33085f86ddb2cf4", "a078fca643e19132", "9fc70f7fd8a6a08d", "7683e8cfec42a73d", "17ed1cf203d69294"],
+        "gemClaimIds": []
+      }
+    },
+    {
+      "caseId": "sf-spots-unlocated-source-concentration",
+      "context": { "caseType": "surface-order", "surface": "spots.broad-unlocated", "kind": "place", "asOf": "2026-07-14T09:00:00-07:00", "prefix": 3, "intent": "broad-discovery" },
+      "candidates": [
+        {
+          "id": "p|baker-beach",
+          "display": { "title": "Baker Beach" },
+          "facets": { "sourceFamily": "GGNRA editorial seed", "category": "outdoors", "venueOrOperator": "GGNRA" },
+          "groups": { "canonicalId": "p|baker-beach", "seriesId": null },
+          "labels": { "relevance": 3, "actionable": true, "knownBad": false, "gem": "no" },
+          "evidence": ["NPS/editorial plus OSM, licensed image, and description."]
+        },
+        {
+          "id": "p|fort-mason",
+          "display": { "title": "Fort Mason" },
+          "facets": { "sourceFamily": "GGNRA editorial seed", "category": "outdoors", "venueOrOperator": "GGNRA" },
+          "groups": { "canonicalId": "p|fort-mason", "seriesId": null },
+          "labels": { "relevance": 3, "actionable": true, "knownBad": false, "gem": "no" },
+          "evidence": ["Corroborated NPS destination with image and description."]
+        },
+        {
+          "id": "p|lands-end",
+          "display": { "title": "Lands End" },
+          "facets": { "sourceFamily": "GGNRA editorial seed", "category": "outdoors", "venueOrOperator": "GGNRA" },
+          "groups": { "canonicalId": "p|lands-end", "seriesId": null },
+          "labels": { "relevance": 3, "actionable": true, "knownBad": false, "gem": "no" },
+          "evidence": ["Corroborated NPS destination with licensed image."]
+        },
+        {
+          "id": "p|marin-headlands",
+          "display": { "title": "Marin Headlands" },
+          "facets": { "sourceFamily": "GGNRA editorial seed", "category": "outdoors", "venueOrOperator": "GGNRA" },
+          "groups": { "canonicalId": "p|marin-headlands", "seriesId": null },
+          "labels": { "relevance": 3, "actionable": true, "knownBad": false, "gem": "no" },
+          "evidence": ["Strong public destination, but part of a homogeneous lead batch."]
+        },
+        {
+          "id": "p|ocean-beach",
+          "display": { "title": "Ocean Beach" },
+          "facets": { "sourceFamily": "GGNRA editorial seed", "category": "outdoors", "venueOrOperator": "GGNRA" },
+          "groups": { "canonicalId": "p|ocean-beach", "seriesId": null },
+          "labels": { "relevance": 3, "actionable": true, "knownBad": false, "gem": "no" },
+          "evidence": ["Strong public destination, but part of a homogeneous lead batch."]
+        },
+        {
+          "id": "p|sutro-heights-park",
+          "display": { "title": "Sutro Heights Park" },
+          "facets": { "sourceFamily": "GGNRA editorial seed", "category": "outdoors", "venueOrOperator": "GGNRA" },
+          "groups": { "canonicalId": "p|sutro-heights-park", "seriesId": null },
+          "labels": { "relevance": 3, "actionable": true, "knownBad": false, "gem": "no" },
+          "evidence": ["Strong public destination, but part of a homogeneous lead batch."]
+        }
+      ],
+      "baseline": {
+        "selector": "LocationsView photoFirst without coordinates",
+        "projectionOf": "frozen full surface order",
+        "rankedIds": ["p|baker-beach", "p|fort-mason", "p|lands-end", "p|marin-headlands", "p|ocean-beach", "p|sutro-heights-park"],
+        "gemClaimIds": []
+      }
+    },
+    {
+      "caseId": "sf-place-image-and-gem-defects",
+      "context": { "caseType": "defect-projection", "surface": "spots.audited-defect-projection", "kind": "place", "asOf": "2026-07-14T09:00:00-07:00", "prefix": 3, "intent": "claim-audit" },
+      "candidates": [
+        {
+          "id": "p|briones-to-mt-diablo-trail",
+          "display": { "title": "Briones to Mt Diablo Trail" },
+          "facets": { "sourceFamily": "EBRPD Parks", "category": "outdoors", "venueOrOperator": "EBRPD" },
+          "groups": { "canonicalId": "p|briones-to-mt-diablo-trail", "seriesId": null },
+          "labels": { "relevance": 2, "actionable": true, "knownBad": true, "gem": "insufficient" },
+          "evidence": ["Valid official trail, but its current image depicts unrelated East Bay lifeguard training."]
+        },
+        {
+          "id": "p|esprit-townhomes-park",
+          "display": { "title": "Esprit Townhomes Park" },
+          "facets": { "sourceFamily": "OSM", "category": "outdoors", "venueOrOperator": "private-residential" },
+          "groups": { "canonicalId": "p|esprit-townhomes-park", "seriesId": null },
+          "labels": { "relevance": 0, "actionable": false, "knownBad": true, "gem": "no" },
+          "evidence": ["Thin private-sounding OSM row incorrectly marked hidden by the current heuristic."]
+        },
+        {
+          "id": "p|rehab-therapy-yard",
+          "display": { "title": "Rehab Therapy Yard" },
+          "facets": { "sourceFamily": "OSM", "category": "sports", "venueOrOperator": "medical-facility" },
+          "groups": { "canonicalId": "p|rehab-therapy-yard", "seriesId": null },
+          "labels": { "relevance": 0, "actionable": false, "knownBad": true, "gem": "no" },
+          "evidence": ["Medical-facility yard represented as sports courts with coordinates only."]
+        }
+      ],
+      "baseline": {
+        "selector": "audited defect projection",
+        "projectionOf": "known image and hidden/generic-place failure examples",
+        "rankedIds": ["p|briones-to-mt-diablo-trail", "p|esprit-townhomes-park", "p|rehab-therapy-yard"],
+        "gemClaimIds": ["p|esprit-townhomes-park"]
+      }
+    }
+  ]
+}

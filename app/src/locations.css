@@ -3,52 +3,9 @@
    detail.css + LensNav (topnav.css) so the Locations tab IS Hot's structural twin. */
 
 /* Stage 2 sweep: the cinematic Spots image hero (.loc-hero / ::before / -wash /
-   -img / -flat + the .loc-hero .hero-* descendants) was removed — Stage R replaced
-   it with the clean light header below (.loc-head + .loc-search). */
-
-/* ===== Stage R (§N screen 6): clean light Spots header — title + sub + a
-   prominent search bar — replaces the cinematic image hero to match the
-   benchmark's scannable top. ===== */
-.loc-head {
-  padding: 18px var(--gutter) 6px; /* A5: 18→20 so the title shares the body's left ruler */
-}
-.loc-head-title {
-  margin: 0;
-  font-size: 32px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.05;
-  color: var(--ink);
-}
-.loc-head-sub {
-  margin-top: 4px;
-  font-size: 14px;
-  color: var(--muted);
-}
-.loc-search {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  margin-top: 14px;
-  padding: var(--sp-sm) var(--sp-md);
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--r-pill);
-  box-shadow: var(--shadow-card, 0 1px 3px rgba(26, 20, 16, 0.04)); /* WS3: warm fallback per §3 */
-  cursor: pointer;
-  text-align: left;
-}
-.loc-search-ic {
-  flex: none;
-  font-size: var(--t-body);
-}
-.loc-search-ph {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--muted);
-}
-
+   -img / -flat + the .loc-hero .hero-* descendants) was removed. The clean
+   shared header now lives eagerly in App.css; only place-specific surfaces live
+   here. */
 /* (3.7P-21: the inline "Near-you locate prompt" (.loc-locate*) was retired —
    location is opt-in in Settings now; these styles were removed with the gate.) */
 
@@ -78,6 +35,12 @@
 .loc-plan-cta:active {
   transform: scale(0.985);
   box-shadow: 0 3px 12px rgba(var(--accent-rgb), 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.loc-plan-cta:disabled {
+  color: var(--muted);
+  background: var(--surface-2);
+  box-shadow: none;
+  cursor: default;
 }
 
 /* ===== 3.7P-24 field-guide elements (§N spot detail) ===== */
@@ -137,8 +100,8 @@
   position: absolute;
   top: calc(14px + env(safe-area-inset-top));
   right: 62px;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--r-circle);
   border: none;
   background: rgba(0, 0, 0, 0.42);
@@ -282,6 +245,9 @@
 }
 .loc-plan-sheet {
   position: relative;
+  width: 100%;
+  max-width: var(--sheet-max);
+  margin-inline: auto;
   background: var(--card);
   border-radius: var(--r-lg) var(--r-lg) 0 0;
   padding: var(--sp-md) var(--sp-md) calc(16px + env(safe-area-inset-bottom));
@@ -317,6 +283,8 @@
   color: var(--ink);
 }
 .loc-sheet-close {
+  width: 44px;
+  height: 44px;
   font-size: 18px;
   line-height: 1;
   color: var(--muted);
@@ -340,6 +308,7 @@
 }
 .loc-plan-day {
   flex: 0 0 auto;
+  min-height: 44px;
   font-size: var(--t-meta);
   font-weight: 600;
   color: var(--ink);

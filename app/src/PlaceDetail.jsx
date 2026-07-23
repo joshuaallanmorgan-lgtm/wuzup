@@ -12,13 +12,19 @@
 // ALL COPY IS DRAFT for Charles.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNav } from './nav.jsx'
-import { fmtLocale, Icon, keyOf } from './lib.js'
+import { usePlanner } from './PlannerProvider.jsx'
+import { PLANNER_PARTS as PARTS } from './planner-core.js'
+import { addDayTs, CITY, formatDayTs, Icon, keyOf } from './lib.js'
 import { SecHead, TonightCard, artEmoji, auroraStyle, spotChips } from './cards.jsx'
+import { capturePersonalSignal } from './personal-signals.js'
 import { SaveHeart, useSaves } from './saves.js'
 import { dateKey } from './weather.js'
 import { usePlaces, ACTIVITIES } from './places.js'
+import { rankSpots } from './spot-context.js'
+import { useTaste } from './taste.js'
 import { DAYPART } from './weekend.js'
-import { loadDayPlans, saveDayPlans, withSlot, dayEntryFor, PARTS } from './dayplan.js'
+import CorrectionSheet from './CorrectionSheet.jsx'
+import { presentRuntimeImage } from './leadImage.js'
 import './locations.css'
 
 // normalized amenity vocabulary → human label + emoji (DRAFT for Charles).
@@ -67,47 +73,72 @@ const AMENITY_LABELS = {
 }
 const amenityChip = (a) => AMENITY_LABELS[a] || ['•', a.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())]
 
-const wdLong = (ts) => new Date(ts).toLocaleDateString(fmtLocale, { weekday: 'long' })
+const wdLong = (ts) => formatDayTs(ts, { weekday: 'long' })
 
 // upcoming days for the Make-this-my-plan picker: today + the next 13 days
 // (two weeks of horizon — the same supply window the day screen plans into).
 function planDays(anchors) {
   const out = []
-  const d0 = new Date(anchors.todayTs)
   for (let i = 0; i < 14; i++) {
-    const ts = new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() + i).getTime()
+    const ts = addDayTs(anchors.todayTs, i)
     out.push({ ts, label: ts === anchors.todayTs ? 'Today' : ts === anchors.tomorrowTs ? 'Tomorrow' : wdLong(ts) })
   }
   return out
 }
 
 export default function PlaceDetail({ e, anchors, wx }) {
-  const { closing, vtOpen: vt, closeDetail: onClose, openDetail: onSelect } = useNav()
+  const {
+    closing,
+    vtOpen: vt,
+    closeDetail: onClose,
+    openDetail: onSelect,
+    openDay,
+    durableHrefForItem,
+  } = useNav()
+  const {
+    status: plannerStatus,
+    add,
+    getDay,
+    isPlanned,
+    placement,
+  } = usePlanner()
   const { places } = usePlaces()
-  const { has: hasSave, toggle: toggleSave } = useSaves()
+  const taste = useTaste()
+  const [rankNowMs] = useState(() => Date.now())
+  const {
+    has: hasSave,
+    toggle: toggleSave,
+    canToggle: canToggleSave,
+    identityPending: isSaveIdentityPending,
+    identityAmbiguous: isSaveIdentityAmbiguous,
+    identityWent: isSaveIdentityWent,
+    isPending: isSavePending,
+  } = useSaves()
   const saved = hasSave(e)
+  const savePending = isSavePending(e)
+  const saveIdentityPending = isSaveIdentityPending(e)
+  const saveIdentityAmbiguous = isSaveIdentityAmbiguous(e)
+  const saveIdentityWent = isSaveIdentityWent(e)
 
   // W4: a place with a REAL Wikidata photo gets an image hero (preload + 300ms
   // fade over a dark placeholder, DetailPage's exact pattern); places without a
   // photo keep the category-art hero. e.image is only ever a verified photo OF
   // THIS place (Wikidata P18 → Commons), never a representative stand-in.
-  const [loadedSrc, setLoadedSrc] = useState(null)
-  const [heroFailed, setHeroFailed] = useState(false)
-  useEffect(() => {
-    if (!e.image) return
-    const src = e.image
-    const img = new Image()
-    img.onload = () => setLoadedSrc(src)
-    img.onerror = () => setHeroFailed(true) // dead URL → fall back to category-art
-    img.src = src
-    return () => {
-      img.onload = null
-      img.onerror = null
-    }
-  }, [e.image])
-  const imgOk = loadedSrc === e.image
+  const presentedImage = useMemo(() => presentRuntimeImage(e), [e])
+  const heroImage = presentedImage.image
+  // Scope load evidence to this exact source generation. PlaceDetail can stay
+  // mounted while an artifact refresh changes the image URL; a unique token
+  // prevents a late/previous load (including A -> B -> A) from making the new
+  // request look ready before its own onLoad fires.
+  const heroImageToken = useMemo(() => ({ heroImage }), [heroImage])
+  const [heroImageLoad, setHeroImageLoad] = useState(() => ({ token: null, state: 'pending' }))
+  const loadedSrc = heroImageLoad.token === heroImageToken && heroImageLoad.state === 'loaded' ? heroImage : null
+  const failedSrc = heroImageLoad.token === heroImageToken && heroImageLoad.state === 'failed' ? heroImage : null
+  const imgOk = loadedSrc === heroImage
   // a real photo that loads → image hero; no photo OR a broken URL → art hero
-  const heroArt = !e.image || heroFailed
+  const heroArt = !heroImage || failedSrc === heroImage
+  const heroLoading = Boolean(heroImage) && !heroArt && !imgOk
+  const photoReady = Boolean(heroImage) && !heroArt && imgOk
 
   const hasCoords = e.lat != null && e.lng != null
   const mapsUrl = hasCoords
@@ -138,9 +169,8 @@ export default function PlaceDetail({ e, anchors, wx }) {
     const outdoorish = ['outdoors'].includes(e.category) || ['park', 'beach', 'preserve', 'trail', 'viewpoint', 'pier', 'dog_park', 'garden'].includes(e.placeType)
     if (!outdoorish) return null
     const noun = e.placeType === 'beach' ? 'beach' : e.placeType === 'trail' || e.placeType === 'preserve' ? 'trail' : 'park'
-    const d0 = new Date(anchors.todayTs)
     for (let i = 0; i < 7; i++) {
-      const ts = new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() + i).getTime()
+      const ts = addDayTs(anchors.todayTs, i)
       const w = wx[dateKey(ts)]
       if (w && (w.emoji === '☀️' || w.emoji === '⛅') && (w.rain == null || w.rain < 40)) {
         const when = ts === anchors.todayTs ? 'today' : ts === anchors.tomorrowTs ? 'tomorrow' : wdLong(ts)
@@ -168,21 +198,33 @@ export default function PlaceDetail({ e, anchors, wx }) {
   // D8: the detail mini-map (lazy Leaflet) is parked for v1 — removed. Coordinates
   // still drive the Directions button (Google Maps), below.
 
-  // "More spots like this" — same placeType, nearest by simple coord delta,
-  // up to 4 (places only; never crosses into events)
+  // "More spots like this" keeps the honest same-type predicate, then applies
+  // shared objective quality and bounded distance rather than nearest-only order.
   const similar = useMemo(() => {
     if (!Array.isArray(places)) return []
     const self = e.key
-    return places
-      .filter((p) => p.key !== self && p.placeType === e.placeType)
-      .map((p) => ({ p, d: hasCoords && p.lat != null ? Math.hypot(p.lat - e.lat, p.lng - e.lng) : Infinity }))
-      .sort((a, b) => a.d - b.d)
-      .slice(0, 4)
-      .map((x) => x.p)
-  }, [places, e, hasCoords])
+    const matched = places.filter((p) => p.key !== self && p.placeType === e.placeType)
+    return rankSpots(matched, {
+      nowMs: rankNowMs,
+      city: CITY,
+      taste,
+      coords: hasCoords ? { lat: e.lat, lng: e.lng } : null,
+      radiusMiles: 25,
+      activity: { id: `similar:${e.placeType}`, match: (p) => p.placeType === e.placeType },
+      mode: 'similar',
+      attachDistance: false,
+      diversityPolicy: { prefix: 8, sourceMax: 3, categoryMax: 4, venueMax: 1, canonicalMax: 1, seriesMax: 1 },
+    }).ordered.slice(0, 4)
+  }, [places, e, hasCoords, rankNowMs, taste])
 
   // ===== utility row: directions / share-or-copy + toast =====
   const [toast, setToast] = useState(null)
+  const [correcting, setCorrecting] = useState(false)
+  const correctionButtonRef = useRef(null)
+  const closeCorrection = () => {
+    setCorrecting(false)
+    requestAnimationFrame(() => correctionButtonRef.current?.focus())
+  }
   const toastTRef = useRef(null)
   useEffect(() => () => clearTimeout(toastTRef.current), [])
   const flash = (msg) => {
@@ -192,15 +234,16 @@ export default function PlaceDetail({ e, anchors, wx }) {
   }
   const share = async () => {
     const text = [e.name, e.venue, e.hours].filter(Boolean).join(' · ')
+    const url = durableHrefForItem(e)
     if (navigator.share) {
       try {
-        await navigator.share(e.url ? { title: e.name, text: e.name, url: e.url } : { title: e.name, text })
+        await navigator.share({ title: e.name, text, ...(url ? { url } : {}) })
       } catch {
         /* dismissed — not an error */
       }
     } else if (navigator.clipboard?.writeText) {
       try {
-        await navigator.clipboard.writeText(e.url || text)
+        await navigator.clipboard.writeText(url || text)
         flash('Details copied ✓')
       } catch {
         flash("Couldn't copy")
@@ -211,25 +254,35 @@ export default function PlaceDetail({ e, anchors, wx }) {
   }
 
   // ===== Make this my plan — the place→day-plan bridge (S2). A sheet picks a
-  // day + daypart; on pick we write the place KEY into that day's slot via the
-  // dayplan.js seams (withSlot clears any rest mark). NEVER CLOBBERS: a filled
-  // slot is shown taken and is not overwritable. =====
+  // day + daypart and the atomic planner confirms the write. NEVER CLOBBERS: a
+  // filled slot is shown taken and is not overwritable. =====
   const [planning, setPlanning] = useState(false)
   const [planDay, setPlanDay] = useState(anchors.todayTs)
-  const [plansVersion, setPlansVersion] = useState(0) // bump to re-read filled state after a write
+  const [planPending, setPlanPending] = useState(false)
+  const planned = isPlanned(e)
+  const plannedPlacement = placement(e)
+  const plannerReady = plannerStatus === 'durable' || plannerStatus === 'session-only'
+  const plannerUnavailableLabel = plannerStatus === 'idle' || plannerStatus === 'initializing'
+    ? 'Loading plans…'
+    : 'Plans unavailable'
   // Plan Phase 2 (flows-2 p2): select-then-confirm — selPart holds the chosen
   // daypart, then "Add to {day}" commits. A place is 'any' → morning is the default.
   const [selPart, setSelPart] = useState(null)
   const planSheetRef = useRef(null)
   const planCtaRef = useRef(null)
+  const planPendingRef = useRef(false)
   const days = useMemo(() => planDays(anchors), [anchors])
+  const currentPlanDay = days.some((day) => day.ts === planDay)
+    ? planDay
+    : days[0]?.ts ?? anchors.todayTs
   const filled = useMemo(() => {
-    // read the current entry for the selected day to disable taken slots
-    void plansVersion
-    const map = loadDayPlans(anchors)
-    const entry = dayEntryFor(map[String(planDay)])
-    return { ...Object.fromEntries(PARTS.map((p) => [p, entry?.slots[p] || null])), rest: entry?.state === 'rest' }
-  }, [planDay, anchors, plansVersion])
+    const day = getDay(currentPlanDay)
+    const occupied = new Map(day.slots.map((slot) => [slot.part, slot]))
+    return {
+      ...Object.fromEntries(PARTS.map((part) => [part, occupied.get(part) || null])),
+      rest: day.state === 'rest',
+    }
+  }, [currentPlanDay, getDay])
   // the effective selected daypart: the user's pick when free, else morning (the
   // 'any' default), else the first free slot
   const sel = selPart && !filled[selPart] ? selPart : !filled.morning ? 'morning' : PARTS.find((p) => !filled[p]) || null
@@ -247,21 +300,64 @@ export default function PlaceDetail({ e, anchors, wx }) {
         setPlanning(false)
         setPlanClosing(false)
         setSelPart(null)
-        planCtaRef.current?.focus() // WCAG 2.4.3: focus returns to the trigger
+        const restoreFocus = () => planCtaRef.current?.focus()
+        if (typeof requestAnimationFrame === 'function') requestAnimationFrame(restoreFocus)
+        else setTimeout(restoreFocus, 0)
       },
       reduced ? 0 : 240
     )
   }
 
-  const addToPlan = (part) => {
-    const map = loadDayPlans(anchors)
-    const entry = dayEntryFor(map[String(planDay)])
-    if (entry && entry.slots[part]) return // never clobber a filled slot
-    saveDayPlans(withSlot(map, planDay, part, e.key))
-    setPlansVersion((v) => v + 1)
-    const dlabel = days.find((d) => d.ts === planDay)?.label || ''
-    flash(`Added to ${dlabel} ${DAYPART[part].emoji} ✓`)
-    closePlanning()
+  const addToPlan = async (part) => {
+    if (!plannerReady || planPendingRef.current || planClosing) return
+    planPendingRef.current = true
+    setPlanPending(true)
+    try {
+      const result = await add(e, { dayTs: currentPlanDay, part })
+      const code = result?.conflict?.reducerCode || result?.code
+      if (code === 'duplicate' || code === 'already-planned') {
+        flash('Already in your plan')
+        closePlanning()
+        return
+      }
+      if (code === 'slot-occupied') {
+        flash('That time is already planned')
+        return
+      }
+      if (code === 'rest-conflict') {
+        flash("That's a quiet day — clear the rest mark first")
+        return
+      }
+      capturePersonalSignal('plan', e, {
+        source: 'planner',
+        result,
+        context: { daypart: part },
+      })
+      if (result?.changed && result.durability === 'session-only') {
+        flash("Added for this visit, but your browser couldn't save it")
+        closePlanning()
+        return
+      }
+      if (!result?.changed || result?.persisted !== true) {
+        flash(code === 'planner-rebase-conflict'
+          ? 'Your plan changed — check this day and try again'
+          : "Couldn't add this to your plan")
+        return
+      }
+      const dlabel = days.find((d) => d.ts === currentPlanDay)?.label || ''
+      flash(`Added to ${dlabel} ${DAYPART[part].emoji} ✓`)
+      closePlanning()
+    } catch {
+      flash("Couldn't add this to your plan")
+    } finally {
+      planPendingRef.current = false
+      setPlanPending(false)
+    }
+  }
+  const viewPlan = () => {
+    if (!plannedPlacement) return
+    openDay(plannedPlacement.dayTs)
+    onClose()
   }
   // 3.7P-34 review: the plan sheet is a focus-managed modal (was role=dialog only —
   // Escape fell through to nav and closed the WHOLE page). Mirrors DetailPage's
@@ -297,18 +393,38 @@ export default function PlaceDetail({ e, anchors, wx }) {
       {/* 3.7P-22: shared .detail shell — hero + body scroll inside .detail-scroll
           (PlaceDetail has no bottom CTA, but needs the wrapper since .detail is now
           a flex column with the scroll on the inner element). */}
-      <div className="detail-scroll">
       <div
-        className={'detail-hero' + (heroArt ? ' imgbox-art' : '')}
+        className="detail-scroll"
+        inert={planning || planClosing || correcting ? true : undefined}
+        aria-hidden={planning || planClosing || correcting || undefined}
+      >
+      <div
+        className={'detail-hero' + (heroArt || heroLoading ? ' imgbox-art' : '')}
         style={
-          heroArt
-            ? { viewTransitionName: 'evt-hero', ...auroraStyle(e) }
+          heroArt || heroLoading
+            ? {
+                viewTransitionName: 'evt-hero',
+                ...auroraStyle(e),
+                ...(heroLoading ? { height: '42svh', minHeight: '250px' } : {}),
+              }
             : { viewTransitionName: 'evt-hero', background: '#241c15' }
         }
       >
-        {!heroArt ? (
-          <div className={'detail-hero-img' + (imgOk ? ' on' : '')} style={{ backgroundImage: `url(${e.image})` }} />
-        ) : (
+        {heroImage && !heroArt && (
+          <img
+            key={heroImage}
+            className={'detail-hero-img' + (imgOk ? ' on' : '')}
+            src={heroImage}
+            alt=""
+            decoding="async"
+            referrerPolicy="no-referrer"
+            draggable={false}
+            onLoad={() => setHeroImageLoad({ token: heroImageToken, state: 'loaded' })}
+            onError={() => setHeroImageLoad({ token: heroImageToken, state: 'failed' })}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        )}
+        {(heroArt || heroLoading) && (
           <span className="imgbox-mark" aria-hidden>
             {artEmoji(e)}
           </span>
@@ -322,25 +438,25 @@ export default function PlaceDetail({ e, anchors, wx }) {
           <Icon.share />
         </button>
         <SaveHeart e={e} big />
-        <div className="detail-hero-grad" />
+        {photoReady && <div className="detail-hero-grad" />}
         {/* 3.7P-2: the CC-BY/BY-SA attribution duty — a real photo of a place
             carries its captured credit (author · license), linked to the Commons
             file + the license deed. Shown only for real photos (art floor needs
             no credit). The honest twin of "no image without a captured credit". */}
-        {!heroArt && e.imageCredit && (
+        {photoReady && presentedImage.imageCredit && (
           <div className="hero-credit">
-            <a href={e.imageCredit.url} target="_blank" rel="noreferrer">
+            <a href={presentedImage.imageCredit.url} target="_blank" rel="noreferrer">
               {/* author byline; when a license needs no byline (author null) fall
                   back to the HOST keyed off the credit source — never hardcode
                   "Wikimedia Commons" (a Mapillary photo would be mis-credited). */}
-              Photo: {e.imageCredit.author
-                || (e.imageCredit.sourceFamily === 'mapillary-sign' ? 'Mapillary' : 'Wikimedia Commons')}
+              Photo: {presentedImage.imageCredit.author
+                || (presentedImage.imageCredit.sourceFamily === 'mapillary-sign' ? 'Mapillary' : 'Wikimedia Commons')}
             </a>
             {' · '}
-            {e.imageCredit.licenseUrl ? (
-              <a href={e.imageCredit.licenseUrl} target="_blank" rel="noreferrer">{e.imageCredit.license}</a>
+            {presentedImage.imageCredit.licenseUrl ? (
+              <a href={presentedImage.imageCredit.licenseUrl} target="_blank" rel="noreferrer">{presentedImage.imageCredit.license}</a>
             ) : (
-              e.imageCredit.license
+              presentedImage.imageCredit.license
             )}
           </div>
         )}
@@ -411,7 +527,7 @@ export default function PlaceDetail({ e, anchors, wx }) {
             satisfies (the same pure ACTIVITIES predicates the Spots tab browses by). */}
         {bestFor.length > 0 && (
           <div className="loc-bestfor">
-            <div className="d-k">Best for</div>
+            <div className="d-k">Good for</div>
             <div className="loc-bestfor-row">
               {bestFor.map((a) => (
                 <span className="loc-bestfor-item" key={a.id}>
@@ -471,6 +587,9 @@ export default function PlaceDetail({ e, anchors, wx }) {
             <div className="detail-via-list">Sourced from {e.sources.join(' · ')}</div>
           </details>
         )}
+        <button ref={correctionButtonRef} className="correction-link" type="button" onClick={() => setCorrecting(true)}>
+          Suggest a correction
+        </button>
       </div>
       </div>
 
@@ -478,24 +597,56 @@ export default function PlaceDetail({ e, anchors, wx }) {
           primary "Make this my plan" (gold, dark ink). A flex sibling OUTSIDE
           .detail-scroll (the P22 bottom-bar pattern), so it never overlaps the
           scrolling content. planCtaRef stays on the trigger (focus return). */}
-      <div className="detail-actionbar">
+      <div
+        className="detail-actionbar"
+        inert={planning || planClosing || correcting ? true : undefined}
+        aria-hidden={planning || planClosing || correcting || undefined}
+      >
         <button
           className={'detail-save-btn' + (saved ? ' on' : '')}
-          onClick={() => toggleSave(e)}
+          onClick={async () => { await toggleSave(e) }}
           aria-pressed={saved}
+          aria-busy={savePending || undefined}
+          disabled={!canToggleSave(e)}
+          aria-label={saveIdentityWent
+            ? 'Already in your Been history'
+            : saveIdentityAmbiguous
+            ? 'Saved item needs review before it can be changed'
+            : saveIdentityPending
+              ? 'Save unavailable until this added event can be saved'
+              : undefined}
         >
-          {saved ? '♥ Saved' : '♡ Save'}
+          {saveIdentityWent ? '✓ Completed' : saveIdentityAmbiguous ? 'Needs review' : saveIdentityPending ? 'Save unavailable' : saved ? '♥ Saved' : '♡ Save'}
         </button>
-        <button className="loc-plan-cta detail-actionbar-cta" ref={planCtaRef} onClick={() => setPlanning(true)}>
-          ＋ Make this my plan
-        </button>
+        {planned && plannedPlacement ? (
+          <button className="loc-plan-cta detail-actionbar-cta" ref={planCtaRef} onClick={viewPlan}>View plan</button>
+        ) : planned ? (
+          <button className="loc-plan-cta detail-actionbar-cta" ref={planCtaRef} disabled>In your plan</button>
+        ) : plannerReady ? (
+          <button className="loc-plan-cta detail-actionbar-cta" ref={planCtaRef} onClick={() => setPlanning(true)}>
+            ＋ Make this my plan
+          </button>
+        ) : (
+          <button className="loc-plan-cta detail-actionbar-cta" ref={planCtaRef} disabled>
+            {plannerUnavailableLabel}
+          </button>
+        )}
       </div>
 
       {/* Make-this-my-plan sheet */}
       {planning && (
         <div className={'loc-plan-wrap' + (planClosing ? ' closing' : '')}>
           <button className="loc-scrim" onClick={closePlanning} aria-label="Close" />
-          <div className="loc-plan-sheet" role="dialog" aria-modal="true" aria-label="Add to a day" tabIndex={-1} ref={planSheetRef} onKeyDown={planTrap}>
+          <div
+            className="loc-plan-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Add to a day"
+            aria-busy={planPending || undefined}
+            tabIndex={-1}
+            ref={planSheetRef}
+            onKeyDown={planTrap}
+          >
             <div className="loc-sheet-head">
               <div className="loc-sheet-title">Add {e.name} to a day</div>
               <button className="loc-sheet-close" onClick={closePlanning} aria-label="Close">✕</button>
@@ -504,7 +655,9 @@ export default function PlaceDetail({ e, anchors, wx }) {
               {days.map((d) => (
                 <button
                   key={d.ts}
-                  className={'loc-plan-day' + (d.ts === planDay ? ' on' : '')}
+                  className={'loc-plan-day' + (d.ts === currentPlanDay ? ' on' : '')}
+                  disabled={planPending}
+                  aria-pressed={d.ts === currentPlanDay}
                   onClick={() => setPlanDay(d.ts)}
                 >
                   {d.label}
@@ -521,7 +674,7 @@ export default function PlaceDetail({ e, anchors, wx }) {
                     <button
                       key={part}
                       className={'loc-plan-slot' + (part === sel ? ' on' : '')}
-                      disabled={!!filled[part]}
+                      disabled={planPending || !!filled[part]}
                       onClick={() => setSelPart(part)}
                       aria-pressed={part === sel}
                     >
@@ -531,8 +684,13 @@ export default function PlaceDetail({ e, anchors, wx }) {
                     </button>
                   ))}
                 </div>
-                <button className="loc-plan-add" disabled={!sel} onClick={() => sel && addToPlan(sel)}>
-                  Add to {days.find((d) => d.ts === planDay)?.label || 'day'}
+                <button
+                  className="loc-plan-add"
+                  disabled={!sel || planPending || planClosing}
+                  aria-busy={planPending || undefined}
+                  onClick={() => sel && addToPlan(sel)}
+                >
+                  {planPending ? 'Adding…' : `Add to ${days.find((d) => d.ts === currentPlanDay)?.label || 'day'}`}
                 </button>
               </>
             )}
@@ -540,7 +698,8 @@ export default function PlaceDetail({ e, anchors, wx }) {
         </div>
       )}
 
-      {toast && <div className="detail-toast">{toast}</div>}
+      {correcting && <CorrectionSheet item={e} onClose={closeCorrection} />}
+      {toast && <div className="detail-toast" role="status" aria-live="polite">{toast}</div>}
     </div>
   )
 }

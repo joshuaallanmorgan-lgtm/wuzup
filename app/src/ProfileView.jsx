@@ -14,12 +14,11 @@
 import { useMemo } from 'react'
 import { CITY } from './lib.js'
 import { useNav } from './nav.jsx'
-import { lsGet } from './storage.js'
 import { useSaves, useBeenThere } from './saves.js'
-import { loadDayPlans, loadDayHistory, didDays, dayEntryFor, PARTS } from './dayplan.js'
+import { didDays } from './dayplan.js'
+import { usePlanner } from './PlannerProvider.jsx'
+import { readProfileState } from './profile-state.js'
 import './profile.css'
-
-const NAME_KEY = 'profile-name-v1'
 
 // calm mono stroke glyphs (currentColor) for the avatar + the menu rows — clean
 // feather-style paths (the prior set read wrong: the "gear" was a sun, the heart
@@ -35,37 +34,26 @@ const CogIc = () => (<svg {...S} aria-hidden><circle cx="12" cy="12" r="3.1" /><
 const HelpIc = () => (<svg {...S} aria-hidden><circle cx="12" cy="12" r="9.5" /><path d="M9.4 9.3a2.7 2.7 0 0 1 5.2 1c0 1.8-2.6 2-2.6 3.6" /><path d="M12 17.2h.01" /></svg>)
 const Chev = () => (<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M9 6l6 6-6 6" /></svg>)
 
-export default function ProfileView({ anchors }) {
+export default function ProfileView() {
   const { openSettings, openTaste, openInterests, openMyPlans, openMySaves, openEditProfile, openHelpFeedback, page } = useNav()
   // name is read on mount + re-read whenever a subpage closes back here (page flip)
   // — so an edit saved in Edit Profile reflects on return (same seam as planCount).
   const name = useMemo(() => {
     void page
-    return lsGet(NAME_KEY) || ''
+    return readProfileState().name
   }, [page])
 
-  // S1-P3: honest lifetime stats from the REAL stores — never hardcoded. Saves +
-  // days-out are reactive (hooks); plans reads the non-reactive day store, so it
-  // recomputes on mount and whenever a subpage closes back to Profile (page flip).
-  const { list: savedList } = useSaves()
+  // S1-P3: honest lifetime stats from the real reactive stores — never hardcoded.
+  const { list: savedList, ready: savesReady } = useSaves()
   const been = useBeenThere()
-  const planCount = useMemo(() => {
-    void page
-    const map = loadDayPlans(anchors)
-    const days = new Set()
-    for (const k of Object.keys(map)) {
-      const e = dayEntryFor(map[k])
-      if (e && PARTS.some((p) => e.slots[p])) days.add(k)
-    }
-    for (const h of loadDayHistory()) if (h?.slots && PARTS.some((p) => h.slots[p])) days.add(String(h.dayTs))
-    return days.size
-  }, [anchors, page])
+  const { filledDayCount: planCount, status: plannerStatus } = usePlanner()
+  const plannerReady = plannerStatus === 'durable' || plannerStatus === 'session-only'
   const daysOut = didDays(been).size
   // labels stay plural (matches the ref): Plans · Saved · Days out
   const stats = [
-    { k: 'plans', n: planCount, lab: 'Plans' },
-    { k: 'saves', n: savedList.length, lab: 'Saved' },
-    { k: 'days', n: daysOut, lab: 'Days out' },
+    { k: 'plans', n: plannerReady ? planCount : null, lab: 'Plans' },
+    { k: 'saves', n: savesReady ? savedList.length : null, lab: 'Saved' },
+    { k: 'days', n: savesReady ? daysOut : null, lab: 'Days out' },
   ]
 
   const initial = name ? name.trim()[0].toUpperCase() : ''
@@ -79,7 +67,7 @@ export default function ProfileView({ anchors }) {
     { id: 'saves', Ic: BookmarkIc, label: 'My Saves', desc: 'Spots, events, and guides you saved', onClick: openMySaves },
     { id: 'taste', Ic: HeartIc, label: 'Taste Profile', desc: 'Tell us what you like and improve your picks', onClick: () => openTaste() },
     { id: 'interests', Ic: TuneIc, label: 'Customize Interests', desc: 'Choose topics you love and get better recs', onClick: () => openInterests('profile') },
-    { id: 'settings', Ic: CogIc, label: 'Settings & Preferences', desc: 'Account, notifications, privacy, and more', onClick: openSettings },
+    { id: 'settings', Ic: CogIc, label: 'Settings & Preferences', desc: 'Coverage, location, privacy, and app details', onClick: openSettings },
     { id: 'help', Ic: HelpIc, label: 'Help & Feedback', desc: 'Get help or share your thoughts', onClick: openHelpFeedback },
   ]
 
@@ -114,7 +102,7 @@ export default function ProfileView({ anchors }) {
           <div className="pf-stats">
             {stats.map((s) => (
               <div className="pf-stat" key={s.k}>
-                <span className="pf-stat-num">{s.n}</span>
+                <span className="pf-stat-num" aria-label={s.n == null ? `${s.lab} loading` : undefined}>{s.n ?? '—'}</span>
                 <span className="pf-stat-lab">{s.lab}</span>
               </div>
             ))}

@@ -43,7 +43,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { categoryById } from './categories.js'
 import { CITY } from './lib.js'
-import { lsGet, lsSet } from './storage.js'
+import { lsGet, lsReadDurable, lsRemove, lsSet } from './storage.js'
 import { recordPrimer } from './taste.js'
 import './primer.css'
 
@@ -68,6 +68,38 @@ export function loadPrimerState() {
     /* absent, corrupt, or private mode — treat as first open */
   }
   return null
+}
+
+export function exportPrimerState() {
+  return loadPrimerState()
+}
+
+export function replacePrimerState(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)
+      || value.v !== 1
+      || Object.keys(value).some((key) => !['v', 'done', 'skipped', 'when'].includes(key))
+      || (value.done === true) === (value.skipped === true)
+      || value.when !== undefined && value.when !== null && !WHEN_VALUES.includes(value.when)) {
+    return { ok: false, code: 'invalid-primer-state', persisted: false }
+  }
+  const raw = JSON.stringify(value)
+  const persisted = lsSet(PRIMER_KEY, raw) === true && lsReadDurable(PRIMER_KEY) === raw
+  return {
+    ok: persisted,
+    code: persisted ? 'primer-state-replaced' : 'primer-state-save-failed',
+    persisted,
+    raw: persisted ? raw : null,
+  }
+}
+
+export function clearPrimerState() {
+  const persisted = lsRemove(PRIMER_KEY) === true && lsReadDurable(PRIMER_KEY) === null
+  return {
+    ok: persisted,
+    code: persisted ? 'primer-state-cleared' : 'primer-state-clear-failed',
+    persisted,
+    raw: persisted ? 'null' : null,
+  }
 }
 
 function savePrimerState(s) {

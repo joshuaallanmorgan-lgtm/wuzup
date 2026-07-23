@@ -4,38 +4,69 @@
 // it in the sliding .subpage overlay as { type: 'guide', guide }.
 //
 // A guide is a curated VIEW (resolveGuide shows ALL its matches — never-hide
-// holds). Place-based guides ("Beach day", "Free outdoor reset") carry a "Plan a
-// day around this" action that seeds the top always-there place into the upcoming
-// weekend and opens that DayPage — the Discover→Plan bridge, made a one-tap move.
-// Only PLACES are ever pre-seeded (always-there); a date-pinned event is never
-// dropped onto an arbitrary day. DRAFT copy — ⚑ Charles.
+// holds). Plannable guides carry an explicit doorway to the upcoming weekend's
+// DayPage. Opening that day never seeds an item; placement still requires the
+// planner's visible day/daypart confirmation. DRAFT copy — ⚑ Charles.
 import { useMemo, useRef } from 'react'
-import { Icon, LENS_BUBBLES, CAT_BUBBLES } from './lib.js'
+import { CITY, Icon, LENS_BUBBLES, CAT_BUBBLES } from './lib.js'
 import { useNav } from './nav.jsx'
 import { RowFeed } from './cards.jsx'
+import { SaveHeart } from './saves.js'
 import LensNav from './LensNav.jsx'
 import { usePlaces, PLACE_LENS_BUBBLES, PLACE_CAT_BUBBLES } from './places.js'
 import { resolveGuide, resolveWatchGuide } from './guides.js'
-import { loadDayPlans, saveDayPlans, withSlot } from './dayplan.js'
+import { useTaste } from './taste.js'
+import { useArtifact } from './artifacts.js'
+import { canonicalGuide, guideFreshness, guideReason, guideSnapshot } from './guide-model.js'
 import './bubble.css'
+
+function listingSourceFamilies(items) {
+  const values = []
+  for (const item of items) {
+    const rows = Array.isArray(item?.sources) ? item.sources : [item?.source]
+    for (const source of rows) {
+      const family = typeof source === 'string' ? source : source?.family || source?.name
+      if (family && !values.includes(family)) values.push(family)
+      if (values.length >= 5) return values
+    }
+  }
+  return values
+}
 
 export default function GuidePage({ guide, events, anchors }) {
   const { openDetail: onSelect, closePage: onClose, openDay, openBubble, openPlaceBubble, openEvFilters } = useNav()
+  const taste = useTaste()
   const pgRef = useRef(null)
+  const model = useMemo(() => canonicalGuide(guide), [guide])
+  const savedGuide = useMemo(
+    () => guideSnapshot(model),
+    [model]
+  )
   const isSpots = guide?.domain === 'spots' // a spots guide gets the place lenses
   // load places only for guides that need them (lazy ~1.2MB fetch, like Spots)
-  const { places } = usePlaces(!!guide?.needsPlaces)
+  const {
+    places,
+    status: placeStatus,
+    recover: recoverPlaces,
+    recoverLabel: recoverPlacesLabel,
+    meta: placeMeta,
+  } = usePlaces(!!guide?.needsPlaces)
+  const eventArtifact = useArtifact('events')
+  const placesRequired = Boolean(guide?.needsPlaces)
+  const placesPending = placesRequired && (placeStatus === 'idle' || placeStatus === 'loading')
+  const placesUnavailable = placesRequired && ['stale', 'offline', 'error'].includes(placeStatus)
 
   const upcoming = useMemo(
     () => events.filter((e) => e._day != null && (e._endDay ?? e._day) >= anchors.todayTs),
     [events, anchors]
   )
   const items = useMemo(() => {
+    const ranking = { nowMs: anchors.nowMs, city: CITY, taste }
     // 3.75b: timely Watch Guides resolve by keyword against live events; evergreen
     // intention guides resolve via their pure selector.
-    if (guide?.kind === 'watch') return resolveWatchGuide(guide, upcoming)
-    return resolveGuide(guide, { events: upcoming, places: Array.isArray(places) ? places : [], anchors })
-  }, [guide, upcoming, places, anchors])
+    if (guide?.kind === 'watch') return resolveWatchGuide(guide, upcoming, ranking)
+    return resolveGuide(guide, { events: upcoming, places: Array.isArray(places) ? places : [], anchors }, ranking)
+  }, [guide, upcoming, places, anchors, taste])
   // FB-03 (3.7P-7): a MIXED guide LABELS each item's domain — split into "Events"
   // + "Spots" sections (RowFeed renders section labels). Single-domain guides stay
   // one unlabeled list. Each section still shows ALL its matches (never-hide).
@@ -50,16 +81,11 @@ export default function GuidePage({ guide, events, anchors }) {
     }
     return [{ label: null, items }]
   }, [items, guide])
+  const freshness = guideFreshness(isSpots ? placeMeta : eventArtifact.meta, anchors.nowMs)
+  const methodReason = guideReason(model)
+  const sourceFamilies = listingSourceFamilies(items)
 
-  // "Plan a day around this": seed the top always-there PLACE into the upcoming
-  // weekend's morning slot, then open it. If the guide has no place (event-only),
-  // just open the weekend day to plan — never pre-seed a date-pinned event.
-  // ⚑PLAN-P0: a place is daypart 'any' → the morning slot (the day's start).
-  const planDay = () => {
-    const place = items.find((it) => it.kind === 'place')
-    if (place) saveDayPlans(withSlot(loadDayPlans(anchors), anchors.wkStartTs, 'morning', place.key))
-    openDay(anchors.wkStartTs)
-  }
+  const planDay = () => openDay(Math.max(anchors.todayTs, anchors.wkStartTs))
 
   return (
     <div className="pg" ref={pgRef} style={{ '--bh': guide.hue ?? 30 }}>
@@ -72,14 +98,22 @@ export default function GuidePage({ guide, events, anchors }) {
             <span className="bub-emoji">{guide.emoji}</span>
             {guide.title}
           </h1>
+          {savedGuide && <SaveHeart e={savedGuide} big />}
           <div className="pg-count">
-            {items.length} {items.length === 1 ? 'idea' : 'ideas'}
+            {placesPending
+              ? 'Checking spot ideas…'
+              : `${items.length} ${placesUnavailable ? 'available ' : ''}${items.length === 1 ? 'idea' : 'ideas'}`}
           </div>
           <div className="bub-tag">{guide.pov}</div>
-          {guide.plannable && items.length > 0 && (
+          {guide.plannable && (
             <button className="guide-plan-cta" onClick={planDay}>
-              ＋ Plan a day around this
+              Plan this day
             </button>
+          )}
+          {methodReason && <div className="guide-sources">Why these appear: {methodReason}</div>}
+          <div className="guide-sources">{freshness.label}</div>
+          {sourceFamilies.length > 0 && (
+            <div className="guide-sources">Listing sources in this collection: {sourceFamilies.join(' / ')}</div>
           )}
           {/* 3.75b: show the provenance — for a Watch Guide this discloses that the
               list is keyword-matched against live listings, not hand-curated. */}
@@ -97,9 +131,25 @@ export default function GuidePage({ guide, events, anchors }) {
         onFilter={isSpots ? undefined : openEvFilters}
       />
       <div className="pg-body">
-        {items.length > 0 ? (
+        {items.length > 0 && (
           <RowFeed sections={sections} scrollRootRef={pgRef} onSelect={onSelect} />
-        ) : (
+        )}
+        {placesPending && (
+          <div className="empty empty-sm" role="status">Checking spot ideas…</div>
+        )}
+        {placesUnavailable && (
+          <div className="empty empty-sm" role="alert">
+            {placeStatus === 'stale'
+              ? 'Spot ideas are too old to show.'
+              : placeStatus === 'offline'
+                ? 'You’re offline. Spot ideas weren’t loaded.'
+                : 'Spot ideas couldn’t be verified.'}
+            {recoverPlaces && (
+              <button className="empty-cta" onClick={recoverPlaces}>{recoverPlacesLabel}</button>
+            )}
+          </div>
+        )}
+        {items.length === 0 && !placesPending && !placesUnavailable && (
           <div className="empty">
             Nothing fits this guide right now — check back soon.
           </div>

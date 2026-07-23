@@ -33,18 +33,15 @@
 //     free + weekend; "next friday" deliberately reads as plain "friday" (the
 //     next occurrence) — v1 has no week-after arithmetic.
 //
-// RANKING: text-relevance score desc (sum over tokens of the BEST field hit:
-// title 40 > venue 30 > category 25 > address 15 > description 8; exact whole-
-// word beats prefix by +10 on the word fields), then hotScore desc (nulls
-// last), then start time, then folded title + url for a fully deterministic,
-// input-order-independent total order (the sim asserts stability under
-// shuffle). Date-only queries ("tonight") are a BROWSE, not a lookup — they
-// get the feed's orderDay de-flood (taste-neutral: no nudge — search results
-// must read the same on every phone) so one prolific source can't own the
-// first screen. Text queries stay on pure relevance.
+// MATCH CONTEXT: text relevance sums the best field hit per token (title 40 >
+// venue 30 > category 25 > address 15 > description 8; exact whole-word adds
+// 10). Runtime callers preserve that exact match set, then send bounded lexical
+// context into the shared objective/context/taste/diversity rank contract.
 import { categoryById } from './categories.js'
-import { orderDay } from './lib.js'
-import { lsGet, lsRemove, lsSet } from './storage.js'
+import { addDayTs, weekdayIndex } from './lib.js'
+import { rankRuntimeItems, runtimeRankingId } from './relevance.js'
+import { lsGet, lsReadDurable, lsRemove, lsSet } from './storage.js'
+import { searchableGuideText } from './guide-model.js'
 
 // case + diacritic folding ("José" matches "jose") — the class is the literal
 // combining-diacritics range U+0300–U+036F, same fold SearchPage always used
@@ -63,9 +60,8 @@ const CONNECTORS = new Set(['this', 'next', 'on'])
 // "trivia friday" typed ON a Friday means tonight). Built via Date components,
 // never todayTs + n*86400000 — DST would shear the midnight alignment off _day.
 function nextWeekdayTs(todayTs, idx) {
-  const d = new Date(todayTs)
-  const off = (idx - d.getDay() + 7) % 7
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + off).getTime()
+  const off = (idx - weekdayIndex(todayTs) + 7) % 7
+  return addDayTs(todayTs, off)
 }
 
 // does the event's day span cover [start..end]? (single days use start===end)
@@ -147,16 +143,44 @@ function tokenScore(ix, t) {
   return best
 }
 
-// searchEvents(events, anchors, query, nudge?) → NEW ranked array (input
+// searchEvents(events, anchors, query, options?) → NEW ranked array (input
 // untouched). events: normalize()d pool (the page passes upcoming + undated).
 // Empty/connector-only/punctuation-only queries → [] (zero-state is the page's
-// job). `nudge` (optional, the page passes tasteNudge) applies ONLY to a
-// DATE-ONLY browse query ("tonight"/"friday" with no text) — that's a discovery
-// browse, so taste may tilt its order (Phase 3.5). A TEXT query stays pure
-// relevance + taste-neutral so an explicit search reads identically on every
-// phone (search.js itself imports no taste — the nudge is injected, like
-// orderDay everywhere else).
-export function searchEvents(events, anchors, query, nudge) {
+// job). Runtime options carry city time, signed taste, and the shared rank
+// contract. Omitting them keeps a deterministic lexical fallback for legacy
+// pure callers.
+function rankSearchMatches(hits, {
+  kind,
+  nowMs,
+  city,
+  taste = {},
+  context = {},
+  diversityPolicy = null,
+} = {}) {
+  const items = hits.map((hit) => hit.e || hit.p)
+  if (!Number.isFinite(nowMs) || !city) return null
+  const lexicalScores = Object.fromEntries(hits.map((hit) => {
+    const item = hit.e || hit.p
+    const id = runtimeRankingId(item)
+    return [id, Math.min(20, Math.max(0, hit.score / 5))]
+  }))
+  return rankRuntimeItems(items, {
+    kind,
+    nowMs,
+    city,
+    taste,
+    context: {
+      ...context,
+      itemScores: {
+        ...lexicalScores,
+        ...(context.itemScores || {}),
+      },
+    },
+    diversityPolicy,
+  }).ordered
+}
+
+export function searchEvents(events, anchors, query, options) {
   const q = parseQuery(query, anchors)
   if (q.empty) return []
   const hits = []
@@ -191,15 +215,28 @@ export function searchEvents(events, anchors, query, nudge) {
   hits.sort(
     (a, b) =>
       b.score - a.score ||
-      (b.e.hotScore ?? -Infinity) - (a.e.hotScore ?? -Infinity) ||
       a.e._t - b.e._t ||
       fold(a.e.title).localeCompare(fold(b.e.title)) ||
       (a.e.url || '').localeCompare(b.e.url || '')
   )
-  // date-only browse → de-flood + optional taste tilt (count-preserving
-  // permutation; nudge is the injected tasteNudge when the page supplies it)
-  if (q.days.length && !q.text.length) return orderDay(hits.map((h) => h.e), nudge)
-  return hits.map((h) => h.e)
+  // Compatibility keeps the legacy pure matcher usable by the historical
+  // smoke harness. Runtime callers pass an options object and route the exact
+  // matched set through the shared relevance contract. Text match strength is
+  // bounded context; date/free browse relies on objective quality + taste.
+  const fallback = hits.map((h) => h.e)
+  if (!options || typeof options === 'function') return fallback
+  return rankSearchMatches(hits, {
+    ...options,
+    kind: 'events',
+    diversityPolicy: options.diversityPolicy || {
+      prefix: Math.min(12, hits.length || 1),
+      sourceMax: 2,
+      categoryMax: 3,
+      venueMax: 2,
+      canonicalMax: 1,
+      seriesMax: 1,
+    },
+  }) || fallback
 }
 
 // ===== T2: the PLACES matcher (cross-layer search, second result group) =====
@@ -258,7 +295,7 @@ function placeTokenScore(ix, t) {
 // searchPlaces(places, anchors, query) → NEW ranked array (input untouched).
 // places: normalizePlace()d pool. A date-constrained query → [] (places have
 // no date). Empty/connector-only query → [] (the page owns the zero-state).
-export function searchPlaces(places, anchors, query) {
+export function searchPlaces(places, anchors, query, options) {
   const q = parseQuery(query, anchors)
   if (q.empty || q.days.length) return [] // a place can never be "on Friday"
   const hits = []
@@ -286,7 +323,20 @@ export function searchPlaces(places, anchors, query) {
       (b.p.srcCount ?? 0) - (a.p.srcCount ?? 0) ||
       fold(a.p.name).localeCompare(fold(b.p.name))
   )
-  return hits.map((h) => h.p)
+  const fallback = hits.map((h) => h.p)
+  if (!options || typeof options !== 'object') return fallback
+  return rankSearchMatches(hits, {
+    ...options,
+    kind: 'places',
+    diversityPolicy: options.diversityPolicy || {
+      prefix: Math.min(12, hits.length || 1),
+      sourceMax: 2,
+      categoryMax: 3,
+      venueMax: 2,
+      canonicalMax: 1,
+      seriesMax: 1,
+    },
+  }) || fallback
 }
 
 // ===== Stage R: the GUIDES matcher (the 4th search scope). A guide is a curated
@@ -295,7 +345,7 @@ export function searchPlaces(places, anchors, query) {
 // A date-only or free-only query returns [] (a guide isn't "on Friday" and "free"
 // is an event/place filter). Honest: results are real guides whose name/pov the
 // query actually hits; tapping one opens its real GuidePage. =====
-const guideWords = (g) => [...words(g.title), ...words(g.pov || ''), ...words(g.id || '')]
+const guideWords = (g) => words(searchableGuideText(g))
 export function searchGuides(guides, query, anchors) {
   const q = parseQuery(query, anchors)
   if (q.empty || !q.text.length) return [] // guides match on name/pov text only
@@ -324,8 +374,18 @@ export function searchGuides(guides, query, anchors) {
   return hits.map((h) => h.g)
 }
 
+// A result scope is valid only while that kind still has results. Query edits
+// can remove the selected scope; render All immediately so a nonzero total can
+// never sit above an empty body, then let SearchPage synchronize its state.
+export function resolveSearchScope(scope, counts = {}) {
+  if (scope === 'all') return 'all'
+  if (!['events', 'spots', 'guides'].includes(scope)) return 'all'
+  return Number(counts[scope] || 0) > 0 ? scope : 'all'
+}
+
 // ---- recent searches ('search-recents-v1' → twh:search-recents-v1) ----
 export const SEARCH_RECENTS_KEY = 'search-recents-v1'
+export const SEARCH_STATE_VERSION = 1
 const RECENTS_CAP = 8
 
 export function loadSearchRecents() {
@@ -373,3 +433,38 @@ export function removeSearchRecent(query) {
   lsSet(SEARCH_RECENTS_KEY, JSON.stringify(next)) // guarded in storage.js
   return next
 }
+
+export function normalizeSearchState(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)
+      || value.v !== SEARCH_STATE_VERSION
+      || Object.keys(value).some((key) => !['v', 'items'].includes(key))
+      || !Array.isArray(value.items) || value.items.length > RECENTS_CAP) return null
+  const recents = []
+  const seen = new Set()
+  for (const raw of value.items) {
+    if (typeof raw !== 'string' || raw.length > 80 || raw !== raw.trim() || !raw) return null
+    const item = raw
+    const key = fold(item)
+    if (seen.has(key)) return null
+    seen.add(key)
+    recents.push(item)
+  }
+  return { v: SEARCH_STATE_VERSION, items: recents }
+}
+
+export function exportSearchRecents() {
+  return { v: SEARCH_STATE_VERSION, items: loadSearchRecents() }
+}
+
+export function replaceSearchRecents(value) {
+  const normalized = normalizeSearchState(value)
+  if (!normalized) return { ok: false, code: 'invalid-search-state' }
+  const raw = JSON.stringify(normalized.items)
+  const persisted = lsSet(SEARCH_RECENTS_KEY, raw) === true
+    && lsReadDurable(SEARCH_RECENTS_KEY) === raw
+  return { ok: persisted === true, code: persisted === true ? 'search-state-imported' : 'search-state-save-failed', state: normalized }
+}
+
+export const importSearchRecents = replaceSearchRecents
+export const exportSearchState = exportSearchRecents
+export const importSearchState = replaceSearchRecents

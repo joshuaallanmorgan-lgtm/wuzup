@@ -4,8 +4,16 @@
 //
 // Contract notes for module authors:
 // - decodeEntities/stripHtml/truncate/cleanText are pure string helpers.
-// - fetchWithTimeout(url, options?, timeoutMs?) is plain fetch + AbortController;
+// - fetchWithTimeout(url, options?, timeoutMs?, fetchImpl?) is plain fetch + AbortController;
 //   pass headers (user-agent etc.) through options like a normal fetch call.
+
+import {
+  addCalendarDays,
+  cityMidnightMs,
+  dayIdAt,
+  eventTime,
+  parseZonedDateTime,
+} from '../../shared/city-time.mjs';
 
 export const DEFAULT_TIMEOUT_MS = 20000;
 
@@ -78,11 +86,16 @@ export function cleanText(html, maxLen = 250) {
   return truncate(text, maxLen);
 }
 
-export async function fetchWithTimeout(url, options = {}, timeoutMs = DEFAULT_TIMEOUT_MS) {
+export async function fetchWithTimeout(
+  url,
+  options = {},
+  timeoutMs = DEFAULT_TIMEOUT_MS,
+  fetchImpl = globalThis.fetch,
+) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await fetch(url, { redirect: 'follow', ...options, signal: controller.signal });
+    return await fetchImpl(url, { redirect: 'follow', ...options, signal: controller.signal });
   } finally {
     clearTimeout(timer);
   }
@@ -95,17 +108,56 @@ export async function fetchWithTimeout(url, options = {}, timeoutMs = DEFAULT_TI
 // Pass the `tz` exported by the module's own city config
 // (finder/cities/<cityId>.mjs) — the config stays the single source of truth.
 
-// 'YYYY-MM-DD' of an instant on the tz's wall clock (en-CA formats ISO-style).
-export function dayInTz(tz, instant = new Date()) {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
-  }).format(instant);
+function instantMs(instant) {
+  const epochMs = instant instanceof Date ? instant.getTime() : instant;
+  if (!Number.isFinite(epochMs)) throw new TypeError('instant must be a valid Date or finite epoch');
+  return epochMs;
+}
+
+// 'YYYY-MM-DD' of an instant on the tz's wall clock.
+export function dayInTz(tz, instant) {
+  return dayIdAt(instantMs(instant), tz);
+}
+
+export function sourceWindow(tz, nowMs, daysAhead) {
+  if (!Number.isFinite(nowMs)) throw new TypeError('nowMs must be finite');
+  if (!Number.isInteger(daysAhead) || daysAhead < 0) {
+    throw new TypeError('daysAhead must be a non-negative integer');
+  }
+  const today = dayInTz(tz, nowMs);
+  return {
+    today,
+    lastDay: addCalendarDays(today, daysAhead),
+  };
+}
+
+export function sourceStartDay(tz, value) {
+  const canonical = eventTime({ start: value }, { timeZone: tz });
+  return canonical.ok ? canonical.startDay : null;
+}
+
+// Resolve a publisher's city-local wall clock at the offset in effect at that
+// exact instant. Nonexistent clocks, impossible days, and malformed times fail
+// closed instead of being fabricated with a noon or midnight offset.
+export function sourceWallTime(tz, dayStr, timeStr, { disambiguation = 'earlier' } = {}) {
+  if (typeof timeStr !== 'string') return null;
+  const match = /^(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(timeStr.trim());
+  if (!match) return null;
+  const local = `${dayStr}T${match[1]}:${match[2]}:${match[3] || '00'}`;
+  let parsed;
+  try {
+    parsed = parseZonedDateTime(local, tz, { disambiguation });
+  } catch {
+    return null;
+  }
+  return parsed.ok ? isoInTz(tz, parsed.epochMs) : null;
 }
 
 // UTC offset string ('-07:00' / '-08:00' / ...) in effect in tz at an instant.
-export function offsetInTz(tz, instant = new Date()) {
+export function offsetInTz(tz, instant) {
+  const epochMs = instantMs(instant);
   const part = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'longOffset' })
-    .formatToParts(instant)
+    .formatToParts(new Date(epochMs))
     .find((p) => p.type === 'timeZoneName');
   const m = /GMT([+-]\d{2}:\d{2})/.exec(part?.value || '');
   return m ? m[1] : '+00:00';
@@ -114,6 +166,7 @@ export function offsetInTz(tz, instant = new Date()) {
 // Offset in effect in tz on a 'YYYY-MM-DD' calendar day (probed at noon UTC,
 // away from the 2 a.m. DST switch hours — mirrors finder.mjs cityOffsetFor).
 export function offsetForDay(tz, dayStr) {
+  addCalendarDays(dayStr, 0);
   return offsetInTz(tz, new Date(`${dayStr}T12:00:00Z`));
 }
 
@@ -121,8 +174,7 @@ export function offsetForDay(tz, dayStr) {
 // noon-probe offset is re-checked at the constructed instant so a midnight
 // across a DST switch resolves to the offset actually in effect.
 export function midnightInTz(tz, dayStr) {
-  const guess = new Date(`${dayStr}T00:00:00.000${offsetForDay(tz, dayStr)}`);
-  return new Date(`${dayStr}T00:00:00.000${offsetInTz(tz, guess)}`);
+  return new Date(cityMidnightMs(dayStr, tz));
 }
 
 // Local ISO stamp ('YYYY-MM-DDTHH:MM:SS±HH:MM') of a UTC instant on the tz's
@@ -138,6 +190,5 @@ export function isoInTz(tz, instant) {
 
 // 'YYYY-MM-DD' + n days, pure UTC math (no local-TZ surprises).
 export function addDaysStr(dayStr, days) {
-  const [y, m, d] = dayStr.split('-').map(Number);
-  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+  return addCalendarDays(dayStr, days);
 }

@@ -1,34 +1,35 @@
 // lensdeal.js — the PURE lens-deck dealer (Sprint Q2). Plain .js, no React,
-// no taste imports (the nudge is injected) — Node-importable for sims.
+// with the taste profile injected — Node-importable for sims.
 //
 // A "lens" is the exact list the user was just browsing:
 //   { kind: 'day',    dayTs }   — one day-group of HotView's Everything feed
 //   { kind: 'bubble', bubble }  — a BUBBLES entry (time / free / cat / sort)
 //
-// dealLens reproduces that list with the SAME math the list surfaces use:
+// dealLens reproduces that list with the SAME membership the list surface uses:
 // upcoming filter (un-ended events, _clamp = max(_day, todayTs) exactly as
 // HotView/BubblePage compute it), the lens filter (BubblePage's semantics
-// verbatim), then day-grouped ascending with G1 orderDay diversity
-// interleaving inside each day (count-preserving — the deck IS the lens,
+// verbatim), then day-grouped ascending with the shared relevance/diversity
+// contract inside each day (count-preserving — the deck IS the lens,
 // nothing hidden, nothing added). FINITE by construction: the deck length is
 // the lens count, and that length is the only count the header may claim.
 //
 // SPONSORED RIDES ALONG, score-neutral: unlike the calibration deck's sampler
 // (which excludes paid placements from taste-harvesting), a lens deck is just
 // the list in card form — a sponsored event the list shows, the deck shows,
-// SponsoredTag and all. orderDay scores by hotScore + nudge; sponsorship
-// contributes nothing to either.
+// SponsoredTag and all. Sponsorship contributes nothing to ranking.
 //
 // Dedup: defensive key-level pass (first occurrence wins). App's `norm` is
 // already key-unique in practice (finder dedupes; AddEvent blocks same-key
 // adds), so this is a guarantee, not a workaround.
-import { keyOf, orderDay } from './lib.js'
+import { keyOf } from './lib.js'
+import { CITY } from './city.js'
+import { rankRuntimeItems } from './relevance.js'
 
 export function lensIdOf(lens) {
   return lens.kind === 'day' ? 'day|' + lens.dayTs : 'bub|' + lens.bubble.id
 }
 
-export function dealLens(events, anchors, lens, nudge) {
+export function dealLens(events, anchors, lens, taste = {}) {
   const up = events
     .filter((e) => e._day != null && (e._endDay ?? e._day) >= anchors.todayTs)
     .map((e) => ({ ...e, _clamp: Math.max(e._day, anchors.todayTs) }))
@@ -57,5 +58,18 @@ export function dealLens(events, anchors, lens, nudge) {
   }
   return [...byDay.entries()]
     .sort((a, b) => a[0] - b[0])
-    .flatMap(([, items]) => orderDay(items, nudge))
+    .flatMap(([, items]) => rankRuntimeItems(items, {
+      kind: 'events',
+      nowMs: anchors.nowMs ?? anchors.todayTs,
+      city: CITY,
+      taste: typeof taste === 'function' ? {} : taste,
+      diversityPolicy: {
+        prefix: Math.min(20, items.length),
+        sourceMax: 2,
+        categoryMax: lens.kind === 'bubble' && lens.bubble.kind === 'cat' ? Math.max(items.length, 1) : 2,
+        venueMax: 1,
+        canonicalMax: 1,
+        seriesMax: 1,
+      },
+    }).ordered)
 }

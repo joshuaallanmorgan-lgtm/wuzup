@@ -15,12 +15,38 @@
 //       SKIP_RENDER=1 node finder/finder.mjs   (skip the headless-browser sources)
 //       SKIP_EXTRA=1  node finder/finder.mjs   (skip the finder/sources/*.mjs modules)
 
-import { writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync } from 'node:fs';
-import { createHash } from 'node:crypto';
+import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
+import { createHash, randomUUID } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
-import { bbox as TB_BOX, geocodeViewbox, tz as CITY_TZ, geocode as CITY_GEO, cityId, meta as CITY_META, priors as CITY_PRIORS } from './cities/index.mjs';
+import { bbox as TB_BOX, geocodeViewbox, tz as CITY_TZ, geocode as CITY_GEO, cityId, meta as CITY_META, priors as CITY_PRIORS, eventSourceModules } from './cities/index.mjs';
 import { PRODUCT_UA } from './ua.mjs';
+import { fallbackReasonForStage, loadEventSources } from './event-source-contract.mjs';
+import {
+  atomicWriteFileSync,
+  invalidateManifest,
+  summarizeSourceHealth,
+  writeManifest,
+} from './artifact-manifest.mjs';
+import {
+  calendarDistance,
+  canonicalDayOf,
+  finderEventState,
+  finderEventTime,
+  generationContext,
+  normalizeJunkHourRange,
+  publishedDayOf,
+  selectMergedInterval,
+} from './time.mjs';
+import {
+  imageHostRank,
+  mergeEventStatus,
+  normalizeEventStatus,
+  normalizeOrganizer,
+  normalizeRawCategories,
+  recurringSeriesId,
+  visibleDescriptionLength,
+} from './event-signals.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 // D1 multi-tenant artifacts: every output AND every cache is namespaced per
@@ -215,18 +241,23 @@ function cleanText(s) {
 // Exported for the smoke harness — the chrome-strip below is an INGEST-time
 // fix, invisible to cache-fallback warm runs (module caches hold already-
 // normalized events), so the mechanism is pinned as a unit fixture instead.
-export function cleanDescription(desc) {
+function cleanDescriptionInfo(desc) {
   let t = cleanText(desc);
-  if (!t) return null;
+  if (!t) return { description: null, descriptionLength: null };
   // Eventbrite page chrome: a scraped description can open with the page's
   // own section HEADING glued to the real text — "About this event There's
   // no such place as away!..." (Stage D data-tail e). Chrome, not
   // description: strip the prefix at ingest, BEFORE the length cap, so the
   // trimmed blurb recovers those characters of real text.
   t = t.replace(/^about this event\s*[:\-–—]?\s*/i, '');
-  if (!t) return null;
+  if (!t) return { description: null, descriptionLength: null };
+  const descriptionLength = visibleDescriptionLength(t);
   if (t.length > 200) t = t.slice(0, 197) + '...';
-  return t;
+  return { description: t, descriptionLength };
+}
+
+export function cleanDescription(desc) {
+  return cleanDescriptionInfo(desc).description;
 }
 
 // ===================== title hygiene (fixer pass, 2026-06-10) =====================
@@ -373,6 +404,7 @@ function normalize(node, sourceName) {
   let image = node.image;
   if (Array.isArray(image)) image = image[0];
   if (image && typeof image === 'object') image = image.url || null;
+  const description = cleanDescriptionInfo(node.description);
   return {
     title: cleanText(node.name),
     start: node.startDate || null,
@@ -386,8 +418,12 @@ function normalize(node, sourceName) {
     lng,
     url: url || null,
     image: image || null,
-    description: cleanDescription(node.description),
+    description: description.description,
+    descriptionLength: description.descriptionLength,
     source: sourceName,
+    organizer: normalizeOrganizer(node.organizer),
+    status: normalizeEventStatus(node.eventStatus ?? node.status),
+    rawCategories: normalizeRawCategories(node.keywords, node.category),
     staffPick: false,
     promoted: false,
     // schema.org eventAttendanceMode — Online-only events get filtered out
@@ -432,15 +468,27 @@ function withCityOffset(s) {
   return `${m[1]}${m[2] || ':00'}${cityOffsetFor(s)}`;
 }
 
-// Epoch ms of midnight (city wall clock) on a 'YYYY-MM-DD' day. The noon-probe
-// offset is re-checked at the constructed instant, so a midnight that sits on
-// the other side of a DST switch resolves to the offset actually in effect —
-// matching what local-midnight `new Date(y, m-1, d)` produced on an in-zone
-// machine (the pre-seam behavior this replaces).
-function cityMidnightMs(dayStr) {
-  const guess = Date.parse(`${dayStr}T00:00:00${cityOffsetFor(dayStr)}`);
-  const actual = cityOffsetAt(new Date(guess));
-  return Date.parse(`${dayStr}T00:00:00${actual}`);
+const cityDayOf = (value) => canonicalDayOf(value, CITY_TZ);
+const eventStartAt = (event) => {
+  const canonical = finderEventTime(event, { timeZone: CITY_TZ });
+  return canonical.ok ? canonical.startAt : Infinity;
+};
+
+function eventRangeMetadata(event) {
+  const canonical = finderEventTime(event, { timeZone: CITY_TZ });
+  if (!canonical.ok) return null;
+  const semantics = canonical.kind === 'all-day'
+    ? 'all-day'
+    : canonical.startDay !== canonical.endDay
+      ? 'continuous'
+      : event.recurring === true
+        ? 'occurrence'
+        : 'single';
+  return {
+    semantics,
+    start: event.start,
+    end: event.end ?? null,
+  };
 }
 
 // --- map a render.mjs event ({title,start,end,venue,address,price,isFree,url,
@@ -450,6 +498,7 @@ function normalizeRenderEvent(r) {
   let price = r.price;
   if (typeof price === 'string') price = parseFloat(price.replace(/[^0-9.]/g, ''));
   if (typeof price !== 'number' || isNaN(price)) price = null;
+  const description = cleanDescriptionInfo(r.description);
   return {
     title: cleanText(r.title),
     start: withCityOffset(r.start),
@@ -463,8 +512,12 @@ function normalizeRenderEvent(r) {
     lng: null,
     url: r.url || null,
     image: r.image || null,
-    description: cleanDescription(r.description),
+    description: description.description,
+    descriptionLength: description.descriptionLength,
     source: r.source || 'Creative Loafing',
+    organizer: normalizeOrganizer(r.organizer),
+    status: normalizeEventStatus(r.eventStatus ?? r.status),
+    rawCategories: normalizeRawCategories(r.rawCategories, r.categories),
     staffPick: r.staffPick === true,
     promoted: r.promoted === true,
   };
@@ -484,6 +537,7 @@ function normalizeModuleEvent(r, fallbackSource) {
     lat = null;
     lng = null;
   }
+  const description = cleanDescriptionInfo(r.description);
   return {
     title: cleanText(r.title),
     start: r.start || null,
@@ -497,8 +551,12 @@ function normalizeModuleEvent(r, fallbackSource) {
     lng,
     url: r.url || null,
     image: r.image || null,
-    description: cleanDescription(r.description),
+    description: description.description,
+    descriptionLength: description.descriptionLength,
     source: r.source || fallbackSource,
+    organizer: normalizeOrganizer(r.organizer),
+    status: normalizeEventStatus(r.eventStatus ?? r.status),
+    rawCategories: normalizeRawCategories(r.rawCategories, r.categories),
     staffPick: r.staffPick === true,
     promoted: r.promoted === true,
     // Native category hint: modules MAY set category to one of our values
@@ -578,49 +636,6 @@ function jaccard(a, b) {
 // Any "(...)" suffix is a variant of the same family.
 function familyOf(source) {
   return String(source || '').replace(/\s*\([^)]*\)\s*$/, '').trim();
-}
-
-// Calendar day of an event start, preferring the literal YYYY-MM-DD in the
-// string (sites publish local dates; Date.parse would shift date-only values).
-function dayOf(start) {
-  const m = String(start || '').match(/^(\d{4}-\d{2}-\d{2})/);
-  if (m) return m[1];
-  const d = new Date(start);
-  return isNaN(d) ? null : localDayStr(d);
-}
-
-// 'YYYY-MM-DD' of a Date instant on the CITY's wall clock (en-CA formats
-// ISO-style). Formatter cached — this runs several times per event.
-const CITY_DAY_FMT = new Intl.DateTimeFormat('en-CA', {
-  timeZone: CITY_TZ, year: 'numeric', month: '2-digit', day: '2-digit',
-});
-function localDayStr(d) {
-  return CITY_DAY_FMT.format(d);
-}
-
-// Parse an event start into epoch ms; date-only strings become CITY midnight
-// (Date.parse would treat them as UTC and shift the day), and zoneless timed
-// stamps get the city offset (they'd parse machine-local otherwise).
-function startMs(start) {
-  const s = String(start || '');
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return cityMidnightMs(s);
-  return Date.parse(withCityOffset(s));
-}
-
-// Epoch ms at which an event is FULLY ENDED. Date-only stamps (end if present,
-// else start) end at city end-of-day; a timed end is taken literally; a timed
-// start with no end gets a 3-hour assumed duration. NaN if unparseable.
-const ASSUMED_DURATION_MS = 3 * 3600 * 1000;
-function endedAtMs(e) {
-  const s = String(e.end || e.start || '');
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-    const [y, m, d] = s.split('-').map(Number);
-    const next = new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10);
-    return cityMidnightMs(next);
-  }
-  const t = Date.parse(withCityOffset(s));
-  if (isNaN(t)) return NaN;
-  return e.end ? t : t + ASSUMED_DURATION_MS;
 }
 
 // Venue tokens that say nothing about WHICH venue it is — stripped before the
@@ -736,28 +751,6 @@ function pickFirst(members, key) {
 // simpleview asset CDN, Eventbrite organizer uploads, library/gov hosts) >
 // anything else > *.allevents.in banners. A cluster with ANY non-allevents
 // image never ships the allevents one (rank 0 loses every comparison).
-const IMG_AGGREGATOR_HOST_RE = /(?:^|\.)allevents\.in$/i;
-// Stage E ship gate: visitstpeteclearwater.com hard-blocks hotlinking now
-// (403 + Cross-Origin-Resource-Policy: same-origin — dead in ANY browser, not
-// a headless artifact; the final path-trace caught 153 events shipping it).
-// A poster there is a broken promise: rank it BELOW no-image-at-all so a
-// cluster whose only artwork is VSPC ships imageless (the Aurora floor is the
-// honest floor). VSPC stays a first-class EVENT source — only its image CDN
-// is banned. (hcplc.libnet.info is NOT banned: 4 of its 93 posters 301→415,
-// the other 89 are healthy — the app-side hero/card fallbacks absorb those.)
-const IMG_DEAD_HOST_RE = /(?:^|\.)visitstpeteclearwater\.com$/i;
-const IMG_OFFICIAL_HOST_RE = /(?:^|\.)(?:simpleviewinc\.com|visittampabay\.com|evbuc\.com|eventbrite\.com|libnet\.info|ilovetheburg\.com|wmnf\.org|cltampa\.com)$|\.gov$/i;
-
-function imageRank(url) {
-  if (!url) return -1;
-  let host = '';
-  try { host = new URL(url).hostname.toLowerCase(); } catch { return 0; }
-  if (IMG_DEAD_HOST_RE.test(host)) return -1; // loses to null: never ships
-  if (IMG_AGGREGATOR_HOST_RE.test(host)) return 0;
-  if (IMG_OFFICIAL_HOST_RE.test(host)) return 2;
-  return 1;
-}
-
 // Highest-ranked image in the cluster; insertion order breaks ties (so the
 // pre-ranking behavior is preserved whenever no aggregator banner competes).
 function pickImage(members) {
@@ -765,7 +758,7 @@ function pickImage(members) {
   let bestRank = -1;
   for (const m of members) {
     if (m.image == null) continue;
-    const r = imageRank(m.image);
+    const r = imageHostRank(m.image);
     if (r > bestRank) { best = m.image; bestRank = r; }
   }
   return best;
@@ -789,19 +782,15 @@ function mergeCluster(members) {
   const saneTimed = starts.find((s) => { const h = startHourOf(s); return h !== null && h >= 6; });
   const dateOnly = starts.find((s) => startHourOf(s) === null);
   const anyTimed = starts.find((s) => startHourOf(s) !== null);
-  const start = saneTimed || dateOnly || anyTimed || starts[0] || null;
+  const preferredStart = saneTimed || dateOnly || anyTimed || starts[0] || null;
 
-  // End: keep the LATEST end among members (max endedAtMs — WS1 dedup 1d).
+  // End: keep the latest canonical end among members. If every explicit end
+  // is invalid, retain a deterministic raw value so final actionability
+  // rejects the row instead of laundering it into an assumed-duration event.
   // pickFirst let the first-listed member's same-day end CLIP a sibling's
   // published multi-day span (PAVA: City's "7/18 17:00" end beat VSPC's
   // 7/19, so the exhibit fold below could never see the 2-day run).
-  let end = null;
-  let endAt = -Infinity;
-  for (const m of members) {
-    if (m.end == null) continue;
-    const t = endedAtMs({ start: m.start, end: m.end });
-    if (!isNaN(t) && t > endAt) { endAt = t; end = m.end; }
-  }
+  const { start, end } = selectMergedInterval(members, CITY_TZ, preferredStart);
 
   let description = null;
   for (const m of members) {
@@ -828,6 +817,7 @@ function mergeCluster(members) {
   const sources = [...new Set(members.map((m) => m.source).filter(Boolean))];
   const families = [...new Set(sources.map(familyOf).filter(Boolean))];
 
+  const image = pickImage(members);
   return {
     title: pickFirst(members, 'title'),
     start,
@@ -840,10 +830,17 @@ function mergeCluster(members) {
     lat,
     lng,
     url: pickFirst(members, 'url'),
-    image: pickImage(members),
+    image,
     description,
+    descriptionLength: description == null ? null : pickFirst(members.filter((m) => m.description === description), 'descriptionLength'),
     source: sources[0] || null,   // primary source (v1 back-compat)
     sources,                      // every source that listed it (detailed names)
+    sourceFamily: familyOf(sources[0]) || null,
+    sourceFamilies: families,
+    organizer: pickFirst(members, 'organizer'),
+    status: mergeEventStatus(members),
+    rawCategories: normalizeRawCategories(...members.map((m) => m.rawCategories)),
+    imageRank: imageHostRank(image),
     buzz: families.length,        // cross-FAMILY consensus signal
     staffPick: members.some((m) => m.staffPick === true),
     promoted: members.some((m) => m.promoted === true),
@@ -955,7 +952,7 @@ function stemmedTokens(title) {
 // STAGE_D.md grafts). Zero v1 UI change. Design constraints, from the Stage D
 // identity forensics:
 //   • NEVER mint from source/sources[0] (429s flip live→cache fallback order
-//     run to run) or from array position (the emit array re-sorts by startMs).
+//     run to run) or from array position (the emit array re-sorts by start time).
 //   • Mint from the calendar DAY, not the timestamp — `start` legitimately
 //     flips date-only↔timed as better-clocked siblings appear, and the
 //     junk-hour strip rewrites it; the day survives all of that.
@@ -976,7 +973,7 @@ function stemmedTokens(title) {
 //   titleKey = NFD diacritic-fold → lowercase → strip [^a-z0-9\s] → split on
 //              whitespace → drop STOPWORDS → stemToken each → unique → SORT →
 //              join with single spaces
-//   startDay = dayOf(start) (the literal YYYY-MM-DD day; 'tbd' if unparseable)
+//   startDay = publishedDayOf(start) (literal published YYYY-MM-DD; otherwise 'tbd')
 //   venueKey = appended for EVERY member of a base-string collision (level 2)
 //   n        = 1-based counter appended when events ALSO share the venue key
 //              (level 3), ordered by the events' own facts (start·end·url·
@@ -999,7 +996,7 @@ function idTitleKey(title) {
 }
 
 export function eventIdCanonical(e, city) {
-  return `${ID_RECIPE_VERSION}|${city}|${idTitleKey(e.title)}|${dayOf(e.start) || 'tbd'}`;
+  return `${ID_RECIPE_VERSION}|${city}|${idTitleKey(e.title)}|${publishedDayOf(e.start) || 'tbd'}`;
 }
 
 const eventIdHash = (canonical) => createHash('sha256').update(canonical, 'utf8').digest('hex').slice(0, 16);
@@ -1087,10 +1084,11 @@ const EXHIBIT_TITLE_JACCARD = 0.6;
 export function dedupeOngoingOccurrences(events) {
   const ongoing = [];
   for (const e of events) {
-    const sd = dayOf(e.start);
-    const ed = dayOf(e.end);
-    if (!sd || !ed) continue;
-    const span = (startMs(ed) - startMs(sd)) / 86400e3 + 1; // inclusive days
+    const canonical = finderEventTime(e, { timeZone: CITY_TZ });
+    if (!canonical.ok) continue;
+    const sd = canonical.startDay;
+    const ed = canonical.endDay;
+    const span = calendarDistance(sd, ed) + 1; // inclusive calendar days
     if (span >= EXHIBIT_SPAN_MIN_DAYS && span <= EXHIBIT_SPAN_MAX_DAYS) {
       if (EXHIBIT_NEVER_RUN_RE.test(e.title || '')) continue;
       const fams = new Set((e.sources || []).map(familyOf).filter(Boolean));
@@ -1116,11 +1114,12 @@ export function dedupeOngoingOccurrences(events) {
   const drop = new Set();
   let folded = 0;
   for (const e of events) {
-    const day = dayOf(e.start);
+    const canonical = finderEventTime(e, { timeZone: CITY_TZ });
+    const day = canonical.ok ? canonical.startDay : null;
     // Single-day records only — no end, or an end on the SAME calendar day
     // (civic calendars publish "10:00–16:00" occurrence records; the end
     // being same-day doesn't make them less of an occurrence).
-    const endDay = e.end ? dayOf(e.end) : null;
+    const endDay = canonical.ok ? canonical.endDay : null;
     if (!day || (endDay && endDay !== day) || drop.has(e)) continue;
     for (const o of ongoing) {
       if (o.e === e || drop.has(o.e)) continue;
@@ -1183,7 +1182,7 @@ export function dedupeBareEchoes(events) {
     // one-day-early bug also echoes date-only described listings (Rays vs.
     // D-backs Jun 25 echoing VTB's described Jun 26).
     if (!e.description) continue;
-    const day = dayOf(e.start);
+    const day = cityDayOf(e.start);
     if (!day) continue;
     rich.push({ e, day, tokens: stemmedTokens(e.title), vTokens: venueMergeTokens(e.venue) });
   }
@@ -1193,14 +1192,14 @@ export function dedupeBareEchoes(events) {
   for (const e of events) {
     if (drop.has(e)) continue;
     if (/T\d/.test(String(e.start)) || e.description || (e.buzz || 1) > 1) continue; // bare echoes only
-    const day = dayOf(e.start);
+    const day = cityDayOf(e.start);
     if (!day) continue;
     const tokens = stemmedTokens(e.title);
     if (!tokens.size) continue;
     const vTokens = venueMergeTokens(e.venue);
     for (const r of rich) {
       if (r.e === e || drop.has(r.e)) continue;
-      if (Math.abs(startMs(r.day) - startMs(day)) !== 86400e3) continue; // exactly ±1 day
+      if (Math.abs(calendarDistance(r.day, day)) !== 1) continue; // exactly ±1 calendar day
       const [small, big] = tokens.size <= r.tokens.size ? [tokens, r.tokens] : [r.tokens, tokens];
       let inter = 0;
       for (const t of small) if (big.has(t)) inter++;
@@ -1259,10 +1258,11 @@ function mergeTitleOf(title, venue) {
 export function fuzzyMerge(all) {
   const byDay = new Map();
   for (const e of all) {
-    const day = dayOf(e.start) || 'tbd';
+    const day = cityDayOf(e.start) || 'tbd';
     if (!byDay.has(day)) byDay.set(day, []);
     const mergeTitle = mergeTitleOf(e.title, e.venue);
-    const endDay = dayOf(e.end);
+    const canonical = finderEventTime(e, { timeZone: CITY_TZ });
+    const endDay = canonical.ok ? canonical.endDay : null;
     byDay.get(day).push({
       ...e,
       tokens: titleTokens(mergeTitle),
@@ -1272,7 +1272,7 @@ export function fuzzyMerge(all) {
       vTokens: venueMergeTokens(e.venue),
       hr: startHourOf(e.start),
       // multi-calendar-day span flag for the sameEvent span guard
-      spans: !!(day !== 'tbd' && endDay && endDay > day),
+      spans: !!(canonical.ok && day !== 'tbd' && endDay > day),
     });
   }
   const merged = [];
@@ -1291,24 +1291,6 @@ export function fuzzyMerge(all) {
 // ===================== tags / score / category =====================
 
 const BIG_TICKET_RE = /rays|buccaneers|lightning|rowdies|amalie arena|raymond james|tropicana/i;
-
-// Dates of the current/upcoming weekend (Fri/Sat/Sun). If today IS the weekend,
-// it's this weekend; otherwise the next one. "Today" is the CITY's calendar
-// day; day arithmetic runs in UTC on that literal date (weekday-of-a-date is
-// timezone-free once the city day is fixed).
-function weekendDays(now) {
-  const [y, m, d] = localDayStr(now).split('-').map(Number);
-  const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay(); // 0=Sun .. 6=Sat
-  let toFri;
-  if (dow === 0) toFri = -2;        // Sunday → weekend started Friday
-  else if (dow === 6) toFri = -1;   // Saturday → started yesterday
-  else toFri = 5 - dow;             // Mon-Fri → this coming Friday (0 on Friday)
-  const days = new Set();
-  for (let i = 0; i < 3; i++) {
-    days.add(new Date(Date.UTC(y, m - 1, d + toFri + i)).toISOString().slice(0, 10));
-  }
-  return days;
-}
 
 // Venues that are music rooms — whatever is on at these is a music event.
 const MUSIC_VENUE_RE = /jannus live|orpheum|crowbar|the ritz|floridian social/i;
@@ -1526,7 +1508,7 @@ function detectRecurring(events) {
   for (const e of events) {
     const k = keyOf(e);
     if (!datesByKey.has(k)) datesByKey.set(k, new Set());
-    const day = dayOf(e.start);
+    const day = cityDayOf(e.start);
     if (day) datesByKey.get(k).add(day);
   }
   for (const e of events) {
@@ -1543,7 +1525,7 @@ const SOMBER_TITLE_RE = /\bmemorial(?!\s+day\b)|\bvigils?\b|\bfunerals?\b|\bcele
 
 function tagsFor(e, todayStr, weekend) {
   const tags = [];
-  const day = dayOf(e.start);
+  const day = cityDayOf(e.start);
   if (day === todayStr) tags.push('tonight');
   if (day && weekend.has(day)) tags.push('weekend');
   // Already started, still running (multi-day exhibitions etc. — the alive
@@ -1562,7 +1544,7 @@ function tagsFor(e, todayStr, weekend) {
 // actual headliner by 50 points. Their heat is capped, never their listing.
 const ANCILLARY_TITLE_RE = /\btailgreeter\b|\bevent parking\b|\bparking pass(?:es)?\b|\bshuttle service\b/i;
 
-function hotScore(e, tags, now, megaFams) {
+function hotScore(e, tags, nowMs, megaFams) {
   let score = 20;
   score += Math.min((e.buzz - 1) * 25, 50);
   if (tags.includes('staff-pick')) score += 15;
@@ -1574,7 +1556,7 @@ function hotScore(e, tags, now, megaFams) {
   const mega = e.buzz === 1 && megaFams && megaFams.has(fam);
   if (tags.includes('one-off') && !mega) score += 10;
   if (e.image) score += 8;
-  const diff = startMs(e.start) - now.getTime();
+  const diff = eventStartAt(e) - nowMs;
   if (!isNaN(diff)) {
     if (diff <= 48 * 3600e3) score += 10;
     else if (diff <= 7 * 86400e3) score += 5;
@@ -1593,7 +1575,7 @@ function fmtPrice(e) {
 // Day heading for a start value. Renders the LITERAL calendar day (weekday of
 // a date is timezone-free) — a bare "2026-06-13" must NOT drift to June 12.
 function fmtDateKey(iso) {
-  const day = dayOf(iso);
+  const day = cityDayOf(iso);
   if (!day) return 'Date TBD';
   const [y, m, d] = day.split('-').map(Number);
   return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', {
@@ -1872,15 +1854,27 @@ async function auditImages(events) {
   return results;
 }
 
+export { fallbackReasonForStage } from './event-source-contract.mjs';
+
 async function main() {
+  // One immutable epoch governs the complete run: admission, labels, scoring,
+  // source receipts, and the artifact freshness stamp cannot disagree.
+  const runEpoch = Date.now();
+  const generatedAt = new Date(runEpoch).toISOString();
+  const runContext = generationContext({ timeZone: CITY_TZ, nowMs: runEpoch });
+  const todayStr = runContext.today;
+  const weekend = new Set(runContext.weekendDays);
+
   console.log(`\n🔎 ${CITY_META.name} Event Finder — pulling real events from free sources...\n`);
   const all = [];
   const report = [];
   let onlineDropped = 0;
+  const requireLiveSources = process.env.REQUIRE_LIVE_SOURCES === '1';
 
   mkdirSync(CACHE, { recursive: true });
   for (const src of SOURCES) {
     const cacheFile = join(CACHE, slugify(src.name) + '.json');
+    let sourceStage = 'live-fetch';
     try {
       // Optional per-source politeness gap (manifest `waitMs`): the SF
       // manifest paces its Eventbrite pages — cold bursts from a fresh IP get
@@ -1888,10 +1882,17 @@ async function main() {
       // Tampa's manifest carries no waitMs, so its behavior is unchanged.
       if (src.waitMs) await sleep(src.waitMs);
       const html = await fetchHtml(src.url);
+      sourceStage = 'processing';
       const blocks = ldJsonBlocks(html);
       const nodes = [];
       for (const b of blocks) collectEvents(b, nodes);
       const withDates = nodes.map((n) => normalize(n, src.name)).filter((e) => e.title && e.start);
+      if (requireLiveSources && nodes.length === 0) {
+        throw new Error('live page contained no schema.org Event objects');
+      }
+      if (requireLiveSources && withDates.length === 0) {
+        throw new Error('live page contained no usable event rows');
+      }
       const events = withDates.filter((e) => !isOnlineOnly(e));
       onlineDropped += withDates.length - events.length;
       // Events from a "free" source query are free by definition (e.g. Eventbrite's
@@ -1899,28 +1900,46 @@ async function main() {
       if (src.free) for (const e of events) { e.isFree = true; e.price = 0; }
       // Stage D REFUTE F3 (same guard as the module path): an empty parse never
       // overwrites a non-empty last-good cache — fall back to it instead.
-      if (events.length === 0 && existsSync(cacheFile)) {
+      if (!requireLiveSources && events.length === 0 && existsSync(cacheFile)) {
         let cached = null;
         try { cached = JSON.parse(readFileSync(cacheFile, 'utf8')); } catch { /* corrupt — treat empty as real */ }
         if (Array.isArray(cached) && cached.length > 0) {
           all.push(...cached);
-          report.push({ source: src.name, found: cached.length, ok: false, cached: true });
+          report.push({ source: src.name, found: cached.length, ok: false, cached: true, fallbackReason: 'live-empty' });
           console.log(`  ⚠️  ${src.name.padEnd(26)} ${cached.length} events (cached — live returned 0, cache kept)`);
           continue;
         }
       }
       all.push(...events);
-      writeFileSync(cacheFile, JSON.stringify(events)); // remember last good pull
-      report.push({ source: src.name, found: events.length, ok: true });
+      try {
+        writeFileSync(cacheFile, JSON.stringify(events)); // remember last good pull
+      } catch (e) {
+        report.push({ source: src.name, found: events.length, ok: false, status: 'degraded', error: `cache write failed: ${e.message || e}` });
+        console.log(`  ⚠️  ${src.name.padEnd(26)} ${events.length} live events (cache write failed: ${e.message || e})`);
+        continue;
+      }
+      report.push({
+        source: src.name,
+        found: events.length,
+        ok: true,
+        ...(requireLiveSources ? { status: 'healthy' } : {}),
+      });
       console.log(`  ✅ ${src.name.padEnd(26)} ${events.length} events`);
     } catch (e) {
       // Live fetch failed — fall back to the last good pull so one outage
       // doesn't drop the whole source.
-      if (existsSync(cacheFile)) {
+      if (!requireLiveSources && existsSync(cacheFile)) {
         try {
           const cached = JSON.parse(readFileSync(cacheFile, 'utf8'));
           all.push(...cached);
-          report.push({ source: src.name, found: cached.length, ok: false, cached: true });
+          report.push({
+            source: src.name,
+            found: cached.length,
+            ok: false,
+            cached: true,
+            fallbackReason: fallbackReasonForStage(sourceStage),
+            error: String(e.message || e),
+          });
           console.log(`  ⚠️  ${src.name.padEnd(26)} ${cached.length} events (cached — live failed: ${e.message || e})`);
           continue;
         } catch {
@@ -1945,8 +1964,12 @@ async function main() {
       if (renderMod.city && renderMod.city !== cityId) {
         console.log(`  ⏭️  ${'Render sources'.padEnd(26)} skipped (render.mjs is ${renderMod.city}-only; CITY=${cityId})`);
       } else {
-        const rEvents = await renderMod.scrapeRenderSources();
-        const mapped = (Array.isArray(rEvents) ? rEvents : [])
+        const receipt = await renderMod.scrapeRenderSourcesWithReceipt({
+          nowMs: runEpoch,
+          force: requireLiveSources,
+          requireLive: requireLiveSources,
+        });
+        const mapped = (Array.isArray(receipt.events) ? receipt.events : [])
           .map(normalizeRenderEvent)
           .filter((e) => e && e.title && e.start);
         // Venue-conflict guard: ship NO location rather than a wrong one.
@@ -1958,96 +1981,63 @@ async function main() {
           }
         }
         all.push(...mapped);
-        renderOk = true;
-        report.push({ source: 'Render sources', found: mapped.length, ok: true });
-        console.log(`  ✅ ${'Render sources'.padEnd(26)} ${mapped.length} events`);
+        renderOk = mapped.length > 0;
+        if (receipt.acquisition === 'live' && mapped.length > 0) {
+          report.push({ source: 'Render sources', found: mapped.length, ok: true, status: 'healthy' });
+          console.log(`  ✅ ${'Render sources'.padEnd(26)} ${mapped.length} events (live)`);
+        } else if (receipt.acquisition === 'failed') {
+          report.push({
+            source: 'Render sources',
+            found: 0,
+            ok: false,
+            status: 'failed',
+            error: receipt.error || 'render acquisition failed',
+          });
+          console.log(`  ❌ ${'Render sources'.padEnd(26)} failed with no cache`);
+        } else {
+          report.push({
+            source: 'Render sources',
+            found: mapped.length,
+            ok: false,
+            status: 'degraded',
+            cached: true,
+            ...(receipt.acquisition === 'stale-cache' ? { fallbackReason: 'live-error' } : {}),
+            ...(receipt.error ? { error: receipt.error } : {}),
+          });
+          console.log(`  ⚠️  ${'Render sources'.padEnd(26)} ${mapped.length} events (${receipt.acquisition})`);
+        }
       }
     } else {
+      report.push({ source: 'Render sources', found: 0, ok: false, status: 'degraded', error: 'disabled by SKIP_RENDER=1' });
       console.log(`  ⏭️  ${'Render sources'.padEnd(26)} skipped (SKIP_RENDER=1)`);
     }
   } catch (e) {
+    report.push({ source: 'Render sources', found: 0, ok: false, error: String(e.message || e) });
     console.log(`  ⚠️  ${'Render sources'.padEnd(26)} unavailable (${e.message || e}) — continuing without them`);
   }
 
-  // Self-contained source modules (finder/sources/<cityId>/*.mjs). Each
+  // Configured source modules (finder/sources/<cityId>/*.mjs). Each
   // exports { name, fetchEvents } and gets the same per-source resilience as
   // the static sources: cache on success, fall back to cache, else skip.
   //
-  // PER-CITY DIRS (Stage D module-isolation hazard): source modules are CITY
-  // DATA, exactly like the sources manifest — a flat finder/sources/*.mjs
-  // auto-discovery ran Tampa's 12 modules for EVERY city, and since events
-  // are not bbox-dropped (out-of-box coords are nulled, events kept), an SF
-  // run would have shipped Tampa events labeled SF. The loader resolves ONLY
-  // finder/sources/<cityId>/; a missing/empty dir is zero modules, loudly
-  // logged ("_"-prefixed helpers like ../_shared.mjs stay at the parent level).
+  // Source files are retained independently from the active roster: dormant or
+  // out-of-contract adapters remain available for future reactivation but are
+  // never imported, cached, or represented as current source health.
   const moduleNames = [];
   if (process.env.SKIP_EXTRA !== '1') {
-    const srcDir = join(HERE, 'sources', cityId);
-    let files = [];
-    try {
-      // "_"-prefixed files are shared helpers, not sources.
-      files = readdirSync(srcDir).filter((f) => f.endsWith('.mjs') && !f.startsWith('_')).sort();
-    } catch {
-      // no per-city sources dir — nothing to load (warned below)
-    }
-    if (!files.length) {
-      console.warn(`  ⚠️  ${'Extra source modules'.padEnd(26)} NONE for city '${cityId}' (finder/sources/${cityId}/ missing or empty)`);
-    }
-    for (const file of files) {
-      const modBase = file.replace(/\.mjs$/, '');
-      const cacheFile = join(CACHE, modBase + '.json');
-      let label = modBase;
-      try {
-        const mod = await import(pathToFileURL(join(srcDir, file)).href);
-        label = mod.name || modBase;
-        if (typeof mod.fetchEvents !== 'function') throw new Error('module has no fetchEvents() export');
-        const raw = await mod.fetchEvents();
-        const mapped = (Array.isArray(raw) ? raw : [])
-          .map((r) => normalizeModuleEvent(r, label))
-          .filter((e) => e && e.title && e.start);
-        // Stage D REFUTE F3: a module that soft-swallows every page failure
-        // (meetup.mjs's per-page catch) returns [] AS IF it were a good pull —
-        // and the cache write below would ZERO the committed last-good cache.
-        // That bit warm runs AND any real full-block day (Meetup 429ing every
-        // page erased the very fallback the resilience layer exists for). An
-        // EMPTY result never overwrites a NON-EMPTY cache: fall back to the
-        // cached pull, exactly like a thrown failure. Self-limiting staleness:
-        // cached events carry real dates, so downstream ended-at-generation
-        // filtering decays a genuinely-dead source to zero on its own.
-        if (mapped.length === 0 && existsSync(cacheFile)) {
-          let cached = null;
-          try { cached = JSON.parse(readFileSync(cacheFile, 'utf8')); } catch { /* corrupt — treat empty as real */ }
-          if (Array.isArray(cached) && cached.length > 0) {
-            all.push(...cached);
-            moduleNames.push(label);
-            report.push({ source: label, found: cached.length, ok: false, cached: true });
-            console.log(`  ⚠️  ${label.padEnd(26)} ${cached.length} events (cached — live returned 0, cache kept)`);
-            continue;
-          }
-        }
-        all.push(...mapped);
-        writeFileSync(cacheFile, JSON.stringify(mapped)); // remember last good pull
-        moduleNames.push(label);
-        report.push({ source: label, found: mapped.length, ok: true });
-        console.log(`  ✅ ${label.padEnd(26)} ${mapped.length} events`);
-      } catch (e) {
-        if (existsSync(cacheFile)) {
-          try {
-            const cached = JSON.parse(readFileSync(cacheFile, 'utf8'));
-            all.push(...cached);
-            moduleNames.push(label);
-            report.push({ source: label, found: cached.length, ok: false, cached: true });
-            console.log(`  ⚠️  ${label.padEnd(26)} ${cached.length} events (cached — live failed: ${e.message || e})`);
-            continue;
-          } catch {
-            // corrupt cache — fall through to the skip warning
-          }
-        }
-        report.push({ source: label, found: 0, ok: false, error: String(e.message || e) });
-        console.warn(`  ❌ ${label.padEnd(26)} failed, no cache — skipped (${e.message || e})`);
-      }
-    }
+    const loaded = await loadEventSources({
+      moduleIds: eventSourceModules,
+      sourceDir: join(HERE, 'sources', cityId),
+      cacheDir: CACHE,
+      nowMs: runEpoch,
+      requireLive: requireLiveSources,
+      normalizeEvent: normalizeModuleEvent,
+    });
+    all.push(...loaded.events);
+    report.push(...loaded.report);
+    moduleNames.push(...loaded.moduleNames);
   } else {
+    report.push({ source: 'Extra source modules', found: 0, ok: false, status: 'degraded', error: 'disabled by SKIP_EXTRA=1' });
     console.log(`  ⏭️  ${'Extra source modules'.padEnd(26)} skipped (SKIP_EXTRA=1)`);
   }
 
@@ -2164,13 +2154,9 @@ async function main() {
   //  - a timed start with an explicit end ends exactly then;
   //  - a timed start with NO end gets a 3-hour assumed duration, so a show
   //    that started an hour ago isn't dropped mid-set.
-  const runEpoch = Date.now();
   events = events
-    .filter((e) => {
-      const d = endedAtMs(e);
-      return !isNaN(d) && d > runEpoch;
-    })
-    .sort((a, b) => startMs(a.start) - startMs(b.start));
+    .filter((e) => finderEventState(e, { timeZone: CITY_TZ, nowMs: runEpoch }).actionable)
+    .sort((a, b) => eventStartAt(a) - eventStartAt(b));
 
   // Coordinate sanity sweep: module/JSON-LD coords outside the Tampa Bay box
   // are junk — null them (geocoding may refill). A Creative Loafing event with
@@ -2269,9 +2255,6 @@ async function main() {
 
   // Recurring detection, then tags / hot score / category per event.
   detectRecurring(events);
-  const now = new Date();
-  const todayStr = localDayStr(now);
-  const weekend = weekendDays(now);
   // Mega families (one publisher > 300 records this run — today: Hillsborough
   // Libraries at ~780) lose the one-off heat bonus on uncorroborated records;
   // see hotScore.
@@ -2287,16 +2270,9 @@ async function main() {
     const category = categorize(e);
     // Output sanity: a 01:00–05:59 start on anything that isn't nightlife is
     // a publisher's junk placeholder time — keep the date, strip the time.
-    if (category !== 'nightlife') {
-      const h = startHourOf(e.start);
-      if (h !== null && h >= 1 && h <= 5) {
-        const day = dayOf(e.start);
-        if (day) {
-          e.start = day;
-          junkTimesStripped++;
-        }
-      }
-    }
+    const normalized = normalizeJunkHourRange(e, { category });
+    if (normalized.changed) junkTimesStripped++;
+    e = normalized.event;
     const tags = tagsFor(e, todayStr, weekend);
     return {
       // D-G2: filled by mintEventIds below (first key so the id leads every
@@ -2316,12 +2292,20 @@ async function main() {
       url: e.url,
       image: e.image,
       description: e.description,
+      descriptionLength: e.descriptionLength ?? null,
       source: e.source,
       sources: e.sources,
+      ...(e.sourceFamily ? { sourceFamily: e.sourceFamily } : {}),
+      sourceFamilies: e.sourceFamilies,
+      ...(e.organizer ? { organizer: e.organizer } : {}),
+      status: e.status,
+      rawCategories: Array.isArray(e.rawCategories) ? e.rawCategories : [],
+      imageRank: e.imageRank,
       buzz: e.buzz,
-      hotScore: hotScore(e, tags, now, megaFams),
+      hotScore: hotScore(e, tags, runEpoch, megaFams),
       tags,
       category,
+      recurring: e._recurring === true,
       // Paid promotion (e.g. Creative Loafing promoted strip). The UI renders
       // a "Sponsored" label off this; sponsored events get no staff-pick
       // bonus and no hidden-gem tag.
@@ -2330,6 +2314,17 @@ async function main() {
   });
   if (junkTimesStripped) {
     console.log(`  🕑 stripped ${junkTimesStripped} junk 01:00–05:59 start times (kept the date)`);
+  }
+
+  // The junk-hour repair above is the final time-field mutation. Reassert the
+  // same city-time predicate used at the merge boundary so later scoring and
+  // ID minting can never turn an invalid or ended interval into shipped data.
+  const postNormalizationDropped = events.filter((e) =>
+    !finderEventState(e, { timeZone: CITY_TZ, nowMs: runEpoch }).actionable);
+  if (postNormalizationDropped.length) {
+    console.log(`  🧹 dropped ${postNormalizationDropped.length} non-actionable event(s) after time normalization`);
+    const dropped = new Set(postNormalizationDropped);
+    events = events.filter((e) => !dropped.has(e));
   }
 
   // Hidden gems: a curated shelf, not a census. Qualify = single-family buzz,
@@ -2358,7 +2353,7 @@ async function main() {
       !SOMBER_TITLE_RE.test(e.title || '') &&
       !BIG_TICKET_RE.test(e.title || '') &&
       !NON_GEM_RE.test(e.title || ''))
-    .sort((a, b) => b.hotScore - a.hotScore || startMs(a.start) - startMs(b.start));
+    .sort((a, b) => b.hotScore - a.hotScore || eventStartAt(a) - eventStartAt(b));
   const gemFams = new Map();
   const gemTitles = new Set();
   const gemPicks = [];
@@ -2394,6 +2389,20 @@ async function main() {
   );
   for (const d of idReport.counterDetails) console.log(`      ↳ counter tiebreak: ${d}`);
 
+  // Emit the post-merge evidence only after stable occurrence IDs are minted.
+  // Canonical identity intentionally equals the existing occurrence id; the
+  // series hash remains separate and has no occurrence-time component.
+  for (const e of events) {
+    const state = finderEventState(e, { timeZone: CITY_TZ, nowMs: runEpoch });
+    e.actionability = state.actionable;
+    e.canonicalId = e.id;
+    e.recurrence = { kind: e.recurring === true ? 'recurring' : 'one-off' };
+    e.seriesId = e.recurring === true
+      ? recurringSeriesId({ cityId, title: e.title, organizer: e.organizer, sourceFamily: e.sourceFamily })
+      : null;
+    e.range = eventRangeMetadata(e);
+  }
+
   // Counts used by the summary, the markdown block, and the benchmarks.
   const count = (fn) => events.filter(fn).length;
   const counts = {
@@ -2407,8 +2416,11 @@ async function main() {
     sponsored: count((e) => e.sponsored === true),
   };
 
+  const runId = `events-${cityId}-${randomUUID()}`;
+  const sourceHealth = summarizeSourceHealth(report, { runId, checkedAt: generatedAt });
   mkdirSync(OUT, { recursive: true });
-  writeFileSync(join(OUT, 'events.json'), JSON.stringify(events, null, 2));
+  const previousManifest = invalidateManifest(OUT, { expectedCityId: cityId, expectedTimeZone: CITY_TZ });
+  atomicWriteFileSync(join(OUT, 'events.json'), `${JSON.stringify(events, null, 2)}\n`);
 
   // Human-readable markdown, grouped by display day. Ongoing events (started
   // in the past, still running) group under TODAY so stale month-old headings
@@ -2419,7 +2431,7 @@ async function main() {
   // City name from the active config — byte-identical for Tampa (meta.name
   // is 'Tampa Bay'), honest for every other city's artifact.
   let md = `# ${CITY_META.name} Events — found ${events.length} real events\n\n`;
-  md += `_Generated ${new Date().toLocaleString('en-US', { timeZone: CITY_TZ })} · sources: ${allSourceNames.join(', ')}${renderOk ? ' + render' : ''}_\n\n`;
+  md += `_Generated ${new Date(generatedAt).toLocaleString('en-US', { timeZone: CITY_TZ })} · sources: ${allSourceNames.join(', ')}${renderOk ? ' + render' : ''}_\n\n`;
   md += `## Summary\n\n`;
   md += `- Tonight: ${counts.tonight}\n`;
   md += `- This weekend: ${counts.weekend}\n`;
@@ -2430,7 +2442,7 @@ async function main() {
   md += `- Sponsored: ${counts.sponsored}\n`;
   const byDisplayDay = new Map();
   for (const e of events) {
-    let day = dayOf(e.start) || 'tbd';
+    let day = cityDayOf(e.start) || 'tbd';
     if (day !== 'tbd' && day < todayStr) day = todayStr; // clamp ongoing to today
     if (!byDisplayDay.has(day)) byDisplayDay.set(day, []);
     byDisplayDay.get(day).push(e);
@@ -2452,7 +2464,7 @@ async function main() {
       md += `- ${time ? `**${time}** — ` : ''}${e.title}${where} · _${fmtPrice(e)}_ · 🔥${e.hotScore} · buzz ${e.buzz}${sponsored}${ongoing} · (${e.source})${link}\n`;
     }
   }
-  writeFileSync(join(OUT, 'events.md'), md);
+  atomicWriteFileSync(join(OUT, 'events.md'), md);
 
   // D1: the finder never writes the app's copy directly — `npm run deploy-city`
   // (finder/deploy.mjs) is the ONE writer of app/public data artifacts.
@@ -2506,7 +2518,8 @@ async function main() {
   const NOISE_TITLE_RE = /procurement|RFQ|RFP|working group|evaluation meeting|regular meeting/i;
   const noiseCount = events.filter((e) => NOISE_TITLE_RE.test(e.title || '')).length;
   console.log(`    ${noiseCount === 0 ? '✅' : '❌'} gov-noise titles (procurement/RFQ/RFP/meetings): ${noiseCount} (need 0)`);
-  const endedCount = events.filter((e) => !(endedAtMs(e) > runEpoch)).length;
+  const endedCount = events.filter((e) =>
+    !finderEventState(e, { timeZone: CITY_TZ, nowMs: runEpoch }).actionable).length;
   console.log(`    ${endedCount === 0 ? '✅' : '❌'} fully-ended events in output: ${endedCount} (need 0)`);
   const libraryCount = events.filter((e) =>
     (e.sources || []).some((s) => /librar/i.test(String(s)))).length;
@@ -2550,6 +2563,16 @@ async function main() {
     }
   }
   console.log('──────────────────────────────────────────');
+  const manifest = writeManifest({
+    root: OUT,
+    cityId,
+    timeZone: CITY_TZ,
+    previousManifest,
+    componentReceipts: {
+      events: { generatedAt, runId, provenance: 'finder-run', sourceHealth },
+    },
+  });
+  console.log(`  Sealed: ${manifest.buildId}`);
   console.log(`  Wrote: finder/output/${cityId}/events.json  (structured)`);
   console.log(`  Wrote: finder/output/${cityId}/events.md    (readable)`);
   console.log('');

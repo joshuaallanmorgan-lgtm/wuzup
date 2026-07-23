@@ -1,0 +1,128 @@
+[
+  {
+    "schema": "wuzup-beta-research-session",
+    "schemaVersion": 1,
+    "sessionReceiptId": "r-00000000000000000000000000000001",
+    "cityId": "tampa-bay",
+    "manifestId": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "buildId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "durationMs": 600000,
+    "milestones": {
+      "credibleOptionMs": 60000,
+      "firstRetainedValueMs": 180000
+    },
+    "sourceLinkOutcome": "succeeded",
+    "counts": {
+      "emptySearches": 0,
+      "duplicateExposures": 0,
+      "corrections": 0
+    },
+    "returningUse": false,
+    "corePromise": "yes"
+  },
+  {
+    "schema": "wuzup-beta-research-session",
+    "schemaVersion": 1,
+    "sessionReceiptId": "r-00000000000000000000000000000002",
+    "cityId": "tampa-bay",
+    "manifestId": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "buildId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "durationMs": 720000,
+    "milestones": {
+      "credibleOptionMs": 120000,
+      "firstRetainedValueMs": 300000
+    },
+    "sourceLinkOutcome": "failed",
+    "counts": {
+      "emptySearches": 1,
+      "duplicateExposures": 1,
+      "corrections": 0
+    },
+    "returningUse": true,
+    "corePromise": "unclear"
+  },
+  {
+    "schema": "wuzup-beta-research-session",
+    "schemaVersion": 1,
+    "sessionReceiptId": "r-00000000000000000000000000000003",
+    "cityId": "tampa-bay",
+    "manifestId": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "buildId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "durationMs": 480000,
+    "milestones": {
+      "credibleOptionMs": 90000,
+      "firstRetainedValueMs": null
+    },
+    "sourceLinkOutcome": "not-attempted",
+    "counts": {
+      "emptySearches": 0,
+      "duplicateExposures": 0,
+      "corrections": 1
+    },
+    "returningUse": true,
+    "corePromise": "no"
+  },
+  {
+    "schema": "wuzup-beta-research-session",
+    "schemaVersion": 1,
+    "sessionReceiptId": "r-00000000000000000000000000000004",
+    "cityId": "sf-east-bay",
+    "manifestId": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "buildId": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "durationMs": 540000,
+    "milestones": {
+      "credibleOptionMs": 45000,
+      "firstRetainedValueMs": 150000
+    },
+    "sourceLinkOutcome": "succeeded",
+    "counts": {
+      "emptySearches": 0,
+      "duplicateExposures": 0,
+      "corrections": 0
+    },
+    "returningUse": false,
+    "corePromise": "yes"
+  },
+  {
+    "schema": "wuzup-beta-research-session",
+    "schemaVersion": 1,
+    "sessionReceiptId": "r-00000000000000000000000000000005",
+    "cityId": "sf-east-bay",
+    "manifestId": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "buildId": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "durationMs": 660000,
+    "milestones": {
+      "credibleOptionMs": null,
+      "firstRetainedValueMs": null
+    },
+    "sourceLinkOutcome": "not-attempted",
+    "counts": {
+      "emptySearches": 2,
+      "duplicateExposures": 0,
+      "corrections": 0
+    },
+    "returningUse": false,
+    "corePromise": "no"
+  },
+  {
+    "schema": "wuzup-beta-research-session",
+    "schemaVersion": 1,
+    "sessionReceiptId": "r-00000000000000000000000000000006",
+    "cityId": "sf-east-bay",
+    "manifestId": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "buildId": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "durationMs": 780000,
+    "milestones": {
+      "credibleOptionMs": 180000,
+      "firstRetainedValueMs": 420000
+    },
+    "sourceLinkOutcome": "succeeded",
+    "counts": {
+      "emptySearches": 0,
+      "duplicateExposures": 1,
+      "corrections": 0
+    },
+    "returningUse": true,
+    "corePromise": "unclear"
+  }
+]

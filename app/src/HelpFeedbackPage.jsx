@@ -1,55 +1,50 @@
-// HelpFeedbackPage — the Help & feedback row's destination (PROFILE_PHASE2 #5;
-// replaces the inert "Coming soon" stub). A warm intro + a CSS hero placeholder
-// (no image asset) + rows that each open a real mailto: draft — honest actions,
-// not fake UI. Back via closePage → the Profile tab.
 import { Icon } from './lib.js'
 import { useNav } from './nav.jsx'
+import { useCorrections } from './corrections.js'
 import './profile.css'
 
-const SUPPORT = 'hello@wuzup.app' // placeholder support inbox (⚑ real address TBD)
-const ROWS = [
-  { label: 'FAQ', desc: 'Find answers to common questions', subject: 'Question about Wuzup' },
-  { label: 'Contact support', desc: 'Get help from our team', subject: 'Support request' },
-  { label: 'Report a problem', desc: 'Tell us what went wrong', subject: 'Bug report' },
-  { label: 'Suggest a feature', desc: 'Share your ideas with us', subject: 'Feature idea' },
-  { label: 'Give feedback', desc: 'Share your thoughts', subject: 'Feedback' },
-]
+function downloadJson(value, name) {
+  const blob = new Blob([JSON.stringify(value, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = name
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
 
 export default function HelpFeedbackPage() {
   const { closePage: onClose } = useNav()
+  const { corrections, durability, export: exportReceipt, status } = useCorrections()
+  const exportCorrections = () => downloadJson(exportReceipt(), 'wuzup-correction-receipts.json')
   return (
     <div className="pg">
       <header className="pg-head">
-        <button className="pg-back" onClick={onClose} aria-label="Back">
-          <Icon.chevron />
-        </button>
+        <button className="pg-back" onClick={onClose} aria-label="Back"><Icon.chevron /></button>
         <h1 className="pg-head-title">Help &amp; Feedback</h1>
       </header>
       <div className="pg-body">
-        <div className="hf-hero" aria-hidden>
-          {/* WS3 §9: the engineered stroke heart as an accent MARK (sanctioned
-              fills/marks use), not the ❤️ emoji — --hot stays reserved for
-              save-hearts/heat per the token ledger */}
-          <div className="hf-hero-title">We love hearing from you <Icon.heart className="hf-heart" aria-hidden /></div>
-          <div className="hf-hero-sub">Your feedback helps us build the best days.</div>
+        <div className="hf-hero">
+          <div className="hf-hero-title">Help improve local listings</div>
+          <div className="hf-hero-sub">Open an event or spot and choose Suggest a correction. Wuzup records the item ID, source, issue, and time.</div>
         </div>
-        <div className="pf-menu hf-menu">
-          {ROWS.map((r) => (
-            <a
-              key={r.label}
-              className="pf-row hf-row"
-              href={'mailto:' + SUPPORT + '?subject=' + encodeURIComponent(r.subject)}
-            >
-              <span className="pf-row-text">
-                <span className="pf-row-label">{r.label}</span>
-                <span className="pf-row-desc">{r.desc}</span>
-              </span>
-              <span className="pf-row-go" aria-hidden>
-                <Icon.chevron />
-              </span>
-            </a>
-          ))}
-        </div>
+        <section className="pf-id-card">
+          <h2 className="pf-row-label">Correction receipts</h2>
+          {status === 'corrupt' ? (
+            <p role="alert">Stored correction receipts could not be read safely. New reports are paused so nothing gets overwritten.</p>
+          ) : (
+            <>
+              <p>{corrections.length} receipt{corrections.length === 1 ? '' : 's'} on this device.</p>
+              {durability === 'session-only' && <p role="status">Browser storage is unavailable; current receipts last only for this visit.</p>}
+              <button className="empty-cta" type="button" disabled={corrections.length === 0} onClick={exportCorrections}>
+                Export correction receipts
+              </button>
+              <p className="ep-optional">Exporting creates a JSON file you can choose to share. Receipts are not automatically sent or monitored.</p>
+            </>
+          )}
+        </section>
       </div>
     </div>
   )

@@ -167,6 +167,18 @@
   --sp-sm: 12px;
   --sp-md: 16px;
   --sp-lg: 24px;
+  /* Wuzup is intentionally a mobile app. Keep one shared phone-shell ceiling
+     so the root, overlays, details, and sheets remain aligned when centered on
+     larger screens without scattering literal 460px boundaries. */
+  --canvas-max: 460px;
+  --reading-max: 460px;
+  --detail-max: 460px;
+  --sheet-max: 460px;
+  --toast-max: 360px;
+  /* One keyboard-focus grammar across every native and ARIA control. The
+     saturated clay clears 3:1 against both the warm canvas and white cards;
+     dark mode swaps to the light brand gold below. */
+  --focus-ring: #7a3108;
   /* PREMIUM A1 (spacing#2): the ONE body gutter. Sections already sit at 20px;
      this names it so the page edge never silently flips 20→16 mid-scroll. */
   --gutter: 20px;
@@ -267,6 +279,7 @@
     --chip-border: rgba(245, 239, 231, 0.09);
     --free-ink: #45cf94; /* sage text — 8.39:1 on --card, 7.17:1 on the 12% sage tint */
     --danger: #ff8273; /* warm error red — 7.43:1 on --bg, 6.87:1 on --card */
+    --focus-ring: #ffd19d;
     --prose: #d6ccc0; /* body prose, softer than ink — 11.34:1 bg, 10.48:1 card */
     --img-ph: #2a2119; /* imgbox placeholder: photos settle up from warm dark, no light flash */
     --ink-rgb: 245, 239, 231; /* ink-derived tints/glass invert with the ink */
@@ -292,6 +305,38 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 
+/* Sprint 10 interaction grammar: browser-native focus discovery remains
+   visible even when a component removes its default input outline. Component
+   variants may change geometry, but never erase the shared high-contrast ring. */
+:is(
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  summary,
+  [role='button'],
+  [role='switch'],
+  [role='tab'],
+  [role='radio'],
+  [role='option'],
+  [tabindex]:not([tabindex='-1'])
+):focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+/* Individual surfaces already prune ornamental motion. This final safety net
+   covers any new transition/animation until it adopts the same contract. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 body {
   background: #1b1712; /* warm dark — the desktop frame surround (Sunlit Coastal Pop 3.71, was #16181d) */
   color: var(--ink);
@@ -301,10 +346,10 @@ body {
   line-height: 1.6;
 }
 
-/* phone-sized frame centered on desktop */
+/* Intentional phone-sized app frame, centered on larger screens. */
 #root {
   width: 100%;
-  max-width: 460px;
+  max-width: var(--canvas-max);
   margin: 0 auto;
   min-height: 100svh;
   /* Sunlit Coastal Pop (3.71): the cream canvas wears a subliminal paper grain —
@@ -315,6 +360,14 @@ body {
   position: relative;
   box-shadow: 0 0 60px rgba(26, 20, 16, 0.42);
   overflow: hidden;
+}
+
+/* Small phones trade ornamental whitespace for readable card bodies. */
+@media (max-width: 359px) {
+  :root {
+    --gutter: 14px;
+    --card-row-h: 150px;
+  }
 }
 
 /* Stage E dark: the desktop surround drops BELOW the canvas (both were #1b1712-

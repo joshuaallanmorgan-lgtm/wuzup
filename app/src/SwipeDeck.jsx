@@ -111,6 +111,7 @@ export default function SwipeDeck({
   const cardRef = useRef(null) // the live top card element (drag transform target)
   const dragRef = useRef(null) // { id, x0, y0, dx, dy, samples } during a pointer drag
   const springRef = useRef(null) // { raf, x, y } while the snap-back spring drives the top card
+  const commitPendingRef = useRef(false) // async verdicts serialize before the deck advances
   // WS2 #5: deal-in — the product language is all "deal", so the stack DEALS
   // instead of appearing fully-formed. One-shot per mount; Calibration
   // re-deals remount SwipeDeck via key, so mount AND re-deal both play it.
@@ -159,18 +160,31 @@ export default function SwipeDeck({
     el.style.setProperty('--keep', String(Math.min(Math.max(-dy / SWIPE_Y, 0), 1)))
   }
 
-  const commit = (dir, { dx = 0, dy = 0, speed = 0, rotF = ROT_FACTOR, origin } = {}) => {
+  const commit = async (dir, { dx = 0, dy = 0, speed = 0, rotF = ROT_FACTOR, origin } = {}) => {
     const card = cards[idx]
-    if (!card) return
+    if (!card || commitPendingRef.current) return
+    commitPendingRef.current = true
     // multi-touch corner: a button-commit mid-drag would advance the deck and
     // let the in-flight pointer's release land a stale-travel verdict on the
     // NEW top card — kill any live drag before this verdict takes effect
     dragRef.current = null
     clearDragStyles()
     // the ONE verdict callback per card — signals live with the consumer
-    if (dir === 'left') onLeft && onLeft(card)
-    else if (dir === 'right') onRight && onRight(card)
-    else if (onUp) onUp(card)
+    let accepted
+    try {
+      if (dir === 'left') accepted = onLeft ? await onLeft(card) : undefined
+      else if (dir === 'right') accepted = onRight ? await onRight(card) : undefined
+      else accepted = onUp ? await onUp(card) : undefined
+    } catch {
+      commitPendingRef.current = false
+      return
+    }
+    // An async consumer can reject a verdict when its durable action did not
+    // apply. Keep the same card in place instead of showing a false success.
+    if (accepted === false) {
+      commitPendingRef.current = false
+      return
+    }
     // WS2 #3: the flight inherits release momentum — a hard flick flies out
     // faster (flightMs clamps [240,400]), and the end pose continues the
     // release line (px-clamped so a wild drag can't overshoot the surface).
@@ -197,6 +211,7 @@ export default function SwipeDeck({
       if (reduced) onDone && onDone()
       else doneTRef.current = setTimeout(() => onDone && onDone(), 420) // let the last card finish flying (flights clamp ≤ 400)
     }
+    commitPendingRef.current = false
   }
   // 'peek' up: the callback fires but the card stays put (springs back) — no
   // exit clone, no advance, no done check. Opening a detail must not be a verdict.
