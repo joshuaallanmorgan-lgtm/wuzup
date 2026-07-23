@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "generatedAt": "2026-07-15T12:00:00.000Z",
-  "indexId": "sha256:0349dd30449018204870b84db90c674258c852c9da4d6f90723aeb07e208a1ca",
+  "indexId": "sha256:c330dd1d1371dcc18f527076e5cfd2fcdf471b6f76fc9ec0213f06413107354c",
   "defaultCityId": "tampa-bay",
   "cities": [
     {
@@ -27,7 +27,7 @@
         "tpa"
       ],
       "artifactPack": {
-        "manifestUrl": "/cities/tampa-bay/artifact-manifest.json",
+        "manifestUrl": "/cities/tampa-bay/releases/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/artifact-manifest.json",
         "manifestId": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "buildId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "generatedAt": "2026-07-15T08:00:00.000Z",
@@ -41,20 +41,23 @@
         "shards": [
           {
             "kind": "events",
-            "url": "/cities/tampa-bay/events.json",
+            "url": "/cities/tampa-bay/releases/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/events.json",
             "sha256": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "bytes": 12000,
             "count": 120
           },
           {
             "kind": "places",
-            "url": "/cities/tampa-bay/places.json",
+            "url": "/cities/tampa-bay/releases/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/places.json",
             "sha256": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "bytes": 8000,
             "count": 80
           },
           {
             "kind": "guides",
-            "url": "/cities/tampa-bay/guides.json",
+            "url": "/cities/tampa-bay/releases/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/guides.json",
             "sha256": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "bytes": 400,
             "count": 4
           }
         ]
@@ -84,7 +87,7 @@
         "east-bay"
       ],
       "artifactPack": {
-        "manifestUrl": "/cities/sf-east-bay/artifact-manifest.json",
+        "manifestUrl": "/cities/sf-east-bay/releases/1111111111111111111111111111111111111111111111111111111111111111/artifact-manifest.json",
         "manifestId": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "buildId": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "generatedAt": "2026-07-15T09:00:00.000Z",
@@ -98,20 +101,23 @@
         "shards": [
           {
             "kind": "events",
-            "url": "/cities/sf-east-bay/events.json",
+            "url": "/cities/sf-east-bay/releases/1111111111111111111111111111111111111111111111111111111111111111/events.json",
             "sha256": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+            "bytes": 9000,
             "count": 90
           },
           {
             "kind": "places",
-            "url": "/cities/sf-east-bay/places.json",
+            "url": "/cities/sf-east-bay/releases/1111111111111111111111111111111111111111111111111111111111111111/places.json",
             "sha256": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "bytes": 6000,
             "count": 60
           },
           {
             "kind": "guides",
-            "url": "/cities/sf-east-bay/guides.json",
+            "url": "/cities/sf-east-bay/releases/1111111111111111111111111111111111111111111111111111111111111111/guides.json",
             "sha256": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+            "bytes": 300,
             "count": 3
           }
         ]

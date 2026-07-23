@@ -1,6 +1,6 @@
 # Wuzup V2 - active sprint map
 
-> **Status:** Sprint 11 engineering checkpoint green locally/remotely; production beta blocked; Sprint 12 decision-system preparation active — 2026-07-22
+> **Status:** Sprint 12 engineering gates green locally/remotely; production beta blocked; Sprint 13 dark City Foundry foundation active — 2026-07-22
 >
 > **Authority:** subordinate to [V2_PLAN.md](V2_PLAN.md). This file translates the current scope and
 > dependency queue into delivery cycles; it does not admit features that the plan parks in V3.
@@ -1666,6 +1666,48 @@ Committed scope:
 
 **Exit gate:** every pilot market either meets its ratified launch gate or renders an honest limited state;
 there is no cross-city contamination, bespoke app code, policy breach, or unbounded owner-ops requirement.
+
+#### Sprint 13-A dark City Foundry foundation receipt -- 2026-07-22 (engineering green; runtime/operation blocked)
+
+- **The index now has one browser-safe, fail-closed contract:** canonicalization, exact/bounded schemas, deterministic
+  resolution, and load planning live in `shared/cities-index-core.mjs`; the existing Node module remains a compatible
+  hashing facade. Descriptor-safe validation creates one detached, deeply frozen snapshot for hashing and use. Every
+  pack binds byte-counted event/place/guide shards to one manifest-ID release path and one product root. Duplicate
+  city parameters, conflicting query/path signals, overlapping coordinate matches, augmented arrays, stateful
+  accessors, non-primitive digests, traversal, and count/path drift reject rather than selecting a convenient city.
+- **A scratch-only composer proves the current two-city tree shape without publishing it:**
+  `finder/build-cities-tree.mjs` verifies the checked-in Tampa/SF artifact sets, copies JSON and manifest-bound image
+  members into immutable release directories, verifies the copies, and emits a complete member receipt. It builds in
+  an unpredictable same-parent staging directory under an exclusive sibling publication claim, writes and revalidates
+  the global index last there, then renames once to an absent final destination. BigInt root/claim identity, exclusive
+  copies, single-link regular-file rules, exact byte expectations, bounded streaming tree enumeration/cleanup,
+  hidden-member rejection, and post-callback/post-commit rechecks prevent cooperating builders from clobbering,
+  forcing unbounded verification reads, or returning false receipts; post-commit errors never delete the complete
+  final tree. It never writes `app/public`, finder outputs, workflows, or production.
+- **The browser loader requires authority from outside downloaded data:** `createCityArtifactLoader` requires an
+  owner/build-pinned `expectedIndexId`, derives exact product-root-aware URLs (including `/wuzup/`), refuses expired
+  or failed packs before manifest access, and rechecks expiry after the manifest and around every lazy fetch/cache
+  return. It verifies manifest/build/shard identity and byte contracts and leaves all shards lazy. Redirects,
+  credential/referrer leakage, cross-city URLs, digest/UTF-8/JSON/schema drift, lying or absent lengths, oversized
+  streams, hung fetch/body readers, stale cached rows, and late superseded sessions fail closed.
+- **Images are packed but browser authorization remains closed:** manifest-bound place-image directories are composed
+  per city and included in the complete receipt. Because the current manifest binds only the aggregate directory, the
+  browser loader exposes no image/asset URL capability. Member-level index pinning and verified bounded delivery are
+  required before the Foundry can serve those bytes.
+- **The real input is represented honestly:** both checked-in city sets verify for integrity but are expired with
+  unknown source health on the Sprint 13 evaluation date. The composed dark index preserves those facts and both
+  current-date load plans refuse. This is a safer loading mechanism, not a freshness or launch claim.
+- **Focused engineering verification is green:** `npm run test:s13` passes 84 tests with one expected Windows
+  symlink-capability skip. The gate covers the Node/browser contract split, real two-city composition, all-member
+  receipts, immutable-path and interruption rules, callback hard-link and oversized-member swaps, bounded source
+  topology, loader pinning and transport bounds, lazy shard verification, cross-city asset isolation, and an actual
+  Vite browser bundle. Composer tests use one isolated verified snapshot so concurrent finder activity cannot create
+  nondeterministic metadata races while the production composer itself remains fail-closed. The final `npm test`
+  release gate also passes its 932-test serial core plus every Sprint 9-13 pretest, finder/build, lint, Tampa/SF,
+  and `/wuzup/` base-path check.
+- **No Sprint 13 exit gate advances yet:** no React/runtime integration, Coverage Card, refreshed flagship data,
+  hosting/source-policy ratification, frozen diverse-market cohort, private market build, or manifest-last production
+  publisher exists. Sprint 11/12 operation and owner decisions remain prerequisites for public expansion.
 
 ### Sprint 14 - Public 5-10-market pilot, cycle one
 
